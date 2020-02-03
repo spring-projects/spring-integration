@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
@@ -55,7 +55,7 @@ public class MongoDbOutboundGatewayParserTests {
 	private ApplicationContext context;
 
 	@Autowired
-	private MongoDbFactory mongoDbFactory;
+	private MongoDatabaseFactory mongoDbFactory;
 
 	@Autowired
 	private MongoConverter mongoConverter;

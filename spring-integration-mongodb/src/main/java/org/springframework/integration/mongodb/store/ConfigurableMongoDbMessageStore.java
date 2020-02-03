@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -68,19 +68,19 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		super(mongoTemplate, collectionName);
 	}
 
-	public ConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory) {
+	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory) {
 		this(mongoDbFactory, null, DEFAULT_COLLECTION_NAME);
 	}
 
-	public ConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter) {
+	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter) {
 		this(mongoDbFactory, mappingMongoConverter, DEFAULT_COLLECTION_NAME);
 	}
 
-	public ConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
+	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName) {
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public ConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
+	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
 			String collectionName) {
 
 		super(mongoDbFactory, mappingMongoConverter, collectionName);

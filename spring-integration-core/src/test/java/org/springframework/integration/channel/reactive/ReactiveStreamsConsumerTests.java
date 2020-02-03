@@ -18,6 +18,7 @@ package org.springframework.integration.channel.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
@@ -181,7 +182,9 @@ public class ReactiveStreamsConsumerTests {
 		BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
 
 		willAnswer(i -> {
-			messages.put(i.getArgument(0));
+			Message<?> message = i.getArgument(0);
+			LOGGER.debug("Polled message: " + message);
+			messages.put(message);
 			return null;
 		})
 				.given(testSubscriber)
@@ -219,6 +222,8 @@ public class ReactiveStreamsConsumerTests {
 		Message<?> testMessage2 = new GenericMessage<>("test2");
 
 		testChannel.send(testMessage2);
+
+		await().untilAsserted(() -> assertThat(messages).hasSizeGreaterThan(0));
 
 		LOGGER.debug("Messages to poll: " + messages);
 

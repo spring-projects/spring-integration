@@ -47,8 +47,8 @@ ext {
 	apacheSshdVersion = '2.3.0'
 	avroVersion = '1.9.1'
 	aspectjVersion = '1.9.5'
-	assertjVersion = '3.14.0'
-	assertkVersion = '0.20'
+	assertjVersion = '3.15.0'
+	assertkVersion = '0.21'
 	awaitilityVersion = '4.0.2'
 	commonsDbcp2Version = '2.7.0'
 	commonsIoVersion = '2.6'
@@ -59,11 +59,11 @@ ext {
 	googleJsr305Version = '3.0.2'
 	groovyVersion = '2.5.9'
 	hamcrestVersion = '2.2'
-	hazelcastVersion = '3.12.5'
+	hazelcastVersion = '3.12.6'
 	hibernateVersion = '5.4.10.Final'
 	hsqldbVersion = '2.5.0'
 	h2Version = '1.4.200'
-	jacksonVersion = '2.10.1'
+	jacksonVersion = '2.10.2'
 	javaxActivationVersion = '1.2.0'
 	javaxMailVersion = '1.6.2'
 	jmsApiVersion = '2.0.1'
@@ -73,15 +73,15 @@ ext {
 	jschVersion = '0.1.55'
 	jsonpathVersion = '2.4.0'
 	junit4Version = '4.13'
-	junitJupiterVersion = '5.5.2'
+	junitJupiterVersion = '5.6.0'
 	jythonVersion = '2.7.0'
 	kryoShadedVersion = '4.0.2'
 	lettuceVersion = '5.2.1.RELEASE'
 	log4jVersion = '2.13.0'
 	micrometerVersion = '1.3.3'
 	mockitoVersion = '3.2.4'
-	mongoDriverVersion = '1.13.0'
-	mysqlVersion = '8.0.18'
+	mongoDriverVersion = '4.0.0-beta1'
+	mysqlVersion = '8.0.19'
 	pahoMqttClientVersion = '1.2.0'
 	postgresVersion = '42.2.9'
 	reactorVersion = 'Dysprosium-SR4'
@@ -91,8 +91,8 @@ ext {
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.3.RELEASE'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-M2'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.3.0.M1'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-BUILD-SNAPSHOT'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.3.0.BUILD-SNAPSHOT'
 	springRetryVersion = '1.2.5.RELEASE'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.3.RELEASE'
 	springWsVersion = '3.0.8.RELEASE'
@@ -313,7 +313,7 @@ configure(javaProjects) { subproject ->
 
 	checkstyle {
 		configFile = file("$rootDir/src/checkstyle/checkstyle.xml")
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.28'
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.29'
 	}
 
 	jar {
@@ -592,6 +592,7 @@ project('spring-integration-mongodb') {
 		api ('org.springframework.data:spring-data-mongodb') {
 			exclude group: 'org.springframework'
 		}
+		optionalApi "org.mongodb:mongodb-driver-sync:$mongoDriverVersion"
 		optionalApi "org.mongodb:mongodb-driver-reactivestreams:$mongoDriverVersion"
 	}
 }

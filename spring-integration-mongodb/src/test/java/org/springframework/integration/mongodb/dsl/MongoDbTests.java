@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -345,7 +345,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		}
 
 		@Bean
-		public MongoDbFactory mongoDbFactory() {
+		public MongoDatabaseFactory mongoDbFactory() {
 			return MONGO_DATABASE_FACTORY;
 		}
 

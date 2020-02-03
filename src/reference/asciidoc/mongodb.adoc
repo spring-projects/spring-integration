@@ -39,68 +39,60 @@ To enable reactive support, add the MongoDB reactive streams driver to your depe
 <dependency>
     <groupId>org.mongodb</groupId>
     <artifactId>mongodb-driver-reactivestreams</artifactId>
-    <version>1.12.0</version>
   </dependency>
 ----
 
 .Gradle
 [source, groovy, subs="normal"]
 ----
-compile "org.mongodb:mongodb-driver-reactivestreams:1.12.0"
+compile "org.mongodb:mongodb-driver-reactivestreams"
 ----
+
+For regular synchronous client you need to add its respective driver into dependencies:
+
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.mongodb</groupId>
+    <artifactId>mongodb-driver-sync</artifactId>
+  </dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.mongodb:mongodb-driver-sync"
+----
+
+Both of them are `optional` in the framework for better end-user choice support.
 
 To begin interacting with MongoDB, you first need to connect to it.
 Spring Integration builds on the support provided by another Spring project, https://projects.spring.io/spring-data-mongodb/[Spring Data MongoDB].
-It provides factory classes called `MongoDbFactory` and `ReactiveMongoDatabaseFactory`, which simplify integration with the MongoDB Client API.
+It provides factory classes called `MongoDatabaseFactory` and `ReactiveMongoDatabaseFactory`, which simplify integration with the MongoDB Client API.
 
 TIP: Spring Data provides provides the blocking MongoDB driver by default but you may opt-in for reactive usage by including the above dependency.
 
-==== Using `MongoDbFactory`
+==== Using `MongoDatabaseFactory`
 
-To connect to MongoDB you can use an implementation of the `MongoDbFactory` interface.
-The following listing shows the `MongoDbFactory` interface:
+To connect to MongoDB you can use an implementation of the `MongoDatabaseFactory` interface.
 
-====
-[source,java]
-----
-public interface MongoDbFactory {
-
-    /**
-     * Creates a default {@link DB} instance.
-     *
-     * @return the DB instance
-     * @throws DataAccessException
-     */
-    DB getDb() throws DataAccessException;
-
-    /**
-     * Creates a {@link DB} instance to access the database with the given name.
-     *
-     * @param dbName must not be {@literal null} or empty.
-     *
-     * @return the DB instance
-     * @throws DataAccessException
-     */
-    DB getDb(String dbName) throws DataAccessException;
-}
-----
-====
-
-The following example shows how to use `SimpleMongoDbFactory`, the out-of-the-box implementation, in Java:
+The following example shows how to use `SimpleMongoClientDatabaseFactory`, the out-of-the-box implementation, in Java:
 
 ====
 [source,java]
 ----
-MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(com.mongodb.client.MongoClients.create(), "test");
+MongoDatabaseFactory mongoDbFactory =
+        new SimpleMongoClientDatabaseFactory(com.mongodb.client.MongoClients.create(), "test");
 ----
 ====
 
-The following example shows how to use `SimpleMongoDbFactory` in XML configuration:
+The following example shows how to use `SimpleMongoClientDatabaseFactory` in XML configuration:
 
 ====
 [source,xml]
 ----
-<bean id="mongoDbFactory" class="o.s.data.mongodb.core.SimpleMongoDbFactory">
+<bean id="mongoDbFactory" class="o.s.data.mongodb.core.SimpleMongoClientDatabaseFactory">
     <constructor-arg>
         <bean class="com.mongodb.client.MongoClients" factory-method="create"/>
     </constructor-arg>
@@ -109,7 +101,7 @@ The following example shows how to use `SimpleMongoDbFactory` in XML configurati
 ----
 ====
 
-`SimpleMongoDbFactory` takes two arguments: a `Mongo` instance and a `String` that specifies the name of the database.
+`SimpleMongoClientDatabaseFactory` takes two arguments: a `MongoClient` instance and a `String` that specifies the name of the database.
 If you need to configure properties such as `host`, `port`, and others, you can pass those by using one of the constructors provided by the underlying `MongoClients` class.
 For more information on how to configure MongoDB, see the https://docs.spring.io/spring-data/data-mongo/docs/current/reference/html/[Spring-Data-MongoDB] reference.
 

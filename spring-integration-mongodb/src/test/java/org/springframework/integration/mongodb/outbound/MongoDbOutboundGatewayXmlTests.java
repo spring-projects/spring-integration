@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
@@ -55,7 +55,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 	@Before
 	public void setUp() {
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory);
 
 		mongoTemplate.save(this.createPerson("Artem"), COLLECTION_NAME);
@@ -66,7 +66,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 	@After
 	public void cleanUp() {
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory);
 
 		mongoTemplate.dropCollection(COLLECTION_NAME);

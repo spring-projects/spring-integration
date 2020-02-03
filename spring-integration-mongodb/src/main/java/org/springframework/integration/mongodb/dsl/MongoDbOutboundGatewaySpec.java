@@ -18,7 +18,7 @@ package org.springframework.integration.mongodb.dsl;
 
 import java.util.function.Function;
 
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Query;
@@ -40,7 +40,7 @@ import org.springframework.messaging.Message;
 public class MongoDbOutboundGatewaySpec
 		extends MessageHandlerSpec<MongoDbOutboundGatewaySpec, MongoDbOutboundGateway> {
 
-	MongoDbOutboundGatewaySpec(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
+	MongoDbOutboundGatewaySpec(MongoDatabaseFactory mongoDbFactory, MongoConverter mongoConverter) {
 		this.target = new MongoDbOutboundGateway(mongoDbFactory, mongoConverter);
 		this.target.setRequiresReply(true);
 	}

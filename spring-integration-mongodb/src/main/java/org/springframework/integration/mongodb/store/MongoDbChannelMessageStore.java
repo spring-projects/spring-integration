@@ -17,7 +17,7 @@
 package org.springframework.integration.mongodb.store;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.index.Index;
@@ -61,19 +61,19 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 		super(mongoTemplate, collectionName);
 	}
 
-	public MongoDbChannelMessageStore(MongoDbFactory mongoDbFactory) {
+	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory) {
 		this(mongoDbFactory, null, DEFAULT_COLLECTION_NAME);
 	}
 
-	public MongoDbChannelMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter) {
+	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter) {
 		this(mongoDbFactory, mappingMongoConverter, DEFAULT_COLLECTION_NAME);
 	}
 
-	public MongoDbChannelMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
+	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName) {
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public MongoDbChannelMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
+	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
 			String collectionName) {
 		super(mongoDbFactory, mappingMongoConverter, collectionName);
 	}

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mongodb.outbound;
 
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
@@ -42,7 +42,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 
 	private volatile MongoOperations mongoTemplate;
 
-	private volatile MongoDbFactory mongoDbFactory;
+	private volatile MongoDatabaseFactory mongoDbFactory;
 
 	private volatile MongoConverter mongoConverter;
 
@@ -53,11 +53,11 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	private volatile boolean initialized = false;
 
 	/**
-	 * Will construct this instance using provided {@link MongoDbFactory}
+	 * Will construct this instance using provided {@link MongoDatabaseFactory}
 	 *
 	 * @param mongoDbFactory The mongodb factory.
 	 */
-	public MongoDbStoringMessageHandler(MongoDbFactory mongoDbFactory) {
+	public MongoDbStoringMessageHandler(MongoDatabaseFactory mongoDbFactory) {
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
 
 		this.mongoDbFactory = mongoDbFactory;
@@ -78,7 +78,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	/**
 	 * Allows you to provide custom {@link MongoConverter} used to assist in serialization
 	 * of data written to MongoDb. Only allowed if this instance was constructed with a
-	 * {@link MongoDbFactory}.
+	 * {@link MongoDatabaseFactory}.
 	 *
 	 * @param mongoConverter The mongo converter.
 	 */

@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Arrays;
@@ -31,7 +32,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -50,7 +51,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
- * @author Xavier Padr?
+ * @author Xavier Padro
  * @author Gary Rssell
  * @author Artem Bilan
  *
@@ -74,7 +75,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	private MongoConverter mongoConverter;
 
 	@Autowired
-	private MongoDbFactory mongoDbFactory;
+	private MongoDatabaseFactory mongoDbFactory;
 
 	@Before
 	public void setUp() {
@@ -95,14 +96,9 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	@Test
 	@MongoDbAvailable
 	public void testNoFactorySpecified() {
-
-		try {
-			new MongoDbOutboundGateway((MongoDbFactory) null);
-			fail("Expected the test case to throw an IllegalArgumentException");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("MongoDbFactory translator must not be null!");
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MongoDbOutboundGateway((MongoDatabaseFactory) null))
+				.withMessage("MongoDbFactory translator must not be null!");
 	}
 
 	@Test

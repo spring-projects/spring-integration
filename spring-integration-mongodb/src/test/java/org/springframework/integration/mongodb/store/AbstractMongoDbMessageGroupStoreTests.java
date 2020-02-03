@@ -417,7 +417,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 	//	@Test
 	//	@MongoDbAvailable
 	//	public void testConcurrentModifications() throws Exception{
-	//		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+	//		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
 	//		final MongoDbMessageStore store1 = new MongoDbMessageStore(mongoDbFactory);
 	//		final MongoDbMessageStore store2 = new MongoDbMessageStore(mongoDbFactory);
 	//

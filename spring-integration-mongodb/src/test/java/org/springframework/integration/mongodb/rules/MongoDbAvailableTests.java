@@ -19,16 +19,17 @@ package org.springframework.integration.mongodb.rules;
 import java.time.Duration;
 
 import org.bson.Document;
+import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
 import org.junit.Rule;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.data.mongodb.core.SimpleReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
@@ -38,6 +39,7 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
 import org.springframework.messaging.Message;
 
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -58,14 +60,19 @@ public abstract class MongoDbAvailableTests {
 	@Rule
 	public MongoDbAvailableRule mongoDbAvailableRule = new MongoDbAvailableRule();
 
-	public static final MongoDbFactory MONGO_DATABASE_FACTORY =
-			new SimpleMongoClientDbFactory(MongoClients.create(), "test");
+	public static final MongoDatabaseFactory MONGO_DATABASE_FACTORY =
+			new SimpleMongoClientDatabaseFactory(
+					MongoClients.create(
+							MongoClientSettings.builder().uuidRepresentation(UuidRepresentation.STANDARD).build()),
+					"test");
 
 	public static final ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY =
 			new SimpleReactiveMongoDatabaseFactory(
-					com.mongodb.reactivestreams.client.MongoClients.create(), "test");
+					com.mongodb.reactivestreams.client.MongoClients.create(
+							MongoClientSettings.builder().uuidRepresentation(UuidRepresentation.STANDARD).build()),
+					"test");
 
-	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
+	protected MongoDatabaseFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
 		cleanupCollections(MONGO_DATABASE_FACTORY, additionalCollectionsToDrop);
 		return MONGO_DATABASE_FACTORY;
 	}
@@ -87,7 +94,7 @@ public abstract class MongoDbAvailableTests {
 		}
 	}
 
-	protected void cleanupCollections(MongoDbFactory mongoDbFactory, String... additionalCollectionsToDrop) {
+	protected void cleanupCollections(MongoDatabaseFactory mongoDbFactory, String... additionalCollectionsToDrop) {
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.dropCollection("messages");
 		template.dropCollection("configurableStoreMessages");
@@ -182,7 +189,7 @@ public abstract class MongoDbAvailableTests {
 	public static class TestMongoConverter extends MappingMongoConverter {
 
 		public TestMongoConverter(
-				MongoDbFactory mongoDbFactory,
+				MongoDatabaseFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
 
 			super(new DefaultDbRefResolver(mongoDbFactory), mappingContext);

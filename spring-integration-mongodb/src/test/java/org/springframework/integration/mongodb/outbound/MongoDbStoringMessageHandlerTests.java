@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
@@ -53,7 +53,7 @@ public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 
 	private MongoTemplate template;
 
-	private MongoDbFactory mongoDbFactory;
+	private MongoDatabaseFactory mongoDbFactory;
 
 	@Before
 	public void setUp() {
@@ -66,7 +66,7 @@ public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	public void withNullMongoDBFactory() {
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> new MongoDbStoringMessageHandler((MongoDbFactory) null));
+				.isThrownBy(() -> new MongoDbStoringMessageHandler((MongoDatabaseFactory) null));
 	}
 
 	@Test

@@ -18,7 +18,7 @@ package org.springframework.integration.mongodb.outbound;
 
 import org.bson.Document;
 
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
  */
 public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler {
 
-	private MongoDbFactory mongoDbFactory;
+	private MongoDatabaseFactory mongoDbFactory;
 
 	private MongoConverter mongoConverter;
 
@@ -64,12 +64,12 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private Expression collectionNameExpression;
 
-	public MongoDbOutboundGateway(MongoDbFactory mongoDbFactory) {
+	public MongoDbOutboundGateway(MongoDatabaseFactory mongoDbFactory) {
 		this(mongoDbFactory, new MappingMongoConverter(new DefaultDbRefResolver(mongoDbFactory),
 				new MongoMappingContext()));
 	}
 
-	public MongoDbOutboundGateway(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
+	public MongoDbOutboundGateway(MongoDatabaseFactory mongoDbFactory, MongoConverter mongoConverter) {
 		Assert.notNull(mongoDbFactory, "mongoDatabaseFactory must not be null.");
 		Assert.notNull(mongoConverter, "mongoConverter must not be null.");
 		this.mongoDbFactory = mongoDbFactory;

@@ -18,7 +18,7 @@ package org.springframework.integration.mongodb.inbound;
 
 import java.util.List;
 
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
@@ -67,7 +67,7 @@ import com.mongodb.DBObject;
 public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 
 	@Nullable
-	private final MongoDbFactory mongoDbFactory;
+	private final MongoDatabaseFactory mongoDbFactory;
 
 	private final Expression queryExpression;
 
@@ -86,13 +86,13 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 	private volatile boolean initialized = false;
 
 	/**
-	 * Creates an instance with the provided {@link MongoDbFactory} and SpEL expression
+	 * Creates an instance with the provided {@link MongoDatabaseFactory} and SpEL expression
 	 * which should resolve to a MongoDb 'query' string (see https://www.mongodb.org/display/DOCS/Querying).
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 * @param mongoDbFactory The mongodb factory.
 	 * @param queryExpression The query expression.
 	 */
-	public MongoDbMessageSource(MongoDbFactory mongoDbFactory, Expression queryExpression) {
+	public MongoDbMessageSource(MongoDatabaseFactory mongoDbFactory, Expression queryExpression) {
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
 		Assert.notNull(queryExpression, "'queryExpression' must not be null");
 		this.mongoDbFactory = mongoDbFactory;
@@ -154,7 +154,7 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 	/**
 	 * Allows you to provide a custom {@link MongoConverter} used to assist in deserialization
 	 * data read from MongoDb. Only allowed if this instance was constructed with a
-	 * {@link MongoDbFactory}.
+	 * {@link MongoDatabaseFactory}.
 	 * @param mongoConverter The mongo converter.
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {
