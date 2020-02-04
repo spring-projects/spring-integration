@@ -66,7 +66,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Jayadev Sirimamilla
- *
  * @since 5.0
  */
 @SpringJUnitConfig
@@ -633,8 +632,9 @@ public class RouterTests {
 		Message<?> wiretapMessage2 = scatterGatherWireTapChannel.receive(10000);
 		assertThat(wiretapMessage2).isNotNull()
 				.extracting(Message::getHeaders)
-				.isEqualToComparingOnlyGivenFields(headers1, "correlationId",
-						"gatherResultChannel", "sequenceSize", "sequenceNo");
+				.isEqualToComparingOnlyGivenFields(headers1, IntegrationMessageHeaderAccessor.CORRELATION_ID,
+						"gatherResultChannel", IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
+						IntegrationMessageHeaderAccessor.SEQUENCE_SIZE);
 		Message<?> receive = replyChannel.receive(10000);
 
 		assertThat(receive).isNotNull();

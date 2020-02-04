@@ -114,17 +114,15 @@ This method is invoked for aggregating messages as follows:
 
 NOTE: In the interest of code simplicity and promoting best practices such as low coupling, testability, and others, the preferred way of implementing the aggregation logic is through a POJO and using the XML or annotation support for configuring it in the application.
 
-Starting with version 5.1, after processing message group, an `AbstractCorrelatingMessageHandler` performs a `MessageBuilder.popSequenceDetails()` message headers modification for the proper splitter-aggregator scenario with several nested levels.
-It is done only if the message group release result is not a message or collection of messages.
+Starting with version 5.3, after processing message group, an `AbstractCorrelatingMessageHandler` performs a `MessageBuilder.popSequenceDetails()` message headers modification for the proper splitter-aggregator scenario with several nested levels.
+It is done only if the message group release result is not a collection of messages.
 In that case a target `MessageGroupProcessor` is responsible for the `MessageBuilder.popSequenceDetails()` call while building those messages.
 
-Additionally, Starting with version 5.3, if `MessageGroupProcessor` returns a Message, `MessageBuilder.popSequenceDetails()` will be performed on the `outputMessage`  if the sequenceDetails matches with first message of group.
+If `MessageGroupProcessor` returns a Message, `MessageBuilder.popSequenceDetails()` will be performed on the `outputMessage` only if the `sequenceDetails` matches with first message of group.
 
 This functionality can be controlled by a new `popSequence` `boolean` property, so the `MessageBuilder.popSequenceDetails()` can be disabled in some scenarios when correlation details have not been populated by the standard splitter.
 This property, essentially, undoes what has been done by the nearest upstream `applySequence = true` in the `AbstractMessageSplitter`.
 See <<./splitter.adoc#splitter,Splitter>> for more information.
-
-
 
 [[agg-message-collection]]
 IMPORTANT: The `SimpleMessageGroup.getMessages()` method returns an `unmodifiableCollection`.
