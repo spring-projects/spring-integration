@@ -28,12 +28,12 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 5.0
  */
-public class AmqpOutboundEndpointSpec<S extends AmqpOutboundEndpointSpec<S>>
+public abstract class AmqpOutboundEndpointSpec<S extends AmqpOutboundEndpointSpec<S>>
 		extends AmqpBaseOutboundEndpointSpec<S, AmqpOutboundEndpoint> {
 
 	protected final boolean expectReply; // NOSONAR
 
-	AmqpOutboundEndpointSpec(AmqpTemplate amqpTemplate, boolean expectReply) {
+	protected AmqpOutboundEndpointSpec(AmqpTemplate amqpTemplate, boolean expectReply) {
 		this.expectReply = expectReply;
 		this.target = new AmqpOutboundEndpoint(amqpTemplate);
 		this.target.setExpectReply(expectReply);

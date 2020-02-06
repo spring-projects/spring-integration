@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 public class AmqpInboundChannelAdapterDMLCSpec
 		extends AmqpInboundChannelAdapterSpec<AmqpInboundChannelAdapterDMLCSpec, DirectMessageListenerContainer> {
 
-	AmqpInboundChannelAdapterDMLCSpec(DirectMessageListenerContainer listenerContainer) {
+	protected AmqpInboundChannelAdapterDMLCSpec(DirectMessageListenerContainer listenerContainer) {
 		super(new DirectMessageListenerContainerSpec(listenerContainer));
 	}
 

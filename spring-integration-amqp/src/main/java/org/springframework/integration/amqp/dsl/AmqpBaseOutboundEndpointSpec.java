@@ -41,7 +41,7 @@ import org.springframework.messaging.MessageChannel;
  * @since 5.0
  */
 public abstract class
-AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E extends AbstractAmqpOutboundEndpoint>
+	AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E extends AbstractAmqpOutboundEndpoint>
 		extends MessageHandlerSpec<S, E> {
 
 	protected final DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper(); // NOSONAR final
