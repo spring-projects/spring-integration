@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,17 +46,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class WebFluxMessageHandlerSpec
 		extends BaseHttpMessageHandlerSpec<WebFluxMessageHandlerSpec, WebFluxRequestExecutingMessageHandler> {
 
-	private final WebClient webClient;
+	protected final WebClient webClient; // NOSONAR - final
 
-	WebFluxMessageHandlerSpec(URI uri, WebClient webClient) {
+	protected WebFluxMessageHandlerSpec(URI uri, WebClient webClient) {
 		this(new ValueExpression<>(uri), webClient);
 	}
 
-	WebFluxMessageHandlerSpec(String uri, WebClient webClient) {
+	protected WebFluxMessageHandlerSpec(String uri, WebClient webClient) {
 		this(new LiteralExpression(uri), webClient);
 	}
 
-	WebFluxMessageHandlerSpec(Expression uriExpression, WebClient webClient) {
+	protected WebFluxMessageHandlerSpec(Expression uriExpression, WebClient webClient) {
 		super(new WebFluxRequestExecutingMessageHandler(uriExpression, webClient));
 		this.webClient = webClient;
 	}

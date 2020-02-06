@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,21 +25,23 @@ import org.springframework.messaging.Message;
  * {@link org.springframework.integration.ip.udp.UnicastSendingMessageHandler}s.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
 public class UdpUnicastOutboundChannelAdapterSpec
 		extends AbstractUdpOutboundChannelAdapterSpec<UdpUnicastOutboundChannelAdapterSpec> {
 
-	UdpUnicastOutboundChannelAdapterSpec(String host, int port) {
+	protected UdpUnicastOutboundChannelAdapterSpec(String host, int port) {
 		super(host, port);
 	}
 
-	UdpUnicastOutboundChannelAdapterSpec(Function<Message<?>, ?> destinationFunction) {
+	protected UdpUnicastOutboundChannelAdapterSpec(Function<Message<?>, ?> destinationFunction) {
 		super(destinationFunction);
 	}
 
-	UdpUnicastOutboundChannelAdapterSpec(String destinationExpression) {
+	protected UdpUnicastOutboundChannelAdapterSpec(String destinationExpression) {
 		super(destinationExpression);
 	}
 

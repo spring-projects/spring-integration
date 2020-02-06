@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public abstract class BaseHttpInboundEndpointSpec<S extends BaseHttpInboundEndpo
 		E extends HttpRequestHandlingEndpointSupport>
 		extends HttpInboundEndpointSupportSpec<S, E> {
 
-	BaseHttpInboundEndpointSpec(E endpoint, String... path) {
+	protected BaseHttpInboundEndpointSpec(E endpoint, String... path) {
 		super(endpoint, path);
 	}
 

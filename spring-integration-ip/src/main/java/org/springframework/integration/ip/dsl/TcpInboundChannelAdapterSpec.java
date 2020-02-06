@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,13 +38,13 @@ public class TcpInboundChannelAdapterSpec
 		extends MessageProducerSpec<TcpInboundChannelAdapterSpec, TcpReceivingChannelAdapter>
 		implements ComponentsRegistration {
 
-	private final AbstractConnectionFactory connectionFactory;
+	protected final AbstractConnectionFactory connectionFactory; // NOSONAR - final
 
 	/**
 	 * Construct an instance using an existing spring-managed connection factory.
 	 * @param connectionFactoryBean the spring-managed bean.
 	 */
-	TcpInboundChannelAdapterSpec(AbstractConnectionFactory connectionFactoryBean) {
+	protected TcpInboundChannelAdapterSpec(AbstractConnectionFactory connectionFactoryBean) {
 		super(new TcpReceivingChannelAdapter());
 		this.connectionFactory = null;
 		this.target.setConnectionFactory(connectionFactoryBean);
@@ -54,7 +54,7 @@ public class TcpInboundChannelAdapterSpec
 	 * Construct an instance using the provided connection factory spec.
 	 * @param connectionFactorySpec the spec.
 	 */
-	TcpInboundChannelAdapterSpec(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+	protected TcpInboundChannelAdapterSpec(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
 		super(new TcpReceivingChannelAdapter());
 		this.connectionFactory = connectionFactorySpec.get();
 		this.target.setConnectionFactory(this.connectionFactory);

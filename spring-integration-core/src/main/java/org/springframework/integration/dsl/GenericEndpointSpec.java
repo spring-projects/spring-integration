@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,10 @@ import org.springframework.messaging.MessageHandler;
  *
  * @since 5.0
  */
-public final class GenericEndpointSpec<H extends MessageHandler>
+public class GenericEndpointSpec<H extends MessageHandler>
 		extends ConsumerEndpointSpec<GenericEndpointSpec<H>, H> {
 
-	GenericEndpointSpec(H messageHandler) {
+	protected GenericEndpointSpec(H messageHandler) {
 		super(messageHandler);
 	}
 

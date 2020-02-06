@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,15 +34,15 @@ import org.springframework.integration.ftp.outbound.FtpMessageHandler;
  */
 public class FtpMessageHandlerSpec extends FileTransferringMessageHandlerSpec<FTPFile, FtpMessageHandlerSpec> {
 
-	FtpMessageHandlerSpec(SessionFactory<FTPFile> sessionFactory) {
+	protected FtpMessageHandlerSpec(SessionFactory<FTPFile> sessionFactory) {
 		this.target = new FtpMessageHandler(sessionFactory);
 	}
 
-	FtpMessageHandlerSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate) {
+	protected FtpMessageHandlerSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate) {
 		this.target = new FtpMessageHandler(remoteFileTemplate.getSessionFactory());
 	}
 
-	FtpMessageHandlerSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate, FileExistsMode fileExistsMode) {
+	protected FtpMessageHandlerSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate, FileExistsMode fileExistsMode) {
 		this.target = new FtpMessageHandler(remoteFileTemplate, fileExistsMode);
 	}
 

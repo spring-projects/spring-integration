@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,9 +59,9 @@ public class ImapIdleChannelAdapterSpec
 		extends MessageProducerSpec<ImapIdleChannelAdapterSpec, ImapIdleChannelAdapter>
 		implements ComponentsRegistration {
 
-	private final ImapMailReceiver receiver;
+	protected final ImapMailReceiver receiver; // NOSONAR - final
 
-	private final Map<Object, String> componentsToRegister = new LinkedHashMap<>();
+	protected final Map<Object, String> componentsToRegister = new LinkedHashMap<>();  // NOSONAR - final
 
 	private final List<Advice> adviceChain = new LinkedList<>();
 
@@ -69,11 +69,11 @@ public class ImapIdleChannelAdapterSpec
 
 	private boolean sessionProvided;
 
-	ImapIdleChannelAdapterSpec(ImapMailReceiver receiver) {
+	protected ImapIdleChannelAdapterSpec(ImapMailReceiver receiver) {
 		this(receiver, false);
 	}
 
-	ImapIdleChannelAdapterSpec(ImapMailReceiver receiver, boolean externalReceiver) {
+	protected ImapIdleChannelAdapterSpec(ImapMailReceiver receiver, boolean externalReceiver) {
 		super(new ImapIdleChannelAdapter(receiver));
 		this.target.setAdviceChain(this.adviceChain);
 		this.receiver = receiver;

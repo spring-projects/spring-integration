@@ -44,13 +44,13 @@ public class ReactiveMongoDbMessageHandlerSpec
 		extends MessageHandlerSpec<ReactiveMongoDbMessageHandlerSpec, ReactiveMessageHandlerAdapter>
 		implements ComponentsRegistration {
 
-	private final ReactiveMongoDbStoringMessageHandler messageHandler;
+	protected final ReactiveMongoDbStoringMessageHandler messageHandler; // NOSONAR - final
 
-	ReactiveMongoDbMessageHandlerSpec(ReactiveMongoDatabaseFactory mongoDbFactory) {
+	protected ReactiveMongoDbMessageHandlerSpec(ReactiveMongoDatabaseFactory mongoDbFactory) {
 		this(new ReactiveMongoDbStoringMessageHandler(mongoDbFactory));
 	}
 
-	ReactiveMongoDbMessageHandlerSpec(ReactiveMongoOperations reactiveMongoOperations) {
+	protected ReactiveMongoDbMessageHandlerSpec(ReactiveMongoOperations reactiveMongoOperations) {
 		this(new ReactiveMongoDbStoringMessageHandler(reactiveMongoOperations));
 	}
 

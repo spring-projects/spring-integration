@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  */
 public class JmsOutboundGatewaySpec extends MessageHandlerSpec<JmsOutboundGatewaySpec, JmsOutboundGateway> {
 
-	JmsOutboundGatewaySpec(ConnectionFactory connectionFactory) {
+	protected JmsOutboundGatewaySpec(ConnectionFactory connectionFactory) {
 		this.target = new JmsOutboundGateway();
 		this.target.setConnectionFactory(connectionFactory);
 		this.target.setRequiresReply(true);

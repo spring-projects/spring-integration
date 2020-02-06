@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
 
 /**
  * An {@link AbstractConnectionFactorySpec} for {@link AbstractServerConnectionFactory}s.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0
  *
@@ -30,11 +32,11 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
 public class TcpServerConnectionFactorySpec
 		extends AbstractConnectionFactorySpec<TcpServerConnectionFactorySpec, AbstractServerConnectionFactory> {
 
-	TcpServerConnectionFactorySpec(int port) {
+	protected TcpServerConnectionFactorySpec(int port) {
 		this(port, false);
 	}
 
-	TcpServerConnectionFactorySpec(int port, boolean nio) {
+	protected TcpServerConnectionFactorySpec(int port, boolean nio) {
 		super(nio ? new TcpNioServerConnectionFactory(port) : new TcpNetServerConnectionFactory(port));
 	}
 

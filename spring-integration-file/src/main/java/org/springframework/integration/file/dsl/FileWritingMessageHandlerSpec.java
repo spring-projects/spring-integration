@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,19 +49,19 @@ public class FileWritingMessageHandlerSpec
 
 	private DefaultFileNameGenerator defaultFileNameGenerator;
 
-	FileWritingMessageHandlerSpec(File destinationDirectory) {
+	protected FileWritingMessageHandlerSpec(File destinationDirectory) {
 		this.target = new FileWritingMessageHandler(destinationDirectory);
 	}
 
-	FileWritingMessageHandlerSpec(String directoryExpression) {
+	protected FileWritingMessageHandlerSpec(String directoryExpression) {
 		this(PARSER.parseExpression(directoryExpression));
 	}
 
-	<P> FileWritingMessageHandlerSpec(Function<Message<P>, ?> directoryFunction) {
+	protected <P> FileWritingMessageHandlerSpec(Function<Message<P>, ?> directoryFunction) {
 		this(new FunctionExpression<>(directoryFunction));
 	}
 
-	FileWritingMessageHandlerSpec(Expression directoryExpression) {
+	protected FileWritingMessageHandlerSpec(Expression directoryExpression) {
 		this.target = new FileWritingMessageHandler(directoryExpression);
 	}
 

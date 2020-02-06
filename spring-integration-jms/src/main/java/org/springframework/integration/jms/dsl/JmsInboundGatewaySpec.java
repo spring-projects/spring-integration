@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
 public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		extends MessagingGatewaySpec<S, JmsInboundGateway> {
 
-	JmsInboundGatewaySpec(AbstractMessageListenerContainer listenerContainer) {
+	protected JmsInboundGatewaySpec(AbstractMessageListenerContainer listenerContainer) {
 		super(new JmsInboundGateway(listenerContainer, new ChannelPublishingJmsMessageListener()));
 		this.target.getListener().setExpectReply(true);
 	}
@@ -202,7 +202,7 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 
 		private final S spec;
 
-		JmsInboundGatewayListenerContainerSpec(S spec) {
+		protected JmsInboundGatewayListenerContainerSpec(S spec) {
 			super(spec.get());
 			this.spec = spec;
 			this.spec.get().setAutoStartup(false);

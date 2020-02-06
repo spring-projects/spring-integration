@@ -37,12 +37,15 @@ import org.springframework.integration.mongodb.inbound.ReactiveMongoDbMessageSou
 public class ReactiveMongoDbMessageSourceSpec
 		extends MessageSourceSpec<ReactiveMongoDbMessageSourceSpec, ReactiveMongoDbMessageSource> {
 
-	ReactiveMongoDbMessageSourceSpec(ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory,
+	protected ReactiveMongoDbMessageSourceSpec(ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory,
 			Expression queryExpression) {
+
 		this.target = new ReactiveMongoDbMessageSource(reactiveMongoDatabaseFactory, queryExpression);
 	}
 
-	ReactiveMongoDbMessageSourceSpec(ReactiveMongoOperations reactiveMongoTemplate, Expression queryExpression) {
+	protected ReactiveMongoDbMessageSourceSpec(ReactiveMongoOperations reactiveMongoTemplate,
+			Expression queryExpression) {
+
 		this.target = new ReactiveMongoDbMessageSource(reactiveMongoTemplate, queryExpression);
 	}
 

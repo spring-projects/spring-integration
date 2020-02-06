@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 
 	protected final JmsTemplateSpec jmsTemplateSpec = new JmsTemplateSpec(); // NOSONAR final
 
-	JmsOutboundChannelAdapterSpec(JmsTemplate jmsTemplate) {
+	protected JmsOutboundChannelAdapterSpec(JmsTemplate jmsTemplate) {
 		this.target = new JmsSendingMessageHandler(jmsTemplate);
 	}
 
@@ -182,7 +182,7 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 			extends JmsOutboundChannelAdapterSpec<JmsOutboundChannelSpecTemplateAware>
 			implements ComponentsRegistration {
 
-		JmsOutboundChannelSpecTemplateAware(ConnectionFactory connectionFactory) {
+		protected JmsOutboundChannelSpecTemplateAware(ConnectionFactory connectionFactory) {
 			super(connectionFactory);
 		}
 

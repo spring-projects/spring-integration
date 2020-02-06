@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +56,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlowExtension;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
@@ -500,28 +498,6 @@ public class IntegrationFlowTests {
 		this.errorChannel.unsubscribe(errorMessageHandler);
 	}
 
-	@Autowired
-	@Qualifier("customFlowDefinition.input")
-	SubscribableChannel customFlowDefinitionInput;
-
-	@Test
-	public void testCustomFlowDefinition() {
-		QueueChannel replyChannel = new QueueChannel();
-		Message<?> testMessage =
-				MessageBuilder.withPayload(Arrays.asList("one", "two", "three"))
-						.setReplyChannel(replyChannel)
-						.build();
-		this.customFlowDefinitionInput.send(testMessage);
-
-		Message<?> replyMessage = replyChannel.receive(10_000);
-
-		assertThat(replyMessage)
-				.isNotNull()
-				.extracting(Message::getPayload)
-				.asList()
-				.contains("ONE", "TWO", "THREE");
-	}
-
 	@MessagingGateway
 	public interface ControlBusGateway {
 
@@ -931,15 +907,6 @@ public class IntegrationFlowTests {
 					.get();
 		}
 
-		@Bean
-		public IntegrationFlow customFlowDefinition() {
-			return
-					new CustomIntegrationFlowDefinition()
-							.customEip()
-							.aggregate()
-							.get();
-		}
-
 	}
 
 	@Service
@@ -983,16 +950,6 @@ public class IntegrationFlowTests {
 
 		public Foo(Integer value) {
 			this.value = value;
-		}
-
-	}
-
-	public static class CustomIntegrationFlowDefinition
-			extends IntegrationFlowExtension<CustomIntegrationFlowDefinition> {
-
-		public CustomIntegrationFlowDefinition customEip() {
-			return split()
-					.transform("payload.toUpperCase()");
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class FileInboundChannelAdapterSpec
 		extends MessageSourceSpec<FileInboundChannelAdapterSpec, FileReadingMessageSource>
 		implements ComponentsRegistration {
 
-	private final FileListFilterFactoryBean fileListFilterFactoryBean = new FileListFilterFactoryBean();
+	protected final FileListFilterFactoryBean fileListFilterFactoryBean = new FileListFilterFactoryBean(); // NOSONAR
 
 	private FileLocker locker;
 
@@ -56,11 +56,11 @@ public class FileInboundChannelAdapterSpec
 
 	private boolean filtersSet;
 
-	FileInboundChannelAdapterSpec() {
+	protected FileInboundChannelAdapterSpec() {
 		this.target = new FileReadingMessageSource();
 	}
 
-	FileInboundChannelAdapterSpec(Comparator<File> receptionOrderComparator) {
+	protected FileInboundChannelAdapterSpec(Comparator<File> receptionOrderComparator) {
 		this.target = new FileReadingMessageSource(receptionOrderComparator);
 	}
 

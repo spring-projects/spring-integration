@@ -30,15 +30,15 @@ import org.springframework.integration.mail.SearchTermStrategy;
 public class ImapMailInboundChannelAdapterSpec
 		extends MailInboundChannelAdapterSpec<ImapMailInboundChannelAdapterSpec, ImapMailReceiver> {
 
-	ImapMailInboundChannelAdapterSpec() {
+	protected ImapMailInboundChannelAdapterSpec() {
 		super(new ImapMailReceiver());
 	}
 
-	ImapMailInboundChannelAdapterSpec(ImapMailReceiver imapMailReceiver) {
+	protected ImapMailInboundChannelAdapterSpec(ImapMailReceiver imapMailReceiver) {
 		super(imapMailReceiver, true);
 	}
 
-	ImapMailInboundChannelAdapterSpec(String url) {
+	protected ImapMailInboundChannelAdapterSpec(String url) {
 		super(new ImapMailReceiver(url), false);
 	}
 

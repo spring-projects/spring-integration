@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 public class MailSendingMessageHandlerSpec
 		extends MessageHandlerSpec<MailSendingMessageHandlerSpec, MailSendingMessageHandler> {
 
-	private final JavaMailSenderImpl sender = new JavaMailSenderImpl();
+	protected final JavaMailSenderImpl sender = new JavaMailSenderImpl(); // NOSONAR - final
 
-	MailSendingMessageHandlerSpec(@Nullable String host) {
+	protected MailSendingMessageHandlerSpec(@Nullable String host) {
 		this.sender.setHost(host);
 		this.target = new MailSendingMessageHandler(this.sender);
 	}

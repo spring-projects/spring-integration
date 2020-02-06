@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,9 +121,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	private static final String MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL = "'messageProcessorSpec' must not be null";
 
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
-
 	private static final Set<MessageProducer> REFERENCED_REPLY_PRODUCERS = new HashSet<>();
+
+	protected static final SpelExpressionParser PARSER = new SpelExpressionParser(); //NOSONAR - final
 
 	protected final Map<Object, String> integrationComponents = new LinkedHashMap<>(); //NOSONAR - final
 
@@ -380,7 +380,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		return wireTap(wireTapChannel, wireTapConfigurer);
 	}
 
-	private MessageChannel obtainInputChannelFromFlow(IntegrationFlow flow) {
+	protected MessageChannel obtainInputChannelFromFlow(IntegrationFlow flow) {
 		Assert.notNull(flow, "'flow' must not be null");
 		MessageChannel messageChannel = flow.getInputChannel();
 		if (messageChannel == null) {
@@ -1228,6 +1228,18 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * {@code values} can apply an {@link Expression}
 	 * to be evaluated against a request {@link Message}.
 	 * @param headers the Map of headers to enrich.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	public B enrichHeaders(Map<String, Object> headers) {
+		return enrichHeaders(headers, null);
+	}
+
+	/**
+	 * Accept a {@link Map} of values to be used for the
+	 * {@link Message} header enrichment.
+	 * {@code values} can apply an {@link Expression}
+	 * to be evaluated against a request {@link Message}.
+	 * @param headers the Map of headers to enrich.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see GenericEndpointSpec
@@ -1908,7 +1920,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		return route(new RouterSpec<>(new MethodInvokingRouter(processor)), routerConfigurer);
 	}
 
-	private <R extends AbstractMessageRouter, S extends AbstractRouterSpec<S, R>> B route(S routerSpec,
+	protected <R extends AbstractMessageRouter, S extends AbstractRouterSpec<? super S, R>> B route(S routerSpec,
 			Consumer<S> routerConfigurer) {
 
 		if (routerConfigurer != null) {
@@ -2826,6 +2838,17 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
+	 * Add a {@value IntegrationContextUtils#NULL_CHANNEL_BEAN_NAME} bean into this flow
+	 * definition as a terminal operator.
+	 * @return The {@link IntegrationFlow} instance based on this definition.
+	 * @since 5.1
+	 */
+	public IntegrationFlow nullChannel() {
+		return channel(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)
+				.get();
+	}
+
+	/**
 	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.
 	 * @param <T> the expected {@code payload} type
 	 * @return the Reactive Streams {@link Publisher}
@@ -2858,19 +2881,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		return new PublisherIntegrationFlow<>(components, publisher);
 	}
 
-	/**
-	 * Add a {@value IntegrationContextUtils#NULL_CHANNEL_BEAN_NAME} bean into this flow
-	 * definition as a terminal operator.
-	 * @return The {@link IntegrationFlow} instance based on this definition.
-	 * @since 5.1
-	 */
-	public IntegrationFlow nullChannel() {
-		return channel(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)
-				.get();
-	}
-
-	@SuppressWarnings(UNCHECKED)
-	private <S extends ConsumerEndpointSpec<S, ? extends MessageHandler>> B register(S endpointSpec,
+	protected <S extends ConsumerEndpointSpec<? super S, ? extends MessageHandler>> B register(S endpointSpec,
 			Consumer<S> endpointConfigurer) {
 
 		if (endpointConfigurer != null) {
@@ -2906,7 +2917,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		return addComponent(endpointSpec).currentComponent(factoryBeanTuple2.getT2());
 	}
 
-	private B registerOutputChannelIfCan(MessageChannel outputChannel) {
+	protected B registerOutputChannelIfCan(MessageChannel outputChannel) {
 		if (!(outputChannel instanceof FixedSubscriberChannelPrototype)) {
 			addComponent(outputChannel, null);
 			Object currComponent = getCurrentComponent();
@@ -2947,7 +2958,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		return _this();
 	}
 
-	private boolean isOutputChannelRequired() {
+	protected boolean isOutputChannelRequired() {
 		Object currentElement = getCurrentComponent();
 		if (currentElement != null) {
 			if (AopUtils.isAopProxy(currentElement)) {
@@ -3006,7 +3017,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		return this.integrationFlow;
 	}
 
-	private void checkReuse(MessageProducer replyHandler) {
+	protected void checkReuse(MessageProducer replyHandler) {
 		Assert.isTrue(!REFERENCED_REPLY_PRODUCERS.contains(replyHandler),
 				"A reply MessageProducer may only be referenced once ("
 						+ replyHandler
@@ -3014,19 +3025,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		REFERENCED_REPLY_PRODUCERS.add(replyHandler);
 	}
 
-	/**
-	 * Accept a {@link Map} of values to be used for the
-	 * {@link Message} header enrichment.
-	 * {@code values} can apply an {@link Expression}
-	 * to be evaluated against a request {@link Message}.
-	 * @param headers the Map of headers to enrich.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 */
-	public B enrichHeaders(Map<String, Object> headers) {
-		return enrichHeaders(headers, null);
-	}
-
-	private static Object extractProxyTarget(Object target) {
+	protected static Object extractProxyTarget(Object target) {
 		if (!(target instanceof Advised)) {
 			return target;
 		}

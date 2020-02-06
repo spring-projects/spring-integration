@@ -40,12 +40,12 @@ import org.springframework.messaging.Message;
 public class MongoDbOutboundGatewaySpec
 		extends MessageHandlerSpec<MongoDbOutboundGatewaySpec, MongoDbOutboundGateway> {
 
-	MongoDbOutboundGatewaySpec(MongoDatabaseFactory mongoDbFactory, MongoConverter mongoConverter) {
+	protected MongoDbOutboundGatewaySpec(MongoDatabaseFactory mongoDbFactory, MongoConverter mongoConverter) {
 		this.target = new MongoDbOutboundGateway(mongoDbFactory, mongoConverter);
 		this.target.setRequiresReply(true);
 	}
 
-	MongoDbOutboundGatewaySpec(MongoOperations mongoTemplate) {
+	protected MongoDbOutboundGatewaySpec(MongoOperations mongoTemplate) {
 		this.target = new MongoDbOutboundGateway(mongoTemplate);
 		this.target.setRequiresReply(true);
 	}
