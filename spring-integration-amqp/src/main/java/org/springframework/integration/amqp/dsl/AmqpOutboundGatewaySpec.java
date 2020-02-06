@@ -17,31 +17,18 @@
 package org.springframework.integration.amqp.dsl;
 
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.messaging.Message;
 
 /**
- * Spec for an outbound AMQP channel adapter
+ * Spec for an outbound AMQP gateway.
  *
  * @author Gary Russell
  * @since 5.3
  *
  */
-public class AmqpOutboundChannelAdapterSpec extends AmqpOutboundEndpointSpec<AmqpOutboundChannelAdapterSpec> {
+public class AmqpOutboundGatewaySpec extends AmqpOutboundEndpointSpec<AmqpOutboundGatewaySpec> {
 
-	AmqpOutboundChannelAdapterSpec(AmqpTemplate amqpTemplate) {
-		super(amqpTemplate, false);
-	}
-
-	/**
-	 * If true, and the message payload is an {@link Iterable} of {@link Message}, send the
-	 * messages in a single invocation of the template (same channel) and optionally
-	 * wait for the confirms or die.
-	 * @param multiSend true to send multiple messages.
-	 * @return the spec.
-	 */
-	public AmqpOutboundChannelAdapterSpec multiSend(boolean multiSend) {
-		this.target.setMultiSend(multiSend);
-		return this;
+	AmqpOutboundGatewaySpec(AmqpTemplate amqpTemplate) {
+		super(amqpTemplate, true);
 	}
 
 }

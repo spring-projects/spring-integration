@@ -242,7 +242,7 @@ public final class Amqp {
 	 * @param amqpTemplate the amqpTemplate.
 	 * @return the AmqpOutboundEndpointSpec.
 	 */
-	public static AmqpOutboundEndpointSpec outboundAdapter(AmqpTemplate amqpTemplate) {
+	public static AmqpOutboundChannelAdapterSpec outboundAdapter(AmqpTemplate amqpTemplate) {
 		return new AmqpOutboundChannelAdapterSpec(amqpTemplate);
 	}
 
@@ -251,8 +251,8 @@ public final class Amqp {
 	 * @param amqpTemplate the amqpTemplate.
 	 * @return the AmqpOutboundEndpointSpec.
 	 */
-	public static AmqpOutboundEndpointSpec outboundGateway(AmqpTemplate amqpTemplate) {
-		return new AmqpOutboundEndpointSpec(amqpTemplate, true);
+	public static AmqpOutboundGatewaySpec outboundGateway(AmqpTemplate amqpTemplate) {
+		return new AmqpOutboundGatewaySpec(amqpTemplate);
 	}
 
 	/**
