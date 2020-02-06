@@ -312,7 +312,6 @@ AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E ext
 	}
 
 	/**
-	/**
 	 * Set a timeout after which a nack will be synthesized if no publisher confirm has
 	 * been received within that time. Missing confirms will be checked every 50% of this
 	 * value so the synthesized nack will be sent between 1x and 1.5x this timeout.
