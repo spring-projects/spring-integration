@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,6 +82,7 @@ public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "confirm-nack-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "confirm-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "wait-for-confirm");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "multi-send");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "return-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-message-strategy");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delay-expression",

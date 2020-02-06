@@ -63,6 +63,17 @@
 		<int:queue/>
 	</int:channel>
 
+	<rabbit:template id="multiSendTemplate" connection-factory="multiSendFactory"/>
+
+	<amqp:outbound-channel-adapter id="multiSendAdapter" channel="multiSendChannel"
+								   exchange-name=""
+								   routing-key="#{queue.name}"
+								   amqp-template="multiSendTemplate"
+								   multi-send="true"
+								   wait-for-confirm="true"/>
+
+	<int:channel id="multiSendChannel"/>
+
 	<rabbit:template id="amqpTemplateReturns" connection-factory="connectionFactory" mandatory="true" />
 
 	<amqp:outbound-channel-adapter id="withReturns" channel="returnRequestChannel"
@@ -100,7 +111,10 @@
 	</bean>
 
 	<rabbit:connection-factory id="connectionFactory"
-		host="localhost" publisher-returns="true" publisher-confirms="true" />
+		host="localhost" publisher-returns="true" confirm-type="CORRELATED" />
+
+	<rabbit:connection-factory id="multiSendFactory"
+		host="localhost" publisher-returns="true" confirm-type="SIMPLE" />
 
 	<rabbit:admin connection-factory="connectionFactory" />
 

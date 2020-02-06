@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -299,7 +299,7 @@ AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E ext
 	}
 
 	/**
-	 Set the error message strategy to use for returned (or negatively confirmed)
+	 * Set the error message strategy to use for returned (or negatively confirmed)
 	 * messages.
 	 * @param errorMessageStrategy the strategy.
 	 * @return the spec.
@@ -308,6 +308,20 @@ AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E ext
 	 */
 	public S errorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
 		this.target.setErrorMessageStrategy(errorMessageStrategy);
+		return _this();
+	}
+
+	/**
+	/**
+	 * Set a timeout after which a nack will be synthesized if no publisher confirm has
+	 * been received within that time. Missing confirms will be checked every 50% of this
+	 * value so the synthesized nack will be sent between 1x and 1.5x this timeout.
+	 * @param timeout the approximate timeout.
+	 * @return the spec.
+	 * @since 5.3
+	 */
+	public S confirmTimeout(long timeout) {
+		this.target.setConfirmTimeout(timeout);
 		return _this();
 	}
 
