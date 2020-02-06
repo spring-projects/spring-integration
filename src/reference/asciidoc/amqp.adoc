@@ -552,7 +552,8 @@ The following example shows the available properties for an AMQP outbound channe
                                error-message-strategy=""         <16>
                                header-mapper=""                  <17>
                                mapped-request-headers=""         <18>
-                               lazy-connect="true" />            <19>
+                               lazy-connect="true"               <19>
+                               multi-send="false"/>              <20>
 ----
 
 <1> The unique ID for this adapter.
@@ -631,6 +632,10 @@ The values in this list can also be simple patterns to be matched against the he
 <19> When set to `false`, the endpoint attempts to connect to the broker during application context initialization.
 This allows "`fail fast`" detection of bad configuration but also causes initialization to fail if the broker is down.
 When `true` (the default), the connection is established (if it does not already exist because some other component established it) when the first message is sent.
+<20> When set to `true`, payloads of type `Iterable<Message<?>>` will be sent as discrete messages on the same channel within the scope of a single `RabbitTemplate` invocation.
+Requires a `RabbitTemplate`.
+When `wait-for-confirms` is true, `RabbitTemplate.waitForConfirmsOrDie()` is invoked after the messages have been sent.
+With a transactional template, the sends will be performed in either a new transaction or one that has already been started (if present).
 ====
 
 [IMPORTANT]

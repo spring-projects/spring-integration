@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
-import org.springframework.integration.amqp.outbound.AsyncAmqpOutboundGateway;
+import org.springframework.amqp.core.AmqpTemplate;
 
 /**
- * @author Artem Bilan
- * @since 5.0
+ * Spec for an outbound AMQP gateway.
+ *
+ * @author Gary Russell
+ * @since 5.3
+ *
  */
-public class AmqpAsyncOutboundGatewaySpec
-		extends AmqpBaseOutboundEndpointSpec<AmqpAsyncOutboundGatewaySpec, AsyncAmqpOutboundGateway> {
+public class AmqpOutboundGatewaySpec extends AmqpOutboundEndpointSpec<AmqpOutboundGatewaySpec> {
 
-	protected AmqpAsyncOutboundGatewaySpec(AsyncRabbitTemplate template) {
-		this.target = new AsyncAmqpOutboundGateway(template);
-		this.target.setRequiresReply(true);
+	protected AmqpOutboundGatewaySpec(AmqpTemplate amqpTemplate) {
+		super(amqpTemplate, true);
 	}
 
 }

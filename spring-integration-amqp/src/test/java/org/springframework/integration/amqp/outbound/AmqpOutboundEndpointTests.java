@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -83,6 +84,9 @@ public class AmqpOutboundEndpointTests {
 
 	@Autowired
 	private MessageChannel pcMessageCorrelationRequestChannel;
+
+	@Autowired
+	private MessageChannel multiSendChannel;
 
 	@Autowired
 	private RabbitTemplate amqpTemplateConfirms;
@@ -158,6 +162,27 @@ public class AmqpOutboundEndpointTests {
 		assertThat(ack).isNotNull();
 		assertThat(ack.getPayload()).isEqualTo("foo");
 		assertThat(ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM)).isEqualTo(Boolean.TRUE);
+	}
+
+	@Test
+	public void multiSend() throws Exception {
+		RabbitTemplate template = new RabbitTemplate(this.connectionFactory);
+		template.setDefaultReceiveQueue(this.queue.getName());
+		while (template.receive() != null) {
+			// drain
+		}
+		Collection<Message<?>> messages = new ArrayList<>();
+		messages.add(new GenericMessage<>("foo"));
+		messages.add(new GenericMessage<>("bar"));
+		Message<?> message = MessageBuilder.withPayload(messages)
+				.build();
+		this.multiSendChannel.send(message);
+		org.springframework.amqp.core.Message m = receive(template);
+		assertThat(m).isNotNull();
+		assertThat(new String(m.getBody(), "UTF-8")).isEqualTo("foo");
+		m = receive(template);
+		assertThat(m).isNotNull();
+		assertThat(new String(m.getBody(), "UTF-8")).isEqualTo("bar");
 	}
 
 	@Test

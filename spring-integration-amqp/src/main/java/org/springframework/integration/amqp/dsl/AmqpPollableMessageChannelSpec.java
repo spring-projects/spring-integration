@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 
 	protected final AmqpChannelFactoryBean amqpChannelFactoryBean; // NOSONAR final
 
-	AmqpPollableMessageChannelSpec(ConnectionFactory connectionFactory) {
+	protected AmqpPollableMessageChannelSpec(ConnectionFactory connectionFactory) {
 		this(new AmqpChannelFactoryBean(false), connectionFactory);
 	}
 

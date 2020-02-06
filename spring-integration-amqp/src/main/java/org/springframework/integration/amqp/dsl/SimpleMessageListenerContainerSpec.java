@@ -30,7 +30,7 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 public class SimpleMessageListenerContainerSpec extends
 		AbstractMessageListenerContainerSpec<SimpleMessageListenerContainerSpec, SimpleMessageListenerContainer> {
 
-	private final SimpleMessageListenerContainer listenerContainer;
+	protected final SimpleMessageListenerContainer listenerContainer; // NOSONAR
 
 	public SimpleMessageListenerContainerSpec(SimpleMessageListenerContainer listenerContainer) {
 		super(listenerContainer);

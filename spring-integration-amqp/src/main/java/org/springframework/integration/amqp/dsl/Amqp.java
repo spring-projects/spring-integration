@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -242,8 +242,8 @@ public final class Amqp {
 	 * @param amqpTemplate the amqpTemplate.
 	 * @return the AmqpOutboundEndpointSpec.
 	 */
-	public static AmqpOutboundEndpointSpec outboundAdapter(AmqpTemplate amqpTemplate) {
-		return new AmqpOutboundEndpointSpec(amqpTemplate, false);
+	public static AmqpOutboundChannelAdapterSpec outboundAdapter(AmqpTemplate amqpTemplate) {
+		return new AmqpOutboundChannelAdapterSpec(amqpTemplate);
 	}
 
 	/**
@@ -251,8 +251,8 @@ public final class Amqp {
 	 * @param amqpTemplate the amqpTemplate.
 	 * @return the AmqpOutboundEndpointSpec.
 	 */
-	public static AmqpOutboundEndpointSpec outboundGateway(AmqpTemplate amqpTemplate) {
-		return new AmqpOutboundEndpointSpec(amqpTemplate, true);
+	public static AmqpOutboundGatewaySpec outboundGateway(AmqpTemplate amqpTemplate) {
+		return new AmqpOutboundGatewaySpec(amqpTemplate);
 	}
 
 	/**

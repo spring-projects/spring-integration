@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,19 @@ import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.util.Assert;
 
 /**
+ * Base spec for outbound AMQP endpoints.
+ *
+ * @param <S> the spec subclass type.
+ *
  * @author Artem Bilan
  * @since 5.0
  */
-public class AmqpOutboundEndpointSpec
-		extends AmqpBaseOutboundEndpointSpec<AmqpOutboundEndpointSpec, AmqpOutboundEndpoint> {
+public abstract class AmqpOutboundEndpointSpec<S extends AmqpOutboundEndpointSpec<S>>
+		extends AmqpBaseOutboundEndpointSpec<S, AmqpOutboundEndpoint> {
 
-	private final boolean expectReply;
+	protected final boolean expectReply; // NOSONAR
 
-	AmqpOutboundEndpointSpec(AmqpTemplate amqpTemplate, boolean expectReply) {
+	protected AmqpOutboundEndpointSpec(AmqpTemplate amqpTemplate, boolean expectReply) {
 		this.expectReply = expectReply;
 		this.target = new AmqpOutboundEndpoint(amqpTemplate);
 		this.target.setExpectReply(expectReply);
@@ -40,7 +44,7 @@ public class AmqpOutboundEndpointSpec
 	}
 
 	@Override
-	public AmqpOutboundEndpointSpec mappedReplyHeaders(String... headers) {
+	public S mappedReplyHeaders(String... headers) {
 		Assert.isTrue(this.expectReply, "'mappedReplyHeaders' can be applied only for gateway");
 		return super.mappedReplyHeaders(headers);
 	}
@@ -52,9 +56,9 @@ public class AmqpOutboundEndpointSpec
 	 * @since 5.2
 	 * @see AmqpOutboundEndpoint#setWaitForConfirm(boolean)
 	 */
-	public AmqpOutboundEndpointSpec waitForConfirm(boolean waitForConfirm) {
+	public S waitForConfirm(boolean waitForConfirm) {
 		this.target.setWaitForConfirm(waitForConfirm);
-		return this;
+		return _this();
 	}
 
 }

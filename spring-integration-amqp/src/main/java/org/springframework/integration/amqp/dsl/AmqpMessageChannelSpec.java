@@ -44,9 +44,9 @@ import org.springframework.util.ErrorHandler;
  */
 public class AmqpMessageChannelSpec<S extends AmqpMessageChannelSpec<S>> extends AmqpPollableMessageChannelSpec<S> {
 
-	private final List<Advice> adviceChain = new LinkedList<>();
+	protected final List<Advice> adviceChain = new LinkedList<>(); // NOSONAR
 
-	AmqpMessageChannelSpec(ConnectionFactory connectionFactory) {
+	protected AmqpMessageChannelSpec(ConnectionFactory connectionFactory) {
 		super(new AmqpChannelFactoryBean(true), connectionFactory);
 	}
 
