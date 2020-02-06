@@ -1206,8 +1206,8 @@ private Function<String, String> errorRecovererFlowGateway;
 [[java-dsl-extensions]]
 === DSL Extensions
 
-Starting with version 5.3, an `IntegrationFlowExtension` has been introduced to allow to extend an existing Java DSL to any possible custom or composed EIP-operators.
-There is only enough to extend this class and write methods which are going to be used in the `IntegrationFlow` bean definitions.
+Starting with version 5.3, an `IntegrationFlowExtension` has been introduced to allow extension of the existing Java DSL with custom or composed EIP-operators.
+All that is needed is an extension of this class that provides methods which can be used in the `IntegrationFlow` bean definitions.
 The extension class can also be used for custom `IntegrationComponentSpec` configuration; for example, missed or default options can be implemented in the existing `IntegrationComponentSpec` extension.
 The sample below demonstrates a composite custom operator and usage of an `AggregatorSpec` extension for a default custom `outputProcessor`:
 
@@ -1243,8 +1243,8 @@ public class CustomAggregatorSpec extends AggregatorSpec {
 ----
 ====
 
-For a method chain flow the new DSL operator in these extensions must return an extension class.
-This way a target `IntegrationFlow` definition will look naturally with new and existing DSL operators:
+For a method chain flow the new DSL operator in these extensions must return the extension class.
+This way a target `IntegrationFlow` definition will work with new and existing DSL operators:
 
 ====
 [source,java]
