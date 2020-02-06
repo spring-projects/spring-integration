@@ -28,7 +28,7 @@ import org.springframework.messaging.Message;
  */
 public class AmqpOutboundChannelAdapterSpec extends AmqpOutboundEndpointSpec<AmqpOutboundChannelAdapterSpec> {
 
-	AmqpOutboundChannelAdapterSpec(AmqpTemplate amqpTemplate) {
+	protected AmqpOutboundChannelAdapterSpec(AmqpTemplate amqpTemplate) {
 		super(amqpTemplate, false);
 	}
 

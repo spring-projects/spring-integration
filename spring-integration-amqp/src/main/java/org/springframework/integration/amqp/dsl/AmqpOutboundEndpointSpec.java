@@ -21,13 +21,17 @@ import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.util.Assert;
 
 /**
+ * Base spec for outbound AMQP endpoints.
+ *
+ * @param <S> the spec subclass type.
+ *
  * @author Artem Bilan
  * @since 5.0
  */
 public class AmqpOutboundEndpointSpec<S extends AmqpOutboundEndpointSpec<S>>
 		extends AmqpBaseOutboundEndpointSpec<S, AmqpOutboundEndpoint> {
 
-	private final boolean expectReply;
+	protected final boolean expectReply; // NOSONAR
 
 	AmqpOutboundEndpointSpec(AmqpTemplate amqpTemplate, boolean expectReply) {
 		this.expectReply = expectReply;

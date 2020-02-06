@@ -27,7 +27,7 @@ import org.springframework.amqp.core.AmqpTemplate;
  */
 public class AmqpOutboundGatewaySpec extends AmqpOutboundEndpointSpec<AmqpOutboundGatewaySpec> {
 
-	AmqpOutboundGatewaySpec(AmqpTemplate amqpTemplate) {
+	protected AmqpOutboundGatewaySpec(AmqpTemplate amqpTemplate) {
 		super(amqpTemplate, true);
 	}
 
