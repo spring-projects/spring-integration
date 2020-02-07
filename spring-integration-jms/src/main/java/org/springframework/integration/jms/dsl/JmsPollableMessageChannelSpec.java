@@ -41,13 +41,15 @@ import org.springframework.lang.Nullable;
 public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSpec<S>>
 		extends MessageChannelSpec<S, AbstractJmsChannel> {
 
-	protected final JmsChannelFactoryBean jmsChannelFactoryBean; // NOSONAR final
+	protected final JmsChannelFactoryBean jmsChannelFactoryBean; // NOSONAR - final
 
 	protected JmsPollableMessageChannelSpec(ConnectionFactory connectionFactory) {
 		this(new JmsChannelFactoryBean(false), connectionFactory);
 	}
 
-	JmsPollableMessageChannelSpec(JmsChannelFactoryBean jmsChannelFactoryBean, ConnectionFactory connectionFactory) {
+	protected JmsPollableMessageChannelSpec(JmsChannelFactoryBean jmsChannelFactoryBean,
+			ConnectionFactory connectionFactory) {
+
 		this.jmsChannelFactoryBean = jmsChannelFactoryBean;
 		this.jmsChannelFactoryBean.setConnectionFactory(connectionFactory);
 		this.jmsChannelFactoryBean.setSingleton(false);
@@ -95,9 +97,8 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 
 	/**
 	 * Configure a message selector in the
-	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer} (when
-	 * message driven) or the {@link org.springframework.jms.core.JmsTemplate} (when
-	 * polled).
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer} (when message driven)
+	 * or the {@link org.springframework.jms.core.JmsTemplate} (when polled).
 	 * @param messageSelector the messageSelector.
 	 * @return the current {@link MessageChannelSpec}.
 	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setMessageSelector(String)
