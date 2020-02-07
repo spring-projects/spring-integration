@@ -89,7 +89,9 @@ public class DefaultSessionFactoryLocator<F> implements SessionFactoryLocator<F>
 
 	@Override
 	public SessionFactory<F> getSessionFactory(@Nullable Object key) {
-		return this.factories.getOrDefault(key, this.defaultFactory);
+		return key == null
+				? this.defaultFactory
+				: this.factories.getOrDefault(key, this.defaultFactory);
 	}
 
 }
