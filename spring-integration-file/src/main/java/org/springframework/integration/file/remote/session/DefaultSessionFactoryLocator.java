@@ -53,8 +53,20 @@ public class DefaultSessionFactoryLocator<F> implements SessionFactoryLocator<F>
 	 * Add a session factory.
 	 * @param key the lookup key.
 	 * @param factory the factory.
+	 * @deprecated since 5.3 in favor of {@link #addSessionFactory}
 	 */
+	@Deprecated
 	public void addSessionFactory(String key, SessionFactory<F> factory) {
+		addSessionFactory((Object) key, factory);
+	}
+
+	/**
+	 * Add a session factory.
+	 * @param key the lookup key.
+	 * @param factory the factory.
+	 * @since 5.3
+	 */
+	public void addSessionFactory(Object key, SessionFactory<F> factory) {
 		this.factories.put(key, factory);
 	}
 
