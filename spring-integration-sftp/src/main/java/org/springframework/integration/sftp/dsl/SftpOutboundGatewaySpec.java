@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,14 @@ import com.jcraft.jsch.ChannelSftp;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.0
  */
 public class SftpOutboundGatewaySpec
 		extends RemoteFileOutboundGatewaySpec<ChannelSftp.LsEntry, SftpOutboundGatewaySpec> {
 
 
-	SftpOutboundGatewaySpec(AbstractRemoteFileOutboundGateway<ChannelSftp.LsEntry> outboundGateway) {
+	protected SftpOutboundGatewaySpec(AbstractRemoteFileOutboundGateway<ChannelSftp.LsEntry> outboundGateway) {
 		super(outboundGateway);
 	}
 

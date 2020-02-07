@@ -27,17 +27,19 @@ See its JavaDocs and <<./graph.adoc#integration-graph,Integration Graph>> for mo
 The `ReactiveMessageHandler` is now natively supported in the framework.
 See <<./reactive-streams.adoc/reactive-message-handler,ReactiveMessageHandler>> for more information.
 
+[[x5.3-java-dsl-extensions]]
+==== Java DSL Extensions
+
+A new `IntegrationFlowExtension` API has been introduced to allow extension of the existing Java DSL with custom or composed EIP-operators.
+This also can be used to introduce customizers for any out-of-the-box `IntegrationComponentSpec` extensions.
+See <<./dsl.adoc/java-dsl-extensions,DSL Extensions>> for more information.
+
+
 [[x5.3-mongodb-reactive-channel-adapters]]
 ==== MongoDB Reactive Channel Adapters
 
 `spring-integration-mongodb` module now provides channel adapter implementations for Reactive MongoDB driver support in Spring Data.
 See <<./mongodb.adoc#mongodb-reactive-channel-adapters,MongoDB Reactive Channel Adapters>> for more information.
-
-[[x5.3-AbstractCorrelatingMessageHandler]]
-==== Aggregator Changes
-
-If the `MessageGroupProcessor` returns a `Message`, the `MessageBuilder.popSequenceDetails()` is performed on the output message if the `sequenceDetails` matches with first message of group.
-See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more information.
 
 [[x5.3-general]]
 === General Changes
@@ -47,6 +49,9 @@ See <<./gateway.adoc/gateway-calling-default-methods,Invoking `default` Methods>
 
 Internal components (such as `_org.springframework.integration.errorLogger`) now have a shortened name when they are represented in the integration graph.
 See <<./graph.adoc#integration-graph,Integration Graph>> for more information.
+
+In the aggregator, when the `MessageGroupProcessor` returns a `Message`, the `MessageBuilder.popSequenceDetails()` is performed on the output message if the `sequenceDetails` matches the header in the first message of the group.
+See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more information.
 
 [[x5.3-amqp]]
 === AMQP Changes

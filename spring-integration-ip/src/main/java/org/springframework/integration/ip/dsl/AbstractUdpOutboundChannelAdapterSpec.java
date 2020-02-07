@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.messaging.Message;
  * @param <S> the target {@link AbstractUdpOutboundChannelAdapterSpec} implementation type.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0
  *
@@ -44,11 +45,11 @@ public abstract class AbstractUdpOutboundChannelAdapterSpec<S extends AbstractUd
 		this.target = new UnicastSendingMessageHandler(host, port);
 	}
 
-	AbstractUdpOutboundChannelAdapterSpec(String destinationExpression) {
+	protected AbstractUdpOutboundChannelAdapterSpec(String destinationExpression) {
 		this.target = new UnicastSendingMessageHandler(destinationExpression);
 	}
 
-	AbstractUdpOutboundChannelAdapterSpec(Function<Message<?>, ?> destinationFunction) {
+	protected AbstractUdpOutboundChannelAdapterSpec(Function<Message<?>, ?> destinationFunction) {
 		this.target = new UnicastSendingMessageHandler(new FunctionExpression<>(destinationFunction));
 	}
 

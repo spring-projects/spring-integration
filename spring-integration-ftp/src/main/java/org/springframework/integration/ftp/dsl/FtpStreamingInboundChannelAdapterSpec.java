@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,18 +31,20 @@ import org.springframework.integration.ftp.inbound.FtpStreamingMessageSource;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 
 /**
- * A {@link RemoteFileStreamingInboundChannelAdapterSpec} for a
- * {@link FtpStreamingMessageSource}.
+ * A {@link RemoteFileStreamingInboundChannelAdapterSpec} for a {@link FtpStreamingMessageSource}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class FtpStreamingInboundChannelAdapterSpec
 		extends RemoteFileStreamingInboundChannelAdapterSpec<FTPFile, FtpStreamingInboundChannelAdapterSpec,
 				FtpStreamingMessageSource> {
 
-	FtpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate,
+	protected FtpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate,
 			Comparator<FTPFile> comparator) {
+
 		this.target = new FtpStreamingMessageSource(remoteFileTemplate, comparator);
 	}
 
@@ -68,7 +70,6 @@ public class FtpStreamingInboundChannelAdapterSpec
 		return filter(composeFilters(new FtpRegexPatternFileListFilter(regex)));
 	}
 
-	@SuppressWarnings("unchecked")
 	private CompositeFileListFilter<FTPFile> composeFilters(FileListFilter<FTPFile> fileListFilter) {
 		CompositeFileListFilter<FTPFile> compositeFileListFilter = new CompositeFileListFilter<>();
 		compositeFileListFilter.addFilters(fileListFilter,

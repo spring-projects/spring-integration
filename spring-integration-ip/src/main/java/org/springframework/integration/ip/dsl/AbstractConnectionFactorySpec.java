@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,13 @@ import org.springframework.integration.ip.tcp.connection.TcpSocketSupport;
 
 /**
  * An {@link IntegrationComponentSpec} for {@link AbstractConnectionFactory}s.
+ *
  * @param <S> the target {@link AbstractConnectionFactorySpec} implementation type.
  * @param <C> the target {@link AbstractConnectionFactory} implementation type.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -39,7 +42,7 @@ public abstract class AbstractConnectionFactorySpec
 			<S extends AbstractConnectionFactorySpec<S, C>, C extends AbstractConnectionFactory>
 		extends IntegrationComponentSpec<S, C> {
 
-	AbstractConnectionFactorySpec(C connectionFactory) {
+	protected AbstractConnectionFactorySpec(C connectionFactory) {
 		this.target = connectionFactory;
 	}
 

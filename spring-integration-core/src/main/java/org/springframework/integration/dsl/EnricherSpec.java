@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,11 +47,11 @@ import reactor.util.function.Tuple2;
  */
 public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnricher> {
 
-	private final Map<String, Expression> propertyExpressions = new HashMap<>();
+	protected final Map<String, Expression> propertyExpressions = new HashMap<>(); // NOSONAR - final
 
-	private final Map<String, HeaderValueMessageProcessor<?>> headerExpressions = new HashMap<>();
+	protected final Map<String, HeaderValueMessageProcessor<?>> headerExpressions = new HashMap<>(); // NOSONAR - final
 
-	EnricherSpec() {
+	protected EnricherSpec() {
 		super(new ContentEnricher());
 	}
 

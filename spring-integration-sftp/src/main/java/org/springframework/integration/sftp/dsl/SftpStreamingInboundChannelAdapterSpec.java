@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * @author Gary Russell
+ *
  * @since 5.0
  *
  */
@@ -39,8 +40,9 @@ public class SftpStreamingInboundChannelAdapterSpec
 		extends RemoteFileStreamingInboundChannelAdapterSpec<LsEntry, SftpStreamingInboundChannelAdapterSpec,
 		SftpStreamingMessageSource> {
 
-	SftpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<LsEntry> remoteFileTemplate,
+	protected SftpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<LsEntry> remoteFileTemplate,
 			Comparator<LsEntry> comparator) {
+
 		this.target = new SftpStreamingMessageSource(remoteFileTemplate, comparator);
 	}
 
@@ -66,7 +68,6 @@ public class SftpStreamingInboundChannelAdapterSpec
 		return filter(composeFilters(new SftpRegexPatternFileListFilter(regex)));
 	}
 
-	@SuppressWarnings("unchecked")
 	private CompositeFileListFilter<LsEntry> composeFilters(FileListFilter<LsEntry> fileListFilter) {
 		CompositeFileListFilter<LsEntry> compositeFileListFilter = new CompositeFileListFilter<>();
 		compositeFileListFilter.addFilters(fileListFilter,

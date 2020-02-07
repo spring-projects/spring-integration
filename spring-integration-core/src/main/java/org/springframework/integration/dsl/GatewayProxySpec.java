@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,19 +45,19 @@ import org.springframework.messaging.MessageChannel;
  */
 public class GatewayProxySpec {
 
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+	protected  static final SpelExpressionParser PARSER = new SpelExpressionParser(); // NOSONAR - final
 
-	private final MessageChannel gatewayRequestChannel = new DirectChannel();
+	protected final MessageChannel gatewayRequestChannel = new DirectChannel(); // NOSONAR - final
 
-	private final GatewayProxyFactoryBean gatewayProxyFactoryBean;
+	protected final GatewayProxyFactoryBean gatewayProxyFactoryBean; // NOSONAR - final
 
-	private final GatewayMethodMetadata gatewayMethodMetadata = new GatewayMethodMetadata();
+	protected final GatewayMethodMetadata gatewayMethodMetadata = new GatewayMethodMetadata(); // NOSONAR - final
 
-	private final Map<String, Expression> headerExpressions = new HashMap<>();
+	protected final Map<String, Expression> headerExpressions = new HashMap<>(); // NOSONAR - final
 
 	private boolean populateGatewayMethodMetadata;
 
-	GatewayProxySpec(Class<?> serviceInterface) {
+	protected GatewayProxySpec(Class<?> serviceInterface) {
 		this.gatewayProxyFactoryBean = new AnnotationGatewayProxyFactoryBean(serviceInterface);
 		this.gatewayProxyFactoryBean.setDefaultRequestChannel(this.gatewayRequestChannel);
 	}

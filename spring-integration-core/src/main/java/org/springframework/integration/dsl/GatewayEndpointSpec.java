@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,43 +26,73 @@ import org.springframework.messaging.MessageChannel;
  *
  * @since 5.0
  */
-public final class GatewayEndpointSpec extends ConsumerEndpointSpec<GatewayEndpointSpec, GatewayMessageHandler> {
+public class GatewayEndpointSpec extends ConsumerEndpointSpec<GatewayEndpointSpec, GatewayMessageHandler> {
 
-	GatewayEndpointSpec(MessageChannel requestChannel) {
+	protected GatewayEndpointSpec(MessageChannel requestChannel) {
 		super(new GatewayMessageHandler());
 		this.handler.setRequestChannel(requestChannel);
 	}
 
-	GatewayEndpointSpec(String requestChannel) {
+	protected GatewayEndpointSpec(String requestChannel) {
 		super(new GatewayMessageHandler());
 		this.handler.setRequestChannelName(requestChannel);
 	}
 
+	/**
+	 * Set a reply channel.
+	 * @param replyChannel the reply channel
+	 * @return the spec
+	 */
 	public GatewayEndpointSpec replyChannel(MessageChannel replyChannel) {
 		this.handler.setReplyChannel(replyChannel);
 		return this;
 	}
 
+	/**
+	 * Set a reply channel.
+	 * @param replyChannel the reply channel
+	 * @return the spec
+	 */
 	public GatewayEndpointSpec replyChannel(String replyChannel) {
 		this.handler.setReplyChannelName(replyChannel);
 		return this;
 	}
 
+	/**
+	 * Set an error channel.
+	 * @param errorChannel the error channel
+	 * @return the spec
+	 */
 	public GatewayEndpointSpec errorChannel(MessageChannel errorChannel) {
 		this.handler.setErrorChannel(errorChannel);
 		return this;
 	}
 
+	/**
+	 * Set an error channel.
+	 * @param errorChannel the error channel
+	 * @return the spec
+	 */
 	public GatewayEndpointSpec errorChannel(String errorChannel) {
 		this.handler.setErrorChannelName(errorChannel);
 		return this;
 	}
 
+	/**
+	 * Set a request timeout.
+	 * @param requestTimeout the request timeout
+	 * @return the spec
+	 */
 	public GatewayEndpointSpec requestTimeout(Long requestTimeout) {
 		this.handler.setRequestTimeout(requestTimeout);
 		return this;
 	}
 
+	/**
+	 * Set a reply timeout.
+	 * @param replyTimeout the reply timeout
+	 * @return the spec
+	 */
 	public GatewayEndpointSpec replyTimeout(Long replyTimeout) {
 		this.handler.setReplyTimeout(replyTimeout);
 		return this;

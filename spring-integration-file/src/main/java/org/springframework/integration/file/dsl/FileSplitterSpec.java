@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,15 +45,15 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 
 	private String firstLineHeaderName;
 
-	FileSplitterSpec() {
+	protected FileSplitterSpec() {
 		this(true);
 	}
 
-	FileSplitterSpec(boolean iterator) {
+	protected FileSplitterSpec(boolean iterator) {
 		this(iterator, false);
 	}
 
-	FileSplitterSpec(boolean iterator, boolean markers) {
+	protected FileSplitterSpec(boolean iterator, boolean markers) {
 		this.iterator = iterator;
 		this.markers = markers;
 	}

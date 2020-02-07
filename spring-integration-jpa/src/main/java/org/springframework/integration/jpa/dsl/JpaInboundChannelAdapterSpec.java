@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,9 @@ public class JpaInboundChannelAdapterSpec
 		extends MessageSourceSpec<JpaInboundChannelAdapterSpec, JpaPollingChannelAdapter>
 		implements ComponentsRegistration {
 
-	private final JpaExecutor jpaExecutor;
+	protected final JpaExecutor jpaExecutor; // NOSONAR - final
 
-	JpaInboundChannelAdapterSpec(JpaExecutor jpaExecutor) {
+	protected JpaInboundChannelAdapterSpec(JpaExecutor jpaExecutor) {
 		this.jpaExecutor = jpaExecutor;
 		this.target = new JpaPollingChannelAdapter(this.jpaExecutor);
 	}

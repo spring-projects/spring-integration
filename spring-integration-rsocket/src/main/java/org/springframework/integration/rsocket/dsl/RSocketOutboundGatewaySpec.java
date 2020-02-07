@@ -38,11 +38,11 @@ import org.springframework.util.MimeType;
  */
 public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutboundGatewaySpec, RSocketOutboundGateway> {
 
-	RSocketOutboundGatewaySpec(String route, Object... routeVariables) {
+	protected RSocketOutboundGatewaySpec(String route, Object... routeVariables) {
 		this.target = new RSocketOutboundGateway(route, routeVariables);
 	}
 
-	RSocketOutboundGatewaySpec(Expression routeExpression) {
+	protected RSocketOutboundGatewaySpec(Expression routeExpression) {
 		this.target = new RSocketOutboundGateway(routeExpression);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,16 +34,20 @@ import com.jcraft.jsch.ChannelSftp;
 public class SftpMessageHandlerSpec
 		extends FileTransferringMessageHandlerSpec<ChannelSftp.LsEntry, SftpMessageHandlerSpec> {
 
-	SftpMessageHandlerSpec(SessionFactory<ChannelSftp.LsEntry> sessionFactory) {
+	protected SftpMessageHandlerSpec(SessionFactory<ChannelSftp.LsEntry> sessionFactory) {
 		this.target = new SftpMessageHandler(sessionFactory);
 	}
 
-	SftpMessageHandlerSpec(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate) {
+	protected SftpMessageHandlerSpec(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate) {
 		this.target = new SftpMessageHandler(remoteFileTemplate.getSessionFactory());
 	}
 
-	SftpMessageHandlerSpec(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate, FileExistsMode fileExistsMode) {
-		this.target = new SftpMessageHandler(new SftpRemoteFileTemplate(remoteFileTemplate.getSessionFactory()), fileExistsMode);
+	protected SftpMessageHandlerSpec(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate,
+			FileExistsMode fileExistsMode) {
+
+		this.target =
+				new SftpMessageHandler(new SftpRemoteFileTemplate(remoteFileTemplate.getSessionFactory()),
+						fileExistsMode);
 	}
 
 }

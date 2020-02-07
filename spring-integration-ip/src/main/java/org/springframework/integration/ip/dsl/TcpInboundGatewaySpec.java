@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,13 +37,13 @@ import org.springframework.scheduling.TaskScheduler;
 public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewaySpec, TcpInboundGateway>
 		implements ComponentsRegistration {
 
-	private final AbstractConnectionFactory connectionFactory;
+	protected final AbstractConnectionFactory connectionFactory; // NOSONAR - final
 
 	/**
 	 * Construct an instance using an existing spring-managed connection factory.
 	 * @param connectionFactoryBean the spring-managed bean.
 	 */
-	TcpInboundGatewaySpec(AbstractConnectionFactory connectionFactoryBean) {
+	protected TcpInboundGatewaySpec(AbstractConnectionFactory connectionFactoryBean) {
 		super(new TcpInboundGateway());
 		this.connectionFactory = null;
 		this.target.setConnectionFactory(connectionFactoryBean);
@@ -53,7 +53,7 @@ public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewa
 	 * Construct an instance using a connection factory spec.
 	 * @param connectionFactorySpec the spec.
 	 */
-	TcpInboundGatewaySpec(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+	protected TcpInboundGatewaySpec(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
 		super(new TcpInboundGateway());
 		this.connectionFactory = connectionFactorySpec.get();
 		this.target.setConnectionFactory(this.connectionFactory);
