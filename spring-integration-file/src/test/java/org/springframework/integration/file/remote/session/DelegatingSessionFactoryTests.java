@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -44,8 +43,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -54,8 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 4.2
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class DelegatingSessionFactoryTests {
 
 	@Autowired
@@ -86,7 +83,7 @@ public class DelegatingSessionFactoryTests {
 		assertThat(this.dsf.getSession("foo")).isEqualTo(foo.mockSession);
 		this.dsf.clearThreadKey();
 		TestSessionFactory factory = new TestSessionFactory();
-		this.sessionFactoryLocator.addSessionFactory("baz", factory);
+		this.sessionFactoryLocator.addSessionFactory((Object) "baz", factory);
 		this.dsf.setThreadKey("baz");
 		assertThat(this.dsf.getSession("baz")).isEqualTo(factory.mockSession);
 		this.dsf.clearThreadKey();
