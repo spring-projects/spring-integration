@@ -59,6 +59,9 @@ See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more i
 The outbound channel adapter has a new property `multiSend` allowing multiple messages to be sent within the scope of one `RabbitTemplate` invocation.
 See <<./amqp.adoc/amqp-outbound-channel-adapter,AMQP Outbound Channel Adapter>> for more information.
 
+The inbound channel adapter now supports a listener container with the `consumerBatchEnabled` property set to `true`.
+See <<./amqp.adoc/amqp-inbound-channel-adapter,AMQP Inbound Channel Adapter>>
+
 [[x5.3-http]]
 === HTTP Changes
 

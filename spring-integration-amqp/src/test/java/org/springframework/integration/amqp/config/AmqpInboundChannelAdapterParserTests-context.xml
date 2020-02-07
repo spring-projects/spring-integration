@@ -19,7 +19,8 @@
 		<prop key="ackMode">NONE</prop>
 	</util:properties>
 
-	<amqp:inbound-channel-adapter id="rabbitInbound" queue-names="inboundchanneladapter.test.1"/>
+	<amqp:inbound-channel-adapter id="rabbitInbound" queue-names="inboundchanneladapter.test.1"
+			batch-mode="EXTRACT_PAYLOADS"/>
 
 	<amqp:inbound-channel-adapter id="autoStartFalse" queue-names="inboundchanneladapter.test.2"
 		auto-startup="false" phase="123" acknowledge-mode="${ackMode}" missing-queues-fatal="false" />

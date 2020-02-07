@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,17 @@ public class ManualAckListenerExecutionFailedException extends ListenerExecution
 
 	private final long deliveryTag;
 
+	/**
+	 * Construct an instance with the provided properties.
+	 * @param msg the exception message.
+	 * @param cause the cause.
+	 * @param failedMessage the failed message.
+	 * @param channel the channel.
+	 * @param deliveryTag the delivery tag for the message.
+	 * @deprecated in favor of
+	 * {@link #ManualAckListenerExecutionFailedException(String, Throwable, Channel, long, Message...)}.
+	 */
+	@Deprecated
 	public ManualAckListenerExecutionFailedException(String msg, Throwable cause, Message failedMessage,
 			Channel channel, long deliveryTag) {
 
@@ -46,10 +57,35 @@ public class ManualAckListenerExecutionFailedException extends ListenerExecution
 		this.deliveryTag = deliveryTag;
 	}
 
+	/**
+	 * Construct an instance with the provided properties.
+	 * @param msg the exception message.
+	 * @param cause the cause.
+	 * @param channel the channel.
+	 * @param deliveryTag the delivery tag for the last message.
+	 * @param failedMessages the failed message(s).
+	 * @since 5.3
+	 */
+	public ManualAckListenerExecutionFailedException(String msg, Throwable cause,
+			Channel channel, long deliveryTag, Message... failedMessages) {
+
+		super(msg, cause, failedMessages);
+		this.channel = channel;
+		this.deliveryTag = deliveryTag;
+	}
+
+	/**
+	 * Return the channel.
+	 * @return the channel.
+	 */
 	public Channel getChannel() {
 		return this.channel;
 	}
 
+	/**
+	 * Return the delivery tag for the last failed message.
+	 * @return the tag.
+	 */
 	public long getDeliveryTag() {
 		return this.deliveryTag;
 	}
