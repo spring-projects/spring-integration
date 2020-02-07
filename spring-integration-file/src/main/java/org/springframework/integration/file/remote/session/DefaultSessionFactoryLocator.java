@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,24 @@ package org.springframework.integration.file.remote.session;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.lang.Nullable;
+
 /**
  * The default implementation of {@link SessionFactoryLocator} using a simple map lookup
  * and an optional default to fall back on.
  *
  * @author Gary Russell
+ * @author Andrey Kezhevatov
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
 public class DefaultSessionFactoryLocator<F> implements SessionFactoryLocator<F> {
 
-	private final Map<Object, SessionFactory<F>> factories = new ConcurrentHashMap<Object, SessionFactory<F>>();
+	private final Map<Object, SessionFactory<F>> factories = new ConcurrentHashMap<>();
 
+	@Nullable
 	private final SessionFactory<F> defaultFactory;
 
 	/**
@@ -44,7 +50,9 @@ public class DefaultSessionFactoryLocator<F> implements SessionFactoryLocator<F>
 	 * @param factories A map of factories, keyed by lookup key.
 	 * @param defaultFactory A default to be used if the lookup fails.
 	 */
-	public DefaultSessionFactoryLocator(Map<Object, SessionFactory<F>> factories, SessionFactory<F> defaultFactory) {
+	public DefaultSessionFactoryLocator(Map<Object, SessionFactory<F>> factories,
+			@Nullable SessionFactory<F> defaultFactory) {
+
 		this.factories.putAll(factories);
 		this.defaultFactory = defaultFactory;
 	}
@@ -53,8 +61,20 @@ public class DefaultSessionFactoryLocator<F> implements SessionFactoryLocator<F>
 	 * Add a session factory.
 	 * @param key the lookup key.
 	 * @param factory the factory.
+	 * @deprecated since 5.3 in favor of {@link #addSessionFactory(Object, SessionFactory)}
 	 */
+	@Deprecated
 	public void addSessionFactory(String key, SessionFactory<F> factory) {
+		addSessionFactory((Object) key, factory);
+	}
+
+	/**
+	 * Add a session factory.
+	 * @param key the lookup key.
+	 * @param factory the factory.
+	 * @since 5.3
+	 */
+	public void addSessionFactory(Object key, SessionFactory<F> factory) {
 		this.factories.put(key, factory);
 	}
 
@@ -68,12 +88,8 @@ public class DefaultSessionFactoryLocator<F> implements SessionFactoryLocator<F>
 	}
 
 	@Override
-	public SessionFactory<F> getSessionFactory(Object key) {
-		if (key == null) {
-			return this.defaultFactory;
-		}
-		SessionFactory<F> factory = this.factories.get(key);
-		return factory != null ? factory : this.defaultFactory;
+	public SessionFactory<F> getSessionFactory(@Nullable Object key) {
+		return this.factories.getOrDefault(key, this.defaultFactory);
 	}
 
 }
