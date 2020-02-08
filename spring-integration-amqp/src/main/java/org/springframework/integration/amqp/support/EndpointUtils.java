@@ -65,6 +65,7 @@ public final class EndpointUtils {
 	 * @param isManualAck true if the container uses manual acknowledgment.
 	 * @param ex the exception.
 	 * @return the exception.
+	 * @since 5.3
 	 */
 	public static ListenerExecutionFailedException errorMessagePayload(List<Message> messages,
 			Channel channel, boolean isManualAck, Exception ex) {
