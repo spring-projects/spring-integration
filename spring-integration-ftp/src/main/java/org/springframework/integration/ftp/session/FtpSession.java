@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,16 +152,21 @@ public class FtpSession implements Session<FTPFile> {
 	@Override
 	public void close() {
 		try {
-			if (this.readingRaw.get() && !finalizeRaw() && LOGGER.isWarnEnabled()) {
-				LOGGER.warn("Finalize on readRaw() returned false for " + this);
+			if (this.readingRaw.get() && !finalizeRaw() && LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Finalize on readRaw() returned false for " + this);
 			}
-			if (this.client.isConnected()) {
-				this.client.logout();
+			if (isOpen()) {
+				try {
+					this.client.logout();
+				}
+				catch (IOException ex) {
+					LOGGER.debug("failed to logout FTPClient", ex);
+				}
 			}
 			this.client.disconnect();
 		}
-		catch (Exception e) {
-			LOGGER.warn("failed to disconnect FTPClient", e);
+		catch (Exception ex) {
+			LOGGER.debug("failed to disconnect FTPClient", ex);
 		}
 	}
 
@@ -170,7 +175,8 @@ public class FtpSession implements Session<FTPFile> {
 		try {
 			this.client.noop();
 		}
-		catch (Exception e) {
+		catch (Exception ex) {
+			LOGGER.debug("failed to noop FTPClient", ex);
 			return false;
 		}
 		return true;
