@@ -162,22 +162,23 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 			this.lifecycleDelegate.start();
 		}
 
-		Flux<?> flux = null;
 		if (this.reactiveMessageHandler != null) {
-			flux = Flux.from(this.publisher)
-					.flatMap(this.reactiveMessageHandler::handleMessage);
-		}
-		else if (this.subscriber != null) {
-			flux = Flux.from(this.publisher)
-					.doOnSubscribe(this.subscriber::onSubscribe)
-					.doOnComplete(this.subscriber::onComplete)
-					.doOnNext(this.subscriber::onNext);
-		}
-		if (flux != null) {
 			this.subscription =
-					flux.onErrorContinue((ex, data) -> this.errorHandler.handleError(ex))
+					Flux.from(this.publisher)
+							.flatMap(this.reactiveMessageHandler::handleMessage)
+							.onErrorContinue(this::onError)
 							.subscribe();
 		}
+		else if (this.subscriber != null) {
+			Flux.from(this.publisher)
+					.doOnSubscribe((subs) -> this.subscription = subs::cancel)
+					.onErrorContinue(this::onError)
+					.subscribe(this.subscriber);
+		}
+	}
+
+	private void onError(Throwable ex, Object data) {
+		this.errorHandler.handleError(ex);
 	}
 
 	@Override
