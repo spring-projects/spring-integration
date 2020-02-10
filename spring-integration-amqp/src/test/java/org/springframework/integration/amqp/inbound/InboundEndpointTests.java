@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -44,6 +45,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.api.ChannelAwareBatchMessageListener;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
@@ -53,6 +55,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.StaticMessageHeaderAccessor;
+import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter.BatchMode;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.ManualAckListenerExecutionFailedException;
@@ -262,6 +265,7 @@ public class InboundEndpointTests {
 		assertThat(received.getPayload().getClass()).isEqualTo(ListenerExecutionFailedException.class);
 
 		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+		adapter.afterPropertiesSet(); // ack mode is now captured during init
 		Channel channel = mock(Channel.class);
 		((ChannelAwareMessageListener) container.getMessageListener())
 				.onMessage(message, channel);
@@ -388,7 +392,7 @@ public class InboundEndpointTests {
 
 	@SuppressWarnings({ "unchecked" })
 	@Test
-	public void testBatchdAdapter() throws Exception {
+	public void testBatchAdapter() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
 		container.setDeBatchingEnabled(false);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
@@ -405,7 +409,7 @@ public class InboundEndpointTests {
 		message = new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties);
 		MessageBatch batched = bs.addToBatch("foo", "bar", message);
 		listener.onMessage(batched.getMessage(), null);
-		Message<?> received = out.receive();
+		Message<?> received = out.receive(0);
 		assertThat(received).isNotNull();
 		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
 	}
@@ -430,11 +434,215 @@ public class InboundEndpointTests {
 		message = new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties);
 		MessageBatch batched = bs.addToBatch("foo", "bar", message);
 		listener.onMessage(batched.getMessage(), null);
-		Message<?> received = out.receive();
+		Message<?> received = out.receive(0);
 		assertThat(received).isNotNull();
 		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
 		org.springframework.amqp.core.Message sourceData = StaticMessageHeaderAccessor.getSourceData(received);
 		assertThat(sourceData).isSameAs(batched.getMessage());
+	}
+
+	@SuppressWarnings({ "unchecked" })
+	@Test
+	public void testConsumerBatchExtract() throws Exception {
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
+		container.setConsumerBatchEnabled(true);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		QueueChannel out = new QueueChannel();
+		adapter.setOutputChannel(out);
+		adapter.setBatchMode(BatchMode.EXTRACT_PAYLOADS);
+		adapter.afterPropertiesSet();
+		ChannelAwareBatchMessageListener listener = (ChannelAwareBatchMessageListener) container.getMessageListener();
+		MessageProperties messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		List<org.springframework.amqp.core.Message> messages = new ArrayList<>();
+		messages.add(new org.springframework.amqp.core.Message("test1".getBytes(), messageProperties));
+		messages.add(new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties));
+		listener.onMessageBatch(messages, null);
+		Message<?> received = out.receive(0);
+		assertThat(received).isNotNull();
+		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
+	}
+
+	@SuppressWarnings({ "unchecked" })
+	@Test
+	public void testConsumerBatch() throws Exception {
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
+		container.setConsumerBatchEnabled(true);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		QueueChannel out = new QueueChannel();
+		adapter.setOutputChannel(out);
+		adapter.afterPropertiesSet();
+		ChannelAwareBatchMessageListener listener = (ChannelAwareBatchMessageListener) container.getMessageListener();
+		MessageProperties messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		List<org.springframework.amqp.core.Message> messages = new ArrayList<>();
+		messages.add(new org.springframework.amqp.core.Message("test1".getBytes(), messageProperties));
+		messages.add(new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties));
+		listener.onMessageBatch(messages, null);
+		Message<?> received = out.receive(0);
+		assertThat(received).isNotNull();
+		assertThat(((List<Message<String>>) received.getPayload()))
+			.extracting(message -> message.getPayload())
+			.contains("test1", "test2");
+	}
+
+	@Test
+	public void testAdapterConversionErrorConsumerBatchExtract() throws Exception {
+		Connection connection = mock(Connection.class);
+		doAnswer(invocation -> mock(Channel.class)).when(connection).createChannel(anyBoolean());
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		when(connectionFactory.createConnection()).thenReturn(connection);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+		container.setConnectionFactory(connectionFactory);
+		container.setConsumerBatchEnabled(true);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		QueueChannel outputChannel = new QueueChannel();
+		adapter.setOutputChannel(outputChannel);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
+		adapter.setMessageConverter(new SimpleMessageConverter() {
+
+			@Override
+			public Object fromMessage(org.springframework.amqp.core.Message message) throws MessageConversionException {
+				throw new MessageConversionException("intended");
+			}
+
+		});
+		adapter.setBatchMode(BatchMode.EXTRACT_PAYLOADS);
+		adapter.afterPropertiesSet();
+		MessageProperties messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		messageProperties.setDeliveryTag(42L);
+		List<org.springframework.amqp.core.Message> messages = new ArrayList<>();
+		messages.add(new org.springframework.amqp.core.Message("test1".getBytes(), messageProperties));
+		messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		messageProperties.setDeliveryTag(43L);
+		messages.add(new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties));
+		((ChannelAwareBatchMessageListener) container.getMessageListener())
+				.onMessageBatch(messages, null);
+		assertThat(outputChannel.receive(0)).isNull();
+		Message<?> received = errorChannel.receive(0);
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getPayload().getClass()).isEqualTo(ListenerExecutionFailedException.class);
+
+		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+		adapter.afterPropertiesSet(); // ack mode is now captured during init
+		Channel channel = mock(Channel.class);
+		((ChannelAwareBatchMessageListener) container.getMessageListener())
+				.onMessageBatch(messages, channel);
+		assertThat(outputChannel.receive(0)).isNull();
+		received = errorChannel.receive(0);
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getPayload()).isInstanceOf(ManualAckListenerExecutionFailedException.class);
+		ManualAckListenerExecutionFailedException ex = (ManualAckListenerExecutionFailedException) received
+				.getPayload();
+		assertThat(ex.getChannel()).isEqualTo(channel);
+		assertThat(ex.getDeliveryTag()).isEqualTo(43L);
+	}
+
+	@Test
+	public void testAdapterConversionErrorConsumerBatch() throws Exception {
+		Connection connection = mock(Connection.class);
+		doAnswer(invocation -> mock(Channel.class)).when(connection).createChannel(anyBoolean());
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		when(connectionFactory.createConnection()).thenReturn(connection);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+		container.setConnectionFactory(connectionFactory);
+		container.setConsumerBatchEnabled(true);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		QueueChannel outputChannel = new QueueChannel();
+		adapter.setOutputChannel(outputChannel);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
+		adapter.setMessageConverter(new SimpleMessageConverter() {
+
+			@Override
+			public Object fromMessage(org.springframework.amqp.core.Message message) throws MessageConversionException {
+				throw new MessageConversionException("intended");
+			}
+
+		});
+		adapter.afterPropertiesSet();
+		MessageProperties messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		messageProperties.setDeliveryTag(42L);
+		List<org.springframework.amqp.core.Message> messages = new ArrayList<>();
+		messages.add(new org.springframework.amqp.core.Message("test1".getBytes(), messageProperties));
+		messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		messageProperties.setDeliveryTag(43L);
+		messages.add(new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties));
+		((ChannelAwareBatchMessageListener) container.getMessageListener())
+				.onMessageBatch(messages, null);
+		assertThat(outputChannel.receive(0)).isNull();
+		Message<?> received = errorChannel.receive(0);
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getPayload().getClass()).isEqualTo(ListenerExecutionFailedException.class);
+
+		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+		adapter.afterPropertiesSet(); // ack mode is now captured during init
+		Channel channel = mock(Channel.class);
+		((ChannelAwareBatchMessageListener) container.getMessageListener())
+				.onMessageBatch(messages, channel);
+		assertThat(outputChannel.receive(0)).isNull();
+		received = errorChannel.receive(0);
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getPayload()).isInstanceOf(ManualAckListenerExecutionFailedException.class);
+		ManualAckListenerExecutionFailedException ex = (ManualAckListenerExecutionFailedException) received
+				.getPayload();
+		assertThat(ex.getChannel()).isEqualTo(channel);
+		assertThat(ex.getDeliveryTag()).isEqualTo(43L);
+	}
+
+	@Test
+	public void testRetryWithinOnMessageAdapterConsumerBatch() throws Exception {
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+		container.setConsumerBatchEnabled(true);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		adapter.setOutputChannel(new DirectChannel());
+		adapter.setRetryTemplate(new RetryTemplate());
+		QueueChannel errors = new QueueChannel();
+		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
+		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
+		adapter.setRecoveryCallback(recoveryCallback);
+		adapter.afterPropertiesSet();
+		ChannelAwareBatchMessageListener listener = (ChannelAwareBatchMessageListener) container.getMessageListener();
+		MessageProperties messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		messageProperties.setDeliveryTag(42L);
+		List<org.springframework.amqp.core.Message> messages = new ArrayList<>();
+		messages.add(new org.springframework.amqp.core.Message("test1".getBytes(), messageProperties));
+		messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		messageProperties.setDeliveryTag(43L);
+		messages.add(new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties));
+		listener.onMessageBatch(messages, null);
+		Message<?> errorMessage = errors.receive(0);
+		assertThat(errorMessage).isNotNull();
+		assertThat(errorMessage.getPayload()).isInstanceOf(MessagingException.class);
+		MessagingException payload = (MessagingException) errorMessage.getPayload();
+		assertThat(payload.getMessage()).contains("Dispatcher has no");
+		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get()).isEqualTo(3);
+		@SuppressWarnings("unchecked")
+		List<org.springframework.amqp.core.Message> amqpMessages = errorMessage.getHeaders()
+				.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE,
+						List.class);
+		assertThat(amqpMessages).isNotNull();
+		assertThat(amqpMessages).hasSize(2);
+		@SuppressWarnings("unchecked")
+		List<Message<?>> msgs = (List<Message<?>>) payload.getFailedMessage().getPayload();
+		assertThat(msgs).hasSize(2);
+		assertThat(msgs).extracting(msg -> StaticMessageHeaderAccessor.getDeliveryAttempt(msg).get())
+			.contains(3, 3);
+		assertThat(msgs).extracting(msg -> msg.getHeaders().get(AmqpHeaders.DELIVERY_TAG, Long.class))
+			.contains(42L, 43L);
+		assertThat(errors.receive(0)).isNull();
 	}
 
 	public static class Foo {

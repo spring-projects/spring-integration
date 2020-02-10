@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
+import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter.BatchMode;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
@@ -68,6 +69,8 @@ public class AmqpInboundChannelAdapterParserTests {
 				.isTrue();
 		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer"))
 				.isInstanceOf(SimpleMessageListenerContainer.class);
+		assertThat(TestUtils.getPropertyValue(adapter, "batchMode", BatchMode.class))
+				.isEqualTo(BatchMode.EXTRACT_PAYLOADS);
 	}
 
 	@Test
@@ -79,6 +82,8 @@ public class AmqpInboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer"))
 				.isInstanceOf(DirectMessageListenerContainer.class);
 		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.consumersPerQueue")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(adapter, "batchMode", BatchMode.class))
+				.isEqualTo(BatchMode.MESSAGES);
 	}
 
 	@Test

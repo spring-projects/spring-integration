@@ -119,6 +119,7 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "batch-mode");
 		configureChannels(element, parserContext, builder);
 		AbstractBeanDefinition adapterBeanDefinition = builder.getRawBeanDefinition();
 		adapterBeanDefinition.setResource(parserContext.getReaderContext().getResource());

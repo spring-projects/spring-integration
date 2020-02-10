@@ -119,4 +119,15 @@ public class SimpleMessageListenerContainerSpec extends
 		return this;
 	}
 
+	/**
+	 * Set to true to enable batching of consumed messages.
+	 * @param enabled true to enable.
+	 * @return the spec.
+	 * @since 5.3
+	 */
+	public SimpleMessageListenerContainerSpec consumerBatchEnabled(boolean enabled) {
+		this.listenerContainer.setConsumerBatchEnabled(enabled);
+		return this;
+	}
+
 }

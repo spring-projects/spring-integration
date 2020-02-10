@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
+import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter.BatchMode;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
@@ -145,12 +146,15 @@ public class AmqpTests {
 
 	@Test
 	public void testAmqpOutboundFlow() {
-		this.amqpOutboundInput.send(MessageBuilder.withPayload("hello through the amqp")
+		this.amqpOutboundInput.send(MessageBuilder.withPayload("one")
+				.setHeader("routingKey", "si.dsl.test")
+				.build());
+		this.amqpOutboundInput.send(MessageBuilder.withPayload("two")
 				.setHeader("routingKey", "si.dsl.test")
 				.build());
 		Message<?> receive = this.amqpReplyChannel.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo("HELLO THROUGH THE AMQP");
+		assertThat(receive.getPayload()).isEqualTo("[ONE, TWO]");
 
 		((Lifecycle) this.amqpOutboundInput).stop();
 	}
@@ -343,7 +347,10 @@ public class AmqpTests {
 		@Bean
 		public IntegrationFlow amqpInboundFlow(ConnectionFactory rabbitConnectionFactory) {
 			return IntegrationFlows.from(Amqp.inboundAdapter(rabbitConnectionFactory, fooQueue())
-					.id("amqpInboundFlowAdapter"))
+						.configureContainer(container -> container.consumerBatchEnabled(true)
+								.batchSize(2))
+						.batchMode(BatchMode.EXTRACT_PAYLOADS)
+						.id("amqpInboundFlowAdapter"))
 					.transform(String.class, String::toUpperCase)
 					.channel(Amqp.pollableChannel(rabbitConnectionFactory)
 							.queueName("amqpReplyChannel")

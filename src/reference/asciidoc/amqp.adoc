@@ -76,7 +76,8 @@ The following listing shows the possible configuration options for an AMQP Inbou
                                   transaction-attribute=""        <23>
                                   transaction-manager=""          <24>
                                   tx-size=""                      <25>
-                                  consumers-per-queue />          <26>
+                                  consumers-per-queue             <26>
+                                  batch-mode="MESSAGES"/>         <27>
 ----
 
 <1> The unique ID for this adapter.
@@ -167,6 +168,9 @@ Not allowed when 'consumers-per-queue' is set.
 Optional (defaults to `1`).
 <26> Indicates that the underlying listener container should be a `DirectMessageListenerContainer` instead of the default `SimpleMessageListenerContainer`.
 See the https://docs.spring.io/spring-amqp/reference/html/[Spring AMQP Reference Manual] for more information.
+<27> When the container's `consumerBatchEnabled` is `true`, determines how the adapter presents the batch of messages in the message payload.
+When set to `MESSAGES` (default), the payload is a `List<Message<?>>` where each message has headers mapped from the incoming AMQP `Message` and the payload is the converted `body`.
+When set to `EXTRACT_PAYLOADS`, the payload is a `List<?>` where the elements are converted from the AMQP `Message` body.
 ====
 
 [NOTE]
