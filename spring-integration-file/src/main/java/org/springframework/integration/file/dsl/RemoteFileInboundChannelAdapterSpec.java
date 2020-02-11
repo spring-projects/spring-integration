@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
@@ -267,6 +268,17 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 */
 	public S metadataStorePrefix(String metadataStorePrefix) {
 		this.synchronizer.setMetadataStorePrefix(metadataStorePrefix);
+		return _this();
+	}
+
+	/**
+	 * Configure a scanner to use for the file system scan after transfer.
+	 * @param scanner the scanner.
+	 * @return the spec.
+	 * @since 5.2.4
+	 */
+	public S scanner(DirectoryScanner scanner) {
+		this.target.setScanner(scanner);
 		return _this();
 	}
 
