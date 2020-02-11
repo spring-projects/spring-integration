@@ -33,8 +33,7 @@ import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMe
 import org.springframework.integration.metadata.SimpleMetadataStore;
 
 /**
- * A {@link RemoteFileInboundChannelAdapterSpec} for a
- * {@link FtpInboundFileSynchronizingMessageSource}.
+ * A {@link RemoteFileInboundChannelAdapterSpec} for an {@link FtpInboundFileSynchronizingMessageSource}.
  *
  * @author Artem Bilan
  *
@@ -71,7 +70,6 @@ public class FtpInboundChannelAdapterSpec
 		return filter(composeFilters(new FtpRegexPatternFileListFilter(regex)));
 	}
 
-	@SuppressWarnings("unchecked")
 	private CompositeFileListFilter<FTPFile> composeFilters(FileListFilter<FTPFile> fileListFilter) {
 		CompositeFileListFilter<FTPFile> compositeFileListFilter = new CompositeFileListFilter<>();
 		compositeFileListFilter.addFilters(fileListFilter,
