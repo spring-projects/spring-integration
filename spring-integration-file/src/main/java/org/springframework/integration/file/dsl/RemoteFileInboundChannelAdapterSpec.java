@@ -275,7 +275,7 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 * Configure a scanner to use for the file system scan after transfer.
 	 * @param scanner the scanner.
 	 * @return the spec.
-	 * @since 5.3
+	 * @since 5.2.4
 	 */
 	public S scanner(DirectoryScanner scanner) {
 		this.target.setScanner(scanner);
