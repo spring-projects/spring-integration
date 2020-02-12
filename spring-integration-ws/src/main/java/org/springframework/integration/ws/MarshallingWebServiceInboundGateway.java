@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,14 @@ import org.springframework.ws.support.MarshallingUtils;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 1.0.2
  */
 public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInboundGateway {
 
-	private volatile Marshaller marshaller;
+	private Marshaller marshaller;
 
-	private volatile Unmarshaller unmarshaller;
+	private Unmarshaller unmarshaller;
 
 	/**
 	 * Creates a new <code>MarshallingWebServiceInboundGateway</code>.
@@ -58,7 +59,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 	 * @see #MarshallingWebServiceInboundGateway(Marshaller, Unmarshaller)
 	 */
 	public MarshallingWebServiceInboundGateway(Marshaller marshaller) {
-		Assert.notNull(marshaller, "'marshaller' must no be null");
+		Assert.notNull(marshaller, "'marshaller' must not be null");
 		Assert.isInstanceOf(Unmarshaller.class, marshaller, "When using this constructor the provided " +
 				"Marshaller must also implement Unmarshaller");
 		this.marshaller = marshaller;
@@ -72,19 +73,19 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 	 * @param unmarshaller The unmarshaller.
 	 */
 	public MarshallingWebServiceInboundGateway(Marshaller marshaller, Unmarshaller unmarshaller) {
-		Assert.notNull(marshaller, "'marshaller' must no be null");
-		Assert.notNull(unmarshaller, "'unmarshaller' must no be null");
+		Assert.notNull(marshaller, "'marshaller' must not be null");
+		Assert.notNull(unmarshaller, "'unmarshaller' must not be null");
 		this.marshaller = marshaller;
 		this.unmarshaller = unmarshaller;
 	}
 
 	public void setMarshaller(Marshaller marshaller) {
-		Assert.notNull(marshaller, "'marshaller' must no be null");
+		Assert.notNull(marshaller, "'marshaller' must not be null");
 		this.marshaller = marshaller;
 	}
 
 	public void setUnmarshaller(Unmarshaller unmarshaller) {
-		Assert.notNull(unmarshaller, "'unmarshaller' must no be null");
+		Assert.notNull(unmarshaller, "'unmarshaller' must not be null");
 		this.unmarshaller = unmarshaller;
 	}
 
