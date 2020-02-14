@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.kafka.dsl
+package org.springframework.integration.kafka.dsl.kotlin
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -27,7 +27,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.TopicPartition
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
@@ -37,8 +37,9 @@ import org.springframework.integration.MessageRejectedException
 import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.Pollers
-import org.springframework.integration.dsl.integrationFlow
+import org.springframework.integration.dsl.kotlin.integrationFlow
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer
+import org.springframework.integration.kafka.dsl.Kafka
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy
@@ -251,9 +252,9 @@ class KafkaDslKotlinTests {
 										RawRecordHeaderErrorMessageStrategy()))
 								.retryTemplate(RetryTemplate())
 								.filterInRetry(true)) {
-					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_MESSAGE_KEY] as Int) < 101 }) { f -> f.throwExceptionOnRejection(true) }
-					transform<String, String>({ it.toUpperCase() })
-					channel { c -> c.queue("listeningFromKafkaResults1") }
+					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_MESSAGE_KEY] as Int) < 101 }) { throwExceptionOnRejection(true) }
+					transform<String> { it.toUpperCase() }
+					channel { queue("listeningFromKafkaResults1") }
 				}
 
 		@Bean
@@ -266,9 +267,9 @@ class KafkaDslKotlinTests {
 										RawRecordHeaderErrorMessageStrategy()))
 								.retryTemplate(RetryTemplate())
 								.filterInRetry(true)) {
-					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_MESSAGE_KEY] as Int) < 101 }) { it.throwExceptionOnRejection(true) }
-					transform<String, String>({ it.toUpperCase() })
-					channel { c -> c.queue("listeningFromKafkaResults2") }
+					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_MESSAGE_KEY] as Int) < 101 }) { throwExceptionOnRejection(true) }
+					transform<String> { it.toUpperCase() }
+					channel { queue("listeningFromKafkaResults2") }
 				}
 
 		@Bean
@@ -281,20 +282,18 @@ class KafkaDslKotlinTests {
 		@Bean
 		fun sendToKafkaFlow() =
 				integrationFlow {
-					split<String>({ p -> Stream.generate { p }.limit(101) })
+					split<String> { p -> Stream.generate { p }.limit(101) }
 					publishSubscribeChannel {
-						it
-								.subscribe {
-									it.handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
-											.timestampExpression("T(Long).valueOf('1487694048633')")
-									) { it.id("kafkaProducer1") }
-								}
-								.subscribe {
-									it.handle(
-											kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
-													.timestamp<Any> { 1487694048644L }
-									) { it.id("kafkaProducer2") }
-								}
+						subscribe(integrationFlow {
+							handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
+									.timestampExpression("T(Long).valueOf('1487694048633')")
+							) { id("kafkaProducer1") }
+						})
+						subscribe(integrationFlow {
+							handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
+									.timestamp<Any> { 1487694048644L }
+							) { id("kafkaProducer2") }
+						})
 					}
 				}
 
@@ -303,7 +302,7 @@ class KafkaDslKotlinTests {
 
 		private fun kafkaMessageHandler(producerFactory: ProducerFactory<Int, String>, topic: String) =
 				Kafka.outboundChannelAdapter(producerFactory)
-						.messageKey<Any> { m -> m.headers[IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER] }
+						.messageKey<Any> { it.headers[IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER] }
 						.headerMapper(mapper())
 						.sync(true)
 						.partitionId<Any> { 0 }
@@ -314,7 +313,7 @@ class KafkaDslKotlinTests {
 		@Bean
 		fun sourceFlow() =
 				integrationFlow(Kafka.inboundChannelAdapter(consumerFactory(), ConsumerProperties(TEST_TOPIC3)),
-						{ e -> e.poller(Pollers.fixedDelay(100)) }) {
+						{ poller(Pollers.fixedDelay(100)) }) {
 					handle { m ->
 						this@ContextConfiguration.fromSource = m.payload
 						this@ContextConfiguration.sourceFlowLatch.countDown()
@@ -355,7 +354,7 @@ class KafkaDslKotlinTests {
 		@Bean
 		fun serverGateway() =
 				integrationFlow(Kafka.inboundGateway(consumerFactory(), containerProperties(), producerFactory())) {
-					transform<String, String>({ it.toUpperCase() })
+					transform<String> { it.toUpperCase() }
 				}
 
 		private fun containerProperties() =
