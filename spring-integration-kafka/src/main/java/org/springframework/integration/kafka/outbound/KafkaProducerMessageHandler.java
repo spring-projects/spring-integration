@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -522,7 +522,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	}
 
 	private void determineValidReplyTopicsAndPartitions() {
-		ReplyingKafkaTemplate<?, ?, ?> rkt = (ReplyingKafkaTemplate<?, ?, ?>) kafkaTemplate;
+		ReplyingKafkaTemplate<?, ?, ?> rkt = (ReplyingKafkaTemplate<?, ?, ?>) this.kafkaTemplate;
 		Collection<TopicPartition> replyTopics = rkt.getAssignedReplyTopicPartitions();
 		Map<String, Set<Integer>> topicsAndPartitions = new HashMap<>();
 		if (replyTopics != null) {
