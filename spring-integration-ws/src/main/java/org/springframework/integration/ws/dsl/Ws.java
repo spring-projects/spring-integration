@@ -16,12 +16,11 @@
 
 package org.springframework.integration.ws.dsl;
 
-import org.springframework.lang.Nullable;
+import org.springframework.integration.ws.dsl.MarshallingWsOutboundGatewaySpec.MarshallingWsOutboundGatewayNoTemplateSpec;
+import org.springframework.integration.ws.dsl.SimpleWsOutboundGatewaySpec.SimpleWsOutboundGatewayNoTemplateSpec;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
-import org.springframework.ws.WebServiceMessageFactory;
-import org.springframework.ws.client.core.SourceExtractor;
-import org.springframework.ws.client.support.destination.DestinationProvider;
+import org.springframework.ws.client.core.WebServiceTemplate;
 
 /**
  * Factory class for web service components.
@@ -47,19 +46,9 @@ public final class Ws {
 	 * @return the spec.
 	 */
 	public static MarshallingWsInboundGatewaySpec marshallingInboundGateway(Marshaller marshaller) {
-		return new MarshallingWsInboundGatewaySpec(marshaller);
-	}
-
-	/**
-	 * Create an instance with the provided arguments.
-	 * @param unmarshaller the unmarshaller.
-	 * @param marshaller the marshaller.
-	 * @return the spec.
-	 */
-	public static MarshallingWsInboundGatewaySpec marshallingInboundGateway(Marshaller marshaller,
-			Unmarshaller unmarshaller) {
-
-		return new MarshallingWsInboundGatewaySpec(marshaller, unmarshaller);
+		MarshallingWsInboundGatewaySpec spec = new MarshallingWsInboundGatewaySpec();
+		spec.marshaller(marshaller);
+		return spec;
 	}
 
 	/**
@@ -71,182 +60,37 @@ public final class Ws {
 	}
 
 	/**
-	 * Create an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param marshaller the marshaller.
+	 * Create an instance with a default {@link WebServiceTemplate}.
 	 * @return the spec.
 	 */
-	public static MarshallingWsOutboundGatewaySpec marshallingOutboundGateway(
-			DestinationProvider destinationProvider, Marshaller marshaller) {
-
-		return new MarshallingWsOutboundGatewaySpec(destinationProvider, marshaller);
+	public static MarshallingWsOutboundGatewayNoTemplateSpec marshallingOutboundGateway() {
+		return new MarshallingWsOutboundGatewayNoTemplateSpec();
 	}
 
 	/**
-	 * Create an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param marshaller the marshaller.
-	 * @param unmarshaller the unmarshaller.
+	 * Create an instance with the provided {@link WebServiceTemplate}.
+	 * @param template the template.
 	 * @return the spec.
 	 */
-	public static MarshallingWsOutboundGatewaySpec marshallingOutboundGateway(
-			DestinationProvider destinationProvider, Marshaller marshaller,
-			Unmarshaller unmarshaller) {
-
-		return new MarshallingWsOutboundGatewaySpec(destinationProvider, marshaller, unmarshaller, null);
+	public static MarshallingWsOutboundGatewaySpec marshallingOutboundGateway(WebServiceTemplate template) {
+		return new MarshallingWsOutboundGatewaySpec(template);
 	}
 
 	/**
-	 * Create an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param marshaller the marshaller.
-	 * @param messageFactory the message factory.
+	 * Create an instance.
 	 * @return the spec.
 	 */
-	public static MarshallingWsOutboundGatewaySpec marshallingOutboundGateway(
-			DestinationProvider destinationProvider, Marshaller marshaller,
-			WebServiceMessageFactory messageFactory) {
-
-		return new MarshallingWsOutboundGatewaySpec(destinationProvider, marshaller, null, messageFactory);
+	public static SimpleWsOutboundGatewayNoTemplateSpec simpleOutboundGateway() {
+		return new SimpleWsOutboundGatewayNoTemplateSpec();
 	}
 
 	/**
-	 * Create an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param marshaller the marshaller.
-	 * @param unmarshaller the unmarshaller.
-	 * @param messageFactory the message factory.
+	 * Create an instance with the provided {@link WebServiceTemplate}.
+	 * @param template the template.
 	 * @return the spec.
 	 */
-	public static MarshallingWsOutboundGatewaySpec marshallingOutboundGateway(
-			DestinationProvider destinationProvider,
-			@Nullable Marshaller marshaller, @Nullable Unmarshaller unmarshaller,
-			WebServiceMessageFactory messageFactory) {
-
-		return new MarshallingWsOutboundGatewaySpec(destinationProvider, marshaller, unmarshaller,
-				messageFactory);
-	}
-
-	/**
-	 * Create an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param marshaller the marshaller.
-	 * @return the spec.
-	 */
-	public static MarshallingWsOutboundGatewaySpec marshallingOutboundGateway(
-			String uri, Marshaller marshaller) {
-
-		return new MarshallingWsOutboundGatewaySpec(uri, marshaller, null, null);
-	}
-
-	/**
-	 * Create an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param marshaller the marshaller.
-	 * @param messageFactory the message factory.
-	 * @return the spec.
-	 */
-	public static MarshallingWsOutboundGatewaySpec marshallingOutboundGateway(
-			String uri, Marshaller marshaller,
-			WebServiceMessageFactory messageFactory) {
-
-		return new MarshallingWsOutboundGatewaySpec(uri, marshaller, null, messageFactory);
-	}
-
-	/**
-	 * Create an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param marshaller the marshaller.
-	 * @param unmarshaller the unmarshaller.
-	 * @return the spec.
-	 */
-	public static MarshallingWsOutboundGatewaySpec marshallingOutboundGateway(
-			String uri, Marshaller marshaller, Unmarshaller unmarshaller) {
-
-		return new MarshallingWsOutboundGatewaySpec(uri, marshaller, unmarshaller);
-	}
-
-	/**
-	 * Create an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param marshaller the marshaller.
-	 * @param unmarshaller the unmarshaller.
-	 * @param messageFactory the message factory.
-	 * @return the spec.
-	 */
-	public static MarshallingWsOutboundGatewaySpec marshallingOutboundGateway(String uri,
-			@Nullable Marshaller marshaller, @Nullable Unmarshaller unmarshaller,
-			WebServiceMessageFactory messageFactory) {
-
-		return new MarshallingWsOutboundGatewaySpec(uri, marshaller, unmarshaller, messageFactory);
-	}
-
-	/**
-	 * Create an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @return the spec.
-	 */
-	public static SimpleWsOutboundGatewaySpec simpleOutboundGateway(DestinationProvider destinationProvider) {
-		return new SimpleWsOutboundGatewaySpec(destinationProvider, null, null);
-	}
-
-	/**
-	 * Create an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param sourceExtractor the source extractor.
-	 * @return the spec.
-	 */
-	public static SimpleWsOutboundGatewaySpec simpleOutboundGateway(DestinationProvider destinationProvider,
-			SourceExtractor<?> sourceExtractor) {
-
-		return new SimpleWsOutboundGatewaySpec(destinationProvider, sourceExtractor, null);
-	}
-
-	/**
-	 * Create an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param sourceExtractor the source extractor.
-	 * @param messageFactory the message factory.
-	 * @return the spec.
-	 */
-	public static SimpleWsOutboundGatewaySpec simpleOutboundGateway(DestinationProvider destinationProvider,
-			@Nullable SourceExtractor<?> sourceExtractor,
-			@Nullable WebServiceMessageFactory messageFactory) {
-
-		return new SimpleWsOutboundGatewaySpec(destinationProvider, sourceExtractor, messageFactory);
-	}
-
-	/**
-	 * Create an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @return the spec.
-	 */
-	public static SimpleWsOutboundGatewaySpec simpleOutboundGateway(String uri) {
-		return new SimpleWsOutboundGatewaySpec(uri, null, null);
-	}
-
-	/**
-	 * Create an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param sourceExtractor the source extractor.
-	 * @return the spec.
-	 */
-	public static SimpleWsOutboundGatewaySpec simpleOutboundGateway(String uri, SourceExtractor<?> sourceExtractor) {
-		return new SimpleWsOutboundGatewaySpec(uri, sourceExtractor, null);
-	}
-
-	/**
-	 * Create an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param sourceExtractor the source extractor.
-	 * @param messageFactory the message factory.
-	 * @return the spec.
-	 */
-	public static SimpleWsOutboundGatewaySpec simpleOutboundGateway(String uri,
-			@Nullable SourceExtractor<?> sourceExtractor,
-			@Nullable WebServiceMessageFactory messageFactory) {
-
-		return new SimpleWsOutboundGatewaySpec(uri, sourceExtractor, messageFactory);
+	public static SimpleWsOutboundGatewaySpec simpleOutboundGateway(WebServiceTemplate template) {
+		return new SimpleWsOutboundGatewaySpec(template);
 	}
 
 	private Ws() {

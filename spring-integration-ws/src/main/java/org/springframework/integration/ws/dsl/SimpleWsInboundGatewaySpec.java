@@ -28,19 +28,24 @@ import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
 public class SimpleWsInboundGatewaySpec extends BaseWsInboundGatewaySpec<SimpleWsInboundGatewaySpec,
 	SimpleWebServiceInboundGateway> {
 
-	protected SimpleWsInboundGatewaySpec() {
-		super(new SimpleWebServiceInboundGateway());
-	}
+	protected boolean extractPayload = true; // NOSONAR
 
 	/**
 	 * Specify true to extract the payloadSource from the request or use
 	 * the entire request as the payload; default true.
-	 * @param extractPayload true to extract.
+	 * @param extract true to extract.
 	 * @return the spec.
 	 */
-	public SimpleWsInboundGatewaySpec extractPayload(boolean extractPayload) {
-		this.target.setExtractPayload(extractPayload);
+	public SimpleWsInboundGatewaySpec extractPayload(boolean extract) {
+		this.extractPayload = extract;
 		return this;
+	}
+
+	@Override
+	protected SimpleWebServiceInboundGateway create() {
+		SimpleWebServiceInboundGateway gateway = new SimpleWebServiceInboundGateway();
+		gateway.setExtractPayload(this.extractPayload);
+		return gateway;
 	}
 
 }

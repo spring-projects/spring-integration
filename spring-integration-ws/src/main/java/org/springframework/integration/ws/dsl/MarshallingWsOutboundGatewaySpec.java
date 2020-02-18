@@ -16,12 +16,16 @@
 
 package org.springframework.integration.ws.dsl;
 
+import java.util.Arrays;
+
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
-import org.springframework.lang.Nullable;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.ws.WebServiceMessageFactory;
-import org.springframework.ws.client.support.destination.DestinationProvider;
+import org.springframework.ws.client.core.FaultMessageResolver;
+import org.springframework.ws.client.core.WebServiceTemplate;
+import org.springframework.ws.client.support.interceptor.ClientInterceptor;
+import org.springframework.ws.transport.WebServiceMessageSender;
 
 /**
  * The spec for a {@link MarshallingWebServiceOutboundGateway}.
@@ -31,98 +35,115 @@ import org.springframework.ws.client.support.destination.DestinationProvider;
  *
  */
 public class MarshallingWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
-	MarshallingWsOutboundGatewaySpec, MarshallingWebServiceOutboundGateway> {
+		MarshallingWsOutboundGatewaySpec, MarshallingWebServiceOutboundGateway> {
 
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param marshaller the marshaller.
-	 */
-	protected MarshallingWsOutboundGatewaySpec(DestinationProvider destinationProvider, Marshaller marshaller) {
-		this(destinationProvider, marshaller, null, null);
+	protected MarshallingWsOutboundGatewaySpec(WebServiceTemplate template) {
+		this.template = template;
+	}
+
+	@Override
+	protected MarshallingWebServiceOutboundGateway create() {
+		if (this.destinationProvider != null) {
+			return new MarshallingWebServiceOutboundGateway(this.destinationProvider, this.template);
+		}
+		else {
+			return new MarshallingWebServiceOutboundGateway(this.uri, this.template);
+		}
 	}
 
 	/**
-	 * Construct an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param marshaller the marshaller.
-	 * @param unmarshaller the unmarshaller.
+	 * Spec for a {@link MarshallingWebServiceOutboundGateway} where an external
+	 * {@link WebServiceTemplate} is not provided.
+	 *
 	 */
-	protected MarshallingWsOutboundGatewaySpec(DestinationProvider destinationProvider, Marshaller marshaller,
-			Unmarshaller unmarshaller) {
-		this(destinationProvider, marshaller, unmarshaller, null);
-	}
+	public static class MarshallingWsOutboundGatewayNoTemplateSpec extends BaseWsOutboundGatewaySpec<
+			MarshallingWsOutboundGatewayNoTemplateSpec, MarshallingWebServiceOutboundGateway> {
 
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param marshaller the marshaller.
-	 * @param messageFactory the message factory.
-	 */
-	protected MarshallingWsOutboundGatewaySpec(DestinationProvider destinationProvider, Marshaller marshaller,
-			WebServiceMessageFactory messageFactory) {
+		protected Marshaller gatewayMarshaller;
 
-		this(destinationProvider, marshaller, null, messageFactory);
-	}
+		protected Unmarshaller gatewayUnmarshaller;
 
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param marshaller the marshaller.
-	 * @param unmarshaller the unmarshaller.
-	 * @param messageFactory the message factory.
-	 */
-	protected MarshallingWsOutboundGatewaySpec(DestinationProvider destinationProvider,
-			@Nullable Marshaller marshaller, @Nullable Unmarshaller unmarshaller,
-			WebServiceMessageFactory messageFactory) {
+		/**
+		 * Configure the marshaller to use.
+		 * @param marshaller the marshaller.
+		 * @return the spec.
+		 */
+		public MarshallingWsOutboundGatewayNoTemplateSpec marshaller(Marshaller marshaller) {
+			this.gatewayMarshaller = marshaller;
+			return this;
+		}
 
-		this.target = new MarshallingWebServiceOutboundGateway(destinationProvider, marshaller, unmarshaller,
-				messageFactory);
-	}
+		/**
+		 * Configure the unmarshaller to use.
+		 * @param unmarshaller the unmarshaller.
+		 * @return the spec.
+		 */
+		public MarshallingWsOutboundGatewayNoTemplateSpec unmarshaller(Unmarshaller unmarshaller) {
+			this.gatewayUnmarshaller = unmarshaller;
+			return this;
+		}
 
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param marshaller the marshaller.
-	 */
-	protected MarshallingWsOutboundGatewaySpec(String uri, Marshaller marshaller) {
-		this(uri, marshaller, (WebServiceMessageFactory) null);
-	}
+		/**
+		 * Specify the {@link WebServiceMessageFactory} to use.
+		 * @param messageFactory the message factory.
+		 * @return the spec.
+		 */
+		public MarshallingWsOutboundGatewayNoTemplateSpec messageFactory(WebServiceMessageFactory messageFactory) {
+			this.webServiceMessageFactory = messageFactory;
+			return this;
+		}
 
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param marshaller the marshaller.
-	 * @param messageFactory the message factory.
-	 */
-	protected MarshallingWsOutboundGatewaySpec(String uri, Marshaller marshaller,
-			WebServiceMessageFactory messageFactory) {
+		/**
+		 * Specify the {@link FaultMessageResolver} to use.
+		 * @param faultMessageResolver the resolver.
+		 * @return the spec.
+		 */
+		public MarshallingWsOutboundGatewayNoTemplateSpec faultMessageResolver(FaultMessageResolver faultMessageResolver) {
+			this.faultMessageResolver = faultMessageResolver;
+			return this;
+		}
 
-		this(uri, marshaller, null, messageFactory);
-	}
+		/**
+		 * Specify the {@link WebServiceMessageSender}s to use.
+		 * @param messageSenders the senders.
+		 * @return the spec.
+		 */
+		public MarshallingWsOutboundGatewayNoTemplateSpec messageSenders(WebServiceMessageSender... messageSenders) {
+			this.messageSenders = Arrays.copyOf(messageSenders, messageSenders.length);
+			return this;
+		}
 
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param marshaller the marshaller.
-	 * @param unmarshaller the unmarshaller.
-	 */
-	protected MarshallingWsOutboundGatewaySpec(String uri, Marshaller marshaller, Unmarshaller unmarshaller) {
-		this(uri, marshaller, unmarshaller, null);
-	}
+		/**
+		 * Specify the {@link ClientInterceptor}s to use.
+		 * @param interceptors the interceptors.
+		 * @return the spec.
+		 */
+		public MarshallingWsOutboundGatewayNoTemplateSpec interceptors(ClientInterceptor... interceptors) {
+			this.gatewayInterceptors = Arrays.copyOf(interceptors, interceptors.length);
+			return this;
+		}
 
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param marshaller the marshaller.
-	 * @param unmarshaller the unmarshaller.
-	 * @param messageFactory the message factory.
-	 */
-	protected MarshallingWsOutboundGatewaySpec(String uri,
-			@Nullable Marshaller marshaller, @Nullable Unmarshaller unmarshaller,
-			WebServiceMessageFactory messageFactory) {
+		@Override
+		protected MarshallingWebServiceOutboundGateway create() {
+			if (this.destinationProvider != null) {
+				return new MarshallingWebServiceOutboundGateway(this.destinationProvider, this.gatewayMarshaller,
+						this.gatewayUnmarshaller, this.webServiceMessageFactory);
+			}
+			else {
+				return new MarshallingWebServiceOutboundGateway(this.uri, this.gatewayMarshaller, this.gatewayUnmarshaller,
+						this.webServiceMessageFactory);
+			}
+		}
 
-		this.target = new MarshallingWebServiceOutboundGateway(uri, marshaller, unmarshaller, messageFactory);
+		@Override
+		protected MarshallingWebServiceOutboundGateway assemble(MarshallingWebServiceOutboundGateway gateway) {
+			MarshallingWebServiceOutboundGateway assembled = super.assemble(gateway);
+			assembled.setFaultMessageResolver(this.faultMessageResolver);
+			assembled.setMessageSenders(this.messageSenders);
+			assembled.setInterceptors(this.gatewayInterceptors);
+			return assembled;
+		}
+
 	}
 
 }

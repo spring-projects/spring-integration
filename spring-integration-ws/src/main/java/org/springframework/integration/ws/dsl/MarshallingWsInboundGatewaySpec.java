@@ -30,27 +30,9 @@ import org.springframework.oxm.Unmarshaller;
 public class MarshallingWsInboundGatewaySpec extends BaseWsInboundGatewaySpec<MarshallingWsInboundGatewaySpec,
 	MarshallingWebServiceInboundGateway> {
 
-	protected MarshallingWsInboundGatewaySpec() {
-		super(new MarshallingWebServiceInboundGateway());
-	}
+	protected Marshaller gatewayMarshaller; // NOSONAR
 
-	/**
-	 * Construct an instance with the provided {@link Marshaller} (which must also implement
-	 * {@link Unmarshaller}).
-	 * @param marshaller the marshaller.
-	 */
-	protected MarshallingWsInboundGatewaySpec(Marshaller marshaller) {
-		super(new MarshallingWebServiceInboundGateway(marshaller));
-	}
-
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param marshaller the marshaller.
-	 * @param unmarshaller the unmarshaller.
-	 */
-	protected MarshallingWsInboundGatewaySpec(Marshaller marshaller, Unmarshaller unmarshaller) {
-		super(new MarshallingWebServiceInboundGateway(marshaller, unmarshaller));
-	}
+	protected Unmarshaller gatewayUnmarshaller; // NOSONAR
 
 	/**
 	 * Specify a marshaller to use.
@@ -58,18 +40,29 @@ public class MarshallingWsInboundGatewaySpec extends BaseWsInboundGatewaySpec<Ma
 	 * @return the spec.
 	 */
 	public MarshallingWsInboundGatewaySpec marshaller(Marshaller marshaller) {
-		this.target.setMarshaller(marshaller);
+		this.gatewayMarshaller = marshaller;
 		return this;
 	}
 
 	/**
-	 * Specify an unmarshaller to use.
+	 * Specify an unmarshaller to use. Required if the {@link #gatewayMarshaller} is not also
+	 * an {@link Unmarshaller}.
 	 * @param unmarshaller the unmarshaller.
 	 * @return the spec.
 	 */
 	public MarshallingWsInboundGatewaySpec unmarshaller(Unmarshaller unmarshaller) {
-		this.target.setUnmarshaller(unmarshaller);
+		this.gatewayUnmarshaller = unmarshaller;
 		return this;
+	}
+
+	@Override
+	protected MarshallingWebServiceInboundGateway create() {
+		if (this.gatewayUnmarshaller != null) {
+			return new MarshallingWebServiceInboundGateway(this.gatewayMarshaller, this.gatewayUnmarshaller);
+		}
+		else {
+			return new MarshallingWebServiceInboundGateway(this.gatewayMarshaller);
+		}
 	}
 
 }

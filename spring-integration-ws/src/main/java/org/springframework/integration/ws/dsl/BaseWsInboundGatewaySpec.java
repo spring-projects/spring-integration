@@ -30,16 +30,15 @@ import org.springframework.integration.ws.SoapHeaderMapper;
  * @since 5.3
  *
  */
-public class BaseWsInboundGatewaySpec<
+public abstract class BaseWsInboundGatewaySpec<
 		S extends BaseWsInboundGatewaySpec<S, E>, E extends AbstractWebServiceInboundGateway>
 	extends MessagingGatewaySpec<S, E> {
 
 	/**
-	 * Construct an instance for the gateway.
-	 * @param gateway the gateway.
+	 * Construct an instance.
 	 */
-	protected BaseWsInboundGatewaySpec(E gateway) {
-		super(gateway);
+	protected BaseWsInboundGatewaySpec() {
+		super(null);
 	}
 
 	/**
@@ -50,6 +49,17 @@ public class BaseWsInboundGatewaySpec<
 	public S headerMapper(SoapHeaderMapper headerMapper) {
 		this.target.setHeaderMapper(headerMapper);
 		return _this();
+	}
+
+	@Override
+	protected E doGet() {
+		return assemble(create());
+	}
+
+	protected abstract E create();
+
+	protected E assemble(E gateway) {
+		return gateway;
 	}
 
 }

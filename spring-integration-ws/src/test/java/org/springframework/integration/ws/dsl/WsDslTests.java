@@ -38,6 +38,7 @@ import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
+import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.WebServiceMessageSender;
@@ -53,7 +54,9 @@ public class WsDslTests {
 	void marshallingInbound() {
 		Marshaller marshaller = mock(Marshaller.class);
 		Unmarshaller unmarshaller = mock(Unmarshaller.class);
-		MarshallingWebServiceInboundGateway gateway = Ws.marshallingInboundGateway(marshaller, unmarshaller).get();
+		MarshallingWebServiceInboundGateway gateway = Ws.marshallingInboundGateway(marshaller)
+				.unmarshaller(unmarshaller)
+				.get();
 		assertThat(TestUtils.getPropertyValue(gateway, "marshaller")).isSameAs(marshaller);
 		assertThat(TestUtils.getPropertyValue(gateway, "unmarshaller")).isSameAs(unmarshaller);
 
@@ -65,7 +68,9 @@ public class WsDslTests {
 
 	@Test
 	void simpleInbound() {
-		SimpleWebServiceInboundGateway gateway = Ws.simpleInboundGateway().extractPayload(false).get();
+		SimpleWebServiceInboundGateway gateway = Ws.simpleInboundGateway()
+				.extractPayload(false)
+				.get();
 		assertThat(TestUtils.getPropertyValue(gateway, "extractPayload", Boolean.class)).isFalse();
 	}
 
@@ -83,7 +88,11 @@ public class WsDslTests {
 		Map<String, Expression> uriVariableExpressions = new HashMap<>();
 		uriVariableExpressions.put("foo", new LiteralExpression("bar"));
 		MarshallingWebServiceOutboundGateway gateway =
-				Ws.marshallingOutboundGateway(destinationProvider, marshaller, unmarshaller, messageFactory)
+				Ws.marshallingOutboundGateway()
+						.destinationProvider(destinationProvider)
+						.marshaller(marshaller)
+						.unmarshaller(unmarshaller)
+						.messageFactory(messageFactory)
 						.encodeUri(true)
 						.faultMessageResolver(faultMessageResolver)
 						.headerMapper(headerMapper)
@@ -121,7 +130,10 @@ public class WsDslTests {
 		uriVariableExpressions.put("foo", new LiteralExpression("bar"));
 		SourceExtractor<?> sourceExtractor = mock(SourceExtractor.class);
 		SimpleWebServiceOutboundGateway gateway =
-				Ws.simpleOutboundGateway(destinationProvider, sourceExtractor, messageFactory)
+				Ws.simpleOutboundGateway()
+						.destinationProvider(destinationProvider)
+						.sourceExtractor(sourceExtractor)
+						.messageFactory(messageFactory)
 						.encodeUri(true)
 						.faultMessageResolver(faultMessageResolver)
 						.headerMapper(headerMapper)
@@ -141,6 +153,55 @@ public class WsDslTests {
 		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageSenders",
 					WebServiceMessageSender[].class)[0])
 				.isSameAs(messageSender);
+		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
+		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
+		assertThat(TestUtils.getPropertyValue(gateway, "extractPayload", Boolean.class)).isFalse();
+	}
+
+	@Test
+	void marshallingOutboundTemplate() {
+		SoapHeaderMapper headerMapper = mock(SoapHeaderMapper.class);
+		WebServiceMessageCallback requestCallback = msg -> { };
+		Map<String, Expression> uriVariableExpressions = new HashMap<>();
+		uriVariableExpressions.put("foo", new LiteralExpression("bar"));
+		WebServiceTemplate template = mock(WebServiceTemplate.class);
+		String uri = "foo";
+		MarshallingWebServiceOutboundGateway gateway =
+				Ws.marshallingOutboundGateway(template)
+						.uri(uri)
+						.encodeUri(true)
+						.headerMapper(headerMapper)
+						.ignoreEmptyResponses(true)
+						.requestCallback(requestCallback)
+						.uriVariableExpressions(uriVariableExpressions)
+						.get();
+		assertThat(TestUtils.getPropertyValue(gateway, "uri")).isSameAs(uri);
+		assertThat(TestUtils.getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
+		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
+		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
+	}
+
+	@Test
+	void simpleOutboundTemplate() {
+		SoapHeaderMapper headerMapper = mock(SoapHeaderMapper.class);
+		WebServiceMessageCallback requestCallback = msg -> { };
+		Map<String, Expression> uriVariableExpressions = new HashMap<>();
+		uriVariableExpressions.put("foo", new LiteralExpression("bar"));
+		SourceExtractor<?> sourceExtractor = mock(SourceExtractor.class);
+		WebServiceTemplate template = mock(WebServiceTemplate.class);
+		String uri = "foo";
+		SimpleWebServiceOutboundGateway gateway =
+				Ws.simpleOutboundGateway(template)
+						.uri(uri)
+						.sourceExtractor(sourceExtractor)
+						.encodeUri(true)
+						.headerMapper(headerMapper)
+						.ignoreEmptyResponses(true)
+						.requestCallback(requestCallback)
+						.uriVariableExpressions(uriVariableExpressions)
+						.extractPayload(false)
+						.get();
+		assertThat(TestUtils.getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
 		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
 		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
 		assertThat(TestUtils.getPropertyValue(gateway, "extractPayload", Boolean.class)).isFalse();

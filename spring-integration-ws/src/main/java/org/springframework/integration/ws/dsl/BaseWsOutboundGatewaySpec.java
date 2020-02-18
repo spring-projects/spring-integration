@@ -16,16 +16,19 @@
 
 package org.springframework.integration.ws.dsl;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.MessageHandlerSpec;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.integration.ws.AbstractWebServiceOutboundGateway;
 import org.springframework.integration.ws.SoapHeaderMapper;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.core.WebServiceTemplate;
+import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
@@ -39,9 +42,55 @@ import org.springframework.ws.transport.WebServiceMessageSender;
  * @since 5.3
  *
  */
-public class BaseWsOutboundGatewaySpec<
+public abstract class BaseWsOutboundGatewaySpec<
 		S extends BaseWsOutboundGatewaySpec<S, E>, E extends AbstractWebServiceOutboundGateway>
 	extends MessageHandlerSpec<S, E> {
+
+	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
+
+	protected WebServiceTemplate template; // NOSONAR
+
+	protected DestinationProvider destinationProvider; // NOSONAR
+
+	protected String uri; // NOSONAR
+
+	protected WebServiceMessageFactory webServiceMessageFactory; // NOSONAR
+
+	private SoapHeaderMapper headerMapper;
+
+	private boolean encodeUri = true;
+
+	private boolean ignoreEmptyResponses = true;
+
+	private WebServiceMessageCallback requestCallback;
+
+	protected FaultMessageResolver faultMessageResolver; // NOSONAR
+
+	protected WebServiceMessageSender[] messageSenders; // NOSONAR
+
+	protected ClientInterceptor[] gatewayInterceptors; // NOSONAR
+
+	protected boolean extractPayload = true; // NOSONAR
+
+	/**
+	 * Configure with a destination provider;
+	 * @param destinationProvider the destination provider.
+	 * @return the spec.
+	 */
+	public S destinationProvider(DestinationProvider destinationProvider) {
+		this.destinationProvider = destinationProvider;
+		return _this();
+	}
+
+	/**
+	 * Configure with a URI.
+	 * @param uri the uri.
+	 * @return the spec.
+	 */
+	public S uri(String uri) {
+		this.uri = uri;
+		return _this();
+	}
 
 	/**
 	 * Configure the header mapper.
@@ -49,7 +98,7 @@ public class BaseWsOutboundGatewaySpec<
 	 * @return the spec.
 	 */
 	public S headerMapper(SoapHeaderMapper headerMapper) {
-		this.target.setHeaderMapper(headerMapper);
+		this.headerMapper = headerMapper;
 		return _this();
 	}
 
@@ -60,7 +109,7 @@ public class BaseWsOutboundGatewaySpec<
 	 * @return the spec.
 	 */
 	public S uriVariableExpressions(Map<String, Expression> uriVariableExpressions) {
-		this.target.setUriVariableExpressions(uriVariableExpressions);
+		this.uriVariableExpressions.putAll(uriVariableExpressions);
 		return _this();
 	}
 
@@ -72,7 +121,7 @@ public class BaseWsOutboundGatewaySpec<
 	 * @see org.springframework.web.util.UriComponentsBuilder
 	 */
 	public S encodeUri(boolean encodeUri) {
-		this.target.setEncodeUri(encodeUri);
+		this.encodeUri = encodeUri;
 		return _this();
 	}
 
@@ -84,27 +133,7 @@ public class BaseWsOutboundGatewaySpec<
 	 * @return the spec.
 	 */
 	public S ignoreEmptyResponses(boolean ignoreEmptyResponses) {
-		this.target.setIgnoreEmptyResponses(ignoreEmptyResponses);
-		return _this();
-	}
-
-	/**
-	 * Specify the {@link WebServiceTemplate} to use.
-	 * @param webServiceTemplate the template.
-	 * @return the spec.
-	 */
-	public S webServiceTemplate(WebServiceTemplate webServiceTemplate) {
-		this.target.setWebServiceTemplate(webServiceTemplate);
-		return _this();
-	}
-
-	/**
-	 * Specify the {@link WebServiceMessageFactory} to use.
-	 * @param messageFactory the message factory.
-	 * @return the spec.
-	 */
-	public S messageFactory(WebServiceMessageFactory messageFactory) {
-		this.target.setMessageFactory(messageFactory);
+		this.ignoreEmptyResponses = ignoreEmptyResponses;
 		return _this();
 	}
 
@@ -114,38 +143,25 @@ public class BaseWsOutboundGatewaySpec<
 	 * @return the spec.
 	 */
 	public S requestCallback(WebServiceMessageCallback requestCallback) {
-		this.target.setRequestCallback(requestCallback);
+		this.requestCallback = requestCallback;
 		return _this();
 	}
 
-	/**
-	 * Specify the {@link FaultMessageResolver} to use.
-	 * @param faultMessageResolver the resolver.
-	 * @return the spec.
-	 */
-	public S faultMessageResolver(FaultMessageResolver faultMessageResolver) {
-		this.target.setFaultMessageResolver(faultMessageResolver);
-		return _this();
+	@Override
+	protected E doGet() {
+		return assemble(create());
 	}
 
-	/**
-	 * Specify the {@link WebServiceMessageSender}s to use.
-	 * @param messageSenders the senders.
-	 * @return the spec.
-	 */
-	public S messageSenders(WebServiceMessageSender... messageSenders) {
-		this.target.setMessageSenders(messageSenders);
-		return _this();
-	}
+	protected abstract E create();
 
-	/**
-	 * Specify the {@link ClientInterceptor}s to use.
-	 * @param interceptors the interceptors.
-	 * @return the spec.
-	 */
-	public S interceptors(ClientInterceptor... interceptors) {
-		this.target.setInterceptors(interceptors);
-		return _this();
+	protected E assemble(E gateway) {
+		gateway.setUriVariableExpressions(this.uriVariableExpressions);
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(this.headerMapper, gateway::setHeaderMapper);
+		gateway.setEncodeUri(this.encodeUri);
+		gateway.setIgnoreEmptyResponses(this.ignoreEmptyResponses);
+		gateway.setRequestCallback(this.requestCallback);
+		return gateway;
 	}
 
 }

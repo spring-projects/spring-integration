@@ -16,12 +16,17 @@
 
 package org.springframework.integration.ws.dsl;
 
+import java.util.Arrays;
+
+import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
-import org.springframework.lang.Nullable;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
+import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
-import org.springframework.ws.client.support.destination.DestinationProvider;
+import org.springframework.ws.client.core.WebServiceTemplate;
+import org.springframework.ws.client.support.interceptor.ClientInterceptor;
+import org.springframework.ws.transport.WebServiceMessageSender;
 
 /**
  * The spec for a {@link SimpleWebServiceOutboundGateway}.
@@ -33,64 +38,20 @@ import org.springframework.ws.client.support.destination.DestinationProvider;
 public class SimpleWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
 	SimpleWsOutboundGatewaySpec, SimpleWebServiceOutboundGateway> {
 
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 */
-	protected SimpleWsOutboundGatewaySpec(DestinationProvider destinationProvider) {
-		this(destinationProvider, null, null);
+	protected SourceExtractor<?> sourceExtractor; // NOSONAR
+
+	protected SimpleWsOutboundGatewaySpec(WebServiceTemplate template) {
+		this.template = template;
 	}
 
 	/**
-	 * Construct an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param sourceExtractor the source extractor.
+	 * Configure a {@link SourceExtractor} to use.
+	 * @param extractor the extractor.
+	 * @return the spec.
 	 */
-	protected SimpleWsOutboundGatewaySpec(DestinationProvider destinationProvider, SourceExtractor<?> sourceExtractor) {
-		this(destinationProvider, sourceExtractor, null);
-	}
-
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param destinationProvider the destination provider.
-	 * @param sourceExtractor the source extractor.
-	 * @param messageFactory the message factory.
-	 */
-	protected SimpleWsOutboundGatewaySpec(DestinationProvider destinationProvider,
-			@Nullable SourceExtractor<?> sourceExtractor,
-			@Nullable WebServiceMessageFactory messageFactory) {
-
-		this.target = new SimpleWebServiceOutboundGateway(destinationProvider, sourceExtractor, messageFactory);
-	}
-
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param uri the URI.
-	 */
-	protected SimpleWsOutboundGatewaySpec(String uri) {
-		this(uri, null, null);
-	}
-
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param sourceExtractor the source extractor.
-	 */
-	protected SimpleWsOutboundGatewaySpec(String uri, SourceExtractor<?> sourceExtractor) {
-		this(uri, sourceExtractor, null);
-	}
-
-	/**
-	 * Construct an instance with the provided arguments.
-	 * @param uri the URI.
-	 * @param sourceExtractor the source extractor.
-	 * @param messageFactory the message factory.
-	 */
-	protected SimpleWsOutboundGatewaySpec(String uri,
-			@Nullable SourceExtractor<?> sourceExtractor,
-			@Nullable WebServiceMessageFactory messageFactory) {
-
-		this.target = new SimpleWebServiceOutboundGateway(uri, sourceExtractor, messageFactory);
+	public SimpleWsOutboundGatewaySpec sourceExtractor(SourceExtractor<?> extractor) {
+		this.sourceExtractor = extractor;
+		return this;
 	}
 
 	/**
@@ -98,12 +59,134 @@ public class SimpleWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
 	 * {@code payload} based on {@link WebServiceMessage}
 	 * and populated headers according {@code headerMapper} configuration.
 	 * Defaults to extract payload.
-	 * @param extractPayload build payload or return a whole {@link WebServiceMessage}
+	 * @param extract build payload or return a whole {@link WebServiceMessage}
 	 * @return the spec.
 	 */
-	public SimpleWsOutboundGatewaySpec extractPayload(boolean extractPayload) {
-		this.target.setExtractPayload(extractPayload);
+	public SimpleWsOutboundGatewaySpec extractPayload(boolean extract) {
+		this.extractPayload = extract;
 		return this;
+	}
+
+
+	@Override
+	protected SimpleWebServiceOutboundGateway assemble(SimpleWebServiceOutboundGateway gateway) {
+		SimpleWebServiceOutboundGateway assembled = super.assemble(gateway);
+		assembled.setExtractPayload(this.extractPayload);
+		return assembled;
+	}
+
+	@Override
+	protected SimpleWebServiceOutboundGateway create() {
+		SimpleWebServiceOutboundGateway gateway;
+		if (this.destinationProvider != null) {
+			gateway = new SimpleWebServiceOutboundGateway(this.destinationProvider, this.sourceExtractor,
+					this.webServiceMessageFactory);
+		}
+		else {
+			gateway = new SimpleWebServiceOutboundGateway(this.uri, this.sourceExtractor,
+					this.webServiceMessageFactory);
+		}
+		gateway.setWebServiceTemplate(this.template);
+		return gateway;
+	}
+
+	/**
+	 * Spec for a {@link MarshallingWebServiceOutboundGateway} where an external
+	 * {@link WebServiceTemplate} is not provided.
+	 *
+	 */
+	public static class SimpleWsOutboundGatewayNoTemplateSpec extends BaseWsOutboundGatewaySpec<
+			SimpleWsOutboundGatewayNoTemplateSpec, SimpleWebServiceOutboundGateway> {
+
+		protected SourceExtractor<?> sourceExtractor; // NOSONAR
+		private boolean extractPayload;
+
+		/**
+		 * Configure a {@link SourceExtractor} to use.
+		 * @param extractor the extractor.
+		 * @return the spec.
+		 */
+		public SimpleWsOutboundGatewayNoTemplateSpec sourceExtractor(SourceExtractor<?> extractor) {
+			this.sourceExtractor = extractor;
+			return this;
+		}
+
+
+		/**
+		 * Specify the {@link WebServiceMessageFactory} to use.
+		 * @param messageFactory the message factory.
+		 * @return the spec.
+		 */
+		public SimpleWsOutboundGatewayNoTemplateSpec messageFactory(WebServiceMessageFactory messageFactory) {
+			this.webServiceMessageFactory = messageFactory;
+			return this;
+		}
+
+		/**
+		 * Specify the {@link FaultMessageResolver} to use.
+		 * @param resolver the resolver.
+		 * @return the spec.
+		 */
+		public SimpleWsOutboundGatewayNoTemplateSpec faultMessageResolver(FaultMessageResolver resolver) {
+			this.faultMessageResolver = resolver;
+			return this;
+		}
+
+		/**
+		 * Specify the {@link WebServiceMessageSender}s to use.
+		 * @param senders the senders.
+		 * @return the spec.
+		 */
+		public SimpleWsOutboundGatewayNoTemplateSpec messageSenders(WebServiceMessageSender... senders) {
+			this.messageSenders = Arrays.copyOf(senders, senders.length);
+			return this;
+		}
+
+		/**
+		 * Specify the {@link ClientInterceptor}s to use.
+		 * @param interceptors the interceptors.
+		 * @return the spec.
+		 */
+		public SimpleWsOutboundGatewayNoTemplateSpec interceptors(ClientInterceptor... interceptors) {
+			this.gatewayInterceptors = Arrays.copyOf(interceptors, interceptors.length);
+			return this;
+		}
+
+		/**
+		 * Specify a flag to return the whole {@link WebServiceMessage} or build the
+		 * {@code payload} based on {@link WebServiceMessage}
+		 * and populated headers according {@code headerMapper} configuration.
+		 * Defaults to extract payload.
+		 * @param extract build payload or return a whole {@link WebServiceMessage}
+		 * @return the spec.
+		 */
+		public SimpleWsOutboundGatewayNoTemplateSpec extractPayload(boolean extract) {
+			this.extractPayload = extract;
+			return this;
+		}
+
+		@Override
+		protected SimpleWebServiceOutboundGateway create() {
+			if (this.destinationProvider != null) {
+				return new SimpleWebServiceOutboundGateway(this.destinationProvider, this.sourceExtractor,
+						this.webServiceMessageFactory);
+			}
+			else {
+				return new SimpleWebServiceOutboundGateway(this.uri, this.sourceExtractor,
+						this.webServiceMessageFactory);
+			}
+		}
+
+		@Override
+		protected SimpleWebServiceOutboundGateway assemble(SimpleWebServiceOutboundGateway gateway) {
+			SimpleWebServiceOutboundGateway assembled = super.assemble(gateway);
+			assembled.setFaultMessageResolver(this.faultMessageResolver);
+			assembled.setMessageSenders(this.messageSenders);
+			assembled.setInterceptors(this.gatewayInterceptors);
+			assembled.setExtractPayload(this.extractPayload);
+			return assembled;
+		}
+
 	}
 
 }
