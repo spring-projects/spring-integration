@@ -172,16 +172,17 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		else if (this.subscriber != null) {
 			this.subscription =
 					Flux.from(this.publisher)
-							.doOnComplete(this.subscriber::onComplete)
-							.doOnSubscribe(this.subscriber::onSubscribe)
 							.subscribe((data) -> {
-								try {
-									this.subscriber.onNext(data);
-								}
-								catch (Exception ex) {
-									this.errorHandler.handleError(ex);
-								}
-							});
+										try {
+											this.subscriber.onNext(data);
+										}
+										catch (Exception ex) {
+											this.errorHandler.handleError(ex);
+										}
+									},
+									null,
+									this.subscriber::onComplete,
+									this.subscriber::onSubscribe);
 		}
 	}
 
