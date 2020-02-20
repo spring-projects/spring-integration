@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,7 @@ import javax.jms.Session;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Stanza;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -52,8 +51,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.ws.client.WebServiceClientException;
 import org.springframework.ws.client.WebServiceIOException;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
@@ -74,8 +72,7 @@ import org.springframework.ws.transport.mail.MailSenderConnection;
  *
  * @since 2.1
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 public class UriVariableTests {
 
 	@Autowired
@@ -134,7 +131,7 @@ public class UriVariableTests {
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> this.inputHttp.send(message))
 				.withCauseInstanceOf(WebServiceIOException.class); // offline
-		assertThat(uri.get()).isEqualTo("http://localhost/spring-integration?param=test1%20&%20test2");
+		assertThat(uri.get()).isEqualTo("http://localhost/spring-integration?param=test1%20%26%20test2");
 	}
 
 	@Test

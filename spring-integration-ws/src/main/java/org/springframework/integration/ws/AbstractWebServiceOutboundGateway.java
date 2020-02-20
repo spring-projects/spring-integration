@@ -18,7 +18,6 @@ package org.springframework.integration.ws;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,8 +34,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
@@ -60,11 +58,13 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
+	protected final DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory(); // NOSONAR - final
+
 	private final String uri;
 
 	private final DestinationProvider destinationProvider;
 
-	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
+	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
 	private StandardEvaluationContext evaluationContext;
 
@@ -73,8 +73,6 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	private WebServiceTemplate webServiceTemplate;
 
 	private boolean ignoreEmptyResponses = true;
-
-	private boolean encodeUri = true;
 
 	private SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
@@ -89,6 +87,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	public AbstractWebServiceOutboundGateway(DestinationProvider destinationProvider,
 			WebServiceMessageFactory messageFactory) {
+
 		Assert.notNull(destinationProvider, "DestinationProvider must not be null");
 		this.webServiceTemplate = new WebServiceTemplate(messageFactory);
 		this.destinationProvider = destinationProvider;
@@ -99,6 +98,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	}
 
 	public void setHeaderMapper(SoapHeaderMapper headerMapper) {
+		Assert.notNull(headerMapper, "'headerMapper' must not be null");
 		this.headerMapper = headerMapper;
 	}
 
@@ -120,13 +120,29 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	 * @param encodeUri true if the URI should be encoded.
 	 * @see org.springframework.web.util.UriComponentsBuilder
 	 * @since 4.1
+	 * @deprecated since 5.3 in favor of {@link #setEncodingMode}
 	 */
+	@Deprecated
 	public void setEncodeUri(boolean encodeUri) {
-		this.encodeUri = encodeUri;
+		setEncodingMode(
+				encodeUri
+						? DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES
+						: DefaultUriBuilderFactory.EncodingMode.NONE);
+	}
+
+	/**
+	 * Set the encoding mode to use.
+	 * By default this is set to {@link DefaultUriBuilderFactory.EncodingMode#TEMPLATE_AND_VALUES}.
+	 * @param encodingMode the mode to use for uri encoding
+	 * @since 5.3
+	 */
+	public void setEncodingMode(DefaultUriBuilderFactory.EncodingMode encodingMode) {
+		Assert.notNull(encodingMode, "'encodingMode' must not be null");
+		this.uriFactory.setEncodingMode(encodingMode);
 	}
 
 	public void setReplyChannel(MessageChannel replyChannel) {
-		this.setOutputChannel(replyChannel);
+		setOutputChannel(replyChannel);
 	}
 
 	/**
@@ -200,40 +216,33 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	@Override
 	public final Object handleRequestMessage(Message<?> requestMessage) {
-		URI uriWithVariables = null;
-		try {
-			uriWithVariables = this.prepareUri(requestMessage);
-		}
-		catch (URISyntaxException e) {
-			throw new IllegalArgumentException(e);
-		}
+		URI uriWithVariables = prepareUri(requestMessage);
 		if (uriWithVariables == null) {
 			throw new MessageDeliveryException(requestMessage, "Failed to determine URI for " +
 					"Web Service request in outbound gateway: " + this.getComponentName());
 		}
-		Object responsePayload = this.doHandle(uriWithVariables.toString(), requestMessage, this.requestCallback);
-		if (responsePayload != null) {
-			boolean shouldIgnore = (this.ignoreEmptyResponses
-					&& responsePayload instanceof String && !StringUtils.hasText((String) responsePayload));
-			if (!shouldIgnore) {
-				return responsePayload;
-			}
+		Object responsePayload = doHandle(uriWithVariables.toString(), requestMessage, this.requestCallback);
+		if (responsePayload != null && !(this.ignoreEmptyResponses
+				&& responsePayload instanceof String
+				&& !StringUtils.hasText((String) responsePayload))) {
+
+			return responsePayload;
 		}
 		return null;
 	}
 
-	private URI prepareUri(Message<?> requestMessage) throws URISyntaxException {
+	private URI prepareUri(Message<?> requestMessage) {
 		if (this.destinationProvider != null) {
 			return this.destinationProvider.getDestination();
 		}
 
-		Map<String, Object> uriVariables = ExpressionEvalMap.from(this.uriVariableExpressions)
-				.usingEvaluationContext(this.evaluationContext)
-				.withRoot(requestMessage)
-				.build();
+		Map<String, Object> uriVariables =
+				ExpressionEvalMap.from(this.uriVariableExpressions)
+						.usingEvaluationContext(this.evaluationContext)
+						.withRoot(requestMessage)
+						.build();
 
-		UriComponents uriComponents = UriComponentsBuilder.fromUriString(this.uri).buildAndExpand(uriVariables);
-		return this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
+		return this.uriFactory.expand(this.uri, uriVariables);
 	}
 
 
@@ -282,7 +291,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			if (resultObject != null && message instanceof SoapMessage) {
 				Map<String, Object> mappedMessageHeaders =
 						AbstractWebServiceOutboundGateway.this.headerMapper.toHeadersFromReply((SoapMessage) message);
-				return AbstractWebServiceOutboundGateway.this.getMessageBuilderFactory()
+				return getMessageBuilderFactory()
 						.withPayload(resultObject)
 						.copyHeaders(mappedMessageHeaders)
 						.build();

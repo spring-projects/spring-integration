@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.ws.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -24,8 +25,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -49,7 +49,8 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.scheduling.support.PeriodicTrigger;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
@@ -66,7 +67,7 @@ import org.springframework.ws.transport.WebServiceMessageSender;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 public class WebServiceOutboundGatewayParserTests {
 
 	private static volatile int adviceCalled;
@@ -173,7 +174,8 @@ public class WebServiceOutboundGatewayParserTests {
 
 	@Test
 	public void simpleGatewayWithCustomSourceExtractorAndMessageFactory() {
-		AbstractEndpoint endpoint = context.getBean("gatewayWithCustomSourceExtractorAndMessageFactory", AbstractEndpoint.class);
+		AbstractEndpoint endpoint = context.getBean("gatewayWithCustomSourceExtractorAndMessageFactory",
+				AbstractEndpoint.class);
 		SourceExtractor<?> sourceExtractor = (SourceExtractor<?>) context.getBean("sourceExtractor");
 		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
@@ -187,7 +189,8 @@ public class WebServiceOutboundGatewayParserTests {
 
 	@Test
 	public void simpleGatewayWithCustomFaultMessageResolver() {
-		AbstractEndpoint endpoint = this.context.getBean("gatewayWithCustomFaultMessageResolver", AbstractEndpoint.class);
+		AbstractEndpoint endpoint = this.context.getBean("gatewayWithCustomFaultMessageResolver",
+				AbstractEndpoint.class);
 		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
@@ -387,7 +390,7 @@ public class WebServiceOutboundGatewayParserTests {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithAdvice", AbstractEndpoint.class);
 		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
-		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
 
@@ -395,18 +398,20 @@ public class WebServiceOutboundGatewayParserTests {
 	public void testInt2718AdvisedInsideAChain() {
 		adviceCalled = 0;
 		MessageChannel channel = context.getBean("gatewayWithAdviceInsideAChain", MessageChannel.class);
-		channel.send(new GenericMessage<String>("foo"));
+		channel.send(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void jmsUri() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithJmsUri", AbstractEndpoint.class);
 		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
 		assertThat(TestUtils.getPropertyValue(handler, "destinationProvider")).isNull();
-		assertThat(TestUtils.getPropertyValue(handler, "encodeUri", Boolean.class)).isFalse();
+		assertThat(
+				TestUtils.getPropertyValue(handler, "uriFactory.encodingMode",
+						DefaultUriBuilderFactory.EncodingMode.class))
+				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.NONE);
 
 		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(handler, "webServiceTemplate",
 				WebServiceTemplate.class);
@@ -418,23 +423,27 @@ public class WebServiceOutboundGatewayParserTests {
 
 		new DirectFieldAccessor(handler).setPropertyValue("webServiceTemplate", webServiceTemplate);
 
-		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<>("foo"));
 
 		verify(webServiceTemplate).sendAndReceive(eq("jms:wsQueue"),
 				any(WebServiceMessageCallback.class),
 				ArgumentMatchers.<WebServiceMessageExtractor<Object>>any());
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void invalidGatewayWithBothUriAndDestinationProvider() {
-		new ClassPathXmlApplicationContext("invalidGatewayWithBothUriAndDestinationProvider.xml", this.getClass())
-				.close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("invalidGatewayWithBothUriAndDestinationProvider.xml",
+								getClass()));
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void invalidGatewayWithNeitherUriNorDestinationProvider() {
-		new ClassPathXmlApplicationContext("invalidGatewayWithNeitherUriNorDestinationProvider.xml", this.getClass())
-				.close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("invalidGatewayWithNeitherUriNorDestinationProvider.xml",
+								getClass()));
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
