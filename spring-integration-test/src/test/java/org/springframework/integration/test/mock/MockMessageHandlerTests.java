@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@ package org.springframework.integration.test.mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.springframework.integration.test.mock.MockIntegration.mockMessageHandler;
 
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Subscriber;
 
@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
@@ -42,6 +43,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
+import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.context.MockIntegrationContext;
 import org.springframework.integration.test.context.SpringIntegrationTest;
@@ -56,7 +58,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
@@ -64,7 +66,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @ContextConfiguration(classes = MockMessageHandlerTests.Config.class)
 @SpringIntegrationTest
 @DirtiesContext
@@ -97,7 +99,7 @@ public class MockMessageHandlerTests {
 	@Autowired
 	private ArgumentCaptor<Message<?>> messageArgumentCaptor;
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.mockIntegrationContext.resetBeans();
 		results.purge(null);
@@ -238,6 +240,26 @@ public class MockMessageHandlerTests {
 		assertThat(list.size()).isEqualTo(2);
 	}
 
+	@Autowired
+	private MessageChannel logChannel;
+
+	@Test
+	public void testMockIntegrationContextReset() {
+		MockMessageHandler mockMessageHandler = mockMessageHandler();
+		mockMessageHandler.handleNext(message -> { });
+
+		this.mockIntegrationContext.substituteMessageHandlerFor("logEndpoint", mockMessageHandler);
+
+		this.logChannel.send(new GenericMessage<>(1));
+
+		this.mockIntegrationContext.resetBeans();
+
+		this.logChannel.send(new GenericMessage<>(2));
+
+		verify(mockMessageHandler).handleMessage(any(Message.class));
+	}
+
+
 	@Configuration
 	@EnableIntegration
 	public static class Config {
@@ -299,6 +321,13 @@ public class MockMessageHandlerTests {
 			return mockMessageHandler(argumentCaptorForOutputTest())
 					.handleNext(m -> {
 					});
+		}
+
+		@Bean
+		@EndpointId("logEndpoint")
+		@ServiceActivator(inputChannel = "logChannel")
+		public MessageHandler logHandler() {
+			return new LoggingHandler(LoggingHandler.Level.FATAL);
 		}
 
 	}

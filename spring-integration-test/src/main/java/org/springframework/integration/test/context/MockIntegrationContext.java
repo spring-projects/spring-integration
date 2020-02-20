@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.IntegrationConsumer;
@@ -97,6 +98,11 @@ public class MockIntegrationContext implements BeanFactoryAware {
 				.forEach(e -> {
 					Object endpoint = this.beanFactory.getBean(e.getKey());
 					DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
+					SmartLifecycle lifecycle = null;
+					if (endpoint instanceof SmartLifecycle && ((SmartLifecycle) endpoint).isRunning()) {
+						lifecycle = (SmartLifecycle) endpoint;
+						lifecycle.stop();
+					}
 					if (endpoint instanceof SourcePollingChannelAdapter) {
 						directFieldAccessor.setPropertyValue("source", e.getValue());
 					}
@@ -108,9 +114,19 @@ public class MockIntegrationContext implements BeanFactoryAware {
 					else if (endpoint instanceof IntegrationConsumer) {
 						directFieldAccessor.setPropertyValue(HANDLER, e.getValue());
 					}
+					if (lifecycle != null && lifecycle.isAutoStartup()) {
+						lifecycle.start();
+					}
 				});
 
-		this.beans.clear();
+		if (!ObjectUtils.isEmpty(beanNames)) {
+			for (String name : beanNames) {
+				this.beans.remove(name);
+			}
+		}
+		else {
+			this.beans.clear();
+		}
 	}
 
 	/**
