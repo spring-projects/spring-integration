@@ -32,7 +32,6 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.reactivestreams.Publisher;
 
 import org.springframework.beans.DirectFieldAccessor;
