@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,11 @@ import reactor.core.scheduler.Schedulers;
  */
 public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware {
 
+	/**
+	 * A default polling period for {@link PeriodicTrigger}.
+	 */
+	public static final long DEFAULT_POLLING_PERIOD = 10;
+
 	private final Object initializationMonitor = new Object();
 
 	private Executor taskExecutor = new SyncTaskExecutor();
@@ -75,7 +80,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
-	private Trigger trigger = new PeriodicTrigger(10);
+	private Trigger trigger = new PeriodicTrigger(DEFAULT_POLLING_PERIOD);
 
 	private long maxMessagesPerPoll = -1;
 
@@ -117,7 +122,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	public void setTrigger(Trigger trigger) {
-		this.trigger = (trigger != null ? trigger : new PeriodicTrigger(10));
+		this.trigger = (trigger != null ? trigger : new PeriodicTrigger(DEFAULT_POLLING_PERIOD));
 	}
 
 	public void setAdviceChain(List<Advice> adviceChain) {
@@ -193,19 +198,16 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				return;
 			}
 			Assert.notNull(this.trigger, "Trigger is required");
-			if (this.taskExecutor != null) {
-				if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
-					if (this.errorHandler == null) {
-						this.errorHandler = ChannelUtils.getErrorHandler(getBeanFactory());
-						this.errorHandlerIsDefault = true;
-					}
-					this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
+			if (this.taskExecutor != null && !(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
+				if (this.errorHandler == null) {
+					this.errorHandler = ChannelUtils.getErrorHandler(getBeanFactory());
+					this.errorHandlerIsDefault = true;
 				}
+				this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
 			}
-			if (this.transactionSynchronizationFactory == null && this.adviceChain != null) {
-				if (this.adviceChain.stream().anyMatch(TransactionInterceptor.class::isInstance)) {
-					this.transactionSynchronizationFactory = new PassThroughTransactionSynchronizationFactory();
-				}
+			if (this.transactionSynchronizationFactory == null && this.adviceChain != null &&
+					this.adviceChain.stream().anyMatch(TransactionInterceptor.class::isInstance)) {
+				this.transactionSynchronizationFactory = new PassThroughTransactionSynchronizationFactory();
 			}
 			this.initialized = true;
 		}
@@ -328,7 +330,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			return this.pollingTask.call();
 		}
 		catch (Exception e) {
-			if (e instanceof MessagingException) {
+			if (e instanceof MessagingException) { // NOSONAR
 				throw (MessagingException) e;
 			}
 			else {
@@ -395,13 +397,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			try {
 				handleMessage(message);
 			}
-			catch (Exception e) {
-				if (e instanceof MessagingException) {
-					throw new MessagingExceptionWrapper(message, (MessagingException) e);
-				}
-				else {
-					throw new MessagingException(message, e);
-				}
+			catch (MessagingException ex) {
+				throw new MessagingExceptionWrapper(message, ex);
+			}
+			catch (Exception ex) {
+				throw new MessagingException(message, ex);
 			}
 		}
 	}

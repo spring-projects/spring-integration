@@ -33,9 +33,10 @@ import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizing
 import com.jcraft.jsch.ChannelSftp;
 
 /**
- * A {@link RemoteFileInboundChannelAdapterSpec} for a {@link SftpInboundFileSynchronizingMessageSource}.
+ * A {@link RemoteFileInboundChannelAdapterSpec} for an {@link SftpInboundFileSynchronizingMessageSource}.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class SftpInboundChannelAdapterSpec
@@ -69,7 +70,6 @@ public class SftpInboundChannelAdapterSpec
 		return filter(composeFilters(new SftpRegexPatternFileListFilter(regex)));
 	}
 
-	@SuppressWarnings("unchecked")
 	private CompositeFileListFilter<ChannelSftp.LsEntry> composeFilters(FileListFilter<ChannelSftp.LsEntry>
 			fileListFilter) {
 		CompositeFileListFilter<ChannelSftp.LsEntry> compositeFileListFilter = new CompositeFileListFilter<>();

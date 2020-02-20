@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 
 import org.apache.commons.net.ftp.FTPFile;
@@ -47,6 +49,8 @@ import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
+import org.springframework.integration.file.DefaultDirectoryScanner;
+import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
@@ -86,10 +90,12 @@ public class FtpTests extends FtpTestSupport {
 	@Test
 	public void testFtpInboundFlow() throws IOException {
 		QueueChannel out = new QueueChannel();
+		DirectoryScanner scanner = new DefaultDirectoryScanner();
 		IntegrationFlow flow = IntegrationFlows.from(Ftp.inboundAdapter(sessionFactory())
 						.preserveTimestamp(true)
 						.remoteDirectory("ftpSource")
 						.maxFetchSize(10)
+						.scanner(scanner)
 						.regexFilter(".*\\.txt$")
 						.localFilename(f -> f.toUpperCase() + ".a")
 						.localDirectory(getTargetLocalDirectory()),
@@ -97,6 +103,11 @@ public class FtpTests extends FtpTestSupport {
 				.channel(out)
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		Map<?, ?> components = TestUtils.getPropertyValue(registration, "integrationFlow.integrationComponents", Map.class);
+		Iterator<?> iterator = components.keySet().iterator();
+		iterator.next();
+		Object spcafb = iterator.next();
+		assertThat(TestUtils.getPropertyValue(spcafb, "source.fileSource.scanner")).isSameAs(scanner);
 		Message<?> message = out.receive(10_000);
 		assertThat(message).isNotNull();
 		assertThat(message.getHeaders())

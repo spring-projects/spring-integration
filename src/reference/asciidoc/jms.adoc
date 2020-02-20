@@ -206,7 +206,7 @@ The default value is 'true'.
 Therefore, if you pass a Spring Integration message whose payload is a `String`, a JMS `TextMessage` is created.
 If, on the other hand, you want to send the actual Spring Integration message to another system over JMS, set it to 'false'.
 
-NOTE: Regardless of the boolean value for payload extraction, the Spring Integration `MessageHeaders` map to JMS properties, as long as you rely on the default converter or provide a reference to another instance of `HeaderMappingMessageConverter`.
+NOTE: Regardless of the boolean value for payload extraction, the Spring Integration `MessageHeaders` map to JMS properties, as long as you rely on the default converter or provide a reference to another instance of `MessageConverter`.
 (The same holds true for 'inbound' adapters, except that, in those cases, the JMS properties map to Spring Integration `MessageHeaders`).
 
 Starting with version 5.1, the `<int-jms:outbound-channel-adapter>` (`JmsSendingMessageHandler`) can be configured with the `deliveryModeExpression` and `timeToLiveExpression` properties to evaluate an appropriate QoS values for JMS message to send at runtime against request Spring `Message`.
@@ -619,8 +619,15 @@ The JMS API headers are passed to the appropriate setter methods (such as `setJM
 JMS outbound gateway is bootstrapped with the default implementation of `JmsHeaderMapper`, which will map standard JMS API Headers as well as primitive or `String` message headers.
 You could also provide a custom header mapper by using the `header-mapper` attribute of inbound and outbound gateways.
 
+IMPORTANT: Many JMS vendor-specific clients don't allow setting the `deliveryMode`, `priority` and `timeToLive` properties directly on an already created JMS message.
+They are considered to be QoS properties and therefore have to be propagated to the target `MessageProducer.send(message, deliveryMode, priority, timeToLive)` API.
+For this reason the `DefaultJmsHeaderMapper` doesn't map appropriate Spring Integration headers (or expression results) into the mentioned JMS message properties.
+Instead, a `DynamicJmsTemplate` is used by the `JmsSendingMessageHandler` to propagate header values from the request message into the `MessageProducer.send()` API.
+To enable this feature, you must configure the outbound endpoint with a `DynamicJmsTemplate` with its `explicitQosEnabled` property set to true.
+The Spring Integration Java DSL configures a `DynamicJmsTemplate` by default but you must still set the `explicitQosEnabled` property.
+
 IMPORTANT: Since version 4.0, the `JMSPriority` header is mapped to the standard `priority` header for inbound messages.
-(previously, the `priority` header was only used for outbound messages).
+Previously, the `priority` header was only used for outbound messages.
 To revert to the previous behavior (that is, to not map the inbound priority), set the `mapInboundPriority` property of `DefaultJmsHeaderMapper` to `false`.
 
 IMPORTANT: Since version 4.3, the `DefaultJmsHeaderMapper` maps the standard `correlationId` header as a message property by invoking its `toString()` method (`correlationId` is often a `UUID`, which is not supported by JMS).

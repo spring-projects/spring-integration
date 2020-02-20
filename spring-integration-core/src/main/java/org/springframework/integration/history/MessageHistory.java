@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,22 +36,23 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.0
  */
 @SuppressWarnings("serial")
 public final class MessageHistory implements List<Properties>, Serializable {
 
-	private static final Log logger = LogFactory.getLog(MessageHistory.class);
+	private static final Log LOGGER = LogFactory.getLog(MessageHistory.class);
 
 	private static final UnsupportedOperationException UNSUPPORTED_OPERATION_EXCEPTION_IMMUTABLE =
 			new UnsupportedOperationException("MessageHistory is immutable.");
@@ -68,9 +70,11 @@ public final class MessageHistory implements List<Properties>, Serializable {
 
 	private final List<Properties> components;
 
-
-	public static MessageHistory read(Message<?> message) {
-		return message != null ? message.getHeaders().get(HEADER_NAME, MessageHistory.class) : null;
+	@Nullable
+	public static MessageHistory read(@Nullable Message<?> message) {
+		return message != null
+				? message.getHeaders().get(HEADER_NAME, MessageHistory.class)
+				: null;
 	}
 
 	public static <T> Message<T> write(Message<T> message, NamedComponent component) {
@@ -87,8 +91,10 @@ public final class MessageHistory implements List<Properties>, Serializable {
 		Properties metadata = extractMetadata(component);
 		if (!metadata.isEmpty()) {
 			MessageHistory previousHistory = message.getHeaders().get(HEADER_NAME, MessageHistory.class);
-			List<Properties> components = (previousHistory != null) ?
-					new ArrayList<Properties>(previousHistory) : new ArrayList<Properties>();
+			List<Properties> components =
+					previousHistory != null
+							? new ArrayList<>(previousHistory)
+							: new ArrayList<>();
 			components.add(metadata);
 			MessageHistory history = new MessageHistory(components);
 
@@ -111,13 +117,13 @@ public final class MessageHistory implements List<Properties>, Serializable {
 			else {
 				if (!(message instanceof GenericMessage) &&
 						(messageBuilderFactory instanceof DefaultMessageBuilderFactory ||
-								messageBuilderFactory instanceof MutableMessageBuilderFactory)) {
-					if (logger.isWarnEnabled()) {
-						logger.warn("MessageHistory rebuilds the message and produces the result of the [" +
-								messageBuilderFactory + "], not an instance of the provided type [" +
-								message.getClass() + "]. Consider to supply a custom MessageBuilderFactory " +
-								"to retain custom messages during MessageHistory tracking.");
-					}
+								messageBuilderFactory instanceof MutableMessageBuilderFactory)
+						&& LOGGER.isWarnEnabled()) {
+
+					LOGGER.warn("MessageHistory rebuilds the message and produces the result of the [" +
+							messageBuilderFactory + "], not an instance of the provided type [" +
+							message.getClass() + "]. Consider to supply a custom MessageBuilderFactory " +
+							"to retain custom messages during MessageHistory tracking.");
 				}
 				message = messageBuilderFactory.fromMessage(message)
 						.setHeader(HEADER_NAME, history)
@@ -201,14 +207,10 @@ public final class MessageHistory implements List<Properties>, Serializable {
 
 	@Override
 	public String toString() {
-		List<String> names = new ArrayList<String>();
-		for (Properties p : this.components) {
-			String name = p.getProperty(NAME_PROPERTY);
-			if (name != null) {
-				names.add(name);
-			}
-		}
-		return StringUtils.collectionToCommaDelimitedString(names);
+		return this.components
+				.stream()
+				.map((props) -> props.getProperty(NAME_PROPERTY))
+				.collect(Collectors.joining(","));
 	}
 
 

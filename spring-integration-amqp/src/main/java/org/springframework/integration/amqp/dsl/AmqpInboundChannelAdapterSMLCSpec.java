@@ -19,6 +19,7 @@ package org.springframework.integration.amqp.dsl;
 import java.util.function.Consumer;
 
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter.BatchMode;
 
 /**
  * Spec for an inbound channel adapter with a {@link SimpleMessageListenerContainer}.
@@ -41,4 +42,15 @@ public class AmqpInboundChannelAdapterSMLCSpec
 		return this;
 	}
 
+	/**
+	 * Set the {@link BatchMode} to use when the container is configured to support
+	 * batching consumed records.
+	 * @param batchMode the batch mode.
+	 * @return the spec.
+	 * @since 5.3
+	 */
+	public AmqpInboundChannelAdapterSMLCSpec batchMode(BatchMode batchMode) {
+		this.target.setBatchMode(batchMode);
+		return this;
+	}
 }

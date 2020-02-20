@@ -25,14 +25,14 @@ See its JavaDocs and <<./graph.adoc#integration-graph,Integration Graph>> for mo
 ==== `ReactiveMessageHandler`
 
 The `ReactiveMessageHandler` is now natively supported in the framework.
-See <<./reactive-streams.adoc/reactive-message-handler,ReactiveMessageHandler>> for more information.
+See <<./reactive-streams.adoc#reactive-message-handler,ReactiveMessageHandler>> for more information.
 
 [[x5.3-java-dsl-extensions]]
 ==== Java DSL Extensions
 
 A new `IntegrationFlowExtension` API has been introduced to allow extension of the existing Java DSL with custom or composed EIP-operators.
 This also can be used to introduce customizers for any out-of-the-box `IntegrationComponentSpec` extensions.
-See <<./dsl.adoc/java-dsl-extensions,DSL Extensions>> for more information.
+See <<./dsl.adoc#java-dsl-extensions,DSL Extensions>> for more information.
 
 
 [[x5.3-mongodb-reactive-channel-adapters]]
@@ -45,7 +45,7 @@ See <<./mongodb.adoc#mongodb-reactive-channel-adapters,MongoDB Reactive Channel 
 === General Changes
 
 The gateway proxy now doesn't proxy `default` methods by default.
-See <<./gateway.adoc/gateway-calling-default-methods,Invoking `default` Methods>> for more information.
+See <<./gateway.adoc#gateway-calling-default-methods,Invoking `default` Methods>> for more information.
 
 Internal components (such as `_org.springframework.integration.errorLogger`) now have a shortened name when they are represented in the integration graph.
 See <<./graph.adoc#integration-graph,Integration Graph>> for more information.
@@ -57,14 +57,17 @@ See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more i
 === AMQP Changes
 
 The outbound channel adapter has a new property `multiSend` allowing multiple messages to be sent within the scope of one `RabbitTemplate` invocation.
-See <<./amqp.adoc/amqp-outbound-channel-adapter,AMQP Outbound Channel Adapter>> for more information.
+See <<./amqp.adoc#amqp-outbound-channel-adapter,AMQP Outbound Channel Adapter>> for more information.
+
+The inbound channel adapter now supports a listener container with the `consumerBatchEnabled` property set to `true`.
+See <<./amqp.adoc#amqp-inbound-channel-adapter,AMQP Inbound Channel Adapter>>
 
 [[x5.3-http]]
 === HTTP Changes
 
 The `encodeUri` property on the `AbstractHttpRequestExecutingMessageHandler` has been deprecated in favor of newly introduced `encodingMode`.
-See `DefaultUriBuilderFactory.EncodingMode` JavaDocs and <<./http.adoc/http-uri-encoding,Controlling URI Encoding>> for more information.
-This also effects `WebFluxRequestExecutingMessageHandler`, respective Java DSL and XML configuration.
+See `DefaultUriBuilderFactory.EncodingMode` JavaDocs and <<./http.adoc#http-uri-encoding,Controlling URI Encoding>> for more information.
+This also affects `WebFluxRequestExecutingMessageHandler`, respective Java DSL and XML configuration.
 
 [[x5.3-WebFlux]]
 === WebFlux Changes

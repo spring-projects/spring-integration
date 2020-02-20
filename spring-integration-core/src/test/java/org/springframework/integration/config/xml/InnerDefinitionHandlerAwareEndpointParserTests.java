@@ -17,6 +17,7 @@
 package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.ByteArrayInputStream;
 import java.util.Collection;
@@ -25,13 +26,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -42,8 +44,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -51,18 +52,27 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 public class InnerDefinitionHandlerAwareEndpointParserTests {
 
 	@Autowired
 	private Properties testConfigurations;
 
+	private ConfigurableApplicationContext applicationContext;
+
+	@AfterEach
+	public void tearDown() {
+		if (this.applicationContext != null) {
+			this.applicationContext.close();
+		}
+	}
+
 	@Test
 	public void testInnerSplitterDefinitionSuccess() {
 		String configProperty = testConfigurations.getProperty("splitter-inner-success");
-		this.testSplitterDefinitionSuccess(configProperty);
+		testSplitterDefinitionSuccess(configProperty);
 	}
 
 	@Test
@@ -83,10 +93,11 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		this.testSplitterDefinitionSuccess(configProperty);
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void testInnerSplitterDefinitionFailureRefAndInner() {
 		String xmlConfig = testConfigurations.getProperty("splitter-failure-refAndBean");
-		this.bootStrap(xmlConfig);
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> bootStrap(xmlConfig));
 	}
 
 	@Test
@@ -98,31 +109,33 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 	@Test
 	public void testRefTransformerDefinitionSuccess() {
 		String configProperty = testConfigurations.getProperty("transformer-ref-success");
-		this.testTransformerDefinitionSuccess(configProperty);
+		testTransformerDefinitionSuccess(configProperty);
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void testInnerTransformerDefinitionFailureRefAndInner() {
 		String xmlConfig = testConfigurations.getProperty("transformer-failure-refAndBean");
-		this.bootStrap(xmlConfig);
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> bootStrap(xmlConfig));
 	}
 
 	@Test
 	public void testInnerRouterDefinitionSuccess() {
 		String configProperty = testConfigurations.getProperty("router-inner-success");
-		this.testRouterDefinitionSuccess(configProperty);
+		testRouterDefinitionSuccess(configProperty);
 	}
 
 	@Test
 	public void testRefRouterDefinitionSuccess() {
 		String configProperty = testConfigurations.getProperty("router-ref-success");
-		this.testRouterDefinitionSuccess(configProperty);
+		testRouterDefinitionSuccess(configProperty);
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void testInnerRouterDefinitionFailureRefAndInner() {
 		String xmlConfig = testConfigurations.getProperty("router-failure-refAndBean");
-		this.bootStrap(xmlConfig);
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> bootStrap(xmlConfig));
 	}
 
 	@Test
@@ -137,10 +150,11 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		this.testSADefinitionSuccess(configProperty);
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void testInnerSADefinitionFailureRefAndInner() {
 		String xmlConfig = testConfigurations.getProperty("sa-failure-refAndBean");
-		this.bootStrap(xmlConfig);
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> bootStrap(xmlConfig));
 	}
 
 	@Test
@@ -157,7 +171,8 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 
 	@Test
 	public void testInnerConcurrentAggregatorDefinitionSuccessReorderBeanPoller() {
-		String configProperty = testConfigurations.getProperty("aggregator-inner-concurrent-success-reorder-bean-poller");
+		String configProperty = testConfigurations
+				.getProperty("aggregator-inner-concurrent-success-reorder-bean-poller");
 		this.testAggregatorDefinitionSuccess(configProperty);
 	}
 
@@ -167,10 +182,11 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		this.testAggregatorDefinitionSuccess(configProperty);
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void testInnerAggregatorDefinitionFailureRefAndInner() {
 		String xmlConfig = testConfigurations.getProperty("aggregator-failure-refAndBean");
-		this.bootStrap(xmlConfig);
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> bootStrap(xmlConfig));
 	}
 
 	@Test
@@ -185,103 +201,104 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		this.testFilterDefinitionSuccess(configProperty);
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void testInnerFilterDefinitionFailureRefAndInner() {
 		String xmlConfig = testConfigurations.getProperty("filter-failure-refAndBean");
-		this.bootStrap(xmlConfig);
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> bootStrap(xmlConfig));
 	}
 
 	private void testSplitterDefinitionSuccess(String configProperty) {
-		ApplicationContext ac = this.bootStrap(configProperty);
-		EventDrivenConsumer splitter = (EventDrivenConsumer) ac.getBean("testSplitter");
+		bootStrap(configProperty);
+		EventDrivenConsumer splitter = this.applicationContext.getBean("testSplitter", EventDrivenConsumer.class);
 		assertThat(splitter).isNotNull();
-		MessageBuilder<String[]> inChannelMessageBuilder = MessageBuilder.withPayload(new String[]{"One", "Two"});
+		MessageBuilder<String[]> inChannelMessageBuilder = MessageBuilder.withPayload(new String[] { "One", "Two" });
 		Message<String[]> inMessage = inChannelMessageBuilder.build();
-		MessageChannel inChannel = (MessageChannel) ac.getBean("inChannel");
+		MessageChannel inChannel = this.applicationContext.getBean("inChannel", MessageChannel.class);
 		inChannel.send(inMessage);
-		PollableChannel outChannel = (PollableChannel) ac.getBean("outChannel");
+		PollableChannel outChannel = this.applicationContext.getBean("outChannel", PollableChannel.class);
 		assertThat(outChannel.receive().getPayload() instanceof String).isTrue();
-		outChannel = (PollableChannel) ac.getBean("outChannel");
+		outChannel = this.applicationContext.getBean("outChannel", PollableChannel.class);
 		assertThat(outChannel.receive().getPayload() instanceof String).isTrue();
 	}
 
 	private void testTransformerDefinitionSuccess(String configProperty) {
-		ApplicationContext ac = this.bootStrap(configProperty);
-		EventDrivenConsumer transformer = (EventDrivenConsumer) ac.getBean("testTransformer");
+		bootStrap(configProperty);
+		EventDrivenConsumer transformer = this.applicationContext.getBean("testTransformer", EventDrivenConsumer.class);
 		assertThat(transformer).isNotNull();
-		MessageBuilder<String[]> inChannelMessageBuilder = MessageBuilder.withPayload(new String[]{"One", "Two"});
+		MessageBuilder<String[]> inChannelMessageBuilder = MessageBuilder.withPayload(new String[] { "One", "Two" });
 		Message<String[]> inMessage = inChannelMessageBuilder.build();
-		DirectChannel inChannel = (DirectChannel) ac.getBean("inChannel");
+		DirectChannel inChannel = this.applicationContext.getBean("inChannel", DirectChannel.class);
 		inChannel.send(inMessage);
-		PollableChannel outChannel = (PollableChannel) ac.getBean("outChannel");
+		PollableChannel outChannel = this.applicationContext.getBean("outChannel", PollableChannel.class);
 		String payload = (String) outChannel.receive().getPayload();
 		assertThat(payload.equals("One,Two")).isTrue();
 	}
 
 	private void testRouterDefinitionSuccess(String configProperty) {
-		ApplicationContext ac = this.bootStrap(configProperty);
-		EventDrivenConsumer splitter = (EventDrivenConsumer) ac.getBean("testRouter");
+		bootStrap(configProperty);
+		EventDrivenConsumer splitter = this.applicationContext.getBean("testRouter", EventDrivenConsumer.class);
 		assertThat(splitter).isNotNull();
 		MessageBuilder<String> inChannelMessageBuilder = MessageBuilder.withPayload("1");
 		Message<String> inMessage = inChannelMessageBuilder.build();
-		DirectChannel inChannel = (DirectChannel) ac.getBean("inChannel");
+		DirectChannel inChannel = this.applicationContext.getBean("inChannel", DirectChannel.class);
 		inChannel.send(inMessage);
-		PollableChannel channel1 = (PollableChannel) ac.getBean("channel1");
+		PollableChannel channel1 = this.applicationContext.getBean("channel1", PollableChannel.class);
 		assertThat(channel1.receive().getPayload().equals("1")).isTrue();
 		inChannelMessageBuilder = MessageBuilder.withPayload("2");
 		inMessage = inChannelMessageBuilder.build();
 		inChannel.send(inMessage);
-		PollableChannel channel2 = (PollableChannel) ac.getBean("channel2");
+		PollableChannel channel2 = this.applicationContext.getBean("channel2", PollableChannel.class);
 		assertThat(channel2.receive().getPayload().equals("2")).isTrue();
 	}
 
 	private void testSADefinitionSuccess(String configProperty) {
-		ApplicationContext ac = this.bootStrap(configProperty);
-		EventDrivenConsumer splitter = (EventDrivenConsumer) ac.getBean("testServiceActivator");
+		bootStrap(configProperty);
+		EventDrivenConsumer splitter = this.applicationContext
+				.getBean("testServiceActivator", EventDrivenConsumer.class);
 		assertThat(splitter).isNotNull();
 		MessageBuilder<String> inChannelMessageBuilder = MessageBuilder.withPayload("1");
 		Message<String> inMessage = inChannelMessageBuilder.build();
-		DirectChannel inChannel = (DirectChannel) ac.getBean("inChannel");
+		DirectChannel inChannel = this.applicationContext.getBean("inChannel", DirectChannel.class);
 		inChannel.send(inMessage);
-		PollableChannel channel1 = (PollableChannel) ac.getBean("outChannel");
+		PollableChannel channel1 = this.applicationContext.getBean("outChannel", PollableChannel.class);
 		assertThat(channel1.receive().getPayload().equals("1")).isTrue();
 	}
 
 	private void testAggregatorDefinitionSuccess(String configProperty) {
-		ApplicationContext ac = this.bootStrap(configProperty);
-		MessageChannel inChannel = (MessageChannel) ac.getBean("inChannel");
+		bootStrap(configProperty);
+		MessageChannel inChannel = this.applicationContext.getBean("inChannel", MessageChannel.class);
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
 			Message<Integer> message = MessageBuilder.withPayload(i).copyHeaders(headers).build();
 			inChannel.send(message);
 		}
-		PollableChannel output = (PollableChannel) ac.getBean("outChannel");
+		PollableChannel output = this.applicationContext.getBean("outChannel", PollableChannel.class);
 		Message<?> receivedMessage = output.receive(10000);
 		assertThat(receivedMessage).isNotNull();
 		assertThat(receivedMessage.getPayload()).isEqualTo(0 + 1 + 2 + 3 + 4);
 	}
 
 	private void testFilterDefinitionSuccess(String configProperty) {
-		ApplicationContext ac = this.bootStrap(configProperty);
-		MessageChannel input = (MessageChannel) ac.getBean("inChannel");
-		PollableChannel output = (PollableChannel) ac.getBean("outChannel");
-		input.send(new GenericMessage<String>("foo"));
+		bootStrap(configProperty);
+		MessageChannel input = this.applicationContext.getBean("inChannel", MessageChannel.class);
+		PollableChannel output = this.applicationContext.getBean("outChannel", PollableChannel.class);
+		input.send(new GenericMessage<>("foo"));
 		Message<?> reply = output.receive(0);
 		assertThat(reply.getPayload()).isEqualTo("foo");
 	}
 
-	private ApplicationContext bootStrap(String configProperty) {
+	private void bootStrap(String configProperty) {
 		ByteArrayInputStream stream = new ByteArrayInputStream(configProperty.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
+		this.applicationContext = new GenericApplicationContext();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader((BeanDefinitionRegistry) this.applicationContext);
 		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
 		reader.loadBeanDefinitions(new InputStreamResource(stream));
-		ac.refresh();
-		return ac;
+		this.applicationContext.refresh();
 	}
 
 	private Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correllationId) {
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
 		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
 		headers.put(IntegrationMessageHeaderAccessor.CORRELATION_ID, correllationId);
@@ -290,30 +307,39 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 
 	@SuppressWarnings("unchecked")
 	public static class TestSplitter {
+
 		public Collection<String> split(String[] payload) {
 			return CollectionUtils.arrayToList(payload);
 		}
+
 	}
 
 	public static class TestTransformer {
+
 		public String split(String[] payload) {
 			return StringUtils.arrayToDelimitedString(payload, ",");
 		}
+
 	}
 
 	public static class TestRouter {
+
 		public String route(String value) {
 			return (value.equals("1")) ? "channel1" : "channel2";
 		}
+
 	}
 
 	public static class TestServiceActivator {
+
 		public String foo(String value) {
 			return value;
 		}
+
 	}
 
 	public static class TestAggregator {
+
 		public Integer sum(List<Integer> numbers) {
 			int result = 0;
 			for (Integer number : numbers) {
@@ -321,12 +347,15 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 			}
 			return result;
 		}
+
 	}
 
 	public static class TestMessageFilter {
+
 		public boolean filter(String value) {
 			return value.equals("foo");
 		}
+
 	}
 
 }

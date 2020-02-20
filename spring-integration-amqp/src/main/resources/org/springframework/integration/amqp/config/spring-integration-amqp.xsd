@@ -124,6 +124,21 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="batch-mode" default="MESSAGES">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									When the listener container's 'consumerBatchEnabled' property is true,
+									this attribute determines the payload type. 'MESSAGES' (default) means
+									the payload will be a list of messages; 'EXTRACT_PAYLOADS' means the payload
+									will be a list of converted payloads.
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="batchModeEnumeration xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1154,6 +1169,13 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 			<xsd:enumeration value="AUTO"/>
 			<xsd:enumeration value="MANUAL"/>
 			<xsd:enumeration value="NONE"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="batchModeEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="MESSAGES"/>
+			<xsd:enumeration value="EXTRACT_PAYLOADS"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 
