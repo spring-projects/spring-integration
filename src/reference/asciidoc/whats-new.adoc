@@ -68,3 +68,9 @@ See <<./amqp.adoc#amqp-inbound-channel-adapter,AMQP Inbound Channel Adapter>>
 The `encodeUri` property on the `AbstractHttpRequestExecutingMessageHandler` has been deprecated in favor of newly introduced `encodingMode`.
 See `DefaultUriBuilderFactory.EncodingMode` JavaDocs and <<./http.adoc#http-uri-encoding,Controlling URI Encoding>> for more information.
 This also affects `WebFluxRequestExecutingMessageHandler`, respective Java DSL and XML configuration.
+
+[[x5.3-ws]]
+=== Web Services Changes
+
+Java DSL support has been added for Web Service components.
+See <<./ws.adoc#ws,Web Services Support>> for more information.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,10 +165,14 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		this.webServiceTemplate.setFaultMessageResolver(faultMessageResolver);
 	}
 
+	/**
+	 * Specify the {@link WebServiceMessageSender} to use.
+	 * @param messageSender the sender.
+	 * @deprecated in favor of {@link #setMessageSenders(WebServiceMessageSender...)}
+	 */
+	@Deprecated
 	public void setMessageSender(WebServiceMessageSender messageSender) {
-		Assert.state(!this.webServiceTemplateExplicitlySet,
-				() -> "'messageSender' must be specified on the provided: " + this.webServiceTemplate);
-		this.webServiceTemplate.setMessageSender(messageSender);
+		setMessageSenders(messageSender);
 	}
 
 	public void setMessageSenders(WebServiceMessageSender... messageSenders) {

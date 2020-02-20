@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway("http://testInt3022");
 		gateway.setRequiresReply(true);
 		WebServiceMessageSender messageSender = createMockMessageSender(responseEmptyBodySoapMessage);
-		gateway.setMessageSender(messageSender);
+		gateway.setMessageSenders(messageSender);
 		gateway.handleMessage(new GenericMessage<String>("<test>foo</test>"));
 	}
 
