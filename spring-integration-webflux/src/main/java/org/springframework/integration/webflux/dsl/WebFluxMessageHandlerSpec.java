@@ -17,6 +17,7 @@
 package org.springframework.integration.webflux.dsl;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.function.Function;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -141,6 +142,41 @@ public class WebFluxMessageHandlerSpec
 	 */
 	public WebFluxMessageHandlerSpec publisherElementTypeExpression(Expression publisherElementTypeExpression) {
 		this.target.setPublisherElementTypeExpression(publisherElementTypeExpression);
+		return this;
+	}
+
+	/**
+	 * Specify the timeout value for receiving the response form the server.
+	 * If the response is not received with in timeout value, will result in Timeout Exception
+	 * @param timeoutInMillis the timeout in milliseconds
+	 * @return the spec
+	 * @since 5.3
+	 */
+	public WebFluxMessageHandlerSpec timeout(long timeoutInMillis) {
+		return timeout(Duration.ofMillis(timeoutInMillis));
+	}
+
+	/**
+	 * Specify the timeout value for receiving the response form the server.
+	 * If the response is not received with in timeout value, will result in Timeout Exception
+	 * @param timeout accepts {@link java.time.Duration}
+	 * @return the spec
+	 * @since 5.3
+	 */
+	public WebFluxMessageHandlerSpec timeout(Duration timeout) {
+		this.target.setTimeout(timeout);
+		return this;
+	}
+
+	/**
+	 * @param timeout accepts {@link Function}. The function accepts a Message as input and returns Duration.
+	 * Function is evaluated on each request basis and the {@link Duration} is applied to Mono
+	 * If the response is not received with in timeout value, will result in Timeout Exception
+	 * @return the spec
+	 * @since 5.3
+	 */
+	public WebFluxMessageHandlerSpec timeout(Function<Message<?>, Duration> timeout) {
+		this.target.setTimeoutFunction(timeout);
 		return this;
 	}
 

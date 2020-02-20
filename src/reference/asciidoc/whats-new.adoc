@@ -65,3 +65,9 @@ See <<./amqp.adoc/amqp-outbound-channel-adapter,AMQP Outbound Channel Adapter>> 
 The `encodeUri` property on the `AbstractHttpRequestExecutingMessageHandler` has been deprecated in favor of newly introduced `encodingMode`.
 See `DefaultUriBuilderFactory.EncodingMode` JavaDocs and <<./http.adoc/http-uri-encoding,Controlling URI Encoding>> for more information.
 This also effects `WebFluxRequestExecutingMessageHandler`, respective Java DSL and XML configuration.
+
+[[x5.3-WebFlux]]
+=== WebFlux Changes
+
+The `timeoutFunction` property is added to `WebFluxRequestExecutingMessageHandler`.
+Java DSL accessor which accepts long Timeout, Duration Timeout & Timeout Function is provided

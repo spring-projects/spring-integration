@@ -18,7 +18,9 @@ package org.springframework.integration.webflux.outbound;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 
@@ -79,6 +81,8 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	private BodyExtractor<?, ClientHttpResponse> bodyExtractor;
 
 	private Expression publisherElementTypeExpression;
+
+	Function<Message<?>, Duration> timeoutFunction;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -198,6 +202,26 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		this.publisherElementTypeExpression = publisherElementTypeExpression;
 	}
 
+	/**
+	 * Specify the timeout value for receiving the response form the server.
+	 * If the response is not received with in timeout value, will result in Timeout Exception
+	 * @param timeout accepts {@link java.time.Duration}
+	 * @since 5.3
+	 */
+	public void setTimeout(Duration timeout) {
+		this.timeoutFunction = m -> timeout;
+	}
+
+	/**
+	 * @param timeoutFunction accepts {@link Function}. The function accepts a Message as input and returns Duration.
+	 * Function is evaluated on each request basis and the {@link Duration} is applied to Mono
+	 * If the response is not received with in timeout value, will result in Timeout Exception
+	 * @since 5.3
+	 */
+	public void setTimeoutFunction(Function<Message<?>, Duration> timeoutFunction) {
+		this.timeoutFunction = timeoutFunction;
+	}
+
 	@Override
 	public String getComponentType() {
 		return (isExpectReply() ? "webflux:outbound-gateway" : "webflux:outbound-channel-adapter");
@@ -212,6 +236,10 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 				createRequestBodySpec(uri, httpMethod, httpRequest, requestMessage, uriVariables);
 
 		Mono<ClientResponse> responseMono = exchangeForResponseMono(requestSpec);
+
+		if (this.timeoutFunction != null) {
+			responseMono = responseMono.timeout(this.timeoutFunction.apply(requestMessage));
+		}
 
 		if (isExpectReply()) {
 			return createReplyFromResponse(expectedResponseType, responseMono);

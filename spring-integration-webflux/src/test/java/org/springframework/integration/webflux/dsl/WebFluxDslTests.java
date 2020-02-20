@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.security.Principal;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Resource;
 
@@ -31,6 +32,7 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.reactivestreams.Publisher;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -56,6 +58,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
@@ -101,7 +104,7 @@ import reactor.test.StepVerifier;
  * @author Shiliang Li
  * @author Abhijit Sarkar
  * @author Gary Russell
- *
+ * @author Jayadev Sirimamilla
  * @since 5.0
  */
 @RunWith(SpringRunner.class)
@@ -119,12 +122,28 @@ public class WebFluxDslTests {
 	@Qualifier("webFluxWithReplyPayloadToFlux.handler")
 	private WebFluxRequestExecutingMessageHandler webFluxWithReplyPayloadToFlux;
 
+	@Autowired
+	@Qualifier("webFluxWithTimeout.handler")
+	private WebFluxRequestExecutingMessageHandler webFluxFlowWithTimeout;
+
+	@Autowired
+	@Qualifier("webFluxWithTimeoutFunction.handler")
+	private WebFluxRequestExecutingMessageHandler webFluxFlowWithTimeoutFunction;
+
 	@Resource(name = "httpReactiveProxyFlow.webflux:outbound-gateway#0")
 	private WebFluxRequestExecutingMessageHandler httpReactiveProxyFlow;
 
 	@Autowired
 	@Qualifier("webFluxFlowWithReplyPayloadToFlux.input")
 	private MessageChannel webFluxFlowWithReplyPayloadToFluxInput;
+
+	@Autowired
+	@Qualifier("webFluxFlowWithTimeout.input")
+	private MessageChannel webFluxFlowWithTimeoutInput;
+
+	@Autowired
+	@Qualifier("webFluxFlowWithTimeoutFunction.input")
+	private MessageChannel webFluxFlowWithTimeoutFunctionInput;
 
 	private MockMvc mockMvc;
 
@@ -143,6 +162,82 @@ public class WebFluxDslTests {
 						.configureClient()
 						.responseTimeout(Duration.ofSeconds(600))
 						.build();
+	}
+
+	@Test
+	public void testTimeoutForWebFluxOutboundGateway() {
+		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
+			response.setStatusCode(HttpStatus.OK);
+			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+
+
+			DataBufferFactory bufferFactory = response.bufferFactory();
+			return response.writeWith(Mono.just(bufferFactory.wrap("FOO\nBAR\n".getBytes()))
+					.delayElement(Duration.ofMillis(11000)))
+					.then(Mono.defer(response::setComplete));
+		});
+
+		WebClient webClient = WebClient.builder()
+				.clientConnector(httpConnector)
+				.build();
+
+		new DirectFieldAccessor(this.webFluxFlowWithTimeout)
+				.setPropertyValue("webClient", webClient);
+
+		QueueChannel replyChannel = new QueueChannel();
+
+		Message<String> testMessage =
+				MessageBuilder.withPayload("test")
+						.setReplyChannel(replyChannel)
+						.setErrorChannel(replyChannel)
+						.build();
+
+		this.webFluxFlowWithTimeoutInput.send(testMessage);
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(MessageHandlingException.class);
+		assertThat(((MessageHandlingException) receive.getPayload()).getCause()).isInstanceOf(TimeoutException.class);
+
+	}
+
+	@Test
+	public void testTimeoutFunctionForWebFluxOutboundGateway() {
+		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
+			response.setStatusCode(HttpStatus.OK);
+			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+
+			DataBufferFactory bufferFactory = response.bufferFactory();
+			return response.writeWith(Mono.just(bufferFactory.wrap("FOO\nBAR\n".getBytes()))
+					.delayElement(Duration.ofMillis(15000)))
+					.then(Mono.defer(response::setComplete));
+		});
+
+		WebClient webClient = WebClient.builder()
+				.clientConnector(httpConnector)
+				.build();
+
+		new DirectFieldAccessor(this.webFluxFlowWithTimeoutFunction)
+				.setPropertyValue("webClient", webClient);
+
+		QueueChannel replyChannel = new QueueChannel();
+
+		Message<String> testMessage =
+				MessageBuilder.withPayload("test")
+						.setReplyChannel(replyChannel)
+						.setErrorChannel(replyChannel)
+						.setHeader("timeout", 100L)
+						.build();
+
+		this.webFluxFlowWithTimeoutFunctionInput.send(testMessage);
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(MessageHandlingException.class);
+		assertThat(((MessageHandlingException) receive.getPayload()).getCause()).isInstanceOf(TimeoutException.class);
+
 	}
 
 	@Test
@@ -384,6 +479,26 @@ public class WebFluxDslTests {
 									.replyPayloadToFlux(true)
 									.expectedResponseType(String.class),
 							e -> e.id("webFluxWithReplyPayloadToFlux"));
+		}
+
+		@Bean
+		public IntegrationFlow webFluxFlowWithTimeout() {
+			return f -> f
+					.handle(WebFlux.outboundGateway("https://www.springsource.org/spring-integration")
+									.httpMethod(HttpMethod.GET)
+									.timeout(100)
+									.expectedResponseType(String.class),
+							e -> e.id("webFluxWithTimeout"));
+		}
+
+		@Bean
+		public IntegrationFlow webFluxFlowWithTimeoutFunction() {
+			return f -> f
+					.handle(WebFlux.outboundGateway("https://www.springsource.org/spring-integration")
+									.httpMethod(HttpMethod.GET)
+									.timeout(m -> Duration.ofMillis(m.getHeaders().get("timeout", Long.class)))
+									.expectedResponseType(String.class),
+							e -> e.id("webFluxWithTimeoutFunction"));
 		}
 
 		@Bean
