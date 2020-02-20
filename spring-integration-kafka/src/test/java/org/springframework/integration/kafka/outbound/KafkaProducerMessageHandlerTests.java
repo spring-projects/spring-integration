@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -474,7 +475,6 @@ class KafkaProducerMessageHandlerTests {
 		inOrder.verify(producer).beginTransaction();
 		inOrder.verify(producer).send(any(ProducerRecord.class), any(Callback.class));
 		inOrder.verify(producer).commitTransaction();
-		inOrder.verify(producer).flush();
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -584,7 +584,6 @@ class KafkaProducerMessageHandlerTests {
 		inOrder.verify(producer).beginTransaction();
 		inOrder.verify(producer).send(any(ProducerRecord.class), any(Callback.class));
 		inOrder.verify(producer).commitTransaction();
-		inOrder.verify(producer).flush();
 		assertThat(txId.get()).isEqualTo("overridden.tx.id.");
 	}
 
@@ -672,6 +671,21 @@ class KafkaProducerMessageHandlerTests {
 		assertThat(transactionalIds.get(0)).isEqualTo("group.foo.0");
 		assertThat(transactionalIds.get(1)).isEqualTo("group.foo.0");
 		assertThat(txId.get()).isEqualTo("tm.tx.id.");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	void testTxNonTx() {
+		KafkaTemplate<String, String> template = mock(KafkaTemplate.class);
+		given(template.isTransactional()).willReturn(true);
+		given(template.inTransaction()).willReturn(false);
+		given(template.isAllowNonTransactional()).willReturn(true);
+		given(template.getProducerFactory()).willReturn(mock(ProducerFactory.class));
+		KafkaProducerMessageHandler<String, String> handler = new KafkaProducerMessageHandler<>(template);
+		handler.setTopicExpression(new LiteralExpression("topic"));
+		handler.handleMessage(new GenericMessage<>("foo"));
+		verify(template, never()).executeInTransaction(any());
+		verify(template).send(any(ProducerRecord.class));
 	}
 
 }

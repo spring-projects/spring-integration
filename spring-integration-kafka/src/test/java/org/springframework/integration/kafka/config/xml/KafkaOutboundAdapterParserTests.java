@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.kafka.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
@@ -107,7 +106,7 @@ class KafkaOutboundAdapterParserTests {
 				};
 		@SuppressWarnings("unchecked")
 		ProducerFactory<Integer, String> pf = mock(ProducerFactory.class);
-		given(pf.createProducer(isNull())).willReturn(mockProducer);
+		given(pf.createProducer()).willReturn(mockProducer);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
 		handler.setBeanFactory(mock(BeanFactory.class));
