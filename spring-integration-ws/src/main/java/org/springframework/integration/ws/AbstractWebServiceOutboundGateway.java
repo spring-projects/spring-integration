@@ -172,9 +172,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	 */
 	@Deprecated
 	public void setMessageSender(WebServiceMessageSender messageSender) {
-		Assert.state(!this.webServiceTemplateExplicitlySet,
-				() -> "'messageSender' must be specified on the provided: " + this.webServiceTemplate);
-		this.webServiceTemplate.setMessageSender(messageSender);
+		setMessageSenders(messageSender);
 	}
 
 	public void setMessageSenders(WebServiceMessageSender... messageSenders) {

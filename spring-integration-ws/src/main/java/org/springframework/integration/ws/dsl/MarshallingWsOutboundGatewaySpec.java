@@ -95,21 +95,21 @@ public class MarshallingWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
 
 		/**
 		 * Specify the {@link FaultMessageResolver} to use.
-		 * @param faultMessageResolver the resolver.
+		 * @param resolver the resolver.
 		 * @return the spec.
 		 */
-		public MarshallingWsOutboundGatewayNoTemplateSpec faultMessageResolver(FaultMessageResolver faultMessageResolver) {
-			this.faultMessageResolver = faultMessageResolver;
+		public MarshallingWsOutboundGatewayNoTemplateSpec faultMessageResolver(FaultMessageResolver resolver) {
+			this.faultMessageResolver = resolver;
 			return this;
 		}
 
 		/**
 		 * Specify the {@link WebServiceMessageSender}s to use.
-		 * @param messageSenders the senders.
+		 * @param senders the senders.
 		 * @return the spec.
 		 */
-		public MarshallingWsOutboundGatewayNoTemplateSpec messageSenders(WebServiceMessageSender... messageSenders) {
-			this.messageSenders = Arrays.copyOf(messageSenders, messageSenders.length);
+		public MarshallingWsOutboundGatewayNoTemplateSpec messageSenders(WebServiceMessageSender... senders) {
+			this.messageSenders = Arrays.copyOf(senders, senders.length);
 			return this;
 		}
 
@@ -130,8 +130,8 @@ public class MarshallingWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
 						this.gatewayUnmarshaller, this.webServiceMessageFactory);
 			}
 			else {
-				return new MarshallingWebServiceOutboundGateway(this.uri, this.gatewayMarshaller, this.gatewayUnmarshaller,
-						this.webServiceMessageFactory);
+				return new MarshallingWebServiceOutboundGateway(this.uri, this.gatewayMarshaller,
+						this.gatewayUnmarshaller, this.webServiceMessageFactory);
 			}
 		}
 

@@ -169,6 +169,113 @@ Doing so might be useful, for example, when a custom transformer works against t
 
 Starting with version 5.0, the `web-service-template` reference attribute lets you inject a `WebServiceTemplate` with any possible custom properties.
 
+[[webservices-dsl]]
+=== Web Service Java DSL Support
+
+The equivalent configuration for the gateways shown in <<webservices-namespace>> are shown in the following snippets:
+
+====
+[source, java]
+----
+@Bean
+IntegrationFlow inbound() {
+    return IntegrationFlows.from(Ws.simpleInboundGateway()
+                .id("simpleGateway"))
+        ...
+        .get();
+}
+----
+====
+
+====
+[source, java]
+----
+@Bean
+IntegrationFlow outboundMarshalled() {
+    return f -> f.handle(Ws.marshallingOutboundGateway()
+                    .id("marshallingGateway")
+                    .marshaller(someMarshaller())
+                    .unmarshaller(someUnmarshalller()))
+        ...
+}
+----
+====
+
+====
+[source, java]
+----
+@Bean
+IntegrationFlow inboundMarshalled() {
+    return IntegrationFlows.from(Ws.marshallingInboundGateway()
+                .marshaller(someMarshaller())
+                .unmarshaller(someUnmarshalller())
+                .id("marshallingGateway"))
+        ...
+        .get();
+}
+----
+====
+
+Other properties can be set on the endpoint specs in a fluent manner (with the properties depending on whether or not an external `WebServiceTemplate` has been provided for outbound gateways).
+Examples:
+
+====
+[source, java]
+----
+.from(Ws.simpleInboundGateway()
+                .extractPayload(false))
+----
+====
+
+====
+[source, java]
+----
+.handle(Ws.simpleOutboundGateway(template)
+            .uri(uri)
+            .sourceExtractor(sourceExtractor)
+            .encodeUri(true)
+            .headerMapper(headerMapper)
+            .ignoreEmptyResponses(true)
+            .requestCallback(requestCallback)
+            .uriVariableExpressions(uriVariableExpressions)
+            .extractPayload(false))
+)
+----
+====
+
+====
+[source, java]
+----
+.handle(Ws.marshallingOutboundGateway()
+            .destinationProvider(destinationProvider)
+            .marshaller(marshaller)
+            .unmarshaller(unmarshaller)
+            .messageFactory(messageFactory)
+            .encodeUri(true)
+            .faultMessageResolver(faultMessageResolver)
+            .headerMapper(headerMapper)
+            .ignoreEmptyResponses(true)
+            .interceptors(interceptor)
+            .messageSenders(messageSender)
+            .requestCallback(requestCallback)
+            .uriVariableExpressions(uriVariableExpressions))
+----
+====
+
+====
+[source, java]
+----
+.handle(Ws.marshallingOutboundGateway(template)
+            .uri(uri)
+            .encodeUri(true)
+            .headerMapper(headerMapper)
+            .ignoreEmptyResponses(true)
+            .requestCallback(requestCallback)
+            .uriVariableExpressions(uriVariableExpressions))
+)
+----
+====
+
 [[outbound-uri]]
 === Outbound URI Configuration
 

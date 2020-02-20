@@ -99,6 +99,7 @@ public class SimpleWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
 			SimpleWsOutboundGatewayNoTemplateSpec, SimpleWebServiceOutboundGateway> {
 
 		protected SourceExtractor<?> sourceExtractor; // NOSONAR
+
 		private boolean extractPayload;
 
 		/**
