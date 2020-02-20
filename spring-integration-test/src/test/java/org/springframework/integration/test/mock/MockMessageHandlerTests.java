@@ -17,6 +17,7 @@
 package org.springframework.integration.test.mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.integration.test.mock.MockIntegration.mockMessageHandler;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -102,7 +104,7 @@ public class MockMessageHandlerTests {
 	@AfterEach
 	public void tearDown() {
 		this.mockIntegrationContext.resetBeans();
-		results.purge(null);
+		this.results.purge(null);
 	}
 
 	@Test
@@ -183,8 +185,7 @@ public class MockMessageHandlerTests {
 		ArgumentCaptor<Message<?>> messageArgumentCaptor = MockIntegration.messageArgumentCaptor();
 		MessageHandler mockMessageHandler =
 				spy(mockMessageHandler(messageArgumentCaptor))
-						.handleNext(m -> {
-						});
+						.handleNext(m -> { });
 
 		String endpointId = "rawHandlerConsumer";
 		this.mockIntegrationContext.substituteMessageHandlerFor(endpointId, mockMessageHandler);
@@ -203,25 +204,22 @@ public class MockMessageHandlerTests {
 
 		this.mockIntegrationContext.resetBeans(endpointId);
 
-		mockMessageHandler =
+		MessageHandler mockMessageHandler2 =
 				mockMessageHandler()
 						.handleNextAndReply(m -> m);
 
-		try {
-			this.mockIntegrationContext.substituteMessageHandlerFor(endpointId, mockMessageHandler);
-			fail("IllegalStateException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalStateException.class);
-			assertThat(e.getMessage()).contains("with replies can't replace simple MessageHandler");
-		}
+
+		assertThatIllegalStateException()
+				.isThrownBy(() ->
+						this.mockIntegrationContext.substituteMessageHandlerFor(endpointId, mockMessageHandler2))
+				.withMessageContaining("with replies can't replace simple MessageHandler");
 
 		this.mockIntegrationContext.resetBeans();
 
 		assertThat(TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class))
-				.isNotSameAs(mockMessageHandler);
+				.isNotSameAs(mockMessageHandler2);
 		assertThat(TestUtils.getPropertyValue(endpoint, "subscriber", Subscriber.class))
-				.isNotSameAs(mockMessageHandler);
+				.isNotSameAs(mockMessageHandler2);
 	}
 
 	/**
@@ -244,19 +242,30 @@ public class MockMessageHandlerTests {
 	private MessageChannel logChannel;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testMockIntegrationContextReset() {
 		MockMessageHandler mockMessageHandler = mockMessageHandler();
 		mockMessageHandler.handleNext(message -> { });
 
 		this.mockIntegrationContext.substituteMessageHandlerFor("logEndpoint", mockMessageHandler);
 
+		String endpointId = "mockMessageHandlerTests.Config.myService.serviceActivator";
+		this.mockIntegrationContext.substituteMessageHandlerFor(endpointId, mockMessageHandler);
+
 		this.logChannel.send(new GenericMessage<>(1));
 
-		this.mockIntegrationContext.resetBeans();
+		this.mockIntegrationContext.resetBeans("logEndpoint");
 
 		this.logChannel.send(new GenericMessage<>(2));
 
 		verify(mockMessageHandler).handleMessage(any(Message.class));
+
+		assertThat(TestUtils.getPropertyValue(this.mockIntegrationContext, "beans", Map.class)).hasSize(1);
+
+		assertThat(
+				TestUtils.getPropertyValue(
+						this.context.getBean("mockMessageHandlerTests.Config.myService.serviceActivator"), "handler"))
+				.isSameAs(mockMessageHandler);
 	}
 
 
