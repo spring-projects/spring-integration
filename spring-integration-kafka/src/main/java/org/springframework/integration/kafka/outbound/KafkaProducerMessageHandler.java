@@ -110,6 +110,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private final boolean transactional;
 
+	private final boolean allowNonTransactional;
+
 	private final AtomicBoolean running = new AtomicBoolean();
 
 	private EvaluationContext evaluationContext;
@@ -164,6 +166,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			this.headerMapper = new SimpleKafkaHeaderMapper();
 		}
 		this.transactional = kafkaTemplate.isTransactional();
+		this.allowNonTransactional = kafkaTemplate.isAllowNonTransactional();
 		if (this.transactional && this.isGateway) {
 			logger.warn("The KafkaTemplate is transactional; this gateway will only work if the consumer is "
 					+ "configured to read uncommitted records");
@@ -372,7 +375,9 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	@Override
 	public void stop() {
 		if (this.running.compareAndSet(true, false)) {
-			this.kafkaTemplate.flush();
+			if (!this.transactional || this.allowNonTransactional) {
+				this.kafkaTemplate.flush();
+			}
 		}
 	}
 
@@ -401,9 +406,10 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		}
 		else {
 			if (this.transactional
-					&& TransactionSynchronizationManager.getResource(this.kafkaTemplate.getProducerFactory()) == null) {
-				sendFuture = this.kafkaTemplate.executeInTransaction(t -> {
-					return t.send(producerRecord);
+					&& TransactionSynchronizationManager.getResource(this.kafkaTemplate.getProducerFactory()) == null
+					&& !this.allowNonTransactional) {
+				sendFuture = this.kafkaTemplate.executeInTransaction(template -> {
+					return template.send(producerRecord);
 				});
 			}
 			else {
