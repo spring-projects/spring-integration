@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getGatewayClassName(element));
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(getGatewayClassName(element));
 		String uri = element.getAttribute("uri");
 		String destinationProvider = element.getAttribute("destination-provider");
 		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
@@ -70,7 +70,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		else {
 			builder.addConstructorArgValue(uri);
 			if (!CollectionUtils.isEmpty(uriVariableElements)) {
-				ManagedMap<String, Object> uriVariableExpressions = new ManagedMap<String, Object>();
+				ManagedMap<String, Object> uriVariableExpressions = new ManagedMap<>();
 				for (Element uriVariableElement : uriVariableElements) {
 					String name = uriVariableElement.getAttribute("name");
 					String expression = uriVariableElement.getAttribute("expression");
@@ -87,9 +87,11 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-empty-responses");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
-		this.postProcessGateway(builder, element, parserContext);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding-mode");
+		postProcessGateway(builder, element, parserContext);
 
-		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultSoapHeaderMapper.class, null);
+		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext,
+				DefaultSoapHeaderMapper.class, null);
 
 		return builder;
 	}

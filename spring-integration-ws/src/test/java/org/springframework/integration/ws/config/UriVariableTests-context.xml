@@ -42,6 +42,7 @@
 	<!--Email Transport-->
 	<ws:outbound-gateway request-channel="inputEmail"
 						 uri="mailto:{to}?subject={subject}"
+						 encoding-mode="VALUES_ONLY"
 						 interceptor="emailInterceptor"
 						 message-sender="emailMessageSender">
 		<ws:uri-variable name="to" expression="headers.to"/>

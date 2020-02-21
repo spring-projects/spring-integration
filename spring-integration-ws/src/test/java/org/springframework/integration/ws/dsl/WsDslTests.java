@@ -34,6 +34,7 @@ import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
 import org.springframework.integration.ws.SoapHeaderMapper;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
@@ -45,6 +46,8 @@ import org.springframework.ws.transport.WebServiceMessageSender;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.3
  *
  */
@@ -93,7 +96,7 @@ public class WsDslTests {
 						.marshaller(marshaller)
 						.unmarshaller(unmarshaller)
 						.messageFactory(messageFactory)
-						.encodeUri(true)
+						.encodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY)
 						.faultMessageResolver(faultMessageResolver)
 						.headerMapper(headerMapper)
 						.ignoreEmptyResponses(true)
@@ -111,7 +114,7 @@ public class WsDslTests {
 		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.interceptors", ClientInterceptor[].class)[0])
 				.isSameAs(interceptor);
 		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageSenders",
-					WebServiceMessageSender[].class)[0])
+				WebServiceMessageSender[].class)[0])
 				.isSameAs(messageSender);
 		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
 		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
@@ -134,7 +137,7 @@ public class WsDslTests {
 						.destinationProvider(destinationProvider)
 						.sourceExtractor(sourceExtractor)
 						.messageFactory(messageFactory)
-						.encodeUri(true)
+						.encodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY)
 						.faultMessageResolver(faultMessageResolver)
 						.headerMapper(headerMapper)
 						.ignoreEmptyResponses(true)
@@ -151,7 +154,7 @@ public class WsDslTests {
 		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.interceptors", ClientInterceptor[].class)[0])
 				.isSameAs(interceptor);
 		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageSenders",
-					WebServiceMessageSender[].class)[0])
+				WebServiceMessageSender[].class)[0])
 				.isSameAs(messageSender);
 		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
 		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
@@ -169,7 +172,7 @@ public class WsDslTests {
 		MarshallingWebServiceOutboundGateway gateway =
 				Ws.marshallingOutboundGateway(template)
 						.uri(uri)
-						.encodeUri(true)
+						.encodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY)
 						.headerMapper(headerMapper)
 						.ignoreEmptyResponses(true)
 						.requestCallback(requestCallback)
@@ -194,7 +197,7 @@ public class WsDslTests {
 				Ws.simpleOutboundGateway(template)
 						.uri(uri)
 						.sourceExtractor(sourceExtractor)
-						.encodeUri(true)
+						.encodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY)
 						.headerMapper(headerMapper)
 						.ignoreEmptyResponses(true)
 						.requestCallback(requestCallback)
@@ -205,6 +208,10 @@ public class WsDslTests {
 		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
 		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
 		assertThat(TestUtils.getPropertyValue(gateway, "extractPayload", Boolean.class)).isFalse();
+		assertThat(
+				TestUtils.getPropertyValue(gateway, "uriFactory.encodingMode",
+						DefaultUriBuilderFactory.EncodingMode.class))
+				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
 	}
 
 	interface Both extends Marshaller, Unmarshaller {

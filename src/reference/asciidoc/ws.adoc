@@ -233,7 +233,7 @@ Examples:
 .handle(Ws.simpleOutboundGateway(template)
             .uri(uri)
             .sourceExtractor(sourceExtractor)
-            .encodeUri(true)
+            .encodingMode(DefaultUriBuilderFactory.EncodingMode.NONE)
             .headerMapper(headerMapper)
             .ignoreEmptyResponses(true)
             .requestCallback(requestCallback)
@@ -251,7 +251,7 @@ Examples:
             .marshaller(marshaller)
             .unmarshaller(unmarshaller)
             .messageFactory(messageFactory)
-            .encodeUri(true)
+            .encodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY)
             .faultMessageResolver(faultMessageResolver)
             .headerMapper(headerMapper)
             .ignoreEmptyResponses(true)
@@ -267,7 +267,7 @@ Examples:
 ----
 .handle(Ws.marshallingOutboundGateway(template)
             .uri(uri)
-            .encodeUri(true)
+            .encodingMode(DefaultUriBuilderFactory.EncodingMode.URI_COMPONENT)
             .headerMapper(headerMapper)
             .ignoreEmptyResponses(true)
             .requestCallback(requestCallback)
@@ -305,14 +305,14 @@ If you supply a `DestinationProvider`, variable substitution is not supported an
 
 By default, the URL string is encoded (see https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[`UriComponentsBuilder`]) to the URI object before sending the request.
 In some scenarios with a non-standard URI, it is undesirable to perform the encoding.
-Since version 4.1, the `<ws:outbound-gateway/>` element provides an `encode-uri` attribute.
-To disable encoding the URL, set this attribute `false` (it defaults to `true`).
+The `<ws:outbound-gateway/>` element provides an `encoding-mode` attribute.
+To disable encoding the URL, set this attribute to `NONE` (by default, it is `TEMPLATE_AND_VALUES`).
 If you wish to partially encode some of the URL, you can do so by using an `expression` within a `<uri-variable/>`, as the following example shows:
 
 ====
 [source,xml]
 ----
-<ws:outbound-gateway url="https://somehost/%2f/fooApps?bar={param}" encode-uri="false">
+<ws:outbound-gateway url="https://somehost/%2f/fooApps?bar={param}" encoding-mode="NONE">
           <http:uri-variable name="param"
             expression="T(org.apache.commons.httpclient.util.URIUtil)
                                              .encodeWithinQuery('Hello World!')"/>
@@ -320,7 +320,7 @@ If you wish to partially encode some of the URL, you can do so by using an `expr
 ----
 ====
 
-NOTE: If you set `DestinationProvider`, `encode-uri` is ignored.
+NOTE: If you set `DestinationProvider`, `encoding-mode` is ignored.
 
 [[ws-message-headers]]
 === WS Message Headers

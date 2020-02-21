@@ -715,7 +715,7 @@ If you wish to partially encode some of the URL, use an `expression` within a `<
 ====
 [source,xml]
 ----
-<http:outbound-gateway url="https://somehost/%2f/fooApps?bar={param}" encode-uri="false">
+<http:outbound-gateway url="https://somehost/%2f/fooApps?bar={param}" encoding-mode="NONE">
           <http:uri-variable name="param"
             expression="T(org.apache.commons.httpclient.util.URIUtil)
                                              .encodeWithinQuery('Hello World!')"/>
@@ -724,7 +724,7 @@ If you wish to partially encode some of the URL, use an `expression` within a `<
 ====
 
 With Java DSL this option can be controlled by the `BaseHttpMessageHandlerSpec.encodingMode()` option.
-Same configuration applies for similar outbound components in the <<./webflux.adoc/[webflux,WebFlux module>>.
+The same configuration applies for similar outbound components in the <<./webflux.adoc#webflux,WebFlux module>> and <<./ws.adoc#ws,Web Services module>>.
 For much sophisticated scenarios it is recommended to configure an `UriTemplateHandler` on the externally provided `RestTemplate`; or in case of WebFlux - `WebClient` with it `UriBuilderFactory`.
 
 [[http-java-config]]

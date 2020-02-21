@@ -24,6 +24,7 @@ import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.util.JavaUtils;
 import org.springframework.integration.ws.AbstractWebServiceOutboundGateway;
 import org.springframework.integration.ws.SoapHeaderMapper;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
@@ -39,6 +40,8 @@ import org.springframework.ws.transport.WebServiceMessageSender;
  * @param <E> the target {@link AbstractWebServiceOutboundGateway} implementation type.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.3
  *
  */
@@ -58,7 +61,7 @@ public abstract class BaseWsOutboundGatewaySpec<
 
 	private SoapHeaderMapper headerMapper;
 
-	private boolean encodeUri = true;
+	private DefaultUriBuilderFactory.EncodingMode encodingMode;
 
 	private boolean ignoreEmptyResponses = true;
 
@@ -114,14 +117,12 @@ public abstract class BaseWsOutboundGatewaySpec<
 	}
 
 	/**
-	 * Specify whether the URI should be encoded after any <code>uriVariables</code>
-	 * are expanded and before sending the request. The default value is <code>true</code>.
-	 * @param encodeUri true if the URI should be encoded.
-	 * @return the spec.
-	 * @see org.springframework.web.util.UriComponentsBuilder
+	 * Specify a {@link DefaultUriBuilderFactory.EncodingMode} for uri construction.
+	 * @param encodingMode to use for uri construction.
+	 * @return the spec
 	 */
-	public S encodeUri(boolean encodeUri) {
-		this.encodeUri = encodeUri;
+	public S encodingMode(DefaultUriBuilderFactory.EncodingMode encodingMode) {
+		this.encodingMode = encodingMode;
 		return _this();
 	}
 
@@ -158,7 +159,7 @@ public abstract class BaseWsOutboundGatewaySpec<
 		gateway.setUriVariableExpressions(this.uriVariableExpressions);
 		JavaUtils.INSTANCE
 			.acceptIfNotNull(this.headerMapper, gateway::setHeaderMapper);
-		gateway.setEncodeUri(this.encodeUri);
+		gateway.setEncodingMode(this.encodingMode);
 		gateway.setIgnoreEmptyResponses(this.ignoreEmptyResponses);
 		gateway.setRequestCallback(this.requestCallback);
 		return gateway;
