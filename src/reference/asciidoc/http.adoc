@@ -724,7 +724,7 @@ If you wish to partially encode some of the URL, use an `expression` within a `<
 ====
 
 With Java DSL this option can be controlled by the `BaseHttpMessageHandlerSpec.encodingMode()` option.
-Same configuration applies for similar outbound components in the <<./webflux.adoc#webflux,WebFlux module>> and <<./ws.adoc#ws,Web Services module>>.
+The same configuration applies for similar outbound components in the <<./webflux.adoc#webflux,WebFlux module>> and <<./ws.adoc#ws,Web Services module>>.
 For much sophisticated scenarios it is recommended to configure an `UriTemplateHandler` on the externally provided `RestTemplate`; or in case of WebFlux - `WebClient` with it `UriBuilderFactory`.
 
 [[http-java-config]]
