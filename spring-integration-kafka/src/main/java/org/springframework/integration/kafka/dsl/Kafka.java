@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import java.util.regex.Pattern;
 import org.apache.kafka.common.TopicPartition;
 
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
+import org.springframework.integration.kafka.inbound.KafkaMessageSource;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource.KafkaAckCallbackFactory;
+import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
@@ -533,6 +535,47 @@ public final class Kafka {
 			KafkaMessageListenerContainerSpec<K, V> containerSpec, KafkaTemplateSpec<K, R> templateSpec) {
 
 		return new KafkaInboundGatewaySpec.KafkaInboundGatewayListenerContainerSpec<>(containerSpec, templateSpec);
+	}
+
+	/**
+	 * Create a spec for a subscribable channel with the provided parameters.
+	 * @param template the template.
+	 * @param containerFactory the container factory.
+	 * @param topic the topic.
+	 * @return the spec.
+	 * @since 3.3
+	 */
+	public static KafkaSubscribableChannelSpec channel(KafkaTemplate<?, ?> template,
+			KafkaListenerContainerFactory<?> containerFactory, String topic) {
+
+		return new KafkaSubscribableChannelSpec(template, containerFactory, topic, false);
+	}
+
+	/**
+	 * Create a spec for a publish/subscribe channel with the provided parameters.
+	 * @param template the template.
+	 * @param containerFactory the container factory.
+	 * @param topic the topic.
+	 * @return the spec.
+	 * @since 3.3
+	 */
+	public static KafkaSubscribableChannelSpec publishSubscribeChannel(KafkaTemplate<?, ?> template,
+			KafkaListenerContainerFactory<?> containerFactory, String topic) {
+
+		return new KafkaSubscribableChannelSpec(template, containerFactory, topic, true);
+	}
+
+	/**
+	 * Create a spec for a pollable channel with the provided parameters.
+	 * @param template the template.
+	 * @param source the source.
+	 * @return the spec.
+	 * @since 3.3
+	 */
+	public static KafkaPollableChannelSpec pollableChannel(KafkaTemplate<?, ?> template,
+			KafkaMessageSource<?, ?> source) {
+
+		return new KafkaPollableChannelSpec(template, source);
 	}
 
 	private static <K, V>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,9 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
+import org.springframework.integration.kafka.channel.PollableKafkaChannel;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
+import org.springframework.integration.kafka.inbound.KafkaMessageSource;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
@@ -91,7 +93,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig
 @DirtiesContext
 @EmbeddedKafka(topics = { KafkaDslTests.TEST_TOPIC1, KafkaDslTests.TEST_TOPIC2, KafkaDslTests.TEST_TOPIC3,
-		KafkaDslTests.TEST_TOPIC4, KafkaDslTests.TEST_TOPIC5 })
+		KafkaDslTests.TEST_TOPIC4, KafkaDslTests.TEST_TOPIC5, KafkaDslTests.TEST_TOPIC6, KafkaDslTests.TEST_TOPIC7,
+		KafkaDslTests.TEST_TOPIC8 })
 public class KafkaDslTests {
 
 	static final String TEST_TOPIC1 = "test-topic1";
@@ -103,6 +106,12 @@ public class KafkaDslTests {
 	static final String TEST_TOPIC4 = "test-topic4";
 
 	static final String TEST_TOPIC5 = "test-topic5";
+
+	static final String TEST_TOPIC6 = "test-topic6";
+
+	static final String TEST_TOPIC7 = "test-topic7";
+
+	static final String TEST_TOPIC8 = "test-topic8";
 
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
@@ -211,6 +220,16 @@ public class KafkaDslTests {
 	public void testGateways() throws Exception {
 		assertThat(this.config.replyContainerLatch.await(30, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.gate.exchange(TEST_TOPIC4, "foo")).isEqualTo("FOO");
+	}
+
+	@Test
+	void channels(@Autowired MessageChannel topic6Channel, @Autowired PollableKafkaChannel topic8Channel) {
+		topic6Channel.send(new GenericMessage<>("foo"));
+		Message<?> received = topic8Channel.receive();
+		assertThat(received)
+				.isNotNull()
+				.extracting("payload")
+				.isEqualTo("foo");
 	}
 
 	@Configuration
@@ -356,6 +375,33 @@ public class KafkaDslTests {
 					.handle(Kafka.outboundGateway(producerFactory(), replyContainer())
 							.sync(true)
 							.configureKafkaTemplate(t -> t.defaultReplyTimeout(Duration.ofSeconds(30))))
+					.get();
+		}
+
+		@Bean
+		public KafkaSubscribableChannelSpec topic6Channel(KafkaTemplate<Integer, String> template,
+				ConcurrentKafkaListenerContainerFactory<Integer, String> containerFactory) {
+			return Kafka.channel(template, containerFactory, TEST_TOPIC6);
+		}
+
+		@Bean
+		public KafkaTemplate<Integer, String> template(ProducerFactory<Integer, String> pf) {
+			return new KafkaTemplate<>(pf);
+		}
+
+		@Bean
+		public KafkaMessageSource<Integer, String> channelSource(ConsumerFactory<Integer, String> cf) {
+			return new KafkaMessageSource<>(cf, new ConsumerProperties(TEST_TOPIC8));
+		}
+
+		@Bean
+		public IntegrationFlow channels(KafkaTemplate<Integer, String> template,
+				ConcurrentKafkaListenerContainerFactory<Integer, String> containerFactory,
+				KafkaMessageSource<?, ?> channelSource) {
+
+			return IntegrationFlows.from(topic6Channel(template, containerFactory))
+					.channel(Kafka.publishSubscribeChannel(template, containerFactory, TEST_TOPIC7))
+					.channel(Kafka.pollableChannel(template, channelSource).id("topic8Channel"))
 					.get();
 		}
 
