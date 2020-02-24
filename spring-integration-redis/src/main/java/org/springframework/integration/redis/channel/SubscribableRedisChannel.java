@@ -47,6 +47,9 @@ import org.springframework.util.ErrorHandler;
 import org.springframework.util.StringUtils;
 
 /**
+ * An {@link AbstractMessageChannel} implementation with {@link BroadcastCapableChannel}
+ * aspect to provide a pub-sub semantics to consume messages fgrom Redis topic.
+ *
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan

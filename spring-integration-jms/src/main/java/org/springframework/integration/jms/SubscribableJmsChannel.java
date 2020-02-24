@@ -41,6 +41,10 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
+ * An {@link AbstractJmsChannel} implementation for message-driven subscriptions.
+ * Also implements a {@link BroadcastCapableChannel} to represent possible pub-sub semantics
+ * when configured against JMS topic.
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan

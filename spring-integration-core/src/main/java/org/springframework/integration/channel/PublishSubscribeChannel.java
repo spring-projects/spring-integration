@@ -46,6 +46,14 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 	private int minSubscribers;
 
 	/**
+	 * Create a PublishSubscribeChannel that will invoke the handlers in the
+	 * message sender's thread.
+	 */
+	public PublishSubscribeChannel() {
+		this(null);
+	}
+
+	/**
 	 * Create a PublishSubscribeChannel that will use an {@link Executor}
 	 * to invoke the handlers. If this is null, each invocation will occur in
 	 * the message sender's thread.
@@ -54,14 +62,6 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 	public PublishSubscribeChannel(@Nullable Executor executor) {
 		super(executor);
 		this.dispatcher = new BroadcastingDispatcher(executor);
-	}
-
-	/**
-	 * Create a PublishSubscribeChannel that will invoke the handlers in the
-	 * message sender's thread.
-	 */
-	public PublishSubscribeChannel() {
-		this(null);
 	}
 
 

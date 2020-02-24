@@ -23,6 +23,9 @@ import java.util.concurrent.Executor;
 import org.springframework.lang.Nullable;
 
 /**
+ * The {@link PublishSubscribeChannelSpec} extension to configure as a general flow callback for sub-flows
+ * as subscribers.
+ *
  * @author Artem Bilan
  * @author Gary Russell
  *

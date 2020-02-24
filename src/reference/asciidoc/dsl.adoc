@@ -742,6 +742,32 @@ public IntegrationFlow subscribersFlow() {
 You can achieve the same result with separate `IntegrationFlow` `@Bean` definitions, but we hope you find the sub-flow style of logic composition useful.
 We find that it results in shorter (and so more readable) code.
 
+Starting with version 5.3, a `BroadcastCapableChannel`-based `publishSubscribeChannel()` implementation is provided to configure sub-flow subscribers on the broker-backed message channels.
+For example we now can configure several subscribers as sub-flows on the `Jms.publishSubscribeChannel()`:
+
+====
+[source,java]
+----
+@Bean
+public BroadcastCapableChannel jmsPublishSubscribeChannel() {
+    return Jms.publishSubscribeChannel(jmsConnectionFactory())
+                .destination("pubsub")
+                .get();
+}
+
+@Bean
+public IntegrationFlow pubSubFlow() {
+    return f -> f
+            .publishSubscribeChannel(jmsPublishSubscribeChannel(),
+                    pubsub -> pubsub
+                            .subscribe(subFlow -> subFlow
+                                .channel(c -> c.queue("jmsPubSubBridgeChannel1")))
+                            .subscribe(subFlow -> subFlow
+                                .channel(c -> c.queue("jmsPubSubBridgeChannel2"))));
+}
+----
+====
+
 A similar `publish-subscribe` sub-flow composition provides the `.routeToRecipients()` method.
 
 Another example is using `.discardFlow()` instead of `.discardChannel()` on the `.filter()` method.

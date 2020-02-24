@@ -24,6 +24,9 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
+ * An {@link IntegrationComponentSpec} for configuring sub-flow subscribers on the
+ * provided {@link BroadcastCapableChannel}.
+ *
  * @author Artem Bilan
  * @author Gary Russell
  *
@@ -44,6 +47,13 @@ public class BroadcastPublishSubscribeSpec
 		this.target = channel;
 	}
 
+	/**
+	 * Configure a {@link IntegrationFlow} to configure as a subscriber
+	 *                   for the current {@link BroadcastCapableChannel}.
+	 * @param subFlow the {@link IntegrationFlow} to configure as a subscriber
+	 *                   for the current {@link BroadcastCapableChannel}.
+	 * @return the current spec
+	 */
 	public BroadcastPublishSubscribeSpec subscribe(IntegrationFlow subFlow) {
 		Assert.notNull(subFlow, "'subFlow' must not be null");
 

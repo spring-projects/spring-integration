@@ -30,6 +30,8 @@ import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 
 /**
+ * The {@link AbstractSubscribableAmqpChannel} extension for pub-sub semantics based on the {@link FanoutExchange}.
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
@@ -38,9 +40,9 @@ import org.springframework.integration.dispatcher.BroadcastingDispatcher;
  */
 public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel implements BroadcastCapableChannel {
 
-	private volatile FanoutExchange exchange;
-
 	private final Queue queue = new AnonymousQueue();
+
+	private volatile FanoutExchange exchange;
 
 	private volatile Binding binding;
 
