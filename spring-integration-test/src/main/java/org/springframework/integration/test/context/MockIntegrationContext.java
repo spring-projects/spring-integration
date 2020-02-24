@@ -95,29 +95,7 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		this.beans.entrySet()
 				.stream()
 				.filter(e -> names == null || names.contains(e.getKey()))
-				.forEach(e -> {
-					Object endpoint = this.beanFactory.getBean(e.getKey());
-					DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
-					SmartLifecycle lifecycle = null;
-					if (endpoint instanceof SmartLifecycle && ((SmartLifecycle) endpoint).isRunning()) {
-						lifecycle = (SmartLifecycle) endpoint;
-						lifecycle.stop();
-					}
-					if (endpoint instanceof SourcePollingChannelAdapter) {
-						directFieldAccessor.setPropertyValue("source", e.getValue());
-					}
-					else if (endpoint instanceof ReactiveStreamsConsumer) {
-						Tuple2<?, ?> value = (Tuple2<?, ?>) e.getValue();
-						directFieldAccessor.setPropertyValue(HANDLER, value.getT1());
-						directFieldAccessor.setPropertyValue("subscriber", value.getT2());
-					}
-					else if (endpoint instanceof IntegrationConsumer) {
-						directFieldAccessor.setPropertyValue(HANDLER, e.getValue());
-					}
-					if (lifecycle != null && lifecycle.isAutoStartup()) {
-						lifecycle.start();
-					}
-				});
+				.forEach(e -> resetBean(this.beanFactory.getBean(e.getKey()), e.getValue()));
 
 		if (!ObjectUtils.isEmpty(beanNames)) {
 			for (String name : beanNames) {
@@ -126,6 +104,29 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		}
 		else {
 			this.beans.clear();
+		}
+	}
+
+	private void resetBean(Object endpoint, Object handler) {
+		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
+		SmartLifecycle lifecycle = null;
+		if (endpoint instanceof SmartLifecycle && ((SmartLifecycle) endpoint).isRunning()) {
+			lifecycle = (SmartLifecycle) endpoint;
+			lifecycle.stop();
+		}
+		if (endpoint instanceof SourcePollingChannelAdapter) {
+			directFieldAccessor.setPropertyValue("source", handler);
+		}
+		else if (endpoint instanceof ReactiveStreamsConsumer) {
+			Tuple2<?, ?> value = (Tuple2<?, ?>) handler;
+			directFieldAccessor.setPropertyValue(HANDLER, value.getT1());
+			directFieldAccessor.setPropertyValue("subscriber", value.getT2());
+		}
+		else if (endpoint instanceof IntegrationConsumer) {
+			directFieldAccessor.setPropertyValue(HANDLER, handler);
+		}
+		if (lifecycle != null && lifecycle.isAutoStartup()) {
+			lifecycle.start();
 		}
 	}
 

@@ -18,9 +18,7 @@ package org.springframework.integration.ws.dsl;
 
 import java.util.Arrays;
 
-import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
-import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
@@ -32,11 +30,13 @@ import org.springframework.ws.transport.WebServiceMessageSender;
  * The spec for a {@link SimpleWebServiceOutboundGateway}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.3
  *
  */
-public class SimpleWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
-	SimpleWsOutboundGatewaySpec, SimpleWebServiceOutboundGateway> {
+public class SimpleWsOutboundGatewaySpec
+		extends BaseWsOutboundGatewaySpec<SimpleWsOutboundGatewaySpec, SimpleWebServiceOutboundGateway> {
 
 	protected SourceExtractor<?> sourceExtractor; // NOSONAR
 
@@ -55,11 +55,11 @@ public class SimpleWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
 	}
 
 	/**
-	 * Specify a flag to return the whole {@link WebServiceMessage} or build the
-	 * {@code payload} based on {@link WebServiceMessage}
+	 * Specify a flag to return the whole {@link org.springframework.ws.WebServiceMessage} or build the
+	 * {@code payload} based on {@link org.springframework.ws.WebServiceMessage}
 	 * and populated headers according {@code headerMapper} configuration.
 	 * Defaults to extract payload.
-	 * @param extract build payload or return a whole {@link WebServiceMessage}
+	 * @param extract build payload or return a whole {@link org.springframework.ws.WebServiceMessage}
 	 * @return the spec.
 	 */
 	public SimpleWsOutboundGatewaySpec extractPayload(boolean extract) {
@@ -91,12 +91,12 @@ public class SimpleWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
 	}
 
 	/**
-	 * Spec for a {@link MarshallingWebServiceOutboundGateway} where an external
+	 * Spec for a {@link SimpleWebServiceOutboundGateway} where an external
 	 * {@link WebServiceTemplate} is not provided.
 	 *
 	 */
-	public static class SimpleWsOutboundGatewayNoTemplateSpec extends BaseWsOutboundGatewaySpec<
-			SimpleWsOutboundGatewayNoTemplateSpec, SimpleWebServiceOutboundGateway> {
+	public static class SimpleWsOutboundGatewayNoTemplateSpec
+			extends BaseWsOutboundGatewaySpec<SimpleWsOutboundGatewayNoTemplateSpec, SimpleWebServiceOutboundGateway> {
 
 		protected SourceExtractor<?> sourceExtractor; // NOSONAR
 
@@ -154,11 +154,11 @@ public class SimpleWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
 		}
 
 		/**
-		 * Specify a flag to return the whole {@link WebServiceMessage} or build the
-		 * {@code payload} based on {@link WebServiceMessage}
+		 * Specify a flag to return the whole {@link org.springframework.ws.WebServiceMessage} or build the
+		 * {@code payload} based on {@link org.springframework.ws.WebServiceMessage}
 		 * and populated headers according {@code headerMapper} configuration.
 		 * Defaults to extract payload.
-		 * @param extract build payload or return a whole {@link WebServiceMessage}
+		 * @param extract build payload or return a whole {@link org.springframework.ws.WebServiceMessage}
 		 * @return the spec.
 		 */
 		public SimpleWsOutboundGatewayNoTemplateSpec extractPayload(boolean extract) {

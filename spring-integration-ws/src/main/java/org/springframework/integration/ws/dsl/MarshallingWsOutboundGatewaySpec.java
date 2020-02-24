@@ -31,11 +31,13 @@ import org.springframework.ws.transport.WebServiceMessageSender;
  * The spec for a {@link MarshallingWebServiceOutboundGateway}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.3
  *
  */
-public class MarshallingWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
-		MarshallingWsOutboundGatewaySpec, MarshallingWebServiceOutboundGateway> {
+public class MarshallingWsOutboundGatewaySpec extends
+		BaseWsOutboundGatewaySpec<MarshallingWsOutboundGatewaySpec, MarshallingWebServiceOutboundGateway> {
 
 	protected MarshallingWsOutboundGatewaySpec(WebServiceTemplate template) {
 		this.template = template;
@@ -56,12 +58,13 @@ public class MarshallingWsOutboundGatewaySpec extends BaseWsOutboundGatewaySpec<
 	 * {@link WebServiceTemplate} is not provided.
 	 *
 	 */
-	public static class MarshallingWsOutboundGatewayNoTemplateSpec extends BaseWsOutboundGatewaySpec<
-			MarshallingWsOutboundGatewayNoTemplateSpec, MarshallingWebServiceOutboundGateway> {
+	public static class MarshallingWsOutboundGatewayNoTemplateSpec
+			extends BaseWsOutboundGatewaySpec<MarshallingWsOutboundGatewayNoTemplateSpec,
+			MarshallingWebServiceOutboundGateway> {
 
-		protected Marshaller gatewayMarshaller;
+		protected Marshaller gatewayMarshaller; // NOSONAR
 
-		protected Unmarshaller gatewayUnmarshaller;
+		protected Unmarshaller gatewayUnmarshaller; // NOSONAR
 
 		/**
 		 * Configure the marshaller to use.

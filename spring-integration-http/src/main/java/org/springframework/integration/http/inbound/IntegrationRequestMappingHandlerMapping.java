@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.http.inbound;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -88,8 +89,9 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
 		implements ApplicationListener<ContextRefreshedEvent>, DestructionAwareBeanPostProcessor {
 
-	private static final Method HANDLE_REQUEST_METHOD = ReflectionUtils.findMethod(HttpRequestHandler.class,
-			"handleRequest", HttpServletRequest.class, HttpServletResponse.class);
+	private static final Method HANDLE_REQUEST_METHOD =
+			ReflectionUtils.findMethod(HttpRequestHandler.class, "handleRequest", HttpServletRequest.class,
+					HttpServletResponse.class);
 
 	private final AtomicBoolean initialized = new AtomicBoolean();
 
@@ -170,21 +172,13 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 		CrossOrigin crossOrigin = ((BaseHttpInboundEndpoint) handler).getCrossOrigin();
 		if (crossOrigin != null) {
 			CorsConfiguration config = new CorsConfiguration();
-			for (String origin : crossOrigin.getOrigin()) {
-				config.addAllowedOrigin(origin);
-			}
 			for (RequestMethod requestMethod : crossOrigin.getMethod()) {
 				config.addAllowedMethod(requestMethod.name());
 			}
-			for (String header : crossOrigin.getAllowedHeaders()) {
-				config.addAllowedHeader(header);
-			}
-			for (String header : crossOrigin.getExposedHeaders()) {
-				config.addExposedHeader(header);
-			}
-			if (crossOrigin.getAllowCredentials() != null) {
-				config.setAllowCredentials(crossOrigin.getAllowCredentials());
-			}
+			config.setAllowedOrigins(Arrays.asList(crossOrigin.getOrigin()));
+			config.setAllowedHeaders(Arrays.asList(crossOrigin.getAllowedHeaders()));
+			config.setExposedHeaders(Arrays.asList(crossOrigin.getExposedHeaders()));
+			config.setAllowCredentials(crossOrigin.getAllowCredentials());
 			if (crossOrigin.getMaxAge() != -1) {
 				config.setMaxAge(crossOrigin.getMaxAge());
 			}
@@ -194,7 +188,9 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 				}
 			}
 			if (CollectionUtils.isEmpty(config.getAllowedHeaders())) {
-				for (NameValueExpression<String> headerExpression : mappingInfo.getHeadersCondition().getExpressions()) {
+				for (NameValueExpression<String> headerExpression :
+						mappingInfo.getHeadersCondition().getExpressions()) {
+
 					if (!headerExpression.isNegated()) {
 						config.addAllowedHeader(headerExpression.getName());
 					}
@@ -218,7 +214,7 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 			return null;
 		}
 
-		Map<String, Object> requestMappingAttributes = new HashMap<String, Object>();
+		Map<String, Object> requestMappingAttributes = new HashMap<>();
 		requestMappingAttributes.put("name", endpoint.getComponentName());
 		requestMappingAttributes.put("value", requestMapping.getPathPatterns());
 		requestMappingAttributes.put("path", requestMapping.getPathPatterns());

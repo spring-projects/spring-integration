@@ -16,16 +16,15 @@
 
 package org.springframework.integration.ws.dsl;
 
-import org.springframework.integration.ws.dsl.MarshallingWsOutboundGatewaySpec.MarshallingWsOutboundGatewayNoTemplateSpec;
-import org.springframework.integration.ws.dsl.SimpleWsOutboundGatewaySpec.SimpleWsOutboundGatewayNoTemplateSpec;
 import org.springframework.oxm.Marshaller;
-import org.springframework.oxm.Unmarshaller;
 import org.springframework.ws.client.core.WebServiceTemplate;
 
 /**
  * Factory class for web service components.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.3
  *
  */
@@ -41,7 +40,7 @@ public final class Ws {
 
 	/**
 	 * Create an instance with the provided {@link Marshaller} (which must also implement
-	 * {@link Unmarshaller}).
+	 * {@link org.springframework.oxm.Unmarshaller}).
 	 * @param marshaller the marshaller.
 	 * @return the spec.
 	 */
@@ -63,8 +62,9 @@ public final class Ws {
 	 * Create an instance with a default {@link WebServiceTemplate}.
 	 * @return the spec.
 	 */
-	public static MarshallingWsOutboundGatewayNoTemplateSpec marshallingOutboundGateway() {
-		return new MarshallingWsOutboundGatewayNoTemplateSpec();
+	public static MarshallingWsOutboundGatewaySpec.MarshallingWsOutboundGatewayNoTemplateSpec
+	marshallingOutboundGateway() {
+		return new MarshallingWsOutboundGatewaySpec.MarshallingWsOutboundGatewayNoTemplateSpec();
 	}
 
 	/**
@@ -80,8 +80,8 @@ public final class Ws {
 	 * Create an instance.
 	 * @return the spec.
 	 */
-	public static SimpleWsOutboundGatewayNoTemplateSpec simpleOutboundGateway() {
-		return new SimpleWsOutboundGatewayNoTemplateSpec();
+	public static SimpleWsOutboundGatewaySpec.SimpleWsOutboundGatewayNoTemplateSpec simpleOutboundGateway() {
+		return new SimpleWsOutboundGatewaySpec.SimpleWsOutboundGatewayNoTemplateSpec();
 	}
 
 	/**
