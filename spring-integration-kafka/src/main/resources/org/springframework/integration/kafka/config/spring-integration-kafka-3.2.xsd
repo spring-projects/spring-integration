@@ -18,6 +18,63 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
+	<xsd:element name="channel">
+		<xsd:annotation>
+			<xsd:documentation>
+				Creates a subscribable channel that is backed by a Kafka topic.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="subscribableChannelType">
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="pollable-channel">
+		<xsd:annotation>
+			<xsd:documentation>
+				Creates a pollable channel that is backed by a Kafka topic.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="channelType">
+					<xsd:attribute name="message-source" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:documentation>
+								An 'org.springframework.integration.kafka.inbound.KafkaMessageSource' bean reference for
+								a pollable channel.
+								Mutually exclusive with 'listener-container'.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.kafka.inbound.KafkaMessageSource"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="publish-subscribe-channel">
+		<xsd:annotation>
+			<xsd:documentation>
+				Creates a subscribable pub/sub channel that is backed by a Kafka topic.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="subscribableChannelType">
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -396,6 +453,56 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
+	<xsd:complexType name="channelType">
+		<xsd:sequence>
+			<xsd:element name="interceptors" type="integration:channelInterceptorsType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						A list of ChannelInterceptor instances to be applied to this channel.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					Unique ID for this Message Channel.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attributeGroup ref="kafkaTemplate"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="subscribableChannelType">
+		<xsd:complexContent>
+			<xsd:extension base="channelType">
+				<xsd:attribute name="topic" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation>
+							The topic name.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="container-factory" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation>
+							An 'org.springframework.kafka.config.KafkaListenerContainerFactory' bean reference for a
+							message-driven (subscribable) channel.
+							Mutually exclusive with 'message-source'.
+						</xsd:documentation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type
+									type="org.springframework.kafka.config.KafkaListenerContainerFactory"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
 	<xsd:complexType name="outboundType">
 		<xsd:all>
 			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
@@ -639,6 +746,13 @@
 						<tool:expected-type type="org.springframework.kafka.core.KafkaTemplate" />
 					</tool:annotation>
 				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="group-id">
+			<xsd:annotation>
+				<xsd:documentation>
+					Set the 'group.id' Kafka consumer property.
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
