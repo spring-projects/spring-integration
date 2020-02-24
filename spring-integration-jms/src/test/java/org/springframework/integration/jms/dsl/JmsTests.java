@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -124,6 +125,9 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	private PollableChannel jmsPubSubBridgeChannel;
+
+	@Autowired
+	private PollableChannel jmsPubSubBridgeChannel2;
 
 	@Autowired
 	@Qualifier("jmsOutboundGateway.handler")
@@ -254,6 +258,11 @@ public class JmsTests extends ActiveMQMultiContextTests {
 				.isNotNull()
 				.extracting(Message::getPayload)
 				.isEqualTo("foo");
+		received = this.jmsPubSubBridgeChannel2.receive(5000);
+		assertThat(received)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("foo");
 	}
 
 	@Test
@@ -351,10 +360,20 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public IntegrationFlow pubSubFlow() {
-			return IntegrationFlows
-					.from(Jms.publishSubscribeChannel(jmsConnectionFactory())
-							.destination("pubsub"))
-					.channel(c -> c.queue("jmsPubSubBridgeChannel"))
+			return f -> f
+					.publishSubscribeChannel(jmsPublishSubscribeChannel(),
+							pubsub -> pubsub
+									.subscribe(subFlow -> subFlow
+											.channel(c -> c.queue("jmsPubSubBridgeChannel")))
+									.subscribe(subFlow -> subFlow
+											.channel(c -> c.queue("jmsPubSubBridgeChannel2"))));
+		}
+
+		@Bean
+		public BroadcastCapableChannel jmsPublishSubscribeChannel() {
+			// TODO reconsider target generic type for channel implementation to return from this kind of specs
+			return (BroadcastCapableChannel) Jms.publishSubscribeChannel(jmsConnectionFactory())
+					.destination("pubsub")
 					.get();
 		}
 

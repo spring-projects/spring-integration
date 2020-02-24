@@ -35,7 +35,7 @@ import org.springframework.util.ErrorHandler;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class PublishSubscribeChannel extends AbstractExecutorChannel {
+public class PublishSubscribeChannel extends AbstractExecutorChannel implements BroadcastCapableChannel {
 
 	private ErrorHandler errorHandler;
 
@@ -135,7 +135,7 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 	@Override
 	public final void onInit() {
 		super.onInit();
-		BeanFactory beanFactory = this.getBeanFactory();
+		BeanFactory beanFactory = getBeanFactory();
 		BroadcastingDispatcher dispatcherToUse = getDispatcher();
 		if (this.executor != null) {
 			Assert.state(dispatcherToUse.getHandlerCount() == 0,

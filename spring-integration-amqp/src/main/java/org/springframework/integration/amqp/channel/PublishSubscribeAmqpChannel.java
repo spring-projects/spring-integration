@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
+import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 
@@ -35,7 +36,7 @@ import org.springframework.integration.dispatcher.BroadcastingDispatcher;
  *
  * @since 2.1
  */
-public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel {
+public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel implements BroadcastCapableChannel {
 
 	private volatile FanoutExchange exchange;
 
@@ -53,6 +54,7 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	 */
 	public PublishSubscribeAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate) {
+
 		super(channelName, container, amqpTemplate, true);
 	}
 
@@ -69,6 +71,7 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	 */
 	public PublishSubscribeAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, AmqpHeaderMapper outboundMapper, AmqpHeaderMapper inboundMapper) {
+
 		super(channelName, container, amqpTemplate, true, outboundMapper, inboundMapper);
 	}
 
@@ -104,7 +107,7 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	@Override
 	protected AbstractDispatcher createDispatcher() {
 		BroadcastingDispatcher broadcastingDispatcher = new BroadcastingDispatcher(true);
-		broadcastingDispatcher.setBeanFactory(this.getBeanFactory());
+		broadcastingDispatcher.setBeanFactory(getBeanFactory());
 		return broadcastingDispatcher;
 	}
 
