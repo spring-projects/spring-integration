@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageDispatchingException;
+import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
@@ -37,10 +38,13 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 
 /**
+ * An {@link AbstractJmsChannel} implementation for message-driven subscriptions.
+ * Also implements a {@link BroadcastCapableChannel} to represent possible pub-sub semantics
+ * when configured against JMS topic.
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
@@ -48,7 +52,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class SubscribableJmsChannel extends AbstractJmsChannel
-		implements SubscribableChannel, SmartLifecycle {
+		implements BroadcastCapableChannel, SmartLifecycle {
 
 	private final AbstractMessageListenerContainer container;
 
@@ -88,16 +92,21 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 	}
 
 	@Override
+	public boolean isBroadcast() {
+		return this.container.isPubSubDomain();
+	}
+
+	@Override
 	public void onInit() {
 		if (this.initialized) {
 			return;
 		}
 		super.onInit();
-		boolean isPubSub = this.container.isPubSubDomain();
-		this.configureDispatcher(isPubSub);
-		MessageListener listener = new DispatchingMessageListener(
-				this.getJmsTemplate(), this.dispatcher,
-				this, isPubSub, this.getMessageBuilderFactory());
+		boolean isPubSub = isBroadcast();
+		configureDispatcher(isPubSub);
+		MessageListener listener =
+				new DispatchingMessageListener(getJmsTemplate(), this.dispatcher, this, isPubSub,
+						getMessageBuilderFactory());
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
@@ -108,7 +117,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 	private void configureDispatcher(boolean isPubSub) {
 		if (isPubSub) {
 			BroadcastingDispatcher broadcastingDispatcher = new BroadcastingDispatcher(true);
-			broadcastingDispatcher.setBeanFactory(this.getBeanFactory());
+			broadcastingDispatcher.setBeanFactory(getBeanFactory());
 			this.dispatcher = broadcastingDispatcher;
 		}
 		else {
@@ -118,8 +127,8 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 		}
 		if (this.maxSubscribers == null) {
 			this.maxSubscribers = this.getIntegrationProperty(isPubSub ?
-					IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS :
-					IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS,
+							IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS :
+							IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS,
 					Integer.class);
 		}
 		this.dispatcher.setMaxSubscribers(this.maxSubscribers);
@@ -194,6 +203,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 		DispatchingMessageListener(JmsTemplate jmsTemplate,
 				MessageDispatcher dispatcher, SubscribableJmsChannel channel, boolean isPubSub,
 				MessageBuilderFactory messageBuilderFactory) {
+
 			this.jmsTemplate = jmsTemplate;
 			this.dispatcher = dispatcher;
 			this.channel = channel;
@@ -212,8 +222,10 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 					converted = converter.fromMessage(message);
 				}
 				if (converted != null) {
-					messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
-							: this.messageBuilderFactory.withPayload(converted).build();
+					messageToSend =
+							converted instanceof Message<?>
+									? (Message<?>) converted
+									: this.messageBuilderFactory.withPayload(converted).build();
 					this.dispatcher.dispatch(messageToSend);
 				}
 				else if (this.logger.isWarnEnabled()) {
@@ -231,8 +243,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 					}
 				}
 				else {
-					throw new MessageDeliveryException(
-							messageToSend, exceptionMessage, e);
+					throw new MessageDeliveryException(messageToSend, exceptionMessage, e);
 				}
 			}
 			catch (Exception e) {

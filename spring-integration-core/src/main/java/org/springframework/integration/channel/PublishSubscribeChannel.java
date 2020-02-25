@@ -35,7 +35,7 @@ import org.springframework.util.ErrorHandler;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class PublishSubscribeChannel extends AbstractExecutorChannel {
+public class PublishSubscribeChannel extends AbstractExecutorChannel implements BroadcastCapableChannel {
 
 	private ErrorHandler errorHandler;
 
@@ -46,6 +46,14 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 	private int minSubscribers;
 
 	/**
+	 * Create a PublishSubscribeChannel that will invoke the handlers in the
+	 * message sender's thread.
+	 */
+	public PublishSubscribeChannel() {
+		this(null);
+	}
+
+	/**
 	 * Create a PublishSubscribeChannel that will use an {@link Executor}
 	 * to invoke the handlers. If this is null, each invocation will occur in
 	 * the message sender's thread.
@@ -54,14 +62,6 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 	public PublishSubscribeChannel(@Nullable Executor executor) {
 		super(executor);
 		this.dispatcher = new BroadcastingDispatcher(executor);
-	}
-
-	/**
-	 * Create a PublishSubscribeChannel that will invoke the handlers in the
-	 * message sender's thread.
-	 */
-	public PublishSubscribeChannel() {
-		this(null);
 	}
 
 
@@ -135,7 +135,7 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 	@Override
 	public final void onInit() {
 		super.onInit();
-		BeanFactory beanFactory = this.getBeanFactory();
+		BeanFactory beanFactory = getBeanFactory();
 		BroadcastingDispatcher dispatcherToUse = getDispatcher();
 		if (this.executor != null) {
 			Assert.state(dispatcherToUse.getHandlerCount() == 0,

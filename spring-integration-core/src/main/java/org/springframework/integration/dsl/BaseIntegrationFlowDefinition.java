@@ -35,6 +35,7 @@ import org.springframework.beans.factory.config.DestructionAwareBeanPostProcesso
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
+import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.FluxMessageChannel;
@@ -292,6 +293,25 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		PublishSubscribeSpec spec = new PublishSubscribeSpec(executor);
 		publishSubscribeChannelConfigurer.accept(spec);
 		return addComponents(spec.getComponentsToRegister()).channel(spec);
+	}
+
+	/**
+	 * The {@link BroadcastCapableChannel} {@link #channel}
+	 * method specific implementation to allow the use of the 'subflow' subscriber capability.
+	 * @param broadcastCapableChannel the {@link BroadcastCapableChannel} to subscriber sub-flows to.
+	 * @param publishSubscribeChannelConfigurer the {@link Consumer} to specify
+	 * {@link BroadcastPublishSubscribeSpec} 'subflow' definitions.
+	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @since 5.3
+	 */
+	public B publishSubscribeChannel(BroadcastCapableChannel broadcastCapableChannel,
+			Consumer<BroadcastPublishSubscribeSpec> publishSubscribeChannelConfigurer) {
+
+		Assert.notNull(publishSubscribeChannelConfigurer, "'publishSubscribeChannelConfigurer' must not be null");
+		BroadcastPublishSubscribeSpec spec = new BroadcastPublishSubscribeSpec(broadcastCapableChannel);
+		publishSubscribeChannelConfigurer.accept(spec);
+		return addComponents(spec.getComponentsToRegister())
+				.channel(broadcastCapableChannel);
 	}
 
 	/**

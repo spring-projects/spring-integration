@@ -21,10 +21,11 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 import org.springframework.lang.Nullable;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.util.Assert;
 
 /**
+ * The {@link PublishSubscribeChannelSpec} extension to configure as a general flow callback for sub-flows
+ * as subscribers.
+ *
  * @author Artem Bilan
  * @author Gary Russell
  *
@@ -32,15 +33,15 @@ import org.springframework.util.Assert;
  */
 public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSubscribeSpec> {
 
-	private final Map<Object, String> subscriberFlows = new LinkedHashMap<>();
-
-	private int order;
+	private final BroadcastPublishSubscribeSpec delegate;
 
 	protected PublishSubscribeSpec() {
+		this.delegate = new BroadcastPublishSubscribeSpec(this.channel);
 	}
 
 	protected PublishSubscribeSpec(@Nullable Executor executor) {
 		super(executor);
+		this.delegate = new BroadcastPublishSubscribeSpec(this.channel);
 	}
 
 	@Override
@@ -49,21 +50,7 @@ public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSub
 	}
 
 	public PublishSubscribeSpec subscribe(IntegrationFlow subFlow) {
-		Assert.notNull(subFlow, "'subFlow' must not be null");
-
-		IntegrationFlowBuilder flowBuilder =
-				IntegrationFlows.from(this.channel)
-						.bridge(consumer -> consumer.order(this.order++));
-
-		MessageChannel subFlowInput = subFlow.getInputChannel();
-
-		if (subFlowInput == null) {
-			subFlow.configure(flowBuilder);
-		}
-		else {
-			flowBuilder.channel(subFlowInput);
-		}
-		this.subscriberFlows.put(flowBuilder.get(), null);
+		this.delegate.subscribe(subFlow);
 		return _this();
 	}
 
@@ -71,7 +58,7 @@ public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSub
 	public Map<Object, String> getComponentsToRegister() {
 		Map<Object, String> objects = new LinkedHashMap<>();
 		objects.putAll(super.getComponentsToRegister());
-		objects.putAll(this.subscriberFlows);
+		objects.putAll(this.delegate.getComponentsToRegister());
 		return objects;
 	}
 

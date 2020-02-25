@@ -53,6 +53,10 @@ See <<./graph.adoc#integration-graph,Integration Graph>> for more information.
 In the aggregator, when the `MessageGroupProcessor` returns a `Message`, the `MessageBuilder.popSequenceDetails()` is performed on the output message if the `sequenceDetails` matches the header in the first message of the group.
 See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more information.
 
+A new `publishSubscribeChannel()` operator, based on the `BroadcastCapableChannel` and `BroadcastPublishSubscribeSpec`, was added into Java DSL.
+This fluent API has its advantage when we configure sub-flows as pub-sub subscribers for broker-backed channels like `SubscribableJmsChannel`, `SubscribableRedisChannel` etc.
+See <<./dsl.adoc#java-dsl-subflows,Sub-flows support>> for more information.
+
 [[x5.3-amqp]]
 === AMQP Changes
 

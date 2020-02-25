@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
@@ -40,13 +41,15 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.StringUtils;
 
 /**
+ * An {@link AbstractMessageChannel} implementation with {@link BroadcastCapableChannel}
+ * aspect to provide a pub-sub semantics to consume messages fgrom Redis topic.
+ *
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
@@ -55,7 +58,7 @@ import org.springframework.util.StringUtils;
  */
 @SuppressWarnings("rawtypes")
 public class SubscribableRedisChannel extends AbstractMessageChannel
-		implements SubscribableChannel, SmartLifecycle {
+		implements BroadcastCapableChannel, SmartLifecycle {
 
 	private final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 
@@ -67,16 +70,16 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 
 	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher(true);
 
-	private volatile Integer maxSubscribers;
-
-	private volatile boolean initialized;
-
 	// defaults
 	private Executor taskExecutor = new SimpleAsyncTaskExecutor();
 
 	private RedisSerializer<?> serializer = new StringRedisSerializer();
 
 	private MessageConverter messageConverter = new SimpleMessageConverter();
+
+	private volatile Integer maxSubscribers;
+
+	private volatile boolean initialized;
 
 	public SubscribableRedisChannel(RedisConnectionFactory connectionFactory, String topicName) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
