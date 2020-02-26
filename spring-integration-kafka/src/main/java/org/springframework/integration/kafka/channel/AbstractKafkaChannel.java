@@ -75,7 +75,7 @@ public abstract class AbstractKafkaChannel extends AbstractMessageChannel {
 			this.template.send(MessageBuilder.fromMessage(message)
 						.setHeader(KafkaHeaders.TOPIC, this.topic)
 						.build())
-					.get(timeout, TimeUnit.MILLISECONDS);
+					.get(timeout < 0 ? Long.MAX_VALUE : timeout, TimeUnit.MILLISECONDS);
 		}
 		catch (@SuppressWarnings("unused") InterruptedException e) {
 			Thread.currentThread().interrupt();

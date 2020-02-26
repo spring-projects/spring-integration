@@ -21,7 +21,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import org.springframework.context.Phased;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
@@ -47,8 +46,6 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 
 	private final KafkaListenerContainerFactory<?> factory;
 
-	private final boolean pubSub;
-
 	private MessageDispatcher dispatcher;
 
 	private MessageListenerContainer container;
@@ -68,23 +65,9 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 	public SubscribableKafkaChannel(KafkaOperations<?, ?> template, KafkaListenerContainerFactory<?> factory,
 			String channelTopic) {
 
-		this(template, factory, channelTopic, false);
-	}
-
-	/**
-	 * Construct an instance with the provided parameters.
-	 * @param template template for sending.
-	 * @param factory factory for creating a container for receiving.
-	 * @param channelTopic the topic.
-	 * @param pubSub true for a publish/subscribe channel.
-	 */
-	public SubscribableKafkaChannel(KafkaOperations<?, ?> template, KafkaListenerContainerFactory<?> factory,
-			String channelTopic, boolean pubSub) {
-
 		super(template, channelTopic);
 		Assert.notNull(factory, "'factory' cannot be null");
 		this.factory = factory;
-		this.pubSub = pubSub;
 	}
 
 	@Override
@@ -122,16 +105,7 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 
 	@Override
 	protected void onInit() {
-		if (this.pubSub) {
-			BroadcastingDispatcher broadcastingDispatcher = new BroadcastingDispatcher(true);
-			broadcastingDispatcher.setBeanFactory(this.getBeanFactory());
-			this.dispatcher = broadcastingDispatcher;
-		}
-		else {
-			UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher();
-			unicastingDispatcher.setLoadBalancingStrategy(new RoundRobinLoadBalancingStrategy());
-			this.dispatcher = unicastingDispatcher;
-		}
+		this.dispatcher = createDispatcher();
 		this.container = this.factory.createContainer(this.topic);
 		String groupId = getGroupId();
 		this.container.getContainerProperties().setGroupId(groupId != null ? groupId : getBeanName());
@@ -147,6 +121,12 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 					}
 
 		});
+	}
+
+	protected MessageDispatcher createDispatcher() {
+		UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher();
+		unicastingDispatcher.setLoadBalancingStrategy(new RoundRobinLoadBalancingStrategy());
+		return unicastingDispatcher;
 	}
 
 	@Override

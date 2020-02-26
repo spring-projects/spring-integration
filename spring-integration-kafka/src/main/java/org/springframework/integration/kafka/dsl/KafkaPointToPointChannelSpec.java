@@ -16,21 +16,23 @@
 
 package org.springframework.integration.kafka.dsl;
 
-import org.springframework.integration.kafka.channel.PollableKafkaChannel;
-import org.springframework.integration.kafka.inbound.KafkaMessageSource;
+import org.springframework.integration.kafka.channel.SubscribableKafkaChannel;
+import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
 /**
- * Spec for a pollable channel.
+ * Spec for a point to point channel backed by a Kafka topic.
  *
  * @author Gary Russell
  * @since 3.3
  *
  */
-public class KafkaPollableChannelSpec extends AbstractKafkaChannelSpec<KafkaPollableChannelSpec, PollableKafkaChannel> {
+public class KafkaPointToPointChannelSpec extends KafkaSubscribableChannelSpec<SubscribableKafkaChannel> {
 
-	protected KafkaPollableChannelSpec(KafkaTemplate<?, ?> template, KafkaMessageSource<?, ?> source) {
-		this.channel = new PollableKafkaChannel(template, source);
+	protected KafkaPointToPointChannelSpec(KafkaTemplate<?, ?> template, KafkaListenerContainerFactory<?> factory,
+			String topic) {
+
+		this.channel = new SubscribableKafkaChannel(template, factory, topic);
 	}
 
 }

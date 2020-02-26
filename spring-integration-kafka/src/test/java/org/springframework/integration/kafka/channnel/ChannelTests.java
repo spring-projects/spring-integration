@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.kafka.channel.PollableKafkaChannel;
+import org.springframework.integration.kafka.channel.PublishSubscribeKafkaChannel;
 import org.springframework.integration.kafka.channel.SubscribableKafkaChannel;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -146,7 +147,7 @@ public class ChannelTests {
 		public SubscribableKafkaChannel pubSub(KafkaTemplate<Integer, String> template,
 				KafkaListenerContainerFactory<?> factory) {
 
-			SubscribableKafkaChannel channel = new SubscribableKafkaChannel(template, factory, "channel.2", true);
+			SubscribableKafkaChannel channel = new PublishSubscribeKafkaChannel(template, factory, "channel.2");
 			channel.setGroupId("channel.2");
 			return channel;
 		}
