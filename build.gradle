@@ -14,8 +14,8 @@ plugins {
 	id 'org.sonarqube' version '2.8'
 	id 'org.asciidoctor.convert' version '1.6.1'
 	id 'org.ajoberstar.grgit' version '3.1.1'
-	id 'io.spring.nohttp' version '0.0.3.RELEASE' apply false
-	id 'io.spring.dependency-management' version '1.0.8.RELEASE' apply false
+	id 'io.spring.nohttp' version '0.0.4.RELEASE' apply false
+	id 'io.spring.dependency-management' version '1.0.9.RELEASE' apply false
 }
 
 if (System.getenv('TRAVIS') || System.getenv('bamboo_buildKey')) {
@@ -63,7 +63,7 @@ ext {
 	hibernateVersion = '5.4.10.Final'
 	hsqldbVersion = '2.5.0'
 	h2Version = '1.4.200'
-	jacksonVersion = '2.10.1'
+	jacksonVersion = '2.10.2'
 	javaxActivationVersion = '1.2.0'
 	javaxMailVersion = '1.6.2'
 	jmsApiVersion = '2.0.1'
@@ -76,24 +76,24 @@ ext {
 	junitJupiterVersion = '5.5.2'
 	jythonVersion = '2.7.0'
 	kryoShadedVersion = '4.0.2'
-	lettuceVersion = '5.2.1.RELEASE'
+	lettuceVersion = '5.2.2.RELEASE'
 	log4jVersion = '2.12.1'
-	micrometerVersion = '1.3.2'
+	micrometerVersion = '1.3.5'
 	mockitoVersion = '3.2.4'
 	mysqlVersion = '8.0.18'
 	pahoMqttClientVersion = '1.2.0'
 	postgresVersion = '42.2.9'
-	reactorVersion = 'Dysprosium-SR3'
+	reactorVersion = 'Dysprosium-SR5'
 	resilience4jVersion = '1.1.0'
 	romeToolsVersion = '1.12.2'
 	rsocketVersion = '1.0.0-RC5'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.3.RELEASE'
-	springDataVersion = 'Moore-SR4'
-	springSecurityVersion = '5.2.1.RELEASE'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.5.RELEASE'
+	springDataVersion = 'Moore-SR5'
+	springSecurityVersion = '5.2.2.RELEASE'
 	springRetryVersion = '1.2.5.RELEASE'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.3.RELEASE'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.4.RELEASE'
 	springWsVersion = '3.0.8.RELEASE'
 	tomcatVersion = "9.0.30"
 	xstreamVersion = '1.4.11.1'
