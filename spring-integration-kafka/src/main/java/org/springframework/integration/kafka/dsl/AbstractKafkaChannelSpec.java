@@ -18,31 +18,22 @@ package org.springframework.integration.kafka.dsl;
 
 import org.springframework.integration.dsl.MessageChannelSpec;
 import org.springframework.integration.kafka.channel.AbstractKafkaChannel;
-import org.springframework.kafka.core.KafkaTemplate;
 
 /**
  *
  * Spec for a message channel backed by a Kafka topic.
  *
  * @param <S> the spec type.
+ * @param <C> the channel type.
  *
  * @author Gary Russell
  * @since 3.3
  *
  */
-public abstract class AbstractKafkaChannelSpec<S extends AbstractKafkaChannelSpec<S>>
-		extends MessageChannelSpec<S, AbstractKafkaChannel> {
-
-	protected final KafkaTemplate<?, ?> template; // NOSONAR final
-
-	protected final String topic; // NOSONAR final
+public abstract class AbstractKafkaChannelSpec<S extends AbstractKafkaChannelSpec<S, C>, C extends AbstractKafkaChannel>
+		extends MessageChannelSpec<S, C> {
 
 	protected String groupId; // NOSONAR
-
-	protected AbstractKafkaChannelSpec(KafkaTemplate<?, ?> template, String topic) {
-		this.template = template;
-		this.topic = topic;
-	}
 
 	@Override
 	public S id(String idToSet) { // NOSONAR - increase visibility

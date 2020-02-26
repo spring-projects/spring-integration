@@ -23,6 +23,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.kafka.channel.PollableKafkaChannel;
+import org.springframework.integration.kafka.channel.PublishSubscribeKafkaChannel;
 import org.springframework.integration.kafka.channel.SubscribableKafkaChannel;
 import org.springframework.util.StringUtils;
 
@@ -46,11 +47,12 @@ public class KafkaChannelParser extends AbstractChannelParser {
 		String topic = element.getAttribute("topic");
 		boolean pubSub = "publish-subscribe-channel".equals(element.getLocalName());
 		if (hasFactory) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(SubscribableKafkaChannel.class);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(pubSub
+					? PublishSubscribeKafkaChannel.class
+					: SubscribableKafkaChannel.class);
 			builder.addConstructorArgReference(template);
 			builder.addConstructorArgReference(factory);
 			builder.addConstructorArgValue(topic);
-			builder.addConstructorArgValue(pubSub);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "role");

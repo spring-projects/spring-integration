@@ -545,10 +545,10 @@ public final class Kafka {
 	 * @return the spec.
 	 * @since 3.3
 	 */
-	public static KafkaSubscribableChannelSpec channel(KafkaTemplate<?, ?> template,
+	public static KafkaPointToPointChannelSpec channel(KafkaTemplate<?, ?> template,
 			KafkaListenerContainerFactory<?> containerFactory, String topic) {
 
-		return new KafkaSubscribableChannelSpec(template, containerFactory, topic, false);
+		return new KafkaPointToPointChannelSpec(template, containerFactory, topic);
 	}
 
 	/**
@@ -559,10 +559,10 @@ public final class Kafka {
 	 * @return the spec.
 	 * @since 3.3
 	 */
-	public static KafkaSubscribableChannelSpec publishSubscribeChannel(KafkaTemplate<?, ?> template,
+	public static KafkaPublishSubscribeChannelSpec publishSubscribeChannel(KafkaTemplate<?, ?> template,
 			KafkaListenerContainerFactory<?> containerFactory, String topic) {
 
-		return new KafkaSubscribableChannelSpec(template, containerFactory, topic, true);
+		return new KafkaPublishSubscribeChannelSpec(template, containerFactory, topic);
 	}
 
 	/**
