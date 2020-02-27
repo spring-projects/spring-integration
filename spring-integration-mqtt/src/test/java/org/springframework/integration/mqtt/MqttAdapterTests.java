@@ -17,6 +17,7 @@
 package org.springframework.integration.mqtt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -49,6 +50,7 @@ import javax.net.SocketFactory;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
+import org.assertj.core.api.Condition;
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
@@ -453,16 +455,12 @@ public class MqttAdapterTests {
 			method.set(m);
 		}, m -> m.getName().equals("connectAndSubscribe"));
 		assertThat(method.get()).isNotNull();
-		try {
-			method.get().invoke(adapter);
-			fail("Expected InvocationTargetException");
-		}
-		catch (InvocationTargetException e) {
-			e.printStackTrace();
-			assertThat(e.getCause()).isInstanceOf(MqttException.class);
-			assertThat(((MqttException) e.getCause()).getReasonCode())
-					.isEqualTo(MqttException.REASON_CODE_SUBSCRIBE_FAILED);
-		}
+		Condition<InvocationTargetException> subscribeFailed = new Condition<>(ex ->
+			((MqttException) ex.getCause()).getReasonCode() == MqttException.REASON_CODE_SUBSCRIBE_FAILED,
+			"expected the reason code to be REASON_CODE_SUBSCRIBE_FAILED");
+		assertThatExceptionOfType(InvocationTargetException.class).isThrownBy(() -> method.get().invoke(adapter))
+			.withCauseInstanceOf(MqttException.class)
+			.is(subscribeFailed);
 	}
 
 	@Test
