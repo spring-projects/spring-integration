@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,9 +46,19 @@ import org.springframework.util.Assert;
 public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		implements MqttCallback, ApplicationEventPublisherAware {
 
-	public static final long DEFAULT_COMPLETION_TIMEOUT = 30000L;
+	/**
+	 * The default completion timeout in milliseconds.
+	 */
+	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
+
+	/**
+	 * The default disconnect completion timeout in milliseconds.
+	 */
+	public static final long DISCONNECT_COMPLETION_TIMEOUT = 5_000L;
 
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
+
+	private long disconnectCompletionTimeout = DISCONNECT_COMPLETION_TIMEOUT;
 
 	private final MqttPahoClientFactory clientFactory;
 
@@ -127,6 +137,16 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		this.completionTimeout = completionTimeout;
 	}
 
+	/**
+	 * Set the completion timeout when disconnecting. Not settable using the namespace.
+	 * Default {@value #DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 5.1.10
+	 */
+	public void setDisconnectCompletionTimeout(long completionTimeout) {
+		this.disconnectCompletionTimeout = completionTimeout;
+	}
+
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
@@ -148,7 +168,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		try {
 			IMqttAsyncClient theClient = this.client;
 			if (theClient != null) {
-				theClient.disconnect().waitForCompletion(this.completionTimeout);
+				theClient.disconnect().waitForCompletion(this.disconnectCompletionTimeout);
 				theClient.close();
 				this.client = null;
 			}
