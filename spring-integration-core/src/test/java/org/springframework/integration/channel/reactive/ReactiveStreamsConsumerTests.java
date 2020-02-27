@@ -41,6 +41,7 @@ import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.integration.channel.DirectChannel;
@@ -57,8 +58,10 @@ import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
 import reactor.core.publisher.EmitterProcessor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import reactor.util.Loggers;
 
 /**
  * @author Artem Bilan
@@ -191,6 +194,12 @@ public class ReactiveStreamsConsumerTests {
 				.onNext(any(Message.class));
 
 		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
+
+		DirectFieldAccessor dfa = new DirectFieldAccessor(reactiveConsumer);
+		Flux<?> publisher = (Flux<?>) dfa.getPropertyValue("publisher");
+		publisher = publisher.log(Loggers.getLogger(ReactiveStreamsConsumerTests.class));
+		dfa.setPropertyValue("publisher", publisher);
+
 		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
