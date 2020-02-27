@@ -51,9 +51,15 @@ import org.springframework.util.Assert;
 public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter
 		implements MqttCallback, ApplicationEventPublisherAware {
 
+	/**
+	 * The default completion timeout in milliseconds.
+	 */
 	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
 
-	public static final long STOP_COMPLETION_TIMEOUT = 5_000L;
+	/**
+	 * The default disconnect completion timeout in milliseconds.
+	 */
+	public static final long DISCONNECT_COMPLETION_TIMEOUT = 5_000L;
 
 	private static final int DEFAULT_RECOVERY_INTERVAL = 10_000;
 
@@ -63,7 +69,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
-	private long stopCompletionTimeout = STOP_COMPLETION_TIMEOUT;
+	private long disconnectCompletionTimeout = DISCONNECT_COMPLETION_TIMEOUT;
 
 	private volatile IMqttClient client;
 
@@ -127,13 +133,13 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	/**
-	 * Set the completion timeout wnen stopping. Not settable using the namespace.
-	 * Default {@value #STOP_COMPLETION_TIMEOUT} milliseconds.
+	 * Set the completion timeout when disconnecting. Not settable using the namespace.
+	 * Default {@value #DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
 	 * @param completionTimeout The timeout.
-	 * @since 5.2.5
+	 * @since 5.1.10
 	 */
-	public void setStopCompletionTimeout(long completionTimeout) {
-		this.stopCompletionTimeout = completionTimeout;
+	public void setDisconnectCompletionTimeout(long completionTimeout) {
+		this.disconnectCompletionTimeout = completionTimeout;
 	}
 
 	/**
@@ -184,7 +190,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 				logger.error("Exception while unsubscribing", e);
 			}
 			try {
-				this.client.disconnectForcibly(this.stopCompletionTimeout);
+				this.client.disconnectForcibly(this.disconnectCompletionTimeout);
 			}
 			catch (MqttException e) {
 				logger.error("Exception while disconnecting", e);
@@ -276,7 +282,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
 			}
 			logger.error("Error connecting or subscribing to " + Arrays.toString(topics), e);
-			this.client.disconnectForcibly(this.completionTimeout);
+			this.client.disconnectForcibly(this.disconnectCompletionTimeout);
 			try {
 				this.client.setCallback(null);
 				this.client.close();
