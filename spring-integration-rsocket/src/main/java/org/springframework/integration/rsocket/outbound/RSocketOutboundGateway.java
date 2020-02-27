@@ -280,7 +280,8 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	private Mono<?> performRetrieve(RSocketRequester.RetrieveSpec retrieveSpec, Message<?> requestMessage) {
 		RSocketInteractionModel interactionModel = evaluateInteractionModel(requestMessage);
 		Assert.notNull(interactionModel,
-				() -> "The 'interactionModelExpression' [" + this.interactionModelExpression + "] must not evaluate to null");
+				() -> "The 'interactionModelExpression' [" + this.interactionModelExpression +
+						"] must not evaluate to null");
 
 		Object expectedResponseType = null;
 		if (!RSocketInteractionModel.fireAndForget.equals(interactionModel)) {

@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -202,8 +203,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		super.onInit();
 		Assert.state(!(this.outputChannelName != null && this.outputChannel != null), //NOSONAR (inconsistent sync)
 				"'outputChannelName' and 'outputChannel' are mutually exclusive.");
-		if (getBeanFactory() != null) {
-			this.messagingTemplate.setBeanFactory(getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null) {
+			this.messagingTemplate.setBeanFactory(beanFactory);
 		}
 		this.messagingTemplate.setDestinationResolver(getChannelResolver());
 	}
@@ -222,11 +224,11 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	protected void sendOutputs(Object result, Message<?> requestMessage) {
 		if (result instanceof Iterable<?> && shouldSplitOutput((Iterable<?>) result)) {
 			for (Object o : (Iterable<?>) result) {
-				this.produceOutput(o, requestMessage);
+				produceOutput(o, requestMessage);
 			}
 		}
 		else if (result != null) {
-			this.produceOutput(result, requestMessage);
+			produceOutput(result, requestMessage);
 		}
 	}
 
@@ -246,8 +248,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		if (getOutputChannel() == null) {
 			Map<?, ?> routingSlipHeader = obtainRoutingSlipHeader(requestHeaders, reply);
 			if (routingSlipHeader != null) {
-				Assert.isTrue(routingSlipHeader.size() == 1,
-						"The RoutingSlip header value must be a SingletonMap");
+				Assert.isTrue(routingSlipHeader.size() == 1, "The RoutingSlip header value must be a SingletonMap");
 				Object key = routingSlipHeader.keySet().iterator().next();
 				Object value = routingSlipHeader.values().iterator().next();
 				Assert.isInstanceOf(List.class, key, "The RoutingSlip key must be List");
@@ -298,7 +299,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	private void doProduceOutput(Message<?> requestMessage, MessageHeaders requestHeaders, Object reply,
-			Object replyChannel) {
+			@Nullable Object replyChannel) {
 
 		if (this.async && (reply instanceof ListenableFuture<?> || reply instanceof Publisher<?>)) {
 			MessageChannel messageChannel = getOutputChannel();
@@ -341,7 +342,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return builder;
 	}
 
-	private void asyncNonReactiveReply(Message<?> requestMessage, Object reply, Object replyChannel) {
+	private void asyncNonReactiveReply(Message<?> requestMessage, Object reply, @Nullable Object replyChannel) {
 		ListenableFuture<?> future;
 		if (reply instanceof ListenableFuture<?>) {
 			future = (ListenableFuture<?>) reply;
@@ -508,9 +509,10 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 		private final Message<?> requestMessage;
 
+		@Nullable
 		private final Object replyChannel;
 
-		ReplyFutureCallback(Message<?> requestMessage, Object replyChannel) {
+		ReplyFutureCallback(Message<?> requestMessage, @Nullable Object replyChannel) {
 			this.requestMessage = requestMessage;
 			this.replyChannel = replyChannel;
 		}

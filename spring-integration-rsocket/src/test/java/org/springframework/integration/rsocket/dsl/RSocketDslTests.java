@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.rsocket.dsl;
 
+import java.time.Duration;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
@@ -80,9 +81,13 @@ public class RSocketDslTests {
 			return IntegrationFlows
 					.from(Function.class)
 					.handle(RSockets.outboundGateway("/uppercase")
-							.interactionModel((message) -> RSocketInteractionModel.requestChannel)
-							.expectedResponseType("T(java.lang.String)")
-							.clientRSocketConnector(clientRSocketConnector))
+									.interactionModel((message) -> RSocketInteractionModel.requestChannel)
+									.expectedResponseType("T(java.lang.String)")
+									.clientRSocketConnector(clientRSocketConnector),
+							e -> e.customizeMonoReply(
+									(message, mono) ->
+											mono.timeout(Duration.ofMillis(100))
+													.retry()))
 					.get();
 		}
 

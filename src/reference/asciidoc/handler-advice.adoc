@@ -56,6 +56,7 @@ In addition to providing the general mechanism to apply AOP advice classes, Spri
 * `ExpressionEvaluatingRequestHandlerAdvice` (described in <<expression-advice>>)
 * `RateLimiterRequestHandlerAdvice` (described in <<rate-limiter-advice>>)
 * `CacheRequestHandlerAdvice` (described in <<cache-advice>>)
+* `ReactiveRequestHandlerAdvice` (described in <<reactive-advice>>)
 
 [[retry-advice]]
 ===== Retry Advice
@@ -514,6 +515,7 @@ This configuration functionality is similar to Spring Framework's `@CacheConfig`
 If a `CacheManager` is not provided, a single bean is resolved by default from the `BeanFactory` in the `CacheAspectSupport`.
 
 The following example configures two advices with different set of caching operations:
+
 ====
 [source, java]
 ----
@@ -548,6 +550,26 @@ public Message<?> service(Message<?> message) {
 }
 ----
 ====
+
+[[reactive-advice]]
+==== Reactive Advice
+
+Starting with version 5.3, a `ReactiveRequestHandlerAdvice` can be used for request message handlers producing a `Mono` replies.
+A `BiFunction<Message<?>, Mono<?>, Publisher<?>>` has to be provided for this advice and it is called from the `Mono.transform()` operator on a reply produced by the intercepted `handleRequestMessage()` method implementation.
+Typically such a `Mono` customization is necessary when we would like to control network fluctuations via `timeout()`, `retry()` and similar support operators.
+For example when we can an HTTP request over WebFlux client, we could use bellow configuration to not wait for response more than 5 seconds:
+
+====
+[source, java]
+----
+.handle(WebFlux.outboundGateway("https://somehost/"),
+                       e -> e.customizeMonoReply((message, mono) -> mono.timeout(Duration.ofSeconds(5))));
+----
+====
+
+The `message` argument is a request message for such a message handler and can be used to determine a request-scope attributes.
+The `mono` argument is a result of this message handler `handleRequestMessage()` method implementation.
+A nested `Mono.transform()` can also be called from this function to apply, for example, a https://spring.io/projects/spring-cloud-circuitbreaker[Reactive Circuit Breaker].
 
 [[custom-advice]]
 ==== Custom Advice Classes
@@ -678,7 +700,7 @@ The following example shows `<transactional>` in use:
 </int-rmi:outbound-gateway>
 
 <bean id="transactionManager" class="org.mockito.Mockito" factory-method="mock">
-    <constructor-arg value="org.springframework.transaction.PlatformTransactionManager"/>
+    <constructor-arg value="org.springframework.transaction.TransactionManager"/>
 </bean>
 ----
 
