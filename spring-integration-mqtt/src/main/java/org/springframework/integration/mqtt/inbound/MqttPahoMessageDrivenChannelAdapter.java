@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,15 +51,19 @@ import org.springframework.util.Assert;
 public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter
 		implements MqttCallback, ApplicationEventPublisherAware {
 
-	public static final long DEFAULT_COMPLETION_TIMEOUT = 30000L;
+	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
 
-	private static final int DEFAULT_RECOVERY_INTERVAL = 10000;
+	public static final long STOP_COMPLETION_TIMEOUT = 5_000L;
+
+	private static final int DEFAULT_RECOVERY_INTERVAL = 10_000;
 
 	private final MqttPahoClientFactory clientFactory;
 
 	private int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
-	private volatile long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
+	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
+
+	private long stopCompletionTimeout = STOP_COMPLETION_TIMEOUT;
 
 	private volatile IMqttClient client;
 
@@ -123,6 +127,16 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	/**
+	 * Set the completion timeout wnen stopping. Not settable using the namespace.
+	 * Default {@value #STOP_COMPLETION_TIMEOUT} milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 5.2.5
+	 */
+	public void setStopCompletionTimeout(long completionTimeout) {
+		this.stopCompletionTimeout = completionTimeout;
+	}
+
+	/**
 	 * The time (ms) to wait between reconnection attempts.
 	 * Default {@value #DEFAULT_RECOVERY_INTERVAL}.
 	 * @param recoveryInterval the interval.
@@ -170,7 +184,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 				logger.error("Exception while unsubscribing", e);
 			}
 			try {
-				this.client.disconnectForcibly(this.completionTimeout);
+				this.client.disconnectForcibly(this.stopCompletionTimeout);
 			}
 			catch (MqttException e) {
 				logger.error("Exception while disconnecting", e);

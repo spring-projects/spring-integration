@@ -127,7 +127,7 @@ subprojects { subproject ->
 		micrometerVersion = '1.1.8'
 		mockitoVersion = '2.25.1'
 		mysqlVersion = '8.0.16'
-		pahoMqttClientVersion = '1.2.0'
+		pahoMqttClientVersion = '1.2.2'
 		postgresVersion = '42.2.5'
 		reactorNettyVersion = '0.8.13.RELEASE'
 		reactorVersion = '3.2.12.RELEASE'
