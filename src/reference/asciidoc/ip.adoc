@@ -549,7 +549,7 @@ Each time the `failCF` `getConnection()` method is called, we will again attempt
 
 Set `refreshSharedInterval` to only attempt to reconnect with the first factory after that time has expired; set it to `Long.MAX_VALUE` if you only want to fail back to the first factory when the current connection fails.
 
-Set `closeOnRefresh` to close thee "old" connection after a refresh actually creates a new connection.
+Set `closeOnRefresh` to close the "old" connection after a refresh actually creates a new connection.
 
 IMPORTANT: These properties do not apply if any of the delegate factories is a `CachingClientConnectionFactory` because the connection caching is handled there; in that case the list of connection factories will always be consulted to get a connection.
 

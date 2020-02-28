@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * Given a list of connection factories, serves up {@link TcpConnection}s
  * that can iterate over a connection from each factory until the write
  * succeeds or the list is exhausted.
+ *
  * @author Gary Russell
  * @since 2.2
  *
@@ -53,6 +54,10 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 
 	private volatile long creationTime;
 
+	/**
+	 * Construct an instance with the provided delegate factories.
+	 * @param factories the delegates.
+	 */
 	public FailoverClientConnectionFactory(List<AbstractClientConnectionFactory> factories) {
 		super("", 0);
 		Assert.notEmpty(factories, "At least one factory is required");
