@@ -536,7 +536,7 @@ The following example shows how to configure a failover client connection factor
 
 NOTE: When using the failover connection factory, the `singleUse` property must be consistent between the factory itself and the list of factories it is configured to use.
 
-The connnection factory has two properties when used with a shared connection (`singleUse=false`):
+The connection factory has two properties when used with a shared connection (`singleUse=false`):
 
 * `refreshSharedInterval`
 * `closeOnRefresh`
