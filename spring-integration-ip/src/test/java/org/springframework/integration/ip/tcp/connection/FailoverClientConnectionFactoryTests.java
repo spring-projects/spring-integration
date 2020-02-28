@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,16 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -44,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.log4j.Level;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -117,6 +122,58 @@ public class FailoverClientConnectionFactoryTests {
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		failoverFactory.getConnection().send(message);
 		Mockito.verify(conn2).send(message);
+	}
+
+	@Test
+	public void testRefreshShared() throws Exception {
+		testRefreshShared(false);
+	}
+
+	@Test
+	public void testRefreshSharedCloseOnRefresh() throws Exception {
+		testRefreshShared(true);
+	}
+
+	private void testRefreshShared(boolean closeOnRefresh) throws Exception {
+		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
+		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
+		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
+		factories.add(factory1);
+		factories.add(factory2);
+		TcpConnectionSupport conn1 = makeMockConnection();
+		doReturn("conn1").when(conn1).getConnectionId();
+		TcpConnectionSupport conn2 = makeMockConnection();
+		doReturn("conn2").when(conn2).getConnectionId();
+		doThrow(new UncheckedIOException(new IOException("fail")))
+			.when(factory1).getConnection();
+		if (closeOnRefresh) {
+			when(factory2.getConnection()).thenReturn(conn1, conn2);
+		}
+		else {
+			when(factory2.getConnection()).thenReturn(conn1);
+		}
+		when(factory1.isActive()).thenReturn(true);
+		when(factory2.isActive()).thenReturn(true);
+		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
+		failoverFactory.setCloseOnRefresh(closeOnRefresh);
+		failoverFactory.start();
+		TcpConnectionSupport connection = failoverFactory.getConnection();
+		assertNotNull(TestUtils.getPropertyValue(failoverFactory, "theConnection"));
+		failoverFactory.setRefreshSharedInterval(10_000);
+		assertSame(failoverFactory.getConnection(), connection);
+		failoverFactory.setRefreshSharedInterval(-1);
+		assertNotSame(failoverFactory.getConnection(), connection);
+		InOrder inOrder = inOrder(factory1, factory2, conn1);
+		inOrder.verify(factory1).getConnection();
+		inOrder.verify(factory2).getConnection();
+		inOrder.verify(factory1).getConnection();
+		inOrder.verify(factory2).getConnection();
+		if (closeOnRefresh) {
+			inOrder.verify(conn1).close();
+		}
+		else {
+			inOrder.verify(conn1, never()).close();
+		}
 	}
 
 	@Test(expected = IOException.class)
@@ -665,4 +722,3 @@ public class FailoverClientConnectionFactoryTests {
 	}
 
 }
-

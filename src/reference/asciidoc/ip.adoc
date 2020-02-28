@@ -361,6 +361,26 @@ Initially, the first factory in the configured list is used; if a connection sub
     </constructor-arg>
 </bean>
 ----
+====
+
+NOTE: When using the failover connection factory, the `singleUse` property must be consistent between the factory itself and the list of factories it is configured to use.
+
+The connection factory has two properties when used with a shared connection (`singleUse=false`):
+
+* `refreshSharedInterval`
+* `closeOnRefresh`
+
+These are `0` and `false` to retain the same behavior that existed before the properties were added.
+
+Consider the following scenario based on the above configuration:
+Let's say `clientFactory1` cannot establish a connection but `clientFactory2` can.
+Each time the `failCF` `getConnection()` method is called, we will again attempt to connect using `clientFactory1`; if successful, the "old" connection will remain open and may be reused in future if the first factory fails once more.
+
+Set `refreshSharedInterval` to only attempt to reconnect with the first factory after that time has expired; set it to `Long.MAX_VALUE` if you only want to fail back to the first factory when the current connection fails.
+
+Set `closeOnRefresh` to close the "old" connection after a refresh actually creates a new connection.
+
+IMPORTANT: These properties do not apply if any of the delegate factories is a `CachingClientConnectionFactory` because the connection caching is handled there; in that case the list of connection factories will always be consulted to get a connection.
 
 NOTE: When using the failover connection factory, the singleUse property must be consistent between the factory itself and the list of factories it is configured to use.
 
