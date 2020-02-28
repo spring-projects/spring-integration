@@ -160,8 +160,8 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			failoverTcpConnection.registerListener(getListener());
 		}
 		failoverTcpConnection.incrementEpoch();
-		this.creationTime = System.currentTimeMillis();
 		if (shared) {
+			this.creationTime = System.currentTimeMillis();
 			/*
 			 * We may have simply wrapped the same connection in a new wrapper; don't close.
 			 */
