@@ -135,7 +135,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	 * @since 4.1
 	 */
 	public void setCompletionTimeout(long completionTimeout) {
-		this.completionTimeout = completionTimeout;
+		this.completionTimeout = completionTimeout; // NOSONAR (sync)
 	}
 
 	/**
@@ -145,7 +145,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	 * @since 5.1.10
 	 */
 	public void setDisconnectCompletionTimeout(long completionTimeout) {
-		this.disconnectCompletionTimeout = completionTimeout;
+		this.disconnectCompletionTimeout = completionTimeout; // NOSONAR (sync)
 	}
 
 	@Override
@@ -214,7 +214,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 			IMqttDeliveryToken token = checkConnection()
 					.publish(topic, (MqttMessage) mqttMessage);
 			if (!this.async) {
-				token.waitForCompletion(this.completionTimeout);
+				token.waitForCompletion(this.completionTimeout); // NOSONAR (sync)
 			}
 			else if (this.asyncEvents && this.applicationEventPublisher != null) {
 				this.applicationEventPublisher.publishEvent(
