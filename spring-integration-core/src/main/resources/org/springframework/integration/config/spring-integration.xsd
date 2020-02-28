@@ -4155,21 +4155,21 @@
 	<xsd:complexType name="transactionalType">
 		<xsd:attribute name="transaction-manager" type="xsd:string" default="transactionManager">
 			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-	The bean name of the PlatformTransactionManager to use.
-				]]></xsd:documentation>
+				<xsd:documentation>
+					The bean name of the PlatformTransactionManager to use.
+				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.transaction.PlatformTransactionManager"/>
+						<tool:expected-type type="org.springframework.transaction.TransactionManager"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="propagation" default="REQUIRED">
 			<xsd:annotation>
-				<xsd:documentation source="java:org.springframework.transaction.annotation.Propagation"><![CDATA[
-	The transaction propagation behavior.
-				]]></xsd:documentation>
+				<xsd:documentation source="java:org.springframework.transaction.annotation.Propagation">
+					The transaction propagation behavior.
+				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
 				<xsd:union memberTypes="propagationEnumeration xsd:string"/>
@@ -4177,9 +4177,9 @@
 		</xsd:attribute>
 		<xsd:attribute name="isolation" default="DEFAULT">
 			<xsd:annotation>
-				<xsd:documentation source="java:org.springframework.transaction.annotation.Isolation"><![CDATA[
-	The transaction isolation level.
-				]]></xsd:documentation>
+				<xsd:documentation source="java:org.springframework.transaction.annotation.Isolation">
+					The transaction isolation level.
+				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
 				<xsd:union memberTypes="isolationEnumeration xsd:string"/>
@@ -4187,24 +4187,24 @@
 		</xsd:attribute>
 		<xsd:attribute name="timeout" type="xsd:string" default="-1">
 			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-	The transaction timeout value (in seconds).
-				]]></xsd:documentation>
+				<xsd:documentation>
+					 The transaction timeout value (in seconds).
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="read-only" type="xsd:string" default="false">
 			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-	Is this transaction read-only?
-				]]></xsd:documentation>
+				<xsd:documentation>
+					Is this transaction read-only?
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="synchronization-factory" type="xsd:string">
 			<xsd:annotation>
-				<xsd:documentation><![CDATA[
+				<xsd:documentation>
 	Reference to an instance of org.springframework.integration.transaction.TransactionSynchronizationFactory
 	which will return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method.
-				]]></xsd:documentation>
+				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type

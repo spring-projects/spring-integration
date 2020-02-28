@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.integration.transaction.TransactionInterceptorBuilder
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.Trigger;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.ErrorHandler;
 
@@ -147,10 +147,10 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 * provided {@code PlatformTransactionManager} and default
 	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
 	 * for the {@code pollingTask}.
-	 * @param transactionManager the {@link PlatformTransactionManager} to use.
+	 * @param transactionManager the {@link TransactionManager} to use.
 	 * @return the spec.
 	 */
-	public PollerSpec transactional(PlatformTransactionManager transactionManager) {
+	public PollerSpec transactional(TransactionManager transactionManager) {
 		return transactional(new TransactionInterceptorBuilder()
 				.transactionManager(transactionManager)
 				.build());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.transaction;
 import java.util.Properties;
 
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
@@ -46,12 +46,16 @@ public class TransactionHandleMessageAdvice extends TransactionInterceptor imple
 	public TransactionHandleMessageAdvice() {
 	}
 
-	public TransactionHandleMessageAdvice(PlatformTransactionManager ptm, Properties attributes) {
-		super(ptm, attributes);
+	public TransactionHandleMessageAdvice(TransactionManager transactionManager, Properties transactionAttributes) {
+		setTransactionManager(transactionManager);
+		setTransactionAttributes(transactionAttributes);
 	}
 
-	public TransactionHandleMessageAdvice(PlatformTransactionManager ptm, TransactionAttributeSource tas) {
-		super(ptm, tas);
+	public TransactionHandleMessageAdvice(TransactionManager transactionManager,
+			TransactionAttributeSource transactionAttributeSource) {
+
+		setTransactionManager(transactionManager);
+		setTransactionAttributeSource(transactionAttributeSource);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
@@ -112,10 +112,10 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * {@code PlatformTransactionManager} and default
 	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
 	 * for the {@link MessageHandler}.
-	 * @param transactionManager the {@link PlatformTransactionManager} to use.
+	 * @param transactionManager the {@link TransactionManager} to use.
 	 * @return the spec.
 	 */
-	public S transactional(PlatformTransactionManager transactionManager) {
+	public S transactional(TransactionManager transactionManager) {
 		return transactional(transactionManager, false);
 	}
 
@@ -124,14 +124,14 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * {@code PlatformTransactionManager} and default
 	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
 	 * for the {@link MessageHandler}.
-	 * @param transactionManager the {@link PlatformTransactionManager} to use.
+	 * @param transactionManager the {@link TransactionManager} to use.
 	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
 	 * {@code false} - regular {@link TransactionInterceptor}; {@code true} -
 	 * {@link org.springframework.integration.transaction.TransactionHandleMessageAdvice}
 	 * extension.
 	 * @return the spec.
 	 */
-	public S transactional(PlatformTransactionManager transactionManager, boolean handleMessageAdvice) {
+	public S transactional(TransactionManager transactionManager, boolean handleMessageAdvice) {
 		return transactional(new TransactionInterceptorBuilder(handleMessageAdvice)
 				.transactionManager(transactionManager)
 				.build());
