@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
+import java.util.Locale;
 import java.util.Properties;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -41,6 +44,19 @@ import org.springframework.core.io.InputStreamResource;
  *
  */
 public class ChainElementsFailureTests {
+
+	private Locale localeBeforeTest;
+
+	@Before
+	public void setUp() {
+		localeBeforeTest = Locale.getDefault();
+		Locale.setDefault(new Locale("en", "US"));
+	}
+
+	@After
+	public void tearDown() {
+		Locale.setDefault(localeBeforeTest);
+	}
 
 	@Test
 	public void chainServiceActivator() throws Exception {
