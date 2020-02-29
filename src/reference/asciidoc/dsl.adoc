@@ -594,6 +594,22 @@ When this operator is used at the end of a flow, it is a one-way handler and the
 To make it as a reply-producing flow, you can either use a simple `bridge()` after the `log()` or,  starting with version 5.1, you can use a `logAndReply()` operator instead.
 `logAndReply` can only be used at the end of a flow.
 
+[[java-dsl-intercept]]
+=== Operator intercept()
+
+Starting with version 5.3, the `intercept()` operator allows to register one or more `ChannelInterceptor` instances at the current `MessageChannel` in the flow.
+This is an alternative to creating an explicit `MessageChannel` via the `MessageChannels` API.
+The following example uses a `MessageSelectingInterceptor` to reject certain messages with an exception:
+
+====
+[source,java]
+----
+.transform(...)
+.intercept(new MessageSelectingInterceptor(m -> m.getPayload().isValid()))
+.handle(...)
+----
+====
+
 [[java-dsl-wiretap]]
 === `MessageChannelSpec.wireTap()`
 
@@ -618,7 +634,7 @@ public IntegrationFlow loggingFlow() {
 
 [IMPORTANT]
 ====
-If the `MessageChannel` is an instance of `InterceptableChannel`, the `log()` or `wireTap()` operators are applied to the current `MessageChannel`.
+If the `MessageChannel` is an instance of `InterceptableChannel`, the `log()`, `wireTap()` or `intercept()` operators are applied to the current `MessageChannel`.
 Otherwise, an intermediate `DirectChannel` is injected into the flow for the currently configured endpoint.
 In the following example, the `WireTap` interceptor is added to `myChannel` directly, because `DirectChannel` implements `InterceptableChannel`:
 

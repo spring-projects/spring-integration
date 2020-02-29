@@ -90,6 +90,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -109,6 +110,7 @@ import reactor.util.function.Tuple2;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Gabriele Del Prete
+ * @author Tim Feuerbach
  *
  * @since 5.2.1
  *
@@ -177,6 +179,24 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	@Nullable
 	protected MessageChannel getCurrentMessageChannel() {
 		return this.currentMessageChannel;
+	}
+
+	/**
+	 * Return the current channel if it is an {@link InterceptableChannel}, otherwise register a new implicit
+	 * {@link DirectChannel} in the flow and return that one.
+	 * @return the current channel after the operation
+	 */
+	protected InterceptableChannel currentInterceptableChannel() {
+		MessageChannel currentChannel = getCurrentMessageChannel();
+		if (currentChannel instanceof InterceptableChannel) {
+			return (InterceptableChannel) currentChannel;
+		}
+		else {
+			DirectChannel newCurrentChannel = new DirectChannel();
+			channel(newCurrentChannel);
+			setImplicitChannel(true);
+			return newCurrentChannel;
+		}
 	}
 
 	protected void setImplicitChannel(boolean implicitChannel) {
@@ -488,14 +508,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	public B wireTap(WireTapSpec wireTapSpec) {
 		WireTap interceptor = wireTapSpec.get();
-		MessageChannel currentChannel = getCurrentMessageChannel();
-		if (!(currentChannel instanceof InterceptableChannel)) {
-			currentChannel = new DirectChannel();
-			channel(currentChannel);
-			setImplicitChannel(true);
-		}
+		InterceptableChannel currentChannel = currentInterceptableChannel();
 		addComponent(wireTapSpec);
-		((InterceptableChannel) currentChannel).addInterceptor(interceptor);
+		currentChannel.addInterceptor(interceptor);
 		return _this();
 	}
 
@@ -2827,6 +2842,26 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 
 		return handle(new ServiceActivatingHandler(triggerAction, "trigger"), endpointConfigurer);
+	}
+
+	/**
+	 * Add one or more {@link ChannelInterceptor} implementations
+	 * to the current {@link #currentMessageChannel}, in the given order, after any interceptors already registered.
+	 * @param interceptorArray one or more {@link ChannelInterceptor}s.
+	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @throws IllegalArgumentException if one or more null arguments are provided
+	 * @since 5.3
+	 */
+	public B intercept(ChannelInterceptor... interceptorArray) {
+		Assert.notNull(interceptorArray, "'interceptorArray' must not be null");
+		Assert.noNullElements(interceptorArray, "'interceptorArray' must not contain null elements");
+
+		InterceptableChannel currentChannel = currentInterceptableChannel();
+		for (ChannelInterceptor interceptor : interceptorArray) {
+			currentChannel.addInterceptor(interceptor);
+		}
+
+		return _this();
 	}
 
 	/**
