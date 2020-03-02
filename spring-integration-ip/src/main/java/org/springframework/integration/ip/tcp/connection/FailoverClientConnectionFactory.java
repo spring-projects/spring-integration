@@ -62,8 +62,9 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		super("", 0);
 		Assert.notEmpty(factories, "At least one factory is required");
 		this.factories = new ArrayList<>(factories);
-		this.cachingDelegates = factories.stream()
-				.anyMatch(factory -> factory instanceof CachingClientConnectionFactory);
+		this.cachingDelegates =
+				factories.stream()
+						.anyMatch(factory -> factory instanceof CachingClientConnectionFactory);
 	}
 
 	/**
@@ -105,8 +106,8 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	protected void onInit() {
 		super.onInit();
 		for (AbstractClientConnectionFactory factory : this.factories) {
-			Assert.state(!(this.isSingleUse() ^ factory.isSingleUse()),
-				"Inconsistent singleUse - delegate factories must match this one");
+			Assert.state(isSingleUse() == factory.isSingleUse(),
+					"Inconsistent singleUse - delegate factories must match this one");
 			factory.enableManualListenerRegistration();
 		}
 	}
@@ -144,7 +145,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 	}
 
-	@Override
+	@Override // NOSONAR
 	protected TcpConnectionSupport obtainConnection() throws InterruptedException {
 		FailoverTcpConnection sharedConnection = (FailoverTcpConnection) getTheConnection();
 		boolean shared = !isSingleUse() && !this.cachingDelegates;
@@ -200,7 +201,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	public boolean isRunning() {
 		boolean isRunning = true;
 		for (AbstractClientConnectionFactory factory : this.factories) {
-			isRunning = !isRunning ? false : factory.isRunning();
+			isRunning = isRunning && factory.isRunning();
 		}
 		return isRunning;
 	}
@@ -429,9 +430,10 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		@Override
 		public boolean onMessage(Message<?> message) {
 			if (this.delegate.getConnectionId().equals(message.getHeaders().get(IpHeaders.CONNECTION_ID))) {
-				AbstractIntegrationMessageBuilder<?> messageBuilder = FailoverClientConnectionFactory.this
-						.getMessageBuilderFactory().fromMessage(message)
-							.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
+				AbstractIntegrationMessageBuilder<?> messageBuilder =
+						getMessageBuilderFactory()
+								.fromMessage(message)
+								.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
 				if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
 					messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
 							message.getHeaders().get(IpHeaders.CONNECTION_ID));
@@ -456,4 +458,5 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,10 @@ import org.springframework.lang.Nullable;
 /**
  * Abstract class for client connection factories; client connection factories
  * establish outgoing connections.
+ *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -90,7 +92,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	}
 
 	protected TcpConnectionSupport obtainConnection() throws InterruptedException {
-		if (!this.isSingleUse()) {
+		if (!isSingleUse()) {
 			TcpConnectionSupport connection = obtainSharedConnection();
 			if (connection != null) {
 				return connection;
@@ -103,7 +105,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	protected final TcpConnectionSupport obtainSharedConnection() throws InterruptedException {
 		this.theConnectionLock.readLock().lockInterruptibly();
 		try {
-			TcpConnectionSupport connection = this.getTheConnection();
+			TcpConnectionSupport connection = getTheConnection();
 			if (connection != null && connection.isOpen()) {
 				return connection;
 			}
@@ -115,7 +117,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	}
 
 	protected final TcpConnectionSupport obtainNewConnection() throws InterruptedException {
-		boolean singleUse = this.isSingleUse();
+		boolean singleUse = isSingleUse();
 		if (!singleUse) {
 			this.theConnectionLock.writeLock().lockInterruptibly();
 		}
@@ -123,19 +125,19 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 			TcpConnectionSupport connection;
 			if (!singleUse) {
 				// Another write lock holder might have created a new one by now.
-				connection = this.obtainSharedConnection();
+				connection = obtainSharedConnection();
 				if (connection != null) {
 					return connection;
 				}
 			}
 
 			if (logger.isDebugEnabled()) {
-				logger.debug("Opening new socket connection to " + this.getHost() + ":" + this.getPort());
+				logger.debug("Opening new socket connection to " + getHost() + ":" + getPort());
 			}
 
 			connection = buildNewConnection();
 			if (!singleUse) {
-				this.setTheConnection(connection);
+				setTheConnection(connection);
 			}
 			connection.publishConnectionOpenEvent();
 			return connection;
@@ -155,7 +157,8 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	}
 
 	protected TcpConnectionSupport buildNewConnection() {
-		throw new UnsupportedOperationException("Factories that don't override this class' obtainConnection() must implement this method");
+		throw new UnsupportedOperationException(
+				"Factories that don't override this class' obtainConnection() must implement this method");
 	}
 
 	/**
@@ -172,18 +175,18 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 			connection.enableManualListenerRegistration();
 		}
 		else {
-			TcpListener listener = this.getListener();
+			TcpListener listener = getListener();
 			if (listener != null) {
 				connection.registerListener(listener);
 			}
 		}
-		TcpSender sender = this.getSender();
+		TcpSender sender = getSender();
 		if (sender != null) {
 			connection.registerSender(sender);
 		}
-		connection.setMapper(this.getMapper());
-		connection.setDeserializer(this.getDeserializer());
-		connection.setSerializer(this.getSerializer());
+		connection.setMapper(getMapper());
+		connection.setDeserializer(getDeserializer());
+		connection.setSerializer(getSerializer());
 	}
 
 	/**
@@ -196,6 +199,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	/**
 	 * @return the theConnection
 	 */
+	@Nullable
 	protected TcpConnectionSupport getTheConnection() {
 		return this.theConnection;
 	}

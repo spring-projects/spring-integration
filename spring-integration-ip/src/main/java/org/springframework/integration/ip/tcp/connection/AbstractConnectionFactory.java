@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,9 +75,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	protected final Object lifecycleMonitor = new Object(); // NOSONAR final
 
-	private final Map<String, TcpConnectionSupport> connections = new ConcurrentHashMap<String, TcpConnectionSupport>();
+	private final Map<String, TcpConnectionSupport> connections = new ConcurrentHashMap<>();
 
-	private final BlockingQueue<PendingIO> delayedReads = new LinkedBlockingQueue<AbstractConnectionFactory.PendingIO>();
+	private final BlockingQueue<PendingIO> delayedReads = new LinkedBlockingQueue<>();
 
 	private String host;
 
@@ -154,6 +154,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 	}
 
+	@Nullable
 	public ApplicationEventPublisher getApplicationEventPublisher() {
 		return this.applicationEventPublisher;
 	}
@@ -371,8 +372,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @param senderToRegister The sender
 	 */
 	public void registerSender(TcpSender senderToRegister) {
-		Assert.isNull(this.sender, this.getClass().getName() +
-				" may only be used by one outbound adapter");
+		Assert.isNull(this.sender, this.getClass().getName() + " may only be used by one outbound adapter");
 		this.sender = senderToRegister;
 	}
 
@@ -512,7 +512,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	protected void onInit() {
 		super.onInit();
 		if (!this.mapperSet) {
-			this.mapper.setBeanFactory(this.getBeanFactory());
+			this.mapper.setBeanFactory(getBeanFactory());
 		}
 	}
 
@@ -617,7 +617,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * Times out any expired connections then, if {@code selectionCount > 0},
 	 * processes the selected keys.
 	 * Removes closed connections from the connections field, and from the connections parameter.
-	 *
 	 * @param selectionCount Number of IO Events, if 0 we were probably woken up by a close.
 	 * @param selector The selector.
 	 * @param server The server socket channel.
@@ -668,7 +667,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				}
 			}
 		}
-		this.harvestClosedConnections();
+		harvestClosedConnections();
 		if (logger.isTraceEnabled()) {
 			if (this.host == null) {
 				logger.trace("Port " + this.port + " SelectionCount: " + selectionCount);
@@ -783,11 +782,13 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						pendingRead.key.interestOps(SelectionKey.OP_READ);
 						wakeSelector = true;
 						if (logger.isDebugEnabled()) {
-							logger.debug("Rescheduling delayed read for " + ((TcpNioConnection) pendingRead.key.attachment()).getConnectionId());
+							logger.debug("Rescheduling delayed read for " +
+									((TcpNioConnection) pendingRead.key.attachment()).getConnectionId());
 						}
 					}
 					else {
-						((TcpNioConnection) pendingRead.key.attachment()).sendExceptionToListener(new EOFException("Connection is closed"));
+						((TcpNioConnection) pendingRead.key.attachment())
+								.sendExceptionToListener(new EOFException("Connection is closed"));
 					}
 				}
 				else {
@@ -834,7 +835,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 */
 	private List<String> removeClosedConnectionsAndReturnOpenConnectionIds() {
 		synchronized (this.connections) {
-			List<String> openConnectionIds = new ArrayList<String>();
+			List<String> openConnectionIds = new ArrayList<>();
 			Iterator<Entry<String, TcpConnectionSupport>> iterator = this.connections.entrySet().iterator();
 			while (iterator.hasNext()) {
 				Entry<String, TcpConnectionSupport> entry = iterator.next();
@@ -842,7 +843,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				if (!connection.isOpen()) {
 					iterator.remove();
 					if (logger.isDebugEnabled()) {
-						logger.debug(getComponentName() + ": Removed closed connection: " + connection.getConnectionId());
+						logger.debug(getComponentName() + ": Removed closed connection: " +
+								connection.getConnectionId());
 					}
 				}
 				else {
@@ -860,7 +862,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * Cleans up this.connections by removing any closed connections.
 	 */
 	protected void harvestClosedConnections() {
-		this.removeClosedConnectionsAndReturnOpenConnectionIds();
+		removeClosedConnectionsAndReturnOpenConnectionIds();
 	}
 
 	@Override
@@ -883,7 +885,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	protected void checkActive() {
-		if (!this.isActive()) {
+		if (!isActive()) {
 			throw new UncheckedIOException(new IOException(this + " connection factory has not been started"));
 		}
 	}
@@ -903,7 +905,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the list of connection ids.
 	 */
 	public List<String> getOpenConnectionIds() {
-		return Collections.unmodifiableList(this.removeClosedConnectionsAndReturnOpenConnectionIds());
+		return Collections.unmodifiableList(removeClosedConnectionsAndReturnOpenConnectionIds());
 	}
 
 	/**
