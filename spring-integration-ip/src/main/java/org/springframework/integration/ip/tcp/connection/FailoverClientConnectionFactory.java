@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
  */
 public class FailoverClientConnectionFactory extends AbstractClientConnectionFactory {
 
-	private static final long DEFAULT_REFRESH_SHARED_INTERVAL = 0L;
+	private static final long DEFAULT_REFRESH_SHARED_INTERVAL = Long.MAX_VALUE;
 
 	private final List<AbstractClientConnectionFactory> factories;
 
@@ -50,7 +50,9 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 
 	private long refreshSharedInterval = DEFAULT_REFRESH_SHARED_INTERVAL;
 
-	private boolean closeOnRefresh;
+	private boolean closeOnRefresh = true;
+
+	private boolean failBack;
 
 	private volatile long creationTime;
 
@@ -69,10 +71,9 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	/**
 	 * When using a shared connection {@link #setSingleUse(boolean) singleUse} is false,
 	 * specify how long to wait before trying to fail back to start from the beginning of
-	 * the factory list. Default is 0 for backwards compatibility to always try to get a
-	 * connection to the primary server. If you don't want to fail back until the current
-	 * connection is closed, set this to {@link Long#MAX_VALUE}.
-	 * Cannot be changed when using {@link CachingClientConnectionFactory} delegates.
+	 * the factory list. Default is {@link Long#MAX_VALUE} - meaning only fail back when
+	 * the current connection fails. Cannot be changed when using
+	 * {@link CachingClientConnectionFactory} delegates.
 	 * @param refreshSharedInterval the interval in milliseconds.
 	 * @since 4.3.22
 	 * @see #setSingleUse(boolean)
@@ -82,6 +83,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		Assert.isTrue(!this.cachingDelegates,
 				"'refreshSharedInterval' cannot be changed when using 'CachingClientConnectionFactory` delegates");
 		this.refreshSharedInterval = refreshSharedInterval;
+		this.failBack = refreshSharedInterval != Long.MAX_VALUE;
 	}
 
 	/**
@@ -148,7 +150,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	protected TcpConnectionSupport obtainConnection() throws InterruptedException {
 		FailoverTcpConnection sharedConnection = (FailoverTcpConnection) getTheConnection();
 		boolean shared = !isSingleUse() && !this.cachingDelegates;
-		boolean refreshShared = shared
+		boolean refreshShared = this.failBack && shared
 				&& sharedConnection != null
 				&& System.currentTimeMillis() > this.creationTime + this.refreshSharedInterval;
 		if (sharedConnection != null && sharedConnection.isOpen() && !refreshShared) {
@@ -161,18 +163,24 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 		failoverTcpConnection.incrementEpoch();
 		if (shared) {
-			this.creationTime = System.currentTimeMillis();
-			/*
-			 * We may have simply wrapped the same connection in a new wrapper; don't close.
-			 */
-			if (refreshShared && this.closeOnRefresh
-					&& !sharedConnection.delegate.equals(failoverTcpConnection.delegate)
-					&& sharedConnection.isOpen()) {
-				sharedConnection.close();
-			}
+			closeRefreshedIfNecessary(sharedConnection, refreshShared, failoverTcpConnection);
 			setTheConnection(failoverTcpConnection);
 		}
 		return failoverTcpConnection;
+	}
+
+	private void closeRefreshedIfNecessary(FailoverTcpConnection sharedConnection, boolean refreshShared,
+			FailoverTcpConnection failoverTcpConnection) {
+
+		this.creationTime = System.currentTimeMillis();
+		/*
+		 * We may have simply wrapped the same connection in a new wrapper; don't close.
+		 */
+		if (refreshShared && this.closeOnRefresh
+				&& !sharedConnection.delegate.equals(failoverTcpConnection.delegate)
+				&& sharedConnection.isOpen()) {
+			sharedConnection.close();
+		}
 	}
 
 	@Override
