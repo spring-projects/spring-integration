@@ -73,7 +73,9 @@ public final class MessageChannelReactiveUtils {
 
 	@SuppressWarnings("unchecked")
 	private static <T> Publisher<Message<T>> adaptPollableChannelToPublisher(PollableChannel inputChannel) {
-		return Mono.fromCallable(() -> (Message<T>) inputChannel.receive(0))
+		return Mono.<Message<T>>create(monoSink ->
+				monoSink.onRequest(value ->
+						monoSink.success((Message<T>) inputChannel.receive(0))))
 				.subscribeOn(Schedulers.boundedElastic())
 				.repeatWhenEmpty(it -> it.delayElements(Duration.ofMillis(100))) // NOSONAR - magic
 				.repeat();
