@@ -171,7 +171,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		return failoverTcpConnection;
 	}
 
-	private void closeRefreshedIfNecessary(@Nullable FailoverTcpConnection sharedConnection, boolean refreshShared,
+	private void closeRefreshedIfNecessary(FailoverTcpConnection sharedConnection, boolean refreshShared,
 			FailoverTcpConnection failoverTcpConnection) {
 
 		this.creationTime = System.currentTimeMillis();
@@ -179,7 +179,6 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * We may have simply wrapped the same connection in a new wrapper; don't close.
 		 */
 		if (refreshShared && this.closeOnRefresh
-				&& sharedConnection != null
 				&& !sharedConnection.delegate.equals(failoverTcpConnection.delegate)
 				&& sharedConnection.isOpen()) {
 

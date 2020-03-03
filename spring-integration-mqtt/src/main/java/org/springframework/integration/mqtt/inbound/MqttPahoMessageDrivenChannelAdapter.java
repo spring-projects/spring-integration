@@ -128,7 +128,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 * @param completionTimeout The timeout.
 	 * @since 4.1
 	 */
-	public void setCompletionTimeout(long completionTimeout) {
+	public synchronized void setCompletionTimeout(long completionTimeout) {
 		this.completionTimeout = completionTimeout;
 	}
 
@@ -138,7 +138,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 * @param completionTimeout The timeout.
 	 * @since 5.1.10
 	 */
-	public void setDisconnectCompletionTimeout(long completionTimeout) {
+	public synchronized void setDisconnectCompletionTimeout(long completionTimeout) {
 		this.disconnectCompletionTimeout = completionTimeout;
 	}
 
