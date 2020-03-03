@@ -181,7 +181,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			try {
 				if (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
 						|| (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_CLEAN)
-								&& this.cleanSession)) {
+						&& this.cleanSession)) {
 
 					this.client.unsubscribe(getTopic());
 				}

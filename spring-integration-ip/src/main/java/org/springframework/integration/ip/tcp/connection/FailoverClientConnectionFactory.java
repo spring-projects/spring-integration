@@ -28,7 +28,6 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -152,9 +151,9 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	protected TcpConnectionSupport obtainConnection() throws InterruptedException {
 		FailoverTcpConnection sharedConnection = (FailoverTcpConnection) getTheConnection();
 		boolean shared = !isSingleUse() && !this.cachingDelegates;
-		boolean refreshShared = this.failBack && shared
-				&& sharedConnection != null
-				&& System.currentTimeMillis() > this.creationTime + this.refreshSharedInterval;
+		boolean refreshShared =
+				this.failBack && shared && sharedConnection != null
+						&& System.currentTimeMillis() > this.creationTime + this.refreshSharedInterval;
 		if (sharedConnection != null && sharedConnection.isOpen() && !refreshShared) {
 			sharedConnection.incrementEpoch();
 			return sharedConnection;
