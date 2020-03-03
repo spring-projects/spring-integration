@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,10 @@ import org.springframework.util.Assert;
 
 /**
  * A client connection factory that creates {@link TcpNetConnection}s.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -48,9 +51,10 @@ public class TcpNetClientConnectionFactory extends
 	@Override
 	protected TcpConnectionSupport buildNewConnection() {
 		try {
-			Socket socket = createSocket(this.getHost(), this.getPort());
+			Socket socket = createSocket(getHost(), getPort());
 			setSocketAttributes(socket);
-			TcpConnectionSupport connection = this.tcpNetConnectionSupport.createNewConnection(socket, false, isLookupHost(),
+			TcpConnectionSupport connection =
+					this.tcpNetConnectionSupport.createNewConnection(socket, false, isLookupHost(),
 					getApplicationEventPublisher(), getComponentName());
 			connection = wrapConnection(connection);
 			initializeConnection(connection, socket);
@@ -73,16 +77,24 @@ public class TcpNetClientConnectionFactory extends
 		this.tcpNetConnectionSupport = connectionSupport;
 	}
 
+	public void setTcpSocketFactorySupport(TcpSocketFactorySupport tcpSocketFactorySupport) {
+		Assert.notNull(tcpSocketFactorySupport, "TcpSocketFactorySupport may not be null");
+		this.tcpSocketFactorySupport = tcpSocketFactorySupport;
+	}
+
+	protected TcpSocketFactorySupport getTcpSocketFactorySupport() {
+		return this.tcpSocketFactorySupport;
+	}
+
 	@Override
 	public void start() {
-		this.setActive(true);
+		setActive(true);
 		super.start();
 	}
 
 	/**
 	 * Create a new {@link Socket}. This default implementation uses the default
 	 * {@link javax.net.SocketFactory}. Override to use some other mechanism
-	 *
 	 * @param host The host.
 	 * @param port The port.
 	 * @return The Socket
@@ -92,16 +104,6 @@ public class TcpNetClientConnectionFactory extends
 		Socket socket = this.tcpSocketFactorySupport.getSocketFactory().createSocket();
 		socket.connect(new InetSocketAddress(host, port), (int) getConnectTimeout().toMillis());
 		return socket;
-	}
-
-	protected TcpSocketFactorySupport getTcpSocketFactorySupport() {
-		return this.tcpSocketFactorySupport;
-	}
-
-	public void setTcpSocketFactorySupport(
-			TcpSocketFactorySupport tcpSocketFactorySupport) {
-		Assert.notNull(tcpSocketFactorySupport, "TcpSocketFactorySupport may not be null");
-		this.tcpSocketFactorySupport = tcpSocketFactorySupport;
 	}
 
 }

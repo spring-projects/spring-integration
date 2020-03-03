@@ -28,6 +28,7 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -147,7 +148,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 	}
 
-	@Override // NOSONAR
+	@Override
 	protected TcpConnectionSupport obtainConnection() throws InterruptedException {
 		FailoverTcpConnection sharedConnection = (FailoverTcpConnection) getTheConnection();
 		boolean shared = !isSingleUse() && !this.cachingDelegates;
@@ -170,7 +171,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		return failoverTcpConnection;
 	}
 
-	private void closeRefreshedIfNecessary(FailoverTcpConnection sharedConnection, boolean refreshShared,
+	private void closeRefreshedIfNecessary(@Nullable FailoverTcpConnection sharedConnection, boolean refreshShared,
 			FailoverTcpConnection failoverTcpConnection) {
 
 		this.creationTime = System.currentTimeMillis();
@@ -178,8 +179,10 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * We may have simply wrapped the same connection in a new wrapper; don't close.
 		 */
 		if (refreshShared && this.closeOnRefresh
+				&& sharedConnection != null
 				&& !sharedConnection.delegate.equals(failoverTcpConnection.delegate)
 				&& sharedConnection.isOpen()) {
+
 			sharedConnection.close();
 		}
 	}

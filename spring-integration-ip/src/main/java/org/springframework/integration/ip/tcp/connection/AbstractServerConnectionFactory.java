@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2019 the original author or authors.
+ * Copyright 2001-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ import org.springframework.util.Assert;
  * for each new connection.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public abstract class AbstractServerConnectionFactory extends AbstractConnectionFactory
@@ -43,11 +45,11 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 
 	private static final int DEFAULT_BACKLOG = 5;
 
+	private int backlog = DEFAULT_BACKLOG;
+
+	private String localAddress;
+
 	private volatile boolean listening;
-
-	private volatile String localAddress;
-
-	private volatile int backlog = DEFAULT_BACKLOG;
 
 	private volatile boolean shuttingDown;
 
@@ -161,7 +163,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 
 	/**
 	 * Used on multi-homed systems to enforce the server to listen
-	 * on a specfic network address instead of all network adapters.
+	 * on a specific network address instead of all network adapters.
 	 * @param localAddress the ip address of the required adapter.
 	 */
 	public void setLocalAddress(String localAddress) {
@@ -200,8 +202,9 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	}
 
 	protected void publishServerExceptionEvent(Exception e) {
-		if (getApplicationEventPublisher() != null) {
-			getApplicationEventPublisher().publishEvent(new TcpConnectionServerExceptionEvent(this, e));
+		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+		if (applicationEventPublisher != null) {
+			applicationEventPublisher.publishEvent(new TcpConnectionServerExceptionEvent(this, e));
 		}
 	}
 
@@ -209,10 +212,10 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 		final ApplicationEventPublisher eventPublisher = getApplicationEventPublisher();
 		if (eventPublisher != null) {
 			final TcpConnectionServerListeningEvent event = new TcpConnectionServerListeningEvent(this, port);
-			TaskScheduler taskScheduler = this.getTaskScheduler();
+			TaskScheduler taskScheduler = getTaskScheduler();
 			if (taskScheduler != null) {
 				try {
-					taskScheduler.schedule((Runnable) () -> eventPublisher.publishEvent(event), new Date());
+					taskScheduler.schedule(() -> eventPublisher.publishEvent(event), new Date());
 				}
 				catch (@SuppressWarnings("unused") TaskRejectedException e) {
 					eventPublisher.publishEvent(event);

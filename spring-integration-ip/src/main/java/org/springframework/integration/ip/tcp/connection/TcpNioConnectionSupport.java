@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,15 @@ package org.springframework.integration.ip.tcp.connection;
 import java.nio.channels.SocketChannel;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 
 
 /**
  * Used by NIO connection factories to instantiate a {@link TcpNioConnection} object.
  * Implementations for SSL and non-SSL {@link TcpNioConnection}s are provided.
+ *
  * @author Gary Russell
+ *
  * @since 2.2
  *
  */
@@ -45,7 +48,7 @@ public interface TcpNioConnectionSupport {
 	 */
 	TcpNioConnection createNewConnection(SocketChannel socketChannel,
 			boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher,
+			@Nullable ApplicationEventPublisher applicationEventPublisher,
 			String connectionFactoryName);
 
 }

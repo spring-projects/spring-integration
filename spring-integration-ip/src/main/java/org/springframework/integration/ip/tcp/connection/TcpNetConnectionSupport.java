@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,15 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.Socket;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 
 
 /**
  * Used by NET connection factories to instantiate a {@link TcpNetConnection} object.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -44,7 +48,7 @@ public interface TcpNetConnectionSupport {
 	 */
 	TcpNetConnection createNewConnection(Socket socket,
 			boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher,
+			@Nullable ApplicationEventPublisher applicationEventPublisher,
 			String connectionFactoryName);
 
 }

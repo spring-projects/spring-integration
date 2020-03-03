@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,7 +187,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			int soTimeout = getSoTimeout();
 			int selectionCount = 0;
 			try {
-				long timeout = soTimeout < 0 ? 0 : soTimeout;
+				long timeout = Math.max(soTimeout, 0);
 				if (getDelayedReads().size() > 0 && (timeout == 0 || getReadDelay() < timeout)) {
 					timeout = getReadDelay();
 				}
