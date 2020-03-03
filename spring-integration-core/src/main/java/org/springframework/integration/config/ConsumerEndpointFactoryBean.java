@@ -203,10 +203,9 @@ public class ConsumerEndpointFactoryBean
 			this.handler = adviceChain(this.handler);
 		}
 		else if (!CollectionUtils.isEmpty(this.adviceChain)) {
-			ReactiveMessageHandler reactiveMessageHandler =
-					((ReactiveMessageHandlerAdapter) this.handler).getDelegate();
-			reactiveMessageHandler = adviceChain(reactiveMessageHandler);
-			this.handler = new ReactiveMessageHandlerAdapter(reactiveMessageHandler);
+			this.handler =
+					new ReactiveMessageHandlerAdapter(
+							adviceChain(((ReactiveMessageHandlerAdapter) this.handler).getDelegate()));
 		}
 		if (this.channelResolver == null) {
 			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);

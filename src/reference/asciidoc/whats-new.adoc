@@ -57,7 +57,7 @@ A new `publishSubscribeChannel()` operator, based on the `BroadcastCapableChanne
 This fluent API has its advantage when we configure sub-flows as pub-sub subscribers for broker-backed channels like `SubscribableJmsChannel`, `SubscribableRedisChannel` etc.
 See <<./dsl.adoc#java-dsl-subflows,Sub-flows support>> for more information.
 
-The transactional support in Spring Integration now also includes options to configure a `ReactiveTransactionManager` if a `MessageSource` or `MessageHandler` implementation produces a reactive type for payload to send.
+Transactional support in Spring Integration now also includes options to configure a `ReactiveTransactionManager` if a `MessageSource` or `MessageHandler` implementation produces a reactive type for payload to send.
 See `TransactionInterceptorBuilder` for more information.
 See also <<./transactions.adoc#reactive-transactions,Reactive Transactions>>.
 
