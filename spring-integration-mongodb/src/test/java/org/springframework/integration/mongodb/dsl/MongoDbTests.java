@@ -423,7 +423,6 @@ public class MongoDbTests extends MongoDbAvailableTests {
 			return f -> f
 					.channel(MessageChannels.flux())
 					.handle(MongoDb.reactiveOutboundChannelAdapter(REACTIVE_MONGO_DATABASE_FACTORY));
-			//	e -> e.transactional(new ReactiveMongoTransactionManager(REACTIVE_MONGO_DATABASE_FACTORY)));
 		}
 
 

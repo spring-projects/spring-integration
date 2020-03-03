@@ -59,6 +59,7 @@ See <<./dsl.adoc#java-dsl-subflows,Sub-flows support>> for more information.
 
 The transactional support in Spring Integration now also includes options to configure a `ReactiveTransactionManager` if a `MessageSource` or `MessageHandler` implementation produces a reactive type for payload to send.
 See `TransactionInterceptorBuilder` for more information.
+See also <<./transactions.adoc#reactive-transactions,Reactive Transactions>>.
 
 [[x5.3-amqp]]
 === AMQP Changes
