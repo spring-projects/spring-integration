@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.transaction;
 
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
@@ -29,8 +29,8 @@ import org.springframework.util.Assert;
  * Provides a fluent API to build a transaction interceptor. See
  * {@link TransactionAttribute} for property meanings; if a {@link TransactionAttribute}
  * is provided, the individual properties are ignored. If a
- * {@link PlatformTransactionManager} is not provided, a single instance of
- * {@link PlatformTransactionManager} will be discovered at runtime; if you have more
+ * {@link TransactionManager} is not provided, a single instance of
+ * {@link TransactionManager} will be discovered at runtime; if you have more
  * than one transaction manager, you must inject the one you want to use here.
  * <p>
  * When the {@code handleMessageAdvice} option is in use, this builder produces
@@ -91,7 +91,7 @@ public class TransactionInterceptorBuilder {
 		return this;
 	}
 
-	public TransactionInterceptorBuilder transactionManager(PlatformTransactionManager transactionManager) {
+	public TransactionInterceptorBuilder transactionManager(TransactionManager transactionManager) {
 		this.transactionInterceptor.setTransactionManager(transactionManager);
 		return this;
 	}

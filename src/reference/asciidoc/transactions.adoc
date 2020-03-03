@@ -255,3 +255,12 @@ The following example shows how to do so:
 <bean id="transactionManager" class="o.s.i.transaction.PseudoTransactionManager" />
 ----
 ====
+
+[[reactive-transactions]]
+=== Reactive Transactions
+
+Starting with version 5.3, a `ReactiveTransactionManager` can also be used together with a `TransactionInterceptor` advice for endpoints returning a reactive type.
+This includes `MessageSource` and `ReactiveMessageHandler` implementations (e.g. `ReactiveMongoDbMessageSource`) which produce a message with a `Flux` or `Mono` payload.
+All other reply producing message handler implementations can rely on a `ReactiveTransactionManager` when their reply payload is also some reactive type.
+
+
