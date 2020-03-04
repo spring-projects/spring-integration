@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,13 +219,16 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	@SuppressWarnings("unchecked")
 	@Nullable
 	private Object decodePayload(Message<?> requestMessage) {
-		ResolvableType elementType = this.requestElementType;
+		ResolvableType elementType;
 		MimeType mimeType = requestMessage.getHeaders().get(MessageHeaders.CONTENT_TYPE, MimeType.class);
-		if (elementType == null) {
+		if (this.requestElementType == null) {
 			elementType =
 					mimeType != null && "text".equals(mimeType.getType())
 							? ResolvableType.forClass(String.class)
 							: ResolvableType.forClass(byte[].class);
+		}
+		else {
+			elementType = this.requestElementType;
 		}
 
 		Object payload = requestMessage.getPayload();
@@ -236,7 +239,14 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 			return decoder.decode((DataBuffer) payload, elementType, mimeType, null);
 		}
 		else {
-			return decoder.decode((Publisher<DataBuffer>) payload, elementType, mimeType, null);
+			return Flux.from((Publisher<DataBuffer>) payload)
+					.handle((buffer, synchronousSink) -> {
+						Object value = decoder.decode(buffer, elementType, mimeType, null);
+						if (value == null) {
+							value = buffer;
+						}
+						synchronousSink.next(value);
+					});
 		}
 	}
 

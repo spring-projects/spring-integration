@@ -52,7 +52,7 @@ public class RSocketDslTests {
 
 	@Test
 	void testRsocketUpperCaseFlows() {
-		Flux<String> result = this.rsocketUpperCaseFlowFunction.apply(Flux.just("a\n", "b\n", "c\n"));
+		Flux<String> result = this.rsocketUpperCaseFlowFunction.apply(Flux.just("a", "b", "c"));
 
 		StepVerifier.create(result)
 				.expectNext("A", "B", "C")
