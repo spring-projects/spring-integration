@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.Semaphore;
@@ -27,7 +26,6 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
-import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 
@@ -63,26 +61,26 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	private final SSLEngine sslEngine;
 
-	private volatile ByteBuffer decoded;
+	private ByteBuffer decoded;
 
-	private volatile ByteBuffer encoded;
-
-	private volatile SSLChannelOutputStream sslChannelOutputStream;
+	private ByteBuffer encoded;
 
 	private final Semaphore semaphore = new Semaphore(0);
 
 	private final Object monitorLock = new Object();
 
-	private volatile boolean writerActive;
-
-	private volatile int handshakeTimeout = DEFAULT_HANDSHAKE_TIMEOUT;
+	private int handshakeTimeout = DEFAULT_HANDSHAKE_TIMEOUT;
 
 	private boolean needMoreNetworkData;
 
 	private SSLHandshakeException sslFatal;
 
+	private volatile SSLChannelOutputStream sslChannelOutputStream;
+
+	private volatile boolean writerActive;
+
 	public TcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName,
+			@Nullable ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName,
 			SSLEngine sslEngine) {
 
 		super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
@@ -115,7 +113,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	protected void sendToPipe(final ByteBuffer networkBuffer) throws IOException {
 		Assert.notNull(networkBuffer, "rawBuffer cannot be null");
 		if (logger.isDebugEnabled()) {
-			logger.debug("sendToPipe " + this.sslEngine.getHandshakeStatus() + ", remaining: " + networkBuffer.remaining());
+			logger.debug("sendToPipe " + this.sslEngine.getHandshakeStatus() + ", remaining: " +
+					networkBuffer.remaining());
 		}
 		SSLEngineResult result = null;
 		while (!this.needMoreNetworkData) {
@@ -132,7 +131,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			}
 		}
 		this.needMoreNetworkData = false;
-		if (result.getStatus() == Status.BUFFER_UNDERFLOW) {
+		if (Status.BUFFER_UNDERFLOW == result.getStatus()) {
 			networkBuffer.compact();
 		}
 		else {
@@ -155,53 +154,55 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		SSLEngineResult result = new SSLEngineResult(Status.OK, this.sslEngine.getHandshakeStatus(), 0, 0);
 		HandshakeStatus handshakeStatus = this.sslEngine.getHandshakeStatus();
 		switch (handshakeStatus) {
-		case NEED_TASK:
-			runTasks();
-			break;
-		case NEED_UNWRAP:
-		case FINISHED:
-		case NOT_HANDSHAKING:
-			this.decoded.clear();
-			result = this.sslEngine.unwrap(networkBuffer, this.decoded);
-			if (logger.isDebugEnabled()) {
-				logger.debug("After unwrap: " + resultToString(result));
-			}
-			Status status = result.getStatus();
-			if (status == Status.BUFFER_OVERFLOW) {
-				this.decoded = this.allocateEncryptionBuffer(this.sslEngine.getSession().getApplicationBufferSize());
-			}
-			if (result.bytesProduced() > 0) {
-				this.decoded.flip();
-				super.sendToPipe(this.decoded);
-			}
-			break;
-		case NEED_WRAP:
-			if (!resumeWriterIfNeeded()) {
-				this.encoded.clear();
-				result = this.sslEngine.wrap(networkBuffer, this.encoded);
+			case NEED_TASK:
+				runTasks();
+				break;
+			case NEED_UNWRAP:
+			case FINISHED:
+			case NOT_HANDSHAKING:
+				this.decoded.clear();
+				result = this.sslEngine.unwrap(networkBuffer, this.decoded);
 				if (logger.isDebugEnabled()) {
-					logger.debug("After wrap: " + resultToString(result));
+					logger.debug("After unwrap: " + resultToString(result));
 				}
-				if (result.getStatus() == Status.BUFFER_OVERFLOW) {
-					this.encoded = this.allocateEncryptionBuffer(this.sslEngine.getSession().getPacketBufferSize());
+				Status status = result.getStatus();
+				if (status == Status.BUFFER_OVERFLOW) {
+					this.decoded =
+							this.allocateEncryptionBuffer(this.sslEngine.getSession().getApplicationBufferSize());
 				}
-				else {
-					this.encoded.flip();
-					getSSLChannelOutputStream().writeEncoded(this.encoded);
+				if (result.bytesProduced() > 0) {
+					this.decoded.flip();
+					super.sendToPipe(this.decoded);
 				}
-			}
-			break;
-		default:
+				break;
+			case NEED_WRAP:
+				if (!resumeWriterIfNeeded()) {
+					this.encoded.clear();
+					result = this.sslEngine.wrap(networkBuffer, this.encoded);
+					if (logger.isDebugEnabled()) {
+						logger.debug("After wrap: " + resultToString(result));
+					}
+					if (result.getStatus() == Status.BUFFER_OVERFLOW) {
+						this.encoded = this.allocateEncryptionBuffer(this.sslEngine.getSession().getPacketBufferSize());
+					}
+					else {
+						this.encoded.flip();
+						getSSLChannelOutputStream().writeEncoded(this.encoded);
+					}
+				}
+				break;
+			default:
 		}
 		switch (result.getHandshakeStatus()) {
-		case FINISHED:
-			resumeWriterIfNeeded(); //NOSONAR - fall-through intended
-			// switch fall-through intended
-		case NOT_HANDSHAKING:
-		case NEED_UNWRAP:
-			this.needMoreNetworkData = result.getStatus() == Status.BUFFER_UNDERFLOW || networkBuffer.remaining() == 0;
-			break;
-		default:
+			case FINISHED:
+				resumeWriterIfNeeded(); //NOSONAR - fall-through intended
+				// switch fall-through intended
+			case NOT_HANDSHAKING:
+			case NEED_UNWRAP:
+				this.needMoreNetworkData = result.getStatus() == Status.BUFFER_UNDERFLOW || networkBuffer
+						.remaining() == 0;
+				break;
+			default:
 		}
 		return result;
 	}
@@ -235,14 +236,12 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	/**
 	 * Determines whether {@link #runTasks()} is needed and invokes if so.
 	 */
-	private HandshakeStatus runTasksIfNeeded(SSLEngineResult result) throws IOException {
-		if (result != null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Running tasks if needed " + resultToString(result));
-			}
-			if (result.getHandshakeStatus() == HandshakeStatus.NEED_TASK) {
-				runTasks();
-			}
+	private HandshakeStatus runTasksIfNeeded(SSLEngineResult result) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Running tasks if needed " + resultToString(result));
+		}
+		if (result.getHandshakeStatus() == HandshakeStatus.NEED_TASK) {
+			runTasks();
 		}
 		HandshakeStatus handshakeStatus = this.sslEngine.getHandshakeStatus();
 		if (logger.isDebugEnabled()) {
@@ -258,12 +257,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		if (this.decoded == null) {
 			this.decoded = allocateEncryptionBuffer(2048);
 			this.encoded = allocateEncryptionBuffer(2048);
-			try {
-				initilizeEngine();
-			}
-			catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
+			initializeEngine();
 		}
 	}
 
@@ -276,8 +270,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		}
 	}
 
-	private void initilizeEngine() throws IOException {
-		boolean client = !this.isServer();
+	private void initializeEngine() {
+		boolean client = !isServer();
 		this.sslEngine.setUseClientMode(client);
 	}
 
@@ -293,7 +287,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	protected SSLChannelOutputStream getSSLChannelOutputStream() {
 		if (this.sslChannelOutputStream == null) {
-			return (SSLChannelOutputStream) this.getChannelOutputStream();
+			return (SSLChannelOutputStream) getChannelOutputStream();
 		}
 		else {
 			return this.sslChannelOutputStream;
@@ -316,11 +310,11 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	 * send to encrypted data to the SocketChannel.
 	 *
 	 */
-	final class SSLChannelOutputStream extends ChannelOutputStream  {
+	final class SSLChannelOutputStream extends ChannelOutputStream {
 
 		private final ChannelOutputStream channelOutputStream;
 
-		private SSLChannelOutputStream(ChannelOutputStream channelOutputStream) {
+		SSLChannelOutputStream(ChannelOutputStream channelOutputStream) {
 			this.channelOutputStream = channelOutputStream;
 		}
 
@@ -381,7 +375,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 					result = encode(plainText);
 					status = result.getHandshakeStatus();
 					if (status == HandshakeStatus.NOT_HANDSHAKING ||
-						status == HandshakeStatus.FINISHED) {
+							status == HandshakeStatus.FINISHED) {
 						break;
 					}
 				}
@@ -428,17 +422,18 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		/**
 		 * Encrypts plain text data. The result may indicate handshaking is needed.
 		 */
-		private SSLEngineResult encode(ByteBuffer plainText)
-				throws SSLException, IOException {
+		private SSLEngineResult encode(ByteBuffer plainText) throws IOException {
 			TcpNioSSLConnection.this.encoded.clear();
-			SSLEngineResult result = TcpNioSSLConnection.this.sslEngine.wrap(plainText, TcpNioSSLConnection.this.encoded);
+			SSLEngineResult result =
+					TcpNioSSLConnection.this.sslEngine.wrap(plainText, TcpNioSSLConnection.this.encoded);
 			if (logger.isDebugEnabled()) {
 				logger.debug("After wrap: "
 						+ resultToString(result)
 						+ " Plaintext buffer @" + plainText.position() + "/" + plainText.limit());
 			}
 			if (result.getStatus() == SSLEngineResult.Status.BUFFER_OVERFLOW) {
-				TcpNioSSLConnection.this.encoded = allocateEncryptionBuffer(TcpNioSSLConnection.this.sslEngine.getSession().getPacketBufferSize());
+				TcpNioSSLConnection.this.encoded =
+						allocateEncryptionBuffer(TcpNioSSLConnection.this.sslEngine.getSession().getPacketBufferSize());
 				result = TcpNioSSLConnection.this.sslEngine.wrap(plainText, TcpNioSSLConnection.this.encoded);
 			}
 			return result;

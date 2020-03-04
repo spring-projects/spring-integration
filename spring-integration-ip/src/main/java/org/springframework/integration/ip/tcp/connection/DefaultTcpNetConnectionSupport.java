@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,15 @@ import java.io.PushbackInputStream;
 import java.net.Socket;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 
 
 /**
  * Default implementation of {@link TcpNetConnectionSupport}.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -34,7 +38,8 @@ public class DefaultTcpNetConnectionSupport extends AbstractTcpConnectionSupport
 
 	@Override
 	public TcpNetConnection createNewConnection(Socket socket, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+			@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+
 		if (isPushbackCapable()) {
 			return new PushBackTcpNetConnection(socket, server, lookupHost, applicationEventPublisher,
 					connectionFactoryName, getPushbackBufferSize());
@@ -55,7 +60,9 @@ public class DefaultTcpNetConnectionSupport extends AbstractTcpConnectionSupport
 		private volatile InputStream wrapped;
 
 		PushBackTcpNetConnection(Socket socket, boolean server, boolean lookupHost,
-				ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName, int bufferSize) {
+				@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName,
+				int bufferSize) {
+
 			super(socket, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 			this.pushbackBufferSize = bufferSize;
 			this.connectionId = "pushback:" + super.getConnectionId();

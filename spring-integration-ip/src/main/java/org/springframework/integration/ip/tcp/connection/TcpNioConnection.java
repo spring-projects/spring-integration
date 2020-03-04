@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,8 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author John Anderson
+ * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -106,7 +108,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @param connectionFactoryName The name of the connection factory creating this connection.
 	 */
 	public TcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher,
+			@Nullable ApplicationEventPublisher applicationEventPublisher,
 			@Nullable String connectionFactoryName) {
 
 		super(socketChannel.socket(), server, lookupHost, applicationEventPublisher, connectionFactoryName);
@@ -272,8 +274,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				}
 				catch (Exception e) {
 					if (logger.isTraceEnabled()) {
-						logger.error("Read exception " +
-								getConnectionId(), e);
+						logger.error("Read exception " + getConnectionId(), e);
 					}
 					else if (!isNoReadErrorOnClose()) {
 						logger.error("Read exception " +
@@ -386,13 +387,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private void sendToChannel(Message<?> message) {
 		try {
-			if (message != null) {
-				TcpListener listener = getListener();
-				if (listener == null) {
-					throw new NoListenerException("No listener");
-				}
-				listener.onMessage(message);
+			TcpListener listener = getListener();
+			if (listener == null) {
+				throw new NoListenerException("No listener");
 			}
+			listener.onMessage(message);
 		}
 		catch (Exception e) {
 			if (e instanceof NoListenerException) { // could also be thrown by an interceptor
@@ -425,7 +424,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			checkForAssembler();
 
 			if (logger.isTraceEnabled()) {
-				logger.trace("Before read:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+				logger.trace("Before read: " + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
 			}
 			int len = this.socketChannel.read(this.rawBuffer);
 			if (len < 0) {
@@ -433,11 +432,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				closeConnection(true);
 			}
 			if (logger.isTraceEnabled()) {
-				logger.trace("After read:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+				logger.trace("After read: " + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
 			}
 			this.rawBuffer.flip();
 			if (logger.isTraceEnabled()) {
-				logger.trace("After flip:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+				logger.trace("After flip: " + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Read " + this.rawBuffer.limit() + " into raw buffer");
@@ -506,9 +505,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			closeConnection(true);
 		}
 		catch (Exception e) {
-			logger.error("Exception on Read " +
-					getConnectionId() + " " +
-					e.getMessage(), e);
+			logger.error("Exception on Read " + getConnectionId() + " " + e.getMessage(), e);
 			closeConnection(true);
 		}
 	}
@@ -535,8 +532,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	/**
-	 * If true, connection will attempt to use direct buffers where
-	 * possible.
+	 * If true, connection will attempt to use direct buffers where possible.
 	 * @param usingDirectBuffers the usingDirectBuffers to set.
 	 */
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -75,7 +76,7 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 	 */
 	@Override
 	public TcpNioConnection createNewConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+			@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
 
 		SSLEngine sslEngine = this.sslContext.createSSLEngine();
 		postProcessSSLEngine(sslEngine);
@@ -119,7 +120,8 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 		private volatile InputStream wrapped;
 
 		PushBackTcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-				ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName, SSLEngine sslEngine,
+				@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName,
+				SSLEngine sslEngine,
 				int bufferSize) {
 
 			super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName, sslEngine);

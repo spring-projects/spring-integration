@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2019 the original author or authors.
+ * Copyright 2001-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * A TcpConnection that uses and underlying {@link Socket}.
  *
  * @author Gary Russell
+ *
  * @since 2.0
  *
  */
@@ -68,7 +69,8 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	 * during event publishing, may be null, in which case "unknown" will be used.
 	 */
 	public TcpNetConnection(Socket socket, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+			@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+
 		super(socket, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.socket = socket;
 	}

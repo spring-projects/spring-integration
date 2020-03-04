@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2019 the original author or authors.
+ * Copyright 2001-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,7 +115,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * during event publishing, may be null, in which case "unknown" will be used.
 	 */
 	public TcpConnectionSupport(Socket socket, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher,
+			@Nullable ApplicationEventPublisher applicationEventPublisher,
 			@Nullable String connectionFactoryName) {
 
 		this.socketInfo = new SocketInfo(socket);
@@ -359,21 +359,15 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	protected void publishConnectionOpenEvent() {
-		TcpConnectionEvent event = new TcpConnectionOpenEvent(this,
-				getConnectionFactoryName());
-		doPublish(event);
+		doPublish(new TcpConnectionOpenEvent(this, getConnectionFactoryName()));
 	}
 
 	protected void publishConnectionCloseEvent() {
-		TcpConnectionEvent event = new TcpConnectionCloseEvent(this,
-				getConnectionFactoryName());
-		doPublish(event);
+		doPublish(new TcpConnectionCloseEvent(this, getConnectionFactoryName()));
 	}
 
 	protected void publishConnectionExceptionEvent(Throwable t) {
-		TcpConnectionEvent event = new TcpConnectionExceptionEvent(this,
-				getConnectionFactoryName(), t);
-		doPublish(event);
+		doPublish(new TcpConnectionExceptionEvent(this, getConnectionFactoryName(), t));
 	}
 
 	/**

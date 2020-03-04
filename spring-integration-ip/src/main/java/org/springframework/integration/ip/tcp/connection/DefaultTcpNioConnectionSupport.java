@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,8 @@ public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport
 
 	@Override
 	public TcpNioConnection createNewConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+			@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+
 		if (isPushbackCapable()) {
 			return new PushBackTcpNioConnection(socketChannel, server, lookupHost, applicationEventPublisher,
 					connectionFactoryName, getPushbackBufferSize());
@@ -60,7 +61,7 @@ public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport
 		private volatile InputStream wrapped;
 
 		PushBackTcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-				ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName,
+				@Nullable ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName,
 				int bufferSize) {
 
 			super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
