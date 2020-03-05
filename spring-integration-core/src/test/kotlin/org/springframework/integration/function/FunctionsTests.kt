@@ -35,11 +35,9 @@ import org.springframework.integration.annotation.Transformer
 import org.springframework.integration.channel.DirectChannel
 import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
-import org.springframework.integration.dsl.IntegrationFlows
 import org.springframework.integration.dsl.integrationFlow
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter
 import org.springframework.integration.gateway.GatewayProxyFactoryBean
-import org.springframework.integration.test.util.OnlyOnceTrigger
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.PollableChannel
