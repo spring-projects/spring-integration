@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
-import org.springframework.integration.dsl.IntegrationFlow
 import org.springframework.integration.dsl.MessageChannels
+import org.springframework.integration.dsl.integrationFlow
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.PollableChannel
@@ -99,39 +99,37 @@ class RouterDslTests {
 
 		@Bean
 		fun routerTwoSubFlows() =
-				IntegrationFlow { f ->
-					f.split()
-							.route<Int, Boolean>({ p -> p % 2 == 0 },
-									{ m ->
-										m.subFlowMapping(true, { sf -> sf.handle<Int> { p, _ -> p * 2 } })
-												.subFlowMapping(false, { sf -> sf.handle<Int> { p, _ -> p * 3 } })
-									})
-							.aggregate()
-							.channel { c -> c.queue("routerTwoSubFlowsOutput") }
+				integrationFlow {
+					split()
+					route<Int, Boolean>({ it % 2 == 0 }) {
+						subFlowMapping(true) { sf -> sf.handle<Int> { p, _ -> p * 2 } }
+						subFlowMapping(false) { sf -> sf.handle<Int> { p, _ -> p * 3 } }
+					}
+					aggregate()
+					channel { queue("routerTwoSubFlowsOutput") }
 				}
 
 		@Bean
 		fun splitRouteAggregate() =
-				IntegrationFlow { f ->
-					f.split()
-							.route<Int, Boolean>({ o -> o % 2 == 0 },
-									{ m ->
-										m.subFlowMapping(true) { sf -> sf.gateway(oddFlow()) }
-												.subFlowMapping(false) { sf -> sf.gateway(evenFlow()) }
-									})
-							.aggregate()
+				integrationFlow {
+					split()
+					route<Int, Boolean>({ it % 2 == 0 }) {
+						subFlowMapping(true) { sf -> sf.gateway(oddFlow()) }
+						subFlowMapping(false) { sf -> sf.gateway(evenFlow()) }
+					}
+					aggregate()
 				}
 
 		@Bean
 		fun oddFlow() =
-				IntegrationFlow { flow ->
-					flow.handle<Any> { _, _ -> "odd" }
+				integrationFlow {
+					handle<Any> { _, _ -> "odd" }
 				}
 
 		@Bean
 		fun evenFlow() =
-				IntegrationFlow { flow ->
-					flow.handle<Any> { _, _ -> "even" }
+				integrationFlow {
+					handle<Any> { _, _ -> "even" }
 				}
 
 		@Bean
