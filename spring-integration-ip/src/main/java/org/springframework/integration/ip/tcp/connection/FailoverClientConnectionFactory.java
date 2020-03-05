@@ -52,6 +52,8 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 
 	private boolean closeOnRefresh;
 
+	private boolean failBack = true;
+
 	private volatile long creationTime;
 
 	/**
@@ -82,6 +84,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		Assert.isTrue(!this.cachingDelegates,
 				"'refreshSharedInterval' cannot be changed when using 'CachingClientConnectionFactory` delegates");
 		this.refreshSharedInterval = refreshSharedInterval;
+		this.failBack = refreshSharedInterval != Long.MAX_VALUE;
 	}
 
 	/**
@@ -148,7 +151,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	protected TcpConnectionSupport obtainConnection() throws Exception {
 		FailoverTcpConnection sharedConnection = (FailoverTcpConnection) getTheConnection();
 		boolean shared = !isSingleUse() && !this.cachingDelegates;
-		boolean refreshShared = shared
+		boolean refreshShared = this.failBack && shared
 				&& sharedConnection != null
 				&& System.currentTimeMillis() > this.creationTime + this.refreshSharedInterval;
 		if (sharedConnection != null && sharedConnection.isOpen() && !refreshShared) {

@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -44,7 +45,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
@@ -60,7 +60,6 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
@@ -90,12 +89,6 @@ public class FailoverClientConnectionFactoryTests {
 
 	};
 
-	@Rule
-	public Log4j2LevelAdjuster adjuster =
-			Log4j2LevelAdjuster.trace()
-					.classes(SimplePool.class)
-					.categories("org.springframework.integration.ip.tcp");
-
 	@Test
 	public void testFailoverGood() throws Exception {
 		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
@@ -120,15 +113,20 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testRefreshShared() throws Exception {
-		testRefreshShared(false);
+		testRefreshShared(false, 10_000);
 	}
 
 	@Test
 	public void testRefreshSharedCloseOnRefresh() throws Exception {
-		testRefreshShared(true);
+		testRefreshShared(true, 10_000);
 	}
 
-	private void testRefreshShared(boolean closeOnRefresh) throws Exception {
+	@Test
+	public void testRefreshSharedInfinite() throws Exception {
+		testRefreshShared(false, Long.MAX_VALUE);
+	}
+
+	private void testRefreshShared(boolean closeOnRefresh, long interval) throws Exception {
 		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
 		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
@@ -153,21 +151,29 @@ public class FailoverClientConnectionFactoryTests {
 		failoverFactory.start();
 		TcpConnectionSupport connection = failoverFactory.getConnection();
 		assertNotNull(TestUtils.getPropertyValue(failoverFactory, "theConnection"));
-		failoverFactory.setRefreshSharedInterval(10_000);
-		assertSame(failoverFactory.getConnection(), connection);
-		failoverFactory.setRefreshSharedInterval(-1);
-		assertNotSame(failoverFactory.getConnection(), connection);
-		InOrder inOrder = inOrder(factory1, factory2, conn1);
+		failoverFactory.setRefreshSharedInterval(interval);
+		InOrder inOrder = inOrder(factory1, factory2, conn1, conn2);
 		inOrder.verify(factory1).getConnection();
 		inOrder.verify(factory2).getConnection();
+		inOrder.verify(conn1).registerListener(any());
+		inOrder.verify(conn1).isOpen();
+		assertSame(failoverFactory.getConnection(), connection);
+		inOrder.verifyNoMoreInteractions();
+		failoverFactory.setRefreshSharedInterval(-1);
+		assertNotSame(failoverFactory.getConnection(), connection);
 		inOrder.verify(factory1).getConnection();
 		inOrder.verify(factory2).getConnection();
 		if (closeOnRefresh) {
+			inOrder.verify(conn2).registerListener(any());
+			inOrder.verify(conn2).isOpen();
 			inOrder.verify(conn1).close();
 		}
 		else {
+			inOrder.verify(conn1).registerListener(any());
+			inOrder.verify(conn1).isOpen();
 			inOrder.verify(conn1, never()).close();
 		}
+		inOrder.verifyNoMoreInteractions();
 	}
 
 	@Test(expected = IOException.class)
