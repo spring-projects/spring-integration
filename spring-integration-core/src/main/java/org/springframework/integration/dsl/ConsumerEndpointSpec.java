@@ -19,22 +19,27 @@ package org.springframework.integration.dsl;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiFunction;
 
 import org.aopalliance.aop.Advice;
+import org.reactivestreams.Publisher;
 
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.advice.ReactiveRequestHandlerAdvice;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
+import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 /**
@@ -174,6 +179,17 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder(handleMessageAdvice).build();
 		this.componentsToRegister.put(transactionInterceptor, null);
 		return transactional(transactionInterceptor);
+	}
+
+	/**
+	 * Specify a {@link BiFunction} for customizing {@link Mono} replies via {@link ReactiveRequestHandlerAdvice}.
+	 * @param replyCustomizer the {@link BiFunction} to propagate into {@link ReactiveRequestHandlerAdvice}.
+	 * @return the spec.
+	 * @since 5.3
+	 * @see ReactiveRequestHandlerAdvice
+	 */
+	public S customizeMonoReply(BiFunction<Message<?>, Mono<?>, Publisher<?>> replyCustomizer) {
+		return advice(new ReactiveRequestHandlerAdvice(replyCustomizer));
 	}
 
 	/**

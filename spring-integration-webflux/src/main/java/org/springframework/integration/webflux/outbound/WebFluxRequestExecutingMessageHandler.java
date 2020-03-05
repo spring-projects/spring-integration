@@ -217,8 +217,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 			return createReplyFromResponse(expectedResponseType, responseMono);
 		}
 		else {
-			responseMono.subscribe(v -> { }, ex -> sendErrorMessage(requestMessage, ex));
-			return null;
+			return responseMono.then();
 		}
 	}
 

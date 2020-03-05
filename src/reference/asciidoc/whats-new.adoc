@@ -34,6 +34,11 @@ A new `IntegrationFlowExtension` API has been introduced to allow extension of t
 This also can be used to introduce customizers for any out-of-the-box `IntegrationComponentSpec` extensions.
 See <<./dsl.adoc#java-dsl-extensions,DSL Extensions>> for more information.
 
+[[x5.3-reactive-request-handler-advice]]
+==== ReactiveRequestHandlerAdvice
+
+A `ReactiveRequestHandlerAdvice` is provided to customize `Mono` replies from message handlers.
+See <<./handler-advice.adoc#reactive-advice,Reactive Advice>> for more information.
 
 [[x5.3-mongodb-reactive-channel-adapters]]
 ==== MongoDB Reactive Channel Adapters
