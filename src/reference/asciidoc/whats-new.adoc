@@ -66,6 +66,9 @@ Transactional support in Spring Integration now also includes options to configu
 See `TransactionInterceptorBuilder` for more information.
 See also <<./transactions.adoc#reactive-transactions,Reactive Transactions>>.
 
+A new `intercept()` operator to register `ChannelInterceptor` instances without creating explicit channels was added into Java DSL.
+See <<./dsl.adoc#java-dsl-intercept,Operator intercept()>> for more information.
+
 [[x5.3-amqp]]
 === AMQP Changes
 

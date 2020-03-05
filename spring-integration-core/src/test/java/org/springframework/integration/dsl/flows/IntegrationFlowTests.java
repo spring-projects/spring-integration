@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +34,7 @@ import java.util.function.Supplier;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.junit.After;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -83,6 +86,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -100,6 +104,7 @@ import reactor.core.publisher.Mono;
  * @author Tim Ysewyn
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Tim Feuerbach
  *
  * @since 5.0
  */
@@ -497,6 +502,32 @@ public class IntegrationFlowTests {
 
 		this.errorChannel.unsubscribe(errorMessageHandler);
 	}
+
+	@Autowired
+	@Qualifier("interceptorChannelIn")
+	private MessageChannel interceptorChannelIn;
+
+	@Autowired
+	private List<String> outputStringList;
+
+	@Test
+	public void testInterceptorFlow() {
+		this.interceptorChannelIn.send(MessageBuilder.withPayload("foo").build());
+
+		assertThat(outputStringList).containsExactly(
+				"Pre send transform: foo",
+				"Pre send handle: FOO",
+				"Handle: FOO",
+				"Post send handle: FOO",
+				"Post send transform: foo"
+		);
+	}
+
+	@After
+	public void cleanUpList() {
+		outputStringList.clear();
+	}
+
 
 	@MessagingGateway
 	public interface ControlBusGateway {
@@ -907,6 +938,46 @@ public class IntegrationFlowTests {
 					.get();
 		}
 
+	}
+
+	@Configuration
+	public static class InterceptorContextConfiguration {
+
+		@Bean
+		public List<String> outputStringList() {
+			return new ArrayList<>();
+		}
+
+		@Bean
+		public IntegrationFlow interceptorFlow(List<String> outputStringList) {
+			return IntegrationFlows.from("interceptorChannelIn")
+					.intercept(new ChannelInterceptor() {
+						@Override
+						public Message<?> preSend(Message<?> message, MessageChannel channel) {
+							outputStringList.add("Pre send transform: " + message.getPayload());
+							return message;
+						}
+
+						@Override
+						public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+							outputStringList.add("Post send transform: " + message.getPayload());
+						}
+					})
+					.transform((String s) -> s.toUpperCase())
+					.intercept(new ChannelInterceptor() {
+						@Override
+						public Message<?> preSend(Message<?> message, MessageChannel channel) {
+							outputStringList.add("Pre send handle: " + message.getPayload());
+							return message;
+						}
+
+						@Override
+						public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+							outputStringList.add("Post send handle: " + message.getPayload());
+						}
+					})
+					.handle(m -> outputStringList.add("Handle: " + m.getPayload())).get();
+		}
 	}
 
 	@Service
