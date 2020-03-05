@@ -93,6 +93,16 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="decode-flux-as-unit" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								Decode incoming Flux as a single unit or each event separately.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

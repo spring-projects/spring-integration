@@ -137,6 +137,12 @@ The `payload` of the message to send downstream is always a `Flux` according to 
 When in a `fireAndForget` RSocket interaction model, the message has a plain converted `payload`.
 The reply `payload` could be a plain object or a `Publisher` - the `RSocketInboundGateway` converts both of them properly into an RSocket response according to the encoders provided in the `RSocketStrategies`.
 
+Starting with version 5.3, a `decodeFluxAsUnit` option (default `false`) is added to the `RSocketInboundGateway`.
+By default incoming `Flux` is transformed the way that each its event is decoded separately.
+This is an exact behavior present currently with `@MessageMapping` semantics.
+To restore a previous behavior or decode the whole `Flux` as single unit according application requirements, the `decodeFluxAsUnit` has to be set to `true`.
+However the target decoding logic depends on the `Decoder` selected, e.g. a `StringDecoder` requires a new line separator (by default) to be present in the stream to indicate a byte buffer end.
+
 See <<rsocket-java-config>> for samples how to configure an `RSocketInboundGateway` endpoint and deal with payloads downstream.
 
 [[rsocket-outbound]]
