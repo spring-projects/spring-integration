@@ -1,7 +1,7 @@
 [[kotlin-dsl]]
 == Kotlin DSL
 
-The Kotlin DSL is a wrapper and extension to <<./dsl.adoc#java-dsl,Java DSL>> and aimed to make Spring Integration development on Kotlin as smooth and straightforward as is it possible with interoperability with existing Java API and Kotlin language-specific structures.
+The Kotlin DSL is a wrapper and extension to <<./dsl.adoc#java-dsl,Java DSL>> and aimed to make Spring Integration development on Kotlin as smooth and straightforward as possible with interoperability with the existing Java API and Kotlin language-specific structures.
 
 All you need to get started is just an import for `org.springframework.integration.dsl.integrationFlow` - an overloaded global function for Kotlin DSL.
 
@@ -41,7 +41,7 @@ Such a global `integrationFlow()` function expects a lambda in builder style for
 See more overloaded `integrationFlow()` variants below.
 
 Many other scenarios require an `IntegrationFlow` to be started from source of data (e.g. `JdbcPollingChannelAdapter`, `JmsInboundGateway` or just an existing `MessageChannel`).
-For this purpose Spring Integration Java DSL provides an `IntegrationFlows` factory with its bunch of overloaded `from()` methods.
+For this purpose, the Spring Integration Java DSL provides an `IntegrationFlows` factory with its large number of overloaded `from()` methods.
 This factory can be used in Kotlin as well:
 
 ====
@@ -56,8 +56,8 @@ fun flowFromSupplier() =
 ====
 
 But unfortunately not all `from()` methods are compatible with Kotlin structures.
-To fix a gap, this project provides a Kotlin DSL around an `IntegrationFlows` factory.
-It is done as a set of overloaded `integrationFlow()` functions.
+To fix the gap, this project provides a Kotlin DSL around an `IntegrationFlows` factory.
+It is implemented as a set of overloaded `integrationFlow()` functions.
 With a consumer for a `KotlinIntegrationFlowDefinition` to declare the rest of the flow as an `IntegrationFlow` lambda to reuse the mentioned above experience and also avoid `get()` call in the end.
 For example:
 
@@ -79,7 +79,7 @@ fun messageSourceFlow() =
 ----
 ====
 
-In addition Kotlin extensions are provided for Java DSL API which needs some refinement for Kotlin structures.
+In addition, Kotlin extensions are provided for the Java DSL API which needs some refinement for Kotlin structures.
 For example `IntegrationFlowDefinition<*>` requires a reifying for many methods with `Class<P>` argument:
 
 ====
