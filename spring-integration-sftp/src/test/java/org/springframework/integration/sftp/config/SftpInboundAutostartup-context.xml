@@ -9,7 +9,8 @@
 
 	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
 		<property name="host" value="loclahost"/>
-		<property name="knownHosts" value="local, foo.com, bar.foo"/>
+		<property name="knownHostsResource"
+						value="#{ new org.springframework.core.io.ByteArrayResource('local, foo.com, bar.foo'.bytes)}"/>
 		<property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftp_rsa"/>
 		<property name="privateKeyPassphrase" value="ghj"/>
 		<property name="password" value="hello"/>

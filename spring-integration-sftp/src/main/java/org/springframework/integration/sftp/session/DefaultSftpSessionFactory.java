@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.sftp.session;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Properties;
@@ -27,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.session.SharedSessionCapable;
@@ -81,7 +83,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	private String password;
 
-	private String knownHosts;
+	private Resource knownHosts;
 
 	private Resource privateKey;
 
@@ -191,8 +193,21 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * false (default).</b>
 	 * @param knownHosts The known hosts.
 	 * @see JSch#setKnownHosts(String)
+	 * @deprecated since 5.2.5 in favor of {@link #setKnownHostsResource(Resource)}
 	 */
+	@Deprecated
 	public void setKnownHosts(String knownHosts) {
+		setKnownHostsResource(new FileSystemResource(knownHosts));
+	}
+
+	/**
+	 * Specifies the filename that will be used for a host key repository.
+	 * The file has the same format as OpenSSH's known_hosts file.
+	 * @param knownHosts the resource for known hosts.
+	 * @see JSch#setKnownHosts(InputStream)
+	 * @since 5.2.5
+	 */
+	public void setKnownHostsResource(Resource knownHosts) {
 		this.knownHosts = knownHosts;
 	}
 
@@ -323,7 +338,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * implementation must respond to Jsch calls in a suitable way.
 	 * <p>
 	 * Jsch calls {@link UserInfo#promptYesNo(String)} when connecting to an unknown host,
-	 * or when a known host's key has changed (see {@link #setKnownHosts(String)
+	 * or when a known host's key has changed (see {@link #setKnownHostsResource(Resource)}
 	 * knownHosts}). Generally, it should return false as returning true will accept all
 	 * new keys or key changes.
 	 * <p>
@@ -347,7 +362,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * When no {@link UserInfo} has been provided, set to true to unconditionally allow
 	 * connecting to an unknown host or when a host's key has changed (see
-	 * {@link #setKnownHosts(String) knownHosts}). Default false (since 4.2).
+	 * {@link #setKnownHostsResource(Resource) knownHosts}). Default false (since 4.2).
 	 * Set to true if a knownHosts file is not provided.
 	 * @param allowUnknownKeys true to allow connecting to unknown hosts.
 	 * @since 4.1.7
@@ -380,8 +395,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				freshJschSession = true;
 			}
 			sftpSession = new SftpSession(jschSession);
-			JavaUtils.INSTANCE
-				.acceptIfNotNull(this.channelConnectTimeout, sftpSession::setChannelConnectTimeout);
+			JavaUtils.INSTANCE.acceptIfNotNull(this.channelConnectTimeout, sftpSession::setChannelConnectTimeout);
 			sftpSession.connect();
 			if (this.isSharedSession && freshJschSession) {
 				this.sharedJschSession = jschSession;
@@ -408,8 +422,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		if (this.port <= 0) {
 			this.port = 22;
 		}
-		if (StringUtils.hasText(this.knownHosts)) {
-			this.jsch.setKnownHosts(this.knownHosts);
+		if (this.knownHosts != null) {
+			this.jsch.setKnownHosts(this.knownHosts.getInputStream());
 		}
 
 		// private key
@@ -467,6 +481,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * sensible defaults if null. As the password is configured in this Factory, the
 	 * wrapper will return the factory's configured password and only delegate to the
 	 * UserInfo if null.
+	 *
 	 * @since 4.1.7
 	 */
 	private class UserInfoWrapper implements UserInfo, UIKeyboardInteractive {
@@ -548,7 +563,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 			}
 			else {
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("No UserInfo provided - " + message + ", returning:"
+					LOGGER.debug("No UserInfo provided - " + message + ", returning: "
 							+ DefaultSftpSessionFactory.this.allowUnknownKeys);
 				}
 				return DefaultSftpSessionFactory.this.allowUnknownKeys;

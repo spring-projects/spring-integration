@@ -3,25 +3,17 @@
 		xmlns="http://www.springframework.org/schema/integration"
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:p="http://www.springframework.org/schema/p"
-		xmlns:context="http://www.springframework.org/schema/context"
-		xmlns:util="http://www.springframework.org/schema/util"
-		xmlns:tool="http://www.springframework.org/schema/tool"
-		xmlns:lang="http://www.springframework.org/schema/lang"
 		xmlns:sftp="http://www.springframework.org/schema/integration/sftp"
 		xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 						http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-					 	http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
-                        http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd
-						http://www.springframework.org/schema/tool https://www.springframework.org/schema/tool/spring-tool.xsd
-						http://www.springframework.org/schema/lang https://www.springframework.org/schema/lang/spring-lang.xsd
 						http://www.springframework.org/schema/integration/sftp https://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
 
 	<channel id="inboundFilesChannel"/>
 
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
 		<beans:property name="host" value="loclahost"/>
-		<beans:property name="knownHosts" value="local, foo.com, bar.foo"/>
+		<beans:property name="knownHostsResource"
+						value="#{ new org.springframework.core.io.ByteArrayResource('local, foo.com, bar.foo'.bytes)}"/>
 		<beans:property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftpTest"/>
 		<beans:property name="privateKeyPassphrase" value="ghj"/>
 		<beans:property name="password" value="hello"/>

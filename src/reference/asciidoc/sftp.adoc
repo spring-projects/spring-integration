@@ -111,7 +111,7 @@ Required.
 
 `hostKeyAlias`::Sets the host key alias, which is used when comparing the host key to the known hosts list.
 
-`knownHosts`::Specifies the filename that used for a host key repository.
+`knownHostsResource`::Specifies the file resource that used for a host key repository.
 The file has the same format as OpenSSH's `known_hosts` file and is required and must be pre-populated if `allowUnknownKeys` is false.
 
 `password`::The password to authenticate against the remote host.
@@ -163,7 +163,7 @@ If `false`, a pre-populated `knownHosts` file is required.
 In particular, `promptYesNo()` is invoked when an unknown (or changed) host key is received.
 See also <<sftp-unk-keys,`allowUnknownKeys`>>.
 When you provide a `UserInfo`, the `password` and private key `passphrase` are obtained from it, and you cannot set discrete
-`password` and `privateKeyPassprase` properties.
+`password` and `privateKeyPassphrase` properties.
 
 [[sftp-proxy-factory-bean]]
 === Proxy Factory Bean
