@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.zookeeper.leader.LeaderInitiator;
+import org.springframework.lang.NonNull;
+import org.springframework.util.Assert;
 
 /**
  * Creates a {@link LeaderInitiator}.
@@ -41,6 +43,8 @@ import org.springframework.integration.zookeeper.leader.LeaderInitiator;
  */
 public class LeaderInitiatorFactoryBean
 		implements FactoryBean<LeaderInitiator>, SmartLifecycle, InitializingBean, ApplicationEventPublisherAware {
+
+	private static final CandidateIdProvider DEFAULT_CANDIDATE_ID_PROVIDER = () -> UUID.randomUUID().toString();
 
 	private CuratorFramework client;
 
@@ -58,7 +62,15 @@ public class LeaderInitiatorFactoryBean
 
 	private LeaderEventPublisher leaderEventPublisher;
 
+	private final CandidateIdProvider candidateIdProvider;
+
 	public LeaderInitiatorFactoryBean() {
+		this.candidateIdProvider = DEFAULT_CANDIDATE_ID_PROVIDER;
+	}
+
+	public LeaderInitiatorFactoryBean(@NonNull CandidateIdProvider candidateIdProvider) {
+		Assert.notNull(candidateIdProvider, "The 'candidateIdProvider' must not be null.");
+		this.candidateIdProvider = candidateIdProvider;
 	}
 
 	public LeaderInitiatorFactoryBean setClient(CuratorFramework client) {
@@ -72,8 +84,22 @@ public class LeaderInitiatorFactoryBean
 	}
 
 	public LeaderInitiatorFactoryBean setRole(String role) {
-		this.candidate = new DefaultCandidate(UUID.randomUUID().toString(), role);
+		this.candidate = newCandidate(role);
+		Assert.state(this.candidate != null,
+				String.format("The %s requires a candidate; newCandidate(role) returned none.", getClass().getName()));
 		return this;
+	}
+
+	/**
+	 * The {@link Candidate candidate} used by to instantiate the {@link LeaderInitiator}.
+	 * Its visibility is design for testing only.
+	 */
+	final Candidate getCandidate() {
+		return this.candidate;
+	}
+
+	protected Candidate newCandidate(String role) {
+		return new DefaultCandidate(this.candidateIdProvider.generate(), role);
 	}
 
 	/**

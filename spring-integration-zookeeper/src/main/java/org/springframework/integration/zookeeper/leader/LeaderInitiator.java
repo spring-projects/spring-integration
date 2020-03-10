@@ -170,7 +170,7 @@ public class LeaderInitiator implements SmartLifecycle {
 			if (!this.running) {
 				if (this.client.getState() != CuratorFrameworkState.STARTED) {
 					// we want to do curator start here because it needs to
-					// be started before leader selector and it gets a little
+					// be started before leader selector, and it gets a little
 					// complicated to control ordering via beans so that
 					// curator is fully started.
 					this.client.start();
@@ -255,7 +255,7 @@ public class LeaderInitiator implements SmartLifecycle {
 				}
 
 				// when this method exits, the leadership will be revoked;
-				// therefore this thread needs to be held up until the
+				// therefore, this thread needs to be held up until the
 				// candidate is no longer leader
 				Thread.sleep(Long.MAX_VALUE);
 			}
