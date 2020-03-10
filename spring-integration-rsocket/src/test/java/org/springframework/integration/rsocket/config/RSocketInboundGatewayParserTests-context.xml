@@ -25,6 +25,7 @@
 								 auto-startup="false"
 								 request-channel="requestChannel"
 								 rsocket-strategies="rsocketStrategies"
-								 request-element-type="byte[]"/>
+								 request-element-type="byte[]"
+								 decode-flux-as-unit="true"/>
 
 </beans>

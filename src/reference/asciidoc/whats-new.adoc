@@ -98,3 +98,9 @@ See <<./ws.adoc#ws,Web Services Support>> for more information.
 
 The `FailoverClientConnectionFactory` no longer fails back, by default, until the current connection fails.
 See <<./ip.adoc#failover-cf,TCP Failover Client Connection Factory>> for more information.
+
+[[x5.3-rsocket]]
+=== RSocket Changes
+
+A `decodeFluxAsUnit` option has been added to the `RSocketInboundGateway` with the meaning to decode incoming `Flux` as a single unit or apply decoding for each event in it.
+See <<./rsocket.adoc#rsocket-inbound,RSocket Inbound Gateway>> for more information.

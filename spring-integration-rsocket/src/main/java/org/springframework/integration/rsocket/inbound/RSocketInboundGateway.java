@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,8 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	@Nullable
 	private ResolvableType requestElementType;
 
+	private boolean decodeFluxAsUnit;
+
 	/**
 	 * Instantiate based on the provided path patterns to map this endpoint for incoming RSocket requests.
 	 * @param pathArg the mapping patterns to use.
@@ -160,6 +162,20 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 		this.requestElementType = requestElementType;
 	}
 
+	/**
+	 * Configure an option to decode an incoming {@link Flux} as a single unit or each its event separately.
+	 * Defaults to {@code false} for consistency with Spring Messaging {@code @MessageMapping}.
+	 * The target {@link Flux} decoding logic depends on the {@link Decoder} selected.
+	 * For example a {@link org.springframework.core.codec.StringDecoder} requires a new line separator to
+	 * be present in the stream to indicate a byte buffer end.
+	 * @param decodeFluxAsUnit decode incoming {@link Flux} as a single unit or each event separately.
+	 * @since 5.3
+	 * @see Decoder#decode(Publisher, ResolvableType, MimeType, java.util.Map)
+	 */
+	public void setDecodeFluxAsUnit(boolean decodeFluxAsUnit) {
+		this.decodeFluxAsUnit = decodeFluxAsUnit;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -219,13 +235,16 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	@SuppressWarnings("unchecked")
 	@Nullable
 	private Object decodePayload(Message<?> requestMessage) {
-		ResolvableType elementType = this.requestElementType;
+		ResolvableType elementType;
 		MimeType mimeType = requestMessage.getHeaders().get(MessageHeaders.CONTENT_TYPE, MimeType.class);
-		if (elementType == null) {
+		if (this.requestElementType == null) {
 			elementType =
 					mimeType != null && "text".equals(mimeType.getType())
 							? ResolvableType.forClass(String.class)
 							: ResolvableType.forClass(byte[].class);
+		}
+		else {
+			elementType = this.requestElementType;
 		}
 
 		Object payload = requestMessage.getPayload();
@@ -235,8 +254,17 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 		if (payload instanceof DataBuffer) {
 			return decoder.decode((DataBuffer) payload, elementType, mimeType, null);
 		}
-		else {
+		else if (this.decodeFluxAsUnit) {
 			return decoder.decode((Publisher<DataBuffer>) payload, elementType, mimeType, null);
+		}
+		else {
+			return Flux.from((Publisher<DataBuffer>) payload)
+					.handle((buffer, synchronousSink) -> {
+						Object value = decoder.decode(buffer, elementType, mimeType, null);
+						if (value != null) {
+							synchronousSink.next(value);
+						}
+					});
 		}
 	}
 
