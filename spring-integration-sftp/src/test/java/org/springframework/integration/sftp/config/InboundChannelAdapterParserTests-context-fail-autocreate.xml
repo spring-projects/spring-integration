@@ -12,7 +12,7 @@
 
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
 		<beans:property name="host" value="loclahost"/>
-		<beans:property name="knownHosts"
+		<beans:property name="knownHostsResource"
 						value="#{ new org.springframework.core.io.ByteArrayResource('local, foo.com, bar.foo'.bytes)}"/>
 		<beans:property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftpTest"/>
 		<beans:property name="privateKeyPassphrase" value="ghj"/>

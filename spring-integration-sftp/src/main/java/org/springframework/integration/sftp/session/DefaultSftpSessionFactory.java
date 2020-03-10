@@ -193,11 +193,11 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * false (default).</b>
 	 * @param knownHosts The known hosts.
 	 * @see JSch#setKnownHosts(String)
-	 * @deprecated since 5.2.5 in favor of {@link #setKnownHosts(Resource)}
+	 * @deprecated since 5.2.5 in favor of {@link #setKnownHostsResource(Resource)}
 	 */
 	@Deprecated
 	public void setKnownHosts(String knownHosts) {
-		setKnownHosts(new FileSystemResource(knownHosts));
+		setKnownHostsResource(new FileSystemResource(knownHosts));
 	}
 
 	/**
@@ -207,7 +207,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * @see JSch#setKnownHosts(InputStream)
 	 * @since 5.2.5
 	 */
-	public void setKnownHosts(Resource knownHosts) {
+	public void setKnownHostsResource(Resource knownHosts) {
 		this.knownHosts = knownHosts;
 	}
 
@@ -338,7 +338,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * implementation must respond to Jsch calls in a suitable way.
 	 * <p>
 	 * Jsch calls {@link UserInfo#promptYesNo(String)} when connecting to an unknown host,
-	 * or when a known host's key has changed (see {@link #setKnownHosts(Resource)}
+	 * or when a known host's key has changed (see {@link #setKnownHostsResource(Resource)}
 	 * knownHosts}). Generally, it should return false as returning true will accept all
 	 * new keys or key changes.
 	 * <p>
@@ -362,7 +362,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * When no {@link UserInfo} has been provided, set to true to unconditionally allow
 	 * connecting to an unknown host or when a host's key has changed (see
-	 * {@link #setKnownHosts(Resource) knownHosts}). Default false (since 4.2).
+	 * {@link #setKnownHostsResource(Resource) knownHosts}). Default false (since 4.2).
 	 * Set to true if a knownHosts file is not provided.
 	 * @param allowUnknownKeys true to allow connecting to unknown hosts.
 	 * @since 4.1.7
