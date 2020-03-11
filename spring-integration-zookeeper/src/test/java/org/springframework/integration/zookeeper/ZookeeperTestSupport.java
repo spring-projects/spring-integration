@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.BoundedExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.CloseableUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author Marius Bogoevici
@@ -48,12 +48,12 @@ public class ZookeeperTestSupport {
 
 	protected CuratorFramework client;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpClass() throws Exception {
 		testingServer = new TestingServer(true);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownClass() {
 		try {
 			testingServer.stop();
@@ -64,12 +64,12 @@ public class ZookeeperTestSupport {
 		testingServer.getTempDirectory().delete();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		client = createNewClient();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		CloseableUtils.closeQuietly(this.client);
 	}

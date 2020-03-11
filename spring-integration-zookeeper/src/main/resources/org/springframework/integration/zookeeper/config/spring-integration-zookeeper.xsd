@@ -31,7 +31,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
-			<xsd:attribute name="id" type="xsd:string" use="optional"/>
+			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="client" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -40,6 +40,19 @@
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.apache.curator.framework.CuratorFramework"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="candidate" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A reference to a Candidate bean.
+						Or this or 'role' option can be provided, but not both.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.leader.Candidate"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>

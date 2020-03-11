@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -48,17 +47,19 @@ import org.springframework.scheduling.Trigger;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
 public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 
-	private final BlockingQueue<AbstractLeaderEvent> events = new LinkedBlockingQueue<AbstractLeaderEvent>();
+	private final BlockingQueue<AbstractLeaderEvent> events = new LinkedBlockingQueue<>();
 
 	private final SourcePollingChannelAdapter adapter = buildChannelAdapter();
 
 	private final SmartLifecycleRoleController controller = new SmartLifecycleRoleController(
-			Collections.singletonList("sitest"), Collections.<SmartLifecycle>singletonList(this.adapter));
+			Collections.singletonList("sitest"), Collections.singletonList(this.adapter));
 
 	private final CountDownLatch yieldBarrier = new CountDownLatch(1);
 

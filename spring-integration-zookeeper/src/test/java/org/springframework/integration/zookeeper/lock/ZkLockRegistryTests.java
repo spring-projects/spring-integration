@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
@@ -35,7 +35,8 @@ import org.springframework.messaging.MessagingException;
 
 /**
  * @author Gary Russell
- * @author Artem Bilan
+ * @author Artem Bilan\
+ *
  * @since 4.2
  *
  */
@@ -78,7 +79,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	}
 
 	@Test
-	public void testReentrantLock() throws Exception {
+	public void testReentrantLock() {
 		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = registry.obtain("foo");

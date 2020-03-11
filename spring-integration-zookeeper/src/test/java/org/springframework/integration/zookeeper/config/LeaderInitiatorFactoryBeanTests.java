@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -42,17 +42,16 @@ import org.springframework.integration.leader.event.OnRevokedEvent;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 import org.springframework.integration.zookeeper.leader.LeaderInitiator;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 
@@ -64,12 +63,12 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 	@Autowired
 	private Config config;
 
-	@BeforeClass
-	public static void getClient() throws Exception {
+	@BeforeAll
+	public static void getClient() {
 		client = createNewClient();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void closeClient() {
 		if (client != null) {
 			client.close();
@@ -118,7 +117,7 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 	@Configuration
 	public static class Config {
 
-		private final List<AbstractLeaderEvent> events = new ArrayList<AbstractLeaderEvent>();
+		private final List<AbstractLeaderEvent> events = new ArrayList<>();
 
 		private final CountDownLatch latch1 = new CountDownLatch(1);
 
@@ -129,7 +128,7 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 			return new LeaderInitiatorFactoryBean()
 					.setClient(client)
 					.setPath("/siTest/")
-					.setRole("foo");
+					.setCandidate(new DefaultCandidate(UUID.randomUUID().toString(), "foo"));
 		}
 
 		@Bean

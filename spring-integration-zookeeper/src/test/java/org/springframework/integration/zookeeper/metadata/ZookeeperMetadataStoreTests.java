@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 package org.springframework.integration.zookeeper.metadata;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.awaitility.Awaitility.await;
 
 import java.util.ArrayList;
@@ -30,9 +31,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.CloseableUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -52,7 +53,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	private ZookeeperMetadataStore metadataStore;
 
 	@Override
-	@Before
+	@BeforeEach
 	public void setUp() {
 		super.setUp();
 		this.metadataStore = new ZookeeperMetadataStore(client);
@@ -60,7 +61,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	}
 
 	@Override
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		this.metadataStore.stop();
 		this.client.delete().deletingChildrenIfNeeded().forPath(this.metadataStore.getRoot());
@@ -152,14 +153,9 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 
 	@Test
 	public void testPersistNullStringToMetadataStore() {
-		try {
-			metadataStore.put("ZookeeperMetadataStoreTests-PersistEmpty", null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("'value' must not be null.");
-			return;
-		}
-		fail("Expected an IllegalArgumentException to be thrown.");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> metadataStore.put("ZookeeperMetadataStoreTests-PersistEmpty", null))
+				.withMessage("'value' must not be null.");
 	}
 
 	@Test
@@ -171,26 +167,16 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 
 	@Test
 	public void testPersistWithNullKeyToMetadataStore() {
-		try {
-			metadataStore.put(null, "something");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("'key' must not be null.");
-			return;
-		}
-		fail("Expected an IllegalArgumentException to be thrown.");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> metadataStore.put(null, "something"))
+				.withMessage("'key' must not be null.");
 	}
 
 	@Test
 	public void testGetValueWithNullKeyFromMetadataStore() {
-		try {
-			metadataStore.get(null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("'key' must not be null.");
-			return;
-		}
-		fail("Expected an IllegalArgumentException to be thrown.");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> metadataStore.get(null))
+				.withMessage("'key' must not be null.");
 	}
 
 	@Test
@@ -212,14 +198,10 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		barriers.put("add", new CyclicBarrier(2));
 		barriers.put("remove", new CyclicBarrier(2));
 		barriers.put("update", new CyclicBarrier(2));
-		try {
-			metadataStore.addListener(null);
-			fail("IllegalArgumentException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getMessage()).contains("'listener' must not be null");
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> metadataStore.addListener(null))
+				.withMessageContaining("'listener' must not be null");
+
 		metadataStore.addListener(new MetadataStoreListenerAdapter() {
 
 			@Override
@@ -365,14 +347,9 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	@Test
 	public void testEnsureStarted() {
 		ZookeeperMetadataStore zookeeperMetadataStore = new ZookeeperMetadataStore(this.client);
-
-		try {
-			zookeeperMetadataStore.get("foo");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalStateException.class);
-			assertThat(e.getMessage()).contains("ZookeeperMetadataStore has to be started before using.");
-		}
+		assertThatIllegalStateException()
+				.isThrownBy(() -> zookeeperMetadataStore.get("foo"))
+				.withMessageContaining("ZookeeperMetadataStore has to be started before using.");
 	}
 
 	private void waitAtBarrier(String barrierName, Map<String, CyclicBarrier> barriers) {

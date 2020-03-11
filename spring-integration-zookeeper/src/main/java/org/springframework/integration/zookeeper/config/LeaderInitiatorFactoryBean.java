@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.zookeeper.leader.LeaderInitiator;
+import org.springframework.util.Assert;
 
 /**
  * Creates a {@link LeaderInitiator}.
@@ -71,8 +72,27 @@ public class LeaderInitiatorFactoryBean
 		return this;
 	}
 
+	/**
+	 * Configure a role for {@link DefaultCandidate}.
+	 * Or this or {@link #setCandidate(Candidate)} can be configured, but not both.
+	 * @param role the role for candidate
+	 * @return this instance
+	 */
 	public LeaderInitiatorFactoryBean setRole(String role) {
-		this.candidate = new DefaultCandidate(UUID.randomUUID().toString(), role);
+		Assert.isNull(this.candidate,
+				"Or 'role' for an internal 'DefaultCandidate' or 'candidate' option must be provided, but not both.");
+		return setCandidate(new DefaultCandidate(UUID.randomUUID().toString(), role));
+	}
+
+	/**
+	 * Configure a {@link Candidate} for leader election.
+	 * Or this or {@link #setRole(String)} can be configured, but not both.
+	 * @param candidate the {@link Candidate} to use
+	 * @return this instance
+	 * @since 5.3
+	 */
+	public LeaderInitiatorFactoryBean setCandidate(Candidate candidate) {
+		this.candidate = candidate;
 		return this;
 	}
 

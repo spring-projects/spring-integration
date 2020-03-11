@@ -118,3 +118,6 @@ public LeaderInitiatorFactoryBean leaderInitiator(CuratorFramework client) {
 }
 ----
 ====
+
+Starting with version 5.3, a `candidate` option is exposed on the `LeaderInitiatorFactoryBean` for more configuration control of the externally provided `Candidate` instance.
+Only one of the `candidate` or `role` options has to be provided, but not both; the `role` options creates internally a `DefaultCandidate` instance with an `UUID` for `id` option.
