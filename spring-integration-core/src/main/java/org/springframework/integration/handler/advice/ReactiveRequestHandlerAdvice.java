@@ -18,7 +18,6 @@ package org.springframework.integration.handler.advice;
 
 import java.lang.reflect.Method;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -33,12 +32,13 @@ import reactor.core.publisher.Mono;
 
 /**
  * A {@link MethodInterceptor} for message handlers producing a {@link Mono} as a payload for reply.
- * The returned {@link Mono} is customized via {@link Mono#transform(Function)} operator
+ * The returned {@link Mono} is customized via {@link Mono#transform(java.util.function.Function)} operator
  * calling provided {@code replyCustomizer} {@link BiFunction} with request message as a context.
  *
  * A customization assumes to use supporting reactive operators like {@link Mono#timeout},
  * {@link Mono#retry}, {@link Mono#tag} etc.
- * A {@link Mono#transform(Function)}  also can be used for further customization like reactive circuit breaker.
+ * A {@link Mono#transform(java.util.function.Function)}  also can be used
+ * for further customization like reactive circuit breaker.
  *
  * @author Artem Bilan
  *

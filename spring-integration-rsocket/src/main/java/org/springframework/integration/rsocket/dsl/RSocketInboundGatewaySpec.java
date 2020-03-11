@@ -23,8 +23,6 @@ import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.integration.rsocket.inbound.RSocketInboundGateway;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 
-import reactor.core.publisher.Flux;
-
 /**
  * The {@link MessagingGatewaySpec} implementation for the {@link RSocketInboundGateway}.
  *
@@ -85,8 +83,10 @@ public class RSocketInboundGatewaySpec extends MessagingGatewaySpec<RSocketInbou
 	}
 
 	/**
-	 * Configure an option to decode an incoming {@link Flux} as a single unit or each its event separately.
-	 * @param decodeFluxAsUnit decode incoming {@link Flux} as a single unit or each event separately.
+	 * Configure an option to decode an incoming {@link reactor.core.publisher.Flux}
+	 * as a single unit or each its event separately.
+	 * @param decodeFluxAsUnit decode incoming {@link reactor.core.publisher.Flux}
+	 *                         as a single unit or each event separately.
 	 * @return the spec
 	 * @since 5.3
 	 * @see RSocketInboundGateway#setDecodeFluxAsUnit(boolean)

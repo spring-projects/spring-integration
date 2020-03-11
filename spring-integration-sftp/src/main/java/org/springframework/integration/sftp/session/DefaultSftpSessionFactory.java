@@ -17,7 +17,6 @@
 package org.springframework.integration.sftp.session;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Properties;
@@ -204,7 +203,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * Specifies the filename that will be used for a host key repository.
 	 * The file has the same format as OpenSSH's known_hosts file.
 	 * @param knownHosts the resource for known hosts.
-	 * @see JSch#setKnownHosts(InputStream)
+	 * @see JSch#setKnownHosts(java.io.InputStream)
 	 * @since 5.2.5
 	 */
 	public void setKnownHostsResource(Resource knownHosts) {
@@ -439,8 +438,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		}
 		com.jcraft.jsch.Session jschSession = this.jsch.getSession(this.user, this.host, this.port);
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(this.sessionConfig, jschSession::setConfig)
-			.acceptIfHasText(this.userInfoWrapper.getPassword(), jschSession::setPassword);
+				.acceptIfNotNull(this.sessionConfig, jschSession::setConfig)
+				.acceptIfHasText(this.userInfoWrapper.getPassword(), jschSession::setPassword);
 		jschSession.setUserInfo(this.userInfoWrapper);
 
 		try {
@@ -451,12 +450,12 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				jschSession.setServerAliveInterval(this.serverAliveInterval);
 			}
 			JavaUtils.INSTANCE
-				.acceptIfNotNull(this.proxy, jschSession::setProxy)
-				.acceptIfNotNull(this.socketFactory, jschSession::setSocketFactory)
-				.acceptIfHasText(this.clientVersion, jschSession::setClientVersion)
-				.acceptIfHasText(this.hostKeyAlias, jschSession::setHostKeyAlias)
-				.acceptIfNotNull(this.serverAliveCountMax, jschSession::setServerAliveCountMax)
-				.acceptIfNotNull(this.enableDaemonThread, jschSession::setDaemonThread);
+					.acceptIfNotNull(this.proxy, jschSession::setProxy)
+					.acceptIfNotNull(this.socketFactory, jschSession::setSocketFactory)
+					.acceptIfHasText(this.clientVersion, jschSession::setClientVersion)
+					.acceptIfHasText(this.hostKeyAlias, jschSession::setHostKeyAlias)
+					.acceptIfNotNull(this.serverAliveCountMax, jschSession::setServerAliveCountMax)
+					.acceptIfNotNull(this.enableDaemonThread, jschSession::setDaemonThread);
 		}
 		catch (Exception e) {
 			throw new BeanCreationException("Attempt to set additional properties of " +
