@@ -16,6 +16,8 @@
 
 package org.springframework.integration.zookeeper.config;
 
+import org.springframework.integration.leader.Candidate;
+
 /**
  * Provider that can be used to customize the identifier used by the
  * {@link org.springframework.integration.leader.Candidate Leadership Candidate}.
@@ -24,6 +26,6 @@ package org.springframework.integration.zookeeper.config;
  * @since 5.2.5
  */
 @FunctionalInterface
-public interface CandidateIdProvider {
-	String generate();
+public interface CandidateProvider {
+	Candidate generate(String role);
 }

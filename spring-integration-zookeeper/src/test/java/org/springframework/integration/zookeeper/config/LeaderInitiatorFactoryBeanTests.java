@@ -18,7 +18,6 @@ package org.springframework.integration.zookeeper.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.leader.AbstractCandidate;
-import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.AbstractLeaderEvent;
@@ -45,7 +42,6 @@ import org.springframework.integration.leader.event.OnGrantedEvent;
 import org.springframework.integration.leader.event.OnRevokedEvent;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 import org.springframework.integration.zookeeper.leader.LeaderInitiator;
-import org.springframework.lang.NonNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -121,39 +117,13 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 	}
 
 	@Test
-	public void testCandidateIdProvider() {
+	public void testCandidateProvider() {
 		String expectedClientId = "some-client-id";
-		LeaderInitiatorFactoryBean factoryBean = new LeaderInitiatorFactoryBean(() -> expectedClientId);
+		LeaderInitiatorFactoryBean factoryBean = new LeaderInitiatorFactoryBean((role) -> new DefaultCandidate(expectedClientId, role));
 		factoryBean.setRole("some-role");
 		assertThat(factoryBean.getCandidate().getId()).isEqualTo(expectedClientId);
 
 		assertThatIllegalArgumentException().isThrownBy(() -> new LeaderInitiatorFactoryBean(null));
-	}
-
-	@Test
-	public void testFactoryBeanExtensibility() {
-		LeaderInitiatorFactoryBean factoryBeanWithErrors = new LeaderInitiatorFactoryBean() {
-			@Override
-			protected Candidate newCandidate(String role) {
-				return null;
-			}
-		};
-		assertThatIllegalStateException().isThrownBy(() -> factoryBeanWithErrors.setRole("some-role"));
-
-		String expectedId = "some-id";
-		LeaderInitiatorFactoryBean customFactoryBean = new LeaderInitiatorFactoryBean() {
-			@Override
-			protected Candidate newCandidate(String role) {
-				return new AbstractCandidate(expectedId, role) {
-					@Override
-					public void onGranted(@NonNull Context ctx) { /*no-op*/ }
-					@Override
-					public void onRevoked(@NonNull Context ctx) { /*no-op*/ }
-				};
-			}
-		};
-		customFactoryBean.setRole("role");
-		assertThat(customFactoryBean.getCandidate().getId()).isEqualTo(expectedId);
 	}
 
 	@Configuration

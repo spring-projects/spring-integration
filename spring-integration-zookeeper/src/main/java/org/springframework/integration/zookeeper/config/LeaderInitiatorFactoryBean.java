@@ -38,13 +38,12 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
- *
  * @since 4.2
  */
 public class LeaderInitiatorFactoryBean
 		implements FactoryBean<LeaderInitiator>, SmartLifecycle, InitializingBean, ApplicationEventPublisherAware {
 
-	private static final CandidateIdProvider DEFAULT_CANDIDATE_ID_PROVIDER = () -> UUID.randomUUID().toString();
+	private static final CandidateProvider DEFAULT_CANDIDATE_ID_PROVIDER = (role) -> new DefaultCandidate(UUID.randomUUID().toString(), role);
 
 	private CuratorFramework client;
 
@@ -62,15 +61,15 @@ public class LeaderInitiatorFactoryBean
 
 	private LeaderEventPublisher leaderEventPublisher;
 
-	private final CandidateIdProvider candidateIdProvider;
+	private final CandidateProvider candidateProvider;
 
 	public LeaderInitiatorFactoryBean() {
-		this.candidateIdProvider = DEFAULT_CANDIDATE_ID_PROVIDER;
+		this.candidateProvider = DEFAULT_CANDIDATE_ID_PROVIDER;
 	}
 
-	public LeaderInitiatorFactoryBean(@NonNull CandidateIdProvider candidateIdProvider) {
-		Assert.notNull(candidateIdProvider, "The 'candidateIdProvider' must not be null.");
-		this.candidateIdProvider = candidateIdProvider;
+	public LeaderInitiatorFactoryBean(@NonNull CandidateProvider candidateProvider) {
+		Assert.notNull(candidateProvider, "The 'candidateProvider' must not be null.");
+		this.candidateProvider = candidateProvider;
 	}
 
 	public LeaderInitiatorFactoryBean setClient(CuratorFramework client) {
@@ -84,7 +83,7 @@ public class LeaderInitiatorFactoryBean
 	}
 
 	public LeaderInitiatorFactoryBean setRole(String role) {
-		this.candidate = newCandidate(role);
+		this.candidate = this.candidateProvider.generate(role);
 		Assert.state(this.candidate != null,
 				String.format("The %s requires a candidate; newCandidate(role) returned none.", getClass().getName()));
 		return this;
@@ -98,12 +97,9 @@ public class LeaderInitiatorFactoryBean
 		return this.candidate;
 	}
 
-	protected Candidate newCandidate(String role) {
-		return new DefaultCandidate(this.candidateIdProvider.generate(), role);
-	}
-
 	/**
 	 * A {@link LeaderEventPublisher} option for events from the {@link LeaderInitiator}.
+	 *
 	 * @param leaderEventPublisher the {@link LeaderEventPublisher} to use.
 	 * @since 4.3.2
 	 */
