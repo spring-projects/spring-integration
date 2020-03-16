@@ -398,7 +398,7 @@ Generally, instead of using an `AcceptOnceFileListFilter` in this case, you shou
 
 ==== Configuring with Java Configuration
 
-The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
+The following Spring Boot application shows an example of how to configure the outbound adapter with Java configuration:
 
 ====
 [source, java]
@@ -438,7 +438,7 @@ public class FileReadingJavaApplication {
 
 ==== Configuring with the Java DSL
 
-The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
+The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
 
 ====
 [source, java]
