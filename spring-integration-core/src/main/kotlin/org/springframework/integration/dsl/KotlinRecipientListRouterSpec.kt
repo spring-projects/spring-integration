@@ -66,7 +66,7 @@ class KotlinRecipientListRouterSpec(override val delegate: RecipientListRouterSp
 		this.delegate.recipient(channel, expression)
 	}
 
-	inline fun <reified P> recipient(channel: MessageChannel, noinline selector: (P) -> Boolean) {
+	inline fun <reified P> recipient(channel: MessageChannel, crossinline selector: (P) -> Boolean) {
 		if (Message::class.java.isAssignableFrom(P::class.java))
 			this.delegate.recipientMessageSelector(channel, MessageSelector { selector(it as P) })
 		else
@@ -74,7 +74,7 @@ class KotlinRecipientListRouterSpec(override val delegate: RecipientListRouterSp
 	}
 
 	inline fun <reified P> recipientFlow(crossinline selector: (P) -> Boolean,
-										 noinline subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
+										 crossinline subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
 
 		if (Message::class.java.isAssignableFrom(P::class.java))
 			this.delegate.recipientMessageSelectorFlow({ selector(it as P) })

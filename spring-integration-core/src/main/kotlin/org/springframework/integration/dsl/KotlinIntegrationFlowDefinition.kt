@@ -985,7 +985,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	}
 
 	/**
-	 * Populate a [KotlinRecipientListRouterSpec] to the current integration flow position
+	 * Populate a [ScatterGatherHandler] to the current integration flow position
 	 * based on the provided [KotlinRecipientListRouterSpec] for scattering function
 	 * and [AggregatorSpec] for gathering function.
 	 */
