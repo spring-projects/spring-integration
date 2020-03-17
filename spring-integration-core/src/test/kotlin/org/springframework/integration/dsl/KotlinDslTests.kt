@@ -315,9 +315,9 @@ class KotlinDslTests {
 					scatterGather(
 							{
 								applySequence(true)
-								recipientFlow(GenericSelector<Any> { true }, integrationFlow { handle<Any> { _, _ -> Math.random() * 10 } })
-								recipientFlow(GenericSelector<Any> { true }, integrationFlow { handle<Any> { _, _ -> Math.random() * 10 } })
-								recipientFlow(GenericSelector<Any> { true }, integrationFlow { handle<Any> { _, _ -> Math.random() * 10 } })
+								recipientFlow<Any>({ true }) { handle<Any> { _, _ -> Math.random() * 10 } }
+								recipientFlow<Any>({ true }) { handle<Any> { _, _ -> Math.random() * 10 } }
+								recipientFlow<Any>({ true }) { handle<Any> { _, _ -> Math.random() * 10 } }
 							},
 							{
 								releaseStrategy {

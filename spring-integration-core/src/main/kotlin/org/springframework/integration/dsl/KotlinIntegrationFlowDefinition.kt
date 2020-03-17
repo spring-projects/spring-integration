@@ -151,9 +151,9 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	inline fun <reified P, T> route(
 			crossinline function: (P) -> T,
-			crossinline configurer: RouterSpec<T, MethodInvokingRouter>.() -> Unit) {
+			crossinline configurer: KotlinRouterSpec<T, MethodInvokingRouter>.() -> Unit) {
 
-		this.delegate.route(P::class.java, { function(it) }) { configurer(it) }
+		this.delegate.route(P::class.java, { function(it) }) { configurer(KotlinRouterSpec(it)) }
 	}
 
 	/**
@@ -711,10 +711,12 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 	/**
 	 * Populate the [MethodInvokingRouter] for provided bean and its method
-	 * with provided options from [RouterSpec].
+	 * with provided options from [KotlinRouterSpec].
 	 */
-	fun route(beanName: String, method: String?, routerConfigurer: RouterSpec<Any, MethodInvokingRouter>.() -> Unit) {
-		this.delegate.route(beanName, method, routerConfigurer)
+	fun route(beanName: String, method: String?,
+			  routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit) {
+
+		this.delegate.route(beanName, method) { routerConfigurer(KotlinRouterSpec(it)) }
 	}
 
 	/**
@@ -727,18 +729,22 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 	/**
 	 * Populate the [MethodInvokingRouter] for the method
-	 * of the provided service and its method with provided options from [RouterSpec].
+	 * of the provided service and its method with provided options from [KotlinRouterSpec].
 	 */
-	fun route(service: Any, methodName: String?, routerConfigurer: RouterSpec<Any, MethodInvokingRouter>.() -> Unit) {
-		this.delegate.route(service, methodName, routerConfigurer)
+	fun route(service: Any, methodName: String?,
+			  routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit) {
+
+		this.delegate.route(service, methodName) { routerConfigurer(KotlinRouterSpec(it)) }
 	}
 
 	/**
 	 * Populate the [ExpressionEvaluatingRouter] for provided SpEL expression
-	 * with provided options from [RouterSpec].
+	 * with provided options from [KotlinRouterSpec].
 	 */
-	fun <T> route(expression: String, routerConfigurer: RouterSpec<T, ExpressionEvaluatingRouter>.() -> Unit = {}) {
-		this.delegate.route(expression, routerConfigurer)
+	fun <T> route(expression: String,
+				  routerConfigurer: KotlinRouterSpec<T, ExpressionEvaluatingRouter>.() -> Unit = {}) {
+
+		this.delegate.route<T>(expression) { routerConfigurer(KotlinRouterSpec(it)) }
 	}
 
 	/**
@@ -747,25 +753,25 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * from the provided [MessageProcessorSpec] with default options.
 	 */
 	fun route(messageProcessorSpec: MessageProcessorSpec<*>,
-			  routerConfigurer: RouterSpec<Any, MethodInvokingRouter>.() -> Unit = {}) {
+			  routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit = {}) {
 
-		this.delegate.route(messageProcessorSpec, routerConfigurer)
+		this.delegate.route(messageProcessorSpec) { routerConfigurer(KotlinRouterSpec(it)) }
 	}
 
 	/**
-	 * Populate the [RecipientListRouter] with options from the [RecipientListRouterSpec].
+	 * Populate the [RecipientListRouter] with options from the [KotlinRecipientListRouterSpec].
 	 */
-	fun routeToRecipients(routerConfigurer: RecipientListRouterSpec.() -> Unit) {
-		this.delegate.routeToRecipients(routerConfigurer)
+	fun routeToRecipients(routerConfigurer: KotlinRecipientListRouterSpec.() -> Unit) {
+		this.delegate.routeToRecipients { routerConfigurer(KotlinRecipientListRouterSpec(it)) }
 	}
 
 	/**
-	 * Populate the [ErrorMessageExceptionTypeRouter] with options from the [RouterSpec].
+	 * Populate the [ErrorMessageExceptionTypeRouter] with options from the [KotlinRouterSpec].
 	 */
 	fun routeByException(
-			routerConfigurer: RouterSpec<Class<out Throwable>, ErrorMessageExceptionTypeRouter>.() -> Unit) {
+			routerConfigurer: KotlinRouterSpec<Class<out Throwable>, ErrorMessageExceptionTypeRouter>.() -> Unit) {
 
-		this.delegate.routeByException(routerConfigurer)
+		this.delegate.routeByException { routerConfigurer(KotlinRouterSpec(it)) }
 	}
 
 	/**
@@ -971,31 +977,33 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 	/**
 	 * Populate a [ScatterGatherHandler] to the current integration flow position
-	 * based on the provided [RecipientListRouterSpec] for scattering function
+	 * based on the provided [KotlinRecipientListRouterSpec] for scattering function
 	 * and default [AggregatorSpec] for gathering function.
 	 */
-	fun scatterGather(scatterer: RecipientListRouterSpec.() -> Unit) {
-		this.delegate.scatterGather(scatterer)
+	fun scatterGather(scatterer: KotlinRecipientListRouterSpec.() -> Unit) {
+		this.delegate.scatterGather(Consumer { scatterer(KotlinRecipientListRouterSpec(it)) })
+	}
+
+	/**
+	 * Populate a [KotlinRecipientListRouterSpec] to the current integration flow position
+	 * based on the provided [KotlinRecipientListRouterSpec] for scattering function
+	 * and [AggregatorSpec] for gathering function.
+	 */
+	fun scatterGather(scatterer: KotlinRecipientListRouterSpec.() -> Unit, gatherer: AggregatorSpec.() -> Unit) {
+		this.delegate.scatterGather(Consumer { scatterer(KotlinRecipientListRouterSpec(it)) },
+				Consumer { gatherer(it) })
 	}
 
 	/**
 	 * Populate a [ScatterGatherHandler] to the current integration flow position
-	 * based on the provided [RecipientListRouterSpec] for scattering function
+	 * based on the provided [KotlinRecipientListRouterSpec] for scattering function
 	 * and [AggregatorSpec] for gathering function.
 	 */
-	fun scatterGather(scatterer: RecipientListRouterSpec.() -> Unit, gatherer: AggregatorSpec.() -> Unit) {
-		this.delegate.scatterGather(scatterer, gatherer)
-	}
-
-	/**
-	 * Populate a [ScatterGatherHandler] to the current integration flow position
-	 * based on the provided [RecipientListRouterSpec] for scattering function
-	 * and [AggregatorSpec] for gathering function.
-	 */
-	fun scatterGather(scatterer: RecipientListRouterSpec.() -> Unit, gatherer: AggregatorSpec.() -> Unit,
+	fun scatterGather(scatterer: KotlinRecipientListRouterSpec.() -> Unit, gatherer: AggregatorSpec.() -> Unit,
 					  scatterGather: ScatterGatherSpec.() -> Unit) {
 
-		this.delegate.scatterGather(scatterer, gatherer, scatterGather)
+		this.delegate.scatterGather(Consumer { scatterer(KotlinRecipientListRouterSpec(it)) },
+				Consumer { gatherer(it) }, Consumer { scatterGather(it) })
 	}
 
 	/**
