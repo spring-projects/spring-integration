@@ -102,8 +102,8 @@ class RouterDslTests {
 				integrationFlow {
 					split()
 					route<Int, Boolean>({ it % 2 == 0 }) {
-						subFlowMapping(true) { sf -> sf.handle<Int> { p, _ -> p * 2 } }
-						subFlowMapping(false) { sf -> sf.handle<Int> { p, _ -> p * 3 } }
+						subFlowMapping(true) { handle<Int> { p, _ -> p * 2 } }
+						subFlowMapping(false) { handle<Int> { p, _ -> p * 3 } }
 					}
 					aggregate()
 					channel { queue("routerTwoSubFlowsOutput") }
@@ -114,8 +114,8 @@ class RouterDslTests {
 				integrationFlow {
 					split()
 					route<Int, Boolean>({ it % 2 == 0 }) {
-						subFlowMapping(true) { sf -> sf.gateway(oddFlow()) }
-						subFlowMapping(false) { sf -> sf.gateway(evenFlow()) }
+						subFlowMapping(true) { gateway(oddFlow().inputChannel) }
+						subFlowMapping(false) { gateway(evenFlow().inputChannel) }
 					}
 					aggregate()
 				}
