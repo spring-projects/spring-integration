@@ -198,6 +198,11 @@ public class MqttAdapterTests {
 
 		verify(client, times(1)).connect(any(MqttConnectOptions.class));
 		assertThat(connectCalled.get()).isTrue();
+		AtomicReference<Object> failed = new AtomicReference<>();
+		handler.setApplicationEventPublisher(event -> failed.set(event));
+		handler.connectionLost(new IllegalStateException());
+		assertThat(failed.get()).isInstanceOf(MqttConnectionFailedEvent.class);
+		handler.stop();
 	}
 
 	@Test
@@ -410,6 +415,10 @@ public class MqttAdapterTests {
 		Thread.sleep(1000);
 		// the following assertion should be equalTo, but leq to protect against a slow CI server
 		assertThat(attemptingReconnectCount.get()).isLessThanOrEqualTo(2);
+		AtomicReference<Object> failed = new AtomicReference<>();
+		adapter.setApplicationEventPublisher(event -> failed.set(event));
+		adapter.connectionLost(new IllegalStateException());
+		assertThat(failed.get()).isInstanceOf(MqttConnectionFailedEvent.class);
 		adapter.stop();
 		taskScheduler.destroy();
 	}
