@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.kafka.inbound;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,6 +25,7 @@ import java.util.function.BiConsumer;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.header.Header;
 
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -98,6 +100,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	private BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedSeekCallback;
 
 	private boolean bindSourceRecord;
+
+	private boolean containerDeliveryAttemptPresent;
 
 	/**
 	 * Construct an instance with mode {@link ListenerMode#record}.
@@ -310,6 +314,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			}
 			this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
 		}
+		this.containerDeliveryAttemptPresent = this.messageListenerContainer.getContainerProperties()
+				.isDeliveryAttemptHeader();
 	}
 
 	@Override
@@ -452,6 +458,11 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 							new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
 					rawHeaders.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
 				}
+				else if (KafkaMessageDrivenChannelAdapter.this.containerDeliveryAttemptPresent) {
+					Header header = record.headers().lastHeader(KafkaHeaders.DELIVERY_ATTEMPT);
+					rawHeaders.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT,
+							new AtomicInteger(ByteBuffer.wrap(header.value()).getInt()));
+				}
 				if (KafkaMessageDrivenChannelAdapter.this.bindSourceRecord) {
 					rawHeaders.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
 				}
@@ -462,6 +473,11 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 					AtomicInteger deliveryAttempt =
 							new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
 					builder.setHeader(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
+				}
+				else if (KafkaMessageDrivenChannelAdapter.this.containerDeliveryAttemptPresent) {
+					Header header = record.headers().lastHeader(KafkaHeaders.DELIVERY_ATTEMPT);
+					builder.setHeader(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT,
+							new AtomicInteger(ByteBuffer.wrap(header.value()).getInt()));
 				}
 				if (KafkaMessageDrivenChannelAdapter.this.bindSourceRecord) {
 					builder.setHeader(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
