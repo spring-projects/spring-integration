@@ -16,7 +16,6 @@
 
 package org.springframework.integration.kafka.dsl;
 
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -46,38 +45,6 @@ public class KafkaInboundChannelAdapterSpec<K, V>
 
 	/**
 	 * Create an initial {@link KafkaMessageSource} with the consumer factory and
-	 * topics.
-	 * @param consumerFactory the consumer factory.
-	 * @param allowMultiFetch true to allow {@code max.poll.records > 1}.
-	 * @param topics the topics.
-	 * @deprecated in favor of
-	 * {@link #KafkaInboundChannelAdapterSpec(ConsumerFactory, ConsumerProperties, boolean)}
-	 */
-	@Deprecated
-	KafkaInboundChannelAdapterSpec(ConsumerFactory<K, V> consumerFactory, boolean allowMultiFetch, String... topics) {
-		this.target = new KafkaMessageSource<>(consumerFactory, new ConsumerProperties(topics), allowMultiFetch);
-	}
-
-	/**
-	 * Create an initial {@link KafkaMessageSource} with the consumer factory and
-	 * topics with a custom ack callback factory.
-	 * @param consumerFactory the consumer factory.
-	 * @param ackCallbackFactory the callback factory.
-	 * @param allowMultiFetch true to allow {@code max.poll.records > 1}.
-	 * @param topics the topics.
-	 * @deprecated in favor of
-	 * {@link #KafkaInboundChannelAdapterSpec(ConsumerFactory, ConsumerProperties,
-	 * KafkaAckCallbackFactory, boolean)}
-	 */
-	@Deprecated
-	KafkaInboundChannelAdapterSpec(ConsumerFactory<K, V> consumerFactory,
-			KafkaAckCallbackFactory<K, V> ackCallbackFactory, boolean allowMultiFetch, String... topics) {
-
-		this.target = new KafkaMessageSource<>(consumerFactory, new ConsumerProperties(topics), ackCallbackFactory, allowMultiFetch);
-	}
-
-	/**
-	 * Create an initial {@link KafkaMessageSource} with the consumer factory and
 	 * topics with a custom ack callback factory.
 	 * @param consumerFactory the consumer factory.
 	 * @param consumerProperties the consumer properties.
@@ -104,45 +71,6 @@ public class KafkaInboundChannelAdapterSpec<K, V>
 	}
 
 	/**
-	 * Set the group.id property for the consumer.
-	 * @param groupId the group id.
-	 * @return the spec.
-	 * @see ConsumerProperties
-	 * @deprecated in favor of using {@link ConsumerProperties}
-	 */
-	@Deprecated
-	public KafkaInboundChannelAdapterSpec<K, V> groupId(String groupId) {
-		this.target.setGroupId(groupId);
-		return this;
-	}
-
-	/**
-	 * Set the client.id property for the consumer.
-	 * @param clientId the client id.
-	 * @return the spec.
-	 * @see ConsumerProperties
-	 * @deprecated in favor of using {@link ConsumerProperties}
-	 */
-	@Deprecated
-	public KafkaInboundChannelAdapterSpec<K, V> clientId(String clientId) {
-		this.target.setClientId(clientId);
-		return this;
-	}
-
-	/**
-	 * Set the pollTimeout for the poll() operations.
-	 * @param pollTimeout the poll timeout.
-	 * @return the spec.
-	 * @see ConsumerProperties
-	 * @deprecated in favor of using {@link ConsumerProperties}
-	 */
-	@Deprecated
-	public KafkaInboundChannelAdapterSpec<K, V> pollTimeout(long pollTimeout) {
-		this.target.setPollTimeout(pollTimeout);
-		return this;
-	}
-
-	/**
 	 * Set the message converter to replace the default.
 	 * {@link MessagingMessageConverter}.
 	 * @param messageConverter the converter.
@@ -161,19 +89,6 @@ public class KafkaInboundChannelAdapterSpec<K, V>
 	 */
 	public KafkaInboundChannelAdapterSpec<K, V> payloadType(Class<?> type) {
 		this.target.setPayloadType(type);
-		return this;
-	}
-
-	/**
-	 * Set a rebalance listener.
-	 * @param rebalanceListener the rebalance listener.
-	 * @return the spec.
-	 * @see ConsumerProperties
-	 * @deprecated in favor of using {@link ConsumerProperties}
-	 */
-	@Deprecated
-	public KafkaInboundChannelAdapterSpec<K, V> rebalanceListener(ConsumerRebalanceListener rebalanceListener) {
-		this.target.setRebalanceListener(rebalanceListener);
 		return this;
 	}
 

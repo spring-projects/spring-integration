@@ -148,36 +148,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 * Construct an instance with the supplied parameters. Fetching multiple
 	 * records per poll will be disabled.
 	 * @param consumerFactory the consumer factory.
-	 * @param topics the topics.
-	 * @see #KafkaMessageSource(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory, boolean)
-	 * @deprecated in favor of {@link #KafkaMessageSource(ConsumerFactory, ConsumerProperties)}
-	 */
-	@Deprecated
-	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory, String... topics) {
-		this(consumerFactory, new ConsumerProperties(topics), new KafkaAckCallbackFactory<>(), false);
-	}
-
-	/**
-	 * Construct an instance with the supplied parameters. Fetching multiple
-	 * records per poll will be disabled.
-	 * @param consumerFactory the consumer factory.
-	 * @param ackCallbackFactory the ack callback factory.
-	 * @param topics the topics.
-	 * @see #KafkaMessageSource(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory, boolean)
-	 * @deprecated in favor of
-	 * {@link #KafkaMessageSource(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory)}
-	 */
-	@Deprecated
-	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory,
-			KafkaAckCallbackFactory<K, V> ackCallbackFactory, String... topics) {
-
-		this(consumerFactory, new ConsumerProperties(topics), ackCallbackFactory, false);
-	}
-
-	/**
-	 * Construct an instance with the supplied parameters. Fetching multiple
-	 * records per poll will be disabled.
-	 * @param consumerFactory the consumer factory.
 	 * @param consumerProperties the consumer properties.
 	 * @since 3.2
 	 * @see #KafkaMessageSource(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory, boolean)
@@ -284,46 +254,12 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		return this.consumerProperties.getGroupId();
 	}
 
-	/**
-	 * Set the group.id property for the consumer.
-	 * @param groupId the group id.
-	 * @see ConsumerProperties
-	 * @deprecated in favor of using {@link ConsumerProperties}
-	 */
-	@Deprecated
-	public void setGroupId(String groupId) {
-		this.consumerProperties.setGroupId(groupId);
-	}
-
 	protected String getClientId() {
 		return this.consumerProperties.getClientId();
 	}
 
-	/**
-	 * Set the client.id property for the consumer.
-	 * @param clientId the client id.
-	 * @see ConsumerProperties
-	 * @deprecated in favor of using {@link ConsumerProperties}
-	 */
-	@Deprecated
-	public void setClientId(String clientId) {
-		this.consumerProperties.setClientId(clientId);
-	}
-
 	protected long getPollTimeout() {
 		return this.pollTimeout.toMillis();
-	}
-
-	/**
-	 * Set the pollTimeout for the poll() operations.
-	 * @param pollTimeout the poll timeout.
-	 * @see ConsumerProperties
-	 * @deprecated in favor of using {@link ConsumerProperties}
-	 */
-	@Deprecated
-	public void setPollTimeout(long pollTimeout) {
-		this.pollTimeout = Duration.ofMillis(pollTimeout);
-		this.assignTimeout = this.minTimeoutProvider.get();
 	}
 
 	protected RecordMessageConverter getMessageConverter() {
@@ -354,17 +290,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	protected ConsumerRebalanceListener getRebalanceListener() {
 		return this.consumerProperties.getConsumerRebalanceListener();
-	}
-
-	/**
-	 * Set a rebalance listener.
-	 * @param rebalanceListener the rebalance listener.
-	 * @see ConsumerProperties
-	 * @deprecated in favor of using {@link ConsumerProperties}
-	 */
-	@Deprecated
-	public void setRebalanceListener(ConsumerRebalanceListener rebalanceListener) {
-		this.consumerProperties.setConsumerRebalanceListener(rebalanceListener);
 	}
 
 	@Override
@@ -660,21 +585,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 	}
 
-	/*
-	 * TODO: Remove when deprecated CTORs below are removed.
-	 */
-	private static ConsumerProperties dummyProperties(@Nullable Duration commitTimeout2) {
-		if (commitTimeout2 == null) {
-			return null;
-		}
-		else {
-			ConsumerProperties consumerProperties = new ConsumerProperties(new String[0]);
-			consumerProperties.setSyncCommitTimeout(commitTimeout2);
-			return consumerProperties;
-		}
-	}
-
-
 	/**
 	 * AcknowledgmentCallbackFactory for KafkaAckInfo.
 	 * @param <K> the key type.
@@ -686,27 +596,11 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		private final ConsumerProperties consumerProperties;
 
 		/**
-		 * Deprecated constructor.
-		 * @deprecated in favor of
-		 * {@code #KafkaAckCallbackFactory(ConsumerProperties)}.
+		 * Construct an instance with the provided properties.
+		 * @param consumerProperties the properties.
 		 */
-		@Deprecated
-		public KafkaAckCallbackFactory() {
-			this(dummyProperties(null));
-		}
-
 		public KafkaAckCallbackFactory(ConsumerProperties consumerProperties) {
 			this.consumerProperties = consumerProperties;
-		}
-
-		/**
-		 * Deprecated setter.
-		 * @param commitTimeout the commit timeout.
-		 * @deprecated in favor of {@code #KafkaAckCallbackFactory(ConsumerProperties)}.
-		 */
-		@Deprecated
-		public void setCommitTimeout(Duration commitTimeout) {
-			this.consumerProperties.setSyncCommitTimeout(commitTimeout);
 		}
 
 		@Override
@@ -739,27 +633,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		private volatile boolean acknowledged;
 
 		private boolean autoAckEnabled = true;
-
-		/**
-		 * Deprecated constructor.
-		 * @param ackInfo the ack info.
-		 * @deprecated in favor of {@code #KafkaAckCallback(KafkaAckInfo, ConsumerProperties)}
-		 */
-		@Deprecated
-		public KafkaAckCallback(KafkaAckInfo<K, V> ackInfo) {
-			this(ackInfo, (ConsumerProperties) null);
-		}
-
-		/**
-		 * Deprecated constructor.
-		 * @param ackInfo the ack info.
-		 * @param commitTimeout the commit timeout.
-		 * @deprecated in favor of {@code #KafkaAckCallback(KafkaAckInfo, ConsumerProperties)}
-		 */
-		@Deprecated
-		public KafkaAckCallback(KafkaAckInfo<K, V> ackInfo, @Nullable Duration commitTimeout) {
-			this(ackInfo, dummyProperties(commitTimeout));
-		}
 
 		/**
 		 * Construct an instance with the provided properties.

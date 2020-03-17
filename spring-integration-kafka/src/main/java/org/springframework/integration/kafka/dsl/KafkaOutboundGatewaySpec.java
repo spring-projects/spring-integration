@@ -129,19 +129,6 @@ public class KafkaOutboundGatewaySpec<K, V, R, S extends KafkaOutboundGatewaySpe
 		 * Default reply timeout.
 		 * @param replyTimeout the timeout.
 		 * @return the spec.
-		 * @deprecated in favor of {@link #defaultReplyTimeout(Duration)}.
-		 */
-		@Deprecated
-		@SuppressWarnings("unchecked")
-		public ReplyingKafkaTemplateSpec<K, V, R> replyTimeout(long replyTimeout) {
-			((ReplyingKafkaTemplate<K, V, R>) this.target).setDefaultReplyTimeout(Duration.ofMillis(replyTimeout));
-			return this;
-		}
-
-		/**
-		 * Default reply timeout.
-		 * @param replyTimeout the timeout.
-		 * @return the spec.
 		 */
 		@SuppressWarnings("unchecked")
 		public ReplyingKafkaTemplateSpec<K, V, R> defaultReplyTimeout(Duration replyTimeout) {
