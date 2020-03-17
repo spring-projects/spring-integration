@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
+import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
@@ -247,6 +248,9 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 				// NOSONAR
 			}
 			this.client = null;
+			if (this.applicationEventPublisher != null) {
+				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
+			}
 		}
 	}
 
