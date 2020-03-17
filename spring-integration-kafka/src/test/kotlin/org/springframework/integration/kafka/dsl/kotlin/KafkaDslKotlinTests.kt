@@ -37,7 +37,7 @@ import org.springframework.integration.MessageRejectedException
 import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.Pollers
-import org.springframework.integration.dsl.kotlin.integrationFlow
+import org.springframework.integration.dsl.integrationFlow
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer
 import org.springframework.integration.kafka.dsl.Kafka
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter
