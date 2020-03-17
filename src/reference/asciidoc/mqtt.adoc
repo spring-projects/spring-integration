@@ -74,6 +74,7 @@ The following listing shows the available attributes:
     send-timeout="123"  <7>
     error-channel="errors"  <8>
     recovery-interval="10000"  <9>
+    ack-mode="auto" <10>
     channel="out" />
 ----
 
@@ -97,6 +98,7 @@ The payload is a `MessagingException` that contains the failed message and cause
 <9> The recovery interval.
 It controls the interval at which the adapter attempts to reconnect after a failure.
 It defaults to `10000ms` (ten seconds).
+<10> The acknowledgment mode, `AUTO` (default) or `MANUAL`.
 ====
 
 NOTE: Starting with version 4.1, you can omit the URL.
@@ -144,6 +146,23 @@ The changes are not retained beyond the life cycle of the application context.
 A new application context reverts to the configured settings.
 
 Changing the topics while the adapter is stopped (or disconnected from the broker) takes effect the next time a connection is established.
+
+[[mqtt-ack-mode]]
+==== Manual Acks
+
+Starting with version 5.3, you can set the `ackMode` property.
+Often used to asynchronously acknowledge delivery.
+When set to `MANUAL`, an `Acknowledgment` header is added to the message.
+You must invoke the `acknowledgment()` method to complete the delivery.
+See the Javadocs for `IMqppClient` `setManualAcks()` and `messageArrivedComplete()` for more information.
+For convenience a header accessor is provided:
+
+====
+[source, java]
+----
+MqttHeaderAccessor.acknowledgment(someMessage).acknowledge();
+----
+====
 
 ==== Configuring with Java Configuration
 
@@ -381,5 +400,6 @@ Certain application events are published by the adapters.
 * `MqttConnectionFailedEvent` - published by both adapters if we fail to connect or a connection is subsequently lost.
 * `MqttMessageSentEvent` - published by the outbound adapter when a message has been sent, if running in asynchronous mode.
 * `MqttMessageDeliveredEvent` - published by the outbound adapter when the client indicates that a message has been delivered, if running in asynchronous mode.
+* `MqttSubscribedEvent` - published by the inbound adapter after subscribing to the topics.
 
 These events can be received by an `ApplicationListener<MqttIntegrationEvent>` or with an `@EventListener` method.

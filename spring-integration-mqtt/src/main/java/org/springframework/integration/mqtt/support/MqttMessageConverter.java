@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.mqtt.support;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 
@@ -35,11 +36,19 @@ public interface MqttMessageConverter extends MessageConverter {
 	/**
 	 * Convert to a Message.
 	 *
-	 * @param topic The topic.
-	 * @param mqttMessage The MQTT message.
-	 * @return The Message.
+	 * @param topic the topic.
+	 * @param mqttMessage the MQTT message.
+	 * @return the Message.
 	 */
 	Message<?> toMessage(String topic, MqttMessage mqttMessage);
+
+	/**
+	 * Convert to a message builder.
+	 * @param topic the topic.
+	 * @param mqttMessage the MQTT message.
+	 * @return the builder.
+	 */
+	AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage);
 
 	static MessageProcessor<Integer> defaultQosProcessor() {
 		return message -> message.getHeaders().get(MqttHeaders.QOS, Integer.class);
