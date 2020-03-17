@@ -202,6 +202,9 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 					this.client.close();
 					this.client = null;
 				}
+				if (this.applicationEventPublisher != null) {
+					this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
+				}
 				throw new MessagingException("Failed to connect", e);
 			}
 		}
