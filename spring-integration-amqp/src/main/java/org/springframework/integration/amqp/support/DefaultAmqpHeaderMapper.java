@@ -151,24 +151,11 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 					headers.put(jsonHeader, value);
 				}
 			}
-
-			createJsonResolvableTypHeaderInAny(headers);
 		}
 		catch (Exception e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("error occurred while mapping from AMQP properties to MessageHeaders", e);
-			}
+			this.logger.warn("error occurred while mapping from AMQP properties to MessageHeaders", e);
 		}
 		return headers;
-	}
-
-	private void createJsonResolvableTypHeaderInAny(Map<String, Object> headers) {
-		Object typeIdHeader = headers.get(JsonHeaders.TYPE_ID);
-		if (typeIdHeader != null) {
-			headers.put(JsonHeaders.RESOLVABLE_TYPE,
-					JsonHeaders.buildResolvableType(getClassLoader(), typeIdHeader,
-							headers.get(JsonHeaders.CONTENT_TYPE_ID), headers.get(JsonHeaders.KEY_TYPE_ID)));
-		}
 	}
 
 	/**
