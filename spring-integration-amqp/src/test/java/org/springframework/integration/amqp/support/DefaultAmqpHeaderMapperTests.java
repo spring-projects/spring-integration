@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.amqp.support.converter.AbstractJavaTypeMapper;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.core.ResolvableType;
@@ -68,7 +69,7 @@ public class DefaultAmqpHeaderMapperTests {
 	@Test
 	public void fromHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
-		Map<String, Object> headerMap = new HashMap<String, Object>();
+		Map<String, Object> headerMap = new HashMap<>();
 		headerMap.put(AmqpHeaders.APP_ID, "test.appId");
 		headerMap.put(AmqpHeaders.CLUSTER_ID, "test.clusterId");
 		headerMap.put(AmqpHeaders.CONTENT_ENCODING, "test.contentEncoding");
@@ -130,7 +131,7 @@ public class DefaultAmqpHeaderMapperTests {
 	@Test
 	public void fromHeadersWithContentTypeAsMediaType() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
-		Map<String, Object> headerMap = new HashMap<String, Object>();
+		Map<String, Object> headerMap = new HashMap<>();
 
 		MediaType contentType = MediaType.parseMediaType("text/html");
 		headerMap.put(AmqpHeaders.CONTENT_TYPE, contentType);
@@ -152,7 +153,7 @@ public class DefaultAmqpHeaderMapperTests {
 	@Test
 	public void fromHeadersWithContentTypeAsMimeType() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
-		Map<String, Object> headerMap = new HashMap<String, Object>();
+		Map<String, Object> headerMap = new HashMap<>();
 
 		MimeType contentType = MimeType.valueOf("text/html");
 		headerMap.put(AmqpHeaders.CONTENT_TYPE, contentType);
@@ -217,7 +218,7 @@ public class DefaultAmqpHeaderMapperTests {
 	}
 
 	@Test
-	public void toHeadersNonContenType() {
+	public void toHeadersNonContentType() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
@@ -244,7 +245,7 @@ public class DefaultAmqpHeaderMapperTests {
 	@Test
 	public void messageIdNotMappedToAmqpProperties() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
-		Map<String, Object> headerMap = new HashMap<String, Object>();
+		Map<String, Object> headerMap = new HashMap<>();
 		headerMap.put(MessageHeaders.ID, "msg-id");
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
 		MessageProperties amqpProperties = new MessageProperties();
@@ -255,7 +256,7 @@ public class DefaultAmqpHeaderMapperTests {
 	@Test
 	public void messageTimestampNotMappedToAmqpProperties() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
-		Map<String, Object> headerMap = new HashMap<String, Object>();
+		Map<String, Object> headerMap = new HashMap<>();
 		headerMap.put(MessageHeaders.TIMESTAMP, 1234L);
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
 		MessageProperties amqpProperties = new MessageProperties();
@@ -263,13 +264,13 @@ public class DefaultAmqpHeaderMapperTests {
 		assertThat(amqpProperties.getHeaders().get(MessageHeaders.TIMESTAMP)).isNull();
 	}
 
-	@Test // INT-2090
+	@Test
 	public void jsonTypeIdNotOverwritten() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		MessageConverter converter = new Jackson2JsonMessageConverter();
 		MessageProperties amqpProperties = new MessageProperties();
 		converter.toMessage("123", amqpProperties);
-		Map<String, Object> headerMap = new HashMap<String, Object>();
+		Map<String, Object> headerMap = new HashMap<>();
 		headerMap.put("__TypeId__", "java.lang.Integer");
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
 		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
@@ -323,6 +324,18 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMapper.fromHeadersToReply(integrationHeaders, amqpProperties);
 
 		assertThat(amqpProperties.getHeaders()).doesNotContainKeys(JsonHeaders.RESOLVABLE_TYPE);
+	}
+
+	@Test
+	public void jsonHeadersNotMapped() {
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+		headerMapper.setRequestHeaderNames("!json_*", "*");
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.getHeaders().put(AbstractJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME, "test.type");
+		Map<String, Object> headers = headerMapper.toHeadersFromRequest(amqpProperties);
+		assertThat(headers)
+				.doesNotContainKeys(JsonHeaders.RESOLVABLE_TYPE, JsonHeaders.TYPE_ID)
+				.containsKey(AbstractJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME);
 	}
 
 }

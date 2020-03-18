@@ -29,6 +29,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.core.ResolvableType;
+import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -67,8 +69,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 */
 	public static final String NON_STANDARD_HEADER_NAME_PATTERN = "NON_STANDARD_HEADERS";
 
-	private static final Collection<String> TRANSIENT_HEADER_NAMES = Arrays.asList(
-			MessageHeaders.ID, MessageHeaders.TIMESTAMP);
+	private static final Collection<String> TRANSIENT_HEADER_NAMES =
+			Arrays.asList(MessageHeaders.ID, MessageHeaders.TIMESTAMP);
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
@@ -155,7 +157,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * @return a header mapper that match if any of the specified patters match
 	 */
 	protected HeaderMatcher createHeaderMatcher(Collection<String> patterns) {
-		List<HeaderMatcher> matchers = new ArrayList<HeaderMatcher>();
+		List<HeaderMatcher> matchers = new ArrayList<>();
 		for (String pattern : patterns) {
 			if (STANDARD_REQUEST_HEADER_NAME_PATTERN.equals(pattern)) {
 				matchers.add(new ContentBasedHeaderMatcher(true, this.requestHeaderNames));
@@ -190,40 +192,38 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 
 	@Override
 	public void fromHeadersToRequest(MessageHeaders headers, T target) {
-		this.fromHeaders(headers, target, this.requestHeaderMatcher);
+		fromHeaders(headers, target, this.requestHeaderMatcher);
 	}
 
 	@Override
 	public void fromHeadersToReply(MessageHeaders headers, T target) {
-		this.fromHeaders(headers, target, this.replyHeaderMatcher);
+		fromHeaders(headers, target, this.replyHeaderMatcher);
 	}
 
 	@Override
 	public Map<String, Object> toHeadersFromRequest(T source) {
-		return this.toHeaders(source, this.requestHeaderMatcher);
+		return toHeaders(source, this.requestHeaderMatcher);
 	}
 
 	@Override
 	public Map<String, Object> toHeadersFromReply(T source) {
-		return this.toHeaders(source, this.replyHeaderMatcher);
+		return toHeaders(source, this.replyHeaderMatcher);
 	}
 
 	private void fromHeaders(MessageHeaders headers, T target, HeaderMatcher headerMatcher) {
 		try {
-			Map<String, Object> subset = new HashMap<String, Object>();
+			Map<String, Object> subset = new HashMap<>();
 			for (Map.Entry<String, Object> entry : headers.entrySet()) {
 				String headerName = entry.getKey();
-				if (this.shouldMapHeader(headerName, headerMatcher)) {
+				if (shouldMapHeader(headerName, headerMatcher)) {
 					subset.put(headerName, entry.getValue());
 				}
 			}
-			this.populateStandardHeaders(headers, subset, target);
-			this.populateUserDefinedHeaders(subset, target);
+			populateStandardHeaders(headers, subset, target);
+			populateUserDefinedHeaders(subset, target);
 		}
 		catch (Exception e) {
-			if (this.logger.isWarnEnabled()) {
-				this.logger.warn("error occurred while mapping from MessageHeaders", e);
-			}
+			this.logger.warn("error occurred while mapping from MessageHeaders", e);
 		}
 	}
 
@@ -234,8 +234,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			if (value != null && !isMessageChannel(headerName, value)) {
 				try {
 					if (!headerName.startsWith(this.standardHeaderPrefix)) {
-						String key = this.createTargetPropertyName(headerName, true);
-						this.populateUserDefinedHeader(key, value, target);
+						String key = createTargetPropertyName(headerName, true);
+						populateUserDefinedHeader(key, value, target);
 					}
 				}
 				catch (Exception e) {
@@ -262,21 +262,30 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * a {@link org.springframework.messaging.Message}.
 	 */
 	private Map<String, Object> toHeaders(T source, HeaderMatcher headerMatcher) {
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		Map<String, Object> standardHeaders = extractStandardHeaders(source);
-		this.copyHeaders(standardHeaders, headers, headerMatcher);
+		copyHeaders(standardHeaders, headers, headerMatcher);
 		Map<String, Object> userDefinedHeaders = extractUserDefinedHeaders(source);
-		this.copyHeaders(userDefinedHeaders, headers, headerMatcher);
+		copyHeaders(userDefinedHeaders, headers, headerMatcher);
 		return headers;
 	}
 
-	private <V> void copyHeaders(Map<String, Object> source, Map<String, Object> target, HeaderMatcher headerMatcher) {
+	private void copyHeaders(Map<String, Object> source, Map<String, Object> target, HeaderMatcher headerMatcher) {
 		if (!CollectionUtils.isEmpty(source)) {
 			for (Map.Entry<String, Object> entry : source.entrySet()) {
 				try {
-					String headerName = this.createTargetPropertyName(entry.getKey(), false);
-					if (this.shouldMapHeader(headerName, headerMatcher)) {
-						target.put(headerName, entry.getValue());
+					String headerName = createTargetPropertyName(entry.getKey(), false);
+					if (shouldMapHeader(headerName, headerMatcher)) {
+						Object value = entry.getValue();
+						target.put(headerName, value);
+						if (JsonHeaders.TYPE_ID.equals(headerName) && value != null) {
+							ResolvableType resolvableType =
+									createJsonResolvableTypHeaderInAny(value, source.get(JsonHeaders.CONTENT_TYPE_ID),
+											source.get(JsonHeaders.KEY_TYPE_ID));
+							if (resolvableType != null) {
+								target.put(JsonHeaders.RESOLVABLE_TYPE, resolvableType);
+							}
+						}
 					}
 				}
 				catch (Exception e) {
@@ -287,6 +296,20 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 				}
 			}
 		}
+	}
+
+	@Nullable
+	private ResolvableType createJsonResolvableTypHeaderInAny(Object typeId, @Nullable Object contentId,
+			@Nullable Object keyId) {
+
+		try {
+			return JsonHeaders.buildResolvableType(getClassLoader(), typeId,
+					contentId, keyId);
+		}
+		catch (Exception e) {
+			this.logger.warn("Cannot build a ResolvableType from 'json__TypeId__' header", e);
+		}
+		return null;
 	}
 
 	private boolean shouldMapHeader(String headerName, HeaderMatcher headerMatcher) {
@@ -303,8 +326,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		}
 		if (!type.isAssignableFrom(value.getClass())) {
 			if (this.logger.isWarnEnabled()) {
-				this.logger.warn("skipping header '" + name + "' since it is not of expected type [" + type + "], it is [" +
-						value.getClass() + "]");
+				this.logger.warn("skipping header '" + name + "' since it is not of expected type [" + type + "], " +
+						"it is [" + value.getClass() + "]");
 			}
 			return null;
 		}
@@ -380,6 +403,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * Strategy interface to determine if a given header name matches.
 	 * @since 4.1
 	 */
+	@FunctionalInterface
 	public interface HeaderMatcher {
 
 		/**
@@ -393,7 +417,9 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		 * Return true if this match should be explicitly excluded from the mapping.
 		 * @return true if negated.
 		 */
-		boolean isNegated();
+		default boolean isNegated() {
+			return false;
+		}
 
 	}
 
@@ -440,11 +466,6 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			return false;
 		}
 
-		@Override
-		public boolean isNegated() {
-			return false;
-		}
-
 	}
 
 	/**
@@ -457,7 +478,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 
 		private static final Log logger = LogFactory.getLog(HeaderMatcher.class);
 
-		private final Collection<String> patterns = new ArrayList<String>();
+		private final Collection<String> patterns = new ArrayList<>();
 
 		public PatternBasedHeaderMatcher(Collection<String> patterns) {
 			Assert.notNull(patterns, "Patterns must no be null");
@@ -479,11 +500,6 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 					return true;
 				}
 			}
-			return false;
-		}
-
-		@Override
-		public boolean isNegated() {
 			return false;
 		}
 
@@ -566,11 +582,6 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			return result;
 		}
 
-		@Override
-		public boolean isNegated() {
-			return false;
-		}
-
 	}
 
 	/**
@@ -605,11 +616,6 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			if (logger.isDebugEnabled()) {
 				logger.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
 			}
-			return false;
-		}
-
-		@Override
-		public boolean isNegated() {
 			return false;
 		}
 
