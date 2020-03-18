@@ -1436,10 +1436,8 @@ The `org.springframework.amqp.support.AmqpHeaders` class identifies the default 
 
 [[header-copy-caution]]
 CAUTION: As mentioned earlier in this section, using a header mapping pattern of`*` is a common way to copy all headers.
-However, this can have some unexpected side effects, because certain RabbitMQ proprietary properties/headers are also
-copied.
-For example, when you use https://www.rabbitmq.com/federated-exchanges.html[federation], the received message may have
-a property named `x-received-from`, which contains the node that sent the message.
+However, this can have some unexpected side effects, because certain RabbitMQ proprietary properties/headers are also copied.
+For example, when you use https://www.rabbitmq.com/federated-exchanges.html[federation], the received message may have a property named `x-received-from`, which contains the node that sent the message.
 If you use the wildcard character `*` for the request and reply header mapping on the inbound gateway, this header is copied, which may cause some issues with federation.
 This reply message may be federated back to the sending broker, which may think that a message is looping and, as a result, silently drop it.
 If you wish to use the convenience of wildcard header mapping, you may need to filter out some headers in the downstream flow.
@@ -1452,6 +1450,8 @@ Instead, this header is mapped to `amqp_receivedDeliveryMode`, which is not mapp
 Starting with version 4.3, patterns in the header mappings can be negated by preceding the pattern with `!`.
 Negated patterns get priority, so a list such as `STANDARD_REQUEST_HEADERS,thing1,ba*,!thing2,!thing3,qux,!thing1` does not map `thing1` (nor `thing2` nor `thing3`).
 The standard headers plus `bad` and `qux` are mapped.
+The negation technique can be useful for example to not map JSON type headers for incoming messages when a JSON deserialization logic is done in the receiver downstream different way.
+For this purpose a `!json_*` pattern should be configured for header mapper of the inbound channel adapter/gateway.
 
 IMPORTANT: If you have a user-defined header that begins with `!` that you do wish to map, you need to escape it with `\`, as follows: `STANDARD_REQUEST_HEADERS,\!myBangHeader`.
 The header named `!myBangHeader` is now mapped.
@@ -1468,7 +1468,7 @@ For example an inbound HTTP message sent to a RabbitMQ queue.
 
 The `contentType` header is mapped to Spring AMQP's `MessageProperties.contentType` property and that is subsequently mapped to RabbitMQ's `content_type` property.
 
-Prior to _version 5.1_, this header was also mapped as an entry in the `MessageProperties.headers` map; this was incorrect and, furthermore, the value could be wrong since the underlying Spring AMQP message converter might have changed the content type.
+Prior to version 5.1, this header was also mapped as an entry in the `MessageProperties.headers` map; this was incorrect and, furthermore, the value could be wrong since the underlying Spring AMQP message converter might have changed the content type.
 Such a change would be reflected in the first-class `content_type` property, but not in the RabbitMQ headers map.
 Inbound mapping ignored the headers map value.
 `contentType` is no longer mapped to an entry in the headers map.
