@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mqtt.support;
+package org.springframework.integration.acks;
 
 /**
  * Opaque object for manually acknowledging.
@@ -23,7 +23,8 @@ package org.springframework.integration.mqtt.support;
  * @since 5.3
  *
  */
-public interface Acknowledgment {
+@FunctionalInterface
+public interface SimpleAcknowledgment {
 
 	/**
 	 * Complete the message arrival.

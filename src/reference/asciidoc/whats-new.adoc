@@ -122,3 +122,7 @@ See <<./zookeeper.adoc#zk-leadership,Leadership event handling>> for more inform
 
 The inbound channel adapter can now be configured to provide user control over when a message is acknowledged as being delivered.
 See <<./mqtt.adoc#mqtt-ack-mode,Manual Acks>> for more information.
+
+The outbound adapter now publishes a `MqttConnectionFailedEvent` when a connection can't be created, or is lost.
+Previously, only the inbound adapter did so.
+See <<mqtt-events>>.

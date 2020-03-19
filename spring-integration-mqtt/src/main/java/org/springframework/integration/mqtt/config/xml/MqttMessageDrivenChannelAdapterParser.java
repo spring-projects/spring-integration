@@ -48,7 +48,7 @@ public class MqttMessageDrivenChannelAdapterParser extends AbstractChannelAdapte
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "qos");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "recovery-interval");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ack-mode");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "manual-acks");
 
 		return builder.getBeanDefinition();
 	}

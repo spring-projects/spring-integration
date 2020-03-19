@@ -16,7 +16,6 @@
 
 package org.springframework.integration.mqtt.support;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
@@ -80,15 +79,6 @@ public final class MqttHeaderAccessor {
 	@Nullable
 	public static Boolean duplicate(Message<?> message) {
 		return message.getHeaders().get(MqttHeaders.DUPLICATE, Boolean.class);
-	}
-
-	/**
-	 * Return the acknowledgment callback header.
-	 * @param message the message.
-	 * @return the header.
-	 */
-	public static Acknowledgment acknowledgment(Message<?> message) {
-		return message.getHeaders().get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, Acknowledgment.class);
 	}
 
 }

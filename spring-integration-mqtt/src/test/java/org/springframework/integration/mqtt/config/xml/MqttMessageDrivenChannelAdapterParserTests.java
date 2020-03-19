@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
-import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter.AckMode;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
@@ -80,7 +79,7 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "outputChannel")).isSameAs(out);
 		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "clientFactory")).isSameAs(clientFactory);
 		assertThat(TestUtils.getPropertyValue(this.noTopicsAdapter, "recoveryInterval")).isEqualTo(5000);
-		assertThat(TestUtils.getPropertyValue(this.noTopicsAdapter, "ackMode")).isEqualTo(AckMode.MANUAL);
+		assertThat(TestUtils.getPropertyValue(this.noTopicsAdapter, "manualAcks", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -91,7 +90,7 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "topics", Collection.class).size())
 				.isEqualTo(0);
 		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "outputChannel")).isSameAs(out);
-		assertThat(TestUtils.getPropertyValue(this.noTopicsAdapterDefaultCF, "ackMode")).isEqualTo(AckMode.AUTO);
+		assertThat(TestUtils.getPropertyValue(this.noTopicsAdapterDefaultCF, "manualAcks", Boolean.class)).isFalse();
 	}
 
 	@Test

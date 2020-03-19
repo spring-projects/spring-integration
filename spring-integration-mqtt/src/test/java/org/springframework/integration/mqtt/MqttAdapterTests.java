@@ -74,6 +74,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageProcessor;
@@ -83,7 +84,6 @@ import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
-import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter.AckMode;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaderAccessor;
@@ -266,7 +266,7 @@ public class MqttAdapterTests {
 
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory,
 				"baz", "fix");
-		adapter.setAckMode(AckMode.MANUAL);
+		adapter.setManualAcks(true);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -293,7 +293,7 @@ public class MqttAdapterTests {
 		assertThat(outMessage).isNotNull();
 		assertThat(outMessage.getPayload()).isEqualTo("qux");
 
-		MqttHeaderAccessor.acknowledgment(outMessage).acknowledge();
+		StaticMessageHeaderAccessor.getAcknowledgment(outMessage).acknowledge();
 		verify(client).setManualAcks(true);
 		verify(client)
 				.messageArrivedComplete(MqttHeaderAccessor.id(outMessage), MqttHeaderAccessor.receivedQos(outMessage));

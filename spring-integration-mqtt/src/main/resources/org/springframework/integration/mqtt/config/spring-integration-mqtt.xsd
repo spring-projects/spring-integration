@@ -89,10 +89,10 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="ack-mode" type="ackModes" default="AUTO">
+			<xsd:attribute name="manual-acks" type="xsd:boolean" default="false">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-						Acknowledgment mode (auto or manual).
+						Acknowledgment mode (true for manual acks).
 					]]>
 					</xsd:documentation>
 				</xsd:annotation>
@@ -284,12 +284,5 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
-
-	<xsd:simpleType name="ackModes">
-		<xsd:restriction base="xsd:token">
-			<xsd:enumeration value="AUTO" />
-			<xsd:enumeration value="MANUAL" />
-		</xsd:restriction>
-	</xsd:simpleType>
 
 </xsd:schema>

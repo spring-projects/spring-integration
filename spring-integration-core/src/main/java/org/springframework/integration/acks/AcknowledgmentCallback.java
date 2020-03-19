@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,18 @@ package org.springframework.integration.acks;
  *
  */
 @FunctionalInterface
-public interface AcknowledgmentCallback {
+public interface AcknowledgmentCallback extends SimpleAcknowledgment {
 
 	/**
 	 * Acknowledge the message.
 	 * @param status the status.
 	 */
 	void acknowledge(Status status);
+
+	@Override
+	default void acknowledge() {
+		acknowledge(Status.ACCEPT);
+	}
 
 	/**
 	 * Implementations must implement this to indicate when the ack has been
