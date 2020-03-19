@@ -65,6 +65,11 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public static final String DELIVERY_ATTEMPT = "deliveryAttempt";
 
+	/**
+	 * A callback to acknowledge message delivery. The type of the header value depends on
+	 * the context in which the header is used. See the reference manual for more
+	 * information.
+	 */
 	public static final String ACKNOWLEDGMENT_CALLBACK = "acknowledgmentCallback";
 
 	/**

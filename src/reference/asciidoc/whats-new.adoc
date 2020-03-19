@@ -116,3 +116,13 @@ See <<./rsocket.adoc#rsocket-inbound,RSocket Inbound Gateway>> for more informat
 
 A `LeaderInitiatorFactoryBean` (as well as its XML `<int-zk:leader-listener>`) exposes a `candidate` option for more control over a `Candidate` configuration.
 See <<./zookeeper.adoc#zk-leadership,Leadership event handling>> for more information.
+
+[[x5.3-mqtt]]
+=== MQTT Changes
+
+The inbound channel adapter can now be configured to provide user control over when a message is acknowledged as being delivered.
+See <<./mqtt.adoc#mqtt-ack-mode,Manual Acks>> for more information.
+
+The outbound adapter now publishes a `MqttConnectionFailedEvent` when a connection can't be created, or is lost.
+Previously, only the inbound adapter did so.
+See <<./mqtt.adoc#mqtt-events,MQTT Events>>.

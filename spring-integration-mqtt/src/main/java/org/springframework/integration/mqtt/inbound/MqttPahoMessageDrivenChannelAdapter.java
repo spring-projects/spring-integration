@@ -30,11 +30,14 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -70,6 +73,8 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
 	private long disconnectCompletionTimeout = DISCONNECT_COMPLETION_TIMEOUT;
+
+	private boolean manualAcks;
 
 	private volatile IMqttClient client;
 
@@ -150,6 +155,15 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 */
 	public synchronized void setRecoveryInterval(int recoveryInterval) {
 		this.recoveryInterval = recoveryInterval;
+	}
+
+	/**
+	 * Set the acknowledgment mode to manual.
+	 * @param manualAcks true for manual acks.
+	 * @since 5.3
+	 */
+	public void setManualAcks(boolean manualAcks) {
+		this.manualAcks = manualAcks;
 	}
 
 	/**
@@ -263,6 +277,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		String[] topics = getTopic();
 		try {
 			this.client.connect(connectionOptions);
+			this.client.setManualAcks(this.manualAcks);
 			int[] requestedQos = getQos();
 			int[] grantedQos = Arrays.copyOf(requestedQos, requestedQos.length);
 			this.client.subscribe(topics, grantedQos);
@@ -365,7 +380,12 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	@Override
 	public void messageArrived(String topic, MqttMessage mqttMessage) {
-		Message<?> message = this.getConverter().toMessage(topic, mqttMessage);
+		AbstractIntegrationMessageBuilder<?> builder = getConverter().toMessageBuilder(topic, mqttMessage);
+		if (this.manualAcks) {
+			builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
+					new AcknowledgmentImpl(mqttMessage.getId(), mqttMessage.getQos(), this.client));
+		}
+		Message<?> message = builder.build();
 		try {
 			sendMessage(message);
 		}
@@ -377,6 +397,48 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	@Override
 	public void deliveryComplete(IMqttDeliveryToken token) {
+	}
+
+	/**
+	 * Used to complete message arrival when {@link AckMode#MANUAL}.
+	 *
+	 * @since 5.3
+	 */
+	private static class AcknowledgmentImpl implements SimpleAcknowledgment {
+
+		private final int id;
+
+		private final int qos;
+
+		private final IMqttClient ackClient;
+
+		/**
+		 * Construct an instance with the provided properties.
+		 * @param id the message id.
+		 * @param qos the message QOS.
+		 * @param client the client.
+		 */
+		AcknowledgmentImpl(int id, int qos, IMqttClient client) {
+			this.id = id;
+			this.qos = qos;
+			this.ackClient = client;
+		}
+
+		@Override
+		public void acknowledge() {
+			if (this.ackClient != null) {
+				try {
+					this.ackClient.messageArrivedComplete(this.id, this.qos);
+				}
+				catch (MqttException e) {
+					throw new IllegalStateException(e);
+				}
+			}
+			else {
+				throw new IllegalStateException("Client has changed");
+			}
+		}
+
 	}
 
 }

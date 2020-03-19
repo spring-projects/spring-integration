@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -206,6 +206,11 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 
 	@Override
 	public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
+		return toMessageBuilder(topic, mqttMessage).build();
+	}
+
+	@Override
+	public AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage) {
 		try {
 			AbstractIntegrationMessageBuilder<?> messageBuilder;
 			if (this.bytesMessageMapper != null) {
@@ -219,13 +224,14 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 								.withPayload(mqttBytesToPayload(mqttMessage));
 			}
 			messageBuilder
+					.setHeader(MqttHeaders.ID, mqttMessage.getId())
 					.setHeader(MqttHeaders.RECEIVED_QOS, mqttMessage.getQos())
 					.setHeader(MqttHeaders.DUPLICATE, mqttMessage.isDuplicate())
 					.setHeader(MqttHeaders.RECEIVED_RETAINED, mqttMessage.isRetained());
 			if (topic != null) {
 				messageBuilder.setHeader(MqttHeaders.RECEIVED_TOPIC, topic);
 			}
-			return messageBuilder.build();
+			return messageBuilder;
 		}
 		catch (Exception e) {
 			throw new MessageConversionException("failed to convert object to Message", e);

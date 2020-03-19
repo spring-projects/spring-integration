@@ -12,6 +12,7 @@
 
 	<int-mqtt:message-driven-channel-adapter id="noTopicsAdapter"
 		auto-startup="false"
+		manual-acks="true"
 		client-id="foo"
 		url="tcp://localhost:1883"
 		client-factory="clientFactory"

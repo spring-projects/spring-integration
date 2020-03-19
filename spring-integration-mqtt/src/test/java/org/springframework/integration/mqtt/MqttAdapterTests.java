@@ -74,6 +74,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageProcessor;
@@ -85,6 +86,7 @@ import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
+import org.springframework.integration.mqtt.support.MqttHeaderAccessor;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -264,6 +266,7 @@ public class MqttAdapterTests {
 
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory,
 				"baz", "fix");
+		adapter.setManualAcks(true);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -289,6 +292,11 @@ public class MqttAdapterTests {
 		Message<?> outMessage = outputChannel.receive(0);
 		assertThat(outMessage).isNotNull();
 		assertThat(outMessage.getPayload()).isEqualTo("qux");
+
+		StaticMessageHeaderAccessor.getAcknowledgment(outMessage).acknowledge();
+		verify(client).setManualAcks(true);
+		verify(client)
+				.messageArrivedComplete(MqttHeaderAccessor.id(outMessage), MqttHeaderAccessor.receivedQos(outMessage));
 
 		MqttIntegrationEvent event = events.poll(10, TimeUnit.SECONDS);
 		assertThat(event).isInstanceOf(MqttSubscribedEvent.class);
