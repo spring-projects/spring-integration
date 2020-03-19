@@ -152,7 +152,7 @@ Changing the topics while the adapter is stopped (or disconnected from the broke
 
 Starting with version 5.3, you can set the `manualAcks` property to true.
 Often used to asynchronously acknowledge delivery.
-When set to `true`, a `SimpleAcknowledgment` header (`IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK`) is added to the message.
+When set to `true`, header (`IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK`) is added to the message with the value being a `SimpleAcknowledgment`.
 You must invoke the `acknowledge()` method to complete the delivery.
 See the Javadocs for `IMqppClient` `setManualAcks()` and `messageArrivedComplete()` for more information.
 For convenience a header accessor is provided:

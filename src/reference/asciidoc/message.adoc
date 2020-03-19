@@ -171,8 +171,8 @@ ACKNOWLEDGMENT_CALLBACK
 | o.s.i.support.
 Acknowledgment
 Callback
-| If a message source supports it, a call back to accept, reject, or requeue a message.
-See <<./polling-consumer.adoc#deferred-acks-message-source,Deferred Acknowledgment Pollable Message Source>>.
+| If an inbound endpoint supports it, a call back to accept, reject, or requeue a message.
+See <<./polling-consumer.adoc#deferred-acks-message-source,Deferred Acknowledgment Pollable Message Source>> and <<./mqtt.adoc#mqtt-ack-mode,MQTT Manual Acks>>.
 |===
 
 Convenient typed getters for some of these headers are provided on the `IntegrationMessageHeaderAccessor` class, as the following example shows:

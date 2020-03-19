@@ -60,7 +60,7 @@ Starting with version 5.0.1, certain modules provide `MessageSource` implementat
 This is currently limited to the `AmqpMessageSource` and the `KafkaMessageSource` provided by the `spring-integration-kafka` https://github.com/spring-projects/spring-integration-kafka[extension project].
 
 With these message sources, the `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` header (see <<./message.adoc#message-header-accessor,`MessageHeaderAccessor` API>>) is added to the message.
-The value of the header is an instance of `AcknowledgmentCallback`, as the following example shows:
+When used with pollable message sources, the value of the header is an instance of `AcknowledgmentCallback`, as the following example shows:
 
 [source, java]
 ----
