@@ -27,9 +27,7 @@ package org.springframework.integration.acks;
 public interface SimpleAcknowledgment {
 
 	/**
-	 * Complete the message arrival.
-	 * @throws IllegalStateException if the client has been disconnected since this
-	 * was created.
+	 * Acknowledge the message delivery.
 	 */
 	void acknowledge();
 

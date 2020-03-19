@@ -125,4 +125,4 @@ See <<./mqtt.adoc#mqtt-ack-mode,Manual Acks>> for more information.
 
 The outbound adapter now publishes a `MqttConnectionFailedEvent` when a connection can't be created, or is lost.
 Previously, only the inbound adapter did so.
-See <<mqtt-events>>.
+See <<./mqtt.adoc#mqtt-events,MQTT Events>>.
