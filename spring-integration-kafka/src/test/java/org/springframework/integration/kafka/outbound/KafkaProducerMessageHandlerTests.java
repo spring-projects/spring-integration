@@ -71,6 +71,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
+import org.springframework.integration.kafka.support.KafkaIntegrationHeaders;
 import org.springframework.integration.kafka.support.KafkaSendFailureException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -686,6 +687,51 @@ class KafkaProducerMessageHandlerTests {
 		handler.handleMessage(new GenericMessage<>("foo"));
 		verify(template, never()).executeInTransaction(any());
 		verify(template).send(any(ProducerRecord.class));
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	void testFlush() {
+		ProducerFactory pf = mock(ProducerFactory.class);
+		Producer producer = mock(Producer.class);
+		given(pf.createProducer()).willReturn(producer);
+		ListenableFuture future = mock(ListenableFuture.class);
+		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		KafkaTemplate template = new KafkaTemplate(pf);
+		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
+		handler.setTopicExpression(new LiteralExpression("bar"));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		handler.start();
+		handler.handleMessage(
+				new GenericMessage<>("foo", Collections.singletonMap(KafkaIntegrationHeaders.FLUSH, Boolean.TRUE)));
+		InOrder inOrder = inOrder(producer);
+		ArgumentCaptor<ProducerRecord> captor = ArgumentCaptor.forClass(ProducerRecord.class);
+		inOrder.verify(producer).send(captor.capture(), any(Callback.class));
+		inOrder.verify(producer).flush();
+		handler.stop();
+		assertThat(captor.getValue().headers().lastHeader(KafkaIntegrationHeaders.FLUSH)).isNull();
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	void testNoFlush() {
+		ProducerFactory pf = mock(ProducerFactory.class);
+		Producer producer = mock(Producer.class);
+		given(pf.createProducer()).willReturn(producer);
+		ListenableFuture future = mock(ListenableFuture.class);
+		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		KafkaTemplate template = new KafkaTemplate(pf);
+		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
+		handler.setTopicExpression(new LiteralExpression("bar"));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		handler.start();
+		handler.handleMessage(new GenericMessage<>("foo"));
+		InOrder inOrder = inOrder(producer);
+		inOrder.verify(producer).send(any(ProducerRecord.class), any(Callback.class));
+		inOrder.verify(producer, never()).flush();
+		handler.stop();
 	}
 
 }

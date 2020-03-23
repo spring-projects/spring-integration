@@ -20,6 +20,7 @@
 										partition-id-expression="'2'"
 										send-timeout-expression="1000"
 										timestamp-expression="T(System).currentTimeMillis()"
+										flush-expression="headers['foo']"
 										error-message-strategy="ems"
 										send-failure-channel="failures"
 										send-success-channel="successes"
@@ -54,7 +55,7 @@
 	<int:channel id="failures" />
 
 	<int:channel id="successes" />
-	
+
 	<bean id="customHeaderMapper" class="org.springframework.kafka.support.DefaultKafkaHeaderMapper" />
 
 </beans>

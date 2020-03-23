@@ -74,6 +74,8 @@ class KafkaOutboundAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(messageHandler, "sendTimeoutExpression.expression")).isEqualTo("1000");
 		assertThat(TestUtils.getPropertyValue(messageHandler, "timestampExpression.expression"))
 				.isEqualTo("T(System).currentTimeMillis()");
+		assertThat(TestUtils.getPropertyValue(messageHandler, "flushExpression.expression"))
+				.isEqualTo("headers['foo']");
 
 		assertThat(TestUtils.getPropertyValue(messageHandler, "errorMessageStrategy"))
 				.isSameAs(this.appContext.getBean("ems"));
