@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,8 @@ public class KafkaOutboundGatewayParserTests {
 		assertThat(TestUtils.getPropertyValue(this.messageHandler, "sendTimeoutExpression.expression")).isEqualTo("44");
 		assertThat(TestUtils.getPropertyValue(this.messageHandler, "timestampExpression.expression"))
 				.isEqualTo("T(System).currentTimeMillis()");
+		assertThat(TestUtils.getPropertyValue(this.messageHandler, "flushExpression.expression"))
+				.isEqualTo("headers['foo']");
 
 		assertThat(TestUtils.getPropertyValue(this.messageHandler, "errorMessageStrategy"))
 				.isSameAs(this.context.getBean("ems"));

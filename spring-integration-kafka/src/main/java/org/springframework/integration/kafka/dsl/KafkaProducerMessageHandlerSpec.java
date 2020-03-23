@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,8 +86,8 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	}
 
 	/**
-	 * Configure a {@link Function} that will be invoked at run time to determine the topic to
-	 * which a message will be sent. Typically used with a Java 8 Lambda expression:
+	 * Configure a {@link Function} that will be invoked at runtime to determine the topic
+	 * to which a message will be sent. Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 * .<Foo>topic(m -> m.getPayload().getTopic())
@@ -133,8 +133,9 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	}
 
 	/**
-	 * Configure a {@link Function} that will be invoked at run time to determine the message key under
-	 * which a message will be stored in the topic. Typically used with a Java 8 Lambda expression:
+	 * Configure a {@link Function} that will be invoked at runtime to determine the
+	 * message key under which a message will be stored in the topic. Typically used with
+	 * a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 * .<Foo>messageKey(m -> m.getPayload().getKey())
@@ -169,8 +170,9 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	}
 
 	/**
-	 * Configure a {@link Function} that will be invoked at run time to determine the partition id under
-	 * which a message will be stored in the topic. Typically used with a Java 8 Lambda expression:
+	 * Configure a {@link Function} that will be invoked at runtime to determine the
+	 * partition id under which a message will be stored in the topic. Typically used with
+	 * a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 * .partitionId(m -> m.getHeaders().get("partitionId", Integer.class))
@@ -206,14 +208,15 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	}
 
 	/**
-	 * Configure a {@link Function} that will be invoked at run time to determine the Kafka record timestamp
-	 * will be stored in the topic. Typically used with a Java 8 Lambda expression:
+	 * Configure a {@link Function} that will be invoked at runtime to determine the Kafka
+	 * record timestamp will be stored in the topic. Typically used with a Java 8 Lambda
+	 * expression:
 	 * <pre class="code">
 	 * {@code
 	 * .timestamp(m -> m.getHeaders().get("mytimestamp_header", Long.class))
 	 * }
 	 * </pre>
-	 * @param timestampFunction the partitionId function.
+	 * @param timestampFunction the timestamp function.
 	 * @param <P> the expected payload type.
 	 * @return the spec.
 	 */
@@ -232,6 +235,46 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 		return _this();
 	}
 
+	/**
+	 * Configure a SpEL expression to determine whether or not to flush the producer after
+	 * a send. By default the producer is flushed if a header {@code kafka_flush} has a
+	 * value {@link Boolean#TRUE}.
+	 * @param flushExpression the timestamp expression to use.
+	 * @return the spec.
+	 */
+	public S flushExpression(String flushExpression) {
+		return this.flushExpression(PARSER.parseExpression(flushExpression));
+	}
+
+	/**
+	 * Configure a {@link Function} that will be invoked at runtime to determine whether
+	 * or not to flush the producer after a send. By default the producer is flushed if a
+	 * header {@code kafka_flush} has a value {@link Boolean#TRUE}. Typically used with a
+	 * Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 * .flush(m -> m.getPayload().shouldFlush())
+	 * }
+	 * </pre>
+	 * @param flushFunction the flush function.
+	 * @param <P> the expected payload type.
+	 * @return the spec.
+	 */
+	public <P> S flush(Function<Message<P>, Boolean> flushFunction) {
+		return flushExpression(new FunctionExpression<>(flushFunction));
+	}
+
+	/**
+	 * Configure an {@link Expression} to determine whether or not to flush the producer
+	 * after a send. By default the producer is flushed if a header {@code kafka_flush}
+	 * has a value {@link Boolean#TRUE}.
+	 * @param flushExpression the timestamp expression to use.
+	 * @return the spec.
+	 */
+	public S flushExpression(Expression flushExpression) {
+		this.target.setFlushExpression(flushExpression);
+		return _this();
+	}
 
 	/**
 	 * A {@code boolean} indicating if the {@link KafkaProducerMessageHandler}

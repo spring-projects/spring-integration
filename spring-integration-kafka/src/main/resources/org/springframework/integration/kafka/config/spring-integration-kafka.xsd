@@ -568,6 +568,15 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="flush-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+							Specifies the expression to determine whether the producer should be
+							flushed after a send. By default the producer is flushed if a
+							header 'kafka_flush' has a value 'Boolean.TRUE'.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="sync">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[

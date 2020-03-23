@@ -338,6 +338,7 @@ public class KafkaDslTests {
 									e -> e.id("kafkaProducer1")))
 							.subscribe(sf -> sf.handle(
 									kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
+											.flush(msg -> true)
 											.timestamp(m -> 1487694048644L),
 									e -> e.id("kafkaProducer2")))
 					);
@@ -381,6 +382,7 @@ public class KafkaDslTests {
 		public IntegrationFlow outboundGateFlow() {
 			return IntegrationFlows.from(Gate.class)
 					.handle(Kafka.outboundGateway(producerFactory(), replyContainer())
+							.flushExpression("true")
 							.sync(true)
 							.configureKafkaTemplate(t -> t.defaultReplyTimeout(Duration.ofSeconds(30))))
 					.get();

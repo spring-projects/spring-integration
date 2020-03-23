@@ -21,6 +21,7 @@
 		send-success-channel="successes"
 		send-failure-channel="failures"
 		send-timeout-expression="44"
+		flush-expression="headers['foo']"
 		sync="true"
 		timestamp-expression="T(System).currentTimeMillis()"
 		topic-expression="'topic'"
