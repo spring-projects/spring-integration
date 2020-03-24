@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.3.70'
+	ext.kotlinVersion = '1.3.71'
 	repositories {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
@@ -16,7 +16,7 @@ plugins {
 	id 'io.spring.nohttp' version '0.0.4.RELEASE' apply false
 	id 'org.ajoberstar.grgit' version '4.0.1'
 	id "io.spring.dependency-management" version '1.0.9.RELEASE'
-	id 'com.jfrog.artifactory' version '4.14.1' apply false
+	id 'com.jfrog.artifactory' version '4.15.1' apply false
 	id 'org.jetbrains.dokka' version '0.10.1'
 }
 
@@ -44,12 +44,12 @@ ext {
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.15.11'
+	activeMqVersion = '5.15.12'
 	apacheSshdVersion = '2.4.0'
 	avroVersion = '1.9.2'
 	aspectjVersion = '1.9.5'
 	assertjVersion = '3.15.0'
-	assertkVersion = '0.21'
+	assertkVersion = '0.22'
 	awaitilityVersion = '4.0.2'
 	commonsDbcp2Version = '2.7.0'
 	commonsIoVersion = '2.6'
@@ -74,18 +74,18 @@ ext {
 	jschVersion = '0.1.55'
 	jsonpathVersion = '2.4.0'
 	junit4Version = '4.13'
-	junitJupiterVersion = '5.6.0'
+	junitJupiterVersion = '5.6.1'
 	jythonVersion = '2.7.0'
 	kryoShadedVersion = '4.0.2'
 	lettuceVersion = '5.2.2.RELEASE'
 	log4jVersion = '2.13.1'
-	micrometerVersion = '1.3.5'
-	mockitoVersion = '3.3.0'
-	mongoDriverVersion = '4.0.0'
+	micrometerVersion = '1.3.6'
+	mockitoVersion = '3.3.3'
+	mongoDriverVersion = '4.0.1'
 	mysqlVersion = '8.0.19'
 	pahoMqttClientVersion = '1.2.2'
-	postgresVersion = '42.2.10'
-	reactorVersion = 'Dysprosium-SR5'
+	postgresVersion = '42.2.11'
+	reactorVersion = 'Dysprosium-SR6'
 	resilience4jVersion = '1.3.1'
 	romeToolsVersion = '1.12.2'
 	rsocketVersion = '1.0.0-RC6'
@@ -95,7 +95,7 @@ ext {
 	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-M4'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.3.0.RELEASE'
 	springRetryVersion = '1.2.5.RELEASE'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.4.RELEASE'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.5.RELEASE'
 	springWsVersion = '3.0.8.RELEASE'
 	tomcatVersion = "9.0.31"
 	xstreamVersion = '1.4.11.1'
