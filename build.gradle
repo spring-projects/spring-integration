@@ -42,12 +42,12 @@ ext {
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.15.11'
+	activeMqVersion = '5.15.12'
 	apacheSshdVersion = '2.3.0'
-	avroVersion = '1.9.1'
+	avroVersion = '1.9.2'
 	aspectjVersion = '1.9.5'
-	assertjVersion = '3.14.0'
-	assertkVersion = '0.20'
+	assertjVersion = '3.15.0'
+	assertkVersion = '0.22'
 	awaitilityVersion = '4.0.2'
 	boonVersion = '0.34'
 	commonsDbcp2Version = '2.7.0'
@@ -57,13 +57,13 @@ ext {
 	derbyVersion = '10.14.2.0'
 	ftpServerVersion = '1.1.1'
 	googleJsr305Version = '3.0.2'
-	groovyVersion = '2.5.8'
+	groovyVersion = '2.5.10'
 	hamcrestVersion = '2.2'
-	hazelcastVersion = '3.12.5'
-	hibernateVersion = '5.4.10.Final'
+	hazelcastVersion = '3.12.6'
+	hibernateVersion = '5.4.12.Final'
 	hsqldbVersion = '2.5.0'
 	h2Version = '1.4.200'
-	jacksonVersion = '2.10.2'
+	jacksonVersion = '2.10.3'
 	javaxActivationVersion = '1.2.0'
 	javaxMailVersion = '1.6.2'
 	jmsApiVersion = '2.0.1'
@@ -78,24 +78,24 @@ ext {
 	kryoShadedVersion = '4.0.2'
 	lettuceVersion = '5.2.2.RELEASE'
 	log4jVersion = '2.12.1'
-	micrometerVersion = '1.3.5'
+	micrometerVersion = '1.3.6'
 	mockitoVersion = '3.2.4'
-	mysqlVersion = '8.0.18'
+	mysqlVersion = '8.0.19'
 	pahoMqttClientVersion = '1.2.2'
 	postgresVersion = '42.2.9'
-	reactorVersion = 'Dysprosium-SR5'
+	reactorVersion = 'Dysprosium-SR6'
 	resilience4jVersion = '1.1.0'
 	romeToolsVersion = '1.12.2'
-	rsocketVersion = '1.0.0-RC5'
+	rsocketVersion = '1.0.0-RC6'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.5.RELEASE'
 	springDataVersion = 'Moore-SR5'
 	springSecurityVersion = '5.2.2.RELEASE'
 	springRetryVersion = '1.2.5.RELEASE'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.4.RELEASE'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.5.RELEASE'
 	springWsVersion = '3.0.8.RELEASE'
-	tomcatVersion = "9.0.30"
+	tomcatVersion = "9.0.33"
 	xstreamVersion = '1.4.11.1'
 }
 
@@ -327,7 +327,7 @@ subprojects { subproject ->
 	}
 
 	task javadocJar(type: Jar) {
-		classifier = 'javadoc'
+		archiveClassifier = 'javadoc'
 		from javadoc
 	}
 
