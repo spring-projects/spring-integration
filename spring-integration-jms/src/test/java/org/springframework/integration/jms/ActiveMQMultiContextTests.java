@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jms;
 
-import javax.jms.ConnectionFactory;
-
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.transport.vm.VMTransport;
 import org.junit.AfterClass;
@@ -29,19 +27,23 @@ import org.springframework.jms.connection.CachingConnectionFactory;
  * Keeps an ActiveMQ {@link VMTransport} open for the duration of
  * all tests (avoids cycling the transport each time the last
  * connection is closed).
+ *
  * @author Gary Russell
+ *
  * @since 3.0
  *
  */
 public abstract class ActiveMQMultiContextTests {
 
-	protected static final ConnectionFactory amqFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
+	protected static final ActiveMQConnectionFactory amqFactory =
+			new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
 
-	protected static final CachingConnectionFactory connectionFactory = new CachingConnectionFactory(
-			amqFactory);
+	protected static final CachingConnectionFactory connectionFactory =
+			new CachingConnectionFactory(amqFactory);
 
 	@BeforeClass
 	public static void startUp() throws Exception {
+		amqFactory.setTrustAllPackages(true);
 		connectionFactory.setCacheConsumers(false);
 		connectionFactory.createConnection().close();
 	}
