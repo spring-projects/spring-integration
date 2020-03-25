@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Properties;
 
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
@@ -46,12 +47,42 @@ public class TransactionHandleMessageAdvice extends TransactionInterceptor imple
 	public TransactionHandleMessageAdvice() {
 	}
 
-	public TransactionHandleMessageAdvice(PlatformTransactionManager ptm, Properties attributes) {
-		super(ptm, attributes);
+	/**
+	 * Create a new TransactionHandleMessageAdvice.
+	 * @param transactionManager the default transaction manager to perform the actual transaction management
+	 * @param transactionAttributeSource the attribute source to be used to find transaction attributes
+	 * @since 5.2.5
+	 * @see TransactionInterceptor
+	 */
+	public TransactionHandleMessageAdvice(TransactionManager transactionManager,
+			TransactionAttributeSource transactionAttributeSource) {
+
+		super(transactionManager, transactionAttributeSource);
 	}
 
+	/**
+	 * Create a new TransactionHandleMessageAdvice.
+	 * @param ptm the default transaction manager to perform the actual transaction management
+	 * @param attributes the attribute source to be used to find transaction attributes
+	 * @deprecated since 5.2.5 in favor of {@link #TransactionHandleMessageAdvice()}
+	 * and {@link #setTransactionManager(TransactionManager)}, {@link #setTransactionAttributes(Properties)}
+	 */
+	@Deprecated
+	public TransactionHandleMessageAdvice(PlatformTransactionManager ptm, Properties attributes) {
+		setTransactionManager(ptm);
+		setTransactionAttributes(attributes);
+	}
+
+	/**
+	 * Create a new TransactionHandleMessageAdvice.
+	 * @param ptm the default transaction manager to perform the actual transaction management
+	 * @param tas the attribute source to be used to find transaction attributes
+	 * @deprecated since 5.2.5 in favor of
+	 * {@link #TransactionHandleMessageAdvice(TransactionManager, TransactionAttributeSource)}
+	 */
+	@Deprecated
 	public TransactionHandleMessageAdvice(PlatformTransactionManager ptm, TransactionAttributeSource tas) {
-		super(ptm, tas);
+		this((TransactionManager) ptm, tas);
 	}
 
 }

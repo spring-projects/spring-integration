@@ -90,7 +90,7 @@ ext {
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.5.RELEASE'
-	springDataVersion = 'Moore-SR5'
+	springDataVersion = 'Moore-SR6'
 	springSecurityVersion = '5.2.2.RELEASE'
 	springRetryVersion = '1.2.5.RELEASE'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.5.RELEASE'

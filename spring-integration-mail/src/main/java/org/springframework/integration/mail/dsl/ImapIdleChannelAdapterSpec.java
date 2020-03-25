@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.integration.support.PropertiesBuilder;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
@@ -311,14 +312,29 @@ public class ImapIdleChannelAdapterSpec
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
-	 * {@code PlatformTransactionManager} and default
+	 * {@link PlatformTransactionManager} and default
 	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
 	 * for the downstream flow.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @return the spec.
+	 * @deprecated since 5.2.5 in favor of {@link #transactional(TransactionManager)}
 	 */
+	@Deprecated
 	public ImapIdleChannelAdapterSpec transactional(PlatformTransactionManager transactionManager) {
-				return transactional(new TransactionInterceptorBuilder(false)
+		return transactional((TransactionManager) transactionManager);
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
+	 * {@link TransactionManager} and default
+	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
+	 * for the downstream flow.
+	 * @param transactionManager the {@link TransactionManager} to use.
+	 * @return the spec.
+	 * @since 5.2.5
+	 */
+	public ImapIdleChannelAdapterSpec transactional(TransactionManager transactionManager) {
+		return transactional(new TransactionInterceptorBuilder(false)
 				.transactionManager(transactionManager)
 				.build());
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.integration.transaction.TransactionInterceptorBuilder
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
@@ -193,14 +194,29 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
-	 * {@code PlatformTransactionManager} and default
+	 * {@link PlatformTransactionManager} and default
 	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
 	 * for the {@link org.springframework.messaging.MessageHandler}.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @return the spec.
 	 * @since 5.0.8
+	 * @deprecated since 5.2.5 in favor of {@link #transactionalRelease(TransactionManager)}
 	 */
+	@Deprecated
 	public DelayerEndpointSpec transactionalRelease(PlatformTransactionManager transactionManager) {
+		return transactionalRelease((TransactionManager) transactionManager);
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
+	 * {@link TransactionManager} and default
+	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
+	 * for the {@link org.springframework.messaging.MessageHandler}.
+	 * @param transactionManager the {@link TransactionManager} to use.
+	 * @return the spec.
+	 * @since 5.2.5
+	 */
+	public DelayerEndpointSpec transactionalRelease(TransactionManager transactionManager) {
 		return transactionalRelease(
 				new TransactionInterceptorBuilder()
 						.transactionManager(transactionManager)
