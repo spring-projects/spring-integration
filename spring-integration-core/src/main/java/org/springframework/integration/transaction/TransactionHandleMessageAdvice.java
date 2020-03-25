@@ -54,8 +54,7 @@ public class TransactionHandleMessageAdvice extends TransactionInterceptor imple
 	public TransactionHandleMessageAdvice(TransactionManager transactionManager,
 			TransactionAttributeSource transactionAttributeSource) {
 
-		setTransactionManager(transactionManager);
-		setTransactionAttributeSource(transactionAttributeSource);
+		super(transactionManager, transactionAttributeSource);
 	}
 
 }

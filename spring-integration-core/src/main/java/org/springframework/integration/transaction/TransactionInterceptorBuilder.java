@@ -91,6 +91,11 @@ public class TransactionInterceptorBuilder {
 		return this;
 	}
 
+	/**
+	 * Provide a {@link TransactionManager} instance to use.
+	 * @param transactionManager the {@link TransactionManager} to use
+	 * @return the builder
+	 */
 	public TransactionInterceptorBuilder transactionManager(TransactionManager transactionManager) {
 		this.transactionInterceptor.setTransactionManager(transactionManager);
 		return this;

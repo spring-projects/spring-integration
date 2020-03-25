@@ -31,6 +31,7 @@ import org.springframework.integration.transaction.TransactionInterceptorBuilder
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
@@ -193,14 +194,14 @@ public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpe
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
-	 * {@code PlatformTransactionManager} and default
+	 * {@link TransactionManager} and default
 	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
 	 * for the {@link org.springframework.messaging.MessageHandler}.
-	 * @param transactionManager the {@link PlatformTransactionManager} to use.
+	 * @param transactionManager the {@link TransactionManager} to use.
 	 * @return the spec.
-	 * @since 5.0.8
+	 * @since 5.2.5
 	 */
-	public DelayerEndpointSpec transactionalRelease(PlatformTransactionManager transactionManager) {
+	public DelayerEndpointSpec transactionalRelease(TransactionManager transactionManager) {
 		return transactionalRelease(
 				new TransactionInterceptorBuilder()
 						.transactionManager(transactionManager)

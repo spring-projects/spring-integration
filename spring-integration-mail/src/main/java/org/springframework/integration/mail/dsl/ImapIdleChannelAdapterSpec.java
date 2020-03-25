@@ -43,7 +43,7 @@ import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.PropertiesBuilder;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
@@ -311,14 +311,15 @@ public class ImapIdleChannelAdapterSpec
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
-	 * {@code PlatformTransactionManager} and default
+	 * {@link TransactionManager} and default
 	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
 	 * for the downstream flow.
-	 * @param transactionManager the {@link PlatformTransactionManager} to use.
+	 * @param transactionManager the {@link TransactionManager} to use.
 	 * @return the spec.
+	 * @since 5.2.5
 	 */
-	public ImapIdleChannelAdapterSpec transactional(PlatformTransactionManager transactionManager) {
-				return transactional(new TransactionInterceptorBuilder(false)
+	public ImapIdleChannelAdapterSpec transactional(TransactionManager transactionManager) {
+		return transactional(new TransactionInterceptorBuilder(false)
 				.transactionManager(transactionManager)
 				.build());
 	}
