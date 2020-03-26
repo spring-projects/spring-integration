@@ -30,7 +30,6 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
@@ -167,7 +166,7 @@ public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpe
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
-	 * {@link PlatformTransactionManager} and
+	 * {@link TransactionManager} and
 	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute} for
 	 * the
 	 * {@link org.springframework.messaging.MessageHandler}.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2019 the original author or authors.
+ * Copyright 2007-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ public abstract class MailTransportUtils {
 	 * @param name The URL name.
 	 * @return The result with password protection.
 	 */
-	public static String toPasswordProtectedString(URLName name) {
+	public static String toPasswordProtectedString(URLName name) { // NOSONAR
 		String protocol = name.getProtocol();
 		String username = name.getUsername();
 		String password = name.getPassword();
