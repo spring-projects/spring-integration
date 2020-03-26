@@ -106,7 +106,7 @@ In general, use one consumer for low-volume queues.
 Not allowed when 'consumers-per-queue' is set.
 Optional.
 <8> Bean reference to the RabbitMQ `ConnectionFactory`.
-Optional (defaults to 'connectionFactory').
+Optional (defaults to `connectionFactory`).
 <9> Message channel to which error messages should be sent.
 Optional.
 <10> Whether the listener channel (com.rabbitmq.client.Channel) is exposed to a registered `ChannelAwareMessageListener`.
@@ -744,7 +744,7 @@ The following listing shows the possible properties for an AMQP Outbound Gateway
 ====
 [source,xml]
 ----
-<int-amqp:outbound-gateway id="outboundGateway"         <1>
+<int-amqp:outbound-gateway id="outboundGateway"               <1>
                            request-channel="myRequestChannel" <2>
                            amqp-template=""                   <3>
                            exchange-name=""                   <4>
@@ -958,24 +958,24 @@ The following listing shows the possible configuration options for an AMQP async
 ====
 [source,xml]
 ----
-<int-amqp:outbound-async-gateway id="asyncOutboundGateway" <1>
+<int-amqp:outbound-async-gateway id="asyncOutboundGateway"    <1>
                            request-channel="myRequestChannel" <2>
-                           async-template="" <3>
-                           exchange-name="" <4>
-                           exchange-name-expression="" <5>
-                           order="1" <6>
-                           reply-channel="" <7>
-                           reply-timeout="" <8>
-                           requires-reply="" <9>
-                           routing-key="" <10>
-                           routing-key-expression="" <11>
-                           default-delivery-mode"" <12>
-                           confirm-correlation-expression="" <13>
-                           confirm-ack-channel="" <14>
-                           confirm-nack-channel="" <15>
-                           confirm-timeout="" <16>
-                           return-channel="" <17>
-                           lazy-connect="true" /> <18>
+                           async-template=""                  <3>
+                           exchange-name=""                   <4>
+                           exchange-name-expression=""        <5>
+                           order="1"                          <6>
+                           reply-channel=""                   <7>
+                           reply-timeout=""                   <8>
+                           requires-reply=""                  <9>
+                           routing-key=""                     <10>
+                           routing-key-expression=""          <11>
+                           default-delivery-mode""            <12>
+                           confirm-correlation-expression=""  <13>
+                           confirm-ack-channel=""             <14>
+                           confirm-nack-channel=""            <15>
+                           confirm-timeout=""                 <16>
+                           return-channel=""                  <17>
+                           lazy-connect="true" />             <18>
 
 ----
 
@@ -1395,13 +1395,12 @@ See the <<header-copy-caution,caution>> that appears later in this section for w
 To override the default and revert to the pre-4.3 behavior, use `STANDARD_REQUEST_HEADERS` and
 `STANDARD_REPLY_HEADERS` in the properties.
 
-TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (such as `thing*` or `*thing`) to be matched.
-`*` matches all headers.
+TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (such as `thing*` or `\*thing`) to be matched.
+The `*` matches all headers.
 
 Starting with version 4.1, the `AbstractHeaderMapper` (a `DefaultAmqpHeaderMapper` superclass) lets the `NON_STANDARD_HEADERS` token be configured for the `requestHeaderNames` and `replyHeaderNames` properties (in addition to the existing `STANDARD_REQUEST_HEADERS` and `STANDARD_REPLY_HEADERS`) to map all user-defined headers.
 
-The `org.springframework.amqp.support.AmqpHeaders` class identifies the default headers that are used by the
-`DefaultAmqpHeaderMapper`:
+The `org.springframework.amqp.support.AmqpHeaders` class identifies the default headers that are used by the `DefaultAmqpHeaderMapper`:
 
 * `amqp_appId`
 * `amqp_clusterId`
@@ -1435,7 +1434,7 @@ The `org.springframework.amqp.support.AmqpHeaders` class identifies the default 
 * `amqp_consumerQueue`
 
 [[header-copy-caution]]
-CAUTION: As mentioned earlier in this section, using a header mapping pattern of`*` is a common way to copy all headers.
+CAUTION: As mentioned earlier in this section, using a header mapping pattern of `\*` is a common way to copy all headers.
 However, this can have some unexpected side effects, because certain RabbitMQ proprietary properties/headers are also copied.
 For example, when you use https://www.rabbitmq.com/federated-exchanges.html[federation], the received message may have a property named `x-received-from`, which contains the node that sent the message.
 If you use the wildcard character `*` for the request and reply header mapping on the inbound gateway, this header is copied, which may cause some issues with federation.
@@ -1456,7 +1455,7 @@ For this purpose a `!json_*` pattern should be configured for header mapper of t
 IMPORTANT: If you have a user-defined header that begins with `!` that you do wish to map, you need to escape it with `\`, as follows: `STANDARD_REQUEST_HEADERS,\!myBangHeader`.
 The header named `!myBangHeader` is now mapped.
 
-NOTE: Starting with _version 5.1_, the `DefaultAmqpHeaderMapper` will fall back to mapping `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` to `MessageProperties.messageId` and `MessageProperties.timestamp` respectively, if the corresponding `amqp_messageId` or `amqp_timestamp` headers are not present on outbound messages.
+NOTE: Starting with version 5.1, the `DefaultAmqpHeaderMapper` will fall back to mapping `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` to `MessageProperties.messageId` and `MessageProperties.timestamp` respectively, if the corresponding `amqp_messageId` or `amqp_timestamp` headers are not present on outbound messages.
 Inbound properties will be mapped to the `amqp_*` headers as before.
 It is useful to populate the `messageId` property when message consumers are using stateful retry.
 
