@@ -277,7 +277,7 @@ See <<json-transformers>> for more information about `JsonObjectMapper` implemen
 
 The `StreamTransformer` transforms `InputStream` payloads to a `byte[]`( or a `String` if a `charset` is provided).
 
-The following example shows how to use the `stream-tansformer` element in XML:
+The following example shows how to use the `stream-transformer` element in XML:
 
 ====
 [source, xml]
@@ -448,6 +448,11 @@ Beginning with version 5.1, the `resultType` can be configured as `BYTES` to pro
 Starting with version 5.2, the `JsonToObjectTransformer` can be configured with a `ResolvableType` to support generics during deserialization with the target JSON processor.
 Also this component now consults request message headers first for the presence of the `JsonHeaders.RESOLVABLE_TYPE` or `JsonHeaders.TYPE_ID` and falls back to the configured type otherwise.
 The `ObjectToJsonTransformer` now also populates a `JsonHeaders.RESOLVABLE_TYPE` header based on the request message payload for any possible downstream scenarios.
+
+Starting with version 5.2.6, the `JsonToObjectTransformer` can be supplied with a `valueTypeExpression` to resolve a `ResolvableType` for the payload to convert from JSON at runtime against the request message.
+By default it consults `JsonHeaders` in the request message.
+If this expression returns `null` or `ResolvableType` building throws a `ClassNotFoundException`, the transformer falls back to the provided `targetType`.
+This logic is present as an expression because `JsonHeaders` may not have real class values, but rather some type ids which have to be mapped to target classes according some external registry.
 
 [[Avro-transformers]]
 ===== Apache Avro Transformers
