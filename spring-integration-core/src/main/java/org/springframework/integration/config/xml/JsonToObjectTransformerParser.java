@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class JsonToObjectTransformerParser extends AbstractTransformerParser {
@@ -45,6 +46,10 @@ public class JsonToObjectTransformerParser extends AbstractTransformerParser {
 		if (StringUtils.hasText(objectMapper)) {
 			builder.addConstructorArgReference(objectMapper);
 		}
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "value-type-expression",
+				"valueTypeExpressionString");
+
 	}
 
 }

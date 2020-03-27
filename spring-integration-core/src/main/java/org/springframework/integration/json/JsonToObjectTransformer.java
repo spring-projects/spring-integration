@@ -21,6 +21,10 @@ import java.io.UncheckedIOException;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.ResolvableType;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
@@ -37,10 +41,12 @@ import org.springframework.util.Assert;
  * factory to get an instance of Jackson JSON-processor
  * if jackson-databind lib is present on the classpath. Any other {@linkplain JsonObjectMapper}
  * implementation can be provided.
- * <p>Since version 3.0, you can omit the target class and the target type can be
+ * <p> Starting version 3.0, you can omit the target class and the target type can be
  * determined by the {@link JsonHeaders} type entries - including the contents of a
  * one-level container or map type.
- * <p>The type headers can be classes or fully-qualified class names.
+ * <p> The type headers can be classes or fully-qualified class names.
+ * <p> Starting version 5.2.6, a SpEL expression option is provided to let to build a target
+ *{@link ResolvableType} somehow externally.
  *
  * @author Mark Fisher
  * @author Artem Bilan
@@ -49,7 +55,7 @@ import org.springframework.util.Assert;
  *
  * @see JsonObjectMapper
  * @see org.springframework.integration.support.json.JsonObjectMapperProvider
- *
+ * @see ResolvableType
  */
 public class JsonToObjectTransformer extends AbstractTransformer implements BeanClassLoaderAware {
 
@@ -58,6 +64,12 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 	private final JsonObjectMapper<?, ?> jsonObjectMapper;
 
 	private ClassLoader classLoader;
+
+	private Expression valueTypeExpression =
+			new FunctionExpression<Message<?>>((message) ->
+					obtainResolvableTypeFromHeadersIfAny(message.getHeaders(), this.classLoader));
+
+	private EvaluationContext evaluationContext;
 
 	public JsonToObjectTransformer() {
 		this((Class<?>) null);
@@ -104,17 +116,52 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		}
 	}
 
+	/**
+	 * Configure a SpEL expression to evaluate a {@link ResolvableType}
+	 * to instantiate the payload from the incoming JSON.
+	 * By default this transformer consults {@link JsonHeaders} in the request message.
+	 * If this expression returns {@code null} or {@link ResolvableType} building throws a
+	 * {@link ClassNotFoundException}, this transformer falls back to the provided {@link #targetType}.
+	 * This logic is present as an expression because {@link JsonHeaders} may not have real class values,
+	 * but rather some type ids which have to be mapped to target classes according some external registry.
+	 * @param valueTypeExpressionString the SpEL expression to use.
+	 * @since 5.2.6
+	 */
+	public void setValueTypeExpressionString(String valueTypeExpressionString) {
+		setValueTypeExpression(EXPRESSION_PARSER.parseExpression(valueTypeExpressionString));
+	}
+
+	/**
+	 * Configure a SpEL {@link Expression} to evaluate a {@link ResolvableType}
+	 * to instantiate the payload from the incoming JSON.
+	 * By default this transformer consults {@link JsonHeaders} in the request message.
+	 * If this expression returns {@code null} or {@link ResolvableType} building throws a
+	 * {@link ClassNotFoundException}, this transformer falls back to the provided {@link #targetType}.
+	 * This logic is present as an expression because {@link JsonHeaders} may not have real class values,
+	 * but rather some type ids which have to be mapped to target classes according some external registry.
+	 * @param valueTypeExpression the SpEL {@link Expression} to use.
+	 * @since 5.2.6
+	 */
+	public void setValueTypeExpression(Expression valueTypeExpression) {
+		this.valueTypeExpression = valueTypeExpression;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "json-to-object-transformer";
 	}
 
 	@Override
-	protected Object doTransform(Message<?> message) {
-		MessageHeaders headers = message.getHeaders();
-		boolean removeHeaders = false;
-		ResolvableType valueType = obtainResolvableTypeFromHeadersIfAny(headers);
+	protected void onInit() {
+		super.onInit();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+	}
 
+	@Override
+	protected Object doTransform(Message<?> message) {
+		ResolvableType valueType = obtainResolvableType(message);
+
+		boolean removeHeaders = false;
 		if (valueType != null) {
 			removeHeaders = true;
 		}
@@ -134,7 +181,7 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		if (removeHeaders) {
 			return getMessageBuilderFactory()
 					.withPayload(result)
-					.copyHeaders(headers)
+					.copyHeaders(message.getHeaders())
 					.removeHeaders(JsonHeaders.HEADERS.toArray(new String[0]))
 					.build();
 		}
@@ -144,12 +191,31 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 	}
 
 	@Nullable
-	private ResolvableType obtainResolvableTypeFromHeadersIfAny(MessageHeaders headers) {
+	private ResolvableType obtainResolvableType(Message<?> message) {
+		try {
+			return this.valueTypeExpression.getValue(this.evaluationContext, message, ResolvableType.class);
+		}
+		catch (Exception ex) {
+			if (ex.getCause() instanceof ClassNotFoundException) {
+				logger.info("Cannot build a ResolvableType from a request message '" + message +
+						"' evaluating expression '" + this.valueTypeExpression.getExpressionString() + "'", ex);
+				return null;
+			}
+			else {
+				throw ex;
+			}
+		}
+	}
+
+	@Nullable
+	private static ResolvableType obtainResolvableTypeFromHeadersIfAny(MessageHeaders headers,
+			ClassLoader classLoader) {
+
 		Object valueType = headers.get(JsonHeaders.RESOLVABLE_TYPE);
 		Object typeIdHeader = headers.get(JsonHeaders.TYPE_ID);
 		if (!(valueType instanceof ResolvableType) && typeIdHeader != null) {
 			valueType =
-					JsonHeaders.buildResolvableType(this.classLoader, typeIdHeader,
+					JsonHeaders.buildResolvableType(classLoader, typeIdHeader,
 							headers.get(JsonHeaders.CONTENT_TYPE_ID), headers.get(JsonHeaders.KEY_TYPE_ID));
 		}
 		return valueType instanceof ResolvableType

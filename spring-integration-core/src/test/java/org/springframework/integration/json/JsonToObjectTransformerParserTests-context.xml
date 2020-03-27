@@ -8,7 +8,8 @@
 		https://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<json-to-object-transformer id="defaultJacksonMapperTransformer" input-channel="defaultObjectMapperInput"
-			type="org.springframework.integration.json.TestPerson"/>
+			type="org.springframework.integration.json.TestPerson"
+			value-type-expression="T (Class).forName('non.existing.type')"/>
 
 	<json-to-object-transformer id="customJsonMapperTransformer" input-channel="customJsonObjectMapperInput"
 			type="org.springframework.integration.json.TestPerson"
