@@ -96,7 +96,7 @@ public class JsonToObjectTransformerParserTests {
 		verify(logger).info(stringArgumentCaptor.capture(), any(Exception.class));
 		String logMessage = stringArgumentCaptor.getValue();
 
-		assertThat(logMessage).startsWith("Cannot build a ResolvableType from a request message");
+		assertThat(logMessage).startsWith("Cannot build a ResolvableType from the request message");
 	}
 
 	@Test

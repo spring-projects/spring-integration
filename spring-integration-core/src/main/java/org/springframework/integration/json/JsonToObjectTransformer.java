@@ -41,11 +41,11 @@ import org.springframework.util.Assert;
  * factory to get an instance of Jackson JSON-processor
  * if jackson-databind lib is present on the classpath. Any other {@linkplain JsonObjectMapper}
  * implementation can be provided.
- * <p> Starting version 3.0, you can omit the target class and the target type can be
+ * <p> Since version 3.0, you can omit the target class and the target type can be
  * determined by the {@link JsonHeaders} type entries - including the contents of a
  * one-level container or map type.
  * <p> The type headers can be classes or fully-qualified class names.
- * <p> Starting version 5.2.6, a SpEL expression option is provided to let to build a target
+ * <p> Since version 5.2.6, a SpEL expression option is provided to let to build a target
  *{@link ResolvableType} somehow externally.
  *
  * @author Mark Fisher
@@ -197,7 +197,7 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		}
 		catch (Exception ex) {
 			if (ex.getCause() instanceof ClassNotFoundException) {
-				logger.info("Cannot build a ResolvableType from a request message '" + message +
+				logger.info("Cannot build a ResolvableType from the request message '" + message +
 						"' evaluating expression '" + this.valueTypeExpression.getExpressionString() + "'", ex);
 				return null;
 			}
