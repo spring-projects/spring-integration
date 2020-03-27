@@ -2647,12 +2647,12 @@
 		</xsd:choice>
 		<xsd:attribute name="type" type="xsd:string">
 			<xsd:annotation>
-				<xsd:documentation source="java:java.lang.Class"><![CDATA[
+				<xsd:documentation source="java:java.lang.Class">
 					Fully qualified name of the java type to be created by this transformer (e.g. foo.bar.Foo)
-				]]></xsd:documentation>
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="object-mapper" use="optional">
+		<xsd:attribute name="object-mapper">
 			<xsd:annotation>
 				<xsd:documentation>
 					Optional reference to a JsonObjectMapper instance.
@@ -2666,6 +2666,16 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="id" type="xsd:string" />
+		<xsd:attribute name="value-type-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The SpEL expression to build a 'ResolvableType' for the payload to convert from incoming JSON.
+					By default this transformer consults 'JsonHeaders' in the request message.
+					If this expression returns null or throws 'ClassNotFoundException', the transformer falls back to
+					the configured 'type'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="payload-serializing-transformer">

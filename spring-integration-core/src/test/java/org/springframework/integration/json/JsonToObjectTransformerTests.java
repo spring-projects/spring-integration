@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -72,8 +73,8 @@ public class JsonToObjectTransformerTests {
 		ObjectMapper customMapper = new ObjectMapper();
 		customMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, Boolean.TRUE);
 		customMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, Boolean.TRUE);
-		JsonToObjectTransformer transformer =
-				new JsonToObjectTransformer(TestPerson.class, new Jackson2JsonObjectMapper(customMapper));
+		JsonToObjectTransformer transformer = new JsonToObjectTransformer(new Jackson2JsonObjectMapper(customMapper));
+		transformer.setValueTypeExpression(new ValueExpression<>(ResolvableType.forClass(TestPerson.class)));
 		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";
 		Message<?> message = transformer.transform(new GenericMessage<>(jsonString));
 		TestPerson person = (TestPerson) message.getPayload();

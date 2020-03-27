@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,15 @@
 package org.springframework.integration.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.apache.commons.logging.Log;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ResolvableType;
@@ -32,8 +37,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
@@ -41,8 +45,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class JsonToObjectTransformerParserTests {
 
 	@Autowired
@@ -63,11 +66,15 @@ public class JsonToObjectTransformerParserTests {
 	private JsonObjectMapper<?, ?> jsonObjectMapper;
 
 	@Test
-	public void defaultObjectMapper() {
+	public void testDefaultObjectMapper() {
 		Object jsonToObjectTransformer =
 				TestUtils.getPropertyValue(this.defaultJacksonMapperTransformer, "transformer");
 		assertThat(TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper").getClass())
 				.isEqualTo(Jackson2JsonObjectMapper.class);
+
+		DirectFieldAccessor dfa = new DirectFieldAccessor(jsonToObjectTransformer);
+		Log logger = (Log) spy(dfa.getPropertyValue("logger"));
+		dfa.setPropertyValue("logger", logger);
 
 		String jsonString =
 				"{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42," +
@@ -84,6 +91,12 @@ public class JsonToObjectTransformerParserTests {
 		assertThat(person.getLastName()).isEqualTo("Doe");
 		assertThat(person.getAge()).isEqualTo(42);
 		assertThat(person.getAddress().toString()).isEqualTo("123 Main Street");
+
+		ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
+		verify(logger).info(stringArgumentCaptor.capture(), any(Exception.class));
+		String logMessage = stringArgumentCaptor.getValue();
+
+		assertThat(logMessage).startsWith("Cannot build a ResolvableType from the request message");
 	}
 
 	@Test
