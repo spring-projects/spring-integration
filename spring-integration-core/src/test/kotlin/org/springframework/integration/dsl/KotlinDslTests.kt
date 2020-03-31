@@ -29,9 +29,9 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.integration.channel.FluxMessageChannel
+import org.springframework.integration.channel.PublishSubscribeChannel
 import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
-import org.springframework.integration.core.GenericSelector
 import org.springframework.integration.core.MessagingTemplate
 import org.springframework.integration.dsl.context.IntegrationFlowContext
 import org.springframework.integration.endpoint.MessageProcessorMessageSource
@@ -248,7 +248,13 @@ class KotlinDslTests {
 		fun messageSourceFlow() =
 				integrationFlow(MessageProcessorMessageSource { "testSource" },
 						{ poller { it.trigger(OnlyOnceTrigger()) } }) {
-					channel { queue("fromSupplierQueue") }
+					publishSubscribe(PublishSubscribeChannel(),
+							{
+								channel { queue("fromSupplierQueue") }
+							},
+							{
+								log<Any>(LoggingHandler.Level.WARN) { "From second subscriber: ${it.payload}"}
+							})
 				}
 
 		@Bean
