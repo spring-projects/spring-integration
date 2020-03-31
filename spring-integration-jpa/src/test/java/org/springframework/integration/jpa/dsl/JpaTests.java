@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.integration.jpa.test.entity.Gender;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.OnlyOnceTrigger;
+import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -57,6 +58,7 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 /**
  * @author Artem Bilan
@@ -230,7 +232,12 @@ public class JpaTests {
 					.handle(Jpa.outboundAdapter(entityManagerFactory)
 									.entityClass(StudentDomain.class)
 									.persistMode(PersistMode.PERSIST),
-							e -> e.transactional(true));
+							e -> e.handleMessageAdvice(transactionInterceptor()));
+		}
+
+		@Bean
+		public TransactionInterceptor transactionInterceptor() {
+			return new TransactionInterceptorBuilder().build();
 		}
 
 		@Bean
