@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
@@ -32,6 +34,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
@@ -65,7 +68,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	/**
-	 * the {@link SessionFactory} for acquiring remote file Sessions.
+	 * The {@link SessionFactory} for acquiring remote file Sessions.
 	 */
 	protected final SessionFactory<F> sessionFactory; // NOSONAR
 
@@ -76,29 +79,29 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	private final AtomicInteger activeTemplateCallbacks = new AtomicInteger();
 
-	private volatile String temporaryFileSuffix = ".writing";
+	private String temporaryFileSuffix = ".writing";
 
-	private volatile boolean autoCreateDirectory = false;
+	private boolean autoCreateDirectory = false;
 
-	private volatile boolean useTemporaryFileName = true;
+	private boolean useTemporaryFileName = true;
 
-	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcessor;
+	private ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcessor;
 
-	private volatile ExpressionEvaluatingMessageProcessor<String> temporaryDirectoryExpressionProcessor;
+	private ExpressionEvaluatingMessageProcessor<String> temporaryDirectoryExpressionProcessor;
 
-	private volatile ExpressionEvaluatingMessageProcessor<String> fileNameProcessor;
+	private ExpressionEvaluatingMessageProcessor<String> fileNameProcessor;
 
-	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+	private FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
-	private volatile boolean fileNameGeneratorSet;
+	private boolean fileNameGeneratorSet;
 
-	private volatile String charset = "UTF-8";
+	private Charset charset = StandardCharsets.UTF_8;
 
-	private volatile String remoteFileSeparator = "/";
+	private String remoteFileSeparator = "/";
 
-	private volatile boolean hasExplicitlySetSuffix;
+	private boolean hasExplicitlySetSuffix;
 
-	private volatile BeanFactory beanFactory;
+	private BeanFactory beanFactory;
 
 	/**
 	 * Construct a {@link RemoteFileTemplate} with the supplied session factory.
@@ -216,7 +219,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	 * @param charset the charset.
 	 */
 	public void setCharset(String charset) {
-		this.charset = charset;
+		this.charset = Charset.forName(charset);
 	}
 
 	/**
@@ -264,12 +267,12 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public String append(final Message<?> message) {
+	public String append(Message<?> message) {
 		return append(message, null);
 	}
 
 	@Override
-	public String append(final Message<?> message, String subDirectory) {
+	public String append(Message<?> message, String subDirectory) {
 		return send(message, subDirectory, FileExistsMode.APPEND);
 	}
 
@@ -279,14 +282,14 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public String send(final Message<?> message, String subDirectory, FileExistsMode... mode) {
+	public String send(Message<?> message, String subDirectory, FileExistsMode... mode) {
 		FileExistsMode modeToUse = mode == null || mode.length < 1 || mode[0] == null
 				? FileExistsMode.REPLACE
 				: mode[0];
 		return send(message, subDirectory, modeToUse);
 	}
 
-	private String send(final Message<?> message, final String subDirectory, final FileExistsMode mode) {
+	private String send(Message<?> message, String subDirectory, FileExistsMode mode) {
 		Assert.notNull(this.directoryExpressionProcessor, "'remoteDirectoryExpression' is required");
 		Assert.isTrue(!FileExistsMode.APPEND.equals(mode) || !this.useTemporaryFileName,
 				"Cannot append when using a temporary file name");
@@ -354,17 +357,17 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public boolean exists(final String path) {
+	public boolean exists(String path) {
 		return execute(session -> session.exists(path));
 	}
 
 	@Override
-	public boolean remove(final String path) {
+	public boolean remove(String path) {
 		return execute(session -> session.remove(path));
 	}
 
 	@Override
-	public void rename(final String fromPath, final String toPath) {
+	public void rename(String fromPath, String toPath) {
 		Assert.hasText(fromPath, "Old filename cannot be null or empty");
 		Assert.hasText(toPath, "New filename cannot be null or empty");
 
@@ -390,7 +393,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public boolean get(final String remotePath, final InputStreamCallback callback) {
+	public boolean get(String remotePath, InputStreamCallback callback) {
 		Assert.notNull(remotePath, "'remotePath' cannot be null");
 		return execute(session -> {
 			try (InputStream inputStream = session.readRaw(remotePath)) {
@@ -419,7 +422,6 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		return this.sessionFactory.getSession();
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public <T> T execute(SessionCallback<F, T> callback) {
 		Session<F> session = null;
@@ -440,7 +442,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			if (session != null) {
 				session.dirty();
 			}
-			if (e instanceof MessagingException) {
+			if (e instanceof MessagingException) { // NOSONAR
 				throw (MessagingException) e;
 			}
 			throw new MessagingException("Failed to execute on session", e);
@@ -498,7 +500,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				}
 			}
 			else if (payload instanceof byte[] || payload instanceof String) {
-				byte[] bytes = null;
+				byte[] bytes;
 				if (payload instanceof String) {
 					bytes = ((String) payload).getBytes(this.charset);
 					name = "String payload";
@@ -512,6 +514,12 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			else if (payload instanceof InputStream) {
 				dataInputStream = (InputStream) payload;
 				name = "InputStream payload";
+			}
+			else if (payload instanceof Resource) {
+				Resource resource = (Resource) payload;
+				dataInputStream = resource.getInputStream();
+				String filename = resource.getFilename();
+				name = filename != null ? filename : "Resource payload";
 			}
 			else {
 				throw new IllegalArgumentException("Unsupported payload type ["
@@ -563,6 +571,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	private void doSend(Session<F> session, FileExistsMode mode, String remoteFilePath, String tempFilePath,
 			InputStream stream) throws IOException {
+
 		boolean rename = this.useTemporaryFileName;
 		if (FileExistsMode.REPLACE.equals(mode)) {
 			session.write(stream, tempFilePath);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +32,16 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.UUID;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -61,13 +63,13 @@ public class RemoteFileTemplateTests {
 
 	private Session<Object> session;
 
-	@Rule
-	public TemporaryFolder folder = new TemporaryFolder();
+	@TempDir
+	Path folder;
 
 	private File file;
 
 	@SuppressWarnings("unchecked")
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		SessionFactory<Object> sessionFactory = mock(SessionFactory.class);
 		this.template = new RemoteFileTemplate<>(sessionFactory);
@@ -76,7 +78,7 @@ public class RemoteFileTemplateTests {
 		this.template.afterPropertiesSet();
 		this.session = mock(Session.class);
 		when(sessionFactory.getSession()).thenReturn(this.session);
-		this.file = this.folder.newFile();
+		this.file = Files.createTempFile(this.folder, null, null).toFile();
 	}
 
 	@Test
@@ -143,6 +145,12 @@ public class RemoteFileTemplateTests {
 	@Test
 	public void testBytes() throws IOException {
 		this.template.send(new GenericMessage<>("foo".getBytes()), FileExistsMode.IGNORE);
+		verify(this.session).write(any(InputStream.class), any());
+	}
+
+	@Test
+	public void testResource() throws IOException {
+		this.template.send(new GenericMessage<>(new ByteArrayResource("foo".getBytes())), FileExistsMode.IGNORE);
 		verify(this.session).write(any(InputStream.class), any());
 	}
 

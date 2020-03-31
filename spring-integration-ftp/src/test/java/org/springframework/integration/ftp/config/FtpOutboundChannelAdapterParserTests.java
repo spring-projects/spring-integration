@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 package org.springframework.integration.ftp.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,18 +46,17 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class FtpOutboundChannelAdapterParserTests {
 
@@ -87,7 +87,7 @@ public class FtpOutboundChannelAdapterParserTests {
 	private FileNameGenerator fileNameGenerator;
 
 	@Test
-	public void testFtpOutboundChannelAdapterComplete() throws Exception {
+	public void testFtpOutboundChannelAdapterComplete() {
 		assertThat(TestUtils.getPropertyValue(ftpOutbound, "inputChannel")).isEqualTo(ftpChannel);
 		assertThat(ftpOutbound.getComponentName()).isEqualTo("ftpOutbound");
 		FileTransferringMessageHandler<?> handler =
@@ -100,7 +100,7 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertThat(remoteFileSeparator).isEqualTo("");
 		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"))
 				.isEqualTo(this.fileNameGenerator);
-		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset")).isEqualTo("UTF-8");
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor")).isNotNull();
 		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"))
 				.isNotNull();
@@ -122,9 +122,12 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(ftpOutbound, "handler.mode")).isEqualTo(FileExistsMode.APPEND);
 	}
 
-	@Test(expected = BeanCreationException.class)
-	public void testFailWithEmptyRfsAndAcdTrue() throws Exception {
-		new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-fail.xml", this.getClass()).close();
+	@Test
+	public void testFailWithEmptyRfsAndAcdTrue() {
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-fail.xml",
+								getClass()));
 	}
 
 	@Test
@@ -139,7 +142,7 @@ public class FtpOutboundChannelAdapterParserTests {
 	@Test
 	public void adviceChain() {
 		MessageHandler handler = TestUtils.getPropertyValue(advisedAdapter, "handler", MessageHandler.class);
-		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
 
@@ -152,7 +155,7 @@ public class FtpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testBeanExpressions() throws Exception {
+	public void testBeanExpressions() {
 		FileTransferringMessageHandler<?> handler =
 				TestUtils.getPropertyValue(withBeanExpressions, "handler", FileTransferringMessageHandler.class);
 		ExpressionEvaluatingMessageProcessor<?> dirExpProc = TestUtils.getPropertyValue(handler,
