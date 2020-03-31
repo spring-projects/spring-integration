@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package org.springframework.integration.ftp.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.nio.charset.StandardCharsets;
+
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -29,17 +30,17 @@ import org.springframework.integration.ftp.session.DefaultFtpsSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class FtpsOutboundChannelAdapterParserTests {
 
@@ -53,15 +54,18 @@ public class FtpsOutboundChannelAdapterParserTests {
 	private FileNameGenerator fileNameGenerator;
 
 	@Test
-	public void testFtpsOutboundChannelAdapterComplete() throws Exception {
-		assertThat(ftpOutbound instanceof EventDrivenConsumer).isTrue();
+	public void testFtpsOutboundChannelAdapterComplete() {
+		assertThat(ftpOutbound).isInstanceOf(EventDrivenConsumer.class);
 		assertThat(TestUtils.getPropertyValue(ftpOutbound, "inputChannel")).isEqualTo(this.ftpChannel);
 		assertThat(ftpOutbound.getComponentName()).isEqualTo("ftpOutbound");
-		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(ftpOutbound, "handler", FileTransferringMessageHandler.class);
+		FileTransferringMessageHandler<?> handler =
+				TestUtils.getPropertyValue(ftpOutbound, "handler", FileTransferringMessageHandler.class);
 		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"))
 				.isEqualTo(this.fileNameGenerator);
-		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset")).isEqualTo("UTF-8");
-		DefaultFtpsSessionFactory sf = TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory", DefaultFtpsSessionFactory.class);
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset")).isEqualTo(StandardCharsets.UTF_8);
+		DefaultFtpsSessionFactory sf =
+				TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory",
+						DefaultFtpsSessionFactory.class);
 		assertThat(TestUtils.getPropertyValue(sf, "host")).isEqualTo("localhost");
 		assertThat(TestUtils.getPropertyValue(sf, "port")).isEqualTo(22);
 	}

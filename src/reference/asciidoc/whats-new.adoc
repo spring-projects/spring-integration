@@ -126,3 +126,9 @@ See <<./mqtt.adoc#mqtt-ack-mode,Manual Acks>> for more information.
 The outbound adapter now publishes a `MqttConnectionFailedEvent` when a connection can't be created, or is lost.
 Previously, only the inbound adapter did so.
 See <<./mqtt.adoc#mqtt-events,MQTT Events>>.
+
+[[x5.3-sftp]]
+=== (S)FTP Changes
+
+The `FileTransferringMessageHandler` (for FTP and SFTP, for example) in addition to `File`, `byte[]`, `String` and `InputStream` now also supports an `org.springframework.core.io.Resource`.
+See <<./sftp.adoc#sftp,SFTP Support>> and <<./ftp.adoc#ftp,FTP Support>> for more information.

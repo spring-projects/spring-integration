@@ -822,6 +822,8 @@ Similar to the FTP outbound adapter, the SFTP outbound channel adapter supports 
 * `java.io.File`: The actual file object
 * `byte[]`: A byte array that represents the file contents
 * `java.lang.String`: Text that represents the file contents
+* `java.io.InputStream`: a stream of data to transfer to remote file
+* `org.springframework.core.io.Resource`: a resource for data to transfer to remote file
 
 The following example shows how to configure an SFTP outbound channel adapter:
 
@@ -852,7 +854,15 @@ In the preceding example, we define the `remote-filename-generator-expression` a
 
 Starting with version 4.1, you can specify the `mode` when you transferring the file.
 By default, an existing file is overwritten.
-The modes are defined by the `FileExistsMode` enumeration, which has the following values: `REPLACE` (default), `APPEND`, `IGNORE`, and `FAIL`.
+The modes are defined by the `FileExistsMode` enumeration, which includes the following values:
+
+* `REPLACE` (default)
+* `REPLACE_IF_MODIFIED`
+* `APPEND`
+* `APPEND_NO_FLUSH`
+* `IGNORE`
+* `FAIL`
+
 With `IGNORE` and `FAIL`, the file is not transferred.
 `FAIL` causes an exception to be thrown, while `IGNORE` silently ignores the transfer (although a `DEBUG` log entry is produced).
 
