@@ -818,19 +818,24 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	private boolean isMethodEligible(Method methodToProcess) {
-		return (!(methodToProcess.isBridge() || // NOSONAR boolean complexity
+		return !(methodToProcess.isBridge() || // NOSONAR boolean complexity
 				isMethodDefinedOnObjectClass(methodToProcess) ||
 				methodToProcess.getDeclaringClass().equals(Proxy.class) ||
 				(this.requiresReply && void.class.equals(methodToProcess.getReturnType())) ||
-				(this.methodName != null && !this.methodName.equals(methodToProcess.getName()))))
-			&& !isPausableMethod(methodToProcess);
+				(this.methodName != null && !this.methodName.equals(methodToProcess.getName())) ||
+				(this.methodName == null && isPausableMethod(methodToProcess)));
 	}
 
 	private boolean isPausableMethod(Method pausableMethod) {
 		Class<?> declaringClass = pausableMethod.getDeclaringClass();
-		return (Pausable.class.isAssignableFrom(declaringClass) || Lifecycle.class.isAssignableFrom(declaringClass))
+		boolean pausable = (Pausable.class.isAssignableFrom(declaringClass)
+					|| Lifecycle.class.isAssignableFrom(declaringClass))
 				&& ReflectionUtils.findMethod(Pausable.class, pausableMethod.getName(),
 						pausableMethod.getParameterTypes()) != null;
+		if (pausable && this.logger.isTraceEnabled()) {
+			this.logger.trace(pausableMethod + " is not considered a candidate method unless explicitly requested");
+		}
+		return pausable;
 	}
 
 	private void populateHandlerMethod(Map<Class<?>, HandlerMethod> candidateMethods,

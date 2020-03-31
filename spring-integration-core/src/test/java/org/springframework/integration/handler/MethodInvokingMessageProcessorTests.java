@@ -1176,9 +1176,11 @@ public class MethodInvokingMessageProcessorTests {
 
 	@Test
 	void lifecycleOnlyExplicitMethod() {
-		assertThatIllegalStateException().isThrownBy(() ->
-				new MethodInvokingMessageProcessor(new LifecycleBean(), "start"))
-			.withMessageContaining("no eligible methods");
+		LifecycleBean targetObject = new LifecycleBean();
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(targetObject, "start");
+		processor.setBeanFactory(mock(BeanFactory.class));
+		Object result = processor.processMessage(new GenericMessage<>("testing"));
+		assertThat(targetObject.startCalled).isTrue();
 	}
 
 	@Test
@@ -1613,8 +1615,11 @@ public class MethodInvokingMessageProcessorTests {
 
 	public static class LifecycleBean implements Lifecycle {
 
+		boolean startCalled;
+
 		@Override
 		public void start() {
+			this.startCalled = true;
 		}
 
 		@Override
