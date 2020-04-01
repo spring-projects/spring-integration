@@ -51,9 +51,7 @@ import javax.net.ServerSocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -76,8 +74,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionF
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -95,21 +92,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  *
  * @since 2.0
  */
+@LongRunningTest
 public class TcpOutboundGatewayTests {
 
 	private static final Log logger = LogFactory.getLog(TcpOutboundGatewayTests.class);
 
 	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
 
-	@ClassRule
-	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
-
-	@Rule
-	public Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.trace()
-		.categories("org.springframework.integration.ip");
-
 	@Test
-	public void testGoodNetSingle() throws Exception {
+	void testGoodNetSingle() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
@@ -174,7 +165,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testGoodNetMultiplex() throws Exception {
+	void testGoodNetMultiplex() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
@@ -230,7 +221,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testGoodNetTimeout() throws Exception {
+	void testGoodNetTimeout() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
@@ -311,7 +302,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testGoodNetGWTimeout() throws Exception {
+	void testGoodNetGWTimeout() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = buildCF(port);
@@ -321,7 +312,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testGoodNetGWTimeoutCached() throws Exception {
+	void testGoodNetGWTimeoutCached() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = buildCF(port);
@@ -453,7 +444,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testCachingFailover() throws Exception {
+	void testCachingFailover() throws Exception {
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -535,7 +526,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testFailoverCached() throws Exception {
+	void testFailoverCached() throws Exception {
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -626,7 +617,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testNetGWPropagatesSocketClose() throws Exception {
+	void testNetGWPropagatesSocketClose() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
@@ -640,7 +631,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testNioGWPropagatesSocketClose() throws Exception {
+	void testNioGWPropagatesSocketClose() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
@@ -654,7 +645,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testCachedGWPropagatesSocketClose() throws Exception {
+	void testCachedGWPropagatesSocketClose() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
@@ -669,7 +660,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testFailoverGWPropagatesSocketClose() throws Exception {
+	void testFailoverGWPropagatesSocketClose() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
@@ -753,7 +744,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testNetGWPropagatesSocketTimeout() throws Exception {
+	void testNetGWPropagatesSocketTimeout() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
@@ -767,7 +758,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testNioGWPropagatesSocketTimeout() throws Exception {
+	void testNioGWPropagatesSocketTimeout() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
@@ -781,7 +772,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testNetGWPropagatesSocketTimeoutSingleUse() throws Exception {
+	void testNetGWPropagatesSocketTimeoutSingleUse() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
@@ -795,7 +786,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testNioGWPropagatesSocketTimeoutSingleUse() throws Exception {
+	void testNioGWPropagatesSocketTimeoutSingleUse() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
@@ -860,7 +851,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testNioSecondChance() throws Exception {
+	void testNioSecondChance() throws Exception {
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = server.getLocalPort();
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
@@ -916,12 +907,12 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testAsyncSingle() throws Exception {
+	void testAsyncSingle() throws Exception {
 		testAsync(true);
 	}
 
 	@Test
-	public void testAsyncShared() throws Exception {
+	void testAsyncShared() throws Exception {
 		testAsync(false);
 	}
 
@@ -1011,7 +1002,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test
-	public void testAsyncTimeout() throws Exception {
+	void testAsyncTimeout() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final CountDownLatch doneLatch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();

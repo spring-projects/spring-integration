@@ -163,11 +163,12 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		boolean haveSemaphore = false;
 		TcpConnection connection = null;
 		String connectionId = null;
+		boolean async = isAsync();
 		try {
 			haveSemaphore = acquireSemaphoreIfNeeded(requestMessage);
 			connection = this.connectionFactory.getConnection();
 			Long remoteTimeout = getRemoteTimeout(requestMessage);
-			AsyncReply reply = new AsyncReply(remoteTimeout, connection, haveSemaphore, requestMessage);
+			AsyncReply reply = new AsyncReply(remoteTimeout, connection, haveSemaphore, requestMessage, async);
 			connectionId = connection.getConnectionId();
 			this.pendingReplies.put(connectionId, reply);
 			if (logger.isDebugEnabled()) {
@@ -177,7 +178,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			if (this.closeStreamAfterSend) {
 				connection.shutdownOutput();
 			}
-			if (isAsync()) {
+			if (async) {
 				return reply.getFuture();
 			}
 			else {
@@ -196,7 +197,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			throw new MessageHandlingException(requestMessage, "Interrupted in the [" + this + ']', e);
 		}
 		finally {
-			if (!isAsync()) {
+			if (!async) {
 				cleanUp(haveSemaphore, connection, connectionId);
 			}
 		}
@@ -405,13 +406,15 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		private volatile Message<?> reply;
 
-		AsyncReply(long remoteTimeout, TcpConnection connection, boolean haveSemaphore, Message<?> requestMessage) {
+		AsyncReply(long remoteTimeout, TcpConnection connection, boolean haveSemaphore, Message<?> requestMessage,
+				boolean async) {
+
 			this.latch = new CountDownLatch(1);
 			this.secondChanceLatch = new CountDownLatch(1);
 			this.remoteTimeout = remoteTimeout;
 			this.connection = connection;
 			this.haveSemaphore = haveSemaphore;
-			if (isAsync() && remoteTimeout > 0) {
+			if (async && remoteTimeout > 0) {
 				getTaskScheduler().schedule(() -> {
 					TcpOutboundGateway.this.pendingReplies.remove(connection.getConnectionId());
 					this.future.setException(

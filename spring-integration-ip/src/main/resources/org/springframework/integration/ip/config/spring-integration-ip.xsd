@@ -464,7 +464,7 @@
 			<xsd:attribute name="remote-timeout-expression" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Specifies an expresssion that is evaluated against the outbound message
+						Specifies an expression that is evaluated against the outbound message
 						to determine the time the gateway will wait for a reply
 						from the remote system. Mutually exclusive with
 						'remote-timeout'.
