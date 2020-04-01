@@ -23,6 +23,8 @@ include::./messaging-endpoints.adoc[]
 
 include::./dsl.adoc[]
 
+include::./kotlin-dsl.adoc[]
+
 include::./system-management.adoc[]
 
 include::./endpoint-summary.adoc[]

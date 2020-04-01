@@ -2,8 +2,8 @@
 
 include::./index-header.adoc[]
 
-Welcome to the Spring Integration reference documentation! This documentation is also available
-as single searchable link:index-single.html[html] and link:../pdf/spring-integration-reference.pdf[pdf] documents.
+Welcome to the Spring Integration reference documentation!
+This documentation is also available as single searchable link:index-single.html[html] and link:../pdf/spring-integration-reference.pdf[pdf] documents.
 
 [horizontal]
 <<./preface.adoc#preface,Preface>> ::
@@ -15,6 +15,7 @@ as single searchable link:index-single.html[html] and link:../pdf/spring-integra
 <<./message-transformation.adoc#messaging-transformation-chapter,Message Transformation>> ::
 <<./messaging-endpoints.adoc#messaging-endpoints-chapter,Messaging Endpoints>> ::
 <<./dsl.adoc#java-dsl,Java DSL>> ::
+<<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>> ::
 <<./system-management.adoc#system-management-chapter,System Management>> ::
 <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> ::
 

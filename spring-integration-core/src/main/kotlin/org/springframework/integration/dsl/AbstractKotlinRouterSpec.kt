@@ -29,7 +29,8 @@ import org.springframework.messaging.MessageChannel
  * @since 5.3
  */
 abstract class AbstractKotlinRouterSpec<S : AbstractRouterSpec<S, R>, R : AbstractMessageRouter>(
-		open val delegate: AbstractRouterSpec<S, R>) {
+		open val delegate: AbstractRouterSpec<S, R>)
+	: ConsumerEndpointSpec<S, R>(delegate.handler) {
 
 	fun ignoreSendFailures(ignoreSendFailures: Boolean) {
 		this.delegate.ignoreSendFailures(ignoreSendFailures)

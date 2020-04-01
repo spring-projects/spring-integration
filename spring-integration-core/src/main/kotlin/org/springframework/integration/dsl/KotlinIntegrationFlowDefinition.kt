@@ -19,6 +19,7 @@ package org.springframework.integration.dsl
 import org.reactivestreams.Publisher
 import org.springframework.expression.Expression
 import org.springframework.integration.aggregator.AggregatingMessageHandler
+import org.springframework.integration.channel.BroadcastCapableChannel
 import org.springframework.integration.channel.FluxMessageChannel
 import org.springframework.integration.channel.interceptor.WireTap
 import org.springframework.integration.core.MessageSelector
@@ -54,7 +55,6 @@ import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHandler
 import org.springframework.messaging.MessageHeaders
 import reactor.core.publisher.Flux
-import java.util.concurrent.Executor
 import java.util.function.Consumer
 
 /**
@@ -112,9 +112,9 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	inline fun <reified P> split(
 			crossinline function: (P) -> Any,
-			crossinline configurer: SplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit) {
+			crossinline configurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit) {
 
-		this.delegate.split(P::class.java, { function(it) }) { configurer(it) }
+		this.delegate.split(P::class.java, { function(it) }) { configurer(KotlinSplitterEndpointSpec(it)) }
 	}
 
 	/**
@@ -131,9 +131,9 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	inline fun <reified P> filter(
 			crossinline function: (P) -> Boolean,
-			crossinline configurer: FilterEndpointSpec.() -> Unit) {
+			crossinline filterConfigurer: KotlinFilterEndpointSpec.() -> Unit) {
 
-		this.delegate.filter(P::class.java, { function(it) }) { configurer(it) }
+		this.delegate.filter(P::class.java, { function(it) }) { filterConfigurer(KotlinFilterEndpointSpec(it)) }
 	}
 
 
@@ -207,22 +207,19 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	}
 
 	/**
-	 * The [org.springframework.integration.channel.PublishSubscribeChannel] `channel()`
+	 * The [org.springframework.integration.channel.BroadcastCapableChannel] `channel()`
 	 * method specific implementation to allow the use of the 'subflow' subscriber capability.
 	 */
-	fun publishSubscribeChannel(publishSubscribeChannelConfigurer: PublishSubscribeSpec.() -> Unit) {
-		this.delegate.publishSubscribeChannel(publishSubscribeChannelConfigurer)
-	}
+	fun publishSubscribe(broadcastCapableChannel: BroadcastCapableChannel,
+						 vararg subscribeSubFlows: KotlinIntegrationFlowDefinition.() -> Unit) {
 
-	/**
-	 * The [org.springframework.integration.channel.PublishSubscribeChannel] `channel()`
-	 * method specific implementation to allow the use of the 'subflow' subscriber capability.
-	 * Use the provided [Executor] for the target subscribers.
-	 */
-	fun publishSubscribeChannel(executor: Executor,
-								publishSubscribeChannelConfigurer: PublishSubscribeSpec.() -> Unit) {
-
-		this.delegate.publishSubscribeChannel(executor, Consumer(publishSubscribeChannelConfigurer))
+		val publishSubscribeChannelConfigurer =
+				Consumer<BroadcastPublishSubscribeSpec> { spec ->
+					subscribeSubFlows.forEach { subFlow ->
+						spec.subscribe { subFlow(KotlinIntegrationFlowDefinition(it)) }
+					}
+				}
+		this.delegate.publishSubscribeChannel(broadcastCapableChannel, publishSubscribeChannelConfigurer)
 	}
 
 	/**
@@ -331,10 +328,10 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 	/**
 	 * Populate a [MessageFilter] with [MessageSelector] for the provided SpEL expression.
-	 * In addition accept options for the integration endpoint using [FilterEndpointSpec]:
+	 * In addition accept options for the integration endpoint using [KotlinFilterEndpointSpec]:
 	 */
-	fun filter(expression: String, endpointConfigurer: FilterEndpointSpec.() -> Unit = {}) {
-		this.delegate.filter(expression, endpointConfigurer)
+	fun filter(expression: String, filterConfigurer: KotlinFilterEndpointSpec.() -> Unit = {}) {
+		this.delegate.filter(expression) { filterConfigurer(KotlinFilterEndpointSpec(it)) }
 	}
 
 	/**
@@ -349,18 +346,19 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate a [MessageFilter] with [MethodInvokingSelector] for the
 	 * method of the provided service.
 	 */
-	fun filter(service: Any, methodName: String?, endpointConfigurer: FilterEndpointSpec.() -> Unit) {
-		this.delegate.filter(service, methodName, endpointConfigurer)
+	fun filter(service: Any, methodName: String?, filterConfigurer: KotlinFilterEndpointSpec.() -> Unit) {
+		this.delegate.filter(service, methodName) { filterConfigurer(KotlinFilterEndpointSpec(it)) }
 	}
 
 	/**
 	 * Populate a [MessageFilter] with [MethodInvokingSelector]
 	 * for the [MessageProcessor] from
 	 * the provided [MessageProcessorSpec].
-	 * In addition accept options for the integration endpoint using [FilterEndpointSpec].
+	 * In addition accept options for the integration endpoint using [KotlinFilterEndpointSpec].
 	 */
-	fun filter(messageProcessorSpec: MessageProcessorSpec<*>, endpointConfigurer: FilterEndpointSpec.() -> Unit = {}) {
-		this.delegate.filter(messageProcessorSpec, endpointConfigurer)
+	fun filter(messageProcessorSpec: MessageProcessorSpec<*>,
+			   filterConfigurer: KotlinFilterEndpointSpec.() -> Unit = {}) {
+		this.delegate.filter(messageProcessorSpec) { filterConfigurer(KotlinFilterEndpointSpec(it)) }
 	}
 
 	/**
@@ -512,8 +510,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * to the current integration flow position
 	 * with provided options.
 	 */
-	fun enrich(enricherConfigurer: EnricherSpec.() -> Unit) {
-		this.delegate.enrich(enricherConfigurer)
+	fun enrich(enricherConfigurer: KotlinEnricherSpec.() -> Unit) {
+		this.delegate.enrich { enricherConfigurer(KotlinEnricherSpec(it)) }
 	}
 
 	/**
@@ -562,9 +560,9 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * SpEL expression.
 	 */
 	fun split(expression: String,
-			  endpointConfigurer: SplitterEndpointSpec<ExpressionEvaluatingSplitter>.() -> Unit = {}) {
+			  endpointConfigurer: KotlinSplitterEndpointSpec<ExpressionEvaluatingSplitter>.() -> Unit = {}) {
 
-		this.delegate.split(expression, endpointConfigurer)
+		this.delegate.split(expression) { endpointConfigurer(KotlinSplitterEndpointSpec(it)) }
 	}
 
 	/**
@@ -578,12 +576,12 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate the [MethodInvokingSplitter] to evaluate the provided
 	 * `method` of the `bean` at runtime.
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
 	 */
 	fun split(service: Any, methodName: String?,
-			  endpointConfigurer: SplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit) {
+			  splitterConfigurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit) {
 
-		this.delegate.split(service, methodName, endpointConfigurer)
+		this.delegate.split(service, methodName) { splitterConfigurer(KotlinSplitterEndpointSpec(it)) }
 	}
 
 	/**
@@ -597,33 +595,33 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate the [MethodInvokingSplitter] to evaluate the provided
 	 * `method` of the `bean` at runtime.
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
 	 */
 	fun split(beanName: String, methodName: String?,
-			  endpointConfigurer: SplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit) {
+			  splitterConfigurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit) {
 
-		this.delegate.split(beanName, methodName, endpointConfigurer)
+		this.delegate.split(beanName, methodName) { splitterConfigurer(KotlinSplitterEndpointSpec(it)) }
 	}
 
 	/**
 	 * Populate the [MethodInvokingSplitter] to evaluate the
 	 * [MessageProcessor] at runtime
 	 * from provided [MessageProcessorSpec].
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
 	 */
 	fun split(messageProcessorSpec: MessageProcessorSpec<*>,
-			  endpointConfigurer: SplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit = {}) {
+			  splitterConfigurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit = {}) {
 
-		this.delegate.split(messageProcessorSpec, endpointConfigurer)
+		this.delegate.split(messageProcessorSpec) { splitterConfigurer(KotlinSplitterEndpointSpec(it)) }
 	}
 
 	/**
 	 * Populate the provided [AbstractMessageSplitter] to the current integration flow position.
 	 */
 	fun <S : AbstractMessageSplitter> split(splitterMessageHandlerSpec: MessageHandlerSpec<*, S>,
-											endpointConfigurer: SplitterEndpointSpec<S>.() -> Unit = {}) {
+											splitterConfigurer: KotlinSplitterEndpointSpec<S>.() -> Unit = {}) {
 
-		this.delegate.split(splitterMessageHandlerSpec, endpointConfigurer)
+		this.delegate.split(splitterMessageHandlerSpec) { splitterConfigurer(KotlinSplitterEndpointSpec(it)) }
 	}
 
 	/**
@@ -631,9 +629,9 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * flow position.
 	 */
 	fun <S : AbstractMessageSplitter> split(splitter: S,
-											endpointConfigurer: SplitterEndpointSpec<S>.() -> Unit = {}) {
+											splitterConfigurer: KotlinSplitterEndpointSpec<S>.() -> Unit = {}) {
 
-		this.delegate.split(splitter, endpointConfigurer)
+		this.delegate.split(splitter) { splitterConfigurer(KotlinSplitterEndpointSpec(it)) }
 	}
 
 	/**
