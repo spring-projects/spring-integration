@@ -488,19 +488,18 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	private StreamHolder payloadToInputStream(Message<?> message) throws MessageDeliveryException {
+		Object payload = message.getPayload();
 		try {
-			Object payload = message.getPayload();
-			InputStream dataInputStream = null;
-			String name = null;
 			if (payload instanceof File) {
 				File inputFile = (File) payload;
 				if (inputFile.exists()) {
-					dataInputStream = new BufferedInputStream(new FileInputStream(inputFile));
-					name = inputFile.getAbsolutePath();
+					return new StreamHolder(
+							new BufferedInputStream(new FileInputStream(inputFile)), inputFile.getAbsolutePath());
 				}
 			}
 			else if (payload instanceof byte[] || payload instanceof String) {
 				byte[] bytes;
+				String name;
 				if (payload instanceof String) {
 					bytes = ((String) payload).getBytes(this.charset);
 					name = "String payload";
@@ -509,17 +508,15 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 					bytes = (byte[]) payload;
 					name = "byte[] payload";
 				}
-				dataInputStream = new ByteArrayInputStream(bytes);
+				return new StreamHolder(new ByteArrayInputStream(bytes), name);
 			}
 			else if (payload instanceof InputStream) {
-				dataInputStream = (InputStream) payload;
-				name = "InputStream payload";
+				return new StreamHolder((InputStream) payload, "InputStream payload");
 			}
 			else if (payload instanceof Resource) {
 				Resource resource = (Resource) payload;
-				dataInputStream = resource.getInputStream();
 				String filename = resource.getFilename();
-				name = filename != null ? filename : "Resource payload";
+				return new StreamHolder(resource.getInputStream(), filename != null ? filename : "Resource payload");
 			}
 			else {
 				throw new IllegalArgumentException("Unsupported payload type ["
@@ -527,16 +524,11 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 						+ "]. The only supported payloads are " +
 						"java.io.File, java.lang.String, byte[], and InputStream");
 			}
-			if (dataInputStream == null) {
-				return null;
-			}
-			else {
-				return new StreamHolder(dataInputStream, name);
-			}
 		}
 		catch (Exception e) {
 			throw new MessageDeliveryException(message, "Failed to create sendable file.", e);
 		}
+		return null;
 	}
 
 	private void sendFileToRemoteDirectory(InputStream inputStream, String temporaryRemoteDirectoryArg,
