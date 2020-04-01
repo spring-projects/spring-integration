@@ -685,7 +685,8 @@ In the case of a `MessageHandler` that does not return a response, the advice ch
 
 Starting with version 5.3, the `HandleMessageAdviceAdapter` is present to let apply any existing `MethodInterceptor` for the `MessageHandler.handleMessage()` and, therefore, whole sub-flow.
 For example a `RetryOperationsInterceptor` could be applied for the whole sub-flow starting from some endpoint, which is not possible by default because consumer endpoint applies advices only for the `AbstractReplyProducingMessageHandler.RequestHandler.handleRequestMessage()`.
-See `HandleMessageAdviceAdapter` JavaDocs for more information.
+Starting with version 5.3, the `HandleMessageAdviceAdapter` is provided to apply any `MethodInterceptor` for the `MessageHandler.handleMessage()` method and, therefore, the whole sub-flow.
+For example, a `RetryOperationsInterceptor` could be applied to the whole sub-flow starting from some endpoint; this is not possible, by default, because the consumer endpoint applies advices only to the `AbstractReplyProducingMessageHandler.RequestHandler.handleRequestMessage()`.
 
 [[tx-handle-message-advice]]
 ==== Transaction Support
