@@ -22,12 +22,14 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 import org.aopalliance.aop.Advice;
+import org.aopalliance.intercept.MethodInterceptor;
 import org.reactivestreams.Publisher;
 
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.advice.HandleMessageAdviceAdapter;
 import org.springframework.integration.handler.advice.ReactiveRequestHandlerAdvice;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -98,6 +100,21 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	public S taskScheduler(TaskScheduler taskScheduler) {
 		Assert.notNull(taskScheduler, "'taskScheduler' must not be null");
 		this.endpointFactoryBean.setTaskScheduler(taskScheduler);
+		return _this();
+	}
+
+	/**
+	 * Configure a list of {@link MethodInterceptor} objects to be applied, in nested order, to the
+	 * endpoint's handler. The advice objects are applied to the {@code handleMessage()} method
+	 * and therefore to the whole sub-flow afterwards.
+	 * @param interceptors the advice chain.
+	 * @return the endpoint spec.
+	 * @since 5.3
+	 */
+	public S handleMessageAdvice(MethodInterceptor... interceptors) {
+		for (MethodInterceptor interceptor: interceptors) {
+			advice(new HandleMessageAdviceAdapter(interceptor));
+		}
 		return _this();
 	}
 

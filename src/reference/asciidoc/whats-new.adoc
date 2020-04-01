@@ -46,6 +46,12 @@ See <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL Chapter>> for more information.
 A `ReactiveRequestHandlerAdvice` is provided to customize `Mono` replies from message handlers.
 See <<./handler-advice.adoc#reactive-advice,Reactive Advice>> for more information.
 
+[[x5.3-reactive-request-handler-advice]]
+==== HandleMessageAdviceAdapter
+
+A `HandleMessageAdviceAdapter` is provided to wrap any `MethodInterceptor` for applying on the `MessageHandler.handleMessage()` instead of a default `AbstractReplyProducingMessageHandler.RequestHandler.handleRequestMessage()` behavior.
+See <<./handler-advice.adoc#handle-message-advice,Handling Message Advice>> for more information.
+
 [[x5.3-mongodb-reactive-channel-adapters]]
 ==== MongoDB Reactive Channel Adapters
 
