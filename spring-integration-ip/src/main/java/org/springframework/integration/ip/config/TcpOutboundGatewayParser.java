@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ public class TcpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.REPLY_TIMEOUT, "sendTimeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "close-stream-after-send");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "async");
 		return builder;
 	}
 

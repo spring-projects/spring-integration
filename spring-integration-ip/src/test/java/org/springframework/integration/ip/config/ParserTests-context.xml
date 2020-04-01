@@ -248,6 +248,7 @@
 		order="24"
 		auto-startup="false"
 		phase="127"
+		async="true"
 		/>
 
 	<int:channel id="tcpAdviceGateChannel">

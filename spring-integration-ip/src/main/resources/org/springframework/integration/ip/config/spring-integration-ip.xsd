@@ -464,7 +464,7 @@
 			<xsd:attribute name="remote-timeout-expression" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Specifies an expresssion that is evaluated against the outbound message
+						Specifies an expression that is evaluated against the outbound message
 						to determine the time the gateway will wait for a reply
 						from the remote system. Mutually exclusive with
 						'remote-timeout'.
@@ -487,6 +487,16 @@
 						the reply. Requires 'single-use' set to 'true'.
 					</xsd:documentation>
 				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="async" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set to true for async request/reply - see reference manual.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
 			</xsd:attribute>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
