@@ -1184,7 +1184,7 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
-	void lifecycleWithValidStartMethid() {
+	void lifecycleWithValidStartMethod() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new LifeCycleWithCustomStart(),
 				(String) null);
 		processor.setBeanFactory(mock(BeanFactory.class));
