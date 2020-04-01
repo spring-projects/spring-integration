@@ -68,7 +68,7 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	 */
 	public TcpOutboundGatewaySpec remoteTimeout(long remoteTimeout) {
 		this.target.setRemoteTimeout(remoteTimeout);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -86,7 +86,7 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	 */
 	public <P> TcpOutboundGatewaySpec remoteTimeout(Function<Message<P>, ?> remoteTimeoutFunction) {
 		this.target.setRemoteTimeoutExpression(new FunctionExpression<>(remoteTimeoutFunction));
-		return _this();
+		return this;
 	}
 
 	/**
@@ -100,7 +100,18 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	 */
 	public TcpOutboundGatewaySpec closeStreamAfterSend(boolean closeStreamAfterSend) {
 		this.target.setCloseStreamAfterSend(closeStreamAfterSend);
-		return _this();
+		return this;
+	}
+
+	/**
+	 * Set to true to release the sending thread and receive the reply asynchronously.
+	 * @param async true for asynchronous request/reply.
+	 * @return the spec.
+	 * @since 5.3
+	 */
+	public TcpOutboundGatewaySpec async(boolean async) {
+		this.target.setAsync(async);
+		return this;
 	}
 
 	@Override
