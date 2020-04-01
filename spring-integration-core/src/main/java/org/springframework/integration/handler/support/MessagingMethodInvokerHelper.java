@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,7 @@ import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.UseSpelInvoker;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.Pausable;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
@@ -97,7 +98,6 @@ import org.springframework.messaging.handler.invocation.MethodArgumentResolution
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -823,9 +823,19 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 				methodToProcess.getDeclaringClass().equals(Proxy.class) ||
 				(this.requiresReply && void.class.equals(methodToProcess.getReturnType())) ||
 				(this.methodName != null && !this.methodName.equals(methodToProcess.getName())) ||
-				(this.methodName == null &&
-						ObjectUtils.containsElement(new String[] { "start", "stop", "isRunning" },
-								methodToProcess.getName())));
+				(this.methodName == null && isPausableMethod(methodToProcess)));
+	}
+
+	private boolean isPausableMethod(Method pausableMethod) {
+		Class<?> declaringClass = pausableMethod.getDeclaringClass();
+		boolean pausable = (Pausable.class.isAssignableFrom(declaringClass)
+					|| Lifecycle.class.isAssignableFrom(declaringClass))
+				&& ReflectionUtils.findMethod(Pausable.class, pausableMethod.getName(),
+						pausableMethod.getParameterTypes()) != null;
+		if (pausable && this.logger.isTraceEnabled()) {
+			this.logger.trace(pausableMethod + " is not considered a candidate method unless explicitly requested");
+		}
+		return pausable;
 	}
 
 	private void populateHandlerMethod(Map<Class<?>, HandlerMethod> candidateMethods,
