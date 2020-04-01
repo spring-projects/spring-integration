@@ -74,6 +74,7 @@ import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
+import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
@@ -104,8 +105,8 @@ public class TcpOutboundGatewayTests {
 	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Rule
-	public Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.trace();
-
+	public Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.trace()
+		.categories("org.springframework.integration.ip");
 
 	@Test
 	public void testGoodNetSingle() throws Exception {
@@ -943,7 +944,12 @@ public class TcpOutboundGatewayTests {
 						InputStream is = socket.getInputStream();
 						OutputStream os = socket.getOutputStream();
 						ByteArrayCrLfSerializer deser = new ByteArrayCrLfSerializer();
-						deser.deserialize(is);
+						try {
+							deser.deserialize(is);
+						}
+						catch (SoftEndOfStreamException e) {
+							continue;
+						}
 						deser.serialize(("reply" + ++i).getBytes(), os);
 						if (!singleUse) {
 							deser.deserialize(is);

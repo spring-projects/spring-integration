@@ -134,7 +134,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 					setAsync(false);
 					this.logger.warn("Async replies are not supported with NIO; see the reference manual");
 				}
-				connection.close();
+				if (this.isSingleUse) {
+					connection.close();
+				}
 			}
 			catch (Exception e) {
 				this.logger.error("Could not check if async is supported", e);
