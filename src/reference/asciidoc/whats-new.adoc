@@ -111,6 +111,9 @@ See <<./ws.adoc#ws,Web Services Support>> for more information.
 The `FailoverClientConnectionFactory` no longer fails back, by default, until the current connection fails.
 See <<./ip.adoc#failover-cf,TCP Failover Client Connection Factory>> for more information.
 
+The `TcpOutboundGateway` now supports asynchronous request/reply.
+See <<./ip.adoc#tcp-gateways,TCP Gateways>> for more information.
+
 [[x5.3-rsocket]]
 === RSocket Changes
 

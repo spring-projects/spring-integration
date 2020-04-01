@@ -842,6 +842,14 @@ Starting with version 5.2, the outbound gateway can be configured with the prope
 If the connection factory is configured for `single-use` (a new connection for each request/reply) the gateway will close the output stream; this signals EOF to the server.
 This is useful if the server uses the EOF to determine the end of message, rather than some delimiter in the stream, but leaves the connection open in order to receive the reply.
 
+Normally, the calling thread will block in the gateway, waiting for the reply (or a timeout).
+Starting with version 5.3, you can set the `async` property on the gateway and the sending thread is released to do other work.
+The reply (or error) will be sent on the receiving thread.
+This only applies when using the `TcpNetClientConnectionFactory`, it is ignored when using NIO because there is a race condition whereby a socket error that occurs after the reply is received can be passed to the gateway before the reply.
+
+IMPORTANT: When using a shared connection (`singleUse=false`), a new request, while another is in process, will be blocked until the current reply is received.
+Consider using the `CachingClientConnectionFactory` if you wish to support concurrent requests on a pool of long-lived connections.
+
 [[ip-correlation]]
 === TCP Message Correlation
 
@@ -1982,6 +1990,10 @@ Mutually exclusive with `remote-timeout`.
 |
 | The time in milliseconds for which the gateway waits when sending the reply to the reply-channel.
 Only applies if the reply-channel might block (such as a bounded QueueChannel that is currently full).
+
+| `async`
+|
+| Release the sending thread after the send; the reply (or error) will be sent on the receiving thread.
 |===
 
 .IP Message Headers

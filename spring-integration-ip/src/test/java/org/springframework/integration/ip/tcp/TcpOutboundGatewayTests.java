@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,10 @@ import static org.mockito.Mockito.when;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -71,16 +73,20 @@ import org.springframework.integration.ip.tcp.connection.FailoverClientConnectio
 import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
@@ -906,6 +912,161 @@ public class TcpOutboundGatewayTests {
 		gateway.stop();
 		done.set(true);
 		server.close();
+	}
+
+	@Test
+	public void testAsyncSingle() throws Exception {
+		testAsync(true);
+	}
+
+	@Test
+	public void testAsyncShared() throws Exception {
+		testAsync(false);
+	}
+
+	private void testAsync(boolean singleUse) throws Exception {
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicBoolean done = new AtomicBoolean();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
+		ThreadPoolTaskScheduler sched = new ThreadPoolTaskScheduler();
+		sched.initialize();
+		TcpOutboundGateway gateway = null;
+		try {
+			this.executor.execute(() -> {
+				try {
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 100);
+					serverSocket.set(server);
+					latch.countDown();
+					int i = 0;
+					while (true) {
+						Socket socket = server.accept();
+						InputStream is = socket.getInputStream();
+						OutputStream os = socket.getOutputStream();
+						ByteArrayCrLfSerializer deser = new ByteArrayCrLfSerializer();
+						deser.deserialize(is);
+						deser.serialize(("reply" + ++i).getBytes(), os);
+						if (!singleUse) {
+							deser.deserialize(is);
+							deser.serialize(("reply" + ++i).getBytes(), os);
+						}
+						socket.close();
+					}
+				}
+				catch (Exception e) {
+					if (!done.get()) {
+						e.printStackTrace();
+					}
+				}
+			});
+			assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+			AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
+					serverSocket.get().getLocalPort());
+			ccf.setSoTimeout(10000);
+			ccf.setSingleUse(singleUse);
+			ccf.start();
+			gateway = new TcpOutboundGateway();
+			gateway.setConnectionFactory(ccf);
+			gateway.setAsync(true);
+			QueueChannel replyChannel = new QueueChannel();
+			AtomicReference<Thread> thread = new AtomicReference<>();
+			replyChannel.addInterceptor(new ChannelInterceptor() {
+
+				@Override
+				public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+					thread.set(Thread.currentThread());
+				}
+
+			});
+			gateway.setRequiresReply(true);
+			gateway.setOutputChannel(replyChannel);
+			gateway.setBeanFactory(mock(BeanFactory.class));
+			gateway.setTaskScheduler(sched);
+			gateway.afterPropertiesSet();
+			gateway.handleMessage(MessageBuilder.withPayload("Test1").build());
+			gateway.handleMessage(MessageBuilder.withPayload("Test2").build());
+			Message<?> reply = replyChannel.receive(10000);
+			assertThat(reply).isNotNull();
+			assertThat(reply.getPayload()).isEqualTo("reply1".getBytes());
+			reply = replyChannel.receive(10000);
+			assertThat(reply).isNotNull();
+			assertThat(reply.getPayload()).isEqualTo("reply2".getBytes());
+			assertThat(thread.get()).isNotSameAs(Thread.currentThread());
+		}
+		finally {
+			if (gateway != null) {
+				gateway.stop();
+			}
+			done.set(true);
+			if (serverSocket.get() != null) {
+				serverSocket.get().close();
+			}
+			sched.shutdown();
+		}
+	}
+
+	@Test
+	public void testAsyncTimeout() throws Exception {
+		final CountDownLatch latch = new CountDownLatch(1);
+		final CountDownLatch doneLatch = new CountDownLatch(1);
+		final AtomicBoolean done = new AtomicBoolean();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
+		AbstractClientConnectionFactory ccf = null;
+		ThreadPoolTaskScheduler sched = new ThreadPoolTaskScheduler();
+		sched.initialize();
+		try {
+			this.executor.execute(() -> {
+				try {
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 100);
+					serverSocket.set(server);
+					latch.countDown();
+					int i = 0;
+					while (true) {
+						Socket socket = server.accept();
+						doneLatch.await(10, TimeUnit.SECONDS);
+						socket.close();
+					}
+				}
+				catch (Exception e) {
+					if (!done.get()) {
+						e.printStackTrace();
+					}
+				}
+			});
+			assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+			ccf = new TcpNetClientConnectionFactory("localhost",
+					serverSocket.get().getLocalPort());
+			ccf.setSoTimeout(10000);
+			ccf.start();
+			TcpOutboundGateway gateway = new TcpOutboundGateway();
+			gateway.setConnectionFactory(ccf);
+			gateway.setAsync(true);
+			gateway.setRemoteTimeout(10);
+			QueueChannel replyChannel = new QueueChannel();
+			gateway.setRequiresReply(true);
+			gateway.setOutputChannel(replyChannel);
+			gateway.setBeanFactory(mock(BeanFactory.class));
+			gateway.setTaskScheduler(sched);
+			gateway.afterPropertiesSet();
+			QueueChannel errorChannel = new QueueChannel();
+			gateway.handleMessage(MessageBuilder.withPayload("Test1")
+					.setErrorChannel(errorChannel)
+					.build());
+			Message<?> reply = errorChannel.receive(10000);
+			assertThat(reply).isInstanceOf(ErrorMessage.class);
+			assertThat(reply.getPayload()).isInstanceOf(MessageTimeoutException.class);
+			doneLatch.countDown();
+			gateway.stop();
+		}
+		finally {
+			done.set(true);
+			if (ccf != null) {
+				ccf.stop();
+			}
+			if (serverSocket.get() != null) {
+				serverSocket.get().close();
+			}
+			sched.shutdown();
+		}
 	}
 
 }

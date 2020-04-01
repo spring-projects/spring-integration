@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2019 the original author or authors.
+ * Copyright 2001-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -38,7 +39,9 @@ import org.springframework.integration.ip.tcp.connection.AbstractClientConnectio
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorrelationEvent;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
+import org.springframework.integration.ip.tcp.connection.TcpNioConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -46,6 +49,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
+import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * TCP outbound gateway that uses a client connection factory. If the factory is configured
@@ -123,6 +127,19 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 		Assert.state(!this.closeStreamAfterSend || this.isSingleUse,
 				"Single use connection needed with closeStreamAfterSend");
+		if (isAsync()) {
+			try {
+				TcpConnectionSupport connection = this.connectionFactory.getConnection();
+				if (connection instanceof TcpNioConnectionSupport) {
+					setAsync(false);
+					this.logger.warn("Async replies are not supported with NIO; see the reference manual");
+				}
+				connection.close();
+			}
+			catch (Exception e) {
+				this.logger.error("Could not check if async is supported", e);
+			}
+		}
 	}
 
 	/**
@@ -148,7 +165,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			haveSemaphore = acquireSemaphoreIfNeeded(requestMessage);
 			connection = this.connectionFactory.getConnection();
 			Long remoteTimeout = getRemoteTimeout(requestMessage);
-			AsyncReply reply = new AsyncReply(remoteTimeout);
+			AsyncReply reply = new AsyncReply(remoteTimeout, connection, haveSemaphore, requestMessage);
 			connectionId = connection.getConnectionId();
 			this.pendingReplies.put(connectionId, reply);
 			if (logger.isDebugEnabled()) {
@@ -158,7 +175,12 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			if (this.closeStreamAfterSend) {
 				connection.shutdownOutput();
 			}
-			return getReply(requestMessage, connection, connectionId, reply);
+			if (isAsync()) {
+				return reply.getFuture();
+			}
+			else {
+				return getReply(requestMessage, connection, connectionId, reply);
+			}
 		}
 		catch (RuntimeException | IOException e) {
 			logger.error("Tcp Gateway exception", e);
@@ -172,7 +194,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			throw new MessageHandlingException(requestMessage, "Interrupted in the [" + this + ']', e);
 		}
 		finally {
-			cleanUp(haveSemaphore, connection, connectionId);
+			if (!isAsync()) {
+				cleanUp(haveSemaphore, connection, connectionId);
+			}
 		}
 	}
 
@@ -264,7 +288,13 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				return false;
 			}
 		}
-		reply.setReply(message);
+		if (isAsync()) {
+			reply.getFuture().set(message);
+			cleanUp(reply.isHaveSemaphore(), reply.getConnection(), connectionId);
+		}
+		else {
+			reply.setReply(message);
+		}
 		return false;
 	}
 
@@ -365,19 +395,42 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		private final long remoteTimeout;
 
+		private final TcpConnection connection;
+
+		private final boolean haveSemaphore;
+
+		private final SettableListenableFuture<Message<?>> future = new SettableListenableFuture<>();
+
 		private volatile Message<?> reply;
 
-		private AsyncReply(long remoteTimeout) {
+		AsyncReply(long remoteTimeout, TcpConnection connection, boolean haveSemaphore, Message<?> requestMessage) {
 			this.latch = new CountDownLatch(1);
 			this.secondChanceLatch = new CountDownLatch(1);
 			this.remoteTimeout = remoteTimeout;
+			this.connection = connection;
+			this.haveSemaphore = haveSemaphore;
+			if (isAsync() && remoteTimeout > 0) {
+				getTaskScheduler().schedule(() -> {
+					TcpOutboundGateway.this.pendingReplies.remove(connection.getConnectionId());
+					this.future.setException(
+							new MessageTimeoutException(requestMessage, "Timed out waiting for response"));
+				}, new Date(System.currentTimeMillis() + remoteTimeout));
+			}
+		}
+
+		TcpConnection getConnection() {
+			return this.connection;
+		}
+
+		boolean isHaveSemaphore() {
+			return this.haveSemaphore;
 		}
 
 		/**
 		 * Sender blocks here until the reply is received, or we time out
 		 * @return The return message or null if we time out
 		 */
-		public Message<?> getReply() {
+		Message<?> getReply() {
 			try {
 				if (!this.latch.await(this.remoteTimeout, TimeUnit.MILLISECONDS)) {
 					return null;
@@ -409,6 +462,10 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				}
 			}
 			return this.reply;
+		}
+
+		SettableListenableFuture<Message<?>> getFuture() {
+			return this.future;
 		}
 
 		private void doThrowErrorMessagePayload() {
