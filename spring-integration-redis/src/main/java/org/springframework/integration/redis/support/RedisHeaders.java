@@ -45,4 +45,8 @@ public final class RedisHeaders {
 
 	public static final String MESSAGE_SOURCE = PREFIX + "messageSource";
 
+	public static final String STREAM_KEY = PREFIX + "streamKey";
+
+	public static final String STREAM_MESSAGE_ID = PREFIX + "streamMessageID";
+
 }
