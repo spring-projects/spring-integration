@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -220,7 +220,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		Assert.notNull(ackCallbackFactory, "'ackCallbackFactory' must not be null");
 		Assert.isTrue(
 				!ObjectUtils.isEmpty(consumerProperties.getTopics())
-						|| !ObjectUtils.isEmpty(consumerProperties.getTopicPartitionsToAssign())
+						|| !ObjectUtils.isEmpty(consumerProperties.getTopicPartitions())
 						|| consumerProperties.getTopicPattern() != null,
 				"topics, topicPattern, or topicPartitions must be provided"
 		);
@@ -518,15 +518,15 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 			if (this.consumerProperties.getTopicPattern() != null) {
 				this.consumer.subscribe(this.consumerProperties.getTopicPattern(), rebalanceCallback);
 			}
-			else if (this.consumerProperties.getTopicPartitionsToAssign() != null) {
+			else if (this.consumerProperties.getTopicPartitions() != null) {
 				List<TopicPartition> topicPartitionsToAssign = Arrays
-						.stream(this.consumerProperties.getTopicPartitionsToAssign())
+						.stream(this.consumerProperties.getTopicPartitions())
 						.map(TopicPartitionOffset::getTopicPartition)
 						.collect(Collectors.toList());
 				this.consumer.assign(topicPartitionsToAssign);
 				this.assignedPartitions = new ArrayList<>(topicPartitionsToAssign);
 
-				TopicPartitionOffset[] partitions = this.consumerProperties.getTopicPartitionsToAssign();
+				TopicPartitionOffset[] partitions = this.consumerProperties.getTopicPartitions();
 
 				for (TopicPartitionOffset partition : partitions) {
 					if (TopicPartitionOffset.SeekPosition.BEGINNING.equals(partition.getPosition())) {
