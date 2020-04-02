@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.integration.IntegrationMessageHeaderAccessor
 import org.springframework.integration.MessageRejectedException
+import org.springframework.integration.channel.PublishSubscribeChannel
 import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.Pollers
@@ -283,18 +284,18 @@ class KafkaDslKotlinTests {
 		fun sendToKafkaFlow() =
 				integrationFlow {
 					split<String> { p -> Stream.generate { p }.limit(101) }
-					publishSubscribeChannel {
-						subscribe(integrationFlow {
-							handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
-									.timestampExpression("T(Long).valueOf('1487694048633')")
-							) { id("kafkaProducer1") }
-						})
-						subscribe(integrationFlow {
-							handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
-									.timestamp<Any> { 1487694048644L }
-							) { id("kafkaProducer2") }
-						})
-					}
+					publishSubscribe(PublishSubscribeChannel(),
+							{
+								handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
+										.timestampExpression("T(Long).valueOf('1487694048633')")
+								) { id("kafkaProducer1") }
+							},
+							{
+								handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
+										.timestamp<Any> { 1487694048644L }
+								) { id("kafkaProducer2") }
+							}
+					)
 				}
 
 		@Bean
