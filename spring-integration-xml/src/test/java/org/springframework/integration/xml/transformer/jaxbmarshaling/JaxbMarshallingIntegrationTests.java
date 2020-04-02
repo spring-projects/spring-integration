@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,67 +20,96 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import javax.xml.transform.Result;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.w3c.dom.Document;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.transformer.MessageTransformationException;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.oxm.UnmarshallingFailureException;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.xml.transform.StringSource;
 
 /**
  * @author Jonas Partner
+ * @author Artem Bilan
  */
-@ContextConfiguration
-public class JaxbMarshallingIntegrationTests extends AbstractJUnit4SpringContextTests {
+@RunWith(SpringRunner.class)
+public class JaxbMarshallingIntegrationTests {
 
-	@Autowired @Qualifier("marshallIn")
+	@Autowired
+	@Qualifier("marshallIn")
 	MessageChannel marshallIn;
 
-	@Autowired @Qualifier("marshallOut")
+	@Autowired
+	@Qualifier("marshallOut")
 	PollableChannel marshalledOut;
 
-	@Autowired @Qualifier("unmarshallIn")
+	@Autowired
+	@Qualifier("unmarshallIn")
 	MessageChannel unmarshallIn;
 
-	@Autowired @Qualifier("unmarshallOut")
+	@Autowired
+	@Qualifier("unmarshallOut")
 	PollableChannel unmarshallOut;
 
+	@Rule
+	public TemporaryFolder tempDirectory = new TemporaryFolder();
 
-	@SuppressWarnings("unchecked")
 	@Test
-	public void testMarshalling() throws Exception {
+	public void testMarshalling() {
 		JaxbAnnotatedPerson person = new JaxbAnnotatedPerson();
 		person.setFirstName("john");
-		marshallIn.send(new GenericMessage<Object>(person));
-		GenericMessage<Result> res = (GenericMessage<Result>) marshalledOut.receive(2000);
-		assertNotNull("No response recevied", res);
-		assertTrue("payload was not a DOMResult", res.getPayload() instanceof DOMResult);
+		this.marshallIn.send(new GenericMessage<>(person));
+		Message<?> res = this.marshalledOut.receive(2000);
+		assertNotNull(res);
+		assertTrue(res.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) res.getPayload()).getNode();
 		assertEquals("Wrong name for root element ", "person", doc.getDocumentElement().getLocalName());
 	}
 
 
-	@SuppressWarnings("unchecked")
 	@Test
-	public void testUnmarshalling() throws Exception {
+	public void testUnmarshalling() {
 		StringSource source = new StringSource("<person><firstname>bob</firstname></person>");
-		unmarshallIn.send(new GenericMessage<Source>(source));
-		GenericMessage<Object> res = (GenericMessage<Object>) unmarshallOut.receive(2000);
+		this.unmarshallIn.send(new GenericMessage<Source>(source));
+		Message<?> res = this.unmarshallOut.receive(2000);
 		assertNotNull("No response", res);
 		assertTrue("Not a Person ", res.getPayload() instanceof JaxbAnnotatedPerson);
 		JaxbAnnotatedPerson person = (JaxbAnnotatedPerson) res.getPayload();
-		assertEquals("Worng firstname", "bob", person.getFirstName());
-
+		assertEquals("bob", person.getFirstName());
 	}
 
+	@Test
+	public void testFileUnlockedAfterUnmarshallingFailure() throws IOException {
+		File tempFile = tempDirectory.newFile();
+		FileWriter myWriter = new FileWriter(tempFile);
+		myWriter.write("junk");
+		myWriter.close();
+
+		try {
+			this.unmarshallIn.send(new GenericMessage<>(tempFile));
+		}
+		catch (MessageTransformationException ex) {
+			assertTrue(ex.getCause() instanceof UnmarshallingFailureException);
+			assertTrue(ex.getMessage().contains("Content is not allowed in prolog."));
+		}
+
+		assertTrue(tempFile.delete());
+	}
 
 }
