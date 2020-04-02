@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -235,8 +235,10 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	 * @param ackOnError whether the container should acknowledge messages that throw
 	 * exceptions.
 	 * @return the spec.
+	 * @deprecated in favor of {@code GenericErrorHandler.isAckAfterHandle()}.
 	 * @see ContainerProperties#setAckOnError(boolean)
 	 */
+	@Deprecated
 	public KafkaMessageListenerContainerSpec<K, V> ackOnError(boolean ackOnError) {
 		this.target.getContainerProperties().setAckOnError(ackOnError);
 		return this;
