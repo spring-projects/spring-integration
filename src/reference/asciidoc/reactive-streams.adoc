@@ -77,6 +77,18 @@ This way, any `MessageSource` implementation can be turned into a reactive hot s
 
 See <<./polling-consumer.adoc#polling-consumer,Polling Consumer>> for more information.
 
+=== Event-Driven Channel Adapter
+
+`MessageProducerSupport` is the base class for event-driven channel adapters and, typically, its `sendMessage(Message<?>)` is used as a listener callback in the producing driver API.
+This callback can also be easily plugged into the `doOnNext()` Reactor operator when a message producer implementation builds a `Flux` of messages instead of listener-based functionality.
+In fact, this is done in the framework when an `outputChannel` of the message producer is not a `ReactiveStreamsSubscribableChannel`.
+However, for improved end-user experience, and to allow more back-pressure ready functionality, the `MessageProducerSupport` provides a `subscribeToPublisher(Publisher<? extends Message<?>>)` API to be used in the target implementation when a `Publisher<Message<?>>>` is the source of data from the target system.
+Typically, it is used from the `doStart()` implementation when target driver API is called for a `Publisher` of source data.
+It is recommended to combine a reactive `MessageProducerSupport` implementation with a `FluxMessageChannel` as the `outputChannel` for on-demand subscription and event consumption downstream.
+The channel adapter goes to a stopped state when a subscription to the `Publisher` is cancelled.
+Calling `stop()` on such a channel adapter completes the producing from the source `Publisher`.
+The channel adapter can be restarted with automatic subscription to a newly created source `Publisher`.
+
 === Splitter and Aggregator
 
 When an `AbstractMessageSplitter` gets a `Publisher` for its logic, the process goes naturally over the items in the `Publisher` to map them into messages for sending to the `outputChannel`.

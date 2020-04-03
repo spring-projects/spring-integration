@@ -24,6 +24,7 @@ import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ValueExpression;
+import org.springframework.integration.mongodb.inbound.MongoDbChangeStreamMessageProducer;
 
 /**
  * Factory class for building MongoDb components
@@ -140,6 +141,18 @@ public final class MongoDb {
 		return new ReactiveMongoDbMessageSourceSpec(mongoTemplate, new ValueExpression<>(query));
 	}
 
+	/**
+	 * Create a {@link MongoDbChangeStreamMessageProducerSpec} builder instance
+	 * based on the provided {@link ReactiveMongoOperations}.
+	 * @param mongoOperations the {@link ReactiveMongoOperations} to use.
+	 * @return the {@link MongoDbChangeStreamMessageProducerSpec} instance
+	 * @since 5.3
+	 */
+	public static MongoDbChangeStreamMessageProducerSpec changeStreamInboundChannelAdapter(
+			ReactiveMongoOperations mongoOperations) {
+
+		return new MongoDbChangeStreamMessageProducerSpec(new MongoDbChangeStreamMessageProducer(mongoOperations));
+	}
 
 	private MongoDb() {
 	}
