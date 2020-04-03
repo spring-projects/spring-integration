@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.springframework.integration.endpoint;
 
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
+import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
@@ -35,6 +39,9 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import reactor.core.publisher.DirectProcessor;
+import reactor.core.publisher.Flux;
 
 /**
  * A support class for producer endpoints that provides a setter for the
@@ -60,6 +67,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	private String errorChannelName;
 
 	private boolean shouldTrack = false;
+
+	private volatile Subscription subscription;
 
 	protected MessageProducerSupport() {
 		this.setPhase(Integer.MAX_VALUE / 2);
@@ -184,11 +193,17 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	}
 
 	/**
-	 * Takes no action by default. Subclasses may override this if they
+	 * Cancels {@link #subscription} if any.
+	 * Subclasses may override this if they
 	 * need lifecycle-managed behavior.
 	 */
 	@Override
 	protected void doStop() {
+		Subscription subs = this.subscription;
+		if (subs != null) {
+			subs.cancel();
+			this.subscription = null;
+		}
 	}
 
 	protected void sendMessage(Message<?> messageArg) {
@@ -196,18 +211,42 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		if (message == null) {
 			throw new MessagingException("cannot send a null message");
 		}
-		if (this.shouldTrack) {
-			message = MessageHistory.write(message, this, getMessageBuilderFactory());
-		}
+		message = trackMessageIfAny(message);
 		try {
-			MessageChannel messageChannel = getOutputChannel();
-			Assert.state(messageChannel != null, "The 'outputChannel' or `outputChannelName` must be configured");
-			this.messagingTemplate.send(messageChannel, message);
+			MessageChannel outputChannel = getRequiredOutputChannel();
+			this.messagingTemplate.send(outputChannel, message);
 		}
 		catch (RuntimeException ex) {
 			if (!sendErrorMessageIfNecessary(message, ex)) {
 				throw ex;
 			}
+		}
+	}
+
+	protected void subscribeToPublisher(Publisher<? extends Message<?>> publisher) {
+		MessageChannel outputChannel = getRequiredOutputChannel();
+
+		Flux<? extends Message<?>> messageFlux =
+				Flux.from(publisher)
+						.map(this::trackMessageIfAny)
+						.doOnSubscribe(subscription -> this.subscription = subscription)
+						.doOnComplete(this::stop)
+						.doOnCancel(this::stop);
+
+		if (outputChannel instanceof ReactiveStreamsSubscribableChannel) {
+			((ReactiveStreamsSubscribableChannel) outputChannel).subscribeTo(messageFlux);
+		}
+		else {
+			messageFlux
+					.doOnNext((message) -> {
+						try {
+							sendMessage(message);
+						}
+						catch (Exception ex) {
+							logger.error("Error sending a message: " + message, ex);
+						}
+					})
+					.subscribe();
 		}
 	}
 
@@ -218,7 +257,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 * @return true if the error channel is available and message sent.
 	 * @since 4.3.10
 	 */
-	protected final boolean sendErrorMessageIfNecessary(Message<?> message, RuntimeException exception) {
+	protected final boolean sendErrorMessageIfNecessary(Message<?> message, Exception exception) {
 		MessageChannel channel = getErrorChannel();
 		if (channel != null) {
 			this.messagingTemplate.send(channel, buildErrorMessage(message, exception));
@@ -235,9 +274,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 * @return the error message.
 	 * @since 4.3.10
 	 */
-	protected final ErrorMessage buildErrorMessage(Message<?> message, RuntimeException exception) {
-		return this.errorMessageStrategy.buildErrorMessage(exception,
-				getErrorMessageAttributes(message));
+	protected final ErrorMessage buildErrorMessage(Message<?> message, Exception exception) {
+		return this.errorMessageStrategy.buildErrorMessage(exception, getErrorMessageAttributes(message));
 	}
 
 	/**
@@ -250,6 +288,31 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 */
 	protected AttributeAccessor getErrorMessageAttributes(Message<?> message) {
 		return ErrorMessageUtils.getAttributeAccessor(message, null);
+	}
+
+	private MessageChannel getRequiredOutputChannel() {
+		MessageChannel messageChannel = getOutputChannel();
+		Assert.state(messageChannel != null, "The 'outputChannel' or `outputChannelName` must be configured");
+		return messageChannel;
+	}
+
+	private Message<?> trackMessageIfAny(Message<?> message) {
+		if (this.shouldTrack) {
+			return MessageHistory.write(message, this, getMessageBuilderFactory());
+		}
+		else {
+			return message;
+		}
+	}
+
+	@Override
+	public void destroy() {
+		Subscription subs = this.subscription;
+		if (subs != null) {
+			subs.cancel();
+			this.subscription = null;
+		}
+		super.destroy();
 	}
 
 }
