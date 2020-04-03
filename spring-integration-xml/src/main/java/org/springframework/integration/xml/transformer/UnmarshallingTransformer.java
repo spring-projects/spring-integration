@@ -95,7 +95,7 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 		return "xml:unmarshalling-transformer";
 	}
 
-	@Override
+	@Override // NOSONAR
 	public Object transformPayload(Object payload) {
 		Source source;
 		InputStream inputStream = null;
