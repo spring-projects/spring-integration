@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.selector;
+
+import java.util.function.BiPredicate;
 
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.MessageProcessor;
@@ -58,6 +60,8 @@ public class MetadataStoreSelector implements MessageSelector {
 
 	private final MessageProcessor<String> valueStrategy;
 
+	private BiPredicate<String, String> compareValues;
+
 	public MetadataStoreSelector(MessageProcessor<String> keyStrategy) {
 		this(keyStrategy, (MessageProcessor<String>) null);
 	}
@@ -79,6 +83,14 @@ public class MetadataStoreSelector implements MessageSelector {
 		this.valueStrategy = valueStrategy;
 	}
 
+	/**
+	 * Set a {@link BiPredicate} to compare old and new values in the metadata
+	 * store for the key. The first parameter is the old value.
+	 * @param compareValues the {@link BiPredicate}.
+	 */
+	public void setCompareValues(BiPredicate<String, String> compareValues) {
+		this.compareValues = compareValues;
+	}
 
 	@Override
 	public boolean accept(Message<?> message) {
@@ -88,7 +100,21 @@ public class MetadataStoreSelector implements MessageSelector {
 				? this.valueStrategy.processMessage(message)
 				: (timestamp == null ? "0" : Long.toString(timestamp));
 
-		return this.metadataStore.putIfAbsent(key, value) == null;
+		if (this.compareValues == null) {
+			return this.metadataStore.putIfAbsent(key, value) == null;
+		}
+		else {
+			synchronized (this) {
+				String oldValue = this.metadataStore.get(key);
+				if (oldValue == null) {
+					return this.metadataStore.putIfAbsent(key, value) == null;
+				}
+				if (this.compareValues.test(oldValue, value)) {
+					return this.metadataStore.replace(key, oldValue, value);
+				}
+				return false;
+			}
+		}
 	}
 
 }

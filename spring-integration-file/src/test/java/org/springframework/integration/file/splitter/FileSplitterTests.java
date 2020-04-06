@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,11 +104,13 @@ public class FileSplitterTests {
 		assertThat(receive).isNotNull(); //HelloWorld
 		assertThat(receive.getPayload()).isEqualTo("HelloWorld");
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(2);
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(1);
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();  //äöüß
 		assertThat(receive.getPayload()).isEqualTo("äöüß");
 		assertThat(receive.getHeaders().get(FileHeaders.ORIGINAL_FILE)).isEqualTo(file);
 		assertThat(receive.getHeaders().get(FileHeaders.FILENAME)).isEqualTo(file.getName());
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(2);
 		assertThat(this.output.receive(1)).isNull();
 
 		this.input1.send(new GenericMessage<>(file.getAbsolutePath()));
