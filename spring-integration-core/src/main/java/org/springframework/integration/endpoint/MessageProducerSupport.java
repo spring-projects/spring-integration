@@ -17,7 +17,6 @@
 package org.springframework.integration.endpoint;
 
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscription;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -40,7 +39,6 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
 
 /**
@@ -67,8 +65,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	private String errorChannelName;
 
 	private boolean shouldTrack = false;
-
-	private volatile Subscription subscription;
 
 	protected MessageProducerSupport() {
 		this.setPhase(Integer.MAX_VALUE / 2);
@@ -185,7 +181,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	}
 
 	/**
-	 * Takes no action by default. Subclasses may override this if they
+	 * Take no action by default.
+	 * Subclasses may override this if they
 	 * need lifecycle-managed behavior. Protected by 'lifecycleLock'.
 	 */
 	@Override
@@ -193,17 +190,12 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	}
 
 	/**
-	 * Cancels {@link #subscription} if any.
+	 * Take no action by default.
 	 * Subclasses may override this if they
 	 * need lifecycle-managed behavior.
 	 */
 	@Override
 	protected void doStop() {
-		Subscription subs = this.subscription;
-		if (subs != null) {
-			subs.cancel();
-			this.subscription = null;
-		}
 	}
 
 	protected void sendMessage(Message<?> messageArg) {
@@ -229,9 +221,9 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		Flux<? extends Message<?>> messageFlux =
 				Flux.from(publisher)
 						.map(this::trackMessageIfAny)
-						.doOnSubscribe(subscription -> this.subscription = subscription)
 						.doOnComplete(this::stop)
-						.doOnCancel(this::stop);
+						.doOnCancel(this::stop)
+						.takeWhile((message) -> isRunning());
 
 		if (outputChannel instanceof ReactiveStreamsSubscribableChannel) {
 			((ReactiveStreamsSubscribableChannel) outputChannel).subscribeTo(messageFlux);
@@ -303,16 +295,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		else {
 			return message;
 		}
-	}
-
-	@Override
-	public void destroy() {
-		Subscription subs = this.subscription;
-		if (subs != null) {
-			subs.cancel();
-			this.subscription = null;
-		}
-		super.destroy();
 	}
 
 }

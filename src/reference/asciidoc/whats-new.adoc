@@ -55,8 +55,9 @@ See <<./handler-advice.adoc#handle-message-advice,Handling Message Advice>> for 
 [[x5.3-mongodb-reactive-channel-adapters]]
 ==== MongoDB Reactive Channel Adapters
 
-`spring-integration-mongodb` module now provides channel adapter implementations for Reactive MongoDB driver support in Spring Data.
-See <<./mongodb.adoc#mongodb-reactive-channel-adapters,MongoDB Reactive Channel Adapters>> for more information.
+`spring-integration-mongodb` module now provides channel adapter implementations for Reactive MongoDb driver support in Spring Data.
+Also a reactive implementation for MongoDb change stream support is present with a `MongoDbChangeStreamMessageProducer`.
+See <<./mongodb.adoc#mongodb,MongoDB Support>> for more information.
 
 [[x5.3-general]]
 === General Changes
@@ -80,6 +81,9 @@ See also <<./transactions.adoc#reactive-transactions,Reactive Transactions>>.
 
 A new `intercept()` operator to register `ChannelInterceptor` instances without creating explicit channels was added into Java DSL.
 See <<./dsl.adoc#java-dsl-intercept,Operator intercept()>> for more information.
+
+The `MessageProducerSupport` now has a `subscribeToPublisher(Publisher<? extends Message<?>>)` API to allow to implement message-driven producer endpoints which emit messages via reactive `Publisher`.
+See <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> for more information.
 
 [[x5.3-amqp]]
 === AMQP Changes

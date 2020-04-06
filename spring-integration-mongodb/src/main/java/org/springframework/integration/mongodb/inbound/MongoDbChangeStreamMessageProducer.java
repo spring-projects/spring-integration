@@ -125,6 +125,7 @@ public class MongoDbChangeStreamMessageProducer extends MessageProducerSupport {
 										.setHeader(MongoHeaders.CHANGE_STREAM_TIMESTAMP, event.getTimestamp())
 										.setHeader(MongoHeaders.CHANGE_STREAM_RESUME_TOKEN, event.getResumeToken())
 										.build());
+
 		subscribeToPublisher(changeStreamFlux);
 	}
 

@@ -348,6 +348,37 @@ If the result of an expression is null or void, no message is generated.
 
 For more information about transaction synchronization, see <<./transactions.adoc#transaction-synchronization,Transaction Synchronization>>.
 
+[[mongodb-change-stream-channel-adapter]]
+=== MongoDB Change Stream Inbound Channel Adapter
+
+Starting with version 5.3, `spring-integration-mongodb` modules introduces a `MongoDbChangeStreamMessageProducer` - a reactive `MessageProducerSupport` implementation for Spring Data `ReactiveMongoOperations.changeStream(String, ChangeStreamOptions, Class)` API.
+This component produces a `Flux` of messages with a `body` of `ChangeStreamEvent` as a payload by default and some change stream related headers (see `MongoHeaders`).
+It is recommended to combine this `MongoDbChangeStreamMessageProducer` with a `FluxMessageChannel` as an `outputChannel` for on demand subscription and events consumption downstream.
+
+The Java DSL configuration for this channel adapter may look like this:
+
+====
+[source,java]
+----
+@Bean
+IntegrationFlow changeStreamFlow(ReactiveMongoOperations mongoTemplate) {
+    return IntegrationFlows.from(
+            MongoDb.changeStreamInboundChannelAdapter(mongoTemplate)
+                    .domainType(Person.class)
+                    .collection("person")
+                    .extractBody(false))
+            .channel(MessageChannels.flux())
+            .get();
+}
+----
+====
+
+When the `MongoDbChangeStreamMessageProducer` is stopped, or subscription is cancelled downstream, or MongoDb change stream produces an `OperationType.INVALIDATE`, the `Publisher` is completed.
+The channel adapter can be started again and a new `Publisher` of source data is created and it is automatically subscribed in the `MessageProducerSupport.subscribeToPublisher(Publisher<? extends Message<?>>)`.
+This channel adapter can be reconfigured for new options in between if there is a requirement to consume change stream events from other places.
+
+See more information about change stream support in Spring Data MongoDb https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#change-streams[documentation].
+
 [[mongodb-outbound-channel-adapter]]
 === MongoDB Outbound Channel Adapter
 
