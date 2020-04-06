@@ -51,7 +51,7 @@ public class ReactiveMessageProducerTests {
 	@Test
 	public void test() {
 		assertThat(this.producer.isRunning()).isTrue();
-		
+
 		StepVerifier.create(
 				Flux.from(this.fluxMessageChannel)
 						.map(Message::getPayload)
