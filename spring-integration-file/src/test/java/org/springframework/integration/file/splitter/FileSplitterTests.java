@@ -49,6 +49,10 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker;
+import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
+import org.springframework.integration.metadata.ConcurrentMetadataStore;
+import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.messaging.Message;
@@ -90,6 +94,12 @@ public class FileSplitterTests {
 	@Autowired
 	private PollableChannel output;
 
+	@Autowired
+	private MetadataStoreSelector selector;
+
+	@Autowired
+	private ConcurrentMetadataStore store;
+
 	@BeforeAll
 	static void setup(@TempDir File tempDir) throws IOException {
 		file = new File(tempDir, "foo.txt");
@@ -105,6 +115,8 @@ public class FileSplitterTests {
 		assertThat(receive.getPayload()).isEqualTo("HelloWorld");
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(2);
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(1);
+		assertThat(this.selector.accept(receive)).isTrue();
+		assertThat(this.store.get(this.file.getAbsolutePath())).isEqualTo("1");
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();  //äöüß
 		assertThat(receive.getPayload()).isEqualTo("äöüß");
@@ -112,6 +124,9 @@ public class FileSplitterTests {
 		assertThat(receive.getHeaders().get(FileHeaders.FILENAME)).isEqualTo(file.getName());
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(2);
 		assertThat(this.output.receive(1)).isNull();
+		assertThat(this.selector.accept(receive)).isTrue();
+		assertThat(this.store.get(this.file.getAbsolutePath())).isEqualTo("2");
+		assertThat(this.selector.accept(receive)).isFalse();
 
 		this.input1.send(new GenericMessage<>(file.getAbsolutePath()));
 		receive = this.output.receive(10000);
@@ -396,6 +411,28 @@ public class FileSplitterTests {
 			fileSplitter.setCharset(Charset.defaultCharset());
 			fileSplitter.setOutputChannel(output());
 			return fileSplitter;
+		}
+
+		@Bean
+		public IdempotentReceiverInterceptor idempotentReceiverInterceptor() {
+			return new IdempotentReceiverInterceptor(selector());
+		}
+
+		@Bean
+		public MetadataStoreSelector selector() {
+			return new MetadataStoreSelector(
+					message -> message.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class)
+							.getAbsolutePath(),
+					message -> message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)
+							.toString(),
+					store())
+							.compareValues(
+									(oldVal, newVal) -> Integer.parseInt(oldVal) < Integer.parseInt(newVal));
+		}
+
+		@Bean
+		public ConcurrentMetadataStore store() {
+			return new SimpleMetadataStore();
 		}
 
 	}

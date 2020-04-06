@@ -22,6 +22,7 @@ import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -60,6 +61,7 @@ public class MetadataStoreSelector implements MessageSelector {
 
 	private final MessageProcessor<String> valueStrategy;
 
+	@Nullable
 	private BiPredicate<String, String> compareValues;
 
 	public MetadataStoreSelector(MessageProcessor<String> keyStrategy) {
@@ -84,12 +86,24 @@ public class MetadataStoreSelector implements MessageSelector {
 	}
 
 	/**
-	 * Set a {@link BiPredicate} to compare old and new values in the metadata
-	 * store for the key. The first parameter is the old value.
+	 * Set a {@link BiPredicate} to compare old and new values in the metadata store for
+	 * the key. The first parameter is the old value; return true if we should accept this
+	 * message and replace the old value with the new value.
 	 * @param compareValues the {@link BiPredicate}.
+	 * @since 5.3
 	 */
-	public void setCompareValues(BiPredicate<String, String> compareValues) {
+	public void setCompareValues(@Nullable BiPredicate<String, String> compareValues) {
 		this.compareValues = compareValues;
+	}
+
+	/**
+	 * Fluent version of {@link #setCompareValues(BiPredicate)}.
+	 * @param compareValues the {@link BiPredicate}.
+	 * @return this.
+	 */
+	public MetadataStoreSelector compareValues(@Nullable BiPredicate<String, String> compareValues) {
+		setCompareValues(compareValues);
+		return this;
 	}
 
 	@Override

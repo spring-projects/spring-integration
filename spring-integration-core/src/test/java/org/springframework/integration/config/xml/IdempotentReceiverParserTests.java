@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.BiPredicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,6 +79,9 @@ public class IdempotentReceiverParserTests {
 	private MessageProcessor<String> valueStrategy;
 
 	@Autowired
+	private AlwaysAccept alwaysAccept;
+
+	@Autowired
 	@Qualifier("nullChannel")
 	private MessageChannel nullChannel;
 
@@ -94,8 +98,8 @@ public class IdempotentReceiverParserTests {
 		assertThat(getPropertyValue(this.selectorInterceptor, "throwExceptionOnRejection", Boolean.class)).isFalse();
 		@SuppressWarnings("unchecked")
 		Map<String, List<String>> idempotentEndpoints =
-				(Map<String, List<String>>) getPropertyValue(this.idempotentReceiverAutoProxyCreator,
-						"idempotentEndpoints", Map.class);
+				getPropertyValue(this.idempotentReceiverAutoProxyCreator,
+				"idempotentEndpoints", Map.class);
 		List<String> endpoints = idempotentEndpoints.get("selectorInterceptor");
 		assertThat(endpoints).isNotNull();
 		assertThat(endpoints.isEmpty()).isFalse();
@@ -110,10 +114,11 @@ public class IdempotentReceiverParserTests {
 		assertThat(messageSelector).isInstanceOf(MetadataStoreSelector.class);
 		assertThat(getPropertyValue(messageSelector, "keyStrategy")).isSameAs(this.keyStrategy);
 		assertThat(getPropertyValue(messageSelector, "valueStrategy")).isSameAs(this.valueStrategy);
+		assertThat(getPropertyValue(messageSelector, "compareValues")).isSameAs(this.alwaysAccept);
 		@SuppressWarnings("unchecked")
 		Map<String, List<String>> idempotentEndpoints =
-				(Map<String, List<String>>) getPropertyValue(this.idempotentReceiverAutoProxyCreator,
-						"idempotentEndpoints", Map.class);
+				getPropertyValue(this.idempotentReceiverAutoProxyCreator,
+				"idempotentEndpoints", Map.class);
 		List<String> endpoints = idempotentEndpoints.get("strategyInterceptor");
 		assertThat(endpoints).isNotNull();
 		assertThat(endpoints.isEmpty()).isFalse();
@@ -130,8 +135,8 @@ public class IdempotentReceiverParserTests {
 		assertThat(keyStrategy.toString()).contains("headers.foo");
 		@SuppressWarnings("unchecked")
 		Map<String, List<String>> idempotentEndpoints =
-				(Map<String, List<String>>) getPropertyValue(this.idempotentReceiverAutoProxyCreator,
-						"idempotentEndpoints", Map.class);
+				getPropertyValue(this.idempotentReceiverAutoProxyCreator,
+				"idempotentEndpoints", Map.class);
 		List<String> endpoints = idempotentEndpoints.get("expressionInterceptor");
 		assertThat(endpoints).isNotNull();
 		assertThat(endpoints.isEmpty()).isFalse();
@@ -172,7 +177,8 @@ public class IdempotentReceiverParserTests {
 		catch (BeanDefinitionParsingException e) {
 			assertThat(e.getMessage())
 					.contains("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy', 'key-expression', 'value-strategy' or 'value-expression'");
+							"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
+							+ "'compare-values'");
 		}
 	}
 
@@ -185,7 +191,8 @@ public class IdempotentReceiverParserTests {
 		catch (BeanDefinitionParsingException e) {
 			assertThat(e.getMessage())
 					.contains("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy', 'key-expression', 'value-strategy' or 'value-expression'");
+							"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
+							+ "'compare-values'");
 		}
 	}
 
@@ -198,7 +205,8 @@ public class IdempotentReceiverParserTests {
 		catch (BeanDefinitionParsingException e) {
 			assertThat(e.getMessage())
 					.contains("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy', 'key-expression', 'value-strategy' or 'value-expression'");
+							"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
+							+ "'compare-values'");
 		}
 	}
 
@@ -211,7 +219,8 @@ public class IdempotentReceiverParserTests {
 		catch (BeanDefinitionParsingException e) {
 			assertThat(e.getMessage())
 					.contains("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy', 'key-expression', 'value-strategy' or 'value-expression'");
+							"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
+							+ "'compare-values'");
 		}
 	}
 
@@ -224,7 +233,8 @@ public class IdempotentReceiverParserTests {
 		catch (BeanDefinitionParsingException e) {
 			assertThat(e.getMessage())
 					.contains("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy', 'key-expression', 'value-strategy' or 'value-expression'");
+							"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
+							+ "'compare-values'");
 		}
 	}
 
@@ -266,6 +276,15 @@ public class IdempotentReceiverParserTests {
 		reader.loadBeanDefinitions(new InputStreamResource(stream));
 		ac.refresh();
 		return ac;
+	}
+
+	public static class AlwaysAccept implements BiPredicate<String, String> {
+
+		@Override
+		public boolean test(String t, String u) {
+			return true;
+		}
+
 	}
 
 }

@@ -81,6 +81,9 @@ See also <<./transactions.adoc#reactive-transactions,Reactive Transactions>>.
 A new `intercept()` operator to register `ChannelInterceptor` instances without creating explicit channels was added into Java DSL.
 See <<./dsl.adoc#java-dsl-intercept,Operator intercept()>> for more information.
 
+The `MessageStoreSelector` has a new mechanism to compare an old and new value.
+See <<./handler-advice.adoc#idempotent-receiver,Idempotent Receiver Enterprise Integration Pattern>> for more information.
+
 [[x5.3-amqp]]
 === AMQP Changes
 

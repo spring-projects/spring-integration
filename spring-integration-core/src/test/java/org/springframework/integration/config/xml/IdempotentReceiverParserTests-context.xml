@@ -27,8 +27,12 @@
 						 endpoint="foo"
 						 key-strategy="keyStrategy"
 						 value-strategy="valueStrategy"
+						 compare-values="valueComparator"
 						 discard-channel="nullChannel"
 						 throw-exception-on-rejection="true"/>
+
+	<beans:bean id="valueComparator"
+		class="org.springframework.integration.config.xml.IdempotentReceiverParserTests$AlwaysAccept"/>
 
 	<beans:bean id="store" class="org.springframework.integration.metadata.SimpleMetadataStore"/>
 
