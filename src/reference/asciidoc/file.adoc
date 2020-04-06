@@ -1116,6 +1116,50 @@ public class FileSplitterApplication {
 ----
 ====
 
+[[idempotent-file-splitter]]
+==== Idempotent Downstream Processing a Split File
+
+When `apply-sequence` is true, the splitter adds the line number in the `SEQUENCE_NUMBER` header (when `markers` is true, the markers are counted as lines).
+The line number can be used with an <<./handler-advice.adoc#idempotent-receiver,Idempotent Receiver>> to avoid reprocessing lines after a restart.
+
+For example:
+
+====
+[source, java]
+----
+@Bean
+public ConcurrentMetadataStore store() {
+    return new ZookeeperMetadataStore();
+}
+
+@Bean
+public MetadataStoreSelector selector() {
+    return new MetadataStoreSelector(
+            message -> message.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class)
+                    .getAbsolutePath(),
+            message -> message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)
+                    .toString(),
+            store())
+                    .compareValues(
+                            (oldVal, newVal) -> Integer.parseInt(oldVal) < Integer.parseInt(newVal));
+}
+
+@Bean
+public IdempotentReceiverInterceptor idempotentReceiverInterceptor() {
+    return new IdempotentReceiverInterceptor(selector());
+}
+
+@Bean
+public IntegrationFlow flow() {
+    ...
+    .split(new FileSplitter())
+    ...
+    .handle("lineHandler", e -> e.advice(idempotentReceiverInterceptor()))
+    ...
+}
+----
+====
+
 [[remote-persistent-flf]]
 === Remote Persistent File List Filters
 

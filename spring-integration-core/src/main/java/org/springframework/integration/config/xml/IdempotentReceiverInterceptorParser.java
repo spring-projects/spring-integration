@@ -59,6 +59,8 @@ public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionP
 		boolean hasValueStrategy = StringUtils.hasText(valueStrategy);
 		String valueExpression = element.getAttribute("value-expression");
 		boolean hasValueExpression = StringUtils.hasText(valueExpression);
+		String compareValues = element.getAttribute("compare-values");
+		boolean hasCompareValues = StringUtils.hasText(compareValues);
 
 		String endpoints = element.getAttribute("endpoint");
 
@@ -68,10 +70,10 @@ public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionP
 		}
 
 		if (hasSelector && (hasStore || hasKeyStrategy || hasKeyExpression || hasValueStrategy // NOSONAR complexity
-				|| hasValueExpression)) {
+				|| hasValueExpression || hasCompareValues)) {
 			parserContext.getReaderContext().error("The 'selector' attribute is mutually exclusive with " +
-					"'metadata-store', 'key-strategy', 'key-expression', 'value-strategy' " +
-					"or 'value-expression'", source);
+					"'metadata-store', 'key-strategy', 'key-expression', 'value-strategy', " +
+					"'value-expression', and 'compare-values'", source);
 		}
 
 		if (hasKeyStrategy && hasKeyExpression) {
@@ -133,6 +135,7 @@ public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionP
 			else {
 				selectorBuilder.addConstructorArgValue(new RootBeanDefinition(SimpleMetadataStore.class));
 			}
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(selectorBuilder, element, "compare-values");
 			selectorBeanDefinition = selectorBuilder.getBeanDefinition();
 		}
 

@@ -872,6 +872,13 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 You can also customize the `value` for `ConcurrentMetadataStore` by using an additional `MessageProcessor`.
 By default, `MetadataStoreSelector` uses the `timestamp` message header.
 
+Normally, the selector selects a message for acceptance if there is no existing value for the key.
+In some cases, it is useful to compare the current and new values for a key, to determine whether the message should be accepted.
+Starting with version 5.3, the `compareValues` property is provided which references a `BiPredicate<String, String>`; the first parameter is the old value; return `true` to accept the message and replace the old value with the new value in the `MetadataStore`.
+This can be useful to reduce the number of keys; for example, when processing lines in a file, you can store the file name in the key and the current line number in the value.
+Then, after a restart, you can skip lines that have already been processed.
+See <<./file.adoc#idempotent-file-splitter,Idempotent Downstream Processing a Split File>> for an example.
+
 For convenience, the `MetadataStoreSelector` options are configurable directly on the `<idempotent-receiver>` component.
 The following listing shows all the possible attributes:
 
@@ -888,7 +895,8 @@ The following listing shows all the possible attributes:
         key-expression=""  <7>
         value-strategy=""  <8>
         value-expression=""  <9>
-        throw-exception-on-rejection="" />  <10>
+        compare-values="" <10>
+        throw-exception-on-rejection="" />  <11>
 ----
 
 <1> The ID of the `IdempotentReceiverInterceptor` bean.
@@ -928,7 +936,8 @@ Used by the underlying `MetadataStoreSelector`.
 Evaluates a `value` for the `idempotentKey` by using the request message as the evaluation context root object.
 Mutually exclusive with `selector` and `value-strategy`.
 By default, the 'MetadataStoreSelector' uses the 'timestamp' message header as the metadata 'value'.
-<10> Whether to throw an exception if the `IdempotentReceiverInterceptor` rejects the message.
+<10> A reference to a `BiPredicate<String, String>` bean which allows you to optionally select a message by comparing the old and new values for the key; `null` by default.
+<11> Whether to throw an exception if the `IdempotentReceiverInterceptor` rejects the message.
 Defaults to `false`.
 It is applied regardless of whether or not a `discard-channel` is provided.
 ====
