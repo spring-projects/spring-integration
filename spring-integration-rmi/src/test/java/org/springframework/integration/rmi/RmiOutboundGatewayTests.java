@@ -46,22 +46,24 @@ public class RmiOutboundGatewayTests {
 
 	private static final QueueChannel OUTPUT = new QueueChannel(1);
 
+	private static int RMI_PORT;
+
 	private static RmiServiceExporter EXPORTER;
 
 	private static RmiOutboundGateway GATEWAY;
 
 	@BeforeAll
 	static void setup() throws RemoteException {
-		int rmiPort = SocketUtils.findAvailableTcpPort();
+		RMI_PORT = SocketUtils.findAvailableTcpPort();
 
 		EXPORTER = new RmiServiceExporter();
 		EXPORTER.setService(new TestExchanger());
 		EXPORTER.setServiceInterface(RequestReplyExchanger.class);
 		EXPORTER.setServiceName("testRemoteHandler");
-		EXPORTER.setRegistryPort(rmiPort);
+		EXPORTER.setRegistryPort(RMI_PORT);
 		EXPORTER.afterPropertiesSet();
 
-		GATEWAY = new RmiOutboundGateway("rmi://localhost:" + rmiPort + "/testRemoteHandler");
+		GATEWAY = new RmiOutboundGateway("rmi://localhost:" + RMI_PORT + "/testRemoteHandler");
 		GATEWAY.setOutputChannel(OUTPUT);
 	}
 
@@ -120,7 +122,7 @@ public class RmiOutboundGatewayTests {
 
 	@Test
 	void invalidServiceName() {
-		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:1099/noSuchService");
+		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:" + RMI_PORT + "/noSuchService");
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("test")))
 				.withCauseInstanceOf(RemoteLookupFailureException.class);
@@ -136,7 +138,7 @@ public class RmiOutboundGatewayTests {
 
 	@Test
 	void invalidUrl() {
-		RmiOutboundGateway gateway = new RmiOutboundGateway("invalid");
+		RmiOutboundGateway gateway = new RmiOutboundGateway("http://sample.com/");
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("test")))
 				.withCauseInstanceOf(RemoteLookupFailureException.class);

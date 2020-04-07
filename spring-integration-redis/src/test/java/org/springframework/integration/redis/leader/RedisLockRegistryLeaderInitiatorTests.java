@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 			initiator.start();
 		}
 
-		assertThat(granted.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(granted.await(60, TimeUnit.SECONDS)).isTrue();
 
 		LockRegistryLeaderInitiator initiator1 = countingPublisher.initiator;
 
@@ -106,8 +106,8 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 
 		initiator1.getContext().yield();
 
-		assertThat(revoked1.await(20, TimeUnit.SECONDS)).isTrue();
-		assertThat(granted2.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(revoked1.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(granted2.await(60, TimeUnit.SECONDS)).isTrue();
 
 		assertThat(initiator2.getContext().isLeader()).isTrue();
 		assertThat(initiator1.getContext().isLeader()).isFalse();
@@ -117,8 +117,8 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 
 		initiator2.getContext().yield();
 
-		assertThat(revoked2.await(20, TimeUnit.SECONDS)).isTrue();
-		assertThat(granted1.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(revoked2.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(granted1.await(60, TimeUnit.SECONDS)).isTrue();
 
 		assertThat(initiator1.getContext().isLeader()).isTrue();
 		assertThat(initiator2.getContext().isLeader()).isFalse();
@@ -131,7 +131,7 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 
 		initiator1.getContext().yield();
 
-		assertThat(revoked11.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(revoked11.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(initiator1.getContext().isLeader()).isFalse();
 
 		initiator1.stop();

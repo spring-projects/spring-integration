@@ -116,7 +116,7 @@ public class FileSplitterTests {
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(2);
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(1);
 		assertThat(this.selector.accept(receive)).isTrue();
-		assertThat(this.store.get(this.file.getAbsolutePath())).isEqualTo("1");
+		assertThat(this.store.get(file.getAbsolutePath())).isEqualTo("1");
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();  //äöüß
 		assertThat(receive.getPayload()).isEqualTo("äöüß");
@@ -125,7 +125,7 @@ public class FileSplitterTests {
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(2);
 		assertThat(this.output.receive(1)).isNull();
 		assertThat(this.selector.accept(receive)).isTrue();
-		assertThat(this.store.get(this.file.getAbsolutePath())).isEqualTo("2");
+		assertThat(this.store.get(file.getAbsolutePath())).isEqualTo("2");
 		assertThat(this.selector.accept(receive)).isFalse();
 
 		this.input1.send(new GenericMessage<>(file.getAbsolutePath()));
@@ -378,7 +378,7 @@ public class FileSplitterTests {
 		splitter.setOutputChannel(outputChannel);
 		FileReader fileReader = Mockito.spy(new FileReader(file));
 		try {
-			splitter.handleMessage(new GenericMessage<Reader>(fileReader));
+			splitter.handleMessage(new GenericMessage<>(fileReader));
 		}
 		catch (RuntimeException e) {
 			// ignore
@@ -421,13 +421,10 @@ public class FileSplitterTests {
 		@Bean
 		public MetadataStoreSelector selector() {
 			return new MetadataStoreSelector(
-					message -> message.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class)
-							.getAbsolutePath(),
-					message -> message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)
-							.toString(),
+					message -> message.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class).getAbsolutePath(),
+					message -> message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER).toString(),
 					store())
-							.compareValues(
-									(oldVal, newVal) -> Integer.parseInt(oldVal) < Integer.parseInt(newVal));
+					.compareValues((oldVal, newVal) -> Integer.parseInt(oldVal) < Integer.parseInt(newVal));
 		}
 
 		@Bean

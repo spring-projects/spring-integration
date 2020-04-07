@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ public final class JacksonPresent {
 	}
 
 	/**
+	 * @return true if Jackson 1.x is present on classpath
 	 * @deprecated Jackson 1.x is not supported any more. Use Jackson 2.x.
 	 */
 	@Deprecated
