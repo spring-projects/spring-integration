@@ -138,7 +138,7 @@ public class RmiOutboundGatewayTests {
 
 	@Test
 	void invalidUrl() {
-		RmiOutboundGateway gateway = new RmiOutboundGateway("http://sample.com/");
+		RmiOutboundGateway gateway = new RmiOutboundGateway("https://sample.com/");
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("test")))
 				.withCauseInstanceOf(RemoteLookupFailureException.class);
