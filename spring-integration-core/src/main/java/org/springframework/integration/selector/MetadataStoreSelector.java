@@ -123,7 +123,7 @@ public class MetadataStoreSelector implements MessageSelector {
 				if (oldValue == null) {
 					return this.metadataStore.putIfAbsent(key, value) == null;
 				}
-				if (this.compareValues.test(oldValue, value)) {
+				if (this.compareValues.test(oldValue, value)) { // NOSONAR (null dereference)
 					return this.metadataStore.replace(key, oldValue, value);
 				}
 				return false;
