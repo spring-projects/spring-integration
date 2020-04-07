@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,13 +59,13 @@ import org.springframework.util.MultiValueMap;
 public class SmartLifecycleRoleController implements ApplicationListener<AbstractLeaderEvent>,
 		ApplicationContextAware {
 
+	private static final Log LOGGER = LogFactory.getLog(SmartLifecycleRoleController.class);
+
 	private static final String IN_ROLE = " in role ";
 
-	private static final Log logger = LogFactory.getLog(SmartLifecycleRoleController.class);
+	private final MultiValueMap<String, SmartLifecycle> lifecycles = new LinkedMultiValueMap<>();
 
-	private final MultiValueMap<String, SmartLifecycle> lifecycles = new LinkedMultiValueMap<String, SmartLifecycle>();
-
-	private final MultiValueMap<String, String> lazyLifecycles = new LinkedMultiValueMap<String, String>();
+	private final MultiValueMap<String, String> lazyLifecycles = new LinkedMultiValueMap<>();
 
 	private ApplicationContext applicationContext;
 
@@ -87,10 +87,10 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 
 	/**
 	 * Construct an instance with the provided map of roles/instances.
-	 * @param lifcycles the {@link MultiValueMap} of beans in roles.
+	 * @param lifecycles the {@link MultiValueMap} of beans in roles.
 	 */
-	public SmartLifecycleRoleController(MultiValueMap<String, SmartLifecycle> lifcycles) {
-		lifcycles.forEach((role, values) -> values.forEach(lifecycle -> addLifecycleToRole(role, lifecycle)));
+	public SmartLifecycleRoleController(MultiValueMap<String, SmartLifecycle> lifecycles) {
+		lifecycles.forEach((role, values) -> values.forEach(lifecycle -> addLifecycleToRole(role, lifecycle)));
 	}
 
 	@Override
@@ -163,8 +163,8 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 		if (componentsInRole != null) {
 			componentsInRole = new ArrayList<>(componentsInRole);
 			componentsInRole.sort(Comparator.comparingInt(Phased::getPhase));
-			if (logger.isDebugEnabled()) {
-				logger.debug("Starting " + componentsInRole + IN_ROLE + role);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Starting " + componentsInRole + IN_ROLE + role);
 			}
 
 			componentsInRole.forEach(lifecycle -> {
@@ -172,13 +172,13 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 					lifecycle.start();
 				}
 				catch (Exception e) {
-					logger.error("Failed to start " + lifecycle + IN_ROLE + role, e);
+					LOGGER.error("Failed to start " + lifecycle + IN_ROLE + role, e);
 				}
 			});
 		}
 		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("No components in role " + role + ". Nothing to start");
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("No components in role " + role + ". Nothing to start");
 			}
 		}
 	}
@@ -195,8 +195,8 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 		if (componentsInRole != null) {
 			componentsInRole = new ArrayList<>(componentsInRole);
 			componentsInRole.sort((o1, o2) -> Integer.compare(o2.getPhase(), o1.getPhase()));
-			if (logger.isDebugEnabled()) {
-				logger.debug("Stopping " + componentsInRole + IN_ROLE + role);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Stopping " + componentsInRole + IN_ROLE + role);
 			}
 
 			componentsInRole.forEach(lifecycle -> {
@@ -204,13 +204,13 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 					lifecycle.stop();
 				}
 				catch (Exception e) {
-					logger.error("Failed to stop " + lifecycle + IN_ROLE + role, e);
+					LOGGER.error("Failed to stop " + lifecycle + IN_ROLE + role, e);
 				}
 			});
 		}
 		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("No components in role " + role + ". Nothing to stop");
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("No components in role " + role + ". Nothing to stop");
 			}
 		}
 	}
@@ -287,7 +287,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 				addLifecycleToRole(role, lifecycle);
 			}
 			catch (NoSuchBeanDefinitionException e) {
-				logger.warn("Skipped; no such bean: " + lifecycleBeanName);
+				LOGGER.warn("Skipped; no such bean: " + lifecycleBeanName);
 			}
 		});
 	}

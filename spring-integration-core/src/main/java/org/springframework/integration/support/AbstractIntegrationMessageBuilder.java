@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 		return setHeader(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDate);
 	}
 
-	public AbstractIntegrationMessageBuilder<T> setExpirationDate(Date expirationDate) {
+	public AbstractIntegrationMessageBuilder<T> setExpirationDate(@Nullable Date expirationDate) {
 		if (expirationDate != null) {
 			return setHeader(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDate.getTime());
 		}
@@ -62,7 +62,7 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 	public AbstractIntegrationMessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber,
 			int sequenceSize) {
 
-		Object incomingCorrelationId = this.getCorrelationId();
+		Object incomingCorrelationId = getCorrelationId();
 		List<List<Object>> incomingSequenceDetails = getSequenceDetails();
 		if (incomingCorrelationId != null) {
 			if (incomingSequenceDetails == null) {
@@ -92,8 +92,8 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 			incomingSequenceDetails = new ArrayList<>(incomingSequenceDetails);
 		}
 		List<Object> sequenceDetails = incomingSequenceDetails.remove(incomingSequenceDetails.size() - 1);
-		Assert.state(sequenceDetails.size() == 3, "Wrong sequence details (not created by MessageBuilder?): "
-				+ sequenceDetails);
+		Assert.state(sequenceDetails.size() == 3, // NOSONAR
+				() -> "Wrong sequence details (not created by MessageBuilder?): " + sequenceDetails);
 		setCorrelationId(sequenceDetails.get(0));
 		Integer sequenceNumber = (Integer) sequenceDetails.get(1);
 		Integer sequenceSize = (Integer) sequenceDetails.get(2);
@@ -166,10 +166,13 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 	@Nullable
 	protected abstract List<List<Object>> getSequenceDetails();
 
+	@Nullable
 	protected abstract Object getCorrelationId();
 
+	@Nullable
 	protected abstract Object getSequenceNumber();
 
+	@Nullable
 	protected abstract Object getSequenceSize();
 
 	public abstract T getPayload();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,19 @@ import org.springframework.messaging.MessagingException;
  */
 public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAdvice {
 
-	private volatile int threshold = 5;
+	/**
+	 * A default failures threshold as {@value DEFAULT_THRESHOLD}.
+	 */
+	public static final int DEFAULT_THRESHOLD = 5;
 
-	private volatile long halfOpenAfter = 1000;
+	/**
+	 * A half-open duration as {@value DEFAULT_HALF_OPEN_AFTER} .
+	 */
+	public static final int DEFAULT_HALF_OPEN_AFTER = 1000;
+
+	private int threshold = DEFAULT_THRESHOLD;
+
+	private long halfOpenAfter = DEFAULT_HALF_OPEN_AFTER;
 
 	private final ConcurrentMap<Object, AdvisedMetadata> metadataMap = new ConcurrentHashMap<>();
 
@@ -101,6 +111,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		private AtomicInteger getFailures() {
 			return this.failures;
 		}
+
 	}
 
 	/**

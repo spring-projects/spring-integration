@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,18 +31,20 @@ import org.apache.commons.logging.LogFactory;
  * case a {@link RejectedExecutionException} is thrown.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0.3
  *
  */
 public class CallerBlocksPolicy implements RejectedExecutionHandler {
 
-	private static final Log logger = LogFactory.getLog(CallerBlocksPolicy.class);
+	private static final Log LOGGER = LogFactory.getLog(CallerBlocksPolicy.class);
 
 	private final long maxWait;
 
 	/**
-	 * @param maxWait The maximum time to wait for a queue slot to be
-	 * available, in milliseconds.
+	 * Construct instance based on the provided maximum wait time.
+	 * @param maxWait The maximum time to wait for a queue slot to be available, in milliseconds.
 	 */
 	public CallerBlocksPolicy(long maxWait) {
 		this.maxWait = maxWait;
@@ -53,15 +55,13 @@ public class CallerBlocksPolicy implements RejectedExecutionHandler {
 		if (!executor.isShutdown()) {
 			try {
 				BlockingQueue<Runnable> queue = executor.getQueue();
-				if (logger.isDebugEnabled()) {
-					logger.debug("Attempting to queue task execution for " + this.maxWait + " milliseconds");
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Attempting to queue task execution for " + this.maxWait + " milliseconds");
 				}
 				if (!queue.offer(r, this.maxWait, TimeUnit.MILLISECONDS)) {
 					throw new RejectedExecutionException("Max wait time expired to queue task");
 				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("Task execution queued");
-				}
+				LOGGER.debug("Task execution queued");
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();

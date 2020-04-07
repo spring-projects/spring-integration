@@ -128,7 +128,6 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * Provide the header names that should be mapped to a response
 	 * from a {@link MessageHeaders}.
 	 * <p>The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
-	 *
 	 * @param replyHeaderNames The reply header names.
 	 */
 	public void setReplyHeaderNames(String... replyHeaderNames) {
@@ -141,7 +140,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * standard header prefix.
 	 * @param standardHeaderPrefix the prefix for standard headers.
 	 * @param headerNames the collection of header names to map.
-	 * @return the deafault {@link HeaderMatcher} instance.
+	 * @return the default {@link HeaderMatcher} instance.
 	 */
 	protected HeaderMatcher createDefaultHeaderMatcher(String standardHeaderPrefix, Collection<String> headerNames) {
 		return new ContentBasedHeaderMatcher(true, headerNames);
@@ -401,6 +400,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 
 	/**
 	 * Strategy interface to determine if a given header name matches.
+	 *
 	 * @since 4.1
 	 */
 	@FunctionalInterface
@@ -427,11 +427,12 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * A content-based {@link HeaderMatcher} that matches if the specified
 	 * header is contained within a list of candidates. The case of the
 	 * header does not matter.
+	 *
 	 * @since 4.1
 	 */
 	protected static class ContentBasedHeaderMatcher implements HeaderMatcher {
 
-		private static final Log logger = LogFactory.getLog(HeaderMatcher.class);
+		private static final Log LOGGER = LogFactory.getLog(HeaderMatcher.class);
 
 		private final boolean match;
 
@@ -446,13 +447,13 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		@Override
 		public boolean matchHeader(String headerName) {
 			boolean result = (this.match == containsIgnoreCase(headerName));
-			if (result && logger.isDebugEnabled()) {
+			if (result && LOGGER.isDebugEnabled()) {
 				StringBuilder message = new StringBuilder("headerName=[{0}] WILL be mapped, ");
 				if (!this.match) {
 					message.append("not ");
 				}
 				message.append("found in {1}");
-				logger.debug(MessageFormat.format(message.toString(), headerName, this.content));
+				LOGGER.debug(MessageFormat.format(message.toString(), headerName, this.content));
 			}
 			return result;
 		}
@@ -471,12 +472,14 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	/**
 	 * A pattern-based {@link HeaderMatcher} that matches if the specified
 	 * header matches one of the specified simple patterns.
-	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String, String)
+	 *
 	 * @since 4.1
+	 *
+	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String, String)
 	 */
 	protected static class PatternBasedHeaderMatcher implements HeaderMatcher {
 
-		private static final Log logger = LogFactory.getLog(HeaderMatcher.class);
+		private static final Log LOGGER = LogFactory.getLog(HeaderMatcher.class);
 
 		private final Collection<String> patterns = new ArrayList<>();
 
@@ -493,8 +496,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			String header = headerName.toLowerCase();
 			for (String pattern : this.patterns) {
 				if (PatternMatchUtils.simpleMatch(pattern, header)) {
-					if (logger.isDebugEnabled()) {
-						logger.debug(MessageFormat.format(
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug(MessageFormat.format(
 								"headerName=[{0}] WILL be mapped, matched pattern={1}", headerName, pattern));
 					}
 					return true;
@@ -509,12 +512,14 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * A pattern-based {@link HeaderMatcher} that matches if the specified
 	 * header matches the specified simple pattern.
 	 * <p> The {@code negate == true} state indicates if the matching should be treated as "not matched".
-	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String, String)
+	 *
 	 * @since 4.3
+	 *
+	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String, String)
 	 */
 	protected static class SinglePatternBasedHeaderMatcher implements HeaderMatcher {
 
-		private static final Log logger = LogFactory.getLog(HeaderMatcher.class);
+		private static final Log LOGGER = LogFactory.getLog(HeaderMatcher.class);
 
 		private final String pattern;
 
@@ -534,8 +539,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		public boolean matchHeader(String headerName) {
 			String header = headerName.toLowerCase();
 			if (PatternMatchUtils.simpleMatch(this.pattern, header)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug(MessageFormat.format(
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug(MessageFormat.format(
 							"headerName=[{0}] WILL be mapped, matched pattern={1}", headerName, this.pattern));
 				}
 				return true;
@@ -553,11 +558,12 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	/**
 	 * A prefix-based {@link HeaderMatcher} that matches if the specified
 	 * header starts with a configurable prefix.
+	 *
 	 * @since 4.1
 	 */
 	protected static class PrefixBasedMatcher implements HeaderMatcher {
 
-		private static final Log logger = LogFactory.getLog(HeaderMatcher.class);
+		private static final Log LOGGER = LogFactory.getLog(HeaderMatcher.class);
 
 		private final boolean match;
 
@@ -571,13 +577,13 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		@Override
 		public boolean matchHeader(String headerName) {
 			boolean result = (this.match == headerName.startsWith(this.prefix));
-			if (result && logger.isDebugEnabled()) {
+			if (result && LOGGER.isDebugEnabled()) {
 				StringBuilder message = new StringBuilder("headerName=[{0}] WILL be mapped, ");
 				if (!this.match) {
 					message.append("does not ");
 				}
 				message.append("start with [{1}]");
-				logger.debug(MessageFormat.format(message.toString(), headerName, this.prefix));
+				LOGGER.debug(MessageFormat.format(message.toString(), headerName, this.prefix));
 			}
 			return result;
 		}
@@ -587,11 +593,12 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	/**
 	 * A composite {@link HeaderMatcher} that matches if one of provided
 	 * {@link HeaderMatcher}s matches to the {@code headerName}.
+	 *
 	 * @since 4.1
 	 */
 	protected static class CompositeHeaderMatcher implements HeaderMatcher {
 
-		private static final Log logger = LogFactory.getLog(HeaderMatcher.class);
+		private static final Log LOGGER = LogFactory.getLog(HeaderMatcher.class);
 
 		private final Collection<HeaderMatcher> matchers;
 
@@ -613,8 +620,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 					return true;
 				}
 			}
-			if (logger.isDebugEnabled()) {
-				logger.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
 			}
 			return false;
 		}

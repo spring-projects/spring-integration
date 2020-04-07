@@ -145,7 +145,7 @@ public class DynamicPeriodicTrigger implements Trigger {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((this.duration == null) ? 0 : this.duration.hashCode());
-		result = prime * result + (this.fixedRate ? 1231 : 1237);
+		result = prime * result + (this.fixedRate ? 1231 : 1237); // NOSONAR
 		result = prime * result + ((this.initialDuration == null) ? 0 : this.initialDuration.hashCode());
 		return result;
 	}

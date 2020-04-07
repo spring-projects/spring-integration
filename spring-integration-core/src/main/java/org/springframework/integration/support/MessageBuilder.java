@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ import org.springframework.util.ObjectUtils;
  */
 public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T> {
 
-	private static final Log logger = LogFactory.getLog(MessageBuilder.class);
+	private static final Log LOGGER = LogFactory.getLog(MessageBuilder.class);
 
 	private final T payload;
 
@@ -93,7 +93,6 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	/**
 	 * Create a builder for a new {@link Message} instance pre-populated with all of the headers copied from the
 	 * provided message. The payload of the provided Message will also be used as the payload for the new message.
-	 *
 	 * @param message the Message from which the payload and all headers will be copied
 	 * @param <T> The type of the payload.
 	 * @return A MessageBuilder.
@@ -160,8 +159,8 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 		if (!this.headerAccessor.isReadOnly(headerName)) {
 			this.headerAccessor.removeHeader(headerName);
 		}
-		else if (logger.isInfoEnabled()) {
-			logger.info("The header [" + headerName + "] is ignored for removal because it is is readOnly.");
+		else if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("The header [" + headerName + "] is ignored for removal because it is is readOnly.");
 		}
 		return this;
 	}

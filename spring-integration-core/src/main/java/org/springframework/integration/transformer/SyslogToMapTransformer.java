@@ -98,8 +98,8 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 		try {
 			String facilityString = matcher.group(1); // NOSONAR
 			int facility = Integer.parseInt(facilityString);
-			int severity = facility & 0x7;
-			facility = facility >> 3;
+			int severity = facility & 0x7; // NOSONAR
+			facility = facility >> 3; // NOSONAR
 			map.put(FACILITY, facility);
 			map.put(SEVERITY, severity);
 			String timestamp = matcher.group(2); // NOSONAR

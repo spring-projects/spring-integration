@@ -114,7 +114,8 @@ public class MetadataStoreSelector implements MessageSelector {
 				? this.valueStrategy.processMessage(message)
 				: (timestamp == null ? "0" : Long.toString(timestamp));
 
-		if (this.compareValues == null) {
+		BiPredicate<String, String> predicate = this.compareValues;
+		if (predicate == null) {
 			return this.metadataStore.putIfAbsent(key, value) == null;
 		}
 		else {
@@ -123,7 +124,7 @@ public class MetadataStoreSelector implements MessageSelector {
 				if (oldValue == null) {
 					return this.metadataStore.putIfAbsent(key, value) == null;
 				}
-				if (this.compareValues.test(oldValue, value)) { // NOSONAR (null dereference)
+				if (predicate.test(oldValue, value)) {
 					return this.metadataStore.replace(key, oldValue, value);
 				}
 				return false;

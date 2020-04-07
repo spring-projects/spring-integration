@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,11 +68,11 @@ import org.springframework.util.StringUtils;
  */
 public class ReloadableResourceBundleExpressionSource implements ExpressionSource, ResourceLoaderAware {
 
+	private static final Log LOGGER = LogFactory.getLog(ReloadableResourceBundleExpressionSource.class);
+
 	private static final String PROPERTIES_SUFFIX = ".properties";
 
 	private static final String XML_SUFFIX = ".xml";
-
-	private static final Log LOGGER = LogFactory.getLog(ReloadableResourceBundleExpressionSource.class);
 
 
 	/**
@@ -211,7 +211,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @param cacheSeconds The cache seconds.
 	 */
 	public void setCacheSeconds(int cacheSeconds) {
-		this.cacheMillis = (cacheSeconds * 1000);
+		this.cacheMillis = (cacheSeconds * 1000); // NOSONAR
 	}
 
 	/**
@@ -324,8 +324,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 					return filenames;
 				}
 			}
-			List<String> filenames = new ArrayList<>(7);
-			filenames.addAll(calculateFilenamesForLocale(basename, locale));
+			List<String> filenames = new ArrayList<>(calculateFilenamesForLocale(basename, locale));
 			if (this.fallbackToSystemLocale && !locale.equals(Locale.getDefault())) {
 				List<String> fallbackFilenames = calculateFilenamesForLocale(basename, Locale.getDefault());
 				for (String fallbackFilename : fallbackFilenames) {
@@ -359,7 +358,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @return the List of filenames to check
 	 */
 	private List<String> calculateFilenamesForLocale(String basename, Locale locale) {
-		List<String> result = new ArrayList<>(3);
+		List<String> result = new ArrayList<>();
 		String language = locale.getLanguage();
 		String country = locale.getCountry();
 		String variant = locale.getVariant();

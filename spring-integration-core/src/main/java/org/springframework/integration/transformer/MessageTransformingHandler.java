@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.transformer;
 
 import java.util.Collection;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationPattern;
@@ -29,8 +30,7 @@ import org.springframework.util.Assert;
 
 /**
  * A reply-producing {@link org.springframework.messaging.MessageHandler}
- * that delegates to a
- * {@link Transformer} instance to modify the received {@link Message}
+ * that delegates to a {@link Transformer} instance to modify the received {@link Message}
  * and sends the result to its output channel.
  *
  * @author Mark Fisher
@@ -42,11 +42,9 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 
 	private final Transformer transformer;
 
-
 	/**
 	 * Create a {@link MessageTransformingHandler} instance that delegates to
 	 * the provided {@link Transformer}.
-	 *
 	 * @param transformer The transformer.
 	 */
 	public MessageTransformingHandler(Transformer transformer) {
@@ -58,8 +56,9 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 
 	@Override
 	public String getComponentType() {
-		return (this.transformer instanceof NamedComponent) ?
-				((NamedComponent) this.transformer).getComponentType() : "transformer";
+		return (this.transformer instanceof NamedComponent)
+				? ((NamedComponent) this.transformer).getComponentType()
+				: "transformer";
 	}
 
 	@Override
@@ -77,8 +76,9 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 
 	@Override
 	protected void doInit() {
-		if (this.getBeanFactory() != null && this.transformer instanceof BeanFactoryAware) {
-			((BeanFactoryAware) this.transformer).setBeanFactory(this.getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null && this.transformer instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.transformer).setBeanFactory(beanFactory);
 		}
 
 		populateNotPropagatedHeadersIfAny();
@@ -118,11 +118,10 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 			return this.transformer.transform(message);
 		}
 		catch (Exception e) {
-			if (e instanceof MessageTransformationException) {
+			if (e instanceof MessageTransformationException) { // NOSONAR
 				throw (MessageTransformationException) e;
 			}
-			throw new MessageTransformationException(message,
-					"Failed to transform Message in " + this, e);
+			throw new MessageTransformationException(message, "Failed to transform Message in " + this, e);
 		}
 	}
 

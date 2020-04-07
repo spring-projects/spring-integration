@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,7 +205,7 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	private byte[] fromBytesPayload(byte[] payload, Map<String, Object> headersToEncode) {
 		try {
 			byte[] headers = this.objectMapper.writeValueAsBytes(headersToEncode);
-			ByteBuffer buffer = ByteBuffer.wrap(new byte[8 + headers.length + payload.length]);
+			ByteBuffer buffer = ByteBuffer.wrap(new byte[8 + headers.length + payload.length]); // NOSONAR
 			buffer.putInt(headers.length);
 			buffer.put(headers);
 			buffer.putInt(payload.length);
@@ -247,16 +247,16 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	@Nullable
 	private Message<?> decodeNativeFormat(byte[] bytes, @Nullable Map<String, Object> headersToAdd) throws IOException {
 		ByteBuffer buffer = ByteBuffer.wrap(bytes);
-		if (buffer.remaining() > 4) {
+		if (buffer.remaining() > 4) { // NOSONAR
 			int headersLen = buffer.getInt();
-			if (headersLen >= 0 && headersLen < buffer.remaining() - 4) {
-				buffer.position(headersLen + 4);
+			if (headersLen >= 0 && headersLen < buffer.remaining() - 4) { // NOSONAR
+				buffer.position(headersLen + 4); // NOSONAR
 				int payloadLen = buffer.getInt();
 				if (payloadLen != buffer.remaining()) {
 					return null;
 				}
 				else {
-					buffer.position(4);
+					buffer.position(4); // NOSONAR
 					@SuppressWarnings("unchecked")
 					Map<String, Object> headers = this.objectMapper.readValue(bytes, buffer.position(), headersLen,
 							Map.class);

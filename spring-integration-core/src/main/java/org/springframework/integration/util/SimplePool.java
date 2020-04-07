@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -37,6 +38,8 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Sergey Bogatyrev
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -91,7 +94,8 @@ public class SimplePool<T> implements Pool<T> {
 		int delta = poolSize - this.poolSize.get();
 		this.targetPoolSize.addAndGet(delta);
 		if (this.logger.isDebugEnabled()) {
-			this.logger.debug(String.format("Target pool size changed by %d, now %d", delta, this.targetPoolSize.get()));
+			this.logger.debug(String.format("Target pool size changed by %d, now %d", delta,
+					this.targetPoolSize.get()));
 		}
 		if (delta > 0) {
 			this.poolSize.addAndGet(delta);
@@ -111,7 +115,8 @@ public class SimplePool<T> implements Pool<T> {
 			}
 		}
 		if (delta < 0 && this.logger.isDebugEnabled()) {
-			this.logger.debug(String.format("Pool is overcommitted by %d; items will be removed when returned", -delta));
+			this.logger.debug(String.format("Pool is overcommitted by %d; items will be removed when returned",
+					-delta));
 		}
 	}
 
@@ -175,7 +180,7 @@ public class SimplePool<T> implements Pool<T> {
 			if (permitted) {
 				this.permits.release();
 			}
-			if (e instanceof PoolItemNotAvailableException) {
+			if (e instanceof PoolItemNotAvailableException) { // NOSONAR
 				throw (PoolItemNotAvailableException) e;
 			}
 			throw new PoolItemNotAvailableException("Failed to obtain pooled item", e);
@@ -216,18 +221,14 @@ public class SimplePool<T> implements Pool<T> {
 		if (this.inUse.contains(item)) {
 			if (this.poolSize.get() > this.targetPoolSize.get()) {
 				this.poolSize.decrementAndGet();
-				if (item != null) {
-					doRemoveItem(item);
-				}
+				doRemoveItem(item);
 			}
 			else {
 				if (this.logger.isDebugEnabled()) {
 					this.logger.debug("Releasing " + item + " back to the pool");
 				}
-				if (item != null) {
-					this.available.add(item);
-					this.inUse.remove(item);
-				}
+				this.available.add(item);
+				this.inUse.remove(item);
 				this.permits.release();
 			}
 		}
@@ -286,5 +287,7 @@ public class SimplePool<T> implements Pool<T> {
 		 * @param item The item.
 		 */
 		void removedFromPool(T item);
+
 	}
+
 }

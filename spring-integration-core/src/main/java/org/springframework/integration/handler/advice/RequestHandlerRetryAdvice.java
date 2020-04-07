@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,16 +37,17 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  */
 public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		implements RetryListener {
 
+	private static final ThreadLocal<Message<?>> MESSAGE_HOLDER = new ThreadLocal<>();
+
 	private RetryTemplate retryTemplate = new RetryTemplate();
 
 	private RecoveryCallback<Object> recoveryCallback;
-
-	private static final ThreadLocal<Message<?>> messageHolder = new ThreadLocal<Message<?>>();
 
 	// Stateless unless a state generator is provided
 	private volatile RetryStateGenerator retryStateGenerator = message -> null;
@@ -78,9 +79,8 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 
 	@Override
 	protected Object doInvoke(final ExecutionCallback callback, Object target, final Message<?> message) {
-		RetryState retryState = null;
-		retryState = this.retryStateGenerator.determineRetryState(message);
-		messageHolder.set(message);
+		RetryState retryState = this.retryStateGenerator.determineRetryState(message);
+		MESSAGE_HOLDER.set(message);
 
 		try {
 			return this.retryTemplate.execute(context -> callback.cloneAndExecute(), this.recoveryCallback, retryState);
@@ -98,13 +98,13 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 			throw new ThrowableHolderException(e);
 		}
 		finally {
-			messageHolder.remove();
+			MESSAGE_HOLDER.remove();
 		}
 	}
 
 	@Override
 	public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-		context.setAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY, messageHolder.get());
+		context.setAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY, MESSAGE_HOLDER.get());
 		return true;
 	}
 
