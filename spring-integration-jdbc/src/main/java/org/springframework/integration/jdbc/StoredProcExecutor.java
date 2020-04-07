@@ -62,6 +62,8 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	private final DataSource dataSource;
 
+	private final Object jdbcCallOperationsMapMonitor = new Object();
+
 	private Map<String, RowMapper<?>> returningResultSetRowMappers = new HashMap<>(0);
 
 	private EvaluationContext evaluationContext;
@@ -296,7 +298,14 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	}
 
 	private SimpleJdbcCallOperations obtainSimpleJdbcCall(String storedProcedureName) {
-		return this.jdbcCallOperationsMap.computeIfAbsent(storedProcedureName, this::createSimpleJdbcCall);
+		SimpleJdbcCallOperations operations = this.jdbcCallOperationsMap.get(storedProcedureName);
+		if (operations == null) {
+			synchronized (this.jdbcCallOperationsMapMonitor) {
+				operations =
+						this.jdbcCallOperationsMap.computeIfAbsent(storedProcedureName, this::createSimpleJdbcCall);
+			}
+		}
+		return operations;
 	}
 
 	//~~~~~Setters for Properties~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
