@@ -58,9 +58,9 @@ public class ApplicationEventMulticasterParser extends AbstractSingleBeanDefinit
 		else {
 			BeanDefinitionBuilder executorBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskExecutor.class);
-			executorBuilder.addPropertyValue("corePoolSize", 1);
-			executorBuilder.addPropertyValue("maxPoolSize", 10);
-			executorBuilder.addPropertyValue("queueCapacity", 0);
+			executorBuilder.addPropertyValue("corePoolSize", 1); // NOSONAR
+			executorBuilder.addPropertyValue("maxPoolSize", 10); // NOSONAR
+			executorBuilder.addPropertyValue("queueCapacity", 0); // NOSONAR
 			executorBuilder.addPropertyValue("threadNamePrefix", "event-multicaster-");
 			builder.addPropertyValue("taskExecutor", executorBuilder.getBeanDefinition());
 		}

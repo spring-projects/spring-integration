@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,13 +65,13 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 
 	private volatile int minSubscribers;
 
+	private MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
+
+	private BeanFactory beanFactory;
+
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	private volatile boolean messageBuilderFactorySet;
-
-	private volatile MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
-
-	private BeanFactory beanFactory;
 
 
 	public BroadcastingDispatcher() {
@@ -226,7 +226,9 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		}
 		catch (RuntimeException e) {
 			if (!this.ignoreFailures) {
-				if (e instanceof MessagingException && ((MessagingException) e).getFailedMessage() == null) {
+				if (e instanceof MessagingException
+						&& ((MessagingException) e).getFailedMessage() == null) { // NOSONAR
+
 					throw new MessagingException(message, "Failed to handle Message", e);
 				}
 				throw e;

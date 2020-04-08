@@ -205,8 +205,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		}
 		message = trackMessageIfAny(message);
 		try {
-			MessageChannel outputChannel = getRequiredOutputChannel();
-			this.messagingTemplate.send(outputChannel, message);
+			this.messagingTemplate.send(getRequiredOutputChannel(), message);
 		}
 		catch (RuntimeException ex) {
 			if (!sendErrorMessageIfNecessary(message, ex)) {
@@ -216,7 +215,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	}
 
 	protected void subscribeToPublisher(Publisher<? extends Message<?>> publisher) {
-		MessageChannel outputChannel = getRequiredOutputChannel();
+		MessageChannel channelForSubscription = getRequiredOutputChannel();
 
 		Flux<? extends Message<?>> messageFlux =
 				Flux.from(publisher)
@@ -225,8 +224,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 						.doOnCancel(this::stop)
 						.takeWhile((message) -> isRunning());
 
-		if (outputChannel instanceof ReactiveStreamsSubscribableChannel) {
-			((ReactiveStreamsSubscribableChannel) outputChannel).subscribeTo(messageFlux);
+		if (channelForSubscription instanceof ReactiveStreamsSubscribableChannel) {
+			((ReactiveStreamsSubscribableChannel) channelForSubscription).subscribeTo(messageFlux);
 		}
 		else {
 			messageFlux

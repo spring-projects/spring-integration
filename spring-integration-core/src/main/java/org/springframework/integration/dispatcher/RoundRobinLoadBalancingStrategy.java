@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,7 +53,7 @@ public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 			return handlers.iterator();
 		}
 
-		return this.buildHandlerIterator(size, handlers.toArray(new MessageHandler[size]));
+		return buildHandlerIterator(size, handlers.toArray(new MessageHandler[size]));
 	}
 
 	private Iterator<MessageHandler> buildHandlerIterator(int size, final MessageHandler[] handlers) {
@@ -63,23 +64,7 @@ public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 		System.arraycopy(handlers, nextHandlerStartIndex, reorderedHandlers, 0, size - nextHandlerStartIndex);
 		System.arraycopy(handlers, 0, reorderedHandlers, size - nextHandlerStartIndex, nextHandlerStartIndex);
 
-		return new Iterator<MessageHandler>() {
-
-			private int currentIndex = 0;
-
-			public boolean hasNext() {
-				return this.currentIndex < reorderedHandlers.length;
-			}
-
-			public MessageHandler next() {
-				return reorderedHandlers[this.currentIndex++];
-			}
-
-			public void remove() {
-				throw new UnsupportedOperationException("Remove is not supported by this Iterator");
-			}
-
-		};
+		return Arrays.stream(reorderedHandlers).iterator();
 	}
 
 	/**

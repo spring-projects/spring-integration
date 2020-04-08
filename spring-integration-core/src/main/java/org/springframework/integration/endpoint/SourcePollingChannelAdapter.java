@@ -236,7 +236,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		}
 		catch (Exception e) {
 			AckUtils.autoNack(ackCallback);
-			if (e instanceof MessagingException) {
+			if (e instanceof MessagingException) { // NOSONAR
 				throw (MessagingException) e;
 			}
 			else {

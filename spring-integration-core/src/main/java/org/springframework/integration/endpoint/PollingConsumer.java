@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,13 +52,18 @@ import org.springframework.util.CollectionUtils;
  */
 public class PollingConsumer extends AbstractPollingEndpoint implements IntegrationConsumer {
 
+	/**
+	 * A default receive timeout as {@value DEFAULT_RECEIVE_TIMEOUT} milliseconds.
+	 */
+	public static final long DEFAULT_RECEIVE_TIMEOUT = 1000;
+
 	private final PollableChannel inputChannel;
 
 	private final MessageHandler handler;
 
 	private final List<ChannelInterceptor> channelInterceptors;
 
-	private volatile long receiveTimeout = 1000;
+	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
 	public PollingConsumer(PollableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");

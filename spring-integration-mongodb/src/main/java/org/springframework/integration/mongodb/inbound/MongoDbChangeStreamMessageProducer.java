@@ -17,9 +17,7 @@
 package org.springframework.integration.mongodb.inbound;
 
 import org.bson.Document;
-import org.reactivestreams.Publisher;
 
-import org.springframework.data.mongodb.core.ChangeStreamEvent;
 import org.springframework.data.mongodb.core.ChangeStreamOptions;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -35,7 +33,7 @@ import reactor.core.publisher.Flux;
  * A {@link MessageProducerSupport} for MongoDB Change Stream implementation.
  * The functionality is based on the
  * {@link ReactiveMongoOperations#changeStream(String, ChangeStreamOptions, Class)}
- * and {@link MessageProducerSupport#subscribeToPublisher(Publisher)} consumption.
+ * and {@link MessageProducerSupport#subscribeToPublisher(org.reactivestreams.Publisher)} consumption.
  *
  * @author Artem Bilan
  *
@@ -97,9 +95,9 @@ public class MongoDbChangeStreamMessageProducer extends MessageProducerSupport {
 
 	/**
 	 * Configure this channel adapter to build a {@link Message} to produce
-	 * with a payload based on a {@link ChangeStreamEvent#getBody()} (by default)
-	 * or use a whole {@link ChangeStreamEvent} as a payload.
-	 * @param extractBody to extract {@link ChangeStreamEvent#getBody()} or not.
+	 * with a payload based on a {@link org.springframework.data.mongodb.core.ChangeStreamEvent#getBody()} (by default)
+	 * or use a whole {@link org.springframework.data.mongodb.core.ChangeStreamEvent} as a payload.
+	 * @param extractBody to extract {@link org.springframework.data.mongodb.core.ChangeStreamEvent#getBody()} or not.
 	 */
 	public void setExtractBody(boolean extractBody) {
 		this.extractBody = extractBody;
