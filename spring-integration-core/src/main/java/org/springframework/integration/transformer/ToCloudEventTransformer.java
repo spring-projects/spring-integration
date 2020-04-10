@@ -72,8 +72,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	private final URI source;
 
-	private final ContentTypeDelegatingDataMarshaller<Object> dataMarshaller =
-			new ContentTypeDelegatingDataMarshaller<>();
+	private final ContentTypeDelegatingDataMarshaller dataMarshaller = new ContentTypeDelegatingDataMarshaller();
 
 	@Nullable
 	private final EventStep<AttributesImpl, Object, byte[], String> wireBuilder;
@@ -136,8 +135,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * Plus {@link MessageHeaders#CONTENT_TYPE} must be present in the request message.
 	 * @param encoders the {@link Encoder}s to use.
 	 */
-	@SafeVarargs
-	public final void setEncoders(Encoder<Object>... encoders) {
+	public final void setEncoders(Encoder<?>... encoders) {
 		this.dataMarshaller.setEncoders(encoders);
 	}
 

@@ -44,20 +44,18 @@ import io.cloudevents.json.Json;
  *
  * @since 5.3
  */
-public class ContentTypeDelegatingDataMarshaller<T> implements DataMarshaller<byte[], T, String> {
+public class ContentTypeDelegatingDataMarshaller implements DataMarshaller<byte[], Object, String> {
 
 	private final DataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
 
 	private final List<Encoder<?>> encoders = new ArrayList<>();
 
-	@SafeVarargs
-	public ContentTypeDelegatingDataMarshaller(Encoder<T>... encoders) {
+	public ContentTypeDelegatingDataMarshaller(Encoder<?>... encoders) {
 		this.encoders.add(CharSequenceEncoder.allMimeTypes());
 		setEncoders(encoders);
 	}
 
-	@SafeVarargs
-	public final void setEncoders(Encoder<T>... encoders) {
+	public final void setEncoders(Encoder<?>... encoders) {
 		Assert.notNull(encoders, "'encoders' must not be null");
 		Assert.noNullElements(encoders, "'encoders' must not contain null elements");
 		this.encoders.addAll(Arrays.asList(encoders));
@@ -65,7 +63,7 @@ public class ContentTypeDelegatingDataMarshaller<T> implements DataMarshaller<by
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public byte[] marshal(T data, Map<String, String> headers) throws RuntimeException {
+	public byte[] marshal(Object data, Map<String, String> headers) throws RuntimeException {
 		String contentType = headers.get(MessageHeaders.CONTENT_TYPE);
 		if (contentType == null) { // Assume JSON by default
 			return Json.binaryMarshal(data, headers);
@@ -73,7 +71,7 @@ public class ContentTypeDelegatingDataMarshaller<T> implements DataMarshaller<by
 		else {
 			ResolvableType elementType = ResolvableType.forClass(data.getClass());
 			MimeType mimeType = MimeType.valueOf(contentType);
-			Encoder<T> encoder = encoder(elementType, mimeType);
+			Encoder<Object> encoder = encoder(elementType, mimeType);
 			DataBuffer dataBuffer =
 					encoder.encodeValue(data, this.dataBufferFactory, elementType,
 							mimeType, (Map<String, Object>) (Map) headers);
@@ -86,10 +84,10 @@ public class ContentTypeDelegatingDataMarshaller<T> implements DataMarshaller<by
 	}
 
 	@SuppressWarnings("unchecked")
-	private Encoder<T> encoder(ResolvableType elementType, MimeType mimeType) {
+	private Encoder<Object> encoder(ResolvableType elementType, MimeType mimeType) {
 		for (Encoder<?> encoder : this.encoders) {
 			if (encoder.canEncode(elementType, mimeType)) {
-				return (Encoder<T>) encoder;
+				return (Encoder<Object>) encoder;
 			}
 		}
 		throw new IllegalArgumentException("No encoder for " + elementType);
