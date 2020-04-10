@@ -20,11 +20,13 @@ import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import org.springframework.core.codec.Encoder;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.support.cloudevents.ContentTypeDelegatingDataMarshaller;
 import org.springframework.integration.support.cloudevents.Marshallers;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -70,6 +72,9 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	private final URI source;
 
+	private final ContentTypeDelegatingDataMarshaller<Object> dataMarshaller =
+			new ContentTypeDelegatingDataMarshaller<>();
+
 	@Nullable
 	private final EventStep<AttributesImpl, Object, byte[], String> wireBuilder;
 
@@ -97,7 +102,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		this.source = source;
 		switch (resultMode) {
 			case BINARY:
-				this.wireBuilder = Marshallers.binary();
+				this.wireBuilder = Marshallers.binary(this.dataMarshaller);
 				break;
 			case STRUCTURED:
 				this.wireBuilder = Marshallers.structured();
@@ -108,7 +113,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	}
 
 	public void setTypeExpression(Expression typeExpression) {
-		Assert.notNull(source, "'typeExpression' must not be null");
+		Assert.notNull(typeExpression, "'typeExpression' must not be null");
 		this.typeExpression = typeExpression;
 	}
 
@@ -122,6 +127,18 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	public void setExtensionExpression(@Nullable Expression extensionExpression) {
 		this.extensionExpression = extensionExpression;
+	}
+
+	/**
+	 * Configure a set of {@link Encoder}s for content type based data marshalling.
+	 * They are used only for the the {@link Result#BINARY} mode and when inbound payload
+	 * is not a {@code byte[]} already.
+	 * Plus {@link MessageHeaders#CONTENT_TYPE} must be present in the request message.
+	 * @param encoders the {@link Encoder}s to use.
+	 */
+	@SafeVarargs
+	public final void setEncoders(Encoder<Object>... encoders) {
+		this.dataMarshaller.setEncoders(encoders);
 	}
 
 	@Override
@@ -140,7 +157,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 							.marshal();
 
 			return getMessageBuilderFactory()
-					.withPayload(wire.getPayload().orElse(new byte[0]))
+					.withPayload(wire.getPayload().orElse(cloudEvent.getDataBase64()))
 					.copyHeaders(wire.getHeaders())
 					.copyHeadersIfAbsent(message.getHeaders())
 					.build();

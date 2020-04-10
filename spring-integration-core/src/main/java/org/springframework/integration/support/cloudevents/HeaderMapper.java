@@ -34,12 +34,7 @@ import io.cloudevents.v1.ContextAttributes;
  *
  * @since 5.3
  */
-public class HeaderMapper {
-
-	/**
-	 * Cloud event headers prefix as a {@value HEADER_PREFIX}.
-	 */
-	public static final String HEADER_PREFIX = "ce_";
+public final class HeaderMapper {
 
 	/**
 	 * Following the signature of {@link io.cloudevents.fun.FormatHeaderMapper}
@@ -59,7 +54,7 @@ public class HeaderMapper {
 										&& !ContextAttributes.datacontenttype.name().equals(attribute.getKey()))
 						.map(header ->
 								new AbstractMap.SimpleEntry<>(
-										HEADER_PREFIX + header.getKey().toLowerCase(Locale.US),
+										CloudEventHeaders.PREFIX + header.getKey().toLowerCase(Locale.US),
 										header.getValue()))
 						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 

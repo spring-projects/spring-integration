@@ -29,10 +29,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.json.JsonPathUtils;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.cloudevents.CloudEventHeaders;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.MimeTypeUtils;
 
 import io.cloudevents.CloudEvent;
 
@@ -74,18 +77,24 @@ public class ToCloudEventTransformerTests {
 		ToCloudEventTransformer transformer =
 				new ToCloudEventTransformer(SOURCE, ToCloudEventTransformer.Result.BINARY);
 		transformer.setSubjectExpression(new LiteralExpression("some_subject"));
-		GenericMessage<String> message = new GenericMessage<>("test");
+		Message<String> message =
+				MessageBuilder.withPayload("test")
+						.setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.TEXT_PLAIN)
+						.build();
 		Message<?> result = transformer.transform(message);
 		assertThat(result.getHeaders())
-				.containsEntry("ce_type", String.class.getName())
-				.containsEntry("ce_source", SOURCE.toString())
-				.containsEntry("ce_id", message.getHeaders().getId().toString())
-				.containsEntry("ce_subject", "some_subject")
-				.containsKeys("ce_time", "ce_specversion")
-				.doesNotContainKeys("ce_datacontenttype", MessageHeaders.CONTENT_TYPE, "ce_content_type");
+				.containsEntry(CloudEventHeaders.TYPE, String.class.getName())
+				.containsEntry(CloudEventHeaders.SOURCE, SOURCE.toString())
+				.containsEntry(CloudEventHeaders.ID, message.getHeaders().getId().toString())
+				.containsEntry(CloudEventHeaders.SUBJECT, "some_subject")
+				.containsEntry(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.TEXT_PLAIN_VALUE)
+				.containsKeys(CloudEventHeaders.TIME, CloudEventHeaders.SPEC_VERSION)
+				.doesNotContainKeys(
+						CloudEventHeaders.DATA_CONTENT_TYPE,
+						"ce_content_type");
 		assertThat(result.getPayload())
 				.isInstanceOf(byte[].class)
-				.isEqualTo("\"test\"".getBytes());
+				.isEqualTo("test".getBytes());
 	}
 
 	@Test
@@ -96,7 +105,12 @@ public class ToCloudEventTransformerTests {
 		Message<?> result = transformer.transform(message);
 		assertThat(result.getHeaders())
 				.containsEntry(MessageHeaders.CONTENT_TYPE, "application/cloudevents+json")
-				.doesNotContainKeys("ce_id", "ce_source", "ce_datacontenttype", "ce_time", "ce_specversion");
+				.doesNotContainKeys(
+						CloudEventHeaders.ID,
+						CloudEventHeaders.SOURCE,
+						CloudEventHeaders.DATA_CONTENT_TYPE,
+						CloudEventHeaders.TIME,
+						CloudEventHeaders.SPEC_VERSION);
 		Object payload = result.getPayload();
 		assertThat(payload).isInstanceOf(byte[].class);
 
@@ -108,7 +122,6 @@ public class ToCloudEventTransformerTests {
 
 		jsonPath = JsonPathUtils.evaluate(payload, "$..type");
 		assertThat(jsonPath.get(0)).isEqualTo(String.class.getName());
-
 	}
 
 }

@@ -26,6 +26,7 @@ import io.cloudevents.format.BinaryMarshaller;
 import io.cloudevents.format.StructuredMarshaller;
 import io.cloudevents.format.Wire;
 import io.cloudevents.format.builder.EventStep;
+import io.cloudevents.fun.DataMarshaller;
 import io.cloudevents.json.Json;
 import io.cloudevents.v1.Accessor;
 import io.cloudevents.v1.AttributesImpl;
@@ -49,12 +50,27 @@ public final class Marshallers {
 	 * @see BinaryMarshaller
 	 */
 	public static <T> EventStep<AttributesImpl, T, byte[], String> binary() {
+		return binary(Json::binaryMarshal);
+	}
+
+	/**
+	 * Builds a Binary Content Mode marshaller to marshal cloud events as a {@code byte[]} for
+	 * any Transport Binding.
+	 * The data marshalling is based on the provided {@link DataMarshaller}.
+	 * @param marshaller the {@link DataMarshaller} for cloud event payload.
+	 * @param <T> The data type
+	 * @return a builder to provide the {@link io.cloudevents.CloudEvent} and marshal as JSON
+	 * @see BinaryMarshaller
+	 */
+	public static <T> EventStep<AttributesImpl, T, byte[], String> binary(
+			DataMarshaller<byte[], T, String> marshaller) {
+
 		return BinaryMarshaller.<AttributesImpl, T, byte[], String>builder()
 				.map(AttributesImpl::marshal)
 				.map(Accessor::extensionsOf)
 				.map(ExtensionFormat::marshal)
 				.map(HeaderMapper::map)
-				.map(Json::binaryMarshal)
+				.map(marshaller)
 				.builder(Wire::new);
 	}
 
