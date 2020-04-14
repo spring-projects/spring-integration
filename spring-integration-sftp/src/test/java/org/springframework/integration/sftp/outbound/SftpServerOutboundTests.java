@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -44,7 +45,6 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.NestedIOException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.file.FileHeaders;
@@ -578,7 +578,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 		session.close();
 
-		assertThatExceptionOfType(NestedIOException.class)
+		assertThatExceptionOfType(UncheckedIOException.class)
 				.isThrownBy(() -> session.exists("any"))
 				.withRootCauseInstanceOf(IOException.class)
 				.withStackTraceContaining("Pipe closed");

@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +52,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.NestedIOException;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.FileInfo;
@@ -413,7 +413,7 @@ public class SftpOutboundTests {
 
 		assertThat(sftpSession.exists("notExist")).isFalse();
 
-		assertThatExceptionOfType(NestedIOException.class).
+		assertThatExceptionOfType(UncheckedIOException.class).
 				isThrownBy(() -> sftpSession.exists("foo"));
 	}
 
