@@ -61,6 +61,8 @@ include::./resource.adoc[]
 
 include::./rmi.adoc[]
 
+include::./rsocket.adoc[]
+
 include::./sftp.adoc[]
 
 include::./stomp.adoc[]
