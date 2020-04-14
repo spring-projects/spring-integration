@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -35,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -56,6 +58,7 @@ import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.SftpTestSupport;
+import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -495,6 +498,29 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		LsEntry[] files = template.execute(session -> session.list("sftpTarget/appending.txt"));
 		assertEquals(1, files.length);
 		assertEquals(6, files[0].getAttrs().getSize());
+	}
+
+	@Test
+	public void testSessionExists() throws IOException {
+		DefaultSftpSessionFactory sessionFactory = new DefaultSftpSessionFactory();
+		sessionFactory.setHost("localhost");
+		sessionFactory.setPort(port);
+		sessionFactory.setUser("foo");
+		sessionFactory.setPassword("foo");
+		sessionFactory.setAllowUnknownKeys(true);
+		Session<LsEntry> session = sessionFactory.getSession();
+
+		assertTrue(session.exists("sftpSource"));
+		assertFalse(session.exists("notExist"));
+
+		session.close();
+
+		try {
+			session.exists("any");
+			fail("expected exception");
+		}
+		catch (UncheckedIOException e) {
+		}
 	}
 
 	@SuppressWarnings("unused")

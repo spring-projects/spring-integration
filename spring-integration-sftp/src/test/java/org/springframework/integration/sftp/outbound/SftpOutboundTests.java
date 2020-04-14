@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,16 @@
 package org.springframework.integration.sftp.outbound;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -32,7 +37,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +47,7 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -69,6 +76,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
 
 /**
  * @author Oleg Zhurakousky
@@ -78,7 +86,7 @@ import com.jcraft.jsch.SftpATTRS;
  */
 public class SftpOutboundTests {
 
-	private static com.jcraft.jsch.Session jschSession = mock(com.jcraft.jsch.Session.class);
+	private static final com.jcraft.jsch.Session jschSession = mock(com.jcraft.jsch.Session.class);
 
 	@Test
 	public void testHandleFileMessage() throws Exception {
@@ -86,7 +94,7 @@ public class SftpOutboundTests {
 		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
 
 		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
-		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
+		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
 		fGenerator.setBeanFactory(mock(BeanFactory.class));
@@ -135,7 +143,7 @@ public class SftpOutboundTests {
 			file.delete();
 		}
 		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
-		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
+		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
 		fGenerator.setBeanFactory(mock(BeanFactory.class));
 		fGenerator.setExpression("'foo.txt'");
@@ -173,7 +181,7 @@ public class SftpOutboundTests {
 	}
 
 	@Test //INT-2275
-	public void testFtpOutboundGatewayInsideChain() throws Exception {
+	public void testFtpOutboundGatewayInsideChain() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"SftpOutboundInsideChainTests-context.xml", getClass());
 
@@ -204,12 +212,12 @@ public class SftpOutboundTests {
 		@SuppressWarnings("unchecked")
 		SessionFactory<LsEntry> sessionFactory = mock(SessionFactory.class);
 		when(sessionFactory.getSession()).thenReturn(session);
-		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
+		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setAutoCreateDirectory(true);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("/foo/bar/baz"));
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		final List<String> madeDirs = new ArrayList<String>();
+		final List<String> madeDirs = new ArrayList<>();
 		doAnswer(invocation -> {
 			madeDirs.add(invocation.getArgument(0));
 			return null;
@@ -372,6 +380,38 @@ public class SftpOutboundTests {
 		verify(jschSession2, never()).disconnect();
 		cachedFactory.resetCache();
 		verify(jschSession2).disconnect();
+	}
+
+	@Test
+	public void testExists() throws SftpException, IOException {
+		ChannelSftp channelSftp = mock(ChannelSftp.class);
+
+		willReturn(mock(SftpATTRS.class))
+				.given(channelSftp)
+				.lstat(eq("exist"));
+
+		willThrow(new SftpException(ChannelSftp.SSH_FX_NO_SUCH_FILE, "Path does not exist."))
+				.given(channelSftp)
+				.lstat(eq("notExist"));
+
+		willThrow(new SftpException(ChannelSftp.SSH_FX_CONNECTION_LOST, "Connection lost."))
+				.given(channelSftp)
+				.lstat(eq("foo"));
+
+		SftpSession sftpSession = new SftpSession(mock(com.jcraft.jsch.Session.class));
+		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(sftpSession);
+		fieldAccessor.setPropertyValue("channel", channelSftp);
+
+		assertTrue(sftpSession.exists("exist"));
+
+		assertFalse(sftpSession.exists("notExist"));
+
+		try {
+			sftpSession.exists("foo");
+			fail("Expected exception");
+		}
+		catch (UncheckedIOException e) {
+		}
 	}
 
 	private void noopConnect(ChannelSftp channel1) throws JSchException {

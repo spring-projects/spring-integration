@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.sftp.session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -108,16 +109,15 @@ public class SftpSession implements Session<LsEntry> {
 	@Override
 	public String[] listNames(String path) throws IOException {
 		LsEntry[] entries = this.list(path);
-		List<String> names = new ArrayList<String>();
-		for (int i = 0; i < entries.length; i++) {
-			String fileName = entries[i].getFilename();
-			SftpATTRS attrs = entries[i].getAttrs();
+		List<String> names = new ArrayList<>();
+		for (LsEntry entry : entries) {
+			String fileName = entry.getFilename();
+			SftpATTRS attrs = entry.getAttrs();
 			if (!attrs.isDir() && !attrs.isLink()) {
 				names.add(fileName);
 			}
 		}
-		String[] fileNames = new String[names.size()];
-		return names.toArray(fileNames);
+		return names.toArray(new String[0]);
 	}
 
 
@@ -251,10 +251,15 @@ public class SftpSession implements Session<LsEntry> {
 			this.channel.lstat(path);
 			return true;
 		}
-		catch (SftpException e) {
-			// ignore
+		catch (SftpException ex) {
+			if (ex.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+				return false;
+			}
+			else {
+				throw new UncheckedIOException("Cannot check 'lstat' for path " + path,
+						new IOException(ex));
+			}
 		}
-		return false;
 	}
 
 	void connect() {
