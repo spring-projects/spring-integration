@@ -38,7 +38,8 @@ as single searchable link:index-single.html[html] and link:../pdf/spring-integra
 <<./mqtt.adoc#mqtt,MQTT Support>> ::
 <<./redis.adoc#redis,Redis Support>> ::
 <<./resource.adoc#resource,Resource Support>> ::
-<<./rmi.adoc#[[rmi,RMI Support>> ::
+<<./rmi.adoc#rmi,RMI Support>> ::
+<<./rsocket.adoc#rsocket,RSocket Support>> ::
 <<./sftp.adoc#sftp,SFTP Adapters>> ::
 <<./stomp.adoc#stomp,STOMP Support>> ::
 <<./stream.adoc#stream,Stream Support>> ::
