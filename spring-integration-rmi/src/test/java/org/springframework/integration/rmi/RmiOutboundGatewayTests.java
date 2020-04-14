@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,13 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.remoting.RemoteLookupFailureException;
 import org.springframework.remoting.rmi.RmiServiceExporter;
+import org.springframework.util.SocketUtils;
 
 /**
  * @author Mark Fisher
@@ -46,22 +46,24 @@ public class RmiOutboundGatewayTests {
 
 	private static final QueueChannel OUTPUT = new QueueChannel(1);
 
+	private static int RMI_PORT;
+
 	private static RmiServiceExporter EXPORTER;
 
 	private static RmiOutboundGateway GATEWAY;
 
 	@BeforeAll
 	static void setup() throws RemoteException {
+		RMI_PORT = SocketUtils.findAvailableTcpPort();
+
 		EXPORTER = new RmiServiceExporter();
 		EXPORTER.setService(new TestExchanger());
 		EXPORTER.setServiceInterface(RequestReplyExchanger.class);
 		EXPORTER.setServiceName("testRemoteHandler");
-		EXPORTER.setRegistryPort(0);
+		EXPORTER.setRegistryPort(RMI_PORT);
 		EXPORTER.afterPropertiesSet();
 
-		Integer localPort = TestUtils.getPropertyValue(EXPORTER, "registry.ref.ref.ep.port", Integer.class);
-
-		GATEWAY = new RmiOutboundGateway("rmi://localhost:" + localPort + "/testRemoteHandler");
+		GATEWAY = new RmiOutboundGateway("rmi://localhost:" + RMI_PORT + "/testRemoteHandler");
 		GATEWAY.setOutputChannel(OUTPUT);
 	}
 
@@ -120,7 +122,7 @@ public class RmiOutboundGatewayTests {
 
 	@Test
 	void invalidServiceName() {
-		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:1099/noSuchService");
+		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:" + RMI_PORT + "/noSuchService");
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("test")))
 				.withCauseInstanceOf(RemoteLookupFailureException.class);
@@ -136,7 +138,7 @@ public class RmiOutboundGatewayTests {
 
 	@Test
 	void invalidUrl() {
-		RmiOutboundGateway gateway = new RmiOutboundGateway("invalid");
+		RmiOutboundGateway gateway = new RmiOutboundGateway("https://sample.com/");
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("test")))
 				.withCauseInstanceOf(RemoteLookupFailureException.class);
