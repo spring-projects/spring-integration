@@ -19,6 +19,7 @@ package org.springframework.integration.sftp.session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -269,7 +270,7 @@ public class SftpSession implements Session<LsEntry> {
 	}
 
 	@Override
-	public boolean exists(String path) throws IOException {
+	public boolean exists(String path) {
 		try {
 			this.channel.lstat(path);
 			return true;
@@ -279,7 +280,8 @@ public class SftpSession implements Session<LsEntry> {
 				return false;
 			}
 			else {
-				throw new NestedIOException("Cannot check 'lstat' for path " + path, ex);
+				throw new UncheckedIOException("Cannot check 'lstat' for path " + path,
+						new IOException(ex));
 			}
 		}
 	}
