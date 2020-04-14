@@ -44,6 +44,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.NestedIOException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.file.FileHeaders;
@@ -59,6 +60,7 @@ import org.springframework.integration.sftp.server.PathMovedEvent;
 import org.springframework.integration.sftp.server.PathRemovedEvent;
 import org.springframework.integration.sftp.server.SessionClosedEvent;
 import org.springframework.integration.sftp.server.SessionOpenedEvent;
+import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -559,6 +561,27 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		LsEntry[] files = template.execute(session -> session.list("sftpTarget/appending.txt"));
 		assertThat(files.length).isEqualTo(1);
 		assertThat(files[0].getAttrs().getSize()).isEqualTo(6);
+	}
+
+	@Test
+	public void testSessionExists() throws IOException {
+		DefaultSftpSessionFactory sessionFactory = new DefaultSftpSessionFactory();
+		sessionFactory.setHost("localhost");
+		sessionFactory.setPort(port);
+		sessionFactory.setUser("foo");
+		sessionFactory.setPassword("foo");
+		sessionFactory.setAllowUnknownKeys(true);
+		Session<LsEntry> session = sessionFactory.getSession();
+
+		assertThat(session.exists("sftpSource")).isTrue();
+		assertThat(session.exists("notExist")).isFalse();
+
+		session.close();
+
+		assertThatExceptionOfType(NestedIOException.class)
+				.isThrownBy(() -> session.exists("any"))
+				.withRootCauseInstanceOf(IOException.class)
+				.withStackTraceContaining("Pipe closed");
 	}
 
 	@SuppressWarnings("unused")
