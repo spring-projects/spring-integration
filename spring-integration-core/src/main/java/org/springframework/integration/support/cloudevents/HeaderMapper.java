@@ -43,8 +43,8 @@ public final class HeaderMapper {
 	 * @return The map of headers
 	 */
 	public static Map<String, String> map(Map<String, String> attributes, Map<String, String> extensions) {
-		Assert.notNull(attributes, "'attributes' must noy be null");
-		Assert.notNull(extensions, "'extensions' must noy be null");
+		Assert.notNull(attributes, "'attributes' must not be null");
+		Assert.notNull(extensions, "'extensions' must not be null");
 
 		Map<String, String> result =
 				attributes.entrySet()
