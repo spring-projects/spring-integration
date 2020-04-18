@@ -1,9 +1,18 @@
 Spring Integration [<img src="https://build.spring.io/plugins/servlet/wittified/build-status/INT-MASTER">](https://build.spring.io/browse/INT-MASTER) [![Join the chat at https://gitter.im/spring-projects/spring-integration](https://badges.gitter.im/spring-projects/spring-integration.svg)](https://gitter.im/spring-projects/spring-integration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ==================
 
+# Code of Conduct
+
+Please see our [Code of conduct](https://github.com/spring-projects/.github/blob/master/CODE_OF_CONDUCT.md).
+
+# Reporting Security Vulnerabilities
+
+Please see our [Security policy](https://github.com/spring-projects/spring-integration/security/policy).
+
+
 # Checking out and Building
 
-To check out the project and build from source, do the following:
+To check out the project and build from the source, do the following:
 
     git clone git://github.com/spring-projects/spring-integration.git
     cd spring-integration
@@ -11,7 +20,7 @@ To check out the project and build from source, do the following:
 
 **NOTE:** While Spring Integration runs with Java SE 6 or higher, a Java 8 compiler is required to build the project.
 
-If you encounter out of memory errors during the build, increase available heap and permgen for Gradle:
+If you encounter out of memory errors during the build, increase an available heap and permgen for Gradle:
 
     GRADLE_OPTS='-XX:MaxPermSize=1024m -Xmx1024m'
 
