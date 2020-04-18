@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,7 +197,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("promise", TestService.class);
 		Mono<Message<?>> result = service.promise("foo");
-		Message<?> reply = result.block(Duration.ofSeconds(1));
+		Message<?> reply = result.block(Duration.ofSeconds(10));
 		assertThat(reply.getPayload()).isEqualTo("foo");
 		assertThat(TestUtils.getPropertyValue(context.getBean("&promise"), "asyncExecutor")).isNotNull();
 	}
