@@ -389,7 +389,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	public boolean get(Message<?> message, InputStreamCallback callback) {
 		Assert.notNull(this.fileNameProcessor, "A 'fileNameExpression' is needed to use get");
 		String remotePath = this.fileNameProcessor.processMessage(message);
-		return this.get(remotePath, callback);
+		return get(remotePath, callback);
 	}
 
 	@Override
@@ -572,7 +572,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			session.append(stream, tempFilePath);
 		}
 		else {
-			if (exists(remoteFilePath)) {
+			if (session.exists(remoteFilePath)) {
 				if (FileExistsMode.FAIL.equals(mode)) {
 					throw new MessagingException(
 							"The destination file already exists at '" + remoteFilePath + "'.");
