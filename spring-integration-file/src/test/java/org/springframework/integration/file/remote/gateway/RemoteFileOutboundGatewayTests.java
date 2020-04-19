@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -832,14 +833,10 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
 		@SuppressWarnings("unchecked")
 		Session<TestLsEntry> session = mock(Session.class);
-		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<TestLsEntry>(sessionFactory) {
-
-			@Override
-			public boolean exists(String path) {
-				return true;
-			}
-
-		};
+		willReturn(Boolean.TRUE)
+				.given(session)
+				.exists(anyString());
+		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();
@@ -967,6 +964,7 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testMputCollection() throws Exception {
 		@SuppressWarnings("unchecked")
 		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
