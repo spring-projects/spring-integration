@@ -80,6 +80,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.ContainerProperties.AssignmentCommitOption;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
@@ -503,12 +504,14 @@ class KafkaProducerMessageHandlerTests {
 		ConsumerFactory cf = mock(ConsumerFactory.class);
 		willReturn(mockConsumer).given(cf).createConsumer("group", "", null, KafkaTestUtils.defaultPropertyOverrides());
 		Producer producer = mock(Producer.class);
+		given(producer.send(any(), any())).willReturn(new SettableListenableFuture<>());
 		final CountDownLatch closeLatch = new CountDownLatch(2);
 		willAnswer(i -> {
 			closeLatch.countDown();
 			return null;
 		}).given(producer).close(any());
 		ProducerFactory pf = mock(ProducerFactory.class);
+		given(pf.isProducerPerConsumerPartition()).willReturn(true);
 		given(pf.transactionCapable()).willReturn(true);
 		final List<String> transactionalIds = new ArrayList<>();
 		willAnswer(i -> {
@@ -519,7 +522,7 @@ class KafkaProducerMessageHandlerTests {
 		ContainerProperties props = new ContainerProperties("foo");
 		props.setGroupId("group");
 		props.setTransactionManager(ptm);
-		props.setMissingTopicsFatal(false);
+		props.setAssignmentCommitOption(AssignmentCommitOption.ALWAYS);
 		final KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaMessageListenerContainer container = new KafkaMessageListenerContainer<>(cf, props);
 		container.setBeanName("commit");
@@ -613,6 +616,7 @@ class KafkaProducerMessageHandlerTests {
 		ConsumerFactory cf = mock(ConsumerFactory.class);
 		willReturn(mockConsumer).given(cf).createConsumer("group", "", null, KafkaTestUtils.defaultPropertyOverrides());
 		Producer producer = mock(Producer.class);
+		given(producer.send(any(), any())).willReturn(new SettableListenableFuture<>());
 		final CountDownLatch closeLatch = new CountDownLatch(2);
 		willAnswer(i -> {
 			closeLatch.countDown();
@@ -637,7 +641,7 @@ class KafkaProducerMessageHandlerTests {
 		ContainerProperties props = new ContainerProperties("foo");
 		props.setGroupId("group");
 		props.setTransactionManager(tm);
-		props.setMissingTopicsFatal(false);
+		props.setAssignmentCommitOption(AssignmentCommitOption.ALWAYS);
 		final KafkaTemplate template = new KafkaTemplate(pf);
 		template.setTransactionIdPrefix("template.tx.id.");
 		KafkaMessageListenerContainer container = new KafkaMessageListenerContainer<>(cf, props);
