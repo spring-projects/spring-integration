@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,12 +42,29 @@ public interface IntegrationManagement extends DisposableBean {
 	@ManagedAttribute
 	boolean isLoggingEnabled();
 
+	/**
+	 * Deprecated.
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@ManagedOperation
 	void reset();
 
+	/**
+	 * Deprecated.
+	 * @param countsEnabled the countsEnabled
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@ManagedAttribute(description = "Enable message counting statistics")
 	void setCountsEnabled(boolean countsEnabled);
 
+	/**
+	 * Deprecated.
+	 * @return counts enabled
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@ManagedAttribute
 	boolean isCountsEnabled();
 

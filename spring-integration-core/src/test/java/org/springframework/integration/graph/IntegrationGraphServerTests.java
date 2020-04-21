@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.management.graph;
+package org.springframework.integration.graph;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
@@ -53,8 +53,6 @@ import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.graph.Graph;
-import org.springframework.integration.graph.IntegrationGraphServer;
 import org.springframework.integration.json.JsonPathUtils;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.HeaderValueRouter;
@@ -74,6 +72,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.NullSerializer;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.minidev.json.JSONArray;
@@ -152,10 +152,18 @@ public class IntegrationGraphServerTests {
 		this.testSource.receive();
 		this.expressionRouterInput.send(MessageBuilder.withPayload("foo").setHeader("foo", "fizChannel").build());
 
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'router')]");
+		String routerJson = jsonArray.toJSONString();
+		assertThat(routerJson).contains("\"deprecated\":\"stats are deprecated");
+
+
 		this.server.rebuild();
 		graph = this.server.getGraph();
 		baos = new ByteArrayOutputStream();
+		objectMapper = new ObjectMapper();
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		objectMapper.registerModule(new SimpleModule().addSerializer(IntegrationNode.Stats.class,
+				NullSerializer.instance));
 		objectMapper.writeValue(baos, graph);
 
 		//		System . out . println(new String(baos.toByteArray()));
@@ -170,8 +178,8 @@ public class IntegrationGraphServerTests {
 		assertThat(links.size()).isEqualTo(37);
 
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'router')]");
-		String routerJson = jsonArray.toJSONString();
-		assertThat(routerJson).contains("\"deprecated\":\"stats are deprecated");
+		routerJson = jsonArray.toJSONString();
+		assertThat(routerJson).contains("\"stats\":null");
 		assertThat(routerJson).contains("\"sendTimers\":{\"successes\":{\"count\":4");
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'toRouter')]");
 		String toRouterJson = jsonArray.toJSONString();
@@ -253,7 +261,7 @@ public class IntegrationGraphServerTests {
 	@EnableIntegration
 	@EnableIntegrationManagement
 	@IntegrationComponentScan
-	@ImportResource("org/springframework/integration/support/management/graph/integration-graph-context.xml")
+	@ImportResource("org/springframework/integration/graph/integration-graph-context.xml")
 	public static class Config {
 
 		@Bean

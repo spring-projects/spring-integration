@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.util.JavaUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -63,7 +62,8 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 	private String outputChannelName;
 
-	private AbstractMessageHandlerMetrics metrics;
+	@SuppressWarnings("deprecation")
+	private org.springframework.integration.support.management.AbstractMessageHandlerMetrics metrics;
 
 	private Boolean statsEnabled;
 
@@ -120,7 +120,14 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.outputChannelName = outputChannelName;
 	}
 
-	public void setMetrics(AbstractMessageHandlerMetrics metrics) {
+	/**
+	 * Deprecated.
+	 * @param metrics the metrics.
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
+	@SuppressWarnings("deprecation")
+	public void setMetrics(org.springframework.integration.support.management.AbstractMessageHandlerMetrics metrics) {
 		this.metrics = metrics;
 	}
 
@@ -192,6 +199,7 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.headersFunction = headersFunction;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected AggregatingMessageHandler createHandler() {
 		MessageGroupProcessor outputProcessor;

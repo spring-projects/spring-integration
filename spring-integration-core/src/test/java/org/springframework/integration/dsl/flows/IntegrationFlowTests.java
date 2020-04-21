@@ -442,13 +442,7 @@ public class IntegrationFlowTests {
 
 	@Test
 	public void testNullChannelInTheEndOfFlow() {
-		this.nullChannel.setCountsEnabled(true);
-
 		this.flowWithNullChannelInput.send(new GenericMessage<>("foo"));
-
-		assertThat(this.nullChannel.getSendCount()).isEqualTo(1);
-
-		this.nullChannel.setCountsEnabled(false);
 	}
 
 	@Autowired
@@ -461,13 +455,7 @@ public class IntegrationFlowTests {
 
 	@Test
 	public void testLocalNullChannel() {
-		this.localNullChannel.setCountsEnabled(true);
-
 		this.flowWithLocalNullChannelInput.send(new GenericMessage<>("foo"));
-
-		assertThat(this.localNullChannel.getSendCount()).isEqualTo(1);
-
-		assertThat(this.localNullChannel).isNotSameAs(this.nullChannel);
 	}
 
 

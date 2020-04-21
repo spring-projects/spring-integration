@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import org.springframework.util.CollectionUtils;
 @IntegrationManagedResource
 public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluator
 		implements MessageSource<T>, org.springframework.integration.support.management.MessageSourceMetrics,
-			NamedComponent, BeanNameAware {
+		NamedComponent, BeanNameAware {
 
 	private final AtomicLong messageCount = new AtomicLong();
 
@@ -141,16 +141,33 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 		this.managementOverrides.loggingConfigured = true;
 	}
 
+	/**
+	 * Deprecated.
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void reset() {
 		this.messageCount.set(0);
 	}
 
+	/**
+	 * Deprecated.
+	 * @return count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getMessageCount() {
 		return (int) this.messageCount.get();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getMessageCountLong() {
 		return this.messageCount.get();
@@ -179,7 +196,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 		if (result == null) {
 			return null;
 		}
-		Message<?> message = null;
+		Message<?> message;
 		Map<String, Object> headers = evaluateHeaders();
 		if (result instanceof AbstractIntegrationMessageBuilder<?>) {
 			if (!CollectionUtils.isEmpty(headers)) {

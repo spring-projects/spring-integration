@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,6 @@ import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
-import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
-import org.springframework.integration.support.management.ConfigurableMetricsAware;
-import org.springframework.integration.support.management.DefaultMessageHandlerMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MeterFacade;
@@ -54,7 +51,8 @@ import org.springframework.util.Assert;
 @IntegrationManagedResource
 public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		implements org.springframework.integration.support.management.MessageHandlerMetrics,
-		ConfigurableMetricsAware<AbstractMessageHandlerMetrics>,
+		org.springframework.integration.support.management.ConfigurableMetricsAware<
+				org.springframework.integration.support.management.AbstractMessageHandlerMetrics>,
 		TrackableComponent, Orderable, IntegrationPattern {
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
@@ -63,7 +61,8 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 
 	private boolean shouldTrack = false;
 
-	private AbstractMessageHandlerMetrics handlerMetrics = new DefaultMessageHandlerMetrics();
+	private org.springframework.integration.support.management.AbstractMessageHandlerMetrics handlerMetrics
+			= new org.springframework.integration.support.management.DefaultMessageHandlerMetrics();
 
 	private boolean countsEnabled;
 
@@ -97,7 +96,13 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		this.metricsCaptor = metricsCaptorToRegister;
 	}
 
-	protected AbstractMessageHandlerMetrics getHandlerMetrics() {
+	/**
+	 * Deprecated.
+	 * @return handler metrics
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
+	protected org.springframework.integration.support.management.AbstractMessageHandlerMetrics getHandlerMetrics() {
 		return this.handlerMetrics;
 	}
 
@@ -129,8 +134,15 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		return this.shouldTrack;
 	}
 
+	/**
+	 * Deprecated.
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
-	public void configureMetrics(AbstractMessageHandlerMetrics metrics) {
+	public void configureMetrics(
+			org.springframework.integration.support.management.AbstractMessageHandlerMetrics metrics) {
+
 		Assert.notNull(metrics, "'metrics' must not be null");
 		this.handlerMetrics = metrics;
 		this.managementOverrides.metricsConfigured = true;
@@ -172,66 +184,143 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		return timer;
 	}
 
+	/**
+	 * Deprecated.
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void reset() {
 		this.handlerMetrics.reset();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return handle count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getHandleCountLong() {
 		return this.handlerMetrics.getHandleCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return handle count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getHandleCount() {
 		return this.handlerMetrics.getHandleCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return error count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getErrorCount() {
 		return this.handlerMetrics.getErrorCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return error count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getErrorCountLong() {
 		return this.handlerMetrics.getErrorCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return mean duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanDuration() {
 		return this.handlerMetrics.getMeanDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return min duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMinDuration() {
 		return this.handlerMetrics.getMinDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return max duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMaxDuration() {
 		return this.handlerMetrics.getMaxDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return standard deviation duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getStandardDeviationDuration() {
 		return this.handlerMetrics.getStandardDeviationDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return active count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getActiveCount() {
 		return this.handlerMetrics.getActiveCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return active count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getActiveCountLong() {
 		return this.handlerMetrics.getActiveCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return statistics
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public org.springframework.integration.support.management.Statistics getDuration() {
 		return this.handlerMetrics.getDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param statsEnabled the statsEnabled
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void setStatsEnabled(boolean statsEnabled) {
 		if (statsEnabled) {
@@ -245,11 +334,23 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		this.managementOverrides.statsConfigured = true;
 	}
 
+	/**
+	 * Deprecated.
+	 * @return statsEnabled
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public boolean isStatsEnabled() {
 		return this.statsEnabled;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param countsEnabled the countsEnabled
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void setCountsEnabled(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
@@ -260,6 +361,12 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		}
 	}
 
+	/**
+	 * Deprecated.
+	 * @return countsEnabled
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public boolean isCountsEnabled() {
 		return this.countsEnabled;

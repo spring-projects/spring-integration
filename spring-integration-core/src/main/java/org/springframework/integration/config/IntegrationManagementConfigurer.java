@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,8 @@ import org.springframework.beans.factory.config.DestructionAwareBeanPostProcesso
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
-import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
-import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
-import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptor;
 import org.springframework.integration.support.utils.PatternMatchUtils;
@@ -357,8 +353,8 @@ public class IntegrationManagementConfigurer
 	private void configureChannelMetrics(String name,
 			org.springframework.integration.support.management.MessageChannelMetrics bean) {
 
-		AbstractMessageChannelMetrics metrics;
-		if (bean instanceof PollableChannelManagement) {
+		org.springframework.integration.support.management.AbstractMessageChannelMetrics metrics;
+		if (bean instanceof org.springframework.integration.support.management.PollableChannelManagement) {
 			metrics = this.metricsFactory.createPollableChannelMetrics(name);
 		}
 		else {
@@ -386,8 +382,11 @@ public class IntegrationManagementConfigurer
 				metrics.setFullStatsEnabled(this.defaultStatsEnabled);
 			}
 		}
-		if (bean instanceof ConfigurableMetricsAware && !overrides.metricsConfigured) {
-			((ConfigurableMetricsAware<AbstractMessageChannelMetrics>) bean).configureMetrics(metrics);
+		if (bean instanceof org.springframework.integration.support.management.ConfigurableMetricsAware
+				&& !overrides.metricsConfigured) {
+			((org.springframework.integration.support.management.ConfigurableMetricsAware<
+					org.springframework.integration.support.management.AbstractMessageChannelMetrics>) bean)
+						.configureMetrics(metrics);
 		}
 		this.channelsByName.put(name, bean);
 	}
@@ -395,7 +394,8 @@ public class IntegrationManagementConfigurer
 	@SuppressWarnings("unchecked")
 	private void configureHandlerMetrics(String name,
 			org.springframework.integration.support.management.MessageHandlerMetrics bean) {
-		AbstractMessageHandlerMetrics metrics = this.metricsFactory.createHandlerMetrics(name);
+		org.springframework.integration.support.management.AbstractMessageHandlerMetrics metrics
+				= this.metricsFactory.createHandlerMetrics(name);
 		Assert.state(metrics != null, "'metrics' must not be null");
 		ManagementOverrides overrides = getOverrides(bean);
 		Boolean enabled = PatternMatchUtils.smartMatch(name, this.enabledCountsPatterns);
@@ -418,8 +418,11 @@ public class IntegrationManagementConfigurer
 				metrics.setFullStatsEnabled(this.defaultStatsEnabled);
 			}
 		}
-		if (bean instanceof ConfigurableMetricsAware && !overrides.metricsConfigured) {
-			((ConfigurableMetricsAware<AbstractMessageHandlerMetrics>) bean).configureMetrics(metrics);
+		if (bean instanceof org.springframework.integration.support.management.ConfigurableMetricsAware
+				&& !overrides.metricsConfigured) {
+			((org.springframework.integration.support.management.ConfigurableMetricsAware<
+					org.springframework.integration.support.management.AbstractMessageHandlerMetrics>) bean)
+						.configureMetrics(metrics);
 		}
 
 		this.handlersByName.put(bean.getManagedName() != null ? bean.getManagedName() : name, bean);

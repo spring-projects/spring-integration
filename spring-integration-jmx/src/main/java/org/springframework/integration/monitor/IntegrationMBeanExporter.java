@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,15 +56,9 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.integration.support.management.LifecycleMessageSourceManagement;
-import org.springframework.integration.support.management.LifecycleTrackableMessageSourceManagement;
-import org.springframework.integration.support.management.LifecycleTrackableMessageSourceMetrics;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.integration.support.management.MessageSourceManagement;
-import org.springframework.integration.support.management.PollableChannelManagement;
-import org.springframework.integration.support.management.RouterMetrics;
 import org.springframework.integration.support.management.TrackableComponent;
-import org.springframework.integration.support.management.TrackableRouterMetrics;
 import org.springframework.integration.support.utils.PatternMatchUtils;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.UnableToRegisterMBeanException;
@@ -740,8 +734,9 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	public long getChannelReceiveCountLong(String name) {
 		org.springframework.integration.support.management.MessageChannelMetrics channelMetrics =
 				getChannelMetrics(name);
-		if (channelMetrics instanceof PollableChannelManagement) {
-			return ((PollableChannelManagement) channelMetrics).getReceiveCountLong();
+		if (channelMetrics instanceof org.springframework.integration.support.management.PollableChannelManagement) {
+			return ((org.springframework.integration.support.management.PollableChannelManagement) channelMetrics)
+					.getReceiveCountLong();
 		}
 		return -1;
 	}
@@ -1036,11 +1031,12 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		org.springframework.integration.support.management.MessageHandlerMetrics result;
 		if (monitor instanceof MappingMessageRouterManagement) {
 			if (monitor instanceof TrackableComponent) {
-				result = new TrackableRouterMetrics(endpoint,
+				result = new org.springframework.integration.support.management.TrackableRouterMetrics(endpoint,
 						(MappingMessageRouterManagement) monitor);
 			}
 			else {
-				result = new RouterMetrics(endpoint, (MappingMessageRouterManagement) monitor);
+				result = new org.springframework.integration.support.management.RouterMetrics(endpoint,
+						(MappingMessageRouterManagement) monitor);
 			}
 		}
 		else {
@@ -1163,16 +1159,19 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		org.springframework.integration.support.management.MessageSourceMetrics result;
 		if (endpoint instanceof TrackableComponent) {
 			if (monitor instanceof MessageSourceManagement) {
-				result = new LifecycleTrackableMessageSourceManagement((Lifecycle) endpoint,
+				result = new org.springframework.integration.support.management.
+							LifecycleTrackableMessageSourceManagement((Lifecycle) endpoint,
 						(MessageSourceManagement) monitor);
 			}
 			else {
-				result = new LifecycleTrackableMessageSourceMetrics((Lifecycle) endpoint, monitor);
+				result = new org.springframework.integration.support.management.
+						LifecycleTrackableMessageSourceMetrics((Lifecycle) endpoint, monitor);
 			}
 		}
 		else {
 			if (monitor instanceof MessageSourceManagement) {
-				result = new LifecycleMessageSourceManagement((Lifecycle) endpoint,
+				result = new org.springframework.integration.support.management.
+							LifecycleMessageSourceManagement((Lifecycle) endpoint,
 						(MessageSourceManagement) monitor);
 			}
 			else {

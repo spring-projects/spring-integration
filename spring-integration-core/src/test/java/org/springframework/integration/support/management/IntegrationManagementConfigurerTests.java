@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.router.RecipientListRouter;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -94,8 +93,6 @@ public class IntegrationManagementConfigurerTests {
 		AbstractMessageChannel channel = ctx.getBean("channel", AbstractMessageChannel.class);
 		assertThat(channel.isCountsEnabled()).isTrue();
 		assertThat(channel.isStatsEnabled()).isTrue();
-		assertThat(TestUtils.getPropertyValue(channel, "channelMetrics"))
-				.isInstanceOf(DefaultMessageChannelMetrics.class);
 		channel = ctx.getBean("loggingOffChannel", AbstractMessageChannel.class);
 		assertThat(channel.isLoggingEnabled()).isFalse();
 		ctx.close();

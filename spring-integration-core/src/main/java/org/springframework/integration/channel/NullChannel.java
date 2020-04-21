@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,6 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
-import org.springframework.integration.support.management.ConfigurableMetricsAware;
-import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
@@ -51,14 +48,16 @@ import org.springframework.util.Assert;
 @SuppressWarnings("deprecation")
 public class NullChannel implements PollableChannel,
 		org.springframework.integration.support.management.MessageChannelMetrics,
-		ConfigurableMetricsAware<AbstractMessageChannelMetrics>, BeanNameAware, NamedComponent,
-		IntegrationPattern {
+		org.springframework.integration.support.management.ConfigurableMetricsAware<
+				org.springframework.integration.support.management.AbstractMessageChannelMetrics>,
+		BeanNameAware, NamedComponent, IntegrationPattern {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
 
-	private AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics("nullChannel");
+	private org.springframework.integration.support.management.AbstractMessageChannelMetrics channelMetrics
+			= new org.springframework.integration.support.management.DefaultMessageChannelMetrics("nullChannel");
 
 	private boolean countsEnabled;
 
@@ -77,7 +76,8 @@ public class NullChannel implements PollableChannel,
 	@Override
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
-		this.channelMetrics = new DefaultMessageChannelMetrics(this.beanName);
+		this.channelMetrics =
+				new org.springframework.integration.support.management.DefaultMessageChannelMetrics(this.beanName);
 	}
 
 	@Override
@@ -119,17 +119,30 @@ public class NullChannel implements PollableChannel,
 	}
 
 	@Override
-	public void configureMetrics(AbstractMessageChannelMetrics metrics) {
+	public void configureMetrics(
+			org.springframework.integration.support.management.AbstractMessageChannelMetrics metrics) {
+
 		Assert.notNull(metrics, "'metrics' must not be null");
 		this.channelMetrics = metrics;
 		this.managementOverrides.metricsConfigured = true;
 	}
 
+	/**
+	 * Deprecated.
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void reset() {
 		this.channelMetrics.reset();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param countsEnabled the countsEnabled
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void setCountsEnabled(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
@@ -140,11 +153,23 @@ public class NullChannel implements PollableChannel,
 		}
 	}
 
+	/**
+	 * Deprecated.
+	 * @return counts enabled
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public boolean isCountsEnabled() {
 		return this.countsEnabled;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param statsEnabled the statsEnabled
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void setStatsEnabled(boolean statsEnabled) {
 		if (statsEnabled) {
@@ -156,81 +181,178 @@ public class NullChannel implements PollableChannel,
 		this.managementOverrides.statsConfigured = true;
 	}
 
+	/**
+	 * Deprecated.
+	 * @return stats enabled
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public boolean isStatsEnabled() {
 		return this.statsEnabled;
 	}
 
+	/**
+	 * Deprecated.
+	 * @return send count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getSendCount() {
 		return this.channelMetrics.getSendCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return send count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getSendCountLong() {
 		return this.channelMetrics.getSendCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return error count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getSendErrorCount() {
 		return this.channelMetrics.getSendErrorCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return error count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getSendErrorCountLong() {
 		return this.channelMetrics.getSendErrorCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return time since last send
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getTimeSinceLastSend() {
 		return this.channelMetrics.getTimeSinceLastSend();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return mean send rate
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanSendRate() {
 		return this.channelMetrics.getMeanSendRate();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return mean error rate
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanErrorRate() {
 		return this.channelMetrics.getMeanErrorRate();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return mean error ratio
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanErrorRatio() {
 		return this.channelMetrics.getMeanErrorRatio();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return mean send duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanSendDuration() {
 		return this.channelMetrics.getMeanSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return min send duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMinSendDuration() {
 		return this.channelMetrics.getMinSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return max send duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMaxSendDuration() {
 		return this.channelMetrics.getMaxSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return standard deviation send duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getStandardDeviationSendDuration() {
 		return this.channelMetrics.getStandardDeviationSendDuration();
 	}
 
+
+	/**
+	 * Deprecated.
+	 * @return statistics
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public org.springframework.integration.support.management.Statistics getSendDuration() {
 		return this.channelMetrics.getSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return statistics
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public org.springframework.integration.support.management.Statistics getSendRate() {
 		return this.channelMetrics.getSendRate();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return statistics
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public org.springframework.integration.support.management.Statistics getErrorRate() {
 		return this.channelMetrics.getErrorRate();

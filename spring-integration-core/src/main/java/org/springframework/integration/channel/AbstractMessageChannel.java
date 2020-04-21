@@ -35,9 +35,6 @@ import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
-import org.springframework.integration.support.management.ConfigurableMetricsAware;
-import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MeterFacade;
@@ -71,7 +68,8 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, InterceptableChannel,
 		org.springframework.integration.support.management.MessageChannelMetrics,
-		ConfigurableMetricsAware<AbstractMessageChannelMetrics>,
+		org.springframework.integration.support.management.ConfigurableMetricsAware<
+				org.springframework.integration.support.management.AbstractMessageChannelMetrics>,
 		IntegrationPattern {
 
 	protected final ChannelInterceptorList interceptors; // NOSONAR
@@ -96,7 +94,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private volatile boolean loggingEnabled = true;
 
-	private volatile AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics();
+	private volatile org.springframework.integration.support.management.AbstractMessageChannelMetrics channelMetrics
+			= new org.springframework.integration.support.management.DefaultMessageChannelMetrics();
 
 	private MetricsCaptor metricsCaptor;
 
@@ -175,12 +174,26 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		this.managementOverrides.loggingConfigured = true;
 	}
 
-	protected AbstractMessageChannelMetrics getMetrics() {
+	/**
+	 * Deprecated.
+	 * @return channel metrics.
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
+	protected org.springframework.integration.support.management.AbstractMessageChannelMetrics getMetrics() {
 		return this.channelMetrics;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param metrics the metrics
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
-	public void configureMetrics(AbstractMessageChannelMetrics metrics) {
+	public void configureMetrics(
+			org.springframework.integration.support.management.AbstractMessageChannelMetrics metrics) {
+
 		Assert.notNull(metrics, "'metrics' must not be null");
 		this.channelMetrics = metrics;
 		this.managementOverrides.metricsConfigured = true;
@@ -276,81 +289,176 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		return this.interceptors;
 	}
 
+	/**
+	 * Deprecated.
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void reset() {
 		this.channelMetrics.reset();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return send count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getSendCount() {
 		return this.channelMetrics.getSendCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return send count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getSendCountLong() {
 		return this.channelMetrics.getSendCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return send error count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getSendErrorCount() {
 		return this.channelMetrics.getSendErrorCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return send error count
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getSendErrorCountLong() {
 		return this.channelMetrics.getSendErrorCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return time since last
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getTimeSinceLastSend() {
 		return this.channelMetrics.getTimeSinceLastSend();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return mean send rate
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanSendRate() {
 		return this.channelMetrics.getMeanSendRate();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return mean error rate
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanErrorRate() {
 		return this.channelMetrics.getMeanErrorRate();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return mean error ratio
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanErrorRatio() {
 		return this.channelMetrics.getMeanErrorRatio();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return mean send duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanSendDuration() {
 		return this.channelMetrics.getMeanSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return min send duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMinSendDuration() {
 		return this.channelMetrics.getMinSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return max send duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMaxSendDuration() {
 		return this.channelMetrics.getMaxSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return standard deviation send duration
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getStandardDeviationSendDuration() {
 		return this.channelMetrics.getStandardDeviationSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return statistics
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public org.springframework.integration.support.management.Statistics getSendDuration() {
 		return this.channelMetrics.getSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return statistics
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public org.springframework.integration.support.management.Statistics getSendRate() {
 		return this.channelMetrics.getSendRate();
 	}
 
+	/**
+	 * Deprecated.
+	 * @return statistics
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public org.springframework.integration.support.management.Statistics getErrorRate() {
 		return this.channelMetrics.getErrorRate();
@@ -439,7 +547,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		org.springframework.integration.support.management.MetricsContext metricsContext = null;
 		boolean countsAreEnabled = this.countsEnabled;
 		ChannelInterceptorList interceptorList = this.interceptors;
-		AbstractMessageChannelMetrics metrics = this.channelMetrics;
+		org.springframework.integration.support.management.AbstractMessageChannelMetrics metrics = this.channelMetrics;
 		SampleFacade sample = null;
 		try {
 			message = convertPayloadIfNecessary(message);
@@ -687,7 +795,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				@Nullable Exception ex, @Nullable Deque<ChannelInterceptor> interceptorStack) {
 
 			if (interceptorStack != null) {
-				for (Iterator<ChannelInterceptor> iterator = interceptorStack.descendingIterator(); iterator.hasNext(); ) {
+				for (Iterator<ChannelInterceptor> iterator = interceptorStack.descendingIterator(); iterator
+						.hasNext(); ) {
 					ChannelInterceptor interceptor = iterator.next();
 					try {
 						interceptor.afterReceiveCompletion(message, channel, ex);
