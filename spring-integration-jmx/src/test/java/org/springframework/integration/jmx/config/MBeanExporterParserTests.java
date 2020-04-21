@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
-import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
-import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
-import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
-import org.springframework.integration.support.management.DefaultMessageHandlerMetrics;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -133,8 +129,10 @@ public class MBeanExporterParserTests {
 	public static class CustomMetrics implements org.springframework.integration.support.management.MetricsFactory {
 
 		@Override
-		public AbstractMessageChannelMetrics createChannelMetrics(String name) {
-			return new DefaultMessageChannelMetrics(name,
+		public org.springframework.integration.support.management.AbstractMessageChannelMetrics
+				createChannelMetrics(String name) {
+
+			return new org.springframework.integration.support.management.DefaultMessageChannelMetrics(name,
 					new org.springframework.integration.support.management.ExponentialMovingAverage(20, 1000000.),
 					new org.springframework.integration.support.management.ExponentialMovingAverageRate(2000, 120000,
 							30, true),
@@ -145,8 +143,10 @@ public class MBeanExporterParserTests {
 		}
 
 		@Override
-		public AbstractMessageHandlerMetrics createHandlerMetrics(String name) {
-			return new DefaultMessageHandlerMetrics(name,
+		public org.springframework.integration.support.management.AbstractMessageHandlerMetrics
+				createHandlerMetrics(String name) {
+
+			return new org.springframework.integration.support.management.DefaultMessageHandlerMetrics(name,
 					new org.springframework.integration.support.management.ExponentialMovingAverage(20, 1000000.));
 		}
 

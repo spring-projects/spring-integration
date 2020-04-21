@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,6 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.support.management.AggregatingMessageChannelMetrics;
-import org.springframework.integration.support.management.AggregatingMessageHandlerMetrics;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -75,12 +73,17 @@ public class AggregatingMetricsTests {
 		assertThat(this.handler.getDuration().getCountLong()).isEqualTo(Long.valueOf(count / 1000).longValue());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testElapsed() {
 		int sampleSize = 2;
-		this.delay.configureMetrics(new AggregatingMessageChannelMetrics("foo", sampleSize));
+		this.delay.configureMetrics(
+				new org.springframework.integration.support.management.AggregatingMessageChannelMetrics
+					("foo", sampleSize));
 		this.delay.setStatsEnabled(true);
-		this.delayer.configureMetrics(new AggregatingMessageHandlerMetrics("bar", sampleSize));
+		this.delayer.configureMetrics(
+				new org.springframework.integration.support.management.AggregatingMessageHandlerMetrics("bar",
+						sampleSize));
 		this.delayer.setStatsEnabled(true);
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		int count = 4;
@@ -95,9 +98,11 @@ public class AggregatingMetricsTests {
 		assertThat((int) this.delayer.getMeanDuration() / sampleSize).isGreaterThanOrEqualTo(50);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test @Ignore
 	public void perf() {
-		AggregatingMessageHandlerMetrics metrics = new AggregatingMessageHandlerMetrics();
+		org.springframework.integration.support.management.AggregatingMessageHandlerMetrics metrics =
+				new org.springframework.integration.support.management.AggregatingMessageHandlerMetrics();
 		for (int i = 0; i < 100000000; i++) {
 			metrics.afterHandle(metrics.beforeHandle(), true);
 		}

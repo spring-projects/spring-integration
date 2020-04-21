@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
-import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.lang.Nullable;
@@ -51,8 +50,10 @@ import org.springframework.util.Assert;
  *
  * @since 2.1
  */
+@SuppressWarnings("deprecation")
 public class PollableAmqpChannel extends AbstractAmqpChannel
-		implements PollableChannel, PollableChannelManagement, ExecutorChannelInterceptorAware {
+		implements PollableChannel, org.springframework.integration.support.management.PollableChannelManagement,
+		ExecutorChannelInterceptorAware {
 
 	private final String channelName;
 

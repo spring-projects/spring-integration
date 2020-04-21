@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
@@ -79,8 +78,9 @@ public class MonitorTests {
 	public void testStats() throws InterruptedException {
 		final CountDownLatch afterSendLatch = new CountDownLatch(1);
 
-		DefaultMessageChannelMetrics channelMetrics =
-				TestUtils.getPropertyValue(this.next, "channelMetrics", DefaultMessageChannelMetrics.class);
+		org.springframework.integration.support.management.DefaultMessageChannelMetrics channelMetrics =
+				TestUtils.getPropertyValue(this.next, "channelMetrics",
+						org.springframework.integration.support.management.DefaultMessageChannelMetrics.class);
 		channelMetrics = Mockito.spy(channelMetrics);
 
 		Mockito.doAnswer(invocation -> {

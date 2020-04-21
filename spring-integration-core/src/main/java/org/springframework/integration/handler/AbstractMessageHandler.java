@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.handler;
 import org.reactivestreams.Subscription;
 
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -38,6 +37,7 @@ import reactor.core.CoreSubscriber;
 public abstract class AbstractMessageHandler extends MessageHandlerSupport
 		implements MessageHandler, CoreSubscriber<Message<?>> {
 
+	@Override
 	@SuppressWarnings("deprecation") // NOSONAR
 	public void handleMessage(Message<?> message) {
 		Message<?> messageToUse = message;
@@ -55,7 +55,8 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 			if (shouldTrack()) {
 				messageToUse = MessageHistory.write(messageToUse, this, getMessageBuilderFactory());
 			}
-			AbstractMessageHandlerMetrics handlerMetrics = getHandlerMetrics();
+			org.springframework.integration.support.management.AbstractMessageHandlerMetrics handlerMetrics
+					= getHandlerMetrics();
 			if (isCountsEnabled()) {
 				start = handlerMetrics.beforeHandle();
 				handleMessageInternal(messageToUse);

@@ -93,7 +93,15 @@ A Spring Integration application with only the default components would expose a
 
 NOTE: Version 5.2 has deprecated the legacy metrics in favor of Micrometer meters as discussed <<./metrics.adoc#metrics-management,Metrics Management>>.
 While not shown above, the legacy metrics (under the `stats` child node) will continue to appear in the graph, but with an extra child node `"deprecated" : "stats are deprecated in favor of sendTimers and receiveCounters"`.
-The `providerFormatVersion` has been changed to 1.1 to reflect this change.
+
+When using Jackson, you can suppress the inclusion of legacy statistics by registering a `GraphLegacyStatsNullModule` with the `ObjectMapper`:
+
+====
+[source, java]
+----
+objectMapper.registerModule(new GraphLegacyStatsNullModule());
+----
+====
 
 In the preceding example, the graph consists of three top-level elements.
 

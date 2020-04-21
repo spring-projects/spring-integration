@@ -35,9 +35,6 @@ import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
-import org.springframework.integration.support.management.ConfigurableMetricsAware;
-import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MeterFacade;
@@ -71,7 +68,8 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, InterceptableChannel,
 		org.springframework.integration.support.management.MessageChannelMetrics,
-		ConfigurableMetricsAware<AbstractMessageChannelMetrics>,
+		org.springframework.integration.support.management.ConfigurableMetricsAware<
+			org.springframework.integration.support.management.AbstractMessageChannelMetrics>,
 		IntegrationPattern {
 
 	protected final ChannelInterceptorList interceptors; // NOSONAR
@@ -96,7 +94,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private volatile boolean loggingEnabled = true;
 
-	private volatile AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics();
+	private volatile org.springframework.integration.support.management.AbstractMessageChannelMetrics channelMetrics
+			= new org.springframework.integration.support.management.DefaultMessageChannelMetrics();
 
 	private MetricsCaptor metricsCaptor;
 
@@ -175,12 +174,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		this.managementOverrides.loggingConfigured = true;
 	}
 
-	protected AbstractMessageChannelMetrics getMetrics() {
+	protected org.springframework.integration.support.management.AbstractMessageChannelMetrics getMetrics() {
 		return this.channelMetrics;
 	}
 
 	@Override
-	public void configureMetrics(AbstractMessageChannelMetrics metrics) {
+	public void configureMetrics(
+			org.springframework.integration.support.management.AbstractMessageChannelMetrics metrics) {
+
 		Assert.notNull(metrics, "'metrics' must not be null");
 		this.channelMetrics = metrics;
 		this.managementOverrides.metricsConfigured = true;
@@ -439,7 +440,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		org.springframework.integration.support.management.MetricsContext metricsContext = null;
 		boolean countsAreEnabled = this.countsEnabled;
 		ChannelInterceptorList interceptorList = this.interceptors;
-		AbstractMessageChannelMetrics metrics = this.channelMetrics;
+		org.springframework.integration.support.management.AbstractMessageChannelMetrics metrics = this.channelMetrics;
 		SampleFacade sample = null;
 		try {
 			message = convertPayloadIfNecessary(message);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.Deque;
 import java.util.List;
 
 import org.springframework.integration.IntegrationPatternType;
-import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.lang.Nullable;
@@ -38,8 +37,10 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @author Gary Russell
  * @author Artem Bilan
  */
+@SuppressWarnings("deprecation")
 public abstract class AbstractPollableChannel extends AbstractMessageChannel
-		implements PollableChannel, PollableChannelManagement, ExecutorChannelInterceptorAware {
+		implements PollableChannel, org.springframework.integration.support.management.PollableChannelManagement,
+		ExecutorChannelInterceptorAware {
 
 	private int executorInterceptorsSize;
 

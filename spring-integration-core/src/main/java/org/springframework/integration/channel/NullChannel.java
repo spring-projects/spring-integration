@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,6 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
-import org.springframework.integration.support.management.ConfigurableMetricsAware;
-import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
@@ -51,14 +48,16 @@ import org.springframework.util.Assert;
 @SuppressWarnings("deprecation")
 public class NullChannel implements PollableChannel,
 		org.springframework.integration.support.management.MessageChannelMetrics,
-		ConfigurableMetricsAware<AbstractMessageChannelMetrics>, BeanNameAware, NamedComponent,
-		IntegrationPattern {
+		org.springframework.integration.support.management.ConfigurableMetricsAware<
+			org.springframework.integration.support.management.AbstractMessageChannelMetrics>,
+		BeanNameAware, NamedComponent, IntegrationPattern {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
 
-	private AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics("nullChannel");
+	private org.springframework.integration.support.management.AbstractMessageChannelMetrics channelMetrics
+			= new org.springframework.integration.support.management.DefaultMessageChannelMetrics("nullChannel");
 
 	private boolean countsEnabled;
 
@@ -77,7 +76,8 @@ public class NullChannel implements PollableChannel,
 	@Override
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
-		this.channelMetrics = new DefaultMessageChannelMetrics(this.beanName);
+		this.channelMetrics =
+				new org.springframework.integration.support.management.DefaultMessageChannelMetrics(this.beanName);
 	}
 
 	@Override
@@ -119,7 +119,9 @@ public class NullChannel implements PollableChannel,
 	}
 
 	@Override
-	public void configureMetrics(AbstractMessageChannelMetrics metrics) {
+	public void configureMetrics(
+			org.springframework.integration.support.management.AbstractMessageChannelMetrics metrics) {
+
 		Assert.notNull(metrics, "'metrics' must not be null");
 		this.channelMetrics = metrics;
 		this.managementOverrides.metricsConfigured = true;
