@@ -66,7 +66,7 @@ import org.springframework.util.ClassUtils;
  */
 public class IntegrationGraphServer implements ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
 
-	private static final float GRAPH_VERSION = 1.3f;
+	private static final float GRAPH_VERSION = 1.2f;
 
 	private static MicrometerNodeEnhancer micrometerEnhancer;
 
