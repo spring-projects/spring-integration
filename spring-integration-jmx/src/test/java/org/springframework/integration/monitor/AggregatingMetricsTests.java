@@ -78,8 +78,8 @@ public class AggregatingMetricsTests {
 	public void testElapsed() {
 		int sampleSize = 2;
 		this.delay.configureMetrics(
-				new org.springframework.integration.support.management.AggregatingMessageChannelMetrics
-					("foo", sampleSize));
+				new org.springframework.integration.support.management.AggregatingMessageChannelMetrics("foo",
+						sampleSize));
 		this.delay.setStatsEnabled(true);
 		this.delayer.configureMetrics(
 				new org.springframework.integration.support.management.AggregatingMessageHandlerMetrics("bar",
