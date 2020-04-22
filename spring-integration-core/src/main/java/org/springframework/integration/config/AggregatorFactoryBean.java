@@ -120,6 +120,12 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.outputChannelName = outputChannelName;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param metrics the metrics.
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@SuppressWarnings("deprecation")
 	public void setMetrics(org.springframework.integration.support.management.AbstractMessageHandlerMetrics metrics) {
 		this.metrics = metrics;
@@ -193,6 +199,7 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.headersFunction = headersFunction;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected AggregatingMessageHandler createHandler() {
 		MessageGroupProcessor outputProcessor;

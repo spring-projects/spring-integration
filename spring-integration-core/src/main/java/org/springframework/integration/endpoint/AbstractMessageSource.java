@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,16 +141,34 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 		this.managementOverrides.loggingConfigured = true;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void reset() {
 		this.messageCount.set(0);
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getMessageCount() {
 		return (int) this.messageCount.get();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getMessageCountLong() {
 		return this.messageCount.get();

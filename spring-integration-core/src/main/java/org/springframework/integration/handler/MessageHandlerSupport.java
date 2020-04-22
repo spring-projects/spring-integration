@@ -96,6 +96,12 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		this.metricsCaptor = metricsCaptorToRegister;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	protected org.springframework.integration.support.management.AbstractMessageHandlerMetrics getHandlerMetrics() {
 		return this.handlerMetrics;
 	}
@@ -128,6 +134,12 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		return this.shouldTrack;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void configureMetrics(
 			org.springframework.integration.support.management.AbstractMessageHandlerMetrics metrics) {
@@ -173,66 +185,144 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		return timer;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void reset() {
 		this.handlerMetrics.reset();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getHandleCountLong() {
 		return this.handlerMetrics.getHandleCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getHandleCount() {
 		return this.handlerMetrics.getHandleCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getErrorCount() {
 		return this.handlerMetrics.getErrorCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getErrorCountLong() {
 		return this.handlerMetrics.getErrorCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanDuration() {
 		return this.handlerMetrics.getMeanDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMinDuration() {
 		return this.handlerMetrics.getMinDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMaxDuration() {
 		return this.handlerMetrics.getMaxDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getStandardDeviationDuration() {
 		return this.handlerMetrics.getStandardDeviationDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getActiveCount() {
 		return this.handlerMetrics.getActiveCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getActiveCountLong() {
 		return this.handlerMetrics.getActiveCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public org.springframework.integration.support.management.Statistics getDuration() {
 		return this.handlerMetrics.getDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void setStatsEnabled(boolean statsEnabled) {
 		if (statsEnabled) {
@@ -246,11 +336,23 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		this.managementOverrides.statsConfigured = true;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public boolean isStatsEnabled() {
 		return this.statsEnabled;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void setCountsEnabled(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
@@ -261,6 +363,12 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		}
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public boolean isCountsEnabled() {
 		return this.countsEnabled;

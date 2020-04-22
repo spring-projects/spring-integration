@@ -37,7 +37,6 @@ import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.router.RecipientListRouter;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -87,7 +86,6 @@ public class IntegrationManagementConfigurerTests {
 		assertThat(channel.isStatsEnabled()).isTrue();
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testEmptyAnnotation() {
 		AnnotationConfigApplicationContext ctx =
@@ -95,8 +93,6 @@ public class IntegrationManagementConfigurerTests {
 		AbstractMessageChannel channel = ctx.getBean("channel", AbstractMessageChannel.class);
 		assertThat(channel.isCountsEnabled()).isTrue();
 		assertThat(channel.isStatsEnabled()).isTrue();
-		assertThat(TestUtils.getPropertyValue(channel, "channelMetrics"))
-				.isInstanceOf(DefaultMessageChannelMetrics.class);
 		channel = ctx.getBean("loggingOffChannel", AbstractMessageChannel.class);
 		assertThat(channel.isLoggingEnabled()).isFalse();
 		ctx.close();

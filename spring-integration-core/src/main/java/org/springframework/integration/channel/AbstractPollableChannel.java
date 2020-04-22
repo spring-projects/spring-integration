@@ -46,26 +46,56 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 
 	private CounterFacade receiveCounter;
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getReceiveCount() {
 		return getMetrics().getReceiveCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getReceiveCountLong() {
 		return getMetrics().getReceiveCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getReceiveErrorCount() {
 		return getMetrics().getReceiveErrorCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getReceiveErrorCountLong() {
 		return getMetrics().getReceiveErrorCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
 		return IntegrationPatternType.pollable_channel;

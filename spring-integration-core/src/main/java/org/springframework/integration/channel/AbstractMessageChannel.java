@@ -174,10 +174,22 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		this.managementOverrides.loggingConfigured = true;
 	}
 
+	/**
+	 * Deprecated.
+	 * @return channel metrics.
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	protected org.springframework.integration.support.management.AbstractMessageChannelMetrics getMetrics() {
 		return this.channelMetrics;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void configureMetrics(
 			org.springframework.integration.support.management.AbstractMessageChannelMetrics metrics) {
@@ -277,81 +289,177 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		return this.interceptors;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public void reset() {
 		this.channelMetrics.reset();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getSendCount() {
 		return this.channelMetrics.getSendCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getSendCountLong() {
 		return this.channelMetrics.getSendCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getSendErrorCount() {
 		return this.channelMetrics.getSendErrorCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getSendErrorCountLong() {
 		return this.channelMetrics.getSendErrorCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getTimeSinceLastSend() {
 		return this.channelMetrics.getTimeSinceLastSend();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanSendRate() {
 		return this.channelMetrics.getMeanSendRate();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanErrorRate() {
 		return this.channelMetrics.getMeanErrorRate();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanErrorRatio() {
 		return this.channelMetrics.getMeanErrorRatio();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMeanSendDuration() {
 		return this.channelMetrics.getMeanSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMinSendDuration() {
 		return this.channelMetrics.getMinSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getMaxSendDuration() {
 		return this.channelMetrics.getMaxSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public double getStandardDeviationSendDuration() {
 		return this.channelMetrics.getStandardDeviationSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public org.springframework.integration.support.management.Statistics getSendDuration() {
 		return this.channelMetrics.getSendDuration();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public org.springframework.integration.support.management.Statistics getSendRate() {
 		return this.channelMetrics.getSendRate();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public org.springframework.integration.support.management.Statistics getErrorRate() {
 		return this.channelMetrics.getErrorRate();

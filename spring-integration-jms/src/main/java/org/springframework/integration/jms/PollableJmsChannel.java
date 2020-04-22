@@ -57,21 +57,45 @@ public class PollableJmsChannel extends AbstractJmsChannel
 		this.messageSelector = messageSelector;
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getReceiveCount() {
 		return getMetrics().getReceiveCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getReceiveCountLong() {
 		return getMetrics().getReceiveCountLong();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public int getReceiveErrorCount() {
 		return getMetrics().getReceiveErrorCount();
 	}
 
+	/**
+	 * Deprecated.
+	 * @param
+	 * @deprecated in favor of Micrometer metrics.
+	 */
+	@Deprecated
 	@Override
 	public long getReceiveErrorCountLong() {
 		return getMetrics().getReceiveErrorCountLong();

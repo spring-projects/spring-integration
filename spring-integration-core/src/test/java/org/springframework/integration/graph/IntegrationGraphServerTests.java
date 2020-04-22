@@ -72,6 +72,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.NullSerializer;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.minidev.json.JSONArray;
@@ -160,7 +162,8 @@ public class IntegrationGraphServerTests {
 		baos = new ByteArrayOutputStream();
 		objectMapper = new ObjectMapper();
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-		objectMapper.registerModule(new GraphLegacyStatsNullModule());
+		objectMapper.registerModule(new SimpleModule().addSerializer(IntegrationNode.Stats.class,
+				NullSerializer.instance));
 		objectMapper.writeValue(baos, graph);
 
 		//		System . out . println(new String(baos.toByteArray()));
