@@ -39,7 +39,6 @@ import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.FluxMessageChannel;
-import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
@@ -86,6 +85,7 @@ import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.util.ClassUtils;
+import org.springframework.integration.util.IntegrationReactiveUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -2920,7 +2920,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			if (channelForPublisher != null && components.size() > 1
 					&& !(channelForPublisher instanceof MessageChannelReference) &&
 					!(channelForPublisher instanceof FixedSubscriberChannelPrototype)) {
-				publisher = MessageChannelReactiveUtils.toPublisher(channelForPublisher);
+				publisher = IntegrationReactiveUtils.messageChannelToFlux(channelForPublisher);
 			}
 			else {
 				MessageChannel reactiveChannel = new FluxMessageChannel();

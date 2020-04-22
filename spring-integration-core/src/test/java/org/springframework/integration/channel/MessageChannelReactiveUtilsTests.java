@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.util.IntegrationReactiveUtils;
 import org.springframework.messaging.support.GenericMessage;
 
 import reactor.core.Disposable;
@@ -45,7 +46,7 @@ class MessageChannelReactiveUtilsTests {
 		try {
 			DirectChannel channel = new DirectChannel();
 			int initialRequest = 10;
-			StepVerifier.create(MessageChannelReactiveUtils.toPublisher(channel), initialRequest)
+			StepVerifier.create(IntegrationReactiveUtils.messageChannelToFlux(channel), initialRequest)
 					.expectSubscription()
 					.then(() -> {
 						compositeDisposable.add(
@@ -77,7 +78,7 @@ class MessageChannelReactiveUtilsTests {
 		AtomicInteger sendCount = new AtomicInteger();
 		try {
 			int initialRequest = 10;
-			StepVerifier.create(MessageChannelReactiveUtils.toPublisher(channel), initialRequest)
+			StepVerifier.create(IntegrationReactiveUtils.messageChannelToFlux(channel), initialRequest)
 					.expectSubscription()
 					.then(() ->
 							compositeDisposable.add(
