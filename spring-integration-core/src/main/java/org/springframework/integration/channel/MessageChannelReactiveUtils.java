@@ -16,21 +16,11 @@
 
 package org.springframework.integration.channel;
 
-import java.time.Duration;
-
 import org.reactivestreams.Publisher;
 
 import org.springframework.integration.util.IntegrationReactiveUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.SubscribableChannel;
-
-import reactor.core.publisher.EmitterProcessor;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 /**
  * Utilities for adaptation {@link MessageChannel}s to the {@link Publisher}s.
