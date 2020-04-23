@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.ConsumerEndpointSpec;
@@ -138,7 +139,8 @@ public class IntegrationFlowBeanPostProcessor
 		}
 	}
 
-	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String flowBeanName) { // NOSONAR complexity
+	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String flowBeanName) { // NOSONAR
+		// complexity
 		String flowNamePrefix = flowBeanName + ".";
 		if (this.flowContext == null) {
 			this.flowContext = this.beanFactory.getBean(IntegrationFlowContext.class);
@@ -283,7 +285,9 @@ public class IntegrationFlowBeanPostProcessor
 					String beanNameToUse = entry.getValue();
 					if (StringUtils.hasText(beanNameToUse) &&
 							ConfigurableBeanFactory.SCOPE_PROTOTYPE.equals(
-									this.beanFactory.getBeanDefinition(beanNameToUse).getScope())) {
+									IntegrationContextUtils.getBeanDefinition(beanNameToUse, this.beanFactory)
+											.getScope())) {
+
 						this.beanFactory.initializeBean(componentToUse, beanNameToUse);
 					}
 					targetIntegrationComponents.put(component, beanNameToUse);
@@ -393,7 +397,8 @@ public class IntegrationFlowBeanPostProcessor
 			String beanName = ((NamedComponent) instance).getBeanName();
 			if (beanName != null) {
 				if (this.beanFactory.containsBean(beanName)) {
-					BeanDefinition existingBeanDefinition = this.beanFactory.getBeanDefinition(beanName);
+					BeanDefinition existingBeanDefinition =
+							IntegrationContextUtils.getBeanDefinition(beanName, this.beanFactory);
 					if (!ConfigurableBeanFactory.SCOPE_PROTOTYPE.equals(existingBeanDefinition.getScope())
 							&& !instance.equals(this.beanFactory.getBean(beanName))) {
 
@@ -429,8 +434,8 @@ public class IntegrationFlowBeanPostProcessor
 
 		AbstractBeanDefinition beanDefinition =
 				BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) component.getClass(), () -> component)
-				.applyCustomizers(customizers)
-				.getRawBeanDefinition();
+						.applyCustomizers(customizers)
+						.getRawBeanDefinition();
 
 		if (parentName != null && this.beanFactory.containsBeanDefinition(parentName)) {
 			AbstractBeanDefinition parentBeanDefinition =

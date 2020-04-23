@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ package org.springframework.integration.context;
 import java.util.Properties;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
@@ -210,6 +213,28 @@ public abstract class IntegrationContextUtils {
 			properties.putAll(IntegrationProperties.defaults());
 		}
 		return properties;
+	}
+
+	/**
+	 * Return a {@link BeanDefinition} with the given name,
+	 * obtained from the given {@link BeanFactory} or one of its parents.
+	 * @param name the bean name to return
+	 * @param beanFactory the {@link ConfigurableListableBeanFactory} to travers.
+	 * @return the {@link BeanDefinition} for a given name
+	 * @throws NoSuchBeanDefinitionException if a {@link BeanDefinition} is not found
+	 * @since 5.1.10
+	 */
+	public static BeanDefinition getBeanDefinition(String name, ConfigurableListableBeanFactory beanFactory) {
+		try {
+			return beanFactory.getBeanDefinition(name);
+		}
+		catch (NoSuchBeanDefinitionException ex) {
+			BeanFactory parentBeanFactory = beanFactory.getParentBeanFactory();
+			if (parentBeanFactory instanceof ConfigurableListableBeanFactory) {
+				return getBeanDefinition(name, (ConfigurableListableBeanFactory) parentBeanFactory);
+			}
+			throw ex;
+		}
 	}
 
 }
