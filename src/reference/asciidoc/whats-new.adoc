@@ -31,7 +31,7 @@ See <<./reactive-streams.adoc#reactive-message-handler,ReactiveMessageHandler>> 
 [[x5.3-reactive-message-source-producer]]
 ==== `ReactiveMessageSourceProducer`
 
-The `ReactiveMessageSourceProducer` is a reactive implementation of the `MessageProducerSupport` to wrap a provided `MessageSource` into the `Flux` for on demand `receive()` calls.
+The `ReactiveMessageSourceProducer` is a reactive implementation of the `MessageProducerSupport` to wrap a provided `MessageSource` into a `Flux` for on demand `receive()` calls.
 See <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> for more information.
 
 [[x5.3-java-dsl-extensions]]

@@ -93,12 +93,12 @@ The channel adapter can be restarted with automatic subscription to a newly crea
 
 Starting with version 5.3, a `ReactiveMessageSourceProducer` is provided.
 It is a combination of a provided `MessageSource` and event-driven production into the configured `outputChannel`.
-Internally it wraps a `MessageSource` into the repeatedly resubscribed `Mono` producing a `Flux<Message<?>>` to be subscribed in the `subscribeToPublisher(Publisher<? extends Message<?>>)` mention above.
+Internally it wraps a `MessageSource` into the repeatedly resubscribed `Mono` producing a `Flux<Message<?>>` to be subscribed in the `subscribeToPublisher(Publisher<? extends Message<?>>)` mentioned above.
 The subscription for this `Mono` is done using `Schedulers.boundedElastic()` to avoid possible blocking in the target `MessageSource`.
 When the message source returns `null` (no data to pull), the `Mono` is turned into a `repeatWhenEmpty()` state with a `delay` for a subsequent re-subscription based on a `IntegrationReactiveUtils.DELAY_WHEN_EMPTY_KEY` `Duration` entry from the subscriber context.
-By default it is a 1 second.
-If the `MessageSource` produces messages with a `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` information in headers, it is acknowledged (if necessary) in the `doOnSuccess()` of the original `Mono` and rejected in the `doOnError()` if downstream flow throws a `MessagingException` with failed message to reject.
-This `ReactiveMessageSourceProducer` could be used for any use-case when a polling channel adapter features should be turned into a reactive, on demand solution for any existing `MessageSource<?>` implementation.
+By default it is 1 second.
+If the `MessageSource` produces messages with a `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` information in the headers, it is acknowledged (if necessary) in the `doOnSuccess()` of the original `Mono` and rejected in the `doOnError()` if the downstream flow throws a `MessagingException` with the failed message to reject.
+This `ReactiveMessageSourceProducer` could be used for any use-case when a a polling channel adapter's features should be turned into a reactive, on demand solution for any existing `MessageSource<?>` implementation.
 
 === Splitter and Aggregator
 
