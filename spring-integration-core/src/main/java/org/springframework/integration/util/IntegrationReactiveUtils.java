@@ -106,7 +106,7 @@ public final class IntegrationReactiveUtils {
 	 * - a {@link PollableChannel} is wrapped into a {@link MessageSource} lambda and reuses
 	 * {@link #messageSourceToFlux(MessageSource)}.
 	 * @param messageChannel the {@link MessageChannel} to adapt.
-	 * @param <T> <T> the expected payload type.
+	 * @param <T> the expected payload type.
 	 * @return a {@link Flux} which uses a provided {@link MessageChannel} as a source for events to publish.
 	 */
 	@SuppressWarnings("unchecked")
