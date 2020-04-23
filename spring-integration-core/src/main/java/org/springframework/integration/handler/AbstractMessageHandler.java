@@ -37,8 +37,8 @@ import reactor.core.CoreSubscriber;
 public abstract class AbstractMessageHandler extends MessageHandlerSupport
 		implements MessageHandler, CoreSubscriber<Message<?>> {
 
-	@Override
-	@SuppressWarnings("deprecation") // NOSONAR
+	@Override // NOSONAR
+	@SuppressWarnings("deprecation")
 	public void handleMessage(Message<?> message) {
 		Message<?> messageToUse = message;
 		Assert.notNull(messageToUse, "Message must not be null");
