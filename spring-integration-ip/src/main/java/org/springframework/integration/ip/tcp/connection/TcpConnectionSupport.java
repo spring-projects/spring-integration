@@ -101,6 +101,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	private boolean needsTest;
 
+	private volatile boolean testFailed;
+
 	public TcpConnectionSupport() {
 		this(null);
 	}
@@ -149,6 +151,10 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("New connection " + this.connectionId);
 		}
+	}
+
+	void setTestFailed(boolean testFailed) {
+		this.testFailed = testFailed;
 	}
 
 	/**
@@ -305,15 +311,15 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	@Override
 	public TcpListener getListener() {
-		if (this.manualListenerRegistration) {
+		if (this.needsTest && this.testListener != null) {
+			this.needsTest = false;
+			return this.testListener;
+		}
+		if (this.manualListenerRegistration && !this.testFailed) {
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug(getConnectionId() + " Waiting for listener registration");
 			}
 			waitForListenerRegistration();
-		}
-		if (this.needsTest && this.testListener != null) {
-			this.needsTest = false;
-			return this.testListener;
 		}
 		return this.listener;
 	}

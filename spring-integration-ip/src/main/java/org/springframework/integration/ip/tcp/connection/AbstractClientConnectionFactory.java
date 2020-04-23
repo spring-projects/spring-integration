@@ -183,6 +183,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 
 		connection = buildNewConnection();
 		if (this.connectionTest != null && !this.connectionTest.test(connection)) {
+			connection.setTestFailed(true);
 			connection.close();
 			throw new UncheckedIOException(new IOException("Connection test failed for " + connection));
 		}
