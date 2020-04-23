@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -99,7 +100,7 @@ public final class SimpleJsonSerializer {
 			return result.toString();
 		}
 		else {
-			return "\"" + (result == null ? "null" : result.toString()) + "\"";
+			return "\"" + (result == null ? "null" : Matcher.quoteReplacement(result.toString())) + "\"";
 		}
 	}
 
