@@ -78,6 +78,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private TcpListener listener;
 
+	private volatile TcpListener testListener;
+
 	private TcpSender sender;
 
 	private String connectionId;
@@ -91,6 +93,13 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	private boolean noReadErrorOnClose;
 
 	private boolean manualListenerRegistration;
+
+	/*
+	 * This boolean is to avoid looking for a temporary listener when not needed
+	 * to avoid a CPU cache flush. This does not have to be volatile because it
+	 * is reset by the thread that checks for the temporary listener.
+	 */
+	private boolean needsTest;
 
 	public TcpConnectionSupport() {
 		this(null);
@@ -239,12 +248,32 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	/**
+	 * Set to true to use a temporary listener for just the first incoming message.
+	 * @param needsTest true for a temporary listener.
+	 * @since 5.3
+	 */
+	public void setNeedsTest(boolean needsTest) {
+		this.needsTest = needsTest;
+	}
+
+	/**
 	 * Set the listener that will receive incoming Messages.
 	 * @param listener The listener.
 	 */
 	public void registerListener(@Nullable TcpListener listener) {
 		this.listener = listener;
 		this.listenerRegisteredLatch.countDown();
+	}
+
+	/**
+	 * Set a temporary listener to receive just the first incoming message.
+	 * Used in conjunction with a connectionTest in a client connection
+	 * factory.
+	 * @param tListener the test listener.
+	 * @since 5.3
+	 */
+	public void registerTestListener(TcpListener tListener) {
+		this.testListener = tListener;
 	}
 
 	/**
@@ -281,6 +310,10 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 				this.logger.debug(getConnectionId() + " Waiting for listener registration");
 			}
 			waitForListenerRegistration();
+		}
+		if (this.needsTest && this.testListener != null) {
+			this.needsTest = false;
+			return this.testListener;
 		}
 		return this.listener;
 	}

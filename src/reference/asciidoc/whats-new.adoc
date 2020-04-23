@@ -121,6 +121,9 @@ See <<./ip.adoc#failover-cf,TCP Failover Client Connection Factory>> for more in
 The `TcpOutboundGateway` now supports asynchronous request/reply.
 See <<./ip.adoc#tcp-gateways,TCP Gateways>> for more information.
 
+You can now configure client connections to perform some arbitrary test on new connections.
+See <<./ip.adoc#testing-connections,Testing Connections>> for more information.
+
 [[x5.3-rsocket]]
 === RSocket Changes
 

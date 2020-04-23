@@ -16,10 +16,13 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.time.Duration;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.Nullable;
@@ -43,6 +46,9 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	private boolean manualListenerRegistration;
 
 	private Duration connectTimeout = Duration.ofSeconds(DEFAULT_CONNECT_TIMEOUT);
+
+	@Nullable
+	private Predicate<TcpConnectionSupport> connectionTest;
 
 	private volatile TcpConnectionSupport theConnection;
 
@@ -68,6 +74,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		return this.connectTimeout;
 	}
 
+
 	/**
 	 * Set whether to automatically (default) or manually add a {@link TcpListener} to the
 	 * connections created by this factory. By default, the factory automatically configures
@@ -77,6 +84,27 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 */
 	public void enableManualListenerRegistration() {
 		this.manualListenerRegistration = true;
+	}
+
+	/**
+	 * Get a {@link Predicate} that will be invoked to test a new connection; return true
+	 * to accept the connection, false the reject.
+	 * @return the predicate.
+	 * @since 5.3
+	 */
+	@Nullable
+	protected Predicate<TcpConnectionSupport> getConnectionTest() {
+		return this.connectionTest;
+	}
+
+	/**
+	 * Set a {@link Predicate} that will be invoked to test a new connection; return true
+	 * to accept the connection, false the reject.
+	 * @param connectionTest the predicate.
+	 * @since 5.3
+	 */
+	public void setConnectionTest(@Nullable Predicate<TcpConnectionSupport> connectionTest) {
+		this.connectionTest = connectionTest;
 	}
 
 	/**
@@ -126,21 +154,12 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 			if (!singleUse) {
 				// Another write lock holder might have created a new one by now.
 				connection = obtainSharedConnection();
-				if (connection != null) {
+				if (connection != null && connection.isOpen()) {
 					return connection;
 				}
 			}
 
-			if (logger.isDebugEnabled()) {
-				logger.debug("Opening new socket connection to " + getHost() + ":" + getPort());
-			}
-
-			connection = buildNewConnection();
-			if (!singleUse) {
-				setTheConnection(connection);
-			}
-			connection.publishConnectionOpenEvent();
-			return connection;
+			return doObtain(singleUse);
 		}
 		catch (RuntimeException e) {
 			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
@@ -154,6 +173,24 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 				this.theConnectionLock.writeLock().unlock();
 			}
 		}
+	}
+
+	private TcpConnectionSupport doObtain(boolean singleUse) {
+		TcpConnectionSupport connection;
+		if (logger.isDebugEnabled()) {
+			logger.debug("Opening new socket connection to " + getHost() + ":" + getPort());
+		}
+
+		connection = buildNewConnection();
+		if (this.connectionTest != null && !this.connectionTest.test(connection)) {
+			connection.close();
+			throw new UncheckedIOException(new IOException("Connection test failed for " + connection));
+		}
+		if (!singleUse) {
+			setTheConnection(connection);
+		}
+		connection.publishConnectionOpenEvent();
+		return connection;
 	}
 
 	protected TcpConnectionSupport buildNewConnection() {
@@ -187,6 +224,9 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		connection.setMapper(getMapper());
 		connection.setDeserializer(getDeserializer());
 		connection.setSerializer(getSerializer());
+		if (this.connectionTest != null) {
+			connection.setNeedsTest(true);
+		}
 	}
 
 	/**
