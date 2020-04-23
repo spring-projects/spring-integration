@@ -23,7 +23,12 @@ See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
 ==== R2DBC Channel Adapters
 
 The Channel Adapters for R2DBC database interaction have been introduced.
-See <<./r2dbc.adoc#r2dbc,R2DBC Support>>  for more information.
+See <<./r2dbc.adoc#r2dbc,R2DBC Support>> for more information.
+
+==== Redis Stream Support
+
+The Channel Adapters for Redis Stream support have been introduced.
+See <<./redis.adoc#redis-stream-outbound,Redis Stream Outbound Channel Adapter>> for more information.
 
 [[x5.4-general]]
 === General Changes
