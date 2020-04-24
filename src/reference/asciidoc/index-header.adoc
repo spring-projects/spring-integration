@@ -3,7 +3,7 @@
 Mark Fisher; Marius Bogoevici; Iwein Fuld; Jonas Partner; Oleg Zhurakousky; Gary Russell; Dave Syer; Josh Long; David Turanski; Gunnar Hillert; Artem Bilan; Amol Nayak; Jay Bryant
 
 ifdef::backend-html5[]
-*{project-version}*
+*{revnumber}*
 endif::[]
 
 (C) 2009 - 2020 Pivotal Software, Inc.
