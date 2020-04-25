@@ -981,12 +981,27 @@ public class TcpOutboundGatewayTests {
 			gateway.afterPropertiesSet();
 			gateway.handleMessage(MessageBuilder.withPayload("Test1").build());
 			gateway.handleMessage(MessageBuilder.withPayload("Test2").build());
-			Message<?> reply = replyChannel.receive(10000);
-			assertThat(reply).isNotNull();
-			assertThat(reply.getPayload()).isEqualTo("reply1".getBytes());
-			reply = replyChannel.receive(10000);
-			assertThat(reply).isNotNull();
-			assertThat(reply.getPayload()).isEqualTo("reply2".getBytes());
+			Message<?> reply1 = replyChannel.receive(10000);
+			assertThat(reply1).isNotNull();
+			if (singleUse) {
+				assertThat(reply1.getPayload()).satisfiesAnyOf(
+						payload -> assertThat(payload).isEqualTo("reply1".getBytes()),
+						payload -> assertThat(payload).isEqualTo("reply2".getBytes()));
+			}
+			else {
+				assertThat(reply1.getPayload()).isEqualTo("reply1".getBytes());
+			}
+			Message<?> reply2 = replyChannel.receive(10000);
+			assertThat(reply2).isNotNull();
+			if (singleUse) {
+				assertThat(reply1.getPayload()).satisfiesAnyOf(
+						payload -> assertThat(payload).isEqualTo("reply1".getBytes()),
+						payload -> assertThat(payload).isEqualTo("reply2".getBytes()));
+				assertThat(reply1.getPayload()).isNotEqualTo(reply2.getPayload());
+			}
+			else {
+				assertThat(reply2.getPayload()).isEqualTo("reply2".getBytes());
+			}
 			assertThat(thread.get()).isNotSameAs(Thread.currentThread());
 		}
 		finally {
