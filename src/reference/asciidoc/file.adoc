@@ -1016,7 +1016,7 @@ The default is `false`.
 When `true`, `apply-sequence` is `false` by default.
 See also `markers-json` (the next attribute).
 <4> When `markers` is true, set this to `true` to have the `FileMarker` objects be converted to a JSON string.
-Requires a supported JSON processor library (e.g. Jackson) on the classpath.
+(Uses a `SimpleJsonSerializer` underneath).
 <5> Set to `false` to disable the inclusion of `sequenceSize` and `sequenceNumber` headers in messages.
 The default is `true`, unless `markers` is `true`.
 When `true` and `markers` is `true`, the markers are included in the sequencing.
@@ -1050,7 +1050,7 @@ public FileSplitter(boolean iterator, boolean markers, boolean markersJson)
 ----
 ====
 
-When `markersJson` is true, the markers are represented as a JSON string, as long as a suitable JSON processor library (e.g Jackson) is on the classpath.
+When `markersJson` is true, the markers are represented as a JSON string (using a `SimpleJsonSerializer`).
 
 Version 5.0 introduced the `firstLineAsHeader` option to specify that the first line of content is a header (such as column names in a CSV file).
 The argument passed to this property is the header name under which the first line is carried as a header in the messages emitted for the remaining lines.
