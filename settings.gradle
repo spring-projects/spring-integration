@@ -1,11 +1,3 @@
-pluginManagement {
-	plugins {
-		id 'org.asciidoctor.jvm.pdf' version "${asciidoctorVersion}"
-		id 'org.asciidoctor.jvm.gems' version "${asciidoctorVersion}"
-		id 'org.asciidoctor.jvm.convert' version "${asciidoctorVersion}"
-	}
-}
-
 rootProject.name = 'spring-integration'
 
 rootDir.eachDir { dir ->
