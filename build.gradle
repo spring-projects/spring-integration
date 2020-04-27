@@ -6,18 +6,19 @@ buildscript {
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 		classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
-		classpath 'org.asciidoctor:asciidoctorj-pdf:1.5.0-beta.6'
 	}
 }
 
 plugins {
 	id 'org.sonarqube' version '2.8'
-	id 'org.asciidoctor.convert' version '1.6.1'
 	id 'io.spring.nohttp' version '0.0.4.RELEASE' apply false
 	id 'org.ajoberstar.grgit' version '4.0.1'
 	id "io.spring.dependency-management" version '1.0.9.RELEASE'
 	id 'com.jfrog.artifactory' version '4.15.1' apply false
 	id 'org.jetbrains.dokka' version '0.10.1'
+	id 'org.asciidoctor.jvm.pdf' version '3.1.0'
+	id 'org.asciidoctor.jvm.gems' version '3.1.0'
+	id 'org.asciidoctor.jvm.convert' version '3.1.0'
 }
 
 if (System.getenv('TRAVIS') || System.getenv('bamboo_buildKey')) {
@@ -907,26 +908,32 @@ task checkAsciidocLinks {
 	}
 }
 
-task('makePDF', type: org.asciidoctor.gradle.AsciidoctorTask) {
+asciidoctorPdf {
 	dependsOn checkAsciidocLinks
-	backends 'pdf'
-	sourceDir "$buildDir/asciidoc"
-	inputs.dir(sourceDir)
-	sources {
-		include 'index-single.adoc'
-	}
-	options doctype: 'book', eruby: 'erubis'
-	attributes 'icons': 'font',
+	baseDirFollowsSourceFile()
+
+	asciidoctorj {
+		sourceDir "$buildDir/asciidoc"
+		inputs.dir(sourceDir)
+		sources {
+			include 'index-single.adoc'
+		}
+		options doctype: 'book'
+		attributes 'icons': 'font',
 		'sectanchors': '',
 		'sectnums': '',
 		'toc': '',
 		'source-highlighter' : 'coderay',
-		revnumber: project.version
+		revnumber: project.version,
+		'project-version': project.version
+	}
 }
 
 asciidoctor {
-	dependsOn makePDF
-	backends 'html5'
+	dependsOn asciidoctorPdf
+
+	baseDirFollowsSourceFile()
+
 	sourceDir "$buildDir/asciidoc"
 	inputs.dir(sourceDir)
 	resources {
@@ -934,24 +941,25 @@ asciidoctor {
 			include 'images/*', 'css/**', 'js/**'
 		}
 	}
-	options doctype: 'book', eruby: 'erubis'
+	options doctype: 'book'
 
 	attributes 'docinfo': 'shared',
-		stylesdir: "css/",
+		stylesdir: 'css/',
 		stylesheet: 'spring.css',
 		'linkcss': true,
 		'icons': 'font',
 		'sectanchors': '',
-		'source-highlighter=highlight.js',
-		'highlightjsdir=js/highlight',
+		'source-highlighter': 'highlight.js',
+		'highlightjsdir': 'js/highlight',
 		'highlightjs-theme': 'github',
 		'idprefix': '',
 		'idseparator': '-',
 		'spring-version': project.version,
 		'allow-uri-read': '',
 		'toc': 'left',
-		'toclevbels': '4',
-		revnumber: project.version
+		'toclevels': '4',
+		revnumber: project.version,
+		'project-version': project.version
 }
 
 task reference(dependsOn: asciidoctor) {
@@ -1074,11 +1082,11 @@ task docsZip(type: Zip, dependsOn: reference) {
 			into 'api'
 		}
 
-	    from ('build/asciidoc/html5') {
+	    from ('build/docs/asciidoc') {
 		     into 'reference/html'
 	    }
 
-	    from ('build/asciidoc/pdf') {
+	    from ('build/docs/asciidocPdf') {
 			include "index-single.pdf"
 			rename  'index-single.pdf', 'spring-integration-reference.pdf'
 			into 'reference/pdf'
