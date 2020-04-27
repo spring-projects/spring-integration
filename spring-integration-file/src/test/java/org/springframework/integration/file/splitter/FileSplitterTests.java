@@ -31,6 +31,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
+import org.springframework.integration.json.JsonPathUtils;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
@@ -248,6 +250,7 @@ public class FileSplitterTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	void testMarkersJson() throws Exception {
 		JsonObjectMapper<?, ?> objectMapper = JsonObjectMapperProvider.newInstance();
 		QueueChannel outputChannel = new QueueChannel();
@@ -260,7 +263,8 @@ public class FileSplitterTests {
 		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("START");
 		assertThat(received.getPayload()).isInstanceOf(String.class);
 		String payload = (String) received.getPayload();
-		assertThat(payload).contains("\"mark\":\"START\",\"lineCount\":0");
+		assertThat((List<String>) JsonPathUtils.evaluate(payload, "$..mark")).hasSize(1).contains("START");
+		assertThat((List<Integer>) JsonPathUtils.evaluate(payload, "$..lineCount")).hasSize(1).contains(0);
 		FileMarker fileMarker = objectMapper.fromJson(payload, FileSplitter.FileMarker.class);
 		assertThat(fileMarker.getMark()).isEqualTo(FileSplitter.FileMarker.Mark.START);
 		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,11 @@ import java.util.NoSuchElementException;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mark;
+import org.springframework.integration.json.SimpleJsonSerializer;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.json.JsonObjectMapper;
-import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.util.CloseableIterator;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
@@ -75,15 +75,13 @@ import org.springframework.util.StringUtils;
  */
 public class FileSplitter extends AbstractMessageSplitter {
 
-	private static final JsonObjectMapper<?, ?> OBJECT_MAPPER =
-			JsonObjectMapperProvider.jsonAvailable() ? JsonObjectMapperProvider.newInstance() : null;
-
 	private final boolean returnIterator;
 
 	private final boolean markers;
 
 	private final boolean markersJson;
 
+	@Nullable
 	private Charset charset;
 
 	private String firstLineHeaderName;
@@ -129,9 +127,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 	 * @param iterator true to return an iterator, false to return a list of lines.
 	 * @param markers true to emit start of file/end of file marker messages before/after
 	 * the data.
-	 * @param markersJson when true, markers are represented as JSON - requires a
-	 * supported JSON implementation on the classpath. See
-	 * {@link JsonObjectMapperProvider} for supported implementations.
+	 * @param markersJson when true, markers are represented as JSON.
 	 * @since 4.2.7
 	 */
 	public FileSplitter(boolean iterator, boolean markers, boolean markersJson) {
@@ -139,9 +135,6 @@ public class FileSplitter extends AbstractMessageSplitter {
 		this.markers = markers;
 		if (markers) {
 			setApplySequence(false);
-			if (markersJson) {
-				Assert.notNull(OBJECT_MAPPER, "'markersJson' requires an object mapper");
-			}
 		}
 		this.markersJson = markersJson;
 	}
@@ -151,7 +144,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 	 * charset is required.
 	 * @param charset the charset.
 	 */
-	public void setCharset(Charset charset) {
+	public void setCharset(@Nullable Charset charset) {
 		this.charset = charset;
 	}
 
@@ -410,7 +403,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 			Object payload;
 			if (FileSplitter.this.markersJson) {
 				try {
-					payload = OBJECT_MAPPER.toJson(fileMarker);
+					payload = SimpleJsonSerializer.toJson(fileMarker);
 				}
 				catch (Exception e) {
 					throw new MessageHandlingException(this.message, "Failed to convert marker to JSON", e);
@@ -488,7 +481,6 @@ public class FileSplitter extends AbstractMessageSplitter {
 						", lineCount=" + this.lineCount + "]";
 			}
 		}
-
 
 	}
 
