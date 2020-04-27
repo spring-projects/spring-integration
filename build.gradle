@@ -926,7 +926,8 @@ asciidoctorPdf {
 		'sectnums': '',
 		'toc': '',
 		'source-highlighter' : 'coderay',
-		revnumber: project.version
+		revnumber: project.version,
+		'project-version': project.version
 	}
 }
 
@@ -959,7 +960,8 @@ asciidoctor {
 		'allow-uri-read': '',
 		'toc': 'left',
 		'toclevels': '4',
-		revnumber: project.version
+		revnumber: project.version,
+		'project-version': project.version
 }
 
 task reference(dependsOn: asciidoctor) {
