@@ -548,7 +548,7 @@ Starting with version 5.3, the `ReactiveMongoDbStoringMessageHandler` and `React
 They are based on the `ReactiveMongoOperations` from Spring Data and requires a `org.mongodb:mongodb-driver-reactivestreams` dependency.
 
 The `ReactiveMongoDbStoringMessageHandler` is an implementation of the `ReactiveMessageHandler` which is supported natively in the framework when reactive streams composition is involved in the integration flow definition.
-See more information in the <<./reactive-streams.adoc/#reactive-message-handler,ReactiveMessageHandler>>.
+See more information in the <<./reactive-streams.adoc#reactive-message-handler,ReactiveMessageHandler>>.
 
 From configuration perspective there is no difference with many other standard channel adapters.
 For example with Java DSL such a channel adapter could be used like:
