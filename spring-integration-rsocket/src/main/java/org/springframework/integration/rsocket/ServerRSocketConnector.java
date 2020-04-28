@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 
-import io.rsocket.RSocketFactory;
+import io.rsocket.core.RSocketConnector;
+import io.rsocket.core.RSocketServer;
 import io.rsocket.transport.ServerTransport;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
@@ -47,13 +48,13 @@ import reactor.netty.http.server.HttpServer;
  *
  * @since 5.2
  *
- * @see RSocketFactory.ServerRSocketFactory
+ * @see RSocketConnector
  */
 public class ServerRSocketConnector extends AbstractRSocketConnector implements ApplicationEventPublisherAware {
 
 	private final ServerTransport<CloseableChannel> serverTransport;
 
-	private Consumer<RSocketFactory.ServerRSocketFactory> factoryConfigurer = (serverRSocketFactory) -> { };
+	private Consumer<RSocketServer> serverConfigurer = (rsocketServer) -> { };
 
 	private Mono<CloseableChannel> serverMono;
 
@@ -104,12 +105,24 @@ public class ServerRSocketConnector extends AbstractRSocketConnector implements 
 	}
 
 	/**
-	 * Provide a {@link Consumer} to configure the {@link RSocketFactory.ServerRSocketFactory}.
-	 * @param factoryConfigurer the {@link Consumer} to configure the {@link RSocketFactory.ServerRSocketFactory}.
+	 * Provide a {@link Consumer} to configure the {@link io.rsocket.RSocketFactory.ServerRSocketFactory}.
+	 * @param factoryConfigurer the {@link Consumer} to configure the {@link io.rsocket.RSocketFactory.ServerRSocketFactory}.
+	 * @deprecated since 5.2.6 in favor of {@link #setServerConfigurer(Consumer)}
 	 */
-	public void setFactoryConfigurer(Consumer<RSocketFactory.ServerRSocketFactory> factoryConfigurer) {
+	@Deprecated
+	public void setFactoryConfigurer(Consumer<io.rsocket.RSocketFactory.ServerRSocketFactory> factoryConfigurer) {
 		Assert.notNull(factoryConfigurer, "'factoryConfigurer' must not be null");
-		this.factoryConfigurer = factoryConfigurer;
+		setServerConfigurer((server) ->
+				factoryConfigurer.accept(new io.rsocket.RSocketFactory.ServerRSocketFactory(server)));
+	}
+
+	/**
+	 * Provide a {@link Consumer} to configure the {@link RSocketServer}.
+	 * @param serverConfigurer the {@link Consumer} to configure the {@link RSocketServer}.
+	 * @since 5.2.6
+	 */
+	public void setServerConfigurer(Consumer<RSocketServer> serverConfigurer) {
+		this.serverConfigurer = serverConfigurer;
 	}
 
 	/**
@@ -164,14 +177,13 @@ public class ServerRSocketConnector extends AbstractRSocketConnector implements 
 	public void afterPropertiesSet() {
 		if (this.serverTransport != null) {
 			super.afterPropertiesSet();
-			RSocketFactory.ServerRSocketFactory serverFactory = RSocketFactory.receive();
-			this.factoryConfigurer.accept(serverFactory);
+			RSocketServer rsocketServer = RSocketServer.create();
+			this.serverConfigurer.accept(rsocketServer);
 
 			this.serverMono =
-					serverFactory
+					rsocketServer
 							.acceptor(serverRSocketMessageHandler().responder())
-							.transport(this.serverTransport)
-							.start()
+							.bind(this.serverTransport)
 							.cache();
 		}
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import io.rsocket.RSocket;
-import io.rsocket.RSocketFactory;
+import io.rsocket.core.RSocketServer;
 import io.rsocket.frame.decoder.PayloadDecoder;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
@@ -112,11 +112,10 @@ public class RSocketOutboundGatewayIntegrationTests {
 	@BeforeAll
 	static void setup() {
 		serverContext = new AnnotationConfigApplicationContext(ServerConfig.class);
-		server = RSocketFactory.receive()
-				.frameDecoder(PayloadDecoder.ZERO_COPY)
+		server = RSocketServer.create()
+				.payloadDecoder(PayloadDecoder.ZERO_COPY)
 				.acceptor(serverContext.getBean(RSocketMessageHandler.class).responder())
-				.transport(TcpServerTransport.create("localhost", 0))
-				.start()
+				.bind(TcpServerTransport.create("localhost", 0))
 				.block();
 
 		serverController = serverContext.getBean(TestController.class);
@@ -453,8 +452,8 @@ public class RSocketOutboundGatewayIntegrationTests {
 				.extracting(Message::getPayload)
 				.isInstanceOf(MessageHandlingException.class)
 				.satisfies((ex) -> assertThat((Exception) ex)
-						.hasMessageContaining("io.rsocket.exceptions.ApplicationErrorException: " +
-								"No handler for destination 'invalid'"));
+						.hasMessageContaining(
+								"ApplicationErrorException (0x201): No handler for destination 'invalid'"));
 
 		disposable.dispose();
 	}
@@ -501,7 +500,9 @@ public class RSocketOutboundGatewayIntegrationTests {
 		public RSocket rsocketForServerRequests() {
 			return RSocketRequester.builder()
 					.setupRoute("clientConnect")
-					.rsocketFactory(RSocketMessageHandler.clientResponder(RSocketStrategies.create(), controller()))
+					.rsocketConnector(connector ->
+							connector.acceptor(
+									RSocketMessageHandler.responder(RSocketStrategies.create(), controller())))
 					.connectTcp("localhost", server.address().getPort())
 					.block()
 					.rsocket();
