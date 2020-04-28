@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
@@ -32,11 +33,15 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.gateway.MethodArgsHolder;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -102,13 +107,26 @@ public class GatewayDslTests {
 	}
 
 	@Autowired
-	private Function<Object, Message<?>> functionGateay;
+	private Function<Object, Message<?>> functionGateway;
+
+	@Autowired
+	@Qualifier("&functionGateway.gateway")
+	private GatewayProxyFactoryBean functionGatewayFactoryBean;
 
 	@Test
 	void testHeadersFromFunctionGateway() {
-		Message<?> message = this.functionGateay.apply("testPayload");
+		Message<?> message = this.functionGateway.apply("testPayload");
 		assertThat(message.getPayload()).isEqualTo("testPayload");
 		assertThat(message.getHeaders()).containsKeys("gatewayMethod", "gatewayArgs");
+
+		Map<Method, MessagingGatewaySupport> gateways = this.functionGatewayFactoryBean.getGateways();
+
+		MessagingGatewaySupport methodGateway = gateways.values().iterator().next();
+		MessagingTemplate messagingTemplate =
+				TestUtils.getPropertyValue(methodGateway, "messagingTemplate", MessagingTemplate.class);
+
+		assertThat(messagingTemplate.getReceiveTimeout()).isEqualTo(10);
+		assertThat(messagingTemplate.getSendTimeout()).isEqualTo(20);
 	}
 
 	@Autowired
@@ -164,7 +182,9 @@ public class GatewayDslTests {
 			return IntegrationFlows.from(MessageFunction.class,
 					(gateway) -> gateway
 							.header("gatewayMethod", MethodArgsHolder::getMethod)
-							.header("gatewayArgs", MethodArgsHolder::getArgs))
+							.header("gatewayArgs", MethodArgsHolder::getArgs)
+							.replyTimeout(10)
+							.requestTimeout(20))
 					.bridge()
 					.get();
 		}

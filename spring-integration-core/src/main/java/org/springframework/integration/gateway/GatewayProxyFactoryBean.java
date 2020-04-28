@@ -137,6 +137,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
 
+	private boolean asyncExecutorExplicitlySet;
+
 	private Class<?> asyncSubmitType;
 
 	private Class<?> asyncSubmitListenableType;
@@ -198,6 +200,16 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		this.defaultRequestChannelName = defaultRequestChannelName;
 	}
 
+	@Nullable
+	protected MessageChannel getDefaultRequestChannel() {
+		return this.defaultRequestChannel;
+	}
+
+	@Nullable
+	protected String getDefaultRequestChannelName() {
+		return this.defaultRequestChannelName;
+	}
+
 	/**
 	 * Set the default reply channel. If no default reply channel is provided,
 	 * and no reply channel is configured with annotations, an anonymous,
@@ -221,6 +233,16 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		this.defaultReplyChannelName = defaultReplyChannelName;
 	}
 
+	@Nullable
+	protected MessageChannel getDefaultReplyChannel() {
+		return this.defaultReplyChannel;
+	}
+
+	@Nullable
+	protected String getDefaultReplyChannelName() {
+		return this.defaultReplyChannelName;
+	}
+
 	/**
 	 * Set the error channel. If no error channel is provided, this gateway will
 	 * propagate Exceptions to the caller. To completely suppress Exceptions, provide
@@ -240,6 +262,16 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	 */
 	public void setErrorChannelName(String errorChannelName) {
 		this.errorChannelName = errorChannelName;
+	}
+
+	@Nullable
+	protected MessageChannel getErrorChannel() {
+		return this.errorChannel;
+	}
+
+	@Nullable
+	protected String getErrorChannelName() {
+		return this.errorChannelName;
 	}
 
 	/**
@@ -275,6 +307,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 	}
 
+	@Nullable
+	protected Expression getDefaultRequestTimeout() {
+		return this.defaultRequestTimeout;
+	}
+
 	/**
 	 * Set the default timeout value for receiving reply messages. If not explicitly
 	 * configured with an annotation, or on a method element, this value will be used.
@@ -308,6 +345,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 	}
 
+	@Nullable
+	protected Expression getDefaultReplyTimeout() {
+		return this.defaultReplyTimeout;
+	}
+
 	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
@@ -326,12 +368,15 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	 * @param executor The executor.
 	 */
 	public void setAsyncExecutor(@Nullable Executor executor) {
-		if (executor == null && logger.isInfoEnabled()) {
+		if (executor == null) {
 			logger.info("A null executor disables the async gateway; " +
 					"methods returning Future<?> will run on the calling thread");
 		}
-		this.asyncExecutor = (executor instanceof AsyncTaskExecutor || executor == null) ? (AsyncTaskExecutor) executor
-				: new TaskExecutorAdapter(executor);
+		this.asyncExecutor =
+				(executor instanceof AsyncTaskExecutor || executor == null)
+						? (AsyncTaskExecutor) executor
+						: new TaskExecutorAdapter(executor);
+		this.asyncExecutorExplicitlySet = true;
 	}
 
 	public void setTypeConverter(TypeConverter typeConverter) {
@@ -345,6 +390,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	public void setGlobalMethodMetadata(GatewayMethodMetadata globalMethodMetadata) {
 		this.globalMethodMetadata = globalMethodMetadata;
+	}
+
+	@Nullable
+	protected GatewayMethodMetadata getGlobalMethodMetadata() {
+		return this.globalMethodMetadata;
 	}
 
 	@Override
@@ -361,8 +411,18 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		this.argsMapper = mapper;
 	}
 
+	@Nullable
+	protected MethodArgsMessageMapper getMapper() {
+		return this.argsMapper;
+	}
+
+	@Nullable
 	protected AsyncTaskExecutor getAsyncExecutor() {
 		return this.asyncExecutor;
+	}
+
+	protected boolean isAsyncExecutorExplicitlySet() {
+		return this.asyncExecutorExplicitlySet;
 	}
 
 	/**
