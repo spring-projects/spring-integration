@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,9 +64,6 @@ public class FileReadingMessageSourceTests {
 	private Comparator<File> comparator;
 
 	public void prepResource() throws Exception {
-		when(inputDirectoryMock.isDirectory()).thenReturn(true);
-		when(inputDirectoryMock.exists()).thenReturn(true);
-		when(inputDirectoryMock.canRead()).thenReturn(true);
 		when(inputDirectoryMock.getAbsolutePath()).thenReturn("foo/bar");
 		when(fileMock.getAbsolutePath()).thenReturn("foo/bar/fileMock");
 		when(locker.lock(isA(File.class))).thenReturn(true);
