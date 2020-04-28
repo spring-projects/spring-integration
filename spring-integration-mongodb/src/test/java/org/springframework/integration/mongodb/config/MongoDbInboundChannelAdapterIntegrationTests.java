@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNull;
 
 import java.util.List;
 
-import org.bson.Document;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -44,6 +43,8 @@ import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.mongodb.BasicDBObject;
 
 /**
  * @author Oleg Zhurakousky
@@ -104,7 +105,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 
 	@Test
 	@MongoDbAvailable
-	public void testWithDefaultMongoFactory() throws Exception {
+	public void testWithDefaultMongoFactory() {
 		this.mongoTemplate.save(createPerson("Bob"), "data");
 
 		this.mongoInboundAdapter.start();
@@ -121,13 +122,13 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 
 	@Test
 	@MongoDbAvailable
-	public void testWithNamedMongoFactory() throws Exception {
+	public void testWithNamedMongoFactory() {
 		this.mongoTemplate.save(this.createPerson("Bob"), "data");
 
 		this.mongoInboundAdapterNamedFactory.start();
 
 		@SuppressWarnings("unchecked")
-		Message<List<Document>> message = (Message<List<Document>>) replyChannel.receive(10000);
+		Message<List<BasicDBObject>> message = (Message<List<BasicDBObject>>) replyChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals("Bob", message.getPayload().get(0).get("name"));
 
@@ -137,7 +138,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 
 	@Test
 	@MongoDbAvailable
-	public void testWithMongoTemplate() throws Exception {
+	public void testWithMongoTemplate() {
 		this.mongoTemplate.save(this.createPerson("Bob"), "data");
 
 		this.mongoInboundAdapterWithTemplate.start();

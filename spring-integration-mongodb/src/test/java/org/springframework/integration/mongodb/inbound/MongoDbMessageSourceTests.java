@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2019 the original author or authors.
+ * Copyright 2007-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import static org.mockito.Mockito.verify;
 
 import java.util.List;
 
-import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -91,9 +90,9 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
-		List<Document> results = ((List<Document>) messageSource.receive().getPayload());
+		List<BasicDBObject> results = ((List<BasicDBObject>) messageSource.receive().getPayload());
 		assertEquals(1, results.size());
-		Document resultObject = results.get(0);
+		BasicDBObject resultObject = results.get(0);
 
 		assertEquals("Oleg", resultObject.get("name"));
 	}
@@ -288,11 +287,11 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.setExpectSingleResult(true);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
-		Document result = (Document) messageSource.receive().getPayload();
+		BasicDBObject result = (BasicDBObject) messageSource.receive().getPayload();
 		Object id = result.get("_id");
 		result.put("company", "PepBoys");
 		template.save(result, "data");
-		result = (Document) messageSource.receive().getPayload();
+		result = (BasicDBObject) messageSource.receive().getPayload();
 		assertEquals(id, result.get("_id"));
 	}
 
