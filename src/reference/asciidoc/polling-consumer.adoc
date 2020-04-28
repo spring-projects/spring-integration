@@ -149,7 +149,7 @@ What if we wish to take some action depending on the result of the `receive` par
 ===== "`Smart`" Polling
 
 Version 5.3 introduced the `ReceiveMessageAdvice` interface.
-(An `AbstractMessageSourceAdvice` has been deprecated in favor of `default` methods in the `MessageSourceMutator`.)
+(The `AbstractMessageSourceAdvice` has been deprecated in favor of `default` methods in the `MessageSourceMutator`.)
 Any `Advice` objects in the `advice-chain` that implement this interface are applied only to the receive operation - `MessageSource.receive()` and `PollableChannel.receive(timeout)`.
 Therefore they can be applied only for the `SourcePollingChannelAdapter` or `PollingConsumer`.
 Such classes implement the following methods:
