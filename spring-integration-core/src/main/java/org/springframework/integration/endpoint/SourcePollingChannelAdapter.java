@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,12 @@
 
 package org.springframework.integration.endpoint;
 
-import java.util.Collection;
-import java.util.HashSet;
-
-import org.aopalliance.aop.Advice;
-
 import org.springframework.aop.framework.Advised;
-import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AckUtils;
 import org.springframework.integration.acks.AcknowledgmentCallback;
-import org.springframework.integration.aop.MessageSourceMutator;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.core.MessageSource;
@@ -43,7 +34,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
  * A Channel Adapter implementation for connecting a
@@ -59,9 +49,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private final Collection<Advice> appliedAdvices = new HashSet<>();
-
-	private volatile MessageSource<?> originalSource;
+	private MessageSource<?> originalSource;
 
 	private volatile MessageSource<?> source;
 
@@ -137,44 +125,18 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	}
 
 	@Override
-	protected boolean isReceiveOnlyAdvice(Advice advice) {
-		return advice instanceof MessageSourceMutator;
-	}
-
-	@Override
-	protected void applyReceiveOnlyAdviceChain(Collection<Advice> chain) {
-		if (!CollectionUtils.isEmpty(chain)) {
-			if (AopUtils.isAopProxy(this.source)) {
-				Advised advised = (Advised) this.source;
-				this.appliedAdvices.forEach(advised::removeAdvice);
-				chain.forEach(advice -> advised.addAdvisor(adviceToReceiveAdvisor(advice)));
-			}
-			else {
-				ProxyFactory proxyFactory = new ProxyFactory(this.source);
-				chain.forEach(advice -> proxyFactory.addAdvisor(adviceToReceiveAdvisor(advice)));
-				this.source = (MessageSource<?>) proxyFactory.getProxy(getBeanClassLoader());
-			}
-			this.appliedAdvices.clear();
-			this.appliedAdvices.addAll(chain);
-			if (!(isSyncExecutor()) && logger.isWarnEnabled()) {
-				logger.warn(getComponentName() + ": A task executor is supplied and " + chain.size()
-						+ "MessageSourceMutator(s) is/are provided. If an advice mutates the source, such "
-						+ "mutations are not thread safe and could cause unexpected results, especially with "
-						+ "high frequency pollers. Consider using a downstream ExecutorChannel instead of "
-						+ "adding an executor to the poller");
-			}
-		}
-	}
-
-	@Override
 	protected boolean isReactive() {
 		return getOutputChannel() instanceof ReactiveStreamsSubscribableChannel;
 	}
 
-	private NameMatchMethodPointcutAdvisor adviceToReceiveAdvisor(Advice advice) {
-		NameMatchMethodPointcutAdvisor sourceAdvisor = new NameMatchMethodPointcutAdvisor(advice);
-		sourceAdvisor.addMethodName("receive");
-		return sourceAdvisor;
+	@Override
+	protected Object getReceiveMessageSource() {
+		return getMessageSource();
+	}
+
+	@Override
+	protected final void setReceiveMessageSource(Object source) {
+		this.source = (MessageSource<?>) source;
 	}
 
 	@Override

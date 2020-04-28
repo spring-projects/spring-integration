@@ -19,6 +19,7 @@ package org.springframework.integration.endpoint;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -28,10 +29,14 @@ import java.util.stream.Collectors;
 import org.aopalliance.aop.Advice;
 import org.reactivestreams.Subscription;
 
+import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.integration.aop.ReceiveMessageAdvice;
 import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.support.MessagingExceptionWrapper;
@@ -71,6 +76,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * A default polling period for {@link PeriodicTrigger}.
 	 */
 	public static final long DEFAULT_POLLING_PERIOD = 10;
+
+	private final Collection<Advice> appliedAdvices = new HashSet<>();
 
 	private final Object initializationMonitor = new Object();
 
@@ -173,7 +180,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * @return true to only advise the receive operation.
 	 */
 	protected boolean isReceiveOnlyAdvice(Advice advice) {
-		return false;
+		return advice instanceof ReceiveMessageAdvice;
 	}
 
 	/**
@@ -181,6 +188,37 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * @param chain the advice chain {@code Collection}.
 	 */
 	protected void applyReceiveOnlyAdviceChain(Collection<Advice> chain) {
+		if (!CollectionUtils.isEmpty(chain)) {
+			Object source = getReceiveMessageSource();
+			if (source != null) {
+				if (AopUtils.isAopProxy(source)) {
+					Advised advised = (Advised) source;
+					this.appliedAdvices.forEach(advised::removeAdvice);
+					chain.forEach(advice -> advised.addAdvisor(adviceToReceiveAdvisor(advice)));
+				}
+				else {
+					ProxyFactory proxyFactory = new ProxyFactory(source);
+					chain.forEach(advice -> proxyFactory.addAdvisor(adviceToReceiveAdvisor(advice)));
+					source = proxyFactory.getProxy(getBeanClassLoader());
+				}
+				this.appliedAdvices.clear();
+				this.appliedAdvices.addAll(chain);
+				if (!(isSyncExecutor()) && logger.isWarnEnabled()) {
+					logger.warn(getComponentName() + ": A task executor is supplied and " + chain.size()
+							+ "ReceiveMessageAdvice(s) is/are provided. If an advice mutates the source, such "
+							+ "mutations are not thread safe and could cause unexpected results, especially with "
+							+ "high frequency pollers. Consider using a downstream ExecutorChannel instead of "
+							+ "adding an executor to the poller");
+				}
+				setReceiveMessageSource(source);
+			}
+		}
+	}
+
+	private NameMatchMethodPointcutAdvisor adviceToReceiveAdvisor(Advice advice) {
+		NameMatchMethodPointcutAdvisor sourceAdvisor = new NameMatchMethodPointcutAdvisor(advice);
+		sourceAdvisor.addMethodName("receive");
+		return sourceAdvisor;
 	}
 
 	protected boolean isReactive() {
@@ -189,6 +227,14 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	protected Flux<Message<?>> getPollingFlux() {
 		return this.pollingFlux;
+	}
+
+	protected Object getReceiveMessageSource() {
+		return null;
+	}
+
+	protected void setReceiveMessageSource(Object source) {
+
 	}
 
 	@Override

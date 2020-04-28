@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package org.springframework.integration.file.remote.aop;
 
 import java.util.List;
 
-import org.springframework.integration.aop.AbstractMessageSourceAdvice;
+import org.springframework.integration.aop.MessageSourceMutator;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -35,7 +36,10 @@ import org.springframework.util.Assert;
  * @since 5.0.7
  *
  */
-public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
+@SuppressWarnings("deprecation")
+public class RotatingServerAdvice
+		extends org.springframework.integration.aop.AbstractMessageSourceAdvice
+		implements MessageSourceMutator {
 
 	private final RotationPolicy rotationPolicy;
 
@@ -79,7 +83,8 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 	}
 
 	@Override
-	public Message<?> afterReceive(Message<?> result, MessageSource<?> source) {
+	@Nullable
+	public Message<?> afterReceive(@Nullable Message<?> result, MessageSource<?> source) {
 		this.rotationPolicy.afterReceive(result != null, source);
 		return result;
 	}

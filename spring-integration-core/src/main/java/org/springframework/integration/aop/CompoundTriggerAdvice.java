@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.aop;
 
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.util.CompoundTrigger;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.Trigger;
 import org.springframework.util.Assert;
@@ -35,7 +36,10 @@ import org.springframework.util.Assert;
  * @since 4.3
  *
  */
-public class CompoundTriggerAdvice extends AbstractMessageSourceAdvice {
+@SuppressWarnings("deprecation")
+public class CompoundTriggerAdvice
+		extends AbstractMessageSourceAdvice
+		implements ReceiveMessageAdvice {
 
 	private final CompoundTrigger compoundTrigger;
 
@@ -47,8 +51,21 @@ public class CompoundTriggerAdvice extends AbstractMessageSourceAdvice {
 		this.override = overrideTrigger;
 	}
 
+	/**
+	 * @param result the received message.
+	 * @param source the message source.
+	 * @return the message or null
+	 * @deprecated since 5.3 in favor of {@link #afterReceive(Message, Object)}
+	 */
 	@Override
+	@Deprecated
 	public Message<?> afterReceive(Message<?> result, MessageSource<?> source) {
+		return afterReceive(result, (Object) source);
+	}
+
+	@Override
+	@Nullable
+	public Message<?> afterReceive(@Nullable Message<?> result, Object source) {
 		if (result == null) {
 			this.compoundTrigger.setOverride(this.override);
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,20 @@
 
 package org.springframework.integration.aop;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.integration.core.MessageSource;
-import org.springframework.messaging.Message;
 
 /**
  * Advice for a {@link MessageSource#receive()} method to decide whether a poll
  * should be ignored and/or take action after the receive.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.2
+ *
+ * @deprecated since 5.3 in favor of {@link MessageSourceMutator}.
  */
-public abstract class AbstractMessageSourceAdvice implements MethodInterceptor, MessageSourceMutator {
-
-	@Override
-	public final Object invoke(MethodInvocation invocation) throws Throwable {
-		Object target = invocation.getThis();
-		if (!(target instanceof MessageSource)) {
-			return invocation.proceed();
-		}
-
-		Message<?> result = null;
-		if (beforeReceive((MessageSource<?>) target)) {
-			result = (Message<?>) invocation.proceed();
-		}
-		return afterReceive(result, (MessageSource<?>) target);
-	}
+@Deprecated
+public abstract class AbstractMessageSourceAdvice implements MessageSourceMutator {
 
 }

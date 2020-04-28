@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,8 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.integration.aop.AbstractMessageSourceAdvice;
+import org.springframework.integration.aop.ReceiveMessageAdvice;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
@@ -278,15 +277,10 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 
 	}
 
-	public static final class TestMessageSourceAdvice extends AbstractMessageSourceAdvice {
+	public static final class TestMessageSourceAdvice implements ReceiveMessageAdvice {
 
 		@Override
-		public boolean beforeReceive(MessageSource<?> source) {
-			return true;
-		}
-
-		@Override
-		public Message<?> afterReceive(Message<?> result, MessageSource<?> source) {
+		public Message<?> afterReceive(Message<?> result, Object source) {
 			return result;
 		}
 
