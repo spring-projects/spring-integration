@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,12 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.messaging.rsocket.ClientRSocketFactoryConfigurer;
+import org.springframework.messaging.rsocket.RSocketConnectorConfigurer;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 
+import io.rsocket.core.RSocketConnector;
 import io.rsocket.transport.ClientTransport;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.client.WebsocketClientTransport;
@@ -48,7 +49,7 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	private final Map<Object, MimeType> setupMetadata = new LinkedHashMap<>(4);
 
-	private ClientRSocketFactoryConfigurer factoryConfigurer = (clientRSocketFactory) -> { };
+	private RSocketConnectorConfigurer connectorConfigurer = (connector) -> { };
 
 	private Object setupData;
 
@@ -92,18 +93,40 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	/**
 	 * Callback to configure the {@code ClientRSocketFactory} directly.
-	 * Note: this class adds extra {@link ClientRSocketFactoryConfigurer} to the
+	 * Note: this class adds extra {@link org.springframework.messaging.rsocket.ClientRSocketFactoryConfigurer} to the
 	 * target {@link RSocketRequester} to populate a reference to an internal
 	 * {@link IntegrationRSocketMessageHandler#responder()}.
 	 * This overrides possible external
 	 * {@link io.rsocket.RSocketFactory.ClientRSocketFactory#acceptor(io.rsocket.SocketAcceptor)}
-	 * @param factoryConfigurer the {@link ClientRSocketFactoryConfigurer} to
+	 * @param factoryConfigurer the {@link org.springframework.messaging.rsocket.ClientRSocketFactoryConfigurer} to
 	 *  configure the {@link io.rsocket.RSocketFactory.ClientRSocketFactory}.
-	 * @see RSocketRequester.Builder#rsocketFactory(ClientRSocketFactoryConfigurer)
+	 * @see RSocketRequester.Builder#rsocketFactory(org.springframework.messaging.rsocket.ClientRSocketFactoryConfigurer)
+	 * @deprecated since 5.2.6 in favor of {@link #setConnectorConfigurer(RSocketConnectorConfigurer)}
 	 */
-	public void setFactoryConfigurer(ClientRSocketFactoryConfigurer factoryConfigurer) {
+	@Deprecated
+	public void setFactoryConfigurer(
+			org.springframework.messaging.rsocket.ClientRSocketFactoryConfigurer factoryConfigurer) {
+
 		Assert.notNull(factoryConfigurer, "'factoryConfigurer' must not be null");
-		this.factoryConfigurer = factoryConfigurer;
+		setConnectorConfigurer((connector) ->
+				factoryConfigurer.configure(new io.rsocket.RSocketFactory.ClientRSocketFactory(connector)));
+	}
+
+	/**
+	 * Callback to configure the {@code ClientRSocketFactory} directly.
+	 * Note: this class adds extra {@link RSocketConnectorConfigurer} to the
+	 * target {@link RSocketRequester} to populate a reference to an internal
+	 * {@link IntegrationRSocketMessageHandler#responder()}.
+	 * This overrides possible external
+	 * {@link RSocketConnector#acceptor(io.rsocket.SocketAcceptor)}
+	 * @param connectorConfigurer the {@link RSocketConnectorConfigurer} to
+	 *  configure the {@link RSocketConnector}.
+	 * @since 5.2.6
+	 * @see RSocketRequester.Builder#rsocketConnector(RSocketConnectorConfigurer)
+	 */
+	public void setConnectorConfigurer(RSocketConnectorConfigurer connectorConfigurer) {
+		Assert.notNull(connectorConfigurer, "'connectorConfigurer' must not be null");
+		this.connectorConfigurer = connectorConfigurer;
 	}
 
 	/**
@@ -160,9 +183,9 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 						.rsocketStrategies(getRSocketStrategies())
 						.setupData(this.setupData)
 						.setupRoute(this.setupRoute, this.setupRouteVars)
-						.rsocketFactory(this.factoryConfigurer)
-						.rsocketFactory((rsocketFactory) ->
-								rsocketFactory.acceptor(this.rSocketMessageHandler.responder()))
+						.rsocketConnector(this.connectorConfigurer)
+						.rsocketConnector((connector) ->
+								connector.acceptor(this.rSocketMessageHandler.responder()))
 						.apply((builder) -> this.setupMetadata.forEach(builder::setupMetadata))
 						.connect(this.clientTransport)
 						.cache();

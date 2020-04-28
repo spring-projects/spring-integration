@@ -30,7 +30,7 @@ Before starting an integration flow processing via channel adapters, we need to 
 For this purpose, Spring Integration RSocket support provides the `ServerRSocketConnector` and `ClientRSocketConnector` implementations of the `AbstractRSocketConnector`.
 
 The `ServerRSocketConnector` exposes a listener on the host and port according to provided `io.rsocket.transport.ServerTransport` for accepting connections from clients.
-An internal `RSocketFactory.ServerRSocketFactory` instance can be customized with the `setFactoryConfigurer()`, as well as other options that can be configured, e.g. `RSocketStrategies` and `MimeType` for payload data and headers metadata.
+An internal `RSocketServer` instance can be customized with the `setServerConfigurer()`, as well as other options that can be configured, e.g. `RSocketStrategies` and `MimeType` for payload data and headers metadata.
 When a `setupRoute` is provided from the client requester (see `ClientRSocketConnector` below), a connected client is stored as a `RSocketRequester` under the key determined by the `clientRSocketKeyStrategy` `BiFunction<Map<String, Object>, DataBuffer, Object>`.
 By default a connect data is used for the key as a converted value to string with UTF-8 charset.
 Such an `RSocketRequester` registry can be used in the application logic to determine a particular client connection for interaction with it, or for publishing the same message to all connected clients.
@@ -58,7 +58,7 @@ public ServerRSocketConnector serverRSocketConnector() {
     ServerRSocketConnector serverRSocketConnector = new ServerRSocketConnector("localhost", 0);
     serverRSocketConnector.setRSocketStrategies(rsocketStrategies());
     serverRSocketConnector.setMetadataMimeType(new MimeType("message", "x.rsocket.routing.v0"));
-    serverRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
+    serverRSocketConnector.setServerConfigurer((server) -> server.payloadDecoder(PayloadDecoder.ZERO_COPY));
     serverRSocketConnector.setClientRSocketKeyStrategy((headers, data) -> ""
                                     + headers.get(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER));
     return serverRSocketConnector;
@@ -80,7 +80,7 @@ In addition the `ServerRSocketMessageHandler` can be configured with a `messageM
 This can be useful in mixed configurations, when classic `@MessageMapping` methods are present in the same application along with RSocket channel adapters and an externally configured RSocket server is present in the application.
 
 The `ClientRSocketConnector` serves as a holder for `RSocketRequester` based on the `RSocket` connected via the provided `ClientTransport`.
-The `RSocketFactory.ClientRSocketFactory` can be customized with the provided `ClientRSocketFactoryConfigurer`.
+The `RSocketConnector` can be customized with the provided `RSocketConnectorConfigurer`.
 The `setupRoute` (with optional templates variables) and `setupData` with metadata can be also configured on this component.
 
 A typical client configuration might look like this:

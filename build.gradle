@@ -86,7 +86,7 @@ ext {
 	reactorVersion = 'Dysprosium-SR7'
 	resilience4jVersion = '1.1.0'
 	romeToolsVersion = '1.12.2'
-	rsocketVersion = '1.0.0-RC6'
+	rsocketVersion = '1.0.0-RC7'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.6.RELEASE'

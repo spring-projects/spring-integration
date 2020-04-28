@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import io.rsocket.RSocketFactory;
+import io.rsocket.core.RSocketServer;
 import io.rsocket.frame.decoder.PayloadDecoder;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
@@ -185,11 +185,10 @@ public class RSocketInboundGatewayIntegrationTests {
 
 		@Bean
 		public CloseableChannel rsocketServer() {
-			return RSocketFactory.receive()
-					.frameDecoder(PayloadDecoder.ZERO_COPY)
+			return RSocketServer.create()
+					.payloadDecoder(PayloadDecoder.ZERO_COPY)
 					.acceptor(serverRSocketMessageHandler().responder())
-					.transport(TcpServerTransport.create("localhost", 0))
-					.start()
+					.bind(TcpServerTransport.create("localhost", 0))
 					.block();
 		}
 
