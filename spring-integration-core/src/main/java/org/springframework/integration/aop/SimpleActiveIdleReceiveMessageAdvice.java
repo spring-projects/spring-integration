@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,22 @@ package org.springframework.integration.aop;
 
 import java.time.Duration;
 
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.util.DynamicPeriodicTrigger;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
- * A simple advice that polls at one rate when messages exist and another when
+ A simple advice that polls at one rate when messages exist and another when
  * there are no messages.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
- * @since 4.2
+ * @since 5.3
  *
  * @see DynamicPeriodicTrigger
- *
- * @deprecated since 5.3 in favor of {@link SimpleActiveIdleReceiveMessageAdvice} with the same
- * (but more common) functionality.
  */
-@Deprecated
-public class SimpleActiveIdleMessageSourceAdvice extends AbstractMessageSourceAdvice {
+public class SimpleActiveIdleReceiveMessageAdvice implements ReceiveMessageAdvice {
 
 	private final DynamicPeriodicTrigger trigger;
 
@@ -44,8 +41,8 @@ public class SimpleActiveIdleMessageSourceAdvice extends AbstractMessageSourceAd
 
 	private volatile Duration activePollPeriod;
 
-
-	public SimpleActiveIdleMessageSourceAdvice(DynamicPeriodicTrigger trigger) {
+	public SimpleActiveIdleReceiveMessageAdvice(DynamicPeriodicTrigger trigger) {
+		Assert.notNull(trigger, "'trigger' must not be null");
 		this.trigger = trigger;
 		this.idlePollPeriod = trigger.getDuration();
 		this.activePollPeriod = trigger.getDuration();
@@ -70,7 +67,7 @@ public class SimpleActiveIdleMessageSourceAdvice extends AbstractMessageSourceAd
 	}
 
 	@Override
-	public Message<?> afterReceive(Message<?> result, MessageSource<?> source) {
+	public Message<?> afterReceive(Message<?> result, Object source) {
 		if (result == null) {
 			this.trigger.setDuration(this.idlePollPeriod);
 		}

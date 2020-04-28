@@ -57,13 +57,13 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 	 */
 	public static final long DEFAULT_RECEIVE_TIMEOUT = 1000;
 
-	private final PollableChannel inputChannel;
-
 	private final MessageHandler handler;
 
 	private final List<ChannelInterceptor> channelInterceptors;
 
-	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
+	private PollableChannel inputChannel;
+
+	private long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
 	public PollingConsumer(PollableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
@@ -108,6 +108,16 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 	@Override
 	public MessageHandler getHandler() {
 		return this.handler;
+	}
+
+	@Override
+	protected Object getReceiveMessageSource() {
+		return this.inputChannel;
+	}
+
+	@Override
+	protected void setReceiveMessageSource(Object source) {
+		this.inputChannel = (PollableChannel) source;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.Joinpoint;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.Advisor;
 import org.springframework.aop.framework.Advised;
@@ -48,9 +47,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.aop.CompoundTriggerAdvice;
-import org.springframework.integration.aop.SimpleActiveIdleMessageSourceAdvice;
+import org.springframework.integration.aop.ReceiveMessageAdvice;
+import org.springframework.integration.aop.SimpleActiveIdleReceiveMessageAdvice;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -64,14 +63,14 @@ import org.springframework.integration.util.CompoundTrigger;
 import org.springframework.integration.util.DynamicPeriodicTrigger;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -80,8 +79,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 4.1
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class PollerAdviceTests {
 
@@ -194,10 +192,10 @@ public class PollerAdviceTests {
 		});
 
 		final AtomicInteger count = new AtomicInteger();
-		class TestSourceAdvice extends AbstractMessageSourceAdvice {
+		class TestSourceAdvice implements ReceiveMessageAdvice {
 
 			@Override
-			public boolean beforeReceive(MessageSource<?> target) {
+			public boolean beforeReceive(Object target) {
 				count.incrementAndGet();
 				callOrder.add("b");
 				latch.get().countDown();
@@ -205,7 +203,7 @@ public class PollerAdviceTests {
 			}
 
 			@Override
-			public Message<?> afterReceive(Message<?> result, MessageSource<?> target) {
+			public Message<?> afterReceive(Message<?> result, Object target) {
 				callOrder.add("d");
 				latch.get().countDown();
 				return result;
@@ -267,7 +265,7 @@ public class PollerAdviceTests {
 			latch.countDown();
 			return m;
 		});
-		SimpleActiveIdleMessageSourceAdvice toggling = new SimpleActiveIdleMessageSourceAdvice(trigger);
+		SimpleActiveIdleReceiveMessageAdvice toggling = new SimpleActiveIdleReceiveMessageAdvice(trigger);
 		toggling.setActivePollPeriod(11);
 		toggling.setIdlePollPeriod(12);
 		adapter.setAdviceChain(Collections.singletonList(toggling));
@@ -277,6 +275,56 @@ public class PollerAdviceTests {
 		adapter.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		adapter.stop();
+		synchronized (triggerPeriods) {
+			assertThat(triggerPeriods.subList(0, 5)).containsExactly(10L, 12L, 11L, 12L, 11L);
+		}
+	}
+
+	@Test
+	public void testActiveIdleAdviceOnQueueChannel() throws Exception {
+		final CountDownLatch latch = new CountDownLatch(5);
+		final LinkedList<Long> triggerPeriods = new LinkedList<>();
+		final DynamicPeriodicTrigger trigger = new DynamicPeriodicTrigger(10);
+
+		PollingConsumer pollingConsumer =
+				new PollingConsumer(new PollableChannel() {
+
+					@Override
+					public Message<?> receive() {
+						synchronized (triggerPeriods) {
+							triggerPeriods.add(trigger.getDuration().toMillis());
+						}
+						Message<Object> m = null;
+						if (latch.getCount() % 2 == 0) {
+							m = new GenericMessage<>("foo");
+						}
+						latch.countDown();
+						return m;
+					}
+
+					@Override
+					public Message<?> receive(long timeout) {
+						return receive();
+					}
+
+					@Override
+					public boolean send(Message<?> message, long timeout) {
+						return false;
+					}
+
+				}, m -> { });
+
+		SimpleActiveIdleReceiveMessageAdvice toggling = new SimpleActiveIdleReceiveMessageAdvice(trigger);
+		toggling.setActivePollPeriod(11);
+		toggling.setIdlePollPeriod(12);
+		pollingConsumer.setAdviceChain(Collections.singletonList(toggling));
+		pollingConsumer.setTrigger(trigger);
+		pollingConsumer.setBeanFactory(this.beanFactory);
+		pollingConsumer.setTaskScheduler(this.threadPoolTaskScheduler);
+		pollingConsumer.afterPropertiesSet();
+		pollingConsumer.start();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		pollingConsumer.stop();
 		synchronized (triggerPeriods) {
 			assertThat(triggerPeriods.subList(0, 5)).containsExactly(10L, 12L, 11L, 12L, 11L);
 		}
@@ -361,18 +409,18 @@ public class PollerAdviceTests {
 
 	}
 
-	public static class OtherAdvice extends AbstractMessageSourceAdvice {
+	public static class OtherAdvice implements ReceiveMessageAdvice {
 
 		private int calls;
 
 		@Override
-		public boolean beforeReceive(MessageSource<?> source) {
+		public boolean beforeReceive(Object source) {
 			this.calls++;
 			return true;
 		}
 
 		@Override
-		public Message<?> afterReceive(Message<?> result, MessageSource<?> source) {
+		public Message<?> afterReceive(Message<?> result, Object source) {
 			return result;
 		}
 

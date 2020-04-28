@@ -145,18 +145,21 @@ These "`around advice`" methods do not have access to any context for the poll -
 This is fine for requirements such as making a task transactional or skipping a poll due to some external condition, as discussed earlier.
 What if we wish to take some action depending on the result of the `receive` part of the poll or if we want to adjust the poller depending on conditions? For those instances, Spring Integration offers "`Smart`" Polling.
 
+[[smart-polling]]
 ===== "`Smart`" Polling
 
-Version 4.2 introduced the `AbstractMessageSourceAdvice`.
-Any `Advice` objects in the `advice-chain` that subclass this class are applied only to the receive operation.
+Version 5.3 introduced the `ReceiveMessageAdvice` interface.
+(An `AbstractMessageSourceAdvice` has been deprecated in favor of `default` methods in the `MessageSourceMutator`.)
+Any `Advice` objects in the `advice-chain` that implement this interface are applied only to the receive operation - `MessageSource.receive()` and `PollableChannel.receive(timeout)`.
+Therefore they can be applied only for the `SourcePollingChannelAdapter` or `PollingConsumer`.
 Such classes implement the following methods:
 
-* `beforeReceive(MessageSource<?> source)`
-This method is called before the `MessageSource.receive()` method.
+* `beforeReceive(Object source)`
+This method is called before the `Object.receive()` method.
 It lets you examine and reconfigure the source.
 Returning `false` cancels this poll (similar to the `PollSkipAdvice` mentioned earlier).
 
-* `Message<?> afterReceive(Message<?> result, MessageSource<?> source)`
+* `Message<?> afterReceive(Message<?> result, Object source)`
 This method is called after the `receive()` method.
 Again, you can reconfigure the source or take any action (perhaps depending on the result, which can be `null` if there was no message created by the source).
 You can even return a different message
@@ -164,7 +167,7 @@ You can even return a different message
 .Thread safety
 [IMPORTANT]
 ====
-If an advice mutates the `MessageSource`, you should not configure the poller with a `TaskExecutor`.
+If an advice mutates the the, you should not configure the poller with a `TaskExecutor`.
 If an advice mutates the source, such mutations are not thread safe and could cause unexpected results, especially with high frequency pollers.
 If you need to process poll results concurrently, consider using a downstream `ExecutorChannel` instead of adding an executor to the poller.
 ====
@@ -173,21 +176,22 @@ If you need to process poll results concurrently, consider using a downstream `E
 [IMPORTANT]
 =====
 You should understand how the advice chain is processed during initialization.
-`Advice` objects that do not extend `AbstractMessageSourceAdvice` are applied to the whole poll process and are all invoked first, in order, before any `AbstractMessageSourceAdvice`.
-Then `AbstractMessageSourceAdvice` objects are invoked in order around the `MessageSource` `receive()` method.
-If you have, for example, `Advice` objects `a, b, c, d`, where `b` and `d` are `AbstractMessageSourceAdvice`, the objects are applied in the following order: `a, c, b, d`.
-Also, if a `MessageSource` is already a `Proxy`, the `AbstractMessageSourceAdvice` is invoked after any existing `Advice` objects.
+`Advice` objects that do not implement `ReceiveMessageAdvice` are applied to the whole poll process and are all invoked first, in order, before any `ReceiveMessageAdvice`.
+Then `ReceiveMessageAdvice` objects are invoked in order around the source `receive()` method.
+If you have, for example, `Advice` objects `a, b, c, d`, where `b` and `d` are `ReceiveMessageAdvice`, the objects are applied in the following order: `a, c, b, d`.
+Also, if a source is already a `Proxy`, the `ReceiveMessageAdvice` is invoked after any existing `Advice` objects.
 If you wish to change the order, you must wire up the proxy yourself.
 =====
 
-===== `SimpleActiveIdleMessageSourceAdvice`
+===== `SimpleActiveIdleReceiveMessageAdvice`
 
-This advice is a simple implementation of `AbstractMessageSourceAdvice`.
+(The previous `SimpleActiveIdleMessageSourceAdvice` for only `MessageSource` is deprecated.)
+This advice is a simple implementation of `ReceiveMessageAdvice`.
 When used in conjunction with a `DynamicPeriodicTrigger`, it adjusts the polling frequency, depending on whether or not the previous poll resulted in a message or not.
 The poller must also have a reference to the same `DynamicPeriodicTrigger`.
 
 .Important: Async Handoff
-IMPORTANT: `SimpleActiveIdleMessageSourceAdvice` modifies the trigger based on the `receive()` result.
+IMPORTANT: `SimpleActiveIdleReceiveMessageAdvice` modifies the trigger based on the `receive()` result.
 This works only if the advice is called on the poller thread.
 It does not work if the poller has a `task-executor`.
 To use this advice where you wish to use async operations after the result of a poll, do the async handoff later, perhaps by using an `ExecutorChannel`.
@@ -241,3 +245,10 @@ IMPORTANT: `CompoundTriggerAdvice` modifies the trigger based on the `receive()`
 This works only if the advice is called on the poller thread.
 It does not work if the poller has a `task-executor`.
 To use this advice where you wish to use async operations after the result of a poll, do the async handoff later, perhaps by using an `ExecutorChannel`.
+
+===== MessageSource-only Advices
+
+Some advices might be applied only for the `MessageSource.receive()` and they don't make sense for `PollableChannel`.
+For this purpose a `MessageSourceMutator` interface (an extension of the `ReceiveMessageAdvice`) is still present.
+With `default` methods it fully replaces already deprecated `AbstractMessageSourceAdvice` and should be used in those implementations where only `MessageSource` proxying is expected.
+See <<./ftp.adoc#ftp-rotating-server-advice,Inbound Channel Adapters: Polling Multiple Servers and Directories>> for more information.

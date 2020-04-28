@@ -66,6 +66,12 @@ The `spring-integration-mongodb` module now provides channel adapter implementat
 Also, a reactive implementation for MongoDb change stream support is present with the `MongoDbChangeStreamMessageProducer`.
 See <<./mongodb.adoc#mongodb,MongoDB Support>> for more information.
 
+[[x5.3-receive-message-advice]]
+==== ReceiveMessageAdvice
+
+A special `ReceiveMessageAdvice` has been introduced to proxy exactly `MessageSource.receive()` or `PollableChannel.receive()`.
+See <<./polling-consumer.adoc#smart-polling,Smart Polling>> for more information.
+
 [[x5.3-general]]
 === General Changes
 
