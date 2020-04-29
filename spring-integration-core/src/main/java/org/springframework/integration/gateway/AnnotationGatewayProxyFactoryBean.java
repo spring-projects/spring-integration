@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
@@ -70,11 +71,7 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 
 	@Override
 	protected void onInit() {
-		ConfigurableListableBeanFactory beanFactory = (ConfigurableListableBeanFactory) getBeanFactory();
-
-		if (getGlobalMethodMetadata() == null) {
-			populateGatewayMethodMetadata();
-		}
+		populateGatewayMethodMetadataIfAny();
 
 		String defaultRequestTimeout = resolveAttribute("defaultRequestTimeout");
 		String defaultReplyTimeout = resolveAttribute("defaultReplyTimeout");
@@ -96,15 +93,8 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 						defaultReplyTimeout,
 						value -> setDefaultReplyTimeout(Long.parseLong(value)));
 
-		if (!isAsyncExecutorExplicitlySet()) {
-			String asyncExecutor = resolveAttribute("asyncExecutor");
-			if (asyncExecutor == null || AnnotationConstants.NULL.equals(asyncExecutor)) {
-				setAsyncExecutor(null);
-			}
-			else if (StringUtils.hasText(asyncExecutor)) {
-				setAsyncExecutor(beanFactory.getBean(asyncExecutor, Executor.class));
-			}
-		}
+		populateAsyncExecutorIfAny();
+
 		boolean proxyDefaultMethods = this.gatewayAttributes.getBoolean("proxyDefaultMethods");
 		if (proxyDefaultMethods) {
 			setProxyDefaultMethods(proxyDefaultMethods);
@@ -112,7 +102,11 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 		super.onInit();
 	}
 
-	private void populateGatewayMethodMetadata() {
+	private void populateGatewayMethodMetadataIfAny() {
+		if (getGlobalMethodMetadata() != null) {
+			return;
+		}
+
 		ConfigurableListableBeanFactory beanFactory = (ConfigurableListableBeanFactory) getBeanFactory();
 
 		String defaultPayloadExpression = resolveAttribute("defaultPayloadExpression");
@@ -166,6 +160,19 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 			gatewayMethodMetadata.setHeaderExpressions(headerExpressions);
 
 			setGlobalMethodMetadata(gatewayMethodMetadata);
+		}
+	}
+
+	private void populateAsyncExecutorIfAny() {
+		BeanFactory beanFactory = getBeanFactory();
+		if (!isAsyncExecutorExplicitlySet()) {
+			String asyncExecutor = resolveAttribute("asyncExecutor");
+			if (asyncExecutor == null || AnnotationConstants.NULL.equals(asyncExecutor)) {
+				setAsyncExecutor(null);
+			}
+			else if (StringUtils.hasText(asyncExecutor)) {
+				setAsyncExecutor(beanFactory.getBean(asyncExecutor, Executor.class));
+			}
 		}
 	}
 

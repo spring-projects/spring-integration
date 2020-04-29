@@ -16,10 +16,8 @@
 
 package org.springframework.integration.aop;
 
-import org.springframework.integration.core.MessageSource;
-
 /**
- * Advice for a {@link MessageSource#receive()} method to decide whether a poll
+ * Advice for a {@link org.springframework.integration.core.MessageSource#receive()} method to decide whether a poll
  * should be ignored and/or take action after the receive.
  *
  * @author Gary Russell

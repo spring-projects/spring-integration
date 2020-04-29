@@ -26,7 +26,6 @@ import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 
-import io.rsocket.core.RSocketConnector;
 import io.rsocket.transport.ClientTransport;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.client.WebsocketClientTransport;
@@ -118,9 +117,9 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 	 * target {@link RSocketRequester} to populate a reference to an internal
 	 * {@link IntegrationRSocketMessageHandler#responder()}.
 	 * This overrides possible external
-	 * {@link RSocketConnector#acceptor(io.rsocket.SocketAcceptor)}
+	 * {@link io.rsocket.core.RSocketConnector#acceptor(io.rsocket.SocketAcceptor)}
 	 * @param connectorConfigurer the {@link RSocketConnectorConfigurer} to
-	 *  configure the {@link RSocketConnector}.
+	 *  configure the {@link io.rsocket.core.RSocketConnector}.
 	 * @since 5.2.6
 	 * @see RSocketRequester.Builder#rsocketConnector(RSocketConnectorConfigurer)
 	 */

@@ -31,7 +31,6 @@ import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 
-import io.rsocket.core.RSocketConnector;
 import io.rsocket.core.RSocketServer;
 import io.rsocket.transport.ServerTransport;
 import io.rsocket.transport.netty.server.CloseableChannel;
@@ -48,7 +47,7 @@ import reactor.netty.http.server.HttpServer;
  *
  * @since 5.2
  *
- * @see RSocketConnector
+ * @see io.rsocket.core.RSocketConnector
  */
 public class ServerRSocketConnector extends AbstractRSocketConnector implements ApplicationEventPublisherAware {
 
