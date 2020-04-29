@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.support;
 
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -34,6 +35,7 @@ import java.util.concurrent.ExecutorService;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitOperations;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -73,6 +75,15 @@ public class BoundRabbitChannelAdviceTests {
 		verify(this.config.channel).basicPublish(eq(""), eq("rk"), anyBoolean(), any(), eq("B".getBytes()));
 		verify(this.config.channel).basicPublish(eq(""), eq("rk"), anyBoolean(), any(), eq("C".getBytes()));
 		verify(this.config.channel).waitForConfirmsOrDie(10_000L);
+	}
+
+	@Test
+	void validate() {
+		RabbitOperations template = mock(RabbitOperations.class);
+		given(template.getConnectionFactory()).willReturn(
+				mock(org.springframework.amqp.rabbit.connection.ConnectionFactory.class));
+		assertThatIllegalArgumentException().isThrownBy(() ->
+				new BoundRabbitChannelAdvice(template, Duration.ofSeconds(1)));
 	}
 
 	@Configuration
