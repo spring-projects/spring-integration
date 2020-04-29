@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource;
-import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.kafka.core.KafkaOperations;
@@ -38,11 +37,14 @@ import org.springframework.util.Assert;
  * Pollable channel backed by a Kafka topic.
  *
  * @author Gary Russell
+ *
  * @since 3.3
  *
  */
+@SuppressWarnings("deprecation")
 public class PollableKafkaChannel extends AbstractKafkaChannel
-		implements PollableChannel, PollableChannelManagement, ExecutorChannelInterceptorAware {
+		implements PollableChannel, org.springframework.integration.support.management.PollableChannelManagement,
+		ExecutorChannelInterceptorAware {
 
 	private final KafkaMessageSource<?, ?> source;
 
