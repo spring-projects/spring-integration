@@ -75,6 +75,10 @@ public class BoundRabbitChannelAdvice implements HandleMessageAdvice {
 		Assert.notNull(operations, "'operations' cannot be null");
 		this.operations = operations;
 		this.waitForConfirmsTimeout = waitForConfirmsTimeout;
+		if (this.waitForConfirmsTimeout != null) {
+			Assert.isTrue(operations.getConnectionFactory().isSimplePublisherConfirms(),
+					"'waitForConfirmsTimeout' requires a connection factory with simple publisher confirms enabled");
+		}
 	}
 
 	@Override
