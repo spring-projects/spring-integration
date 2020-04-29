@@ -1110,7 +1110,7 @@ task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
 		into "${baseDir}"
 		expand(copyright: new Date().format("yyyy"), version: project.version)
 	}
-	Amqp
+
 	from("$project.rootDir") {
 		include 'LICENSE.txt'
 		into "${baseDir}"
