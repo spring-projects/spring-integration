@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.3.71'
+	ext.kotlinVersion = '1.3.72'
 	repositories {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
@@ -12,13 +12,13 @@ buildscript {
 plugins {
 	id 'org.sonarqube' version '2.8'
 	id 'io.spring.nohttp' version '0.0.4.RELEASE' apply false
-	id 'org.ajoberstar.grgit' version '4.0.1'
+	id 'org.ajoberstar.grgit' version '4.0.2'
 	id "io.spring.dependency-management" version '1.0.9.RELEASE'
-	id 'com.jfrog.artifactory' version '4.15.1' apply false
+	id 'com.jfrog.artifactory' version '4.15.2' apply false
 	id 'org.jetbrains.dokka' version '0.10.1'
-	id 'org.asciidoctor.jvm.pdf' version '3.1.0'
-	id 'org.asciidoctor.jvm.gems' version '3.1.0'
-	id 'org.asciidoctor.jvm.convert' version '3.1.0'
+	id 'org.asciidoctor.jvm.pdf' version '3.2.0'
+	id 'org.asciidoctor.jvm.gems' version '3.2.0'
+	id 'org.asciidoctor.jvm.convert' version '3.2.0'
 }
 
 if (System.getenv('TRAVIS') || System.getenv('bamboo_buildKey')) {
@@ -40,7 +40,7 @@ ext {
 	linkScmUrl = 'https://github.com/spring-projects/spring-integration'
 	linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
 	linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
-	docResourcesVersion = '0.2.1.RELEASE'
+	docResourcesVersion = '0.2.2.RELEASE'
 
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
@@ -59,47 +59,47 @@ ext {
 	derbyVersion = '10.14.2.0'
 	ftpServerVersion = '1.1.1'
 	googleJsr305Version = '3.0.2'
-	groovyVersion = '2.5.10'
+	groovyVersion = '2.5.11'
 	hamcrestVersion = '2.2'
 	hazelcastVersion = '3.12.6'
-	hibernateVersion = '5.4.13.Final'
+	hibernateVersion = '5.4.14.Final'
 	hsqldbVersion = '2.5.0'
 	h2Version = '1.4.200'
-	jacksonVersion = '2.10.3'
+	jacksonVersion = '2.11.0'
 	javaxActivationVersion = '1.2.0'
 	javaxMailVersion = '1.6.2'
 	jmsApiVersion = '2.0.1'
 	jpa21ApiVersion = '1.0.2.Final'
 	jpaApiVersion = '2.2.1'
-	jrubyVersion = '9.2.11.0'
+	jrubyVersion = '9.2.11.1'
 	jschVersion = '0.1.55'
 	jsonpathVersion = '2.4.0'
 	junit4Version = '4.13'
-	junitJupiterVersion = '5.6.1'
-	jythonVersion = '2.7.0'
+	junitJupiterVersion = '5.6.2'
+	jythonVersion = '2.7.2'
 	kryoShadedVersion = '4.0.2'
-	lettuceVersion = '5.2.2.RELEASE'
-	log4jVersion = '2.13.1'
-	micrometerVersion = '1.3.7'
+	lettuceVersion = '5.3.0.RELEASE'
+	log4jVersion = '2.13.2'
+	micrometerVersion = '1.5.0'
 	mockitoVersion = '3.3.3'
-	mongoDriverVersion = '4.0.1'
-	mysqlVersion = '8.0.19'
+	mongoDriverVersion = '4.0.2'
+	mysqlVersion = '8.0.20'
 	pahoMqttClientVersion = '1.2.2'
-	postgresVersion = '42.2.11'
-	reactorVersion = 'Dysprosium-SR6'
-	resilience4jVersion = '1.3.1'
+	postgresVersion = '42.2.12'
+	reactorVersion = 'Dysprosium-SR7'
+	resilience4jVersion = '1.4.0'
 	romeToolsVersion = '1.12.2'
 	rsocketVersion = '1.0.0-RC7'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.5.RELEASE'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-RC1'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.6.RELEASE'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-RC2'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.3.1.RELEASE'
 	springRetryVersion = '1.2.5.RELEASE'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.6.RELEASE'
-	springWsVersion = '3.0.8.RELEASE'
-	tomcatVersion = "9.0.33"
-	xstreamVersion = '1.4.11.1'
+	springWsVersion = '3.0.9.RELEASE'
+	tomcatVersion = "9.0.34"
+	xstreamVersion = '1.4.12'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
 }
@@ -318,7 +318,7 @@ configure(javaProjects) { subproject ->
 
 	checkstyle {
 		configFile = file("$rootDir/src/checkstyle/checkstyle.xml")
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.31'
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.32'
 	}
 
 	jar {
@@ -1110,7 +1110,7 @@ task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
 		into "${baseDir}"
 		expand(copyright: new Date().format("yyyy"), version: project.version)
 	}
-
+	Amqp
 	from("$project.rootDir") {
 		include 'LICENSE.txt'
 		into "${baseDir}"
