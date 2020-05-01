@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.groovy.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -26,8 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -43,8 +42,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingPropertyException;
@@ -54,10 +52,10 @@ import groovy.lang.MissingPropertyException;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gunnar Hillert
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class GroovyServiceActivatorTests {
 
 	@Autowired
@@ -86,7 +84,7 @@ public class GroovyServiceActivatorTests {
 
 
 	@Test
-	public void referencedScriptAndCustomiser() throws Exception {
+	public void referencedScriptAndCustomizer() throws Exception {
 		groovyCustomizer.executed = false;
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
@@ -134,7 +132,7 @@ public class GroovyServiceActivatorTests {
 	}
 
 	@Test
-	public void inlineScript() throws Exception {
+	public void inlineScript() {
 		groovyCustomizer.executed = false;
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
@@ -156,7 +154,7 @@ public class GroovyServiceActivatorTests {
 	}
 
 	@Test
-	public void testScriptWithoutVariables() throws Exception {
+	public void testScriptWithoutVariables() {
 		PollableChannel replyChannel = new QueueChannel();
 		for (int i = 1; i <= 3; i++) {
 			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
@@ -174,33 +172,28 @@ public class GroovyServiceActivatorTests {
 		assertThat(replyChannel.receive(0)).isNull();
 	}
 
-	//INT-2399
-	@Test(expected = MessageHandlingException.class)
-	public void invalidInlineScript() throws Exception {
-		Message<?> message =
-				new ErrorMessage(new ReplyRequiredException(new GenericMessage<String>("test"), "reply required!"));
-		try {
-			this.invalidInlineScript.send(message);
-			fail("MessageHandlingException expected!");
-		}
-		catch (Exception e) {
-			Throwable cause = e.getCause();
-			assertThat(cause.getClass()).isEqualTo(MissingPropertyException.class);
-			assertThat(cause.getMessage()).contains("No such property: ReplyRequiredException for class: script");
-			throw e;
-		}
-
+	@Test
+	public void invalidInlineScript() {
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() ->
+						this.invalidInlineScript.send(
+								new ErrorMessage(
+										new ReplyRequiredException(new GenericMessage<>("test"), "reply required!"))))
+				.withStackTraceContaining("No such property: ReplyRequiredException for class: Script_")
+				.withCauseInstanceOf(MissingPropertyException.class);
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
-	public void variablesAndScriptVariableGenerator() throws Exception {
-		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml",
-				this.getClass()).close();
+	@Test
+	public void variablesAndScriptVariableGenerator() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml",
+								this.getClass()));
 	}
 
 	@Test
 	public void testGroovyScriptForOutboundChannelAdapter() {
-		this.outboundChannelAdapterWithGroovy.send(new GenericMessage<String>("foo"));
+		this.outboundChannelAdapterWithGroovy.send(new GenericMessage<>("foo"));
 		assertThat(this.invoked.get()).isTrue();
 	}
 
@@ -208,7 +201,7 @@ public class GroovyServiceActivatorTests {
 	public static class SampleScriptVariSource implements ScriptVariableGenerator {
 
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
-			Map<String, Object> variables = new HashMap<String, Object>();
+			Map<String, Object> variables = new HashMap<>();
 			variables.put("foo", "foo");
 			variables.put("bar", "bar");
 			variables.put("date", new Date());

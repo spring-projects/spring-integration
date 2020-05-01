@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,7 @@ import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -80,7 +79,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -104,7 +103,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
  * @since 4.1
  */
 @ContextConfiguration(classes = StompIntegrationTests.ClientConfig.class)
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class StompIntegrationTests {
 
@@ -382,7 +381,6 @@ public class StompIntegrationTests {
 		}
 
 		@Bean
-		@SuppressWarnings("unchecked")
 		public ApplicationListener<ApplicationEvent> webSocketEventListener() {
 			ApplicationEventListeningMessageProducer producer = new ApplicationEventListeningMessageProducer();
 			producer.setEventTypes(AbstractSubProtocolEvent.class);
@@ -446,7 +444,7 @@ public class StompIntegrationTests {
 
 	@MessagingGateway
 	@Controller
-	interface WebSocketGateway {
+	public interface WebSocketGateway {
 
 		@MessageMapping("/greeting")
 		@SendToUser("/queue/answer")
