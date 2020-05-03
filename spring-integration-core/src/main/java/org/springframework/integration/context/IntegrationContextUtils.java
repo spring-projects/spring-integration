@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Pierre Lakreb
  */
 public abstract class IntegrationContextUtils {
 
@@ -91,8 +92,7 @@ public abstract class IntegrationContextUtils {
 
 	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME = "globalChannelInterceptorProcessor";
 
-	public static final String TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME =
-			"toStringFriendlyJsonNodeToStringConverter";
+	public static final String JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER = "jsonNodeWrapperToJsonNodeConverter";
 
 	public static final String INTEGRATION_LIFECYCLE_ROLE_CONTROLLER = "integrationLifecycleRoleController";
 

@@ -86,6 +86,7 @@ import org.springframework.util.ClassUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Michael Wiles
+ * @author Pierre Lakreb
  *
  * @see IntegrationContextUtils
  */
@@ -411,17 +412,17 @@ class DefaultConfiguringBeanFactoryPostProcessor
 
 	private void jsonNodeToString(int registryId) {
 		if (!this.beanFactory.containsBean(
-				IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME) &&
+				IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER) &&
 				!REGISTRIES_PROCESSED.contains(registryId) && JacksonPresent.isJackson2Present()) {
 
 			this.registry.registerBeanDefinition(
-					IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME,
+					IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER,
 					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE +
-							".json.ToStringFriendlyJsonNodeToStringConverter")
+							".json.JsonNodeWrapperToJsonNodeConverter")
 							.getBeanDefinition());
 			INTEGRATION_CONVERTER_INITIALIZER.registerConverter(this.registry,
 					new RuntimeBeanReference(
-							IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME));
+							IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER));
 		}
 	}
 
