@@ -91,8 +91,7 @@ public abstract class IntegrationContextUtils {
 
 	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME = "globalChannelInterceptorProcessor";
 
-	public static final String TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME =
-			"toStringFriendlyJsonNodeToStringConverter";
+	public static final String JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER = "jsonNodeWrapperToJsonNodeConverter";
 
 	public static final String INTEGRATION_LIFECYCLE_ROLE_CONTROLLER = "integrationLifecycleRoleController";
 

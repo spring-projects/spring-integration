@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -167,25 +167,25 @@ public class ParentContextTests {
 		assertThat(out.getPayload()).isEqualTo("FOO");
 
 		assertThat(parent
-				.containsBean(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME))
+				.containsBean(IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER))
 				.isTrue();
 
 		assertThat(child
-				.containsBean(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME))
+				.containsBean(IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER))
 				.isTrue();
 
 		Object converterRegistrar = parent.getBean(IntegrationContextUtils.CONVERTER_REGISTRAR_BEAN_NAME);
 		assertThat(converterRegistrar).isNotNull();
 		Set<?> converters = TestUtils.getPropertyValue(converterRegistrar, "converters", Set.class);
-		boolean toStringFriendlyJsonNodeToStringConverterPresent = false;
+		boolean jsonNodeWrapperToJsonNodeConverterPresent = false;
 		for (Object converter : converters) {
-			if ("ToStringFriendlyJsonNodeToStringConverter".equals(converter.getClass().getSimpleName())) {
-				toStringFriendlyJsonNodeToStringConverterPresent = true;
+			if ("JsonNodeWrapperToJsonNodeConverter".equals(converter.getClass().getSimpleName())) {
+				jsonNodeWrapperToJsonNodeConverterPresent = true;
 				break;
 			}
 		}
 
-		assertThat(toStringFriendlyJsonNodeToStringConverterPresent).isTrue();
+		assertThat(jsonNodeWrapperToJsonNodeConverterPresent).isTrue();
 
 		MessageChannel input = parent.getBean("testJsonNodeToStringConverterInputChannel", MessageChannel.class);
 		PollableChannel output = parent.getBean("testJsonNodeToStringConverterOutputChannel", PollableChannel.class);

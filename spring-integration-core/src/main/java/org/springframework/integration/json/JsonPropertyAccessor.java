@@ -18,14 +18,8 @@ package org.springframework.integration.json;
 
 import java.io.IOException;
 import java.util.AbstractList;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.Set;
 
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.PropertyAccessor;
@@ -63,24 +57,6 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 	// Note: ObjectMapper is thread-safe
 	private ObjectMapper objectMapper = new ObjectMapper();
-
-	public JsonPropertyAccessor() {
-		this((ConverterRegistry) DefaultConversionService.getSharedInstance());
-	}
-
-	public JsonPropertyAccessor(ConverterRegistry converterRegistry) {
-		converterRegistry.addConverter(new GenericConverter() {
-			@Override
-			public Set<ConvertiblePair> getConvertibleTypes() {
-				return Collections.singleton(new ConvertiblePair(JsonNodeWrapper.class, JsonNode.class));
-			}
-
-			@Override
-			public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
-				return targetType.getObjectType().cast(((JsonNodeWrapper<?>) source).getRealNode());
-			}
-		});
-	}
 
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		Assert.notNull(objectMapper, "'objectMapper' cannot be null");

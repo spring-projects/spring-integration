@@ -23,6 +23,8 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -53,6 +55,8 @@ public class JsonPropertyAccessorTests {
 	@Before
 	public void setup() {
 		context.addPropertyAccessor(new JsonPropertyAccessor());
+		ConverterRegistry converterRegistry = (ConverterRegistry) DefaultConversionService.getSharedInstance();
+		converterRegistry.addConverter(new JsonNodeWrapperToJsonNodeConverter());
 	}
 
 	@Test
@@ -179,22 +183,43 @@ public class JsonPropertyAccessorTests {
 	}
 
 	@Test
-	public void testJsonGetValueConversion() throws Exception {
+	public void testJsonGetValueConversionAsJsonNode() throws Exception {
 		String json = "{\"property\":[{\"name\":\"value1\"},{\"name\":\"value2\"}]}";
 
 		// use JsonNode conversion
 		Object node = evaluate(json, "property.^[name == 'value1']", JsonNode.class);
 		assertThat(node).isInstanceOf(JsonNode.class);
 		assertThat(((JsonNode) node)).isEqualTo(mapper.readTree("{\"name\":\"value1\"}"));
+	}
+
+	@Test
+	public void testJsonGetValueConversionAsObjectNode() throws Exception {
+		String json = "{\"property\":[{\"name\":\"value1\"},{\"name\":\"value2\"}]}";
 
 		// use ObjectNode conversion
+		Object node = evaluate(json, "property.^[name == 'value1']", JsonNode.class);
 		assertThat(node).isInstanceOf(ObjectNode.class);
 		assertThat(((ObjectNode) node)).isEqualTo(mapper.readTree("{\"name\":\"value1\"}"));
+	}
+
+	@Test
+	public void testJsonGetValueConversionAsArrayNode() throws Exception {
+		String json = "{\"property\":[{\"name\":\"value1\"},{\"name\":\"value2\"}]}";
 
 		// use ArrayNode conversion
-		node = evaluate(json, "property", ArrayNode.class);
+		Object node = evaluate(json, "property", ArrayNode.class);
 		assertThat(node).isInstanceOf(ArrayNode.class);
 		assertThat(((ArrayNode) node)).isEqualTo(mapper.readTree("[{\"name\":\"value1\"},{\"name\":\"value2\"}]"));
+	}
+
+	@Test
+	public void testJsonGetValueConversionAsString() throws Exception {
+		String json = "{\"property\":[{\"name\":\"value1\"},{\"name\":\"value2\"}]}";
+
+		// use ArrayNode conversion
+		Object node = evaluate(json, "#root", String.class);
+		assertThat(node).isInstanceOf(String.class);
+		assertThat(((String) node)).isEqualTo("{\"property\":[{\"name\":\"value1\"},{\"name\":\"value2\"}]}");
 	}
 
 	@Test
