@@ -317,7 +317,7 @@ configure(javaProjects) { subproject ->
 	}
 
 	checkstyle {
-		configFile = file("$rootDir/src/checkstyle/checkstyle.xml")
+		configDirectory.set(rootProject.file("src/checkstyle"))
 		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.32'
 	}
 
