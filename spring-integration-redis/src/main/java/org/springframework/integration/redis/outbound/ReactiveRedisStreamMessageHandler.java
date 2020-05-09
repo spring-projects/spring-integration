@@ -1,7 +1,7 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 ( the "License" );
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,13 +16,12 @@
 
 package org.springframework.integration.redis.outbound;
 
-import reactor.core.publisher.Mono;
-
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveStreamOperations;
+import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -33,14 +32,17 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import reactor.core.publisher.Mono;
+
 /**
  * Implementation of {@link org.springframework.messaging.ReactiveMessageHandler} which writes
  * Message payload into a Redis stream , using reactive stream operation.
  *
- * @author Attoumane AHAMADI
+ * @author Attoumane Ahamadi
  *
- * @since 5.3
+ * @since 5.4
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHandler {
 
 	private final Expression streamKeyExpression;
@@ -56,6 +58,8 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 	private RedisSerializationContext serializationContext = RedisSerializationContext.string();
 
 	private ReactiveRedisConnectionFactory connectionFactory;
+
+	private HashMapper hashMapper;
 
 	public ReactiveRedisStreamMessageHandler(Expression streamKeyExpression,
 			ReactiveRedisConnectionFactory connectionFactory) {
@@ -82,6 +86,11 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 		this.serializationContext = serializationContext;
 	}
 
+	public void setHashMapper(HashMapper hashMapper) {
+		Assert.notNull(hashMapper, "'hashMapper' must not be null");
+		this.hashMapper = hashMapper;
+	}
+
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
 	}
@@ -97,8 +106,13 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 	}
 
 	@Override
-	protected Mono<Void> handleMessageInternal(Message<?> message) {
+	protected void onInit() {
+		super.onInit();
 		initStreamOperations();
+	}
+
+	@Override
+	protected Mono<Void> handleMessageInternal(Message<?> message) {
 
 		if (!StringUtils.hasText(this.streamKey)) {
 			this.streamKey = this.streamKeyExpression.getValue(this.evaluationContext, message, String.class);
@@ -109,20 +123,20 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 			value = message.getPayload();
 		}
 
-		ObjectRecord<String, Object> record = StreamRecords
-				.<String, Object>objectBacked(value)
+		ObjectRecord record = StreamRecords
+				.objectBacked(value)
 				.withStreamKey(this.streamKey);
 
 		return this.reactiveStreamOperations.add(record);
 	}
 
 	private void initStreamOperations() {
-		if (this.evaluationContext == null) {
+		if (this.evaluationContext == null && getBeanFactory() != null) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		}
 		ReactiveRedisTemplate template = new ReactiveRedisTemplate<>(this.connectionFactory,
 				this.serializationContext);
-		this.reactiveStreamOperations = template.opsForStream();
+		this.reactiveStreamOperations = this.hashMapper == null ? template.opsForStream() : template.opsForStream(this.hashMapper);
 	}
 
 }

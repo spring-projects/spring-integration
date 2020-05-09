@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2019 the original author or authors.
+ * Copyright 2007-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
-		Message<String> storedMessage =  store.addMessage(stringMessage);
+		Message<String> storedMessage = store.addMessage(stringMessage);
 		assertThat(storedMessage).isNotSameAs(stringMessage);
 		assertThat(storedMessage.getPayload()).isEqualTo("Hello Redis");
 	}
@@ -92,7 +92,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		Person person = new Person(address, "Barak Obama");
 
 		Message<Person> objectMessage = new GenericMessage<Person>(person);
-		Message<Person> storedMessage =  store.addMessage(objectMessage);
+		Message<Person> storedMessage = store.addMessage(objectMessage);
 		assertThat(storedMessage).isNotSameAs(objectMessage);
 		assertThat(storedMessage.getPayload().getName()).isEqualTo("Barak Obama");
 	}
@@ -206,6 +206,9 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 			this.name = name;
 		}
 
+		public Person() {
+		}
+
 		public Address getAddress() {
 			return address;
 		}
@@ -237,6 +240,13 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 			this.address = address;
 		}
 
+		public Address() {
+		}
+
+		public Address withAddress(String address) {
+			this.setAddress(address);
+			return this;
+		}
 	}
 
 	public static class Foo {
