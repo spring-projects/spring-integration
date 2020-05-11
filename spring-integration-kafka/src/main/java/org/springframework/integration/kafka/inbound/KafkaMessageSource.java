@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -120,6 +121,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private final ConsumerProperties consumerProperties;
 
+	private final Collection<TopicPartition> assignedPartitions = new LinkedHashSet<>();
+
 	private Duration pollTimeout;
 
 	private RecordMessageConverter messageConverter = new MessagingMessageConverter();
@@ -135,8 +138,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	private Duration assignTimeout;
 
 	private volatile Consumer<K, V> consumer;
-
-	private volatile Collection<TopicPartition> assignedPartitions = new ArrayList<>();
 
 	private volatile boolean pausing;
 
@@ -231,6 +232,24 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		this.pollTimeout = Duration.ofMillis(consumerProperties.getPollTimeout());
 		this.assignTimeout = this.minTimeoutProvider.get();
 		this.commitTimeout = consumerProperties.getSyncCommitTimeout();
+	}
+
+	/**
+	 * Return the currently assigned partitions.
+	 * @return the partitions.
+	 * @since 3.2.2
+	 */
+	public Collection<TopicPartition> getAssignedPartitions() {
+		return Collections.unmodifiableCollection(this.assignedPartitions);
+	}
+
+	/**
+	 * Return true if the source is currently paused.
+	 * @return true if paused.
+	 * @since 3.2.2
+	 */
+	public boolean isPaused() {
+		return this.paused;
 	}
 
 	@Override
@@ -478,7 +497,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 				@Override
 				public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-					KafkaMessageSource.this.assignedPartitions.clear();
+					KafkaMessageSource.this.assignedPartitions.removeAll(partitions);
 					if (KafkaMessageSource.this.logger.isInfoEnabled()) {
 						KafkaMessageSource.this.logger
 								.info("Partitions revoked: " + partitions);
@@ -496,8 +515,26 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				}
 
 				@Override
+				public void onPartitionsLost(Collection<TopicPartition> partitions) {
+					if (providedRebalanceListener != null) {
+						if (isConsumerAware) {
+							((ConsumerAwareRebalanceListener) providedRebalanceListener).onPartitionsLost(partitions);
+						}
+						else {
+							providedRebalanceListener.onPartitionsLost(partitions);
+						}
+					}
+					onPartitionsRevoked(partitions);
+				}
+
+				@Override
 				public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-					KafkaMessageSource.this.assignedPartitions = new ArrayList<>(partitions);
+					KafkaMessageSource.this.assignedPartitions.addAll(partitions);
+					if (KafkaMessageSource.this.paused) {
+						KafkaMessageSource.this.consumer.pause(KafkaMessageSource.this.assignedPartitions);
+						KafkaMessageSource.this.logger.warn("Paused consumer resumed by Kafka due to rebalance; "
+								+ "consumer paused again, so the initial poll() will never return any records");
+					}
 					if (KafkaMessageSource.this.logger.isInfoEnabled()) {
 						KafkaMessageSource.this.logger
 								.info("Partitions assigned: " + partitions);
@@ -524,7 +561,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 						.map(TopicPartitionOffset::getTopicPartition)
 						.collect(Collectors.toList());
 				this.consumer.assign(topicPartitionsToAssign);
-				this.assignedPartitions = new ArrayList<>(topicPartitionsToAssign);
+				this.assignedPartitions.addAll(topicPartitionsToAssign);
 
 				TopicPartitionOffset[] partitions = this.consumerProperties.getTopicPartitions();
 
