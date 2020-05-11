@@ -175,6 +175,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 							.build();
 				}
 				catch (IOException e) {
+					session.close();
 					throw new MessagingException("IOException when retrieving " + remotePath, e);
 				}
 			}
