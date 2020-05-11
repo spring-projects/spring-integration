@@ -17,22 +17,26 @@
 package org.springframework.integration.file.remote;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 
 /**
  * @author Lukas Gemela
@@ -67,6 +71,32 @@ public class RemoteFileStreamingMessageSourceTests {
 		testRemoteFileStreamingMessageSource.start();
 
 		assertThat(testRemoteFileStreamingMessageSource.doReceive()).isNull();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void sessionReturnedToCacheProperlyOnDoReceive() throws IOException {
+		Session<String> session = mock(Session.class);
+		when(session.readRaw(anyString())).thenThrow(IOException.class);
+		when(session.list("remoteDirectory")).thenReturn(new String[] { "file1" });
+
+		SessionFactory<String> sessionFactory = mock(SessionFactory.class);
+		when(sessionFactory.getSession()).thenReturn(session);
+
+		CachingSessionFactory<String> cachingSessionFactory = new CachingSessionFactory<>(sessionFactory, 1);
+		RemoteFileTemplate<String> remoteFileTemplate = new RemoteFileTemplate<>(cachingSessionFactory);
+
+		TestRemoteFileStreamingMessageSource testRemoteFileStreamingMessageSource =
+				new TestRemoteFileStreamingMessageSource(remoteFileTemplate, null);
+
+		testRemoteFileStreamingMessageSource.setRemoteDirectory("remoteDirectory");
+		testRemoteFileStreamingMessageSource.setBeanFactory(mock(BeanFactory.class));
+		testRemoteFileStreamingMessageSource.start();
+
+		assertThatExceptionOfType(UncheckedIOException.class)
+				.isThrownBy(testRemoteFileStreamingMessageSource::doReceive);
+
+		assertThat(cachingSessionFactory.getSession()).isNotNull();
 	}
 
 	static class TestRemoteFileStreamingMessageSource extends AbstractRemoteFileStreamingMessageSource<String> {
