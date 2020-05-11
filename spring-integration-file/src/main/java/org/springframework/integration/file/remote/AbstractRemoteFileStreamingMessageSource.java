@@ -216,6 +216,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 									this.fileInfoJson ? file.toJson() : file);
 				}
 				catch (IOException e) {
+					session.close();
 					throw new UncheckedIOException("IOException when retrieving " + remotePath, e);
 				}
 			}
