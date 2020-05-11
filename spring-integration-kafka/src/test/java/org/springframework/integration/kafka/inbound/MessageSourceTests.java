@@ -35,11 +35,13 @@ import static org.mockito.Mockito.times;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -157,8 +159,10 @@ class MessageSourceTests {
 	@Test
 	void testRebalanceListener() {
 		Consumer consumer = mock(Consumer.class);
-		TopicPartition topicPartition = new TopicPartition("foo", 0);
-		List<TopicPartition> assigned = Collections.singletonList(topicPartition);
+		TopicPartition topicPartition1 = new TopicPartition("foo", 0);
+		List<TopicPartition> assigned1 = new ArrayList<>(Collections.singletonList(topicPartition1));
+		TopicPartition topicPartition2 = new TopicPartition("foo", 1);
+		List<TopicPartition> assigned2 = new ArrayList<>(Collections.singletonList(topicPartition2));
 		AtomicReference<ConsumerRebalanceListener> listener = new AtomicReference<>();
 		willAnswer(i -> {
 			listener.set(i.getArgument(1));
@@ -190,11 +194,27 @@ class MessageSourceTests {
 
 		source.receive();
 
-		listener.get().onPartitionsAssigned(assigned);
+		listener.get().onPartitionsAssigned(assigned1);
 		assertThat(partitionsAssignedCalled.get()).isTrue();
+		assertThat(new ArrayList<>(source.getAssignedPartitions())).isEqualTo(assigned1);
+		listener.get().onPartitionsAssigned(assigned2);
+		List<TopicPartition> temp = new ArrayList<>(assigned1);
+		temp.addAll(assigned2);
+		assertThat(new ArrayList<>(source.getAssignedPartitions())).isEqualTo(temp);
 
-		listener.get().onPartitionsRevoked(assigned);
+		listener.get().onPartitionsRevoked(assigned1);
 		assertThat(partitionsRevokedCalled.get()).isTrue();
+		assertThat(new ArrayList<>(source.getAssignedPartitions())).isEqualTo(assigned2);
+
+		source.pause();
+		assertThat(source.isPaused()).isFalse();
+		InOrder inOrder = inOrder(consumer);
+		source.receive();
+		assertThat(source.isPaused()).isTrue();
+		inOrder.verify(consumer).pause(new LinkedHashSet<>(assigned2));
+		inOrder.verify(consumer).poll(any());
+		listener.get().onPartitionsAssigned(assigned1);
+		inOrder.verify(consumer).pause(new LinkedHashSet<>(temp));
 	}
 
 	@Test
