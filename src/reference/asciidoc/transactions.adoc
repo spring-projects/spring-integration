@@ -53,7 +53,7 @@ Message flows that are initiated by a user process and configured in a Spring ap
 Therefore they need not be explicitly configured by Spring Integration to support transactions.
 The transaction could and should be initiated through Spring's standard transaction support.
 The Spring Integration message flow naturally honors the transactional semantics of the components, because it is itself configured by Spring.
-For example, a gateway or service activator method could be annotated with `@Transactional`, or a `TransactionInterceptor` could be defined in an XML configuration with a pointcut expression that pointa to specific methods that should be transactional.
+For example, a gateway or service activator method could be annotated with `@Transactional`, or a `TransactionInterceptor` could be defined in an XML configuration with a pointcut expression that points to specific methods that should be transactional.
 The bottom line is that you have full control over transaction configuration and boundaries in these scenarios.
 
 However, things are a bit different when it comes to message flows initiated by a daemon process.
