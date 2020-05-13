@@ -25,9 +25,9 @@ The following example shows how to the `<request-handler-advice-chain/>` element
     url-expression="'http://localhost/test1'"
     request-channel="requests"
     reply-channel="nextChannel">
-    <int:request-handler-advice-chain>
+    <int-http:request-handler-advice-chain>
         <ref bean="myRetryAdvice" />
-    </request-handler-advice-chain>
+    </int-http:request-handler-advice-chain>
 </int-http:outbound-gateway>
 ----
 
@@ -110,7 +110,7 @@ The following example uses `RetryTemplate` and shows its `DEBUG` output:
 <int:service-activator input-channel="input" ref="failer" method="service">
     <int:request-handler-advice-chain>
         <bean class="o.s.i.handler.advice.RequestHandlerRetryAdvice"/>
-    </request-handler-advice-chain>
+    </int:request-handler-advice-chain>
 </int:service-activator>
 
 DEBUG [task-scheduler-2]preSend on channel 'input', message: [Payload=...]
@@ -139,8 +139,8 @@ The following example adds a `RecoveryCallback` to the preceding example and use
                 </bean>
             </property>
         </bean>
-    </request-handler-advice-chain>
-</int:int:service-activator>
+    </int:request-handler-advice-chain>
+</int:service-activator>
 
 DEBUG [task-scheduler-2]preSend on channel 'input', message: [Payload=...]
 DEBUG [task-scheduler-2]Retry: count=0
@@ -173,7 +173,7 @@ The following listing shows the example and its `DEBUG` output:
             </property>
             <property name="retryTemplate" ref="retryTemplate" />
         </bean>
-    </request-handler-advice-chain>
+    </int:request-handler-advice-chain>
 </int:service-activator>
 
 <bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
@@ -216,8 +216,8 @@ Starting with version 4.0, the preceding configuration can be greatly simplified
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
     <int:request-handler-advice-chain>
-        <bean ref="retrier" />
-    </request-handler-advice-chain>
+        <ref bean="retrier" />
+    </int:request-handler-advice-chain>
 </int:service-activator>
 
 <int:handler-retry-advice id="retrier" max-attempts="4" recovery-channel="myErrorChannel">
@@ -237,7 +237,7 @@ You can also define the advice directly within the chain, as the following examp
         <int:retry-advice id="retrier" max-attempts="4" recovery-channel="myErrorChannel">
             <int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
         </int:retry-advice>
-    </request-handler-advice-chain>
+    </int:request-handler-advice-chain>
 </int:service-activator>
 ----
 ====
@@ -669,7 +669,7 @@ Consider the following configuration:
 <some-reply-producing-endpoint ... >
     <int:request-handler-advice-chain>
         <tx:advice ... />
-        <bean ref="myHandleMessageAdvice" />
+        <ref bean="myHandleMessageAdvice" />
     </int:request-handler-advice-chain>
 </some-reply-producing-endpoint>
 ----
