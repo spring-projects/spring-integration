@@ -636,7 +636,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			sendMessageForReactiveFlow(requestChannel, requestMessage);
 
 			return buildReplyMono(requestMessage, replyChan.replyMono, error, originalReplyChannelHeader,
-					originalErrorChannelHeader);
+					originalErrorChannelHeader)
+					.onErrorResume(t -> error ? Mono.error(t) : handleSendError(requestMessage, t));
 		});
 	}
 
@@ -686,8 +687,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 								.setHeader(MessageHeaders.ERROR_CHANNEL, originalErrorChannelHeader)
 								.build();
 					}
-				})
-				.onErrorResume(t -> error ? Mono.error(t) : handleSendError(requestMessage, t));
+				});
 	}
 
 	private Mono<Message<?>> handleSendError(Message<?> requestMessage, Throwable exception) {
