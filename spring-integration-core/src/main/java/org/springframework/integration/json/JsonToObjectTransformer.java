@@ -197,7 +197,7 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		}
 		catch (Exception ex) {
 			if (ex.getCause() instanceof ClassNotFoundException) {
-				logger.info("Cannot build a ResolvableType from the request message '" + message +
+				logger.debug("Cannot build a ResolvableType from the request message '" + message +
 						"' evaluating expression '" + this.valueTypeExpression.getExpressionString() + "'", ex);
 				return null;
 			}
