@@ -278,7 +278,9 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 					if (shouldMapHeader(headerName, headerMatcher)) {
 						Object value = entry.getValue();
 						target.put(headerName, value);
-						if (JsonHeaders.TYPE_ID.equals(headerName) && value != null) {
+						if (this.replyHeaderMatcher == headerMatcher &&
+								JsonHeaders.TYPE_ID.equals(headerName) && value != null) {
+
 							ResolvableType resolvableType =
 									createJsonResolvableTypHeaderInAny(value, source.get(JsonHeaders.CONTENT_TYPE_ID),
 											source.get(JsonHeaders.KEY_TYPE_ID));
@@ -303,11 +305,10 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			@Nullable Object keyId) {
 
 		try {
-			return JsonHeaders.buildResolvableType(getClassLoader(), typeId,
-					contentId, keyId);
+			return JsonHeaders.buildResolvableType(getClassLoader(), typeId, contentId, keyId);
 		}
 		catch (Exception e) {
-			this.logger.warn("Cannot build a ResolvableType from 'json__TypeId__' header", e);
+			this.logger.debug("Cannot build a ResolvableType from 'json__TypeId__' header", e);
 		}
 		return null;
 	}
