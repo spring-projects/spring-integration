@@ -71,7 +71,7 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		});
 		sftpFactory.addSftpEventListener(eventListener);
 		server.setSubsystemFactories(Collections.singletonList(sftpFactory));
-		server.setFileSystemFactory(new VirtualFileSystemFactory(remoteTemporaryFolder));
+		server.setFileSystemFactory(new VirtualFileSystemFactory(getRemoteTempFolder().toPath()));
 		server.start();
 		port = server.getPort();
 	}
