@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.net.ftp.FTPFile;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -67,9 +68,9 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
  */
 public class RotatingServersTests extends FtpTestSupport {
 
-	private static String tmpDir = localTemporaryFolder.getRoot().getAbsolutePath() + File.separator + "multiSF";
+	private static String tmpDir = getLocalTempFolder().getAbsolutePath() + File.separator + "multiSF";
 
-	@BeforeClass
+	@BeforeAll
 	public static void setup() {
 		FtpRemoteFileTemplate rft = new FtpRemoteFileTemplate(sessionFactory());
 		rft.execute(s -> {
@@ -87,10 +88,10 @@ public class RotatingServersTests extends FtpTestSupport {
 		});
 	}
 
-	@Before
-	@After
-	public void clean() {
-		recursiveDelete(new File(tmpDir));
+	@BeforeEach
+	@AfterEach
+	public void clean(TestInfo info) {
+		recursiveDelete(new File(tmpDir), info);
 	}
 
 	@Test
