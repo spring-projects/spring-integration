@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.integration.file.remote.RemoteFileTestSupport;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -59,7 +59,7 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		return "sftp";
 	}
 
-	@BeforeClass
+	@BeforeAll
 	public static void createServer() throws Exception {
 		server = SshServer.setUpDefaultServer();
 		server.setPasswordAuthenticator((username, password, session) -> true);
@@ -71,7 +71,7 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		});
 		sftpFactory.addSftpEventListener(eventListener);
 		server.setSubsystemFactories(Collections.singletonList(sftpFactory));
-		server.setFileSystemFactory(new VirtualFileSystemFactory(remoteTemporaryFolder.getRoot().toPath()));
+		server.setFileSystemFactory(new VirtualFileSystemFactory(getRemoteTempFolder().toPath()));
 		server.start();
 		port = server.getPort();
 	}
@@ -90,7 +90,7 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		return eventListener;
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void stopServer() throws Exception {
 		server.stop();
 		File hostKey = new File("hostkey.ser");

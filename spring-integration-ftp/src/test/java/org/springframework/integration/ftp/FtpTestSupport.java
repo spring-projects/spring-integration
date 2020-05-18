@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,8 @@ import org.apache.ftpserver.usermanager.impl.BaseUser;
 import org.apache.ftpserver.usermanager.impl.ConcurrentLoginPermission;
 import org.apache.ftpserver.usermanager.impl.TransferRatePermission;
 import org.apache.ftpserver.usermanager.impl.WritePermission;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.integration.file.remote.RemoteFileTestSupport;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -58,10 +58,10 @@ public class FtpTestSupport extends RemoteFileTestSupport {
 
 	private static volatile FtpServer server;
 
-	@BeforeClass
+	@BeforeAll
 	public static void createServer() throws Exception {
 		FtpServerFactory serverFactory = new FtpServerFactory();
-		serverFactory.setUserManager(new TestUserManager(remoteTemporaryFolder.getRoot().getAbsolutePath()));
+		serverFactory.setUserManager(new TestUserManager(getRemoteTempFolder().getAbsolutePath()));
 
 		ListenerFactory factory = new ListenerFactory();
 		factory.setPort(0);
@@ -78,7 +78,7 @@ public class FtpTestSupport extends RemoteFileTestSupport {
 	}
 
 
-	@AfterClass
+	@AfterAll
 	public static void stopServer() throws Exception {
 		server.stop();
 	}

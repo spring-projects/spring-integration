@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.integration.sftp.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.test.util.TestUtils;
 
@@ -36,7 +36,7 @@ import com.jcraft.jsch.ProxySOCKS5;
 public class ProxyTests {
 
 	@Test
-	@Ignore
+	@Disabled // TODO Use SftpTestSupport
 	/*
 	 * Needs host and account
 	 */
@@ -51,7 +51,7 @@ public class ProxyTests {
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	/*
 	 * Needs host and account and...
 	 * $ ssh -D 1080 -f -N gpr@10.0.0.3

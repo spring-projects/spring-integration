@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,14 @@ package org.springframework.integration.file.remote;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Abstract base class for tests requiring remote file servers, e.g. (S)FTP.
@@ -42,14 +41,12 @@ public abstract class RemoteFileTestSupport {
 
 	protected static int port;
 
-	@ClassRule
-	public static final TemporaryFolder remoteTemporaryFolder = new TemporaryFolder();
+	@TempDir
+	public static Path temporaryFolder;
 
-	@ClassRule
-	public static final TemporaryFolder localTemporaryFolder = new TemporaryFolder();
+	protected static File remoteTemporaryFolder;
 
-	@Rule
-	public final TestName testName = new TestName();
+	protected static File localTemporaryFolder;
 
 	protected volatile File sourceRemoteDirectory;
 
@@ -89,42 +86,53 @@ public abstract class RemoteFileTestSupport {
 	 * <pre class="code">
 	 *  $ tree remoteSource/
 	 *  remoteSource/
-	 *  ??? remoteSource1.txt - contains 'source1'
-	 *  ??? remoteSource2.txt - contains 'source2'
-	 *  ??? subRemoteSource
-	 *      ??? subRemoteSource1.txt - contains 'subSource1'
+	 *  |-- remoteSource1.txt - contains 'source1'
+	 *  |-- remoteSource2.txt - contains 'source2'
+	 *  |-- subRemoteSource
+	 *      |-- subRemoteSource1.txt - contains 'subSource1'
 	 *  remoteTarget/
 	 *  $ tree localSource/
 	 *  localSource/
-	 *  ??? localSource1.txt - contains 'local1'
-	 *  ??? localSource2.txt - contains 'local2'
-	 *  ??? subLocalSource
-	 *      ??? subLocalSource1.txt - contains 'subLocal1'
+	 *  |-- localSource1.txt - contains 'local1'
+	 *  |-- localSource2.txt - contains 'local2'
+	 *  |-- subLocalSource
+	 *      |-- subLocalSource1.txt - contains 'subLocal1'
 	 *  localTarget/
 	 * </pre>
 	 *
-	 * The intent is tests retrieve from remoteSource and verify arrival in localTarget or send from localSource and verify
-	 * arrival in remoteTarget.
+	 * The intent is tests retrieve from remoteSource and verify arrival in localTarget or
+	 * send from localSource and verify arrival in remoteTarget.
 	 * <p>
-	 * Subclasses can change 'remote' in these names by overriding {@link #prefix()} or override this method completely to
-	 * create a different structure.
+	 * Subclasses can change 'remote' in these names by overriding {@link #prefix()} or
+	 * override this method completely to create a different structure.
 	 * <p>
-	 * While a single server exists for all tests, the directory structure is rebuilt for each test.
+	 * While a single server exists for all tests, the directory structure is rebuilt for
+	 * each test.
 	 * @throws IOException IO Exception.
 	 */
-	@Before
-	public void setupFolders() throws IOException {
+	@BeforeEach
+	public void setupFolders(TestInfo info) throws IOException {
 		String prefix = prefix();
-		recursiveDelete(new File(remoteTemporaryFolder.getRoot(), prefix + "Source"));
-		this.sourceRemoteDirectory = remoteTemporaryFolder.newFolder(prefix + "Source");
-		recursiveDelete(new File(remoteTemporaryFolder.getRoot(), prefix + "Target"));
-		this.targetRemoteDirectory = remoteTemporaryFolder.newFolder(prefix + "Target");
-		recursiveDelete(new File(localTemporaryFolder.getRoot(), "localSource"));
-		this.sourceLocalDirectory = localTemporaryFolder.newFolder("localSource");
-		recursiveDelete(new File(localTemporaryFolder.getRoot(), "localTarget"));
-		this.targetLocalDirectory = localTemporaryFolder.newFolder("localTarget");
+		getRemoteTempFolder();
+		getLocalTempFolder();
+		File file = new File(remoteTemporaryFolder, prefix + "Source");
+		recursiveDelete(file, info);
+		this.sourceRemoteDirectory = new File(file.getAbsolutePath());
+		this.sourceRemoteDirectory.mkdirs();
+		file = new File(remoteTemporaryFolder, prefix + "Target");
+		recursiveDelete(file, info);
+		this.targetRemoteDirectory = new File(file.getAbsolutePath());
+		this.targetRemoteDirectory.mkdirs();
+		file = new File(localTemporaryFolder, "localSource");
+		recursiveDelete(file, info);
+		this.sourceLocalDirectory = new File(file.getAbsolutePath());
+		this.sourceLocalDirectory.mkdirs();
+		file = new File(localTemporaryFolder, "localTarget");
+		recursiveDelete(file, info);
+		this.targetLocalDirectory = new File(file.getAbsolutePath());
+		this.targetLocalDirectory.mkdirs();
 
-		File file = new File(this.sourceRemoteDirectory, " " + prefix + "Source1.txt");
+		file = new File(this.sourceRemoteDirectory, " " + prefix + "Source1.txt");
 		file.createNewFile();
 		FileOutputStream fos = new FileOutputStream(file);
 		fos.write("source1".getBytes());
@@ -161,31 +169,47 @@ public abstract class RemoteFileTestSupport {
 		fos.close();
 	}
 
+	protected static File getRemoteTempFolder() {
+		if (remoteTemporaryFolder == null) {
+			remoteTemporaryFolder = new File(temporaryFolder.toFile().getAbsolutePath() + File.separator + "source");
+			remoteTemporaryFolder.mkdirs();
+		}
+		return remoteTemporaryFolder;
+	}
+
+	protected static File getLocalTempFolder() {
+		if (localTemporaryFolder == null) {
+			localTemporaryFolder = new File(temporaryFolder.toFile().getAbsolutePath() + File.separator + "local");
+			localTemporaryFolder.mkdirs();
+		}
+		return localTemporaryFolder;
+	}
+
 	private String camelCase(String prefix) {
 		char[] chars = prefix.toCharArray();
 		chars[0] &= 0xdf;
 		return new String(chars);
 	}
 
-	public void recursiveDelete(File file) {
+	public void recursiveDelete(File file, TestInfo info) {
 		if (file != null && file.exists()) {
 			File[] files = file.listFiles();
 			if (files != null) {
 				for (File fyle : files) {
-					logger.info("Deleting: " + fyle + " in " + testName.getMethodName());
+					logger.info("Deleting: " + fyle + " in " + info.getDisplayName());
 					if (fyle.isDirectory()) {
-						recursiveDelete(fyle);
+						recursiveDelete(fyle, info);
 					}
 					else {
 						if (!fyle.delete()) {
-							logger.error("Couldn't delete: " + fyle + " in " + testName.getMethodName());
+							logger.error("Couldn't delete: " + fyle + " in " + info.getDisplayName());
 						}
 					}
 				}
 			}
-			logger.info("Deleting: " + file + " in " + testName.getMethodName());
+			logger.info("Deleting: " + file + " in " + info.getDisplayName());
 			if (!file.delete()) {
-				logger.error("Couldn't delete: " + file + " in " + testName.getMethodName());
+				logger.error("Couldn't delete: " + file + " in " + info.getDisplayName());
 				if (file.isDirectory()) {
 					logger.error("Contents: " + Arrays.toString(file.listFiles()));
 				}

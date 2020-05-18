@@ -37,9 +37,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +69,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -82,7 +81,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  *
  * @since 3.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class SftpServerOutboundTests extends SftpTestSupport {
 
@@ -137,7 +136,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 	@Autowired
 	private SftpRemoteFileTemplate template;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		this.config.targetLocalDirectoryName = getTargetLocalDirectoryName();
 	}

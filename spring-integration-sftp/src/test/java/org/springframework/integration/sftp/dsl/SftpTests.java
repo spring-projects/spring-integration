@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +48,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.jcraft.jsch.ChannelSftp;
 
@@ -60,7 +60,7 @@ import com.jcraft.jsch.ChannelSftp;
  * @since 5.0
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class SftpTests extends SftpTestSupport {
 
@@ -150,7 +150,7 @@ public class SftpTests extends SftpTestSupport {
 
 
 	@Test
-	@Ignore("Doesn't work as expected on Windows")
+	@DisabledOnOs(OS.WINDOWS)
 	public void testSftpOutboundFlowWithChmod() {
 		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
 				.useTemporaryFileName(false)
