@@ -47,11 +47,11 @@ ext {
 
 	activeMqVersion = '5.15.12'
 	apacheSshdVersion = '2.4.0'
-	avroVersion = '1.9.2'
 	aspectjVersion = '1.9.5'
 	assertjVersion = '3.16.1'
 	assertkVersion = '0.22'
-	awaitilityVersion = '4.0.2'
+	avroVersion = '1.9.2'
+	awaitilityVersion = '4.0.3'
 	commonsDbcp2Version = '2.7.0'
 	commonsIoVersion = '2.6'
 	commonsNetVersion = '3.6'
@@ -524,6 +524,7 @@ project('spring-integration-ip') {
 		api project(':spring-integration-core')
 		testImplementation project(':spring-integration-stream')
 		testImplementation project(':spring-integration-event')
+		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 		testRuntimeOnly "com.esotericsoftware:kryo-shaded:$kryoShadedVersion"
 	}
 }

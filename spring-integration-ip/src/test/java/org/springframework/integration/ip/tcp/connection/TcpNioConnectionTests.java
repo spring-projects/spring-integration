@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.ip.tcp.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.doAnswer;
@@ -39,6 +41,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -186,14 +189,10 @@ public class TcpNioConnectionTests {
 		try {
 			TcpConnection connection = factory.getConnection();
 			connection.send(MessageBuilder.withPayload("Test").build());
-			int n = 0;
-			while (connection.isOpen()) {
-				Thread.sleep(10);
-				if (n++ > 200) {
-					break;
-				}
-			}
-			assertThat(!connection.isOpen()).isTrue();
+			with().pollInterval(Duration.ofMillis(10))
+					.await()
+					.atMost(Duration.ofSeconds(10))
+					.until(() -> !connection.isOpen());
 		}
 		catch (Exception e) {
 			fail("Unexpected exception " + e);
@@ -234,14 +233,7 @@ public class TcpNioConnectionTests {
 			connection.close();
 			assertThat(!connection.isOpen()).isTrue();
 			TestUtils.getPropertyValue(factory, "selector", Selector.class).wakeup();
-			int n = 0;
-			while (connections.size() > 0) {
-				Thread.sleep(100);
-				if (n++ > 100) {
-					break;
-				}
-			}
-			assertThat(connections.size()).isEqualTo(0);
+			await().atMost(Duration.ofSeconds(10)).until(() -> connections.size() == 0);
 		}
 		catch (Exception e) {
 			e.printStackTrace();

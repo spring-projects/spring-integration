@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.util;
 
+import static org.awaitility.Awaitility.await;
+
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -25,6 +27,7 @@ import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Enumeration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -443,14 +446,7 @@ public class SocketTestUtils {
 	}
 
 	public static void waitListening(AbstractInternetProtocolReceivingChannelAdapter adapter) throws Exception {
-		int n = 0;
-		while (!adapter.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				throw new Exception("Gateway failed to listen");
-			}
-		}
-
+		await("Adapter not listening").atMost(Duration.ofSeconds(10)).until(() -> adapter.isListening());
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@
 package org.springframework.integration.ip.udp;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -138,12 +140,8 @@ public class DatagramPacketSendingHandlerTests {
 		handler.stop();
 	}
 
-	public void waitAckListening(UnicastSendingMessageHandler handler) throws InterruptedException {
-		int n = 0;
-		while (n++ < 100 && handler.getAckPort() == 0) {
-			Thread.sleep(100);
-		}
-		assertThat(n < 100).isTrue();
+	public void waitAckListening(UnicastSendingMessageHandler handler) {
+		await("Handler not listening").atMost(Duration.ofSeconds(10)).until(() -> handler.getAckPort() > 0);
 	}
 
 }

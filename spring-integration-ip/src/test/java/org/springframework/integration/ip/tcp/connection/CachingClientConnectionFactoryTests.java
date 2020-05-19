@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -36,6 +37,7 @@ import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -489,10 +491,7 @@ public class CachingClientConnectionFactoryTests {
 		BlockingQueue<?> connections = TestUtils
 				.getPropertyValue(this.gatewayCF, "pool.available", BlockingQueue.class);
 		// wait until the connection is returned to the pool
-		int n = 0;
-		while (n++ < 100 && connections.size() == 0) {
-			Thread.sleep(100);
-		}
+		await().atMost(Duration.ofSeconds(10)).until(() -> connections.size() > 0);
 
 		// assert we use the same connection from the pool
 		toGateway.send(new GenericMessage<String>("Hello, world2!"));
@@ -525,11 +524,7 @@ public class CachingClientConnectionFactoryTests {
 		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(cf, 1);
 		cccf.start();
 		TcpConnection connection = cccf.getConnection();
-		int n = 0;
-		while (n++ < 100 && connection.isOpen()) {
-			Thread.sleep(100);
-		}
-		assertThat(connection.isOpen()).isFalse();
+		await().atMost(Duration.ofSeconds(10)).until(() -> !connection.isOpen());
 		cccf.stop();
 	}
 

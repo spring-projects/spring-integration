@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp.connection;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.atLeast;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.when;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -151,12 +153,8 @@ public class ConnectionFactoryTests {
 		assertThat(serverFactory.closeConnection(servers.get(0))).isTrue();
 		servers = serverFactory.getOpenConnectionIds();
 		assertThat(servers.size()).isEqualTo(0);
-		int n = 0;
+		await().atMost(Duration.ofSeconds(10)).until(() -> clientFactory.getOpenConnectionIds().size() == 0);
 		clients = clientFactory.getOpenConnectionIds();
-		while (n++ < 100 && clients.size() > 0) {
-			Thread.sleep(100);
-			clients = clientFactory.getOpenConnectionIds();
-		}
 		assertThat(clients.size()).isEqualTo(0);
 		assertThat(eventLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(events.size())
@@ -229,10 +227,8 @@ public class ConnectionFactoryTests {
 				.execute(factory::stop);
 		int n = 0;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(factory);
-		while (n++ < 200 && accessor.getPropertyValue(property) != null) {
-			Thread.sleep(100);
-		}
-		assertThat(n < 200).as("Stop was not invoked in time").isTrue();
+		await("Stop was not invoked in time").atMost(Duration.ofSeconds(20))
+				.until(() -> accessor.getPropertyValue(property) == null);
 		latch2.countDown();
 		assertThat(latch3.await(10, TimeUnit.SECONDS)).as("missing debug log").isTrue();
 		String expected = "bean 'foo', port=" + factory.getPort() + message;
