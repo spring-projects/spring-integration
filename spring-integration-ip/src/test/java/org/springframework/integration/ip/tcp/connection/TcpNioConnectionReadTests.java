@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.with;
 
 import java.net.Socket;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -532,14 +533,10 @@ public class TcpNioConnectionReadTests {
 
 	private void whileOpen(Semaphore semaphore, final List<TcpConnection> added)
 			throws InterruptedException {
-		int n = 0;
 		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
-		while (added.get(0).isOpen()) {
-			Thread.sleep(50);
-			if (n++ > 400) {
-				fail("Failed to close socket");
-			}
-		}
+		with().pollInterval(Duration.ofMillis(50)).await("Failed to close socket")
+				.atMost(Duration.ofSeconds(20))
+				.until(() -> !added.get(0).isOpen());
 	}
 
 }

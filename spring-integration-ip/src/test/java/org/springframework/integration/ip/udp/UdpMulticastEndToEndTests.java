@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package org.springframework.integration.ip.udp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -85,11 +87,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 		UdpMulticastEndToEndTests launcher = new UdpMulticastEndToEndTests();
 		Thread t = new Thread(launcher);
 		t.start(); // launch the receiver
-		int n = 0;
-		while (n++ < 100 && launcher.getReceiverPort() == 0) {
-			Thread.sleep(100);
-		}
-		assertThat(n < 100).as("Receiver failed to listen").isTrue();
+		await("Receiver failed to listen").atMost(Duration.ofSeconds(10)).until(() -> launcher.getReceiverPort() > 0);
 
 		ClassPathXmlApplicationContext applicationContext = createContext(launcher, location);
 		launcher.launchSender(applicationContext);

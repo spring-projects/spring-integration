@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -34,6 +35,7 @@ import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -890,10 +892,7 @@ public class TcpOutboundGatewayTests {
 		int n = 0;
 		@SuppressWarnings("unchecked")
 		Map<String, ?> pending = TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class);
-		while (n++ < 100 && pending.size() == 0) {
-			Thread.sleep(100);
-		}
-		assertThat(pending.size() > 0).isTrue();
+		await().atMost(Duration.ofSeconds(10)).until(() -> pending.size() > 0);
 		String connectionId = pending.keySet().iterator().next();
 		this.executor.execute(() -> gateway.onMessage(new ErrorMessage(new RuntimeException(),
 				Collections.singletonMap(IpHeaders.CONNECTION_ID, connectionId))));
