@@ -20,14 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.sql.DataSource;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -36,8 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @since 5.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext // close at the end after class
 @Transactional
 public class JdbcMetadataStoreTests {
@@ -48,7 +45,7 @@ public class JdbcMetadataStoreTests {
 
 	private JdbcMetadataStore metadataStore;
 
-	@Before
+	@BeforeEach
 	public void init() {
 		metadataStore = new JdbcMetadataStore(dataSource);
 		metadataStore.afterPropertiesSet();
