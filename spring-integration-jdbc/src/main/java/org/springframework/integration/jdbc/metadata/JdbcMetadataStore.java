@@ -19,6 +19,7 @@ package org.springframework.integration.jdbc.metadata;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -59,16 +60,20 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 
 	private String getValueQuery = "SELECT METADATA_VALUE FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=?";
 
-	private String getValueForUpdateQuery = "SELECT METADATA_VALUE FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? %s";
+	private String getValueForUpdateQuery =
+			"SELECT METADATA_VALUE FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? %s";
 
-	private String replaceValueQuery = "UPDATE %sMETADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND METADATA_VALUE=? AND REGION=?";
+	private String replaceValueQuery =
+			"UPDATE %sMETADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND METADATA_VALUE=? AND REGION=?";
 
-	private String replaceValueByKeyQuery = "UPDATE %sMETADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND REGION=?";
+	private String replaceValueByKeyQuery =
+			"UPDATE %sMETADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND REGION=?";
 
 	private String removeValueQuery = "DELETE FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=?";
 
-	private String putIfAbsentValueQuery = "INSERT INTO %sMETADATA_STORE(METADATA_KEY, METADATA_VALUE, REGION) "
-			+ "SELECT ?, ?, ? FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? HAVING COUNT(*)=0";
+	private String putIfAbsentValueQuery =
+			"INSERT INTO %sMETADATA_STORE(METADATA_KEY, METADATA_VALUE, REGION) "
+					+ "SELECT ?, ?, ? FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? HAVING COUNT(*)=0";
 
 	/**
 	 * Instantiate a {@link JdbcMetadataStore} using provided dataSource {@link DataSource}.
@@ -142,7 +147,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 			//try to insert if does not exists
 			int affectedRows = tryToPutIfAbsent(key, value);
 			if (affectedRows > 0) {
-				//it was not in the table, so we have just inserted it
+				//it was not in the table, so we have just inserted
 				return null;
 			}
 			else {
@@ -158,14 +163,19 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	}
 
 	private int tryToPutIfAbsent(String key, String value) {
-		return this.jdbcTemplate.update(this.putIfAbsentValueQuery,
-				ps -> {
-					ps.setString(1, key);
-					ps.setString(2, value);
-					ps.setString(3, this.region);
-					ps.setString(4, key);
-					ps.setString(5, this.region);
-				});
+		try {
+			return this.jdbcTemplate.update(this.putIfAbsentValueQuery,
+					ps -> {
+						ps.setString(1, key);
+						ps.setString(2, value);
+						ps.setString(3, this.region);
+						ps.setString(4, key);
+						ps.setString(5, this.region);
+					});
+		}
+		catch (DuplicateKeyException ex) {
+			return 0;
+		}
 	}
 
 	@Override
