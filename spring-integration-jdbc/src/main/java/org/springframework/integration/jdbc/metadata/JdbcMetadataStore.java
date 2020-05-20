@@ -147,7 +147,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 			//try to insert if does not exists
 			int affectedRows = tryToPutIfAbsent(key, value);
 			if (affectedRows > 0) {
-				//it was not in the table, so we have just inserted it or DuplicateKeyException has been thrown
+				//it was not in the table, so we have just inserted
 				return null;
 			}
 			else {
