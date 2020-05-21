@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Ali Shahbour
+ * @author Vladimir Plizga
  * @since 3.0
  *
  */
@@ -218,7 +219,15 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 			this.file = file;
 		}
 
-		protected String getMessage() {
+		/**
+		 * Return the text message emitted from the underlying tailing producer
+		 * ({@linkplain ApacheCommonsFileTailingMessageProducer Apache Commons} or one of
+		 * {@linkplain OSDelegatingFileTailingMessageProducer OS natives}).
+		 * <p>Note that for the same event type (e.g. 'file not found') the text may be different
+		 * depending on the producer and its platform.
+		 * @return the original text of the tailing event
+		 */
+		public String getMessage() {
 			return this.message;
 		}
 
