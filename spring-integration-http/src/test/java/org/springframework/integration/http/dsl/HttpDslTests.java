@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -56,6 +57,7 @@ import org.springframework.integration.security.channel.SecuredChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.mock.web.MockPart;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
@@ -81,6 +83,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.DispatcherServlet;
 
 /**
@@ -235,6 +238,30 @@ public class HttpDslTests {
 		flowRegistration.destroy();
 	}
 
+	@Test
+	public void testBadRequest() throws Exception {
+		IntegrationFlow flow =
+				IntegrationFlows.from(
+						Http.inboundGateway("/badRequest")
+								.errorChannel((message, timeout) -> {
+									throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+											"Not valid request param", ((ErrorMessage) message).getPayload());
+								})
+								.payloadExpression("#requestParams.p1"))
+						.get();
+
+		IntegrationFlowContext.IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(flow).register();
+
+		this.mockMvc.perform(
+				get("/badRequest")
+						.with(httpBasic("user", "user"))
+						.param("p2", "P2"))
+				.andExpect(status().isBadRequest())
+				.andExpect(status().reason("Not valid request param"));
+
+		flowRegistration.destroy();
+	}
 
 	@Configuration
 	@EnableWebSecurity
