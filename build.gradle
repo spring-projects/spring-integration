@@ -1019,7 +1019,7 @@ dokka {
 
 	configuration {
 		classpath = javaProjects.collect { project -> project.jar.outputs.files.getFiles() }.flatten()
-//		classpath += files(javaProjects.collect { it.sourceSets.main.compileClasspath })
+		classpath += files(javaProjects.collect { it.sourceSets.main.compileClasspath })
 		javaProjects.forEach { project ->
 			if(project.sourceSets.main.kotlin) {
 				sourceRoot {
