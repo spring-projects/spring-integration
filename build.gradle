@@ -92,7 +92,7 @@ ext {
 	rsocketVersion = '1.0.0'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.0.BUILD-SNAPSHOT'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.0-SNAPSHOT'
 	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.0-SNAPSHOT'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.4.0-SNAPSHOT'
 	springRetryVersion = '1.3.0'
