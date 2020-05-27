@@ -19,4 +19,4 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 === General Changes
 
 The one-way messaging gateway (the `void` method return type) now sets a `nullChannel` explicitly into the `replyChannel` header to ignore any possible downstream replies.
-See for more information in the <<./gateway.adoc#gateway-default-reply-channel,Setting the Default Reply Channel>>.
+See <<./gateway.adoc#gateway-default-reply-channel,Setting the Default Reply Channel>> for more information.
