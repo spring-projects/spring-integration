@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.gateway;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
@@ -48,7 +49,9 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -127,6 +130,32 @@ public class GatewayProxyFactoryBeanTests {
 		Message<?> message = requestChannel.receive(1000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("test");
+	}
+
+	@Test
+	public void testOneWayIgnoreReply() {
+		DirectChannel requestChannel = new DirectChannel();
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		QueueChannel nullChannel = new QueueChannel();
+		willReturn(nullChannel)
+				.given(beanFactory)
+				.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME, MessageChannel.class);
+		BridgeHandler handler = new BridgeHandler();
+		handler.setBeanFactory(beanFactory);
+		handler.afterPropertiesSet();
+		requestChannel.subscribe(handler);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(beanFactory);
+		proxyFactory.afterPropertiesSet();
+		TestService service = (TestService) proxyFactory.getObject();
+		service.oneWay("test");
+		Message<?> message = nullChannel.receive(1000);
+		assertThat(message)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("test");
 	}
 
 	@Test
