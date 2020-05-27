@@ -21,6 +21,7 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThanOrEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
+import assertk.assertions.isTrue
 import assertk.assertions.size
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.BeanFactory
@@ -37,6 +38,7 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext
 import org.springframework.integration.endpoint.MessageProcessorMessageSource
 import org.springframework.integration.handler.LoggingHandler
 import org.springframework.integration.scheduling.PollerMetadata
+import org.springframework.integration.selector.UnexpiredMessageSelector
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.integration.test.util.OnlyOnceTrigger
 import org.springframework.messaging.Message
@@ -88,11 +90,12 @@ class KotlinDslTests {
 
 	@Autowired
 	@Qualifier("functionGateway")
-	private lateinit var upperCaseFunction: Function<String, String>
+	private lateinit var upperCaseFunction: Function<ByteArray, String>
 
 	@Test
 	fun `uppercase function`() {
-		assertThat(this.upperCaseFunction.apply("test")).isEqualTo("TEST")
+		assertThat(beanFactory.containsBean("objectToStringTransformer")).isTrue()
+		assertThat(this.upperCaseFunction.apply("test".toByteArray())).isEqualTo("TEST")
 	}
 
 	@Autowired
@@ -225,7 +228,8 @@ class KotlinDslTests {
 
 		@Bean
 		fun functionFlow() =
-				integrationFlow<Function<String, String>>({ beanName("functionGateway") }) {
+				integrationFlow<Function<ByteArray, String>>({ beanName("functionGateway") }) {
+					transform(Transformers.objectToString()) { id("objectToStringTransformer") }
 					transform<String> { it.toUpperCase() }
 					split<Message<*>> { it.payload }
 					split<String>({ it }) { id("splitterEndpoint") }
@@ -240,6 +244,7 @@ class KotlinDslTests {
 		fun functionFlow2() =
 				integrationFlow<Function<*, *>> {
 					transform<String> { it.toLowerCase() }
+					filter(UnexpiredMessageSelector())
 					route<Message<*>, Any?>({ null }) { defaultOutputToParentFlow() }
 					route<Message<*>> { m -> m.headers.replyChannel }
 				}

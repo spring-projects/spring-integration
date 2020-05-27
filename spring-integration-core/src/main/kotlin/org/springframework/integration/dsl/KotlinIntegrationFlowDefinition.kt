@@ -50,6 +50,7 @@ import org.springframework.integration.transformer.ClaimCheckOutTransformer
 import org.springframework.integration.transformer.HeaderFilter
 import org.springframework.integration.transformer.MessageTransformingHandler
 import org.springframework.integration.transformer.MethodInvokingTransformer
+import org.springframework.integration.transformer.Transformer
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHandler
@@ -287,8 +288,20 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 		this.delegate.controlBus(endpointConfigurer)
 	}
 
+
 	/**
-	 * Populate the `Transformer` EI Pattern specific [MessageHandler] implementation
+	 * Populate the [Transformer] EI Pattern specific [MessageHandler] implementation
+	 * for the provided `Transformer` instance.
+	 * @since 5.3.1
+	 */
+	fun transform(transformer: Transformer,
+				  endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}) {
+
+		this.delegate.transform(transformer, Consumer { endpointConfigurer(it) })
+	}
+
+	/**
+	 * Populate the [Transformer] EI Pattern specific [MessageHandler] implementation
 	 * for the SpEL [Expression].
 	 */
 	fun transform(expression: String,
@@ -298,7 +311,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	}
 
 	/**
-	 * Populate the `MessageTransformingHandler` for the [MethodInvokingTransformer]
+	 * Populate the [MessageTransformingHandler] for the [MethodInvokingTransformer]
 	 * to invoke the service method at runtime.
 	 */
 	fun transform(service: Any, methodName: String? = null) {
@@ -306,7 +319,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	}
 
 	/**
-	 * Populate the `MessageTransformingHandler` for the [MethodInvokingTransformer]
+	 * Populate the [MessageTransformingHandler] for the [MethodInvokingTransformer]
 	 * to invoke the service method at runtime.
 	 */
 	fun transform(service: Any, methodName: String?,
@@ -358,7 +371,21 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun filter(messageProcessorSpec: MessageProcessorSpec<*>,
 			   filterConfigurer: KotlinFilterEndpointSpec.() -> Unit = {}) {
+
 		this.delegate.filter(messageProcessorSpec) { filterConfigurer(KotlinFilterEndpointSpec(it)) }
+	}
+
+
+	/**
+	 * Populate a [MessageFilter] with the provided [MessageSelector].
+	 * In addition accept options for the integration endpoint using [KotlinFilterEndpointSpec].
+	 * @since 5.3.1
+	 */
+	fun filter(messageSelector: MessageSelector,
+			   filterConfigurer: KotlinFilterEndpointSpec.() -> Unit = {}) {
+
+		this.delegate.filter(Message::class.java, messageSelector,
+				Consumer { filterConfigurer(KotlinFilterEndpointSpec(it)) })
 	}
 
 	/**
