@@ -54,11 +54,11 @@ import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
@@ -102,8 +102,6 @@ import reactor.core.publisher.Mono;
  */
 public class GatewayProxyFactoryBean extends AbstractEndpoint
 		implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
-
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private final Object initializationMonitor = new Object();
 
@@ -718,7 +716,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			 * no longer work as expected; they will need to use, say, -1 instead.
 			 */
 			if (payloadExpression == null && StringUtils.hasText(gatewayAnnotation.payloadExpression())) {
-				payloadExpression = PARSER.parseExpression(gatewayAnnotation.payloadExpression());
+				payloadExpression = EXPRESSION_PARSER.parseExpression(gatewayAnnotation.payloadExpression());
 			}
 		}
 		else if (methodMetadata != null && methodMetadata.getPayloadExpression() != null) {
@@ -880,9 +878,22 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		Map<String, Object> headers = null;
 		// We don't want to eagerly resolve the error channel here
 		Object errorChannelForVoidReturn = this.errorChannel == null ? this.errorChannelName : this.errorChannel;
-		if (errorChannelForVoidReturn != null && method.getReturnType().equals(void.class)) {
+		boolean isVoidReturnType = method.getReturnType().equals(void.class);
+		if (errorChannelForVoidReturn != null && isVoidReturnType) {
 			headers = new HashMap<>();
 			headers.put(MessageHeaders.ERROR_CHANNEL, errorChannelForVoidReturn);
+		}
+
+		if (isVoidReturnType &&
+				(!headerExpressions.containsKey(MessageHeaders.REPLY_CHANNEL) ||
+						(this.globalMethodMetadata != null &&
+								!this.globalMethodMetadata.getHeaderExpressions()
+										.containsKey(MessageHeaders.REPLY_CHANNEL)))) {
+
+			if (headers == null) {
+				headers = new HashMap<>();
+			}
+			headers.put(MessageHeaders.REPLY_CHANNEL, IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
 		}
 
 		if (getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory) {
@@ -987,16 +998,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
-		for (MethodInvocationGateway gateway : this.gatewayMap.values()) {
-			gateway.start();
-		}
+		this.gatewayMap.values().forEach(MethodInvocationGateway::start);
 	}
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStop() {
-		for (MethodInvocationGateway gateway : this.gatewayMap.values()) {
-			gateway.stop();
-		}
+		this.gatewayMap.values().forEach(MethodInvocationGateway::stop);
 	}
 
 	@SuppressWarnings("unchecked")

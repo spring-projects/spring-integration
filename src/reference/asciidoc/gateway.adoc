@@ -82,6 +82,9 @@ The gateway creates a bridge from it to the temporary, anonymous reply channel t
 You might also want to explicitly provide a reply channel for monitoring or auditing through an interceptor (for example, <<./channel.adoc#channel-wiretap,wiretap>>).
 To configure a channel interceptor, you need a named channel.
 
+NOTE: Starting with version 5.4, when gateway method return type is `void`, the framework populates a `replyChannel` header as a `nullChannel` bean reference if such a header is not provided explicitly.
+This allows any possible reply from the downstream flow to be discarded, meeting the one-way gateway contract.
+
 [[gateway-configuration-annotations]]
 ==== Gateway Configuration with Annotations and XML
 

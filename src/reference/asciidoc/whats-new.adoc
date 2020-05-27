@@ -12,3 +12,11 @@ If you are interested in the changes and features that were introduced in earlie
 
 If you are interested in more details, see the Issue Tracker tickets that were resolved as part of the 5.4 development process.
 
+[[x5.4-new-components]]
+=== New Components
+
+[[x5.4-general]]
+=== General Changes
+
+The one-way messaging gateway (the `void` method return type) now sets a `nullChannel` explicitly into the `replyChannel` header to ignore any possible downstream replies.
+See <<./gateway.adoc#gateway-default-reply-channel,Setting the Default Reply Channel>> for more information.
