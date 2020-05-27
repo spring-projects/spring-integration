@@ -18,7 +18,7 @@ For more information on those transformers, see <<./xml.adoc#xml,XML Support - D
 ==== Configuring a Transformer with XML
 
 The `<transformer>` element is used to create a message-transforming endpoint.
-In addition to `input-channel` and `output-channel` attributes, it requires a ` attribute`.
+In addition to `input-channel` and `output-channel` attributes, it requires a `ref` attribute.
 The `ref` may either point to an object that contains the `@Transformer` annotation on a single method (see <<transformer-annotation>>), or it may be combined with an explicit method name value provided in the `method` attribute.
 
 ====
@@ -70,7 +70,7 @@ The following example shows how to use a SpEL expression:
 ----
 <int:transformer input-channel="inChannel"
 	output-channel="outChannel"
-	expression="payload.toUpperCase() + '- [' + T(java.lang.System).currentTimeMillis() + ']'"/>
+	expression="payload.toUpperCase() + '- [' + T(System).currentTimeMillis() + ']'"/>
 ----
 ====
 
@@ -99,7 +99,7 @@ Whereas that channel adapter only supports `String`, byte-array, or `java.io.Fil
 That works fine as long as the result of the `toString()` call is what you want to be written to the file.
 Otherwise, you can provide a custom POJO-based transformer by using the generic 'transformer' element shown previously.
 
-TIP: When debugging, this transformer is not typically necessary, since the 'logging-channel-adapter' is capable of logging the message payload.
+TIP: When debugging, this transformer is not typically necessary, since the `logging-channel-adapter` is capable of logging the message payload.
 See <<./channel.adoc#channel-wiretap,Wire Tap>> for more detail.
 
 [NOTE]
@@ -122,7 +122,7 @@ For more sophistication (such as selection of the charset dynamically, at runtim
 ====
 
 If you need to serialize an `Object` to a byte array or deserialize a byte array back into an `Object`, Spring Integration provides symmetrical serialization transformers.
-These use standard Java serialization by default, but you can provide an implementation of Spring 3.0's serializer or seserializer strategies by using the 'serializer' and 'deserializer' attributes, respectively.
+These use standard Java serialization by default, but you can provide an implementation of Spring 3.0's serializer or seserializer strategies by using the `serializer` and `deserializer` attributes, respectively.
 The following example shows to use Spring's serializer and deserializer:
 
 ====
@@ -194,7 +194,7 @@ public class Kid {
 ----
 ====
 
-If you need to create a "`structured`" map, you can provide the 'flatten' attribute.
+If you need to create a "`structured`" map, you can provide the `flatten` attribute.
 The default is 'true'.
 If you set it to 'false', the structure is a `Map` of `Map` objects.
 
@@ -345,31 +345,7 @@ Beginning with version 3.0, the `object-mapper` attribute references an instance
 This abstraction lets multiple implementations of JSON mappers be used.
 Implementation that wraps https://github.com/FasterXML[Jackson 2] is provided, with the version being detected on the classpath.
 The class is `Jackson2JsonObjectMapper`, respectively.
-
-NOTE: The `BoonJsonObjectMapper` is deprecated in 5.2 since the library is out of support.
 ====
-
-[IMPORTANT]
-====
-If you have requirements to use both Jackson and Boon in the same application, keep in mind that, before version 3.0, the JSON transformers used only Jackson 1.x.
-From 4.1 on, the framework selects Jackson 2 by default.
-Jackson 1.x is no longer supported by the framework internally.
-However, you can still use it within your code by including the necessary library.
-To avoid unexpected issues with JSON mapping features when you use annotations, you may need to apply annotations from both Jackson and Boon on domain classes, as the following example shows:
-
-[source,java]
-----
-@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown=true)
-public class Thing1 {
-
-        @com.fasterxml.jackson.annotation.JsonProperty("thing1Thing2")
-        public Object thing2;
-
-}
-----
-====
-
-NOTE: Boon support has been deprecated since version 5.2.
 
 You may wish to consider using a `FactoryBean` or a factory method to create the `JsonObjectMapper` with the required characteristics.
 The following example shows how to use such a factory:

@@ -314,11 +314,7 @@ Optional.
 <6> By default, the original message's payload is used as payload that is sent to the `request-channel`.
 By specifying a SpEL expression as the value for the `request-payload-expression` attribute, you can use a subset of the original payload, a header value, or any other resolvable SpEL expression as the basis for the payload that is sent to the request-channel.
 For the expression evaluation, the full message is available as the 'root object'.
-For instance, the following SpEL expressions (among others) are possible:
-* `payload.something`
-* `headers.something`
-* `new java.util.Date()`
-* `'thing1' + 'thing2'`
+For instance, the following SpEL expressions (among others) are possible: `payload.something`, `headers.something`, `new java.util.Date()`, `'thing1' + 'thing2'`
 <7> Channel where a reply message is expected.
 This is optional.
 Typically, the auto-generated temporary reply channel suffices.
@@ -343,7 +339,7 @@ Optional.
 <12> Each `property` sub-element provides the name of a property (through the mandatory `name` attribute).
 That property should be settable on the target payload instance.
 Exactly one of the `value` or `expression` attributes must be provided as well -- the former for a literal value to set and the latter for a SpEL expression to be evaluated.
-The root object of the evaluation context is the message that was returned from the flow initiated by this enricher -- the input message if there is no request channel or the application context (using the '@<beanName>.<beanProperty>' SpEL syntax).
+The root object of the evaluation context is the message that was returned from the flow initiated by this enricher -- the input message if there is no request channel or the application context (using the `@<beanName>.<beanProperty>` SpEL syntax).
 Starting with version 4.0, when specifying a `value` attribute, you can also specify an optional `type` attribute.
 When the destination is a typed setter method, the framework coerces the value appropriately (as long as a `PropertyEditor`) exists to handle the conversion.
 If, however, the target payload is a `Map`, the entry is populated with the value without conversion.

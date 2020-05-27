@@ -47,7 +47,7 @@ The following listing provides an overview of all available parameters of an inc
 ====
 [source,xml]
 ----
-<int:claim-check-in auto-startup="true"  <1>
+<int:claim-check-in auto-startup="true"             <1>
                     id=""                           <2>
                     input-channel=""                <3>
                     message-store="messageStore"    <4>
@@ -112,7 +112,7 @@ The following listing provides an overview of all available parameters of an out
 ====
 [source,xml]
 ----
-<int:claim-check-out auto-startup="true"  <1>
+<int:claim-check-out auto-startup="true"             <1>
                      id=""                           <2>
                      input-channel=""                <3>
                      message-store="messageStore"    <4>
