@@ -59,8 +59,10 @@ import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -267,29 +269,45 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 			Map<String, Object> headers = getHeaderMapper().toHeaders(httpEntity.getHeaders());
 			Object payload = null;
-			if (getPayloadExpression() != null) {
-				// create payload based on SpEL
-				payload = getPayloadExpression().getValue(evaluationContext);
-			}
+			Message<?> message = null;
+			try {
+				if (getPayloadExpression() != null) {
+					// create payload based on SpEL
+					payload = getPayloadExpression().getValue(evaluationContext);
+				}
 
-			if (!CollectionUtils.isEmpty(getHeaderExpressions())) {
-				headers.putAll(
-						ExpressionEvalMap.from(getHeaderExpressions())
-								.usingEvaluationContext(evaluationContext)
-								.withRoot(httpEntity)
-								.build());
-			}
+				if (!CollectionUtils.isEmpty(getHeaderExpressions())) {
+					headers.putAll(
+							ExpressionEvalMap.from(getHeaderExpressions())
+									.usingEvaluationContext(evaluationContext)
+									.withRoot(httpEntity)
+									.build());
+				}
 
-			if (payload == null) {
-				if (httpEntity.getBody() != null) {
-					payload = httpEntity.getBody();
+				if (payload == null) {
+					if (httpEntity.getBody() != null) {
+						payload = httpEntity.getBody();
+					}
+					else {
+						payload = requestParams;
+					}
+				}
+
+				message = prepareRequestMessage(servletRequest, httpEntity, headers, payload);
+			}
+			catch (Exception ex) {
+				MessageConversionException conversionException =
+						new MessageConversionException("Cannot create request message", ex);
+				MessageChannel errorChannel = getErrorChannel();
+				if (errorChannel != null) {
+					this.messagingTemplate.send(errorChannel,
+							buildErrorMessage(null,
+									conversionException));
 				}
 				else {
-					payload = requestParams;
+					throw conversionException;
 				}
 			}
-
-			Message<?> message = prepareRequestMessage(servletRequest, httpEntity, headers, payload);
 
 			Message<?> reply = null;
 			if (isExpectReply()) {

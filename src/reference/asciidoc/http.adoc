@@ -431,6 +431,11 @@ If the error flow times out after a main flow timeout, `500 Internal Server Erro
 NOTE: Previously, the default status code for a timeout was `200 OK`.
 To restore that behavior, set `reply-timeout-status-code-expression="200"`.
 
+Also starting with version 5.4, an error that is encountered while preparing the request message is sent to the error channel (if provided).
+A decision about throwing an appropriate exception should be done in the error flow by examining the exception.
+Previously, any exceptions were simply thrown, causing an HTTP 500 server error response status, but in some cases the problem can be caused by incorrect request params, so a `ResponseStatusException` with a 4xx client error status should be thrown instead.
+See `ResponseStatusException` for more information.
+The `ErrorMessage` sent to this error channel contains the original exception as the payload for analysis.
 ==== URI Template Variables and Expressions
 
 By using the `path` attribute in conjunction with the `payload-expression` attribute and the `header` element, you have a high degree of flexibility for mapping inbound request data.
