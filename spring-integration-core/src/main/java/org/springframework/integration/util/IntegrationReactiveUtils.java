@@ -17,7 +17,6 @@
 package org.springframework.integration.util;
 
 import java.time.Duration;
-import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 
@@ -47,7 +46,7 @@ public final class IntegrationReactiveUtils {
 
 	/**
 	 * The subscriber context entry for {@link Flux#delayElements}
-	 * from the {@link Mono#repeatWhenEmpty(Function)}.
+	 * from the {@link Mono#repeatWhenEmpty(java.util.function.Function)}.
 	 */
 	public static final String DELAY_WHEN_EMPTY_KEY = "DELAY_WHEN_EMPTY_KEY";
 

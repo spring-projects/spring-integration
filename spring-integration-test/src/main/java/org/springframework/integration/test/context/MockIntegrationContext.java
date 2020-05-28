@@ -162,8 +162,9 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		substituteMessageHandlerFor(consumerEndpointId, mockMessageHandler, true);
 	}
 
-	public void substituteMessageHandlerFor(String consumerEndpointId, MessageHandler mockMessageHandler,
-			boolean autoStartup) {
+	public void substituteMessageHandlerFor(String consumerEndpointId, // NOSONAR - complexity
+			MessageHandler mockMessageHandler, boolean autoStartup) {
+
 		Object endpoint = this.beanFactory.getBean(consumerEndpointId, IntegrationConsumer.class);
 		if (autoStartup && endpoint instanceof Lifecycle) {
 			((Lifecycle) endpoint).stop();

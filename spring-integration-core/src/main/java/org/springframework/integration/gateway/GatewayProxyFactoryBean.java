@@ -62,7 +62,6 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
-import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.util.JavaUtils;
@@ -873,7 +872,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				headers, this.argsMapper, getMessageBuilderFactory());
 	}
 
-	@Nullable
+	@Nullable // NOSONAR - complexitty
 	private Map<String, Object> headers(Method method, Map<String, Expression> headerExpressions) {
 		Map<String, Object> headers = null;
 		// We don't want to eagerly resolve the error channel here
@@ -896,25 +895,23 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			headers.put(MessageHeaders.REPLY_CHANNEL, IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
 		}
 
-		if (getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory) {
-			Set<String> headerNames = new HashSet<>(headerExpressions.keySet());
+		Set<String> headerNames = new HashSet<>(headerExpressions.keySet());
 
-			if (this.globalMethodMetadata != null) {
-				headerNames.addAll(this.globalMethodMetadata.getHeaderExpressions().keySet());
-			}
-
-			List<MethodParameter> methodParameters = GatewayMethodInboundMessageMapper.getMethodParameterList(method);
-
-			for (MethodParameter methodParameter : methodParameters) {
-				Header header = methodParameter.getParameterAnnotation(Header.class);
-				if (header != null) {
-					String headerName = GatewayMethodInboundMessageMapper.determineHeaderName(header, methodParameter);
-					headerNames.add(headerName);
-				}
-			}
-
-			validateHeaders(headerNames);
+		if (this.globalMethodMetadata != null) {
+			headerNames.addAll(this.globalMethodMetadata.getHeaderExpressions().keySet());
 		}
+
+		List<MethodParameter> methodParameters = GatewayMethodInboundMessageMapper.getMethodParameterList(method);
+
+		for (MethodParameter methodParameter : methodParameters) {
+			Header header = methodParameter.getParameterAnnotation(Header.class);
+			if (header != null) {
+				String headerName = GatewayMethodInboundMessageMapper.determineHeaderName(header, methodParameter);
+				headerNames.add(headerName);
+			}
+		}
+
+		validateHeaders(headerNames);
 		return headers;
 	}
 
