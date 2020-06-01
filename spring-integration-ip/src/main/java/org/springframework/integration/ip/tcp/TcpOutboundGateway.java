@@ -39,7 +39,6 @@ import org.springframework.integration.ip.tcp.connection.AbstractClientConnectio
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorrelationEvent;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpNioConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
@@ -127,21 +126,6 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 		Assert.state(!this.closeStreamAfterSend || this.isSingleUse,
 				"Single use connection needed with closeStreamAfterSend");
-		if (isAsync()) {
-			try {
-				TcpConnectionSupport connection = this.connectionFactory.getConnection();
-				if (connection instanceof TcpNioConnectionSupport) {
-					setAsync(false);
-					this.logger.warn("Async replies are not supported with NIO; see the reference manual");
-				}
-				if (this.isSingleUse) {
-					connection.close();
-				}
-			}
-			catch (Exception e) {
-				this.logger.error("Could not check if async is supported", e);
-			}
-		}
 	}
 
 	/**
@@ -167,6 +151,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		try {
 			haveSemaphore = acquireSemaphoreIfNeeded(requestMessage);
 			connection = this.connectionFactory.getConnection();
+			checkAsync(connection, async);
 			Long remoteTimeout = getRemoteTimeout(requestMessage);
 			AsyncReply reply = new AsyncReply(remoteTimeout, connection, haveSemaphore, requestMessage, async);
 			connectionId = connection.getConnectionId();
@@ -200,6 +185,13 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			if (!async) {
 				cleanUp(haveSemaphore, connection, connectionId);
 			}
+		}
+	}
+
+	private void checkAsync(TcpConnection connection, boolean async) {
+		if (async && connection instanceof TcpNioConnectionSupport) {
+			setAsync(false);
+			this.logger.warn("Async replies are not supported with NIO; see the reference manual");
 		}
 	}
 
