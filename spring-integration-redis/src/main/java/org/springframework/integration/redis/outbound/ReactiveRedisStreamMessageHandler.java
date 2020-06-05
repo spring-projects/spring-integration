@@ -28,9 +28,9 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReactiveMessageHandler;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import reactor.core.publisher.Mono;
 
@@ -53,32 +53,22 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 
 	private ReactiveStreamOperations reactiveStreamOperations;
 
-	private String streamKey;
-
 	private RedisSerializationContext serializationContext = RedisSerializationContext.string();
 
-	private ReactiveRedisConnectionFactory connectionFactory;
+	private final ReactiveRedisConnectionFactory connectionFactory;
 
+	@Nullable
 	private HashMapper hashMapper;
 
-	public ReactiveRedisStreamMessageHandler(Expression streamKeyExpression,
-			ReactiveRedisConnectionFactory connectionFactory) {
+	public ReactiveRedisStreamMessageHandler(ReactiveRedisConnectionFactory connectionFactory, Expression streamKeyExpression) {
 		Assert.notNull(streamKeyExpression, "'streamKeyExpression' must not be null");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 		this.streamKeyExpression = streamKeyExpression;
 		this.connectionFactory = connectionFactory;
 	}
 
-	public ReactiveRedisStreamMessageHandler(String streamKey, ReactiveRedisConnectionFactory connectionFactory) {
-		this.setStreamKey(streamKey);
-		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
-		this.connectionFactory = connectionFactory;
-		this.streamKeyExpression = new LiteralExpression(streamKey);
-	}
-
-	public void setStreamKey(String streamKey) {
-		Assert.hasText(streamKey, "'streamKey' must not be an empty string.");
-		this.streamKey = streamKey;
+	public ReactiveRedisStreamMessageHandler(ReactiveRedisConnectionFactory connectionFactory, String streamKey) {
+		this(connectionFactory, new LiteralExpression(streamKey));
 	}
 
 	public void setSerializationContext(RedisSerializationContext serializationContext) {
@@ -86,18 +76,12 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 		this.serializationContext = serializationContext;
 	}
 
-	public void setHashMapper(HashMapper hashMapper) {
-		Assert.notNull(hashMapper, "'hashMapper' must not be null");
+	public void setHashMapper(@Nullable HashMapper hashMapper) {
 		this.hashMapper = hashMapper;
 	}
 
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
-	}
-
-	void setEvaluationContext(EvaluationContext evaluationContext) {
-		Assert.notNull(evaluationContext, "'evaluationContext' must not be null");
-		this.evaluationContext = evaluationContext;
 	}
 
 	@Override
@@ -108,15 +92,19 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 	@Override
 	protected void onInit() {
 		super.onInit();
-		initStreamOperations();
+		if (this.evaluationContext == null && getBeanFactory() != null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		}
+		ReactiveRedisTemplate template = new ReactiveRedisTemplate<>(this.connectionFactory,
+				this.serializationContext);
+		this.reactiveStreamOperations = this.hashMapper == null ? template.opsForStream() :
+				template.opsForStream(this.hashMapper);
 	}
 
 	@Override
 	protected Mono<Void> handleMessageInternal(Message<?> message) {
 
-		if (!StringUtils.hasText(this.streamKey)) {
-			this.streamKey = this.streamKeyExpression.getValue(this.evaluationContext, message, String.class);
-		}
+		String streamKey = this.streamKeyExpression.getValue(this.evaluationContext, message, String.class);
 
 		Object value = message;
 		if (this.extractPayload) {
@@ -125,18 +113,9 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 
 		ObjectRecord record = StreamRecords
 				.objectBacked(value)
-				.withStreamKey(this.streamKey);
+				.withStreamKey(streamKey);
 
 		return this.reactiveStreamOperations.add(record);
-	}
-
-	private void initStreamOperations() {
-		if (this.evaluationContext == null && getBeanFactory() != null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		}
-		ReactiveRedisTemplate template = new ReactiveRedisTemplate<>(this.connectionFactory,
-				this.serializationContext);
-		this.reactiveStreamOperations = this.hashMapper == null ? template.opsForStream() : template.opsForStream(this.hashMapper);
 	}
 
 }
