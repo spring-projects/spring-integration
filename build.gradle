@@ -610,6 +610,19 @@ project('spring-integration-mongodb') {
 	}
 }
 
+project('spring-integration-r2dbc') {
+	description = 'Spring Integration R2DBC Support'
+	dependencies {
+		api project(':spring-integration-core')
+		api ('org.springframework.data:spring-data-r2dbc') {
+			exclude group: 'org.springframework'
+		}
+		testCompile group: 'io.r2dbc', name: 'r2dbc-h2', version: '0.8.4.RELEASE'
+		testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
+
+	}
+}
+
 project('spring-integration-mqtt') {
 	description = 'Spring Integration MQTT Support'
 	dependencies {
@@ -1057,14 +1070,14 @@ task schemaZip(type: Zip) {
 			File xsdFile = subproject.sourceSets.main.resources.find {
 				it.path.replaceAll('\\\\', '/').endsWith(schemas.get(key))
 			}
-			assert xsdFile != null
-			into ("integration/$shortName") {
-				from xsdFile.path
-				rename { String fileName ->
-					String[] versionNumbers = project.version.split(/\./, 3)
-					fileName.replace('.xsd', "-${versionNumbers[0]}.${versionNumbers[1]}.xsd")
-				}
-			}
+//			assert xsdFile != null
+//			into ("integration/$shortName") {
+//				from xsdFile.path
+//				rename { String fileName ->
+//					String[] versionNumbers = project.version.split(/\./, 3)
+//					fileName.replace('.xsd', "-${versionNumbers[0]}.${versionNumbers[1]}.xsd")
+//				}
+//			}
 		}
 	}
 }
