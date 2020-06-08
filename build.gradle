@@ -1070,14 +1070,14 @@ task schemaZip(type: Zip) {
 			File xsdFile = subproject.sourceSets.main.resources.find {
 				it.path.replaceAll('\\\\', '/').endsWith(schemas.get(key))
 			}
-//			assert xsdFile != null
-//			into ("integration/$shortName") {
-//				from xsdFile.path
-//				rename { String fileName ->
-//					String[] versionNumbers = project.version.split(/\./, 3)
-//					fileName.replace('.xsd', "-${versionNumbers[0]}.${versionNumbers[1]}.xsd")
-//				}
-//			}
+			assert xsdFile != null
+			into ("integration/$shortName") {
+				from xsdFile.path
+				rename { String fileName ->
+					String[] versionNumbers = project.version.split(/\./, 3)
+					fileName.replace('.xsd', "-${versionNumbers[0]}.${versionNumbers[1]}.xsd")
+				}
+			}
 		}
 	}
 }
