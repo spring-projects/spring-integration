@@ -57,6 +57,8 @@ include::./mongodb.adoc[]
 
 include::./mqtt.adoc[]
 
+include::./r2dbc.adoc[]
+
 include::./redis.adoc[]
 
 include::./resource.adoc[]

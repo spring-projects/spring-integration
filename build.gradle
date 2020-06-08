@@ -105,6 +105,7 @@ ext {
 	springWsVersion = '3.0.9.RELEASE'
 	tomcatVersion = "9.0.36"
 	xstreamVersion = '1.4.12'
+	r2dbch2Version='0.8.4.RELEASE'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
 }
@@ -634,6 +635,17 @@ project('spring-integration-mongodb') {
 		}
 		optionalApi "org.mongodb:mongodb-driver-sync:$mongoDriverVersion"
 		optionalApi "org.mongodb:mongodb-driver-reactivestreams:$mongoDriverVersion"
+	}
+}
+
+project('spring-integration-r2dbc') {
+	description = 'Spring Integration R2DBC Support'
+	dependencies {
+		api project(':spring-integration-core')
+		api ('org.springframework.data:spring-data-r2dbc') {
+			exclude group: 'org.springframework'
+		}
+		testImplementation "io.r2dbc:r2dbc-h2:$r2dbch2Version"
 	}
 }
 

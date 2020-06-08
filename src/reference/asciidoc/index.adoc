@@ -38,6 +38,7 @@ This documentation is also available as single searchable link:index-single.html
 <<./mail.adoc#mail,Mail Support>> ::
 <<./mongodb.adoc#mongodb,MongoDb Support>> ::
 <<./mqtt.adoc#mqtt,MQTT Support>> ::
+<<./r2dbc.adoc#r2dbc,R2DBC Support>> ::
 <<./redis.adoc#redis,Redis Support>> ::
 <<./resource.adoc#resource,Resource Support>> ::
 <<./rmi.adoc#rmi,RMI Support>> ::
