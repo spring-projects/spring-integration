@@ -26,6 +26,7 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReactiveMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+
 import reactor.core.publisher.Mono;
 
 /**
@@ -33,7 +34,6 @@ import reactor.core.publisher.Mono;
  * Message payload into a Relational Database, using reactive r2dbc support.
  *
  * @author Rohan Mukesh
- *
  * @since 5.3
  */
 public class ReactiveR2dbcMessageHandler extends AbstractReactiveMessageHandler {
@@ -61,6 +61,7 @@ public class ReactiveR2dbcMessageHandler extends AbstractReactiveMessageHandler 
 	/**
 	 * Construct this instance using a fully created and initialized instance of provided
 	 * {@link R2dbcEntityOperations}
+	 *
 	 * @param r2dbcEntityOperations The R2dbcEntityOperations implementation.
 	 */
 
@@ -87,6 +88,7 @@ public class ReactiveR2dbcMessageHandler extends AbstractReactiveMessageHandler 
 	 * Allow you to set the type of the entityClass that will be passed to the
 	 * {@link R2dbcEntityOperations#delete(Query, Class)}
 	 * method.
+	 *
 	 * @param entityClass The entity class.
 	 */
 	public void setEntityClass(Class<?> entityClass) {
@@ -146,7 +148,7 @@ public class ReactiveR2dbcMessageHandler extends AbstractReactiveMessageHandler 
 	}
 
 	/**
-	/**
+	 * /**
 	 * The mode for the {@link ReactiveR2dbcMessageHandler}.
 	 */
 	public enum Type {
