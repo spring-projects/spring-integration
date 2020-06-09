@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -41,6 +41,8 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class XPathTransformerTests {
@@ -50,21 +52,21 @@ public class XPathTransformerTests {
 	private volatile Message<?> message;
 
 
-	@Before
+	@BeforeEach
 	public void createMessage() {
 		this.message = MessageBuilder.withPayload(XML).build();
 	}
 
 
 	@Test
-	public void stringResultTypeByDefault() throws Exception {
+	public void stringResultTypeByDefault() {
 		XPathTransformer transformer = new XPathTransformer("/parent/child/@name");
 		Object result = transformer.doTransform(message);
 		assertThat(result).isEqualTo("test");
 	}
 
 	@Test
-	public void xpathExpressionReferenceConstructorInsteadOfString() throws Exception {
+	public void xpathExpressionReferenceConstructorInsteadOfString() {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/parent/child/@name");
 		XPathTransformer transformer = new XPathTransformer(expression);
 		Object result = transformer.doTransform(message);
@@ -72,15 +74,15 @@ public class XPathTransformerTests {
 	}
 
 	@Test
-	public void numberResult() throws Exception {
+	public void numberResult() {
 		XPathTransformer transformer = new XPathTransformer("/parent/child/@age");
 		transformer.setEvaluationType(XPathEvaluationType.NUMBER_RESULT);
 		Object result = transformer.doTransform(message);
-		assertThat(result).isEqualTo(new Double(42));
+		assertThat(result).isEqualTo(42d);
 	}
 
 	@Test
-	public void booleanResult() throws Exception {
+	public void booleanResult() {
 		XPathTransformer transformer = new XPathTransformer("/parent/child/@married = 'true'");
 		transformer.setEvaluationType(XPathEvaluationType.BOOLEAN_RESULT);
 		Object result = transformer.doTransform(message);
@@ -88,7 +90,7 @@ public class XPathTransformerTests {
 	}
 
 	@Test
-	public void nodeResult() throws Exception {
+	public void nodeResult() {
 		XPathTransformer transformer = new XPathTransformer("/parent/child");
 		transformer.setEvaluationType(XPathEvaluationType.NODE_RESULT);
 		Object result = transformer.doTransform(message);
@@ -102,7 +104,7 @@ public class XPathTransformerTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void nodeListResult() throws Exception {
+	public void nodeListResult() {
 		XPathTransformer transformer = new XPathTransformer("/parent/child");
 		transformer.setEvaluationType(XPathEvaluationType.NODE_LIST_RESULT);
 		Message<?> message = MessageBuilder.withPayload(
@@ -120,7 +122,7 @@ public class XPathTransformerTests {
 	}
 
 	@Test
-	public void nodeMapper() throws Exception {
+	public void nodeMapper() {
 		XPathTransformer transformer = new XPathTransformer("/parent/child/@name");
 		transformer.setNodeMapper(new TestNodeMapper());
 		Object result = transformer.doTransform(message);
@@ -128,7 +130,7 @@ public class XPathTransformerTests {
 	}
 
 	@Test
-	public void customConverter() throws Exception {
+	public void customConverter() {
 		XPathTransformer transformer = new XPathTransformer("/test/@type");
 		transformer.setConverter(new TestXmlPayloadConverter());
 		Object result = transformer.doTransform(message);
@@ -146,6 +148,7 @@ public class XPathTransformerTests {
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent() + "-mapped";
 		}
+
 	}
 
 
@@ -175,6 +178,7 @@ public class XPathTransformerTests {
 		public Document convertToDocument(Object object) {
 			throw new UnsupportedOperationException();
 		}
+
 	}
 
 }

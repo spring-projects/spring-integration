@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.messaging.Message;
  * <p>
  * The BridgeHandler can be used as a stopper at the end of an assembly line of
  * channels. In this setup the output channel doesn't have to be set, but if the
- * output channel is omitted the <tt>REPLY_CHANNEL</tt> MUST be set on the
+ * output channel is omitted the {@code REPLY_CHANNEL} MUST be set on the
  * message. Otherwise, a MessagingException will be thrown at runtime.
  *
  * @author Mark Fisher

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.message;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -26,12 +27,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.messaging.MessageHeaders;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MessageHeadersTests {
 
@@ -50,7 +52,7 @@ public class MessageHeadersTests {
 	}
 
 	@Test
-	public void testIdOverwritten() throws Exception {
+	public void testIdOverwritten() {
 		MessageHeaders headers1 = new MessageHeaders(null);
 		MessageHeaders headers2 = new MessageHeaders(headers1);
 		assertThat(headers2.getId()).isNotSameAs(headers1.getId());
@@ -64,8 +66,8 @@ public class MessageHeadersTests {
 
 	@Test
 	public void testNonTypedAccessOfHeaderValue() {
-		Integer value = new Integer(123);
-		Map<String, Object> map = new HashMap<String, Object>();
+		int value = 123;
+		Map<String, Object> map = new HashMap<>();
 		map.put("test", value);
 		MessageHeaders headers = new MessageHeaders(map);
 		assertThat(headers.get("test")).isEqualTo(value);
@@ -73,41 +75,44 @@ public class MessageHeadersTests {
 
 	@Test
 	public void testTypedAccessOfHeaderValue() {
-		Integer value = new Integer(123);
-		Map<String, Object> map = new HashMap<String, Object>();
+		int value = 123;
+		Map<String, Object> map = new HashMap<>();
 		map.put("test", value);
 		MessageHeaders headers = new MessageHeaders(map);
 		assertThat(headers.get("test", Integer.class)).isEqualTo(value);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testHeaderValueAccessWithIncorrectType() {
-		Integer value = new Integer(123);
-		Map<String, Object> map = new HashMap<String, Object>();
+		int value = 123;
+		Map<String, Object> map = new HashMap<>();
 		map.put("test", value);
 		MessageHeaders headers = new MessageHeaders(map);
-		assertThat(headers.get("test", String.class)).isEqualTo(value);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> headers.get("test", String.class))
+				.withMessageContaining(
+						"Expected [class java.lang.String] but actual type is [class java.lang.Integer]");
 	}
 
 	@Test
 	public void testNullHeaderValue() {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		MessageHeaders headers = new MessageHeaders(map);
 		assertThat(headers.get("nosuchattribute")).isNull();
 	}
 
 	@Test
 	public void testNullHeaderValueWithTypedAccess() {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		MessageHeaders headers = new MessageHeaders(map);
 		assertThat(headers.get("nosuchattribute", String.class)).isNull();
 	}
 
 	@Test
 	public void testHeaderKeys() {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("key1", "val1");
-		map.put("key2", new Integer(123));
+		map.put("key2", 123);
 		MessageHeaders headers = new MessageHeaders(map);
 		Set<String> keys = headers.keySet();
 		assertThat(keys.contains("key1")).isTrue();
@@ -116,7 +121,7 @@ public class MessageHeadersTests {
 
 	@Test
 	public void serializeWithAllSerializableHeaders() throws Exception {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("name", "joe");
 		map.put("age", 42);
 		MessageHeaders input = new MessageHeaders(map);
@@ -128,7 +133,7 @@ public class MessageHeadersTests {
 	@Test
 	public void serializeWithNonSerializableHeader() throws Exception {
 		Object address = new Object();
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("name", "joe");
 		map.put("address", address);
 		MessageHeaders input = new MessageHeaders(map);

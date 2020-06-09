@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -118,8 +119,8 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	 * <p> More compiler options can be provided via {@link #setCompilerConfiguration(CompilerConfiguration)}
 	 * overriding this flag.
 	 * @param compileStatic the compile static {@code boolean} flag.
-	 * @since 4.3
 	 * @see CompileStatic
+	 * @since 4.3
 	 */
 	public void setCompileStatic(boolean compileStatic) {
 		this.compileStatic = compileStatic;
@@ -130,9 +131,9 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	 * For example the {@link CompileStatic} and {@link org.codehaus.groovy.control.customizers.ImportCustomizer}
 	 * are the most popular options.
 	 * @param compilerConfiguration the Groovy script compiler options to use.
-	 * @since 4.3
 	 * @see CompileStatic
 	 * @see GroovyClassLoader
+	 * @since 4.3
 	 */
 	public void setCompilerConfiguration(CompilerConfiguration compilerConfiguration) {
 		this.compilerConfiguration = compilerConfiguration;
@@ -201,31 +202,21 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	}
 
 	private Object execute(Map<String, Object> variables) throws ScriptCompilationException {
-		try {
-			GroovyObject goo = (GroovyObject) this.scriptClass.newInstance();
+		GroovyObject goo = (GroovyObject) BeanUtils.instantiateClass(this.scriptClass);
 
-			VariableBindingGroovyObjectCustomizerDecorator groovyObjectCustomizer =
-					new BindingOverwriteGroovyObjectCustomizerDecorator(new BeanFactoryFallbackBinding(variables));
-			groovyObjectCustomizer.setCustomizer(this.customizerDecorator);
+		VariableBindingGroovyObjectCustomizerDecorator groovyObjectCustomizer =
+				new BindingOverwriteGroovyObjectCustomizerDecorator(new BeanFactoryFallbackBinding(variables));
+		groovyObjectCustomizer.setCustomizer(this.customizerDecorator);
 
-			if (goo instanceof Script) {
-				// Allow metaclass and other customization.
-				groovyObjectCustomizer.customize(goo);
-				// A Groovy script, probably creating an instance: let's execute it.
-				return ((Script) goo).run();
-			}
-			else {
-				// An instance of the scripted class: let's return it as-is.
-				return goo;
-			}
+		if (goo instanceof Script) {
+			// Allow metaclass and other customization.
+			groovyObjectCustomizer.customize(goo);
+			// A Groovy script, probably creating an instance: let's execute it.
+			return ((Script) goo).run();
 		}
-		catch (InstantiationException ex) {
-			throw new ScriptCompilationException(
-					this.scriptSource, "Could not instantiate Groovy script class: " + this.scriptClass.getName(), ex);
-		}
-		catch (IllegalAccessException ex) {
-			throw new ScriptCompilationException(
-					this.scriptSource, "Could not access Groovy script constructor: " + this.scriptClass.getName(), ex);
+		else {
+			// An instance of the scripted class: let's return it as-is.
+			return goo;
 		}
 	}
 

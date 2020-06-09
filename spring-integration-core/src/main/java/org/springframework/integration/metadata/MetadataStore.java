@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,8 +52,8 @@ public interface MetadataStore {
 	/**
 	 * Remove a value for the given key from this MetadataStore.
 	 * @param key The key.
-	 * @return The previous value associated with <tt>key</tt>, or
-	 *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
+	 * @return The previous value associated with key, or
+	 *         null if there was no mapping for key.
 	 */
 	@ManagedAttribute
 	String remove(String key);

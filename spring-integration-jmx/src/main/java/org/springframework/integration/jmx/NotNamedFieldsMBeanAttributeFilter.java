@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,12 @@ import java.util.Arrays;
 
 import javax.management.ObjectName;
 
+import org.springframework.util.Assert;
+
 /**
  * @author Stuart Williams
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -33,7 +37,8 @@ public class NotNamedFieldsMBeanAttributeFilter implements MBeanAttributeFilter 
 	 * @param namedFields The named fields that should be filtered.
 	 */
 	public NotNamedFieldsMBeanAttributeFilter(String... namedFields) {
-		this.namedFields = (String[]) Arrays.asList(namedFields).toArray();
+		Assert.notNull(namedFields, "'namedFields' must not be null");
+		this.namedFields = Arrays.copyOf(namedFields, namedFields.length);
 	}
 
 	@Override

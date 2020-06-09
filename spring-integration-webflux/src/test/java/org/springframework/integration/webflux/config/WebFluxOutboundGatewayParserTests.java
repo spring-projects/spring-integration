@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.webflux.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.junit.Test;
@@ -106,20 +107,20 @@ public class WebFluxOutboundGatewayParserTests {
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test2");
 		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
 				.isEqualTo(HttpMethod.PUT.name());
-		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(false);
 		Object sendTimeout = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
-		assertThat(sendTimeout).isEqualTo(new Long("1234"));
+		assertThat(sendTimeout).isEqualTo(1234L);
 		Map<String, Expression> uriVariableExpressions =
 				(Map<String, Expression>) handlerAccessor.getPropertyValue("uriVariableExpressions");
-		assertThat(uriVariableExpressions.size()).isEqualTo(1);
+		assertThat(uriVariableExpressions).hasSize(1);
 		assertThat(uriVariableExpressions.get("foo").getExpressionString()).isEqualTo("headers.bar");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("headerMapper"));
 		String[] mappedRequestHeaders = (String[]) mapperAccessor.getPropertyValue("outboundHeaderNames");
 		String[] mappedResponseHeaders = (String[]) mapperAccessor.getPropertyValue("inboundHeaderNames");
-		assertThat(mappedRequestHeaders.length).isEqualTo(2);
-		assertThat(mappedResponseHeaders.length).isEqualTo(1);
+		assertThat(mappedRequestHeaders).hasSize(2);
+		assertThat(mappedResponseHeaders).hasSize(1);
 		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1")).isTrue();
 		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2")).isTrue();
 		assertThat(mappedResponseHeaders[0]).isEqualTo("responseHeader");

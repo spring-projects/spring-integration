@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,7 +147,7 @@ public class HttpOutboundGatewayParserTests {
 		assertThat(templateAccessor.getPropertyValue("errorHandler")).isEqualTo(errorHandlerBean);
 		Object sendTimeout = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
-		assertThat(sendTimeout).isEqualTo(new Long("1234"));
+		assertThat(sendTimeout).isEqualTo(1234L);
 		Map<String, Expression> uriVariableExpressions =
 				(Map<String, Expression>) handlerAccessor.getPropertyValue("uriVariableExpressions");
 		assertThat(uriVariableExpressions.size()).isEqualTo(1);

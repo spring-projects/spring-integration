@@ -49,7 +49,9 @@ import javax.net.SocketFactory;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLServerSocket;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.mockito.Mockito;
 
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
@@ -516,6 +518,7 @@ public class SocketSupportTests {
 	}
 
 	@Test
+	@EnabledOnJre(JRE.JAVA_8)
 	public void testNioClientAndServerSSLDifferentContexts() throws Exception {
 		testNioClientAndServerSSLDifferentContexts(false);
 		assertThatExceptionOfType(MessagingException.class)

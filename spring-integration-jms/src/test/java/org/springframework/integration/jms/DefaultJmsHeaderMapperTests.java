@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Session;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -41,6 +41,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class DefaultJmsHeaderMapperTests {
 
@@ -83,7 +84,7 @@ public class DefaultJmsHeaderMapperTests {
 	@Test
 	public void testJmsCorrelationIdNumberConvertsToString() throws JMSException {
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(JmsHeaders.CORRELATION_ID, new Integer(123)).build();
+				.setHeader(JmsHeaders.CORRELATION_ID, 123).build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage();
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
@@ -103,8 +104,10 @@ public class DefaultJmsHeaderMapperTests {
 	@Test
 	public void testJmsTypeMappedFromHeader() throws JMSException {
 		String jmsType = "testing";
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(JmsHeaders.TYPE, jmsType).build();
+		Message<String> message =
+				MessageBuilder.withPayload("test")
+						.setHeader(JmsHeaders.TYPE, jmsType)
+						.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage();
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
@@ -114,8 +117,10 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void testJmsTypeIgnoredIfIncorrectType() throws JMSException {
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(JmsHeaders.TYPE, new Integer(123)).build();
+		Message<String> message =
+				MessageBuilder.withPayload("test")
+						.setHeader(JmsHeaders.TYPE, 123)
+						.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage();
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
@@ -137,9 +142,10 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void testUserDefinedPropertyMappedFromHeader() throws JMSException {
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader("foo", new Integer(123))
-				.build();
+		Message<String> message =
+				MessageBuilder.withPayload("test")
+						.setHeader("foo", 123)
+						.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage();
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
@@ -151,9 +157,10 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void testUserDefinedPropertyMappedFromHeaderWithCustomPrefix() throws JMSException {
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader("foo", new Integer(123))
-				.build();
+		Message<String> message =
+				MessageBuilder.withPayload("test")
+						.setHeader("foo", 123)
+						.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		mapper.setOutboundPrefix("custom_");
 		javax.jms.Message jmsMessage = new StubTextMessage();
@@ -301,11 +308,12 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void testPropertyMappingExceptionIsNotFatal() throws JMSException {
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader("foo", new Integer(123))
-				.setHeader("bad", new Integer(456))
-				.setHeader("bar", new Integer(789))
-				.build();
+		Message<String> message =
+				MessageBuilder.withPayload("test")
+						.setHeader("foo", 123)
+						.setHeader("bad", 456)
+						.setHeader("bar", 789)
+						.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
 
@@ -328,11 +336,12 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void testIllegalArgumentExceptionIsNotFatal() throws JMSException {
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader("foo", new Integer(123))
-				.setHeader("bad", new Integer(456))
-				.setHeader("bar", new Integer(789))
-				.build();
+		Message<String> message =
+				MessageBuilder.withPayload("test")
+						.setHeader("foo", 123)
+						.setHeader("bad", 456)
+						.setHeader("bar", 789)
+						.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
 
@@ -416,7 +425,7 @@ public class DefaultJmsHeaderMapperTests {
 	@Test
 	public void attemptToWriteDisallowedCorrelationIdNumberPropertyIsNotFatal() throws JMSException {
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(JmsHeaders.CORRELATION_ID, new Integer(123))
+				.setHeader(JmsHeaders.CORRELATION_ID, 123)
 				.setHeader("foo", "bar")
 				.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
@@ -544,7 +553,7 @@ public class DefaultJmsHeaderMapperTests {
 	}
 
 
-	@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "javatype")
+	@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "javatype")
 	private static class Foo {
 
 	}

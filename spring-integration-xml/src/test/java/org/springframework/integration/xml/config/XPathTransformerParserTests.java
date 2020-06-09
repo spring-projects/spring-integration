@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ public class XPathTransformerParserTests {
 	@Test
 	public void numberResult() {
 		this.numberInput.send(message);
-		assertThat(output.receive(0).getPayload()).isEqualTo(new Double(42));
+		assertThat(output.receive(0).getPayload()).isEqualTo(42d);
 	}
 
 	@Test
@@ -156,7 +156,7 @@ public class XPathTransformerParserTests {
 	@Test
 	public void expressionRef() {
 		this.expressionRefInput.send(message);
-		assertThat(output.receive(0).getPayload()).isEqualTo(new Double(84));
+		assertThat(output.receive(0).getPayload()).isEqualTo(84d);
 	}
 
 

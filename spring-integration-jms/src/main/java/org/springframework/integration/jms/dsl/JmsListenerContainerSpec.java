@@ -19,6 +19,7 @@ package org.springframework.integration.jms.dsl;
 import javax.jms.Destination;
 import javax.jms.ExceptionListener;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.util.ErrorHandler;
@@ -34,22 +35,14 @@ import org.springframework.util.ErrorHandler;
  *
  * @since 5.0
  */
-public class JmsListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
+public class JmsListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>,
+		C extends AbstractMessageListenerContainer>
 		extends JmsDestinationAccessorSpec<S, C> {
 
 	protected JmsListenerContainerSpec(Class<C> aClass) {
-		super(newInstance(aClass));
+		super(BeanUtils.instantiateClass(aClass));
 		if (DefaultMessageListenerContainer.class.isAssignableFrom(aClass)) {
 			this.target.setSessionTransacted(true);
-		}
-	}
-
-	private static <C extends AbstractMessageListenerContainer> C newInstance(Class<C> aClass) {
-		try {
-			return aClass.newInstance();
-		}
-		catch (InstantiationException | IllegalAccessException e) {
-			throw new IllegalStateException(e);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
@@ -60,7 +59,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.StringUtils;
 
 /**
@@ -68,7 +67,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class FlowServiceTests {
 
@@ -174,7 +173,7 @@ public class FlowServiceTests {
 
 		@Override
 		protected IntegrationFlowDefinition<?> buildFlow() {
-			return from(this::messageSource, e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
+			return fromSupplier(this::messageSource, e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
 					.split(this, null, e -> e.applySequence(false))
 					.transform(this)
 					.aggregate(a -> a.processor(this, null))

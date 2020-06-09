@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 
 import org.springframework.messaging.MessagingException;
 
@@ -29,6 +30,8 @@ import org.springframework.messaging.MessagingException;
  *
  * @author Gary Russell
  * @author Marcin Pilaczynski
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAdapter {
@@ -68,8 +71,7 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 				MulticastSocket socket = port == 0 ? new MulticastSocket() : new MulticastSocket(port);
 				String localAddress = this.getLocalAddress();
 				if (localAddress != null) {
-					InetAddress whichNic = InetAddress.getByName(localAddress);
-					socket.setInterface(whichNic);
+					socket.setNetworkInterface(NetworkInterface.getByName(localAddress));
 				}
 				setSocketAttributes(socket);
 				socket.joinGroup(InetAddress.getByName(this.group));

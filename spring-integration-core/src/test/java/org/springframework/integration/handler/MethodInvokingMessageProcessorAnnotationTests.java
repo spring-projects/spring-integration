@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -255,8 +255,8 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 				.setHeader("attrib2", 456).build();
 		Map<String, Integer> result = (Map<String, Integer>) processor.processMessage(message);
 		assertThat(result.size()).isEqualTo(2);
-		assertThat(result.get("attrib1")).isEqualTo(new Integer(88));
-		assertThat(result.get("attrib2")).isEqualTo(new Integer(99));
+		assertThat(result.get("attrib1")).isEqualTo(88);
+		assertThat(result.get("attrib2")).isEqualTo(99);
 	}
 
 	@Test

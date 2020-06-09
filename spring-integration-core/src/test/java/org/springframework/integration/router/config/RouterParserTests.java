@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.router.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -24,8 +25,7 @@ import static org.mockito.Mockito.verify;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +46,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
@@ -55,8 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class RouterParserTests {
 
 	@Autowired
@@ -64,6 +62,7 @@ public class RouterParserTests {
 
 	@Autowired
 	private PollableChannel output2;
+
 	@Autowired
 	private MessageChannel input;
 
@@ -121,11 +120,11 @@ public class RouterParserTests {
 
 	@Test
 	public void testRouter() {
-		this.input.send(new GenericMessage<String>("1"));
+		this.input.send(new GenericMessage<>("1"));
 		Message<?> result1 = this.output1.receive(1000);
 		assertThat(result1.getPayload()).isEqualTo("1");
 		assertThat(output2.receive(0)).isNull();
-		input.send(new GenericMessage<String>("2"));
+		input.send(new GenericMessage<>("2"));
 		Message<?> result2 = this.output2.receive(1000);
 		assertThat(result2.getPayload()).isEqualTo("2");
 		assertThat(output1.receive(0)).isNull();
@@ -133,7 +132,7 @@ public class RouterParserTests {
 
 	@Test
 	public void testRouterWithDefaultOutputChannel() {
-		this.inputForRouterWithDefaultOutput.send(new GenericMessage<String>("99"));
+		this.inputForRouterWithDefaultOutput.send(new GenericMessage<>("99"));
 		assertThat(this.output1.receive(0)).isNull();
 		assertThat(this.output2.receive(0)).isNull();
 		Message<?> result = this.defaultOutput.receive(0);
@@ -142,7 +141,7 @@ public class RouterParserTests {
 
 	@Test
 	public void refOnlyForAbstractMessageRouterImplementation() {
-		this.inputForAbstractMessageRouterImplementation.send(new GenericMessage<String>("test-implementation"));
+		this.inputForAbstractMessageRouterImplementation.send(new GenericMessage<>("test-implementation"));
 		Message<?> result = this.output3.receive(1000);
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload()).isEqualTo("test-implementation");
@@ -150,7 +149,7 @@ public class RouterParserTests {
 
 	@Test
 	public void refOnlyForAnnotatedObject() {
-		this.inputForAnnotatedRouter.send(new GenericMessage<String>("test-annotation"));
+		this.inputForAnnotatedRouter.send(new GenericMessage<>("test-annotation"));
 		Message<?> result = this.output4.receive(1000);
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload()).isEqualTo("test-annotation");
@@ -158,30 +157,30 @@ public class RouterParserTests {
 
 	@Test
 	public void testResolutionRequired() {
-		try {
-			this.inputForRouterRequiringResolution.send(new GenericMessage<Integer>(3));
-		}
-		catch (Exception e) {
-			assertThat(e.getCause() instanceof DestinationResolutionException).isTrue();
-		}
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> this.inputForRouterRequiringResolution.send(new GenericMessage<>(3)))
+				.withCauseInstanceOf(DestinationResolutionException.class);
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void testResolutionRequiredIsFalse() {
-		this.resolutionRequiredIsFalseInput.send(new GenericMessage<String>("channelThatDoesNotExist"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() ->
+						this.resolutionRequiredIsFalseInput.send(new GenericMessage<>("channelThatDoesNotExist")));
 	}
 
 	@Test
 	public void timeoutValueConfigured() {
 		assertThat(this.routerWithTimeout instanceof MethodInvokingRouter).isTrue();
-		MessagingTemplate template = TestUtils.getPropertyValue(this.routerWithTimeout, "messagingTemplate", MessagingTemplate.class);
+		MessagingTemplate template =
+				TestUtils.getPropertyValue(this.routerWithTimeout, "messagingTemplate", MessagingTemplate.class);
 		Long timeout = TestUtils.getPropertyValue(template, "sendTimeout", Long.class);
-		assertThat(timeout).isEqualTo(new Long(1234));
+		assertThat(timeout).isEqualTo(1234L);
 	}
 
 	@Test
 	public void sequence() {
-		Message<?> originalMessage = new GenericMessage<String>("test");
+		Message<?> originalMessage = new GenericMessage<>("test");
 		this.sequenceRouter.send(originalMessage);
 		Message<?> message1 = this.sequenceOut1.receive(1000);
 		Message<?> message2 = this.sequenceOut2.receive(1000);
@@ -202,11 +201,11 @@ public class RouterParserTests {
 
 	@Test
 	public void testInt2893RouterNestedBean() {
-		this.routerNestedBeanChannel.send(new GenericMessage<String>("1"));
+		this.routerNestedBeanChannel.send(new GenericMessage<>("1"));
 		Message<?> result1 = this.output1.receive(1000);
 		assertThat(result1.getPayload()).isEqualTo("1");
 		assertThat(this.output2.receive(0)).isNull();
-		this.routerNestedBeanChannel.send(new GenericMessage<String>("2"));
+		this.routerNestedBeanChannel.send(new GenericMessage<>("2"));
 		Message<?> result2 = this.output2.receive(1000);
 		assertThat(result2.getPayload()).isEqualTo("2");
 		assertThat(this.output1.receive(0)).isNull();
@@ -214,11 +213,11 @@ public class RouterParserTests {
 
 	@Test
 	public void testInt2893RouterNestedBeanWithinChain() {
-		this.chainRouterNestedBeanChannel.send(new GenericMessage<String>("1"));
+		this.chainRouterNestedBeanChannel.send(new GenericMessage<>("1"));
 		Message<?> result1 = this.output1.receive(1000);
 		assertThat(result1.getPayload()).isEqualTo("1");
 		assertThat(this.output2.receive(0)).isNull();
-		this.chainRouterNestedBeanChannel.send(new GenericMessage<String>("2"));
+		this.chainRouterNestedBeanChannel.send(new GenericMessage<>("2"));
 		Message<?> result2 = this.output2.receive(1000);
 		assertThat(result2.getPayload()).isEqualTo("2");
 		assertThat(this.output1.receive(0)).isNull();
@@ -228,7 +227,7 @@ public class RouterParserTests {
 	public void testErrorChannel() {
 		MessageHandler handler = mock(MessageHandler.class);
 		this.errorChannel.subscribe(handler);
-		this.routerAndErrorChannelInputChannel.send(new GenericMessage<String>("fail"));
+		this.routerAndErrorChannelInputChannel.send(new GenericMessage<>("fail"));
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
 
@@ -239,9 +238,11 @@ public class RouterParserTests {
 
 
 	public static class NonExistingChannelRouter {
+
 		public String route(String payload) {
 			return "foo";
 		}
+
 	}
 
 	public static class TestRouterImplementation extends AbstractMappingMessageRouter {
@@ -257,6 +258,7 @@ public class RouterParserTests {
 		protected List<Object> getChannelKeys(Message<?> message) {
 			return Collections.singletonList((Object) this.channel);
 		}
+
 	}
 
 
@@ -272,6 +274,7 @@ public class RouterParserTests {
 		public MessageChannel test(String payload) {
 			return this.channel;
 		}
+
 	}
 
 	public static class ReturnStringPassedInAsChannelNameRouter {

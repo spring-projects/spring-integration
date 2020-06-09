@@ -106,7 +106,7 @@ fun integrationFlow(messageSource: MessageSourceSpec<*, out MessageSource<*>>,
 fun integrationFlow(source: () -> Any,
 					options: SourcePollingChannelAdapterSpec.() -> Unit = {},
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.from(source, options), flow)
+		buildIntegrationFlow(IntegrationFlows.fromSupplier(source, options), flow)
 
 /**
  * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -

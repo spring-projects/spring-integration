@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,7 +159,7 @@ public class HeaderEnricherOverwriteTests {
 		template.setDefaultDestination(channel);
 		Message<?> result = template.sendAndReceive(new GenericMessage<String>("test"));
 		assertThat(result).isNotNull();
-		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(new Integer(42));
+		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(42);
 	}
 
 	@Test
@@ -173,7 +173,7 @@ public class HeaderEnricherOverwriteTests {
 		input.send(message);
 		Message<?> result = replyChannel.receive(0);
 		assertThat(result).isNotNull();
-		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(new Integer(77));
+		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(77);
 	}
 
 	@Test

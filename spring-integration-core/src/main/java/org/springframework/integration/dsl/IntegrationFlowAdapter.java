@@ -179,14 +179,14 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 		return IntegrationFlows.from(inboundGatewaySpec);
 	}
 
-	protected <T> IntegrationFlowBuilder from(Supplier<T> messageSource) {
-		return IntegrationFlows.from(messageSource);
+	protected <T> IntegrationFlowBuilder fromSupplier(Supplier<T> messageSource) {
+		return IntegrationFlows.fromSupplier(messageSource);
 	}
 
-	protected <T> IntegrationFlowBuilder from(Supplier<T> messageSource,
+	protected <T> IntegrationFlowBuilder fromSupplier(Supplier<T> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 
-		return IntegrationFlows.from(messageSource, endpointConfigurer);
+		return IntegrationFlows.fromSupplier(messageSource, endpointConfigurer);
 	}
 
 	protected IntegrationFlowBuilder from(Class<?> serviceInterface) {
