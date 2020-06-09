@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,13 +156,13 @@ public final class JacksonJsonUtils {
 		WhitelistTypeIdResolver(TypeIdResolver delegate, String... trustedPackages) {
 			this.delegate = delegate;
 			if (trustedPackages != null) {
-				for (String whiteListClass : trustedPackages) {
-					if ("*".equals(whiteListClass)) {
+				for (String whiteListPackage : trustedPackages) {
+					if ("*".equals(whiteListPackage)) {
 						this.trustedPackages.clear();
 						break;
 					}
 					else {
-						this.trustedPackages.add(whiteListClass);
+						this.trustedPackages.add(whiteListPackage);
 					}
 				}
 			}
@@ -213,7 +213,10 @@ public final class JacksonJsonUtils {
 		private boolean isTrustedPackage(String packageName) {
 			if (!this.trustedPackages.isEmpty()) {
 				for (String trustedPackage : this.trustedPackages) {
-					if (packageName.equals(trustedPackage) || packageName.startsWith(trustedPackage + ".")) {
+					if (packageName.equals(trustedPackage) ||
+							(!packageName.equals("java.util.logging")
+									&& packageName.startsWith(trustedPackage + "."))) {
+
 						return true;
 					}
 				}

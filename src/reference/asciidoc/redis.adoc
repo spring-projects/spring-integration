@@ -367,9 +367,11 @@ However, if you want to use a different serialization technique (such as JSON), 
 
 Starting with version 4.3.10, the Framework provides Jackson serializer and deserializer implementations for `Message` instances and `MessageHeaders` instances -- `MessageJacksonDeserializer` and `MessageHeadersJacksonSerializer`, respectively.
 They have to be configured with the `SimpleModule` options for the `ObjectMapper`.
-In addition, you should set `enableDefaultTyping` on the `ObjectMapper` to add type information for each serialized complex object.
+In addition, you should set `enableDefaultTyping` on the `ObjectMapper` to add type information for each serialized complex object (if you trust the source).
 That type information is then used during deserialization.
 The framework provides a utility method called `JacksonJsonUtils.messagingAwareMapper()`, which is already supplied with all the previously mentioned properties and serializers.
+This utility method comes with the `trustedPackages` argument to limit Java packages for deserialization to avoid security vulnerabilities.
+The default trusted packages: `java.util`, `java.lang`, `org.springframework.messaging.support`, `org.springframework.integration.support`, `org.springframework.integration.message`, `org.springframework.integration.store`.
 To manage JSON serialization in the `RedisMessageStore`, you must configure it in a fashion similar to the following example:
 
 ====
