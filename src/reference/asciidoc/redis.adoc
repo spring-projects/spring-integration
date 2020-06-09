@@ -344,6 +344,8 @@ They have to be configured via the `SimpleModule` options for the `ObjectMapper`
 In addition, `enableDefaultTyping` should be configured on the `ObjectMapper` to add type information for each serialized complex object.
 That type information is then used during deserialization.
 The Framework provides a utility method `JacksonJsonUtils.messagingAwareMapper()`, which is already supplied with all the above-mentioned properties and serializers.
+This utility method comes with the `trustedPackages` argument to limit Java packages for deserialization to avoid security vulnerabilities.
+The default trusted packages: `java.util`, `java.lang`, `org.springframework.messaging.support`, `org.springframework.integration.support`, `org.springframework.integration.message`, `org.springframework.integration.store`.
 To manage JSON serialization in the `RedisMessageStore`, it must be configured like so:
 
 [source,java]
