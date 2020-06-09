@@ -229,14 +229,20 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				this.delegate.unlock();
 				return;
 			}
-			try {
-				this.mutex.delete(this.path);
-			}
-			catch (Exception e) {
-				throw new DataAccessResourceFailureException("Failed to release mutex at " + this.path, e);
-			}
-			finally {
-				this.delegate.unlock();
+			while (true) {
+				try {
+					this.mutex.delete(this.path);
+					return;
+				}
+				catch (TransientDataAccessException e) {
+					// try again
+				}
+				catch (Exception e) {
+					throw new DataAccessResourceFailureException("Failed to release mutex at " + this.path, e);
+				}
+				finally {
+					this.delegate.unlock();
+				}
 			}
 		}
 
