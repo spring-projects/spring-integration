@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,9 @@
 
 package org.springframework.integration.jpa.outbound;
 
-import java.util.List;
-
-import org.aopalliance.aop.Advice;
-
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 
 /**
  * The {@link JpaOutboundGatewayFactoryBean} creates instances of the
@@ -38,34 +31,21 @@ import org.springframework.messaging.MessageHandler;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
-public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<JpaOutboundGateway> {
+public class JpaOutboundGatewayFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<JpaOutboundGateway> {
 
 	private JpaExecutor jpaExecutor;
 
 	private OutboundGatewayType gatewayType = OutboundGatewayType.UPDATING;
 
-	/**
-	 * &lt;request-handler-advice-chain /&gt; only applies to the handleRequestMessage.
-	 */
-	private List<Advice> adviceChain;
-
 	private boolean producesReply = true;
-
-	private MessageChannel outputChannel;
-
-	private int order;
 
 	private long replyTimeout;
 
 	private boolean requiresReply = false;
-
-	private String componentName;
-
-	public JpaOutboundGatewayFactoryBean() {
-	}
 
 	public void setJpaExecutor(JpaExecutor jpaExecutor) {
 		this.jpaExecutor = jpaExecutor;
@@ -75,20 +55,8 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<JpaOutbou
 		this.gatewayType = gatewayType;
 	}
 
-	public void setAdviceChain(List<Advice> adviceChain) {
-		this.adviceChain = adviceChain;
-	}
-
 	public void setProducesReply(boolean producesReply) {
 		this.producesReply = producesReply;
-	}
-
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
-	}
-
-	public void setOrder(int order) {
-		this.order = order;
 	}
 
 	/**
@@ -106,37 +74,13 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<JpaOutbou
 		this.requiresReply = requiresReply;
 	}
 
-	/**
-	 * Sets the name of the handler component.
-	 * @param componentName The component name.
-	 */
-	public void setComponentName(String componentName) {
-		this.componentName = componentName;
-	}
-
 	@Override
-	public Class<?> getObjectType() {
-		return MessageHandler.class;
-	}
-
-	@Override
-	protected JpaOutboundGateway createInstance() {
+	protected JpaOutboundGateway createHandler() {
 		JpaOutboundGateway jpaOutboundGateway = new JpaOutboundGateway(this.jpaExecutor);
 		jpaOutboundGateway.setGatewayType(this.gatewayType);
 		jpaOutboundGateway.setProducesReply(this.producesReply);
-		jpaOutboundGateway.setOutputChannel(this.outputChannel);
-		jpaOutboundGateway.setOrder(this.order);
 		jpaOutboundGateway.setSendTimeout(this.replyTimeout);
 		jpaOutboundGateway.setRequiresReply(this.requiresReply);
-		jpaOutboundGateway.setComponentName(this.componentName);
-		if (this.adviceChain != null) {
-			jpaOutboundGateway.setAdviceChain(this.adviceChain);
-		}
-		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory != null) {
-			jpaOutboundGateway.setBeanFactory(beanFactory);
-		}
-		jpaOutboundGateway.afterPropertiesSet();
 		return jpaOutboundGateway;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.PriorityBlockingQueue;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +39,7 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.IgnoreHiddenFileListFilter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Iwein Fuld
@@ -50,8 +48,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class FileInboundChannelAdapterParserTests {
 
@@ -71,7 +68,7 @@ public class FileInboundChannelAdapterParserTests {
 
 	private DirectFieldAccessor accessor;
 
-	@Before
+	@BeforeEach
 	public void init() {
 		this.accessor = new DirectFieldAccessor(inputDirPollerSource);
 	}
@@ -97,10 +94,11 @@ public class FileInboundChannelAdapterParserTests {
 		File actual = (File) this.accessor.getPropertyValue("directory");
 		assertThat(actual).as("'directory' should be set").isEqualTo(expected);
 		assertThat(this.accessor.getPropertyValue("scanEachPoll")).isEqualTo(Boolean.TRUE);
+		assertThat(this.inputDirPollerSource.getComponentName()).isEqualTo("inputDirPoller.adapter.source");
 	}
 
 	@Test
-	public void filter() throws Exception {
+	public void filter() {
 		DefaultDirectoryScanner scanner = (DefaultDirectoryScanner) accessor.getPropertyValue("scanner");
 		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(scanner);
 		Object filter = scannerAccessor.getPropertyValue("filter");
