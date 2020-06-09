@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
@@ -37,7 +38,8 @@ import org.springframework.util.Assert;
  *
  * @since 1.0.3
  */
-public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<FileReadingMessageSource> {
+public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<FileReadingMessageSource>
+		implements BeanNameAware {
 
 	private FileReadingMessageSource source;
 
@@ -60,6 +62,13 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 	private Boolean autoCreateDirectory;
 
 	private Integer queueSize;
+
+	private String name;
+
+	@Override
+	public void setBeanName(String name) {
+		this.name = name;
+	}
 
 	public void setDirectory(File directory) {
 		this.directory = directory;
@@ -154,6 +163,7 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 		if (beanFactory != null) {
 			this.source.setBeanFactory(beanFactory);
 		}
+		this.source.setBeanName(this.name);
 		this.source.afterPropertiesSet();
 	}
 
