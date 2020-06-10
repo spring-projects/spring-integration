@@ -87,6 +87,7 @@ public class TcpNioClientConnectionFactory extends
 		try {
 			SocketChannel socketChannel = SocketChannel.open();
 			setSocketAttributes(socketChannel.socket());
+			connect(socketChannel);
 			TcpNioConnection connection =
 					this.tcpNioConnectionSupport.createNewConnection(socketChannel, false, isLookupHost(),
 							getApplicationEventPublisher(), getComponentName());
@@ -98,18 +99,6 @@ public class TcpNioClientConnectionFactory extends
 			}
 			TcpConnectionSupport wrappedConnection = wrapConnection(connection);
 			initializeConnection(wrappedConnection, socketChannel.socket());
-			socketChannel.configureBlocking(false);
-			socketChannel.connect(new InetSocketAddress(getHost(), getPort()));
-			boolean connected = socketChannel.finishConnect();
-			long timeLeft = getConnectTimeout().toMillis();
-			while (!connected && timeLeft > 0) {
-				Thread.sleep(50); // NOSONAR Magic #
-				connected = socketChannel.finishConnect();
-				timeLeft -= 50; // NOSONAR Magic #
-			}
-			if (!connected) {
-				throw new IOException("Not connected after connectTimeout");
-			}
 			if (getSoTimeout() > 0) {
 				connection.setLastRead(System.currentTimeMillis());
 			}
@@ -124,6 +113,21 @@ public class TcpNioClientConnectionFactory extends
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new UncheckedIOException(new IOException(e));
+		}
+	}
+
+	private void connect(SocketChannel socketChannel) throws IOException, InterruptedException {
+		socketChannel.configureBlocking(false);
+		socketChannel.connect(new InetSocketAddress(getHost(), getPort()));
+		boolean connected = socketChannel.finishConnect();
+		long timeLeft = getConnectTimeout().toMillis();
+		while (!connected && timeLeft > 0) {
+			Thread.sleep(50); // NOSONAR Magic #
+			connected = socketChannel.finishConnect();
+			timeLeft -= 50; // NOSONAR Magic #
+		}
+		if (!connected) {
+			throw new IOException("Not connected after connectTimeout");
 		}
 	}
 
