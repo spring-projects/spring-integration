@@ -139,7 +139,12 @@ public class TcpNioConnectionTests {
 		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
-		factory.setApplicationEventPublisher(nullPublisher);
+		AtomicReference<String> connectionId = new AtomicReference<>();
+		factory.setApplicationEventPublisher(event -> {
+			if (event instanceof TcpConnectionOpenEvent) {
+				connectionId.set(((TcpConnectionOpenEvent) event).getConnectionId());
+			}
+		});
 		factory.setSoTimeout(100);
 		factory.start();
 		try {
@@ -154,6 +159,7 @@ public class TcpNioConnectionTests {
 		done.countDown();
 		factory.stop();
 		serverSocket.get().close();
+		assertThat(connectionId.get()).startsWith("localhost");
 	}
 
 	@Test
