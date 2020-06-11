@@ -20,7 +20,7 @@
 	</channel>
 
 	<payload-deserializing-transformer id="direct" input-channel="directInput" output-channel="output"
-		white-list="*" />
+		allow-list="*" />
 
 	<payload-deserializing-transformer input-channel="queueInput" output-channel="output">
 		<poller fixed-delay="10000"/>

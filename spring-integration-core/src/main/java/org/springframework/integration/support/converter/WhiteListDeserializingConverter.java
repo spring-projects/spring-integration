@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,9 @@
 
 package org.springframework.integration.support.converter;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamClass;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.core.ConfigurableObjectInputStream;
-import org.springframework.core.NestedIOException;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.Deserializer;
-import org.springframework.core.serializer.support.SerializationFailedException;
-import org.springframework.util.Assert;
-import org.springframework.util.PatternMatchUtils;
 
 /**
  * A {@link Converter} that delegates to a
@@ -45,18 +31,13 @@ import org.springframework.util.PatternMatchUtils;
  * @author Gary Russell
  * @author Mark Fisher
  * @author Juergen Hoeller
+ *
  * @since 4.2.13
+ *
+ * @deprecated since 5.4 in favor of AllowListDeserializingConverter
  */
-public class WhiteListDeserializingConverter implements Converter<byte[], Object> {
-
-	private final Deserializer<Object> deserializer;
-
-	private final ClassLoader defaultDeserializerClassLoader;
-
-	private final boolean usingDefaultDeserializer;
-
-	private final Set<String> whiteListPatterns = new LinkedHashSet<String>();
-
+@Deprecated
+public class WhiteListDeserializingConverter extends AllowListDeserializingConverter {
 
 	/**
 	 * Create a {@code WhiteListDeserializingConverter} with default
@@ -64,7 +45,7 @@ public class WhiteListDeserializingConverter implements Converter<byte[], Object
 	 * ClassLoader".
 	 */
 	public WhiteListDeserializingConverter() {
-		this(new DefaultDeserializer());
+		super();
 	}
 
 	/**
@@ -73,7 +54,7 @@ public class WhiteListDeserializingConverter implements Converter<byte[], Object
 	 * @param classLoader the class loader to use for deserialization.
 	 */
 	public WhiteListDeserializingConverter(ClassLoader classLoader) {
-		this(new DefaultDeserializer(classLoader));
+		super(classLoader);
 	}
 
 	/**
@@ -82,23 +63,7 @@ public class WhiteListDeserializingConverter implements Converter<byte[], Object
 	 * @param deserializer the deserializer to use.
 	 */
 	public WhiteListDeserializingConverter(Deserializer<Object> deserializer) {
-		Assert.notNull(deserializer, "Deserializer must not be null");
-		this.deserializer = deserializer;
-		if (deserializer instanceof DefaultDeserializer) {
-			ClassLoader classLoader = null;
-			try {
-				classLoader = (ClassLoader) new DirectFieldAccessor(deserializer).getPropertyValue("classLoader");
-			}
-			catch (Exception e) {
-				// no-op
-			}
-			this.defaultDeserializerClassLoader = classLoader;
-			this.usingDefaultDeserializer = true;
-		}
-		else {
-			this.defaultDeserializerClassLoader = null;
-			this.usingDefaultDeserializer = false;
-		}
+		super(deserializer);
 	}
 
 	/**
@@ -110,8 +75,7 @@ public class WhiteListDeserializingConverter implements Converter<byte[], Object
 	 * @param whiteListPatterns the patterns.
 	 */
 	public void setWhiteListPatterns(String... whiteListPatterns) {
-		this.whiteListPatterns.clear();
-		Collections.addAll(this.whiteListPatterns, whiteListPatterns);
+		setAllowedPatterns(whiteListPatterns);
 	}
 
 	/**
@@ -120,63 +84,11 @@ public class WhiteListDeserializingConverter implements Converter<byte[], Object
 	 * @see #setWhiteListPatterns(String...)
 	 */
 	public void addWhiteListPatterns(String... patterns) {
-		Collections.addAll(this.whiteListPatterns, patterns);
+		addAllowedPatterns(patterns);
 	}
 
-	@Override
-	public Object convert(byte[] source) {
-		ByteArrayInputStream byteStream = new ByteArrayInputStream(source);
-		try {
-			if (this.usingDefaultDeserializer) {
-				return deserialize(byteStream);
-			}
-			else {
-				return this.deserializer.deserialize(byteStream);
-			}
-		}
-		catch (Exception ex) {
-			throw new SerializationFailedException("Failed to deserialize payload. " +
-					"Is the byte array a result of corresponding serialization for " +
-					this.deserializer.getClass().getSimpleName() + "?", ex);
-		}
-	}
-
-	protected Object deserialize(ByteArrayInputStream inputStream) throws IOException {
-		try {
-			ObjectInputStream objectInputStream = new ConfigurableObjectInputStream(inputStream,
-					this.defaultDeserializerClassLoader) {
-
-				@Override
-				protected Class<?> resolveClass(ObjectStreamClass classDesc)
-						throws IOException, ClassNotFoundException {
-					Class<?> clazz = super.resolveClass(classDesc);
-					checkWhiteList(clazz);
-					return clazz;
-				}
-
-			};
-			return objectInputStream.readObject();
-		}
-		catch (ClassNotFoundException ex) {
-			throw new NestedIOException("Failed to deserialize object type", ex);
-		}
-	}
-
-	protected void checkWhiteList(Class<?> clazz) throws IOException {
-		if (this.whiteListPatterns.isEmpty()) {
-			return;
-		}
-		if (clazz.isArray() || clazz.isPrimitive() || clazz.equals(String.class)
-				|| Number.class.isAssignableFrom(clazz)) {
-			return;
-		}
-		String className = clazz.getName();
-		for (String pattern : this.whiteListPatterns) {
-			if (PatternMatchUtils.simpleMatch(pattern, className)) {
-				return;
-			}
-		}
-		throw new SecurityException("Attempt to deserialize unauthorized " + clazz);
+	protected void checkWhiteList(Class<?> clazz) {
+		checkAllowList(clazz);
 	}
 
 }

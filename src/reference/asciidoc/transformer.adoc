@@ -131,11 +131,11 @@ The following example shows to use Spring's serializer and deserializer:
 <int:payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
 
 <int:payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"
-    white-list="com.mycom.*,com.yourcom.*"/>
+    allow-list="com.mycom.*,com.yourcom.*"/>
 ----
 ====
 
-IMPORTANT: When deserializing data from untrusted sources, you should consider adding a `white-list` of package and class patterns.
+IMPORTANT: When deserializing data from untrusted sources, you should consider adding a `allow-list` of package and class patterns.
 By default, all classes are deserialized.
 
 ===== `Object`-to-`Map` and `Map`-to-`Object` Transformers
