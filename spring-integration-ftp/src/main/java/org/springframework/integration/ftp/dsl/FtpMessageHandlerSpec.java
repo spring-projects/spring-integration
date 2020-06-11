@@ -23,6 +23,7 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.outbound.FtpMessageHandler;
+import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 
 /**
  * A {@link FileTransferringMessageHandlerSpec} for FTP.
@@ -38,12 +39,22 @@ public class FtpMessageHandlerSpec extends FileTransferringMessageHandlerSpec<FT
 		this.target = new FtpMessageHandler(sessionFactory);
 	}
 
+	@Deprecated
 	protected FtpMessageHandlerSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate) {
 		this.target = new FtpMessageHandler(remoteFileTemplate.getSessionFactory());
 	}
 
+	@Deprecated
 	protected FtpMessageHandlerSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate, FileExistsMode fileExistsMode) {
 		this.target = new FtpMessageHandler(remoteFileTemplate, fileExistsMode);
+	}
+
+	protected FtpMessageHandlerSpec(FtpRemoteFileTemplate ftpRemoteFileTemplate) {
+		this.target = new FtpMessageHandler(ftpRemoteFileTemplate);
+	}
+
+	protected FtpMessageHandlerSpec(FtpRemoteFileTemplate ftpRemoteFileTemplate, FileExistsMode fileExistsMode) {
+		this.target = new FtpMessageHandler(ftpRemoteFileTemplate, fileExistsMode);
 	}
 
 }

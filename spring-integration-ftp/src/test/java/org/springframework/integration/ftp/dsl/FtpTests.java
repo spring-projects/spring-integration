@@ -204,6 +204,59 @@ public class FtpTests extends FtpTestSupport {
 	}
 
 	@Test
+	public void testFtpOutboundFlowWithFtpRemoteTemplate() {
+
+		FtpRemoteFileTemplate ftpTemplate = new FtpRemoteFileTemplate(sessionFactory());
+		IntegrationFlow flow = f -> f
+				.handle(Ftp.outboundAdapter(ftpTemplate)
+						.useTemporaryFileName(false)
+						.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+						.remoteDirectory("ftpTarget"));
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "foo.file";
+		Message<ByteArrayInputStream> message = MessageBuilder
+				.withPayload(new ByteArrayInputStream("foo".getBytes(StandardCharsets.UTF_8)))
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build();
+		registration.getInputChannel().send(message);
+		FTPFile[] files = ftpTemplate.execute(session ->
+				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		assertThat(files.length).isEqualTo(1);
+		assertThat(files[0].getSize()).isEqualTo(3);
+
+		registration.destroy();
+	}
+
+	@Test
+	public void testFtpOutboundFlowWithFtpRemoteTemplateAndMode() {
+
+		FtpRemoteFileTemplate ftpTemplate = new FtpRemoteFileTemplate(sessionFactory());
+		IntegrationFlow flow = f -> f
+				.handle(Ftp.outboundAdapter(ftpTemplate, FileExistsMode.APPEND)
+						.useTemporaryFileName(false)
+						.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+						.remoteDirectory("ftpTarget"));
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "foo.file";
+		Message<ByteArrayInputStream> message1 = MessageBuilder
+				.withPayload(new ByteArrayInputStream("foo".getBytes(StandardCharsets.UTF_8)))
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build();
+		Message<ByteArrayInputStream> message2 = MessageBuilder
+				.withPayload(new ByteArrayInputStream("foo".getBytes(StandardCharsets.UTF_8)))
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build();
+		registration.getInputChannel().send(message1);
+		registration.getInputChannel().send(message2);
+		FTPFile[] files = ftpTemplate.execute(session ->
+				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		assertThat(files.length).isEqualTo(1);
+		assertThat(files[0].getSize()).isEqualTo(6);
+
+		registration.destroy();
+	}
+
+	@Test
 	public void testFtpOutboundFlowWithChmod() {
 		IntegrationFlow flow = f -> f
 				.handle(Ftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
