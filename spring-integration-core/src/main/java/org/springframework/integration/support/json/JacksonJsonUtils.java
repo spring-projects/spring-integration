@@ -67,7 +67,7 @@ public final class JacksonJsonUtils {
 		if (JacksonPresent.isJackson2Present()) {
 			ObjectMapper mapper = new Jackson2JsonObjectMapper().getObjectMapper();
 
-			mapper.setDefaultTyping(new WhitelistTypeResolverBuilder(trustedPackages));
+			mapper.setDefaultTyping(new AllowlistTypeResolverBuilder(trustedPackages));
 
 			GenericMessageJacksonDeserializer genericMessageDeserializer = new GenericMessageJacksonDeserializer();
 			genericMessageDeserializer.setMapper(mapper);
@@ -98,7 +98,7 @@ public final class JacksonJsonUtils {
 
 	/**
 	 * An implementation of {@link ObjectMapper.DefaultTypeResolverBuilder}
-	 * that wraps a default {@link TypeIdResolver} to the {@link WhitelistTypeIdResolver}.
+	 * that wraps a default {@link TypeIdResolver} to the {@link AllowlistTypeIdResolver}.
 	 *
 	 * @author Rob Winch
 	 * @author Artem Bilan
@@ -107,13 +107,13 @@ public final class JacksonJsonUtils {
 	 *
 	 * @since 4.3.11
 	 */
-	private static final class WhitelistTypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuilder {
+	private static final class AllowlistTypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuilder {
 
 		private static final long serialVersionUID = 1L;
 
 		private final String[] trustedPackages;
 
-		WhitelistTypeResolverBuilder(String... trustedPackages) {
+		AllowlistTypeResolverBuilder(String... trustedPackages) {
 			super(ObjectMapper.DefaultTyping.NON_FINAL,
 					//we do explicit validation in the TypeIdResolver
 					BasicPolymorphicTypeValidator.builder()
@@ -133,7 +133,7 @@ public final class JacksonJsonUtils {
 				PolymorphicTypeValidator subtypeValidator,
 				Collection<NamedType> subtypes, boolean forSer, boolean forDeser) {
 			TypeIdResolver result = super.idResolver(config, baseType, subtypeValidator, subtypes, forSer, forDeser);
-			return new WhitelistTypeIdResolver(result, this.trustedPackages);
+			return new AllowlistTypeIdResolver(result, this.trustedPackages);
 		}
 
 	}
@@ -148,7 +148,7 @@ public final class JacksonJsonUtils {
 	 *
 	 * @since 4.3.11
 	 */
-	private static final class WhitelistTypeIdResolver implements TypeIdResolver {
+	private static final class AllowlistTypeIdResolver implements TypeIdResolver {
 
 		private static final List<String> TRUSTED_PACKAGES =
 				Arrays.asList(
@@ -164,7 +164,7 @@ public final class JacksonJsonUtils {
 
 		private final Set<String> trustedPackages = new LinkedHashSet<>(TRUSTED_PACKAGES);
 
-		WhitelistTypeIdResolver(TypeIdResolver delegate, String... trustedPackages) {
+		AllowlistTypeIdResolver(TypeIdResolver delegate, String... trustedPackages) {
 			this.delegate = delegate;
 			if (trustedPackages != null) {
 				for (String whiteListPackage : trustedPackages) {

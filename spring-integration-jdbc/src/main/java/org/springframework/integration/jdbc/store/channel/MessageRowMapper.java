@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.jdbc.store.channel;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
+import org.springframework.integration.support.converter.AllowListDeserializingConverter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.messaging.Message;
@@ -31,16 +31,17 @@ import org.springframework.messaging.Message;
  *
  * @author Gunnar Hillert
  * @author Gary Russell
+ *
  * @since 2.2
  *
  */
 public class MessageRowMapper implements RowMapper<Message<?>> {
 
-	private final WhiteListDeserializingConverter deserializer;
+	private final AllowListDeserializingConverter deserializer;
 
 	private final LobHandler lobHandler;
 
-	public MessageRowMapper(WhiteListDeserializingConverter deserializer, LobHandler lobHandler) {
+	public MessageRowMapper(AllowListDeserializingConverter deserializer, LobHandler lobHandler) {
 		this.deserializer = deserializer;
 		this.lobHandler = lobHandler;
 	}

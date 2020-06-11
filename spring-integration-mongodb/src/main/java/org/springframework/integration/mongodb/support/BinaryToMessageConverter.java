@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.bson.types.Binary;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
-import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
+import org.springframework.integration.support.converter.AllowListDeserializingConverter;
 import org.springframework.messaging.Message;
 
 /**
@@ -31,7 +31,7 @@ import org.springframework.messaging.Message;
 @ReadingConverter
 public class BinaryToMessageConverter implements Converter<Binary, Message<?>> {
 
-	private final WhiteListDeserializingConverter deserializingConverter = new WhiteListDeserializingConverter();
+	private final AllowListDeserializingConverter deserializingConverter = new AllowListDeserializingConverter();
 
 	@Override
 	public Message<?> convert(Binary source) {
@@ -43,9 +43,22 @@ public class BinaryToMessageConverter implements Converter<Binary, Message<?>> {
 	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
 	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
+	 * @deprecated since 5.4 in favor of {@link #addAllowedPatterns(String...)}
 	 */
+	@Deprecated
 	public void addWhiteListPatterns(String... patterns) {
-		this.deserializingConverter.addWhiteListPatterns(patterns);
+		this.deserializingConverter.addAllowedPatterns(patterns);
+	}
+
+	/**
+	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
+	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * @param patterns the patterns.
+	 * @since 5.4
+	 */
+	public void addAllowedPatterns(String... patterns) {
+		this.deserializingConverter.addAllowedPatterns(patterns);
 	}
 
 }

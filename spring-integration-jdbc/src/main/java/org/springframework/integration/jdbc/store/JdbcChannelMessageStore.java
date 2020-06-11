@@ -45,7 +45,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupFactory;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroupFactory;
-import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
+import org.springframework.integration.support.converter.AllowListDeserializingConverter;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -130,7 +130,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private JdbcTemplate jdbcTemplate;
 
-	private WhiteListDeserializingConverter deserializer;
+	private AllowListDeserializingConverter deserializer;
 
 	private SerializingConverter serializer;
 
@@ -152,7 +152,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * Convenient constructor for configuration use.
 	 */
 	public JdbcChannelMessageStore() {
-		this.deserializer = new WhiteListDeserializingConverter();
+		this.deserializer = new AllowListDeserializingConverter();
 		this.serializer = new SerializingConverter();
 	}
 
@@ -188,9 +188,9 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * A converter for deserializing byte arrays to messages.
 	 * @param deserializer the deserializer to set
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
-		this.deserializer = new WhiteListDeserializingConverter((Deserializer) deserializer);
+		this.deserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
 	}
 
 	/**
@@ -199,9 +199,22 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
 	 * @since 4.2.13
+	 * @deprecated since 5.4 in favor of {@link #addAllowedPatterns(String...)}
 	 */
+	@Deprecated
 	public void addWhiteListPatterns(String... patterns) {
-		this.deserializer.addWhiteListPatterns(patterns);
+		addAllowedPatterns(patterns);
+	}
+
+	/**
+	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
+	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * @param patterns the patterns.
+	 * @since 5.4
+	 */
+	public void addAllowedPatterns(String... patterns) {
+		this.deserializer.addAllowedPatterns(patterns);
 	}
 
 	/**
@@ -408,7 +421,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	public MessageGroup addMessageToGroup(Object groupId, final Message<?> message) {
 		try {
 			this.jdbcTemplate.update(getQuery(Query.CREATE_MESSAGE,
-						() -> this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
+					() -> this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
 					ps -> this.preparedStatementSetter.setValues(ps, message, groupId, this.region,
 							this.priorityEnabled));
 		}
@@ -588,8 +601,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 		int updated = this.jdbcTemplate.update(
 				getQuery(Query.DELETE_MESSAGE, () -> this.channelMessageStoreQueryProvider.getDeleteMessageQuery()),
-				new Object[] { getKey(id), getKey(groupId), this.region },
-				new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
+				new Object[]{getKey(id), getKey(groupId), this.region},
+				new int[]{Types.VARCHAR, Types.VARCHAR, Types.VARCHAR});
 
 		boolean result = updated != 0;
 		if (result) {

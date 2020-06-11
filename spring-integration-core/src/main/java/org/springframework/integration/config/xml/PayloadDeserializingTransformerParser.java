@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.integration.transformer.PayloadDeserializingTransform
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class PayloadDeserializingTransformerParser extends AbstractTransformerParser {
 
@@ -38,7 +39,13 @@ public class PayloadDeserializingTransformerParser extends AbstractTransformerPa
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "deserializer");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "white-list", "whiteListPatterns");
+		// TODO remove in 5.5
+		if (element.hasAttribute("white-list")) {
+			parserContext.getReaderContext().error(
+					"the 'white-list' attribute is deprecated in favor of 'allow-list'", element);
+		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "white-list", "allowedPatterns");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "allow-list", "allowedPatterns");
 	}
 
 }

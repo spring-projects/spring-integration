@@ -40,7 +40,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
-import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
+import org.springframework.integration.support.converter.AllowListDeserializingConverter;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -173,7 +173,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
-	private WhiteListDeserializingConverter deserializer;
+	private AllowListDeserializingConverter deserializer;
 
 	private SerializingConverter serializer;
 
@@ -195,7 +195,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public JdbcMessageStore(JdbcOperations jdbcOperations) {
 		Assert.notNull(jdbcOperations, "'dataSource' must not be null");
 		this.jdbcTemplate = jdbcOperations;
-		this.deserializer = new WhiteListDeserializingConverter();
+		this.deserializer = new AllowListDeserializingConverter();
 		this.serializer = new SerializingConverter();
 	}
 
@@ -245,9 +245,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 *
 	 * @param deserializer the deserializer to set
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
-		this.deserializer = new WhiteListDeserializingConverter((Deserializer) deserializer);
+		this.deserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
 	}
 
 	/**
@@ -256,9 +256,22 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
 	 * @since 4.2.13
+	 * @deprecated since 5.4 in favor of {@link #addAllowedPatterns(String...)}
 	 */
+	@Deprecated
 	public void addWhiteListPatterns(String... patterns) {
-		this.deserializer.addWhiteListPatterns(patterns);
+		addAllowedPatterns(patterns);
+	}
+
+	/**
+	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
+	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * @param patterns the patterns.
+	 * @since 5.4
+	 */
+	public void addAllowedPatterns(String... patterns) {
+		this.deserializer.addAllowedPatterns(patterns);
 	}
 
 	@Override

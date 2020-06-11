@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@
 package org.springframework.integration.transformer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -31,6 +32,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class PayloadDeserializingTransformerTests {
 
@@ -41,7 +43,7 @@ public class PayloadDeserializingTransformerTests {
 		objectStream.writeObject("foo");
 		byte[] serialized = byteStream.toByteArray();
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
-		Message<?> result = transformer.transform(new GenericMessage<byte[]>(serialized));
+		Message<?> result = transformer.transform(new GenericMessage<>(serialized));
 		Object payload = result.getPayload();
 		assertThat(payload).isNotNull();
 		assertThat(payload.getClass()).isEqualTo(String.class);
@@ -56,7 +58,7 @@ public class PayloadDeserializingTransformerTests {
 		objectStream.writeObject(testBean);
 		byte[] serialized = byteStream.toByteArray();
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
-		Message<?> result = transformer.transform(new GenericMessage<byte[]>(serialized));
+		Message<?> result = transformer.transform(new GenericMessage<>(serialized));
 		Object payload = result.getPayload();
 		assertThat(payload).isNotNull();
 		assertThat(payload.getClass()).isEqualTo(TestBean.class);
@@ -64,35 +66,36 @@ public class PayloadDeserializingTransformerTests {
 	}
 
 	@Test
-	public void deserializeObjectWhiteList() throws Exception {
+	public void deserializeObjectAllowList() throws Exception {
 		TestBean testBean = new TestBean("test");
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
 		objectStream.writeObject(testBean);
 		byte[] serialized = byteStream.toByteArray();
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
-		transformer.setWhiteListPatterns("com.*");
+		transformer.setAllowedPatterns("com.*");
 		try {
-			transformer.transform(new GenericMessage<byte[]>(serialized));
+			transformer.transform(new GenericMessage<>(serialized));
 			fail("expected security exception");
 		}
 		catch (MessageTransformationException e) {
 			assertThat(e.getCause().getCause()).isInstanceOf(SecurityException.class);
 			assertThat(e.getCause().getCause().getMessage()).startsWith("Attempt to deserialize unauthorized");
 		}
-		transformer.setWhiteListPatterns("org.*");
-		Message<?> result = transformer.transform(new GenericMessage<byte[]>(serialized));
+		transformer.setAllowedPatterns("org.*");
+		Message<?> result = transformer.transform(new GenericMessage<>(serialized));
 		Object payload = result.getPayload();
 		assertThat(payload).isNotNull();
 		assertThat(payload.getClass()).isEqualTo(TestBean.class);
 		assertThat(((TestBean) payload).name).isEqualTo(testBean.name);
 	}
 
-	@Test(expected = MessageTransformationException.class)
+	@Test
 	public void invalidPayload() {
-		byte[] bytes = new byte[] { 1, 2, 3 };
+		byte[] bytes = {1, 2, 3};
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
-		transformer.transform(new GenericMessage<byte[]>(bytes));
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> transformer.transform(new GenericMessage<>(bytes)));
 	}
 
 	@Test
@@ -111,6 +114,7 @@ public class PayloadDeserializingTransformerTests {
 		TestBean(String name) {
 			this.name = name;
 		}
+
 	}
 
 }
