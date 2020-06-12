@@ -36,7 +36,7 @@ import reactor.core.publisher.Mono;
 
 /**
  * Implementation of {@link org.springframework.messaging.ReactiveMessageHandler} which writes
- * Message payload into a Redis stream , using reactive stream operation.
+ * Message payload or Message itself(see {@link #extractPayload}) into a Redis stream using Reactive Stream operations.
  *
  * @author Attoumane Ahamadi
  *
@@ -47,7 +47,9 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 
 	private final Expression streamKeyExpression;
 
-	private volatile EvaluationContext evaluationContext;
+	private final ReactiveRedisConnectionFactory connectionFactory;
+
+	private EvaluationContext evaluationContext;
 
 	private boolean extractPayload = true;
 
@@ -55,20 +57,19 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 
 	private RedisSerializationContext serializationContext = RedisSerializationContext.string();
 
-	private final ReactiveRedisConnectionFactory connectionFactory;
-
 	@Nullable
 	private HashMapper hashMapper;
 
-	public ReactiveRedisStreamMessageHandler(ReactiveRedisConnectionFactory connectionFactory, Expression streamKeyExpression) {
+	public ReactiveRedisStreamMessageHandler(ReactiveRedisConnectionFactory connectionFactory, String streamKey) {
+		this(connectionFactory, new LiteralExpression(streamKey));
+	}
+
+	public ReactiveRedisStreamMessageHandler(ReactiveRedisConnectionFactory connectionFactory,
+			Expression streamKeyExpression) {
 		Assert.notNull(streamKeyExpression, "'streamKeyExpression' must not be null");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 		this.streamKeyExpression = streamKeyExpression;
 		this.connectionFactory = connectionFactory;
-	}
-
-	public ReactiveRedisStreamMessageHandler(ReactiveRedisConnectionFactory connectionFactory, String streamKey) {
-		this(connectionFactory, new LiteralExpression(streamKey));
 	}
 
 	public void setSerializationContext(RedisSerializationContext serializationContext) {
@@ -76,10 +77,20 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 		this.serializationContext = serializationContext;
 	}
 
+	/**
+	 * (Optional) Set the {@link HashMapper} used to create {@link #reactiveStreamOperations}.
+	 * The default {@link HashMapper} is defined from the provided {@link RedisSerializationContext}
+	 * @param hashMapper the wanted hashMapper
+	 * */
 	public void setHashMapper(@Nullable HashMapper hashMapper) {
 		this.hashMapper = hashMapper;
 	}
 
+	/**
+	 * Set to {@code true} to extract the payload; otherwise
+	 * the entire message is sent. Default {@code true}.
+	 * @param extractPayload false to not extract.
+	 */
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
 	}
@@ -92,9 +103,9 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (this.evaluationContext == null && getBeanFactory() != null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		}
+
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+
 		ReactiveRedisTemplate template = new ReactiveRedisTemplate<>(this.connectionFactory,
 				this.serializationContext);
 		this.reactiveStreamOperations = this.hashMapper == null ? template.opsForStream() :
@@ -105,6 +116,8 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 	protected Mono<Void> handleMessageInternal(Message<?> message) {
 
 		String streamKey = this.streamKeyExpression.getValue(this.evaluationContext, message, String.class);
+
+		Assert.notNull(streamKey, "'streamKey' must not be null");
 
 		Object value = message;
 		if (this.extractPayload) {

@@ -21,21 +21,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableRule;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.util.Address;
 import org.springframework.integration.redis.util.Person;
@@ -43,7 +47,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
@@ -51,7 +54,6 @@ import org.springframework.test.context.junit4.SpringRunner;
  *
  * @since 5.4
  */
-@ContextConfiguration(classes = ReactiveRedisStreamMessageHandlerTestsContext.class)
 @RunWith(SpringRunner.class)
 @DirtiesContext
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -70,6 +72,14 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 	@Autowired
 	private ReactiveRedisStreamMessageHandler streamMessageHandler;
 
+	@Before
+	public void deleteStreamKey() {
+		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate<>(this.redisConnectionFactory,
+				RedisSerializationContext.string());
+		template.delete(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY).block();
+	}
+
+
 	@Test
 	@RedisAvailable
 	public void integrationStreamOutboundTest() {
@@ -77,101 +87,114 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 
 		messageChannel.send(new GenericMessage<>(messagePayload));
 
-		RedisSerializationContext<String, String> serializationContext = redisStringOrJsonSerializationContext(null);
+		RedisSerializationContext<String, String> serializationContext = redisSerializationContext();
 
 		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate(redisConnectionFactory, serializationContext);
 
 		ObjectRecord<String, String> record = template.opsForStream().read(String.class, StreamOffset.fromStart(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY)).blockFirst();
 
 		assertThat(record.getStream()).isEqualTo(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY);
-		assertThat(record.getValue()).isEqualTo(messagePayload);
 
-		template.delete(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY).block();
+		assertThat(record.getValue()).isEqualTo(messagePayload);
 	}
 
-	//TODO Find why the deserialization fail does not work
+
 	/*@Test
 	@RedisAvailable*/
-	public void explicitJsonSerializationContextTest() {
+	public void explicitSerializationContextTest() {
 		List<String> messagePayload = Arrays.asList("Hello", "stream", "message");
 
-		RedisSerializationContext<String, Object> jsonSerializationContext = redisStringOrJsonSerializationContext(List.class);
+		RedisSerializationContext<String, Object> serializationContext = redisSerializationContext();
 
-		streamMessageHandler.setSerializationContext(jsonSerializationContext);
+		streamMessageHandler.setSerializationContext(serializationContext);
+		streamMessageHandler.afterPropertiesSet();
 
 		handlerAdapter.handleMessage(new GenericMessage<>(messagePayload));
 
 		ReactiveRedisTemplate<String, List> template = new ReactiveRedisTemplate(redisConnectionFactory,
-				jsonSerializationContext);
+				serializationContext);
 
-		ObjectRecord<String, List> record = template.opsForStream().read(List.class, StreamOffset.fromStart(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY))
+		ObjectRecord<String, List> record = template.opsForStream().read(List.class, StreamOffset
+				.fromStart(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY))
 				.blockFirst();
 
 		assertThat(record.getStream()).isEqualTo(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY);
-		assertThat(record.getValue()).isEqualTo("[\"Hello\", \"stream\", \"message\"]");
 
-		template.delete(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY).block();
+		assertThat(record.getValue()).isEqualTo("[\"Hello\", \"stream\", \"message\"]");
 	}
 
-	//TODO Find why the deserialization does not work
-	/*@Test
-	@RedisAvailable*/
-	public void explicitJsonSerializationContextWithModelTest() {
+
+	@Test
+	@RedisAvailable
+	public void explicitSerializationContextWithModelTest() {
 		Address address = new Address().withAddress("Rennes, France");
 		Person person = new Person(address, "Attoumane");
 
 		Message message = new GenericMessage(person);
 
-		RedisSerializationContext<String, Object> jsonSerializationContext = redisStringOrJsonSerializationContext(Person.class);
+		RedisSerializationContext<String, Object> serializationContext = redisSerializationContext();
 
-		streamMessageHandler.setSerializationContext(jsonSerializationContext);
+		streamMessageHandler.setSerializationContext(serializationContext);
+		streamMessageHandler.afterPropertiesSet();
 
 		handlerAdapter.handleMessage(message);
 
-		ReactiveRedisTemplate<String, Person> template = new ReactiveRedisTemplate(redisConnectionFactory, jsonSerializationContext);
+		ReactiveRedisTemplate<String, Person> template = new ReactiveRedisTemplate(redisConnectionFactory, serializationContext);
 
 		ObjectRecord<String, Person> record = template.opsForStream().read(Person.class, StreamOffset.fromStart(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY)).blockFirst();
 
 		assertThat(record.getStream()).isEqualTo(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY);
 		assertThat(record.getValue().getName()).isEqualTo("Attoumane");
 		assertThat(record.getValue().getAddress().getAddress()).isEqualTo("Rennes, France");
-
-		template.delete(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY).block();
 	}
 
 
-	private RedisSerializationContext redisStringOrJsonSerializationContext(Class<?> jsonTargetType) {
+	private RedisSerializationContext redisSerializationContext() {
 
-		RedisSerializationContext redisSerializationContext;
-		RedisSerializer jsonSerializer = null;
-
-		if (jsonTargetType != null) {
-			jsonSerializer = new Jackson2JsonRedisSerializer(jsonTargetType);
-		}
 		RedisSerializer stringSerializer = StringRedisSerializer.UTF_8;
-		RedisSerializationContext.SerializationPair stringSerializerPair = RedisSerializationContext.SerializationPair
+
+		RedisSerializationContext.SerializationPair stringSerializerPair = RedisSerializationContext
+				.SerializationPair
 				.fromSerializer(stringSerializer);
 
-		if (jsonTargetType == null) {
-			redisSerializationContext = RedisSerializationContext
-					.newSerializationContext()
-					.key(stringSerializerPair)
-					.value(stringSerializer)
-					.hashKey(stringSerializer)
-					.hashValue(stringSerializer)
-					.build();
-		}
-		else {
-			redisSerializationContext = RedisSerializationContext
-					.newSerializationContext()
-					.key(jsonSerializer)
-					.value(jsonSerializer)
-					.hashKey(jsonSerializer)
-					.hashValue(jsonSerializer)
-					.build();
+		return RedisSerializationContext
+				.newSerializationContext()
+				.key(stringSerializerPair)
+				.value(stringSerializer)
+				.hashKey(stringSerializer)
+				.hashValue(stringSerializer)
+				.build();
+	}
+
+
+	@Configuration
+	public static class ReactiveRedisStreamMessageHandlerTestsContext {
+
+		public static final String STREAM_KEY = "myStream";
+
+		@Bean
+		public MessageChannel streamChannel(ReactiveMessageHandlerAdapter messageHandlerAdapter) {
+			DirectChannel directChannel = new DirectChannel();
+			directChannel.subscribe(messageHandlerAdapter);
+			directChannel.setMaxSubscribers(1);
+			return directChannel;
 		}
 
-		return redisSerializationContext;
+
+		@Bean
+		public ReactiveRedisStreamMessageHandler streamMessageHandler(ReactiveRedisConnectionFactory connectionFactory) {
+			return new ReactiveRedisStreamMessageHandler(connectionFactory, STREAM_KEY);
+		}
+
+		@Bean
+		public ReactiveMessageHandlerAdapter reactiveMessageHandlerAdapter(ReactiveRedisStreamMessageHandler streamMessageHandler) {
+			return new ReactiveMessageHandlerAdapter(streamMessageHandler);
+		}
+
+		@Bean
+		public ReactiveRedisConnectionFactory reactiveRedisConnectionFactory() {
+			return RedisAvailableRule.connectionFactory;
+		}
 	}
 
 }
