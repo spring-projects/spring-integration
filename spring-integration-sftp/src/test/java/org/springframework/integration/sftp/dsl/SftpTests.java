@@ -56,9 +56,8 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Joaquin Santana
- *
+ * @author Deepak Gunasekaran
  * @since 5.0
- *
  */
 @SpringJUnitConfig
 @DirtiesContext

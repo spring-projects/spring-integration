@@ -34,7 +34,7 @@ import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
  *
  * @author Artem Bilan
  * @author Gary Russell
- *
+ * @author Deepak Gunasekaran
  * @since 5.0
  */
 public final class Ftp {
@@ -136,6 +136,7 @@ public final class Ftp {
 	 * A {@link FtpMessageHandlerSpec} factory for an outbound channel adapter spec.
 	 * @param ftpRemoteFileTemplate the remote file template.
 	 * @return the spec.
+	 * @since 5.4
 	 */
 	public static FtpMessageHandlerSpec outboundAdapter(FtpRemoteFileTemplate ftpRemoteFileTemplate) {
 		return new FtpMessageHandlerSpec(ftpRemoteFileTemplate);
@@ -146,6 +147,7 @@ public final class Ftp {
 	 * @param ftpRemoteFileTemplate the remote file template.
 	 * @param fileExistsMode the file exists mode.
 	 * @return the spec.
+	 * @since 5.4
 	 */
 	public static FtpMessageHandlerSpec outboundAdapter(FtpRemoteFileTemplate ftpRemoteFileTemplate,
 			FileExistsMode fileExistsMode) {

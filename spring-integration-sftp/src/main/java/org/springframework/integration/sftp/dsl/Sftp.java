@@ -35,7 +35,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  *
  * @author Artem Bilan
  * @author Gary Russell
- *
+ * @author Deepak Gunasekaran
  * @since 5.0
  */
 public final class Sftp {
@@ -124,7 +124,8 @@ public final class Sftp {
 	 * @param remoteFileTemplate the remote file template.
 	 * @param fileExistsMode the file exists mode.
 	 * @return the spec.
-	 * @deprecated in favor of {@link #outboundAdapter(SftpRemoteFileTemplate,FileExistsMode)}
+	 * @deprecated in favor of
+	 * {@link #outboundAdapter(SftpRemoteFileTemplate,FileExistsMode)}
 	 */
 	@Deprecated
 	public static SftpMessageHandlerSpec outboundAdapter(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate,

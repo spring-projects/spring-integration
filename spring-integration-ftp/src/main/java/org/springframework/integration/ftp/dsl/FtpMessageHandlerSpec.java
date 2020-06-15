@@ -30,7 +30,7 @@ import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
  *
  * @author Artem Bilan
  * @author Joaquin Santana
- *
+ * @author Deepak Gunasekaran
  * @since 5.0
  */
 public class FtpMessageHandlerSpec extends FileTransferringMessageHandlerSpec<FTPFile, FtpMessageHandlerSpec> {
