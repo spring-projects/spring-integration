@@ -71,6 +71,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Gary Russell
  * @author Joaquin Santana
  * @author Deepak Gunasekaran
+ *
  * @since 5.0
  */
 @SpringJUnitConfig

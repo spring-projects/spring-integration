@@ -29,6 +29,7 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Artem Bilan
  * @author Joaquin Santana
  * @author Deepak Gunasekaran
+ *
  * @since 5.0
  */
 public class SftpMessageHandlerSpec

@@ -36,6 +36,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Deepak Gunasekaran
+ *
  * @since 5.0
  */
 public final class Sftp {

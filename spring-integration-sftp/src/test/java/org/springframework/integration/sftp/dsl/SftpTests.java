@@ -57,6 +57,7 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Gary Russell
  * @author Joaquin Santana
  * @author Deepak Gunasekaran
+ *
  * @since 5.0
  */
 @SpringJUnitConfig
