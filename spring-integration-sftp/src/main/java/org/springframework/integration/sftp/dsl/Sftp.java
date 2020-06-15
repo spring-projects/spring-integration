@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Deepak Gunasekaran
  *
  * @since 5.0
  */
@@ -112,7 +113,9 @@ public final class Sftp {
 	 * An {@link SftpMessageHandlerSpec} factory for an outbound channel adapter spec.
 	 * @param remoteFileTemplate the remote file template.
 	 * @return the spec.
+	 * @deprecated in favor of {@link #outboundAdapter(SftpRemoteFileTemplate)}
 	 */
+	@Deprecated
 	public static SftpMessageHandlerSpec outboundAdapter(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate) {
 		return new SftpMessageHandlerSpec(remoteFileTemplate);
 	}
@@ -122,11 +125,37 @@ public final class Sftp {
 	 * @param remoteFileTemplate the remote file template.
 	 * @param fileExistsMode the file exists mode.
 	 * @return the spec.
+	 * @deprecated in favor of
+	 * {@link #outboundAdapter(SftpRemoteFileTemplate,FileExistsMode)}
 	 */
+	@Deprecated
 	public static SftpMessageHandlerSpec outboundAdapter(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate,
 			FileExistsMode fileExistsMode) {
 
 		return new SftpMessageHandlerSpec(remoteFileTemplate, fileExistsMode);
+	}
+
+	/**
+	 * An {@link SftpMessageHandlerSpec} factory for an outbound channel adapter spec.
+	 * @param sftpRemoteFileTemplate the remote file template.
+	 * @return the spec.
+	 * @since 5.4
+	 */
+	public static SftpMessageHandlerSpec outboundAdapter(SftpRemoteFileTemplate sftpRemoteFileTemplate) {
+		return new SftpMessageHandlerSpec(sftpRemoteFileTemplate);
+	}
+
+	/**
+	 * An {@link SftpMessageHandlerSpec} factory for an outbound channel adapter spec.
+	 * @param sftpRemoteFileTemplate the remote file template.
+	 * @param fileExistsMode the file exists mode.
+	 * @return the spec.
+	 * @since 5.4
+	 */
+	public static SftpMessageHandlerSpec outboundAdapter(SftpRemoteFileTemplate sftpRemoteFileTemplate,
+			FileExistsMode fileExistsMode) {
+
+		return new SftpMessageHandlerSpec(sftpRemoteFileTemplate, fileExistsMode);
 	}
 
 	/**

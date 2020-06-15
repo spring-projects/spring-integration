@@ -56,9 +56,9 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Joaquin Santana
+ * @author Deepak Gunasekaran
  *
  * @since 5.0
- *
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -144,6 +144,51 @@ public class SftpTests extends SftpTestSupport {
 				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
 		assertThat(files.length).isEqualTo(1);
 		assertThat(files[0].getAttrs().getSize()).isEqualTo(3);
+
+		registration.destroy();
+	}
+
+	@Test
+	public void testSftpOutboundFlowSftpTemplate() {
+		SftpRemoteFileTemplate sftpTemplate = new SftpRemoteFileTemplate(sessionFactory());
+		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sftpTemplate)
+				.useTemporaryFileName(false)
+				.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+				.remoteDirectory("sftpTarget"));
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "foo.file";
+		registration.getInputChannel().send(MessageBuilder.withPayload("foo")
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build());
+
+		ChannelSftp.LsEntry[] files = sftpTemplate.execute(session ->
+				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		assertThat(files.length).isEqualTo(1);
+		assertThat(files[0].getAttrs().getSize()).isEqualTo(3);
+
+		registration.destroy();
+	}
+
+	@Test
+	public void testSftpOutboundFlowSftpTemplateAndMode() {
+		SftpRemoteFileTemplate sftpTemplate = new SftpRemoteFileTemplate(sessionFactory());
+		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sftpTemplate, FileExistsMode.APPEND)
+				.useTemporaryFileName(false)
+				.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+				.remoteDirectory("sftpTarget"));
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "foo.file";
+		registration.getInputChannel().send(MessageBuilder.withPayload("foo")
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build());
+		registration.getInputChannel().send(MessageBuilder.withPayload("foo")
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build());
+
+		ChannelSftp.LsEntry[] files = sftpTemplate.execute(session ->
+				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		assertThat(files.length).isEqualTo(1);
+		assertThat(files[0].getAttrs().getSize()).isEqualTo(6);
 
 		registration.destroy();
 	}

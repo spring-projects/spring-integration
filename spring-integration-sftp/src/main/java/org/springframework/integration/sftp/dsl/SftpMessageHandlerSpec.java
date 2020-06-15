@@ -28,6 +28,7 @@ import com.jcraft.jsch.ChannelSftp;
 /**
  * @author Artem Bilan
  * @author Joaquin Santana
+ * @author Deepak Gunasekaran
  *
  * @since 5.0
  */
@@ -38,16 +39,27 @@ public class SftpMessageHandlerSpec
 		this.target = new SftpMessageHandler(sessionFactory);
 	}
 
+	@Deprecated
 	protected SftpMessageHandlerSpec(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate) {
 		this.target = new SftpMessageHandler(remoteFileTemplate.getSessionFactory());
 	}
 
+	@Deprecated
 	protected SftpMessageHandlerSpec(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate,
 			FileExistsMode fileExistsMode) {
 
 		this.target =
 				new SftpMessageHandler(new SftpRemoteFileTemplate(remoteFileTemplate.getSessionFactory()),
 						fileExistsMode);
+	}
+
+	protected SftpMessageHandlerSpec(SftpRemoteFileTemplate sftpRemoteFileTemplate) {
+		this.target = new SftpMessageHandler(sftpRemoteFileTemplate);
+	}
+
+	protected SftpMessageHandlerSpec(SftpRemoteFileTemplate sftpRemoteFileTemplate, FileExistsMode fileExistsMode) {
+
+		this.target = new SftpMessageHandler(sftpRemoteFileTemplate, fileExistsMode);
 	}
 
 }

@@ -34,6 +34,7 @@ import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Deepak Gunasekaran
  *
  * @since 5.0
  */
@@ -111,7 +112,9 @@ public final class Ftp {
 	 * A {@link FtpMessageHandlerSpec} factory for an outbound channel adapter spec.
 	 * @param remoteFileTemplate the remote file template.
 	 * @return the spec.
+	 * @deprecated in favor of {@link #outboundAdapter(FtpRemoteFileTemplate)}
 	 */
+	@Deprecated
 	public static FtpMessageHandlerSpec outboundAdapter(RemoteFileTemplate<FTPFile> remoteFileTemplate) {
 		return new FtpMessageHandlerSpec(remoteFileTemplate);
 	}
@@ -121,11 +124,36 @@ public final class Ftp {
 	 * @param remoteFileTemplate the remote file template.
 	 * @param fileExistsMode the file exists mode.
 	 * @return the spec.
+	 * @deprecated in favor of {@link #outboundAdapter(FtpRemoteFileTemplate, FileExistsMode)}
 	 */
+	@Deprecated
 	public static FtpMessageHandlerSpec outboundAdapter(RemoteFileTemplate<FTPFile> remoteFileTemplate,
 			FileExistsMode fileExistsMode) {
 
 		return new FtpMessageHandlerSpec(remoteFileTemplate, fileExistsMode);
+	}
+
+	/**
+	 * A {@link FtpMessageHandlerSpec} factory for an outbound channel adapter spec.
+	 * @param ftpRemoteFileTemplate the remote file template.
+	 * @return the spec.
+	 * @since 5.4
+	 */
+	public static FtpMessageHandlerSpec outboundAdapter(FtpRemoteFileTemplate ftpRemoteFileTemplate) {
+		return new FtpMessageHandlerSpec(ftpRemoteFileTemplate);
+	}
+
+	/**
+	 * A {@link FtpMessageHandlerSpec} factory for an outbound channel adapter spec.
+	 * @param ftpRemoteFileTemplate the remote file template.
+	 * @param fileExistsMode the file exists mode.
+	 * @return the spec.
+	 * @since 5.4
+	 */
+	public static FtpMessageHandlerSpec outboundAdapter(FtpRemoteFileTemplate ftpRemoteFileTemplate,
+			FileExistsMode fileExistsMode) {
+
+		return new FtpMessageHandlerSpec(ftpRemoteFileTemplate, fileExistsMode);
 	}
 
 	/**
