@@ -136,7 +136,8 @@ public final class Sftp {
 	/**
 	 * An {@link SftpMessageHandlerSpec} factory for an outbound channel adapter spec.
 	 * @param sftpRemoteFileTemplate the remote file template.
-     * @return the spec.
+	 * @return the spec.
+	 * @since 5.4
 	 */
 	public static SftpMessageHandlerSpec outboundAdapter(SftpRemoteFileTemplate sftpRemoteFileTemplate) {
 		return new SftpMessageHandlerSpec(sftpRemoteFileTemplate);
@@ -147,6 +148,7 @@ public final class Sftp {
 	 * @param sftpRemoteFileTemplate the remote file template.
 	 * @param fileExistsMode the file exists mode.
 	 * @return the spec.
+	 * @since 5.4
 	 */
 	public static SftpMessageHandlerSpec outboundAdapter(SftpRemoteFileTemplate sftpRemoteFileTemplate,
 			FileExistsMode fileExistsMode) {
