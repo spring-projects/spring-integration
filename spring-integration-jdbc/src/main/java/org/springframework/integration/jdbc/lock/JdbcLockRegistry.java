@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.util.UUIDConverter;
+import org.springframework.transaction.TransactionTimedOutException;
 import org.springframework.util.Assert;
 
 /**
@@ -47,6 +48,7 @@ import org.springframework.util.Assert;
  * @author Kai Zimmermann
  * @author Bartosz Rempuszewski
  * @author Gary Russell
+ * @author Alexandre Strubel
  *
  * @since 4.3
  */
@@ -131,7 +133,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					}
 					break;
 				}
-				catch (TransientDataAccessException e) {
+				catch (TransientDataAccessException | TransactionTimedOutException e) {
 					// try again
 				}
 				catch (InterruptedException e) {
@@ -165,7 +167,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					}
 					break;
 				}
-				catch (TransientDataAccessException e) {
+				catch (TransientDataAccessException | TransactionTimedOutException e) {
 					// try again
 				}
 				catch (InterruptedException ie) {
@@ -209,7 +211,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					}
 					return acquired;
 				}
-				catch (TransientDataAccessException e) {
+				catch (TransientDataAccessException | TransactionTimedOutException e) {
 					// try again
 				}
 				catch (Exception e) {
