@@ -52,8 +52,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnJre;
-import org.junit.jupiter.api.condition.JRE;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -341,7 +339,6 @@ public class CachingClientConnectionFactoryTests {
 	}
 
 	@Test
-	@EnabledOnJre(JRE.JAVA_8)
 	public void testExceptionOnSendNio() throws Exception {
 		TcpConnectionSupport conn1 = mockedTcpNioConnection();
 		TcpConnectionSupport conn2 = mockedTcpNioConnection();
@@ -388,7 +385,12 @@ public class CachingClientConnectionFactoryTests {
 
 	private TcpConnectionSupport mockedTcpNioConnection() throws Exception {
 		SocketChannel socketChannel = mock(SocketChannel.class);
-		new DirectFieldAccessor(socketChannel).setPropertyValue("open", false);
+		if (System.getProperty("java.version").startsWith("1.8")) {
+			new DirectFieldAccessor(socketChannel).setPropertyValue("open", false);
+		}
+		else {
+			new DirectFieldAccessor(socketChannel).setPropertyValue("closed", true);
+		}
 		doThrow(new IOException("Foo")).when(socketChannel).write(Mockito.any(ByteBuffer.class));
 		when(socketChannel.socket()).thenReturn(mock(Socket.class));
 		TcpNioConnection conn = new TcpNioConnection(socketChannel, false, false, event -> {

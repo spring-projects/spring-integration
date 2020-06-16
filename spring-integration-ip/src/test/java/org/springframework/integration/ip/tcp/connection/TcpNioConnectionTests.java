@@ -66,8 +66,6 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.condition.EnabledOnJre;
-import org.junit.jupiter.api.condition.JRE;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -247,7 +245,6 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
-	@EnabledOnJre(JRE.JAVA_8)
 	public void testCleanup() throws Exception {
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0);
 		factory.setApplicationEventPublisher(nullPublisher);
@@ -262,37 +259,46 @@ public class TcpNioConnectionTests {
 		connections.put(chan1, conn1);
 		connections.put(chan2, conn2);
 		connections.put(chan3, conn3);
+		boolean java8 = System.getProperty("java.version").startsWith("1.8");
 		final List<Field> fields = new ArrayList<>();
-		ReflectionUtils.doWithFields(SocketChannel.class, field -> {
-			field.setAccessible(true);
-			fields.add(field);
-		}, field -> field.getName().equals("open"));
+		if (java8) {
+			ReflectionUtils.doWithFields(SocketChannel.class, field -> {
+				field.setAccessible(true);
+				fields.add(field);
+			}, field -> field.getName().equals("open"));
+		}
+		else {
+			ReflectionUtils.doWithFields(SocketChannel.class, field -> {
+				field.setAccessible(true);
+				fields.add(field);
+			}, field -> field.getName().equals("closed"));
+		}
 		Field field = fields.get(0);
 		// Can't use Mockito because isOpen() is final
-		ReflectionUtils.setField(field, chan1, true);
-		ReflectionUtils.setField(field, chan2, true);
-		ReflectionUtils.setField(field, chan3, true);
+		ReflectionUtils.setField(field, chan1, java8);
+		ReflectionUtils.setField(field, chan2, java8);
+		ReflectionUtils.setField(field, chan3, java8);
 		Selector selector = mock(Selector.class);
 		HashSet<SelectionKey> keys = new HashSet<>();
 		when(selector.selectedKeys()).thenReturn(keys);
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(3); // all open
 
-		ReflectionUtils.setField(field, chan1, false);
+		ReflectionUtils.setField(field, chan1, !java8);
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(3); // interval didn't pass
 		Thread.sleep(110);
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(2); // first is closed
 
-		ReflectionUtils.setField(field, chan2, false);
+		ReflectionUtils.setField(field, chan2, !java8);
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(2); // interval didn't pass
 		Thread.sleep(110);
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(1); // second is closed
 
-		ReflectionUtils.setField(field, chan3, false);
+		ReflectionUtils.setField(field, chan3, !java8);
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(1); // interval didn't pass
 		Thread.sleep(110);

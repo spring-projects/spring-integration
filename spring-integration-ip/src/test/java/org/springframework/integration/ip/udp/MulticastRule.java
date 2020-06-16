@@ -99,7 +99,7 @@ public class MulticastRule extends TestWatcher {
 		if (this.skip) {
 			LogFactory.getLog(getClass()).info("No Multicast support; test skipped");
 		}
-		Assume.assumeTrue(this.skip);
+		Assume.assumeFalse(this.skip);
 		return super.apply(base, description);
 	}
 
