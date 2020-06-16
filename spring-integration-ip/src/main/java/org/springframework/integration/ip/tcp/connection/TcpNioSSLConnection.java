@@ -301,6 +301,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	@Override
 	public void close() {
 		super.close();
+		logger.trace("Resuming for close");
 		this.semaphore.release();
 	}
 
@@ -364,6 +365,9 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			TcpNioSSLConnection.this.semaphore.drainPermits();
 			HandshakeStatus status = TcpNioSSLConnection.this.sslEngine.getHandshakeStatus();
 			while (status != HandshakeStatus.FINISHED) {
+				if (logger.isTraceEnabled()) {
+					logger.trace("Handshake Status: " + status);
+				}
 				writeEncodedIfAny();
 				status = runTasksIfNeeded(result);
 				if (status == HandshakeStatus.NEED_UNWRAP) {
@@ -382,6 +386,9 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 				else {
 					logger.debug(status);
 				}
+			}
+			if (logger.isTraceEnabled()) {
+				logger.trace("Handshake Status: " + status);
 			}
 		}
 
