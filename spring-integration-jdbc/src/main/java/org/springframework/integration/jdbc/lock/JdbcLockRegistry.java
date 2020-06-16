@@ -127,6 +127,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				catch (TransientDataAccessException e) {
 					// try again
 				}
+				catch (TransactionTimedOutException e) {
+					// try again
+				}
 				catch (InterruptedException e) {
 						/*
 						 * This method must be uninterruptible so catch and ignore
