@@ -355,11 +355,20 @@ public class SocketTestUtils {
 		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 		while (interfaces.hasMoreElements()) {
 			NetworkInterface networkInterface = interfaces.nextElement();
-			if (!networkInterface.isLoopback()
-					&& (!multicast || networkInterface.supportsMulticast())
-					&& !networkInterface.getName().contains("vboxnet")
-					&& networkInterface.getInetAddresses().hasMoreElements()) {
-				return networkInterface;
+			if ((!multicast || networkInterface.supportsMulticast())
+					&& !networkInterface.getName().contains("vboxnet")) {
+
+				Enumeration<InetAddress> addressesFromNetworkInterface = networkInterface.getInetAddresses();
+				while (addressesFromNetworkInterface.hasMoreElements()) {
+					InetAddress inetAddress = addressesFromNetworkInterface.nextElement();
+					if (inetAddress.isSiteLocalAddress()
+							&& !inetAddress.isAnyLocalAddress()
+							&& !inetAddress.isLinkLocalAddress()
+							&& !inetAddress.isLoopbackAddress()) {
+
+						return networkInterface;
+					}
+				}
 			}
 		}
 		return null;

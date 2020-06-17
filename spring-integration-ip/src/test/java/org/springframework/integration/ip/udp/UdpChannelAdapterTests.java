@@ -254,7 +254,7 @@ public class UdpChannelAdapterTests {
 		adapter.setOutputChannel(channel);
 		NetworkInterface nic = this.multicastRule.getNic();
 		if (nic != null) {
-			adapter.setLocalAddress(nic.getName());
+			adapter.setLocalAddress(nic.getInetAddresses().nextElement().getHostName());
 		}
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
@@ -283,7 +283,7 @@ public class UdpChannelAdapterTests {
 		adapter.setOutputChannel(channel);
 		NetworkInterface nic = this.multicastRule.getNic();
 		if (nic != null) {
-			adapter.setLocalAddress(nic.getName());
+			adapter.setLocalAddress(nic.getInetAddresses().nextElement().getHostName());
 		}
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
@@ -291,7 +291,7 @@ public class UdpChannelAdapterTests {
 		MulticastSendingMessageHandler handler =
 				new MulticastSendingMessageHandler(this.multicastRule.getGroup(), adapter.getPort());
 		if (nic != null) {
-			handler.setLocalAddress(nic.getName());
+			handler.setLocalAddress(nic.getInetAddresses().nextElement().getHostName());
 		}
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		handler.handleMessage(message);

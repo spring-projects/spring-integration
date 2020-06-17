@@ -167,7 +167,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 			}
 			setSocketAttributes(socket);
 			if (this.localAddress != null) {
-				socket.setNetworkInterface(NetworkInterface.getByName(this.localAddress));
+				socket.setNetworkInterface(NetworkInterface.getByInetAddress(InetAddress.getByName(this.localAddress)));
 			}
 			this.multicastSocket = socket;
 		}

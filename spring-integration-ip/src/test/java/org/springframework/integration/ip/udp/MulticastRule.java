@@ -29,6 +29,7 @@ import org.junit.runners.model.Statement;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.SocketUtils;
 
 /**
  * @author Artem Bilan
@@ -62,7 +63,7 @@ public class MulticastRule extends TestWatcher {
 			throw new IllegalStateException(e);
 		}
 		if (this.nic != null) {
-			System.setProperty("multicast.local.address", this.nic.getName());
+			System.setProperty("multicast.local.address", this.nic.getInetAddresses().nextElement().getHostName());
 		}
 	}
 
@@ -75,7 +76,7 @@ public class MulticastRule extends TestWatcher {
 		}
 		try {
 			MulticastSocket socket = new MulticastSocket();
-			socket.joinGroup(new InetSocketAddress(this.group, 161), nic);
+			socket.joinGroup(new InetSocketAddress(this.group, SocketUtils.findAvailableUdpPort()), nic);
 			socket.close();
 		}
 		catch (Exception e) {

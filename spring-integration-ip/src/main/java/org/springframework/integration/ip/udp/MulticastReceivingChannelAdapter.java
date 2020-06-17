@@ -19,6 +19,7 @@ package org.springframework.integration.ip.udp;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 
@@ -69,12 +70,12 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 			try {
 				int port = getPort();
 				MulticastSocket socket = port == 0 ? new MulticastSocket() : new MulticastSocket(port);
-				String localAddress = this.getLocalAddress();
+				String localAddress = getLocalAddress();
 				if (localAddress != null) {
-					socket.setNetworkInterface(NetworkInterface.getByName(localAddress));
+					socket.setNetworkInterface(NetworkInterface.getByInetAddress(InetAddress.getByName(localAddress)));
 				}
 				setSocketAttributes(socket);
-				socket.joinGroup(InetAddress.getByName(this.group));
+				socket.joinGroup(new InetSocketAddress(this.group, 0), null);
 				setSocket(socket);
 			}
 			catch (IOException e) {

@@ -53,6 +53,7 @@ import org.springframework.messaging.support.GenericMessage;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class UdpMulticastEndToEndTests implements Runnable {
@@ -100,7 +101,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 		StandardEnvironment env = new StandardEnvironment();
 		Properties props = new Properties();
 		props.setProperty("port", Integer.toString(launcher.getReceiverPort()));
-		PropertiesPropertySource pps = new PropertiesPropertySource("ftpprops", props);
+		PropertiesPropertySource pps = new PropertiesPropertySource("udpprops", props);
 		env.getPropertySources().addLast(pps);
 		applicationContext.setEnvironment(env);
 		applicationContext.refresh();
@@ -116,7 +117,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 		String testingIpText;
 		try {
 			testingIpText = ">>>>>>> Testing IP (multicast) " + new Date();
-			inputChannel.send(new GenericMessage<String>(testingIpText));
+			inputChannel.send(new GenericMessage<>(testingIpText));
 			sentFirst.countDown();
 			try {
 				Thread.sleep(hangAroundFor); // give some time for console interaction

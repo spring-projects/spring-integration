@@ -30,7 +30,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -73,7 +72,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				MulticastSocket socket1 = new MulticastSocket(testPort);
 				socket1.setNetworkInterface(multicastRule.getNic());
 				InetAddress group = InetAddress.getByName(multicastAddress);
-				socket1.joinGroup(group);
+				socket1.joinGroup(new InetSocketAddress(group, 0), null);
 				listening.countDown();
 				socket1.receive(receivedPacket);
 				socket1.close();
@@ -98,7 +97,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		NetworkInterface nic = this.multicastRule.getNic();
 		if (nic != null) {
-			handler.setLocalAddress(nic.getName());
+			handler.setLocalAddress(nic.getInetAddresses().nextElement().getHostName());
 		}
 		handler.afterPropertiesSet();
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
@@ -108,7 +107,6 @@ public class DatagramPacketMulticastSendingHandlerTests {
 	}
 
 	@Test
-	@Ignore("Doesn't work on Java 14")
 	public void verifySendMulticastWithAcks() throws Exception {
 
 		MulticastSocket socket;
@@ -134,7 +132,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				socket1.setNetworkInterface(multicastRule.getNic());
 				socket1.setSoTimeout(8000);
 				InetAddress group = InetAddress.getByName(multicastAddress);
-				socket1.joinGroup(group);
+				socket1.joinGroup(new InetSocketAddress(group, 0), null);
 				listening.countDown();
 				assertThat(ackListening.await(10, TimeUnit.SECONDS)).isTrue();
 				socket1.receive(receivedPacket);
@@ -170,7 +168,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		assertThat(listening.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		MulticastSendingMessageHandler handler =
 				new MulticastSendingMessageHandler(multicastAddress, testPort, true, true, "localhost", 0, 10000);
-		handler.setLocalAddress(this.multicastRule.getNic().getName());
+		handler.setLocalAddress(this.multicastRule.getNic().getInetAddresses().nextElement().getHostName());
 		handler.setMinAcksForSuccess(2);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
