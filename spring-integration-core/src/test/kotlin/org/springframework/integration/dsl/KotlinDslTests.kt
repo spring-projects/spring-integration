@@ -154,8 +154,8 @@ class KotlinDslTests {
 
 		val verifyLater =
 				StepVerifier
-						.create(Flux.from(fluxChannel).map { it.payload }.cast(Integer::class.java))
-						.expectNext(Integer(4), Integer(6))
+						.create(Flux.from(fluxChannel).map { it.payload }.map { it.toString().toInt() })
+						.expectNext(4, 6)
 						.thenCancel()
 						.verifyLater()
 

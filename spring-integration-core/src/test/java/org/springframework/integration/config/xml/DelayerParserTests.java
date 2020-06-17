@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,13 +63,13 @@ public class DelayerParserTests {
 		DelayHandler delayHandler = context.getBean("delayerWithDefaultScheduler.handler", DelayHandler.class);
 		assertThat(delayHandler.getOrder()).isEqualTo(99);
 		assertThat(delayHandler.getOutputChannel()).isSameAs(this.context.getBean("output"));
-		assertThat(TestUtils.getPropertyValue(delayHandler, "defaultDelay", Long.class)).isEqualTo(new Long(1234));
+		assertThat(TestUtils.getPropertyValue(delayHandler, "defaultDelay", Long.class)).isEqualTo(1234L);
 		//INT-2243
 		assertThat(TestUtils.getPropertyValue(delayHandler, "delayExpression")).isNotNull();
 		assertThat(TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString())
 				.isEqualTo("headers.foo");
 		assertThat(TestUtils.getPropertyValue(delayHandler, "messagingTemplate.sendTimeout", Long.class))
-				.isEqualTo(new Long(987));
+				.isEqualTo(987L);
 		assertThat(TestUtils.getPropertyValue(delayHandler, "taskScheduler")).isNull();
 	}
 

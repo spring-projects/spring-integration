@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -137,7 +138,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("expirationDateValueInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
-		assertThat(new IntegrationMessageHeaderAccessor(result).getExpirationDate()).isEqualTo(new Long(1111));
+		assertThat(new IntegrationMessageHeaderAccessor(result).getExpirationDate()).isEqualTo(1111L);
 	}
 
 	@Test
@@ -146,7 +147,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("expirationDateRefInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
-		assertThat(new IntegrationMessageHeaderAccessor(result).getExpirationDate()).isEqualTo(new Long(9999));
+		assertThat(new IntegrationMessageHeaderAccessor(result).getExpirationDate()).isEqualTo(9999);
 	}
 
 	@Test
@@ -155,7 +156,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("priorityInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
-		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(new Integer(42));
+		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(42);
 	}
 
 	@Test
@@ -165,7 +166,7 @@ public class HeaderEnricherTests {
 		Message<?> result = template.sendAndReceive(channel,
 				new GenericMessage<>(Collections.singletonMap("priority", "-10")));
 		assertThat(result).isNotNull();
-		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(new Integer(-10));
+		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(-10);
 	}
 
 	@Test
@@ -300,7 +301,7 @@ public class HeaderEnricherTests {
 
 			TestBean testBean = (TestBean) o;
 
-			return !(name != null ? !name.equals(testBean.name) : testBean.name != null);
+			return Objects.equals(name, testBean.name);
 
 		}
 

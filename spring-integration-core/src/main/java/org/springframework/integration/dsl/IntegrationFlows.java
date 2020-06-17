@@ -141,8 +141,8 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @see Supplier
 	 */
-	public static <T> IntegrationFlowBuilder from(Supplier<T> messageSource) {
-		return from(messageSource, null);
+	public static <T> IntegrationFlowBuilder fromSupplier(Supplier<T> messageSource) {
+		return fromSupplier(messageSource, null);
 	}
 
 	/**
@@ -156,7 +156,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @see Supplier
 	 */
-	public static <T> IntegrationFlowBuilder from(Supplier<T> messageSource,
+	public static <T> IntegrationFlowBuilder fromSupplier(Supplier<T> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 
 		Assert.notNull(messageSource, "'messageSource' must not be null");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -33,16 +32,14 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class SpelSplitterIntegrationTests {
 
 	@Autowired
@@ -83,13 +80,13 @@ public class SpelSplitterIntegrationTests {
 		Message<?> two = output.receive(0);
 		Message<?> three = output.receive(0);
 		Message<?> four = output.receive(0);
-		assertThat(one.getPayload()).isEqualTo(new Integer(1));
+		assertThat(one.getPayload()).isEqualTo(1);
 		assertThat(one.getHeaders().get("foo")).isEqualTo("foo");
-		assertThat(two.getPayload()).isEqualTo(new Integer(2));
+		assertThat(two.getPayload()).isEqualTo(2);
 		assertThat(two.getHeaders().get("foo")).isEqualTo("foo");
-		assertThat(three.getPayload()).isEqualTo(new Integer(3));
+		assertThat(three.getPayload()).isEqualTo(3);
 		assertThat(three.getHeaders().get("foo")).isEqualTo("foo");
-		assertThat(four.getPayload()).isEqualTo(new Integer(4));
+		assertThat(four.getPayload()).isEqualTo(4);
 		assertThat(four.getHeaders().get("foo")).isEqualTo("foo");
 		assertThat(output.receive(0)).isNull();
 	}
@@ -111,7 +108,7 @@ public class SpelSplitterIntegrationTests {
 
 	@Test
 	public void iteratorSplitter() {
-		this.iteratorInput.send(new GenericMessage<String>("a,b,c,d"));
+		this.iteratorInput.send(new GenericMessage<>("a,b,c,d"));
 		Message<?> a = output.receive(0);
 		Message<?> b = output.receive(0);
 		Message<?> c = output.receive(0);
@@ -133,7 +130,7 @@ public class SpelSplitterIntegrationTests {
 
 	@Test
 	public void spelIteratorSplitter() {
-		this.spelIteratorInput.send(new GenericMessage<String>("a,b,c,d"));
+		this.spelIteratorInput.send(new GenericMessage<>("a,b,c,d"));
 		Message<?> a = output.receive(0);
 		Message<?> b = output.receive(0);
 		Message<?> c = output.receive(0);

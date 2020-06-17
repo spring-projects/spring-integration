@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import javax.net.SocketFactory;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLServerSocket;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
@@ -520,14 +520,14 @@ public class SocketSupportTests {
 		testNioClientAndServerSSLDifferentContexts(false);
 		assertThatExceptionOfType(MessagingException.class)
 			.isThrownBy(() -> testNioClientAndServerSSLDifferentContexts(true))
-			.withMessageMatching(".*(Socket closed during SSL Handshake|Broken pipe"
-					+ "|Connection reset by peer|AsynchronousCloseException|ClosedChannelException).*");
+			.withMessageMatching(".*javax.net.ssl.SSLHandshakeException.*");
 	}
 
-	private void testNioClientAndServerSSLDifferentContexts(boolean badClient) throws Exception {
+	private void testNioClientAndServerSSLDifferentContexts(boolean badServer) throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
-		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
+		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport(
+				badServer ? "client.ks" : "server.ks",
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport, false) {
@@ -550,8 +550,7 @@ public class SocketSupportTests {
 		TestingUtilities.waitListening(server, null);
 
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
-		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport(
-				badClient ? "server.ks" : "client.ks",
+		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks",
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport, false);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Inet4Address;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -34,6 +34,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -244,13 +246,16 @@ public class UdpChannelAdapterTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
+	@EnabledOnJre(JRE.JAVA_8)
 	public void testMulticastReceiver() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
 		MulticastReceivingChannelAdapter adapter =
 				new MulticastReceivingChannelAdapter(this.multicastRule.getGroup(), 0);
 		adapter.setOutputChannel(channel);
-		String nic = this.multicastRule.getNic();
-		adapter.setLocalAddress(nic);
+		NetworkInterface nic = this.multicastRule.getNic();
+		if (nic != null) {
+			adapter.setLocalAddress(nic.getName());
+		}
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
 		int port = adapter.getPort();
@@ -259,7 +264,7 @@ public class UdpChannelAdapterTests {
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress(this.multicastRule.getGroup(), port));
-		DatagramSocket datagramSocket = new DatagramSocket(0, Inet4Address.getByName(nic));
+		DatagramSocket datagramSocket = new DatagramSocket(0, nic.getInetAddresses().nextElement());
 		datagramSocket.send(packet);
 		datagramSocket.close();
 
@@ -271,19 +276,23 @@ public class UdpChannelAdapterTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testMulticastSender() throws Exception {
+	public void testMulticastSender() {
 		QueueChannel channel = new QueueChannel(2);
 		UnicastReceivingChannelAdapter adapter =
 				new MulticastReceivingChannelAdapter(this.multicastRule.getGroup(), 0);
 		adapter.setOutputChannel(channel);
-		String nic = this.multicastRule.getNic();
-		adapter.setLocalAddress(nic);
+		NetworkInterface nic = this.multicastRule.getNic();
+		if (nic != null) {
+			adapter.setLocalAddress(nic.getName());
+		}
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
 
 		MulticastSendingMessageHandler handler =
 				new MulticastSendingMessageHandler(this.multicastRule.getGroup(), adapter.getPort());
-		handler.setLocalAddress(nic);
+		if (nic != null) {
+			handler.setLocalAddress(nic.getName());
+		}
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		handler.handleMessage(message);
 

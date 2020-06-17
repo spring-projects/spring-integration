@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2019 the original author or authors.
+ * Copyright 2001-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 import java.net.URISyntaxException;
 
 import org.springframework.expression.Expression;
@@ -35,6 +36,8 @@ import org.springframework.messaging.Message;
  * acknowledgments are required to determine success.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler {
@@ -79,6 +82,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	 */
 	public MulticastSendingMessageHandler(String address, int port,
 			boolean acknowledge, String ackHost, int ackPort, int ackTimeout) {
+
 		super(address, port, acknowledge, ackHost, ackPort, ackTimeout);
 	}
 
@@ -96,6 +100,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	public MulticastSendingMessageHandler(String address, int port,
 			boolean lengthCheck, boolean acknowledge, String ackHost,
 			int ackPort, int ackTimeout) {
+
 		super(address, port, lengthCheck, acknowledge, ackHost, ackPort, ackTimeout);
 	}
 
@@ -134,8 +139,8 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	private void createSocket() throws IOException {
 		if (getTheSocket() == null) {
 			MulticastSocket socket;
-			if (this.isAcknowledge()) {
-				int ackPort = this.getAckPort();
+			if (isAcknowledge()) {
+				int ackPort = getAckPort();
 				if (this.localAddress == null) {
 					socket = ackPort == 0 ? new MulticastSocket() : new MulticastSocket(ackPort);
 				}
@@ -143,8 +148,9 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 					InetAddress whichNic = InetAddress.getByName(this.localAddress);
 					socket = new MulticastSocket(new InetSocketAddress(whichNic, ackPort));
 				}
-				if (getSoReceiveBufferSize() > 0) {
-					socket.setReceiveBufferSize(this.getSoReceiveBufferSize());
+				int soReceiveBufferSize = getSoReceiveBufferSize();
+				if (soReceiveBufferSize > 0) {
+					socket.setReceiveBufferSize(soReceiveBufferSize);
 				}
 				if (logger.isDebugEnabled()) {
 					logger.debug("Listening for acks on port: " + socket.getLocalPort());
@@ -161,8 +167,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 			}
 			setSocketAttributes(socket);
 			if (this.localAddress != null) {
-				InetAddress whichNic = InetAddress.getByName(this.localAddress);
-				socket.setInterface(whichNic);
+				socket.setNetworkInterface(NetworkInterface.getByName(this.localAddress));
 			}
 			this.multicastSocket = socket;
 		}
@@ -194,7 +199,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	protected void convertAndSend(Message<?> message) throws IOException, URISyntaxException {
 		super.convertAndSend(message);
 		if (logger.isDebugEnabled()) {
-			logger.debug("Sent packet to " + this.multicastSocket.getInterface());
+			logger.debug("Sent packet to " + this.multicastSocket.getNetworkInterface());
 		}
 	}
 

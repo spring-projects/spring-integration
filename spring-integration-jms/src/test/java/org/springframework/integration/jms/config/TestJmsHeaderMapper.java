@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.messaging.MessageHeaders;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class TestJmsHeaderMapper extends JmsHeaderMapper {
 
@@ -36,9 +37,9 @@ public class TestJmsHeaderMapper extends JmsHeaderMapper {
 
 	@Override
 	public Map<String, Object> toHeaders(Message source) {
-		Map<String, Object> headerMap = new HashMap<String, Object>();
+		Map<String, Object> headerMap = new HashMap<>();
 		headerMap.put("testProperty", "foo");
-		headerMap.put("testAttribute", new Integer(123));
+		headerMap.put("testAttribute", 123);
 		return headerMap;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class MessageBuilderTests {
 				.setHeader("count", 123)
 				.build();
 		assertThat(message.getHeaders().get("foo", String.class)).isEqualTo("bar");
-		assertThat(message.getHeaders().get("count", Integer.class)).isEqualTo(new Integer(123));
+		assertThat(message.getHeaders().get("count", Integer.class)).isEqualTo(123);
 	}
 
 	@Test
@@ -189,7 +189,7 @@ public class MessageBuilderTests {
 	public void testPriority() {
 		Message<Integer> importantMessage = MessageBuilder.withPayload(1)
 				.setPriority(123).build();
-		assertThat(new IntegrationMessageHeaderAccessor(importantMessage).getPriority()).isEqualTo(new Integer(123));
+		assertThat(new IntegrationMessageHeaderAccessor(importantMessage).getPriority()).isEqualTo(123);
 	}
 
 	@Test
@@ -199,7 +199,7 @@ public class MessageBuilderTests {
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
 				.setHeaderIfAbsent(IntegrationMessageHeaderAccessor.PRIORITY, 13)
 				.build();
-		assertThat(new IntegrationMessageHeaderAccessor(message2).getPriority()).isEqualTo(new Integer(42));
+		assertThat(new IntegrationMessageHeaderAccessor(message2).getPriority()).isEqualTo(42);
 	}
 
 	@Test

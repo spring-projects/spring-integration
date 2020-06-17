@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.integration.ip.udp;
 
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assume;
@@ -26,10 +27,12 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.3
  */
 public class MulticastRule extends TestWatcher {
@@ -38,7 +41,8 @@ public class MulticastRule extends TestWatcher {
 
 	private final String group;
 
-	private final String nic;
+	@Nullable
+	private final NetworkInterface nic;
 
 	private boolean skip;
 
@@ -58,19 +62,20 @@ public class MulticastRule extends TestWatcher {
 			throw new IllegalStateException(e);
 		}
 		if (this.nic != null) {
-			System.setProperty("multicast.local.address", this.nic);
+			System.setProperty("multicast.local.address", this.nic.getName());
 		}
 	}
 
-	private String checkMulticast() throws Exception {
-		String nic = SocketTestUtils.chooseANic(true);
-		if (nic == null) {	// no multicast support
+	@Nullable
+	private NetworkInterface checkMulticast() throws Exception {
+		NetworkInterface nic = SocketTestUtils.chooseANic(true);
+		if (nic == null) {    // no multicast support
 			this.skip = true;
 			return null;
 		}
 		try {
 			MulticastSocket socket = new MulticastSocket();
-			socket.joinGroup(InetAddress.getByName(this.group));
+			socket.joinGroup(new InetSocketAddress(this.group, 161), nic);
 			socket.close();
 		}
 		catch (Exception e) {
@@ -84,25 +89,18 @@ public class MulticastRule extends TestWatcher {
 		return group;
 	}
 
-	public String getNic() {
+	@Nullable
+	public NetworkInterface getNic() {
 		return nic;
 	}
 
 	@Override
 	public Statement apply(Statement base, Description description) {
 		if (this.skip) {
-			LogFactory.getLog(this.getClass()).info("No Multicast support; test skipped");
-			return new Statement() {
-
-				@Override
-				public void evaluate() throws Throwable {
-					Assume.assumeTrue(false);
-				}
-			};
+			LogFactory.getLog(getClass()).info("No Multicast support; test skipped");
 		}
-		else {
-			return super.apply(base, description);
-		}
+		Assume.assumeFalse(this.skip);
+		return super.apply(base, description);
 	}
 
 }

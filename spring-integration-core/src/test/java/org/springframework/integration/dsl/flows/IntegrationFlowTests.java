@@ -540,7 +540,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow supplierFlow() {
-			return IntegrationFlows.from(stringSupplier())
+			return IntegrationFlows.fromSupplier(stringSupplier())
 					.transform(toUpperCaseFunction())
 					.channel("suppliedChannel")
 					.get();
@@ -572,7 +572,8 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow supplierFlow2() {
-			return IntegrationFlows.from(() -> "foo", c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
+			return IntegrationFlows.fromSupplier(() -> "foo",
+					c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
 					.<String, String>transform(String::toUpperCase)
 					.channel("suppliedChannel2")
 					.get();

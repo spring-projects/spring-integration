@@ -34,8 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
@@ -87,7 +86,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ReflectionUtils;
 
 import reactor.core.publisher.Flux;
@@ -100,7 +99,7 @@ import reactor.core.publisher.Flux;
  */
 @ContextConfiguration(loader = NoBeansOverrideAnnotationConfigContextLoader.class,
 		classes = ManualFlowTests.RootConfiguration.class)
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class ManualFlowTests {
 
@@ -537,7 +536,7 @@ public class ManualFlowTests {
 				.withCauseExactlyInstanceOf(IllegalStateException.class)
 				.withRootCauseInstanceOf(ClassCastException.class)
 				.withMessageContaining("from source: '" + source + "'")
-				.withStackTraceContaining("java.util.Date cannot be cast to java.lang.String");
+				.withStackTraceContaining("java.util.Date cannot be cast to");
 
 		flowRegistration.destroy();
 	}

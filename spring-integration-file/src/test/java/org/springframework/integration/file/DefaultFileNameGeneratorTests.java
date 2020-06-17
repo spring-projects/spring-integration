@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.mock;
 
 import java.io.File;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.support.MessageBuilder;
@@ -30,6 +30,7 @@ import org.springframework.messaging.Message;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class DefaultFileNameGeneratorTests {
 
@@ -55,7 +56,7 @@ public class DefaultFileNameGeneratorTests {
 	public void defaultHeaderNameNotString() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
 		generator.setBeanFactory(mock(BeanFactory.class));
-		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, new Integer(123))
+		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, 123)
 				.build();
 		String filename = generator.generateFileName(message);
 		assertThat(filename).isEqualTo(message.getHeaders().getId() + ".msg");
@@ -86,7 +87,7 @@ public class DefaultFileNameGeneratorTests {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
 		generator.setBeanFactory(mock(BeanFactory.class));
 		generator.setHeaderName("foo");
-		Message<?> message = MessageBuilder.withPayload("test").setHeader("foo", new Integer(123)).build();
+		Message<?> message = MessageBuilder.withPayload("test").setHeader("foo", 123).build();
 		String filename = generator.generateFileName(message);
 		assertThat(filename).isEqualTo(message.getHeaders().getId() + ".msg");
 	}

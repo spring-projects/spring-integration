@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.rsocket;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -66,17 +67,17 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 
 	public boolean detectEndpoints() {
 		ApplicationContext applicationContext = getApplicationContext();
+		boolean endpointsDetected = false;
 		if (applicationContext != null && getHandlerMethods().isEmpty()) {
-			return applicationContext
-					.getBeansOfType(IntegrationRSocketEndpoint.class)
-					.values()
-					.stream()
-					.peek(this::addEndpoint)
-					.count() > 0;
+			Collection<IntegrationRSocketEndpoint> endpoints =
+					applicationContext.getBeansOfType(IntegrationRSocketEndpoint.class)
+							.values();
+			for (IntegrationRSocketEndpoint endpoint : endpoints) {
+				addEndpoint(endpoint);
+				endpointsDetected = true;
+			}
 		}
-		else {
-			return false;
-		}
+		return endpointsDetected;
 	}
 
 	public void addEndpoint(IntegrationRSocketEndpoint endpoint) {

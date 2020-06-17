@@ -209,7 +209,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Integer result = service.requestReplyWithIntegers(123);
-		assertThat(result).isEqualTo(new Integer(123456));
+		assertThat(result).isEqualTo(123456);
 	}
 
 	@Test

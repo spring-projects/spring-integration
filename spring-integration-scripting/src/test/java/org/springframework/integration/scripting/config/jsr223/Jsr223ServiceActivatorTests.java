@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,13 @@
 package org.springframework.integration.scripting.config.jsr223;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,18 +33,18 @@ import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author David Turanski
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class Jsr223ServiceActivatorTests {
 
 	@Autowired
@@ -118,8 +117,7 @@ public class Jsr223ServiceActivatorTests {
 	}
 
 	@Test
-	public void inlineScript() throws Exception {
-
+	public void inlineScript() {
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -142,34 +140,31 @@ public class Jsr223ServiceActivatorTests {
 	}
 
 	@Test
-	public void variablesAndScriptVariableGenerator() throws Exception {
-		try {
-			new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-withgenerator-context.xml",
-					this.getClass()).close();
-			fail("BeansException expected.");
-		}
-		catch (BeansException e) {
-			assertThat(e.getMessage())
-					.contains("'script-variable-generator' and 'variable' sub-elements are mutually exclusive.");
-		}
+	public void variablesAndScriptVariableGenerator() {
+		assertThatExceptionOfType(BeansException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"Jsr223ServiceActivatorTests-fail-withgenerator-context.xml",
+								getClass()))
+				.withMessageContaining(
+						"'script-variable-generator' and 'variable' sub-elements are mutually exclusive.");
 	}
 
 	@Test
-	public void testDuplicateVariable() throws Exception {
-		try {
-			new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-duplicated-variable-context.xml",
-					this.getClass()).close();
-			fail("BeansException expected.");
-		}
-		catch (BeansException e) {
-			assertThat(e.getMessage()).contains("Duplicated variable: foo");
-		}
+	public void testDuplicateVariable() {
+		assertThatExceptionOfType(BeansException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"Jsr223ServiceActivatorTests-fail-duplicated-variable-context.xml",
+								getClass()))
+				.withMessageContaining("Duplicated variable: foo");
 	}
 
 	public static class SampleScriptVariSource implements ScriptVariableGenerator {
+
 		@Override
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
-			Map<String, Object> variables = new HashMap<String, Object>();
+			Map<String, Object> variables = new HashMap<>();
 			variables.put("foo", "foo");
 			variables.put("bar", "bar");
 			variables.put("date", new Date());
@@ -177,6 +172,7 @@ public class Jsr223ServiceActivatorTests {
 			variables.put("headers", message.getHeaders());
 			return variables;
 		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,19 @@ package org.springframework.integration.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class SpelFilterIntegrationTests {
 
 	@Autowired
@@ -56,28 +54,28 @@ public class SpelFilterIntegrationTests {
 
 	@Test
 	public void simpleExpressionBasedFilter() {
-		this.simpleInput.send(new GenericMessage<Integer>(1));
-		this.simpleInput.send(new GenericMessage<Integer>(0));
-		this.simpleInput.send(new GenericMessage<Integer>(99));
-		this.simpleInput.send(new GenericMessage<Integer>(-99));
-		assertThat(positives.receive(0).getPayload()).isEqualTo(new Integer(1));
-		assertThat(positives.receive(0).getPayload()).isEqualTo(new Integer(99));
-		assertThat(negatives.receive(0).getPayload()).isEqualTo(new Integer(0));
-		assertThat(negatives.receive(0).getPayload()).isEqualTo(new Integer(-99));
+		this.simpleInput.send(new GenericMessage<>(1));
+		this.simpleInput.send(new GenericMessage<>(0));
+		this.simpleInput.send(new GenericMessage<>(99));
+		this.simpleInput.send(new GenericMessage<>(-99));
+		assertThat(positives.receive(0).getPayload()).isEqualTo(1);
+		assertThat(positives.receive(0).getPayload()).isEqualTo(99);
+		assertThat(negatives.receive(0).getPayload()).isEqualTo(0);
+		assertThat(negatives.receive(0).getPayload()).isEqualTo(-99);
 		assertThat(positives.receive(0)).isNull();
 		assertThat(negatives.receive(0)).isNull();
 	}
 
 	@Test
 	public void beanResolvingExpressionBasedFilter() {
-		this.beanResolvingInput.send(new GenericMessage<Integer>(1));
-		this.beanResolvingInput.send(new GenericMessage<Integer>(2));
-		this.beanResolvingInput.send(new GenericMessage<Integer>(9));
-		this.beanResolvingInput.send(new GenericMessage<Integer>(22));
-		assertThat(odds.receive(0).getPayload()).isEqualTo(new Integer(1));
-		assertThat(odds.receive(0).getPayload()).isEqualTo(new Integer(9));
-		assertThat(evens.receive(0).getPayload()).isEqualTo(new Integer(2));
-		assertThat(evens.receive(0).getPayload()).isEqualTo(new Integer(22));
+		this.beanResolvingInput.send(new GenericMessage<>(1));
+		this.beanResolvingInput.send(new GenericMessage<>(2));
+		this.beanResolvingInput.send(new GenericMessage<>(9));
+		this.beanResolvingInput.send(new GenericMessage<>(22));
+		assertThat(odds.receive(0).getPayload()).isEqualTo(1);
+		assertThat(odds.receive(0).getPayload()).isEqualTo(9);
+		assertThat(evens.receive(0).getPayload()).isEqualTo(2);
+		assertThat(evens.receive(0).getPayload()).isEqualTo(22);
 		assertThat(odds.receive(0)).isNull();
 		assertThat(evens.receive(0)).isNull();
 	}
@@ -89,6 +87,7 @@ public class SpelFilterIntegrationTests {
 		public boolean isEven(int number) {
 			return number % 2 == 0;
 		}
+
 	}
 
 }

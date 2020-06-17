@@ -88,7 +88,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  */
 @SpringJUnitConfig
 @LogLevels(level = "debug",
-		categories = { "org.springframework", "org.springframework.integration", "org.apache" })
+		categories = {"org.springframework", "org.springframework.integration", "org.apache"})
 @DirtiesContext
 public class JmsTests extends ActiveMQMultiContextTests {
 
@@ -215,7 +215,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 	@Test
 	public void testJmsPipelineFlow() {
 		assertThat(TestUtils.getPropertyValue(this.jmsOutboundGatewayHandler, "idleReplyContainerTimeout", Long.class))
-				.isEqualTo(new Long(10000));
+				.isEqualTo(10000L);
 		PollableChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload("hello through the jms pipeline")
 				.setReplyChannel(replyChannel)

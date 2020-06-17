@@ -67,7 +67,9 @@ ext {
 	h2Version = '1.4.200'
 	jacksonVersion = '2.11.0'
 	javaxActivationVersion = '1.2.0'
+	javaxAnnotationVersion= '1.3.2'
 	javaxMailVersion = '1.6.2'
+	jaxbVersion = '2.3.3'
 	jmsApiVersion = '2.0.1'
 	jpa21ApiVersion = '1.0.2.Final'
 	jpaApiVersion = '2.2.1'
@@ -90,8 +92,10 @@ ext {
 	resilience4jVersion = '1.4.0'
 	romeToolsVersion = '1.12.2'
 	rsocketVersion = '1.0.0'
+	saajVersion = '1.5.2'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
+	soapVersion = '1.4.0'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.0-SNAPSHOT'
 	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.0-SNAPSHOT'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.4.0-SNAPSHOT'
@@ -231,6 +235,7 @@ configure(javaProjects) { subproject ->
 		testImplementation 'io.projectreactor:reactor-test'
 		testImplementation "com.jayway.jsonpath:json-path:$jsonpathVersion"
 		testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+		testImplementation "javax.annotation:javax.annotation-api:$javaxAnnotationVersion"
 
 		// To avoid compiler warnings about @API annotations in JUnit code
 		testCompileOnly 'org.apiguardian:apiguardian-api:1.0.0'
@@ -314,6 +319,8 @@ configure(javaProjects) { subproject ->
 		environment 'SI_FATAL_WHEN_NO_BEANFACTORY', 'true'
 
 		useJUnitPlatform()
+
+		enableAssertions = false
 	}
 
 	checkstyle {
@@ -774,6 +781,11 @@ project('spring-integration-ws') {
 			exclude group: 'org.springframework'
 		}
 
+		optionalApi "javax.activation:javax.activation-api:$javaxActivationVersion"
+		providedImplementation "javax.xml.soap:javax.xml.soap-api:$soapVersion"
+		providedImplementation "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
+		providedImplementation "com.sun.xml.messaging.saaj:saaj-impl:$saajVersion"
+
 		testImplementation "com.thoughtworks.xstream:xstream:$xstreamVersion"
 		testImplementation ("org.springframework.ws:spring-ws-support:$springWsVersion") {
 			exclude group: 'org.springframework'
@@ -801,6 +813,8 @@ project('spring-integration-xml') {
 		optionalApi ("org.springframework.ws:spring-ws-core:$springWsVersion") {
 			exclude group: 'org.springframework'
 		}
+
+		testImplementation "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
 	}
 }
 
