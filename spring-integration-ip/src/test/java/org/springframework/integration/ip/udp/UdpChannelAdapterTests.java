@@ -23,8 +23,10 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+import java.util.Enumeration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -34,8 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.api.condition.EnabledOnJre;
-import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -49,6 +49,7 @@ import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.util.SocketUtils;
 
 /**
  *
@@ -220,7 +221,7 @@ public class UdpChannelAdapterTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testUnicastSender() throws Exception {
+	public void testUnicastSender() {
 		QueueChannel channel = new QueueChannel(2);
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setBeanName("test");
@@ -246,7 +247,6 @@ public class UdpChannelAdapterTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@EnabledOnJre(JRE.JAVA_8)
 	public void testMulticastReceiver() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
 		MulticastReceivingChannelAdapter adapter =
@@ -264,7 +264,24 @@ public class UdpChannelAdapterTests {
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress(this.multicastRule.getGroup(), port));
-		DatagramSocket datagramSocket = new DatagramSocket(0, nic.getInetAddresses().nextElement());
+		InetAddress inetAddress = null;
+		if (nic != null) {
+			Enumeration<InetAddress> addressesFromNetworkInterface = nic.getInetAddresses();
+			while (addressesFromNetworkInterface.hasMoreElements()) {
+				InetAddress address = addressesFromNetworkInterface.nextElement();
+				if (address.isSiteLocalAddress()
+						&& !address.isAnyLocalAddress()
+						&& !address.isLinkLocalAddress()
+						&& !address.isLoopbackAddress()) {
+
+					inetAddress = address;
+					break;
+				}
+			}
+
+		}
+		DatagramSocket datagramSocket =
+				new DatagramSocket(SocketUtils.findAvailableUdpPort(), inetAddress);
 		datagramSocket.send(packet);
 		datagramSocket.close();
 
