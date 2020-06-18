@@ -401,8 +401,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private MimeMessage[] searchAndFilterMessages() throws MessagingException {
-		if (this.logger.isInfoEnabled()) {
-			this.logger.info("attempting to receive mail from folder [" + this.folder.getFullName() + "]");
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("attempting to receive mail from folder [" + this.folder.getFullName() + "]");
 		}
 		Message[] messages = searchForNewMessages();
 		if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
