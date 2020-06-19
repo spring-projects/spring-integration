@@ -43,18 +43,6 @@ public class BinaryToMessageConverter implements Converter<Binary, Message<?>> {
 	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
 	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
-	 * @deprecated since 5.4 in favor of {@link #addAllowedPatterns(String...)}
-	 */
-	@Deprecated
-	public void addWhiteListPatterns(String... patterns) {
-		this.deserializingConverter.addAllowedPatterns(patterns);
-	}
-
-	/**
-	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
-	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
-	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
-	 * @param patterns the patterns.
 	 * @since 5.4
 	 */
 	public void addAllowedPatterns(String... patterns) {

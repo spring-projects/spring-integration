@@ -477,6 +477,7 @@ project('spring-integration-ftp') {
 		optionalApi "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 
 		testImplementation project(':spring-integration-file').sourceSets.test.output
+		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }
 

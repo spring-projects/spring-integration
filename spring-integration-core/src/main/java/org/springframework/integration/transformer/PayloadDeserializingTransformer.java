@@ -56,21 +56,6 @@ public class PayloadDeserializingTransformer extends PayloadTypeConvertingTransf
 	 * beginning or end of the class name.
 	 * Examples: {@code com.foo.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
-	 * @since 4.2.13
-	 * @deprecated since 5.4 in favor of {@link #setAllowedPatterns(String...)}
-	 */
-	@Deprecated
-	public void setWhiteListPatterns(String... patterns) {
-		setAllowedPatterns(patterns);
-	}
-
-	/**
-	 * When using a {@link AllowListDeserializingConverter} (the default) add patterns
-	 * for packages/classes that are allowed to be deserialized.
-	 * A class can be fully qualified or a wildcard '*' is allowed at the
-	 * beginning or end of the class name.
-	 * Examples: {@code com.foo.*}, {@code *.MyClass}.
-	 * @param patterns the patterns.
 	 * @since 5.4
 	 */
 	public void setAllowedPatterns(String... patterns) {

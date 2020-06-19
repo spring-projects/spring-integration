@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -50,7 +50,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -87,7 +86,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 			@Override
 			public Message<String> receive() {
-				GenericMessage<String> message = new GenericMessage<String>("foo");
+				GenericMessage<String> message = new GenericMessage<>("foo");
 				IntegrationResourceHolder holder =
 						(IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this);
 				holder.addAttribute("baz", "qux");
@@ -141,7 +140,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 			@Override
 			public Message<String> receive() {
-				GenericMessage<String> message = new GenericMessage<String>("foo");
+				GenericMessage<String> message = new GenericMessage<>("foo");
 				IntegrationResourceHolder holder =
 						(IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this);
 				holder.addAttribute("baz", "qux");
@@ -192,7 +191,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 			@Override
 			public Message<String> receive() {
-				GenericMessage<String> message = new GenericMessage<String>("foo");
+				GenericMessage<String> message = new GenericMessage<>("foo");
 				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
 						.addAttribute("baz", testMessage);
 				return message;
@@ -235,7 +234,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 				@Override
 				public Message<String> receive() {
-					GenericMessage<String> message = new GenericMessage<String>("foo");
+					GenericMessage<String> message = new GenericMessage<>("foo");
 					IntegrationResourceHolder holder =
 							(IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this);
 					holder.addAttribute("baz", "qux");
@@ -280,7 +279,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 					@Override
 					public Message<String> receive() {
-						GenericMessage<String> message = new GenericMessage<String>("foo");
+						GenericMessage<String> message = new GenericMessage<>("foo");
 						((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
 								.addAttribute("baz", "qux");
 						return message;
@@ -323,7 +322,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 				@Override
 				public Message<String> receive() {
-					GenericMessage<String> message = new GenericMessage<String>("foo");
+					GenericMessage<String> message = new GenericMessage<>("foo");
 					((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
 							.addAttribute("baz", "qux");
 					return message;
@@ -361,17 +360,13 @@ public class PseudoTransactionalMessageSourceTests {
 
 		final AtomicInteger txSyncCounter = new AtomicInteger();
 
-		TransactionSynchronizationFactory syncFactory = new TransactionSynchronizationFactory() {
+		TransactionSynchronizationFactory syncFactory = key -> new TransactionSynchronization() {
 
 			@Override
-			public TransactionSynchronization create(Object key) {
-				return new TransactionSynchronizationAdapter() {
-					@Override
-					public void afterCompletion(int status) {
-						txSyncCounter.incrementAndGet();
-					}
-				};
+			public void afterCompletion(int status) {
+				txSyncCounter.incrementAndGet();
 			}
+
 		};
 
 		adapter.setTransactionSynchronizationFactory(syncFactory);
@@ -412,6 +407,7 @@ public class PseudoTransactionalMessageSourceTests {
 		}
 
 	}
+
 	@Configuration
 	@EnableIntegration
 	public static class TestTxSyncConfiguration {

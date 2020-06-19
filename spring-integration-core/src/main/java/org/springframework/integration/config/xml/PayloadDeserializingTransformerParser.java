@@ -39,12 +39,6 @@ public class PayloadDeserializingTransformerParser extends AbstractTransformerPa
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "deserializer");
-		// TODO remove in 5.5
-		if (element.hasAttribute("white-list")) {
-			parserContext.getReaderContext().error(
-					"the 'white-list' attribute is deprecated in favor of 'allow-list'", element);
-		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "white-list", "allowedPatterns");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "allow-list", "allowedPatterns");
 	}
 

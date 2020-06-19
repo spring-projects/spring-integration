@@ -2787,16 +2787,6 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="white-list">
-			<xsd:annotation>
-				<xsd:documentation>
-					[DEPRECATED]
-					When using the default Deserializer, a list of package/class patterns indicating
-					classes that are allowed to be deserialized. Consider providing this if you receive
-					data from untrusted sources. Example: "com.mycom.*, com.yourcom.*".
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="allow-list">
 			<xsd:annotation>
 				<xsd:documentation>

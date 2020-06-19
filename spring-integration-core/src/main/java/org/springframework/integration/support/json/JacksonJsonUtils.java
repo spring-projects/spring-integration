@@ -140,7 +140,7 @@ public final class JacksonJsonUtils {
 
 	/**
 	 * A {@link TypeIdResolver} that delegates to an existing implementation
-	 * and throws an IllegalStateException if the class being looked up is not whitelisted,
+	 * and throws an IllegalStateException if the class being looked up is not trusted,
 	 * does not provide an explicit mixin mappings.
 	 *
 	 * @author Rob Winch
@@ -167,13 +167,13 @@ public final class JacksonJsonUtils {
 		AllowlistTypeIdResolver(TypeIdResolver delegate, String... trustedPackages) {
 			this.delegate = delegate;
 			if (trustedPackages != null) {
-				for (String whiteListPackage : trustedPackages) {
-					if ("*".equals(whiteListPackage)) {
+				for (String trustedPackage : trustedPackages) {
+					if ("*".equals(trustedPackage)) {
 						this.trustedPackages.clear();
 						break;
 					}
 					else {
-						this.trustedPackages.add(whiteListPackage);
+						this.trustedPackages.add(trustedPackage);
 					}
 				}
 			}

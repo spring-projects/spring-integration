@@ -255,19 +255,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
 	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
-	 * @since 4.2.13
-	 * @deprecated since 5.4 in favor of {@link #addAllowedPatterns(String...)}
-	 */
-	@Deprecated
-	public void addWhiteListPatterns(String... patterns) {
-		addAllowedPatterns(patterns);
-	}
-
-	/**
-	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
-	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
-	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
-	 * @param patterns the patterns.
 	 * @since 5.4
 	 */
 	public void addAllowedPatterns(String... patterns) {

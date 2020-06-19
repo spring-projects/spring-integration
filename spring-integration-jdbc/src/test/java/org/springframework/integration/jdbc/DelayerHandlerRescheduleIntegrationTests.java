@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,9 @@ import static org.assertj.core.api.Assertions.fail;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -35,7 +34,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -47,23 +46,20 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
  */
+@LongRunningTest
 public class DelayerHandlerRescheduleIntegrationTests {
 
 	public static final String DELAYER_ID = "delayerWithJdbcMS";
 
 	public static EmbeddedDatabase dataSource;
 
-	@Rule
-	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
-
-	@BeforeClass
+	@BeforeAll
 	public static void init() {
 		dataSource = new EmbeddedDatabaseBuilder()
 				.setType(EmbeddedDatabaseType.H2)
@@ -72,12 +68,12 @@ public class DelayerHandlerRescheduleIntegrationTests {
 				.build();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void destroy() {
 		dataSource.shutdown();
 	}
 
-	@Test //INT-1132
+	@Test
 	public void testDelayerHandlerRescheduleWithJdbcMessageStore() throws Exception {
 		AbstractApplicationContext context =
 				new ClassPathXmlApplicationContext("DelayerHandlerRescheduleIntegrationTests-context.xml", getClass());
@@ -142,7 +138,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		context.close();
 	}
 
-	@Test //INT-2649
+	@Test
 	public void testRollbackOnDelayerHandlerReleaseTask() throws Exception {
 		AbstractApplicationContext context =
 				new ClassPathXmlApplicationContext("DelayerHandlerRescheduleIntegrationTests-context.xml", getClass());
@@ -172,6 +168,9 @@ public class DelayerHandlerRescheduleIntegrationTests {
 	@SuppressWarnings("unused")
 	private static class ExceptionMessageHandler implements MessageHandler {
 
+		ExceptionMessageHandler() {
+		}
+
 		@Override
 		public void handleMessage(Message<?> message) throws MessagingException {
 			TransactionSynchronizationManager.registerSynchronization(new RollbackTxSync());
@@ -180,7 +179,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 	}
 
-	private static class RollbackTxSync extends TransactionSynchronizationAdapter {
+	private static class RollbackTxSync implements TransactionSynchronization {
 
 		public static CountDownLatch latch = new CountDownLatch(2);
 

@@ -18,12 +18,14 @@ package org.springframework.integration.ftp.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.UUID;
 
 import org.apache.commons.net.ftp.FTPClient;
@@ -92,8 +94,7 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 		template.execute((SessionCallbackWithoutResult<FTPFile>) session -> {
 			assertThat(session.remove("foo/foobar.txt")).isTrue();
 			assertThat(session.rmdir("foo/bar/")).isTrue();
-			FTPFile[] files = session.list("foo/");
-			assertThat(files.length).isEqualTo(0);
+			await().atMost(Duration.ofSeconds(10)).until(() -> session.list("foo/"), files -> files.length == 0);
 			assertThat(session.rmdir("foo/")).isTrue();
 		});
 		assertThat(template.exists("foo")).isFalse();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -270,6 +271,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			Map<String, Object> headers = getHeaderMapper().toHeaders(httpEntity.getHeaders());
 			Object payload = null;
 			Message<?> message = null;
+			boolean expectReply = isExpectReply();
 			try {
 				if (getPayloadExpression() != null) {
 					// create payload based on SpEL
@@ -300,9 +302,14 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 						new MessageConversionException("Cannot create request message", ex);
 				MessageChannel errorChannel = getErrorChannel();
 				if (errorChannel != null) {
-					this.messagingTemplate.send(errorChannel,
-							buildErrorMessage(null,
-									conversionException));
+					ErrorMessage errorMessage = buildErrorMessage(null, conversionException);
+					if (expectReply) {
+						return this.messagingTemplate.sendAndReceive(errorChannel, errorMessage);
+					}
+					else {
+						this.messagingTemplate.send(errorChannel, errorMessage);
+						return null;
+					}
 				}
 				else {
 					throw conversionException;
@@ -310,7 +317,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			}
 
 			Message<?> reply = null;
-			if (isExpectReply()) {
+
+			if (expectReply) {
 				try {
 					reply = sendAndReceiveMessage(message);
 				}
@@ -501,7 +509,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 		return new RequestEntity<>(requestBody, request.getHeaders(), request.getMethod(), request.getURI());
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	protected Object extractRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
 		if (contentType == null) {
