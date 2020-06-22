@@ -66,8 +66,7 @@ import io.rsocket.transport.netty.server.TcpServerTransport;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
-import reactor.core.publisher.ReplayProcessor;
+import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
 /**
@@ -133,7 +132,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	@BeforeEach
 	void setupTest(TestInfo testInfo) {
 		if (testInfo.getDisplayName().startsWith("server")) {
-			this.serverRsocketRequester = serverController.clientRequester.block(Duration.ofSeconds(10));
+			this.serverRsocketRequester = serverController.clientRequester.asMono().block(Duration.ofSeconds(10));
 		}
 	}
 
@@ -158,7 +157,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		StepVerifier.create(controller.fireForgetPayloads)
+		StepVerifier.create(controller.fireForgetPayloads.asFlux())
 				.expectNext("Hello")
 				.thenCancel()
 				.verify();
@@ -537,13 +536,13 @@ public class RSocketOutboundGatewayIntegrationTests {
 	@Controller
 	static class TestController {
 
-		final ReplayProcessor<String> fireForgetPayloads = ReplayProcessor.create();
+		final Sinks.StandaloneFluxSink<String> fireForgetPayloads = Sinks.replayAll();
 
-		final MonoProcessor<RSocketRequester> clientRequester = MonoProcessor.create();
+		final Sinks.StandaloneMonoSink<RSocketRequester> clientRequester = Sinks.promise();
 
 		@MessageMapping("receive")
 		void receive(String payload) {
-			this.fireForgetPayloads.onNext(payload);
+			this.fireForgetPayloads.next(payload);
 		}
 
 		@MessageMapping("echo")
@@ -595,7 +594,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		@ConnectMapping("clientConnect")
 		void clientConnect(RSocketRequester requester) {
-			this.clientRequester.onNext(requester);
+			this.clientRequester.success(requester);
 		}
 
 	}

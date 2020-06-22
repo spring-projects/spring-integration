@@ -30,9 +30,10 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 
-import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxIdentityProcessor;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Processors;
 import reactor.core.scheduler.Schedulers;
 
 /**
@@ -101,7 +102,7 @@ public final class IntegrationReactiveUtils {
 	 * - a {@link org.springframework.integration.channel.FluxMessageChannel}
 	 * is returned as is because it is already a {@link Publisher};
 	 * - a {@link SubscribableChannel} is subscribed with a {@link MessageHandler}
-	 * for the {@link EmitterProcessor#onNext(Object)} which is returned from this method;
+	 * for the {@link FluxIdentityProcessor#onNext(Object)} which is returned from this method;
 	 * - a {@link PollableChannel} is wrapped into a {@link MessageSource} lambda and reuses
 	 * {@link #messageSourceToFlux(MessageSource)}.
 	 * @param messageChannel the {@link MessageChannel} to adapt.
@@ -127,7 +128,7 @@ public final class IntegrationReactiveUtils {
 
 	private static <T> Flux<Message<T>> adaptSubscribableChannelToPublisher(SubscribableChannel inputChannel) {
 		return Flux.defer(() -> {
-			EmitterProcessor<Message<T>> publisher = EmitterProcessor.create(1);
+			FluxIdentityProcessor<Message<T>> publisher = Processors.more().multicast(1);
 			@SuppressWarnings("unchecked")
 			MessageHandler messageHandler = (message) -> publisher.onNext((Message<T>) message);
 			inputChannel.subscribe(messageHandler);

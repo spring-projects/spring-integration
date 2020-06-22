@@ -57,9 +57,10 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
-import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxIdentityProcessor;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Processors;
 import reactor.test.StepVerifier;
 import reactor.util.Loggers;
 
@@ -298,7 +299,7 @@ public class ReactiveStreamsConsumerTests {
 	public void testReactiveStreamsConsumerFluxMessageChannelReactiveMessageHandler() {
 		FluxMessageChannel testChannel = new FluxMessageChannel();
 
-		EmitterProcessor<Message<?>> processor = EmitterProcessor.create(2, false);
+		FluxIdentityProcessor<Message<?>> processor = Processors.more().multicast(2, false);
 
 		ReactiveMessageHandler messageHandler =
 				m -> {

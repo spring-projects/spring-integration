@@ -84,7 +84,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
+import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
 /**
@@ -241,7 +241,8 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		this.reactiveMessageHandlerChannel.send(new GenericMessage<>("test"));
 
 		StepVerifier.create(
-				this.contextConfiguration.messageMonoProcessor
+				this.contextConfiguration.messageMono
+						.asMono()
 						.map(Message::getPayload)
 						.cast(String.class))
 				.expectNext("test")
@@ -291,7 +292,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		}
 
 		@Bean
-		@Router(inputChannel = "routerChannel", channelMappings = { "true=odd", "false=filter" }, suffix = "Channel")
+		@Router(inputChannel = "routerChannel", channelMappings = {"true=odd", "false=filter"}, suffix = "Channel")
 		public MessageSelector router() {
 			return new ExpressionEvaluatingSelector("payload % 2 == 0");
 		}
@@ -373,7 +374,8 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@Filter(inputChannel = "skippedChannel5")
 		@Profile("foo")
 		public MessageHandler skippedMessageHandler() {
-			return m -> { };
+			return m -> {
+			};
 		}
 
 		@Bean
@@ -427,7 +429,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			return collector()::add;
 		}
 
-		MonoProcessor<Message<?>> messageMonoProcessor = MonoProcessor.create();
+		Sinks.StandaloneMonoSink<Message<?>> messageMono = Sinks.promise();
 
 		@Bean
 		MessageChannel reactiveMessageHandlerChannel() {
@@ -438,8 +440,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@ServiceActivator(inputChannel = "reactiveMessageHandlerChannel")
 		public ReactiveMessageHandler reactiveMessageHandlerService() {
 			return (message) -> {
-				messageMonoProcessor.onNext(message);
-				messageMonoProcessor.onComplete();
+				messageMono.success(message);
 				return Mono.empty();
 			};
 		}

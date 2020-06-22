@@ -62,7 +62,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
+import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
 /**
@@ -88,14 +88,14 @@ public class GatewayParserTests {
 		Message<?> result = channel.receive(10000);
 		assertThat(result.getPayload()).isEqualTo("foo");
 
-		MonoProcessor<Object> defaultMethodHandler = MonoProcessor.create();
+		Sinks.StandaloneMonoSink<Object> defaultMethodHandler = Sinks.promise();
 
-		this.errorChannel.subscribe(message -> defaultMethodHandler.onNext(message.getPayload()));
+		this.errorChannel.subscribe(message -> defaultMethodHandler.success(message.getPayload()));
 
 		String defaultMethodPayload = "defaultMethodPayload";
 		service.defaultMethodGateway(defaultMethodPayload);
 
-		StepVerifier.create(defaultMethodHandler)
+		StepVerifier.create(defaultMethodHandler.asMono())
 				.expectNext(defaultMethodPayload)
 				.verifyComplete();
 	}
@@ -423,7 +423,7 @@ public class GatewayParserTests {
 		}
 
 		@Override
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings({"rawtypes", "unchecked"})
 		public <T> Future<T> submit(Callable<T> task) {
 			try {
 				Future<?> result = super.submit(task);

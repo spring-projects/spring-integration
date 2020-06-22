@@ -24,10 +24,11 @@ import org.springframework.util.Assert;
 
 import reactor.core.Disposable;
 import reactor.core.Disposables;
-import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxIdentityProcessor;
 import reactor.core.publisher.FluxSink;
-import reactor.core.publisher.ReplayProcessor;
+import reactor.core.publisher.Processors;
+import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
 /**
@@ -43,16 +44,17 @@ import reactor.core.scheduler.Schedulers;
 public class FluxMessageChannel extends AbstractMessageChannel
 		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel {
 
-	private final EmitterProcessor<Message<?>> processor;
+	private final FluxIdentityProcessor<Message<?>> processor;
 
 	private final FluxSink<Message<?>> sink;
 
-	private final ReplayProcessor<Boolean> subscribedSignal = ReplayProcessor.create(1);
+	private final Sinks.StandaloneFluxSink<Boolean> subscribedSignal = Sinks.replay(1);
 
 	private final Disposable.Composite upstreamSubscriptions = Disposables.composite();
 
+	@SuppressWarnings("deprecation")
 	public FluxMessageChannel() {
-		this.processor = EmitterProcessor.create(1, false);
+		this.processor = Processors.more().multicast(1, false);
 		this.sink = this.processor.sink(FluxSink.OverflowStrategy.BUFFER);
 	}
 
@@ -67,16 +69,16 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.processor
-				.doFinally((s) -> this.subscribedSignal.onNext(this.processor.hasDownstreams()))
+				.doFinally((s) -> this.subscribedSignal.next(this.processor.hasDownstreams()))
 				.subscribe(subscriber);
-		this.subscribedSignal.onNext(this.processor.hasDownstreams());
+		this.subscribedSignal.next(this.processor.hasDownstreams());
 	}
 
 	@Override
 	public void subscribeTo(Publisher<? extends Message<?>> publisher) {
 		this.upstreamSubscriptions.add(
 				Flux.from(publisher)
-						.delaySubscription(this.subscribedSignal.filter(Boolean::booleanValue).next())
+						.delaySubscription(this.subscribedSignal.asFlux().filter(Boolean::booleanValue).next())
 						.publishOn(Schedulers.boundedElastic())
 						.doOnNext((message) -> {
 							try {
@@ -91,7 +93,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	public void destroy() {
-		this.subscribedSignal.onNext(false);
+		this.subscribedSignal.next(false);
 		this.upstreamSubscriptions.dispose();
 		this.processor.onComplete();
 		super.destroy();
