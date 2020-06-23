@@ -23,6 +23,7 @@
 											 channel="fromChannel"
 											 expect-message="true"
 											 auto-startup="false"
+											 receive-timeout="10"
 											 serializer="testSerializer"/>
 
 	<bean id="testSerializer" class="org.springframework.integration.redis.util.CustomJsonSerializer"/>
@@ -35,6 +36,7 @@
 	<int-redis:queue-inbound-channel-adapter id="symmetricalRedisChannelEndpoint" queue="#{TEST_QUEUE}"
 											 channel="symmetricalRedisChannel"
 											 auto-startup="false"
+											 receive-timeout="10"
 											 serializer=""/>
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,11 +78,11 @@ public final class RedisAvailableRule implements MethodRule {
 					if (connectionFactory != null) {
 						try {
 							connectionFactory.getConnection();
-							base.evaluate();
 						}
 						catch (Exception e) {
 							Assume.assumeTrue("Skipping test due to Redis not being available on port: " + REDIS_PORT + ": " + e, false);
 						}
+						base.evaluate();
 					}
 				}
 			}
