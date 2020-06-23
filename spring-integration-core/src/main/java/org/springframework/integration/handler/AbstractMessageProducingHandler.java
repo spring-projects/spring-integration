@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -299,20 +299,25 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	private void doProduceOutput(Message<?> requestMessage, MessageHeaders requestHeaders, Object reply,
-			@Nullable Object replyChannel) {
+			@Nullable Object replyChannelArg) {
+
+		Object replyChannel = replyChannelArg;
+		if (replyChannel == null) {
+			replyChannel = getOutputChannel();
+		}
 
 		if (this.async && (reply instanceof ListenableFuture<?> || reply instanceof Publisher<?>)) {
-			MessageChannel messageChannel = getOutputChannel();
-			if (reply instanceof ListenableFuture<?> ||
-					!(messageChannel instanceof ReactiveStreamsSubscribableChannel)) {
-				asyncNonReactiveReply(requestMessage, reply, replyChannel);
-			}
-			else {
-				((ReactiveStreamsSubscribableChannel) messageChannel)
+			if (reply instanceof Publisher<?> &&
+					replyChannel instanceof ReactiveStreamsSubscribableChannel) {
+
+				((ReactiveStreamsSubscribableChannel) replyChannel)
 						.subscribeTo(
 								Flux.from((Publisher<?>) reply)
 										.doOnError((ex) -> sendErrorMessage(requestMessage, ex))
 										.map(result -> createOutputMessage(result, requestHeaders)));
+			}
+			else {
+				asyncNonReactiveReply(requestMessage, reply, replyChannel);
 			}
 		}
 		else {

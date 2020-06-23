@@ -112,7 +112,7 @@ public class RSocketDslTests {
 			return IntegrationFlows
 					.from(RSockets.inboundGateway("/uppercase")
 							.interactionModels(RSocketInteractionModel.requestChannel))
-					.<Flux<String>>handle((payload, headers) -> payload.map(String::toUpperCase), e -> e.async(true))
+					.<Flux<String>, Flux<String>>transform((flux) -> flux.map(String::toUpperCase))
 					.get();
 		}
 
