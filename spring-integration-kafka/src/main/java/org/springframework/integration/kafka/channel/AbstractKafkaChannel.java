@@ -32,7 +32,8 @@ import org.springframework.util.Assert;
  * Abstract MessageChannel backed by a Kafka topic.
  *
  * @author Gary Russell
- * @since 3.3
+ *
+ * @since 5.4
  *
  */
 public abstract class AbstractKafkaChannel extends AbstractMessageChannel {

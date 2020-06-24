@@ -100,7 +100,7 @@ import org.springframework.retry.support.RetryTemplate;
  * @author Cameron Mayfield
  * @author Urs Keller
  *
- * @since 2.0
+ * @since 5.4
  *
  */
 class MessageDrivenAdapterTests {

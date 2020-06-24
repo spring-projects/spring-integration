@@ -24,7 +24,8 @@ import org.springframework.kafka.core.KafkaTemplate;
  * Spec for a publish/subscribe channel backed by a Kafka topic.
  *
  * @author Gary Russell
- * @since 3.3
+ *
+ * @since 5.4
  *
  */
 public class KafkaPublishSubscribeChannelSpec

@@ -27,7 +27,8 @@ import org.springframework.integration.kafka.channel.AbstractKafkaChannel;
  * @param <C> the channel type.
  *
  * @author Gary Russell
- * @since 3.3
+ *
+ * @since 5.4
  *
  */
 public abstract class AbstractKafkaChannelSpec<S extends AbstractKafkaChannelSpec<S, C>, C extends AbstractKafkaChannel>

@@ -93,7 +93,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Anshul Mehra
  *
- * @since 3.0.1
+ * @since 5.4
  *
  */
 public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> implements Pausable {

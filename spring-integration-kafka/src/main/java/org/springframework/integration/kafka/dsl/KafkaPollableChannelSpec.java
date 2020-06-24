@@ -24,7 +24,8 @@ import org.springframework.kafka.core.KafkaTemplate;
  * Spec for a pollable channel.
  *
  * @author Gary Russell
- * @since 3.3
+ *
+ * @since 5.4
  *
  */
 public class KafkaPollableChannelSpec extends AbstractKafkaChannelSpec<KafkaPollableChannelSpec, PollableKafkaChannel> {

@@ -67,7 +67,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Urs Keller
  *
- * @since 3.0.2
+ * @since 5.4
  *
  */
 public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implements OrderlyShutdownCapable {

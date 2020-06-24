@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  *
- * @since 3.3
+ * @since 5.4
  *
  */
 @SuppressWarnings("deprecation")

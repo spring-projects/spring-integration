@@ -45,6 +45,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 /**
  * @author Artem Bilan.
  * @author Gary Russell
+ *
+ * @since 5.4
  */
 @SpringJUnitConfig
 @DirtiesContext

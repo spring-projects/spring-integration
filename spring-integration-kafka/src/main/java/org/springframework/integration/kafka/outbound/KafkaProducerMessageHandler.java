@@ -97,7 +97,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @author Biju Kunjummen
  * @author Tom van den Berge
  *
- * @since 0.5
+ * @since 5.4
  */
 public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMessageHandler
 		implements Lifecycle {

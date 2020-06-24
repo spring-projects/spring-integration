@@ -107,7 +107,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @author Artem Bilan
  * @author Tom van den Berge
  *
- * @since 2.0
+ * @since 5.4
  */
 class KafkaProducerMessageHandlerTests {
 

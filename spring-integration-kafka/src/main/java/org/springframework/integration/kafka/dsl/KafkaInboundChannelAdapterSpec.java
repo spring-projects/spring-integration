@@ -37,7 +37,7 @@ import org.springframework.kafka.support.converter.RecordMessageConverter;
  * @author Gary Russell
  * @author Anshul Mehra
  *
- * @since 3.0.1
+ * @since 5.4
  *
  */
 public class KafkaInboundChannelAdapterSpec<K, V>

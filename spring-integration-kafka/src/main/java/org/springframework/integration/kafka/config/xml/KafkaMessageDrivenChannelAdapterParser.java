@@ -32,6 +32,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
+ * @since 5.4
  */
 public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapterParser {
 

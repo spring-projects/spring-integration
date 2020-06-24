@@ -42,7 +42,7 @@ import org.springframework.kafka.support.TopicPartitionOffset;
  * @author Artem Bilan
  * @author Gary Russell
  *
- * @since 3.0
+ * @since 5.4
  */
 public class KafkaMessageListenerContainerSpec<K, V>
 		extends IntegrationComponentSpec<KafkaMessageListenerContainerSpec<K, V>, ConcurrentMessageListenerContainer<K, V>> {

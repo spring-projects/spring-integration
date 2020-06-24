@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Cameron Mayfield
  *
- * @since 3.0
+ * @since 5.4
  */
 public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDrivenChannelAdapterSpec<K, V, S>>
 		extends MessageProducerSpec<S, KafkaMessageDrivenChannelAdapter<K, V>>

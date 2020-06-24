@@ -28,7 +28,8 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
  *
  * @author Gary Russell
  * @author Tom van den Berge
- * @since 3.2
+ *
+ * @since 5.4
  *
  */
 public final class KafkaParsingUtils {

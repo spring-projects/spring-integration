@@ -52,7 +52,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  * @author Biju Kunjummen
  * @author Tom van den Berge
  *
- * @since 0.5
+ * @since 5.4
  */
 @SpringJUnitConfig
 @DirtiesContext

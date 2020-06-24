@@ -31,7 +31,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Gary Russell
  * @author Anshul Mehra
- * @since 3.2
+ *
+ * @since 5.4
  *
  */
 public class KafkaInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {

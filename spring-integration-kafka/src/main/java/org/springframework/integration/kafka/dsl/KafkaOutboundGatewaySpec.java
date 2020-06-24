@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  *
- * @since 3.0.2
+ * @since 5.4
  *
  */
 public class KafkaOutboundGatewaySpec<K, V, R, S extends KafkaOutboundGatewaySpec<K, V, R, S>>

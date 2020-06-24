@@ -27,7 +27,8 @@ import org.springframework.integration.kafka.inbound.KafkaInboundGateway;
  * Inbound gateway parser.
  *
  * @author Gary Russell
- * @since 3.2
+ *
+ * @since 5.4
  *
  */
 public class KafkaInboundGatewayParser extends AbstractInboundGatewayParser {

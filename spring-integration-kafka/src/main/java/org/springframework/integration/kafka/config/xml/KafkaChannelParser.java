@@ -31,7 +31,8 @@ import org.springframework.util.StringUtils;
  * Parser for a channel backed by a Kafka topic.
  *
  * @author Gary Russell
- * @since 3.3
+ *
+ * @since 5.4
  *
  */
 public class KafkaChannelParser extends AbstractChannelParser {

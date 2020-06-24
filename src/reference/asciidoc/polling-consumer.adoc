@@ -57,7 +57,7 @@ For more information regarding messaging endpoints in general and polling consum
 ==== Deferred Acknowledgment Pollable Message Source
 
 Starting with version 5.0.1, certain modules provide `MessageSource` implementations that support deferring acknowledgment until the downstream flow completes (or hands off the message to another thread).
-This is currently limited to the `AmqpMessageSource` and the `KafkaMessageSource` provided by the `spring-integration-kafka` https://github.com/spring-projects/spring-integration-kafka[extension project].
+This is currently limited to the `AmqpMessageSource` and the `KafkaMessageSource`.
 
 With these message sources, the `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` header (see <<./message.adoc#message-header-accessor,`MessageHeaderAccessor` API>>) is added to the message.
 When used with pollable message sources, the value of the header is an instance of `AcknowledgmentCallback`, as the following example shows:

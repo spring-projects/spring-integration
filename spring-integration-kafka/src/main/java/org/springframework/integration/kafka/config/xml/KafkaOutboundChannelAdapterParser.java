@@ -31,7 +31,8 @@ import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandle
  * @author Artem Bilan
  * @author Gary Russell
  * @author Biju Kunjummen
- * @since 0.5
+ *
+ * @since 5.4
  *
  */
 public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {

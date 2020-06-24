@@ -42,7 +42,7 @@ import org.springframework.kafka.support.TopicPartitionOffset;
  * @author Gary Russell
  * @author Anshul Mehra
  *
- * @since 3.0
+ * @since 5.4
  */
 public final class Kafka {
 

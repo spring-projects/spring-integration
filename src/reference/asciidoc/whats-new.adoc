@@ -15,6 +15,11 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 [[x5.4-new-components]]
 === New Components
 
+[[x5.4-sik]]
+==== Apache Kafka Channel Adapters
+The standalone https://projects.spring.io/spring-integration-kafka/[Spring Integration Kafka] project has been merged as a `spring-integration-kafka` module to this project.
+See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
+
 [[x5.4-general]]
 === General Changes
 

@@ -73,6 +73,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Urs Keller
  *
+ * @since 5.4
  */
 public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport implements OrderlyShutdownCapable,
 		Pausable {

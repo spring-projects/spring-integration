@@ -91,7 +91,7 @@ import org.springframework.messaging.Message;
  * @author Anshul Mehra
  * @author Artem Bilan
  *
- * @since 3.0.1
+ * @since 5.4
  *
  */
 class MessageSourceTests {

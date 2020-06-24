@@ -30,7 +30,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
- * @since 3.2
+ *
+ * @since 5.4
  *
  */
 @SpringJUnitConfig

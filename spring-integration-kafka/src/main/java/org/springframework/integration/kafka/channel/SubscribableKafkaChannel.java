@@ -37,7 +37,8 @@ import org.springframework.util.Assert;
  * Subscribable channel backed by a Kafka topic.
  *
  * @author Gary Russell
- * @since 3.3
+ *
+ * @since 5.4
  *
  */
 public class SubscribableKafkaChannel extends AbstractKafkaChannel implements SubscribableChannel, SmartLifecycle {

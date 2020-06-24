@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
  * @author Biju Kunjummen
  * @author Gary Russell
  *
- * @since 3.0
+ * @since 5.4
  */
 public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessageHandlerSpec<K, V, S>>
 		extends MessageHandlerSpec<S, KafkaProducerMessageHandler<K, V>> {

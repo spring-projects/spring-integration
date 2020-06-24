@@ -26,7 +26,7 @@ import org.springframework.messaging.MessagingException;
  *
  * @author Gary Russell
  *
- * @since 2.1.2
+ * @since 5.4
  *
  */
 public class KafkaSendFailureException extends MessagingException {

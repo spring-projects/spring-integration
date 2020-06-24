@@ -82,7 +82,7 @@ import java.util.stream.Stream
  * @author Artem Bilan
  * @author Gary Russell
  *
- * @since 3.0.3
+ * @since 5.4
  */
 
 @SpringJUnitConfig

@@ -26,7 +26,8 @@ import org.springframework.kafka.core.KafkaOperations;
  * Publish/subscribe channel backed by a Kafka topic.
  *
  * @author Gary Russell
- * @since 3.3
+ *
+ * @since 4.4
  *
  */
 public class PublishSubscribeKafkaChannel extends SubscribableKafkaChannel implements BroadcastCapableChannel {

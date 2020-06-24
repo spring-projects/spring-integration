@@ -43,7 +43,7 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @author Anshul Mehra
  *
- * @since 3.0.1
+ * @since 5.4
  *
  */
 class MessageSourceIntegrationTests {

@@ -35,7 +35,7 @@ import org.springframework.messaging.support.ErrorMessage;
  * @author Gary Russell
  * @author Artem Bilan
  *
- * @since 2.1.1
+ * @since 5.4
  *
  */
 public class RawRecordHeaderErrorMessageStrategy implements ErrorMessageStrategy {

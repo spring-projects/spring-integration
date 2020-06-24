@@ -24,7 +24,8 @@ import org.springframework.integration.kafka.channel.SubscribableKafkaChannel;
  * @param <C> the channel type.
  *
  * @author Gary Russell
- * @since 3.3
+ *
+ * @since 5.4
  *
  */
 public abstract class KafkaSubscribableChannelSpec<C extends SubscribableKafkaChannel>

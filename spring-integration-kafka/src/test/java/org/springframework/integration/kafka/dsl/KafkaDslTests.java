@@ -89,7 +89,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  * @author Gary Russell
  * @author Anshul Mehra
  *
- * @since 3.0
+ * @since 5.4
  */
 @SpringJUnitConfig
 @DirtiesContext
