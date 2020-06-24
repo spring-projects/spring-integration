@@ -114,6 +114,12 @@ The following table summarizes the various endpoints with quick links to the app
 | N
 | <<./jpa.adoc#jpa-updating-outbound-gateway,Updating Outbound Gateway>> and <<./jpa.adoc#jpa-retrieving-outbound-gateway,Retrieving Outbound Gateway>>
 
+| *Apache Kafka*
+| <<./kafka.adoc#kafka-inbound,Message Driven Channel Adapter>> and <<./kafka.adoc#kafka-inbound-pollable,Inbound Channel Adapter>>
+| <<./kafka.adoc#kafka-outbound,Outbound Channel Adapter>>
+| <<./kafka.adoc#kafka-inbound-gateway,Inbound Gateway>>
+| <<./kafka.adoc#kafka-outbound-gateway,Outbound Gateway>>
+
 | *Mail*
 | <<./mail.adoc#mail-inbound,Mail-receiving Channel Adapter>>
 | <<./mail.adoc#mail-outbound,Mail-sending Channel Adapter>>

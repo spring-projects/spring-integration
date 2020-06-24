@@ -49,6 +49,8 @@ include::./jpa.adoc[]
 
 include::./jms.adoc[]
 
+include::./kafka.adoc[]
+
 include::./mail.adoc[]
 
 include::./mongodb.adoc[]
