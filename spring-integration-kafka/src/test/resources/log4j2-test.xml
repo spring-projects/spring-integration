@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+	<Appenders>
+		<Console name="STDOUT" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d %5p %c [%t] : %m%n" />
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Logger name="kafka" level="warn"/>
+		<Logger name="org.apache.kafka" level="warn"/>
+		<Logger name="org.springframework.kafka" level="warn"/>
+		<Logger name="org.springframework.integration" level="warn"/>
+		<Root level="warn">
+			<AppenderRef ref="STDOUT" />
+		</Root>
+	</Loggers>
+</Configuration>

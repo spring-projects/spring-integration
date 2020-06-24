@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd">
+
+	<int-kafka:inbound-gateway
+			id="gateway1"
+			listener-container="container1"
+			kafka-template="template"
+			auto-startup="false"
+			phase="100"
+			request-timeout="5000"
+			request-channel="nullChannel"
+			reply-channel="errorChannel"
+			reply-timeout="43"
+			message-converter="messageConverter"
+			payload-type="java.lang.String"
+			error-message-strategy="ems"
+			retry-template="retryTemplate"
+			recovery-callback="recoveryCallback"/>
+
+	<bean id="template" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.kafka.core.KafkaTemplate"/>
+	</bean>
+
+	<bean id="messageConverter" class="org.springframework.kafka.support.converter.MessagingMessageConverter"/>
+
+	<bean id="container1" class="org.springframework.kafka.listener.KafkaMessageListenerContainer">
+		<constructor-arg>
+			<bean class="org.springframework.kafka.core.DefaultKafkaConsumerFactory">
+				<constructor-arg>
+					<map>
+						<entry key="" value=""/>
+					</map>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+		<constructor-arg>
+			<bean class="org.springframework.kafka.listener.ContainerProperties">
+				<constructor-arg name="topics" value="foo"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="ems" class="org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy"/>
+
+	<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate"/>
+
+	<bean id="recoveryCallback"
+		  class="org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer"/>
+
+</beans>

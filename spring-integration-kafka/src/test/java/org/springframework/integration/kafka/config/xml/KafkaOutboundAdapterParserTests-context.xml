@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka https://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<int:channel id="inputToKafka" />
+
+	<int-kafka:outbound-channel-adapter id="kafkaOutboundChannelAdapter"
+										kafka-template="template"
+										auto-startup="false"
+										channel="inputToKafka"
+										order="3"
+										sync="true"
+										topic="foo"
+										message-key-expression="'bar'"
+										partition-id-expression="'2'"
+										send-timeout-expression="1000"
+										timestamp-expression="T(System).currentTimeMillis()"
+										flush-expression="headers['foo']"
+										error-message-strategy="ems"
+										send-failure-channel="failures"
+										send-success-channel="successes"
+										header-mapper="customHeaderMapper"
+	>
+		<int-kafka:request-handler-advice-chain>
+			<bean class="org.springframework.integration.handler.advice.RequestHandlerCircuitBreakerAdvice" />
+		</int-kafka:request-handler-advice-chain>
+	</int-kafka:outbound-channel-adapter>
+
+	<bean id="template" class="org.springframework.kafka.core.KafkaTemplate">
+		<constructor-arg>
+			<bean class="org.springframework.kafka.core.DefaultKafkaProducerFactory">
+				<constructor-arg>
+					<map>
+						<entry key="" value="" />
+					</map>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<int-kafka:outbound-channel-adapter id="kafkaOutboundChannelAdapter2"
+										kafka-template="template"
+										auto-startup="false"
+										channel="inputToKafka"
+										partition-id="#{0}"
+										send-timeout="500" />
+
+	<bean id="ems" class="org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy" />
+
+	<int:channel id="failures" />
+
+	<int:channel id="successes" />
+
+	<bean id="customHeaderMapper" class="org.springframework.kafka.support.DefaultKafkaHeaderMapper" />
+
+</beans>

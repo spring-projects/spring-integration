@@ -1,0 +1,4 @@
+# Tooling related information for the integration Kafka namespace
+http\://www.springframework.org/schema/integration/kafka@name=integration Kafka Namespace
+http\://www.springframework.org/schema/integration/kafka@prefix=int-kafka
+http\://www.springframework.org/schema/integration/kafka@icon=org/springframework/integration/config/xml/spring-integration-kafka.gif

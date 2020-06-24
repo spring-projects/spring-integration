@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/integration/kafka https://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd">
+
+	<context:property-placeholder/>
+
+	<int-kafka:message-driven-channel-adapter
+			id="kafkaListener"
+			listener-container="container1"
+			auto-startup="false"
+			phase="100"
+			send-timeout="5000"
+			channel="nullChannel"
+			message-converter="messageConverter"
+			payload-type="java.lang.String"
+			error-message-strategy="ems"
+			retry-template="retryTemplate"
+			recovery-callback="recoveryCallback" />
+
+	<int-kafka:message-driven-channel-adapter
+			id="kafkaBatchListener"
+			listener-container="container2"
+			auto-startup="false"
+			phase="100"
+			send-timeout="5000"
+			channel="nullChannel"
+			mode="batch"
+			message-converter="messageConverter"
+			error-channel="errorChannel" />
+
+	<bean id="messageConverter" class="org.springframework.kafka.support.converter.MessagingMessageConverter"/>
+
+	<bean id="container1" class="org.springframework.kafka.listener.KafkaMessageListenerContainer">
+		<constructor-arg>
+			<bean class="org.springframework.kafka.core.DefaultKafkaConsumerFactory">
+				<constructor-arg>
+					<map>
+						<entry key="" value="" />
+					</map>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+		<constructor-arg>
+			<bean class="org.springframework.kafka.listener.ContainerProperties">
+				<constructor-arg name="topics" value="foo" />
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="container2" class="org.springframework.kafka.listener.KafkaMessageListenerContainer">
+		<constructor-arg>
+			<bean class="org.springframework.kafka.core.DefaultKafkaConsumerFactory">
+				<constructor-arg>
+					<map>
+						<entry key="" value="" />
+					</map>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+		<constructor-arg>
+			<bean class="org.springframework.kafka.listener.ContainerProperties">
+				<constructor-arg name="topics" value="foo" />
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="ems" class="org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy" />
+
+	<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate" />
+
+	<bean id="recoveryCallback" class="org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer" />
+
+</beans>
