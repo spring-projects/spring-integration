@@ -195,7 +195,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		assertThat(((Exception) receive.getPayload()).getMessage()).contains("Deserialization of Message failed.");
 		assertThat(((Exception) receive.getPayload()).getCause()).isInstanceOf(ClassCastException.class);
 		assertThat(((Exception) receive.getPayload()).getCause().getMessage())
-				.contains("java.lang.String cannot be cast to org.springframework.messaging.Message");
+				.contains("java.lang.String cannot be cast");
 
 		CountDownLatch stopLatch = new CountDownLatch(1);
 		endpoint.stop(stopLatch::countDown);
