@@ -120,14 +120,14 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 
 		assertThat(record.getStream()).isEqualTo(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY);
 
-		assertThat(record.getValue()).isEqualTo("[\"Hello\", \"stream\", \"message\"]");
+		assertThat(record.getValue()).containsExactlyInAnyOrder("stream", "message", "Hello");
 	}
 
 
 	@Test
 	@RedisAvailable
 	public void explicitSerializationContextWithModelTest() {
-		Address address = new Address().withAddress("Rennes, France");
+		Address address = new Address("Rennes, France");
 		Person person = new Person(address, "Attoumane");
 
 		Message message = new GenericMessage(person);

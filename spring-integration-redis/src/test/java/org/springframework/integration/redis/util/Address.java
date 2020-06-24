@@ -34,8 +34,7 @@ public class Address implements Serializable {
 	public Address() {
 	}
 
-	public Address withAddress(String address) {
-		this.setAddress(address);
-		return this;
+	public Address(String address) {
+		this.address = address;
 	}
 }
