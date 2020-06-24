@@ -52,6 +52,7 @@ public final class RedisAvailableRule implements MethodRule {
 								.socketOptions(
 										SocketOptions.builder()
 												.connectTimeout(Duration.ofMillis(10000))
+												.keepAlive(true)
 												.build())
 								.build())
 				.commandTimeout(Duration.ofSeconds(10000))
