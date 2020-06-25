@@ -100,6 +100,7 @@ ext {
 	springWsVersion = '3.0.9.RELEASE'
 	tomcatVersion = "9.0.35"
 	xstreamVersion = '1.4.12'
+	r2dbch2Version='0.8.4.RELEASE'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
 }
@@ -617,9 +618,7 @@ project('spring-integration-r2dbc') {
 		api ('org.springframework.data:spring-data-r2dbc') {
 			exclude group: 'org.springframework'
 		}
-		testCompile group: 'io.r2dbc', name: 'r2dbc-h2', version: '0.8.4.RELEASE'
-		testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
-
+		testImplementation "io.r2dbc:r2dbc-h2:$r2dbch2Version"
 	}
 }
 

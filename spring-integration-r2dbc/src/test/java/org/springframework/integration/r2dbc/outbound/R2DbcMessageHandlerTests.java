@@ -27,9 +27,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -43,12 +42,12 @@ import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
 import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
+import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import io.r2dbc.h2.H2ConnectionConfiguration;
 import io.r2dbc.h2.H2ConnectionFactory;
@@ -58,9 +57,13 @@ import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration
-public class R2DbcMessageHandlerTest {
+/**
+ *  @author Rohan Mukesh
+ *
+ *  @since 5.4
+ */
+@SpringJUnitConfig(classes = {R2DbcMessageHandlerTests.IntegrationTestConfiguration.class})
+public class R2DbcMessageHandlerTests {
 
 	@Autowired
 	DatabaseClient client;
@@ -94,7 +97,7 @@ public class R2DbcMessageHandlerTest {
 				.option("DB_CLOSE_DELAY=-1").build());
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		entityTemplate = new R2dbcEntityTemplate(client);
 		Hooks.onOperatorDebug();
@@ -160,9 +163,18 @@ public class R2DbcMessageHandlerTest {
 		waitFor(handler.handleMessage(message));
 
 		handler.setQueryType(R2dbcMessageHandler.Type.UPDATE);
-		Person person = this.createPerson("Bob", 40);
-		person.setId(1);
-		message = MessageBuilder.withPayload(person).build();
+
+		Person  person = this.client.select()
+				.from("person")
+				.as(Person.class)
+				.fetch()
+				.first()
+				.block();
+
+		person.setAge(40);
+
+		message = MessageBuilder.withPayload(person)
+				.build();
 		waitFor(handler.handleMessage(message));
 
 		personRepository.findAll()
@@ -177,32 +189,153 @@ public class R2DbcMessageHandlerTest {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.setValuesExpression(new FunctionExpression<Message<?>>(Message::getPayload));
+
+
 		handler.setQueryType(R2dbcMessageHandler.Type.INSERT);
 		handler.setTableName("person");
 		handler.afterPropertiesSet();
 		Map<String, Object> payload = new HashMap<>();
-		payload.put("name", "rohan");
+		payload.put("name", "Bob");
 		payload.put("age", 35);
 		Message<?> message = MessageBuilder.withPayload(payload).build();
 		waitFor(handler.handleMessage(message));
 
 		payload = new HashMap<>();
-		handler.setQueryType(R2dbcMessageHandler.Type.UPDATE);
-		payload.put("age", 40);
-		payload.put("name", "Bob");
+		payload.put("name", "Rob");
+		payload.put("age", 43);
+		message = MessageBuilder.withPayload(payload).build();
+		waitFor(handler.handleMessage(message));
 
-		//Add Where Clause for Criteria
+		payload = new HashMap<>();
+		handler.setQueryType(R2dbcMessageHandler.Type.UPDATE);
+
+		Object insertedId = client.execute("SELECT id FROM person")
+				.fetch()
+				.first()
+				.block()
+				.get("id");
+
+		handler.setCriteriaExpression(new FunctionExpression<Message<?>>((m) -> Criteria.where("id").is(insertedId)));
+		payload.put("age", 40);
 
 		message = MessageBuilder.withPayload(payload).build();
 		waitFor(handler.handleMessage(message));
 
-			Flux<?> all = client.execute("SELECT age,name FROM person")
+			Flux<?> all = client.execute("SELECT age,name FROM person where age=40")
 				.fetch().all();
 		all.as(StepVerifier::create)
 				.consumeNextWith(response -> Assert.assertEquals("{AGE=40, NAME=Bob}", response.toString()))
 				.verifyComplete();
 
 	}
+
+	@Test
+	public void validateMessageHandlingWithDefaultDeleteCollection() {
+		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
+		handler.afterPropertiesSet();
+		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob", 35)).build();
+		waitFor(handler.handleMessage(message));
+
+		Person person = this.client
+				.select()
+				.from("person")
+				.as(Person.class)
+				.fetch()
+				.first()
+				.block();
+
+		handler.setQueryType(R2dbcMessageHandler.Type.DELETE);
+		message = MessageBuilder.withPayload(person).build();
+		waitFor(handler.handleMessage(message));
+
+		personRepository.findAll()
+				.as(StepVerifier::create)
+				.expectNextCount(0)
+				.verifyComplete();
+	}
+
+	@Test
+	public void validateMessageHandlingWithDeleteQueryCollection() {
+		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
+		handler.setValuesExpression(new FunctionExpression<Message<?>>(Message::getPayload));
+
+		handler.setQueryType(R2dbcMessageHandler.Type.INSERT);
+		handler.setTableName("person");
+		handler.afterPropertiesSet();
+		Map<String, Object> payload = new HashMap<>();
+		payload.put("name", "Bob");
+		payload.put("age", 35);
+		Message<?> message = MessageBuilder.withPayload(payload).build();
+		waitFor(handler.handleMessage(message));
+
+		payload = new HashMap<>();
+		handler.setQueryType(R2dbcMessageHandler.Type.DELETE);
+
+		Object insertedId = client.execute("SELECT id FROM person")
+				.fetch()
+				.first()
+				.block()
+				.get("id");
+
+		handler.setCriteriaExpression(new FunctionExpression<Message<?>>((m) -> Criteria.where("id").is(insertedId)));
+		message = MessageBuilder.withPayload(payload).build();
+		waitFor(handler.handleMessage(message));
+
+		Flux<?> all = client.execute("SELECT age,name FROM person where age=35")
+				.fetch().all();
+		all.as(StepVerifier::create)
+				.expectNextCount(0)
+				.verifyComplete();
+
+	}
+
+	@Test
+	public void validateMessageHandlingWithDeleteQueryCollection_MultipleRows() {
+		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
+		handler.setValuesExpression(new FunctionExpression<Message<?>>(Message::getPayload));
+
+		handler.setQueryType(R2dbcMessageHandler.Type.INSERT);
+		handler.setTableName("person");
+		handler.afterPropertiesSet();
+		Map<String, Object> payload = new HashMap<>();
+		payload.put("name", "Bob");
+		payload.put("age", 35);
+		Message<?> message = MessageBuilder.withPayload(payload).build();
+		waitFor(handler.handleMessage(message));
+
+		payload = new HashMap<>();
+		payload.put("name", "Rob");
+		payload.put("age", 40);
+		message = MessageBuilder.withPayload(payload).build();
+		waitFor(handler.handleMessage(message));
+
+		payload = new HashMap<>();
+		handler.setQueryType(R2dbcMessageHandler.Type.DELETE);
+
+		Object insertedId = client.execute("SELECT id FROM person")
+				.fetch()
+				.first()
+				.block()
+				.get("id");
+
+		handler.setCriteriaExpression(new FunctionExpression<Message<?>>((m) -> Criteria.where("id").is(insertedId)));
+		message = MessageBuilder.withPayload(payload).build();
+		waitFor(handler.handleMessage(message));
+
+		Flux<?> all = client.execute("SELECT age,name FROM person where age=40")
+				.fetch().all();
+		all.as(StepVerifier::create)
+				.expectNextCount(1)
+				.verifyComplete();
+
+	}
+
 
 	private Person createPerson(String bob, Integer age) {
 		return new Person(bob, age);

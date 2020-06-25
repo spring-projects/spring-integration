@@ -19,12 +19,19 @@ package org.springframework.integration.r2dbc.outbound;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
+/**
+ *  @author Rohan Mukesh
+ *
+ *  @since 5.4
+ */
 @Table
 class Person {
 
 	@Id
 	Integer id;
+
 	String name;
+
 	Integer age;
 
 	public void setId(Integer id) {
@@ -45,14 +52,14 @@ class Person {
 	}
 
 	public Integer getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public Integer getAge() {
-		return age;
+		return this.age;
 	}
 }
