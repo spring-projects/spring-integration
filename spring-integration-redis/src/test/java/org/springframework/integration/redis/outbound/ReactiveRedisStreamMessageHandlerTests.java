@@ -18,9 +18,6 @@ package org.springframework.integration.redis.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,32 +94,6 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 
 		assertThat(record.getValue()).isEqualTo(messagePayload);
 	}
-
-
-	/*@Test
-	@RedisAvailable*/
-	public void explicitSerializationContextTest() {
-		List<String> messagePayload = Arrays.asList("Hello", "stream", "message");
-
-		RedisSerializationContext<String, Object> serializationContext = redisSerializationContext();
-
-		streamMessageHandler.setSerializationContext(serializationContext);
-		streamMessageHandler.afterPropertiesSet();
-
-		handlerAdapter.handleMessage(new GenericMessage<>(messagePayload));
-
-		ReactiveRedisTemplate<String, List> template = new ReactiveRedisTemplate(redisConnectionFactory,
-				serializationContext);
-
-		ObjectRecord<String, List> record = template.opsForStream().read(List.class, StreamOffset
-				.fromStart(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY))
-				.blockFirst();
-
-		assertThat(record.getStream()).isEqualTo(ReactiveRedisStreamMessageHandlerTestsContext.STREAM_KEY);
-
-		assertThat(record.getValue()).containsExactlyInAnyOrder("stream", "message", "Hello");
-	}
-
 
 	@Test
 	@RedisAvailable
