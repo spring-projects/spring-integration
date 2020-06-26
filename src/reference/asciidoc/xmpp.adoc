@@ -373,7 +373,7 @@ However, you may need to do more than the basics.
 For example, you might need to include formatting (bold, italic, and so on) in a message, which is not defined in the core XMPP specification.
 Well, you can make up a way to do that, but, unless everyone else does it the same way you do, no other software can interpret it (they ignore namespaces they cannot understand).
 
-To solve that problem, the XMPP Standards Foundation (XSF) publishes a series of extra documents, known as https://xmpp.org/extensions/xep-0001.html[XMPP Enhancement Proposals] (XEPs).
+To solve that problem, the XMPP Standards Foundation (XSF) publishes a series of extra documents, known as https://xmpp.org/extensions/xep-0001.html[XMPP Extension Protocols] (XEPs).
 In general, each XEP describes a particular activity (from message formatting to file transfers, multi-user chats, and many more).
 They also provide a standard format for everyone to use for that activity.
 
