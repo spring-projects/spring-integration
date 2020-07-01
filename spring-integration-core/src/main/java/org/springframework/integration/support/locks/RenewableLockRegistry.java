@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc.lock;
-
-import java.io.Closeable;
+package org.springframework.integration.support.locks;
 
 /**
- * Encapsulation of the SQL shunting that is needed for locks. A {@link JdbcLockRegistry}
- * needs a reference to a spring-managed (transactional) client service, so this component
- * has to be declared as a bean.
+ * A {@link LockRegistry} implementing this interface supports the renewal of the time to live of a lock
  *
- * @author Dave Syer
  * @author Alexandre Strubel
  *
- * @since 4.3
+ * @since 5.4
  */
-public interface LockRepository extends Closeable {
+public interface RenewableLockRegistry extends LockRegistry {
 
-	boolean isAcquired(String lock);
-
-	void delete(String lock);
-
-	boolean acquire(String lock);
-
-	boolean renew(String lock);
-
-	@Override
-	void close();
+	/**
+	 * Renew the time to live of the lock is associated with the parameter object.
+	 * The lock must be held by the current thread
+	 * @param lockKey The object with which the lock is associated.
+	 */
+	void renewLock(Object lockKey);
 
 }
