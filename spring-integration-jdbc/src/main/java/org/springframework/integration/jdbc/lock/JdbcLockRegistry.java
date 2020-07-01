@@ -30,6 +30,7 @@ import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
+import org.springframework.integration.support.locks.RenewableLockRegistry;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.transaction.TransactionTimedOutException;
 import org.springframework.util.Assert;
@@ -49,10 +50,11 @@ import org.springframework.util.Assert;
  * @author Bartosz Rempuszewski
  * @author Gary Russell
  * @author Alexandre Strubel
+ * @author Stefan Vassilev
  *
  * @since 4.3
  */
-public class JdbcLockRegistry implements ExpirableLockRegistry {
+public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockRegistry {
 
 	private static final int DEFAULT_IDLE = 100;
 
@@ -98,6 +100,19 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			if (now - lock.getLastUsed() > age && !lock.isAcquiredInThisProcess()) {
 				iterator.remove();
 			}
+		}
+	}
+
+	@Override
+	public void renewLock(Object lockKey) {
+		Assert.isInstanceOf(String.class, lockKey);
+		String path = pathFor((String) lockKey);
+		JdbcLock jdbcLock = this.locks.get(path);
+		if (jdbcLock == null) {
+			throw new IllegalStateException("Could not found mutex at " + path);
+		}
+		if (!jdbcLock.renew()) {
+			throw new IllegalStateException("Could not renew mutex at " + path);
 		}
 	}
 
@@ -232,7 +247,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 		@Override
 		public void unlock() {
 			if (!this.delegate.isHeldByCurrentThread()) {
-				throw new IllegalMonitorStateException("You do not own mutex at " + this.path);
+				throw new IllegalMonitorStateException("The current thread doesn't own mutex at " + this.path);
 			}
 			if (this.delegate.getHoldCount() > 1) {
 				this.delegate.unlock();
@@ -243,7 +258,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					this.mutex.delete(this.path);
 					return;
 				}
-				catch (TransientDataAccessException e) {
+				catch (TransientDataAccessException | TransactionTimedOutException e) {
 					// try again
 				}
 				catch (Exception e) {
@@ -262,6 +277,27 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 
 		public boolean isAcquiredInThisProcess() {
 			return this.mutex.isAcquired(this.path);
+		}
+
+		public boolean renew() {
+			if (!this.delegate.isHeldByCurrentThread()) {
+				throw new IllegalMonitorStateException("The current thread doesn't own mutex at " + this.path);
+			}
+			while (true) {
+				try {
+					boolean renewed = this.mutex.renew(this.path);
+					if (renewed) {
+						this.lastUsed = System.currentTimeMillis();
+					}
+					return renewed;
+				}
+				catch (TransientDataAccessException | TransactionTimedOutException e) {
+					// try again
+				}
+				catch (Exception e) {
+					throw new DataAccessResourceFailureException("Failed to renew mutex at " + this.path, e);
+				}
+			}
 		}
 
 	}

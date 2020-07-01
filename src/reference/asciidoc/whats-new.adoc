@@ -30,6 +30,11 @@ See <<./r2dbc.adoc#r2dbc,R2DBC Support>> for more information.
 The Channel Adapters for Redis Stream support have been introduced.
 See <<./redis.adoc#redis-stream-outbound,Redis Stream Outbound Channel Adapter>> for more information.
 
+==== Renewable Lock Registry
+
+A Renewable lock registry has been introduced to allow renew lease of a distributed lock.
+See <<./jdbc.adoc#jdbc-lock-registry,JDBC implementation>> for more information.
+
 [[x5.4-general]]
 === General Changes
 
