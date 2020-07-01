@@ -14,53 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.r2dbc.outbound;
+package org.springframework.integration.r2dbc.repository;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.integration.r2dbc.entity.Person;
 
 /**
  *  @author Rohan Mukesh
  *
  *  @since 5.4
  */
-@Table
-class Person {
-
-	@Id
-	Integer id;
-
-	String name;
-
-	Integer age;
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public void setAge(Integer age) {
-		this.age = age;
-	}
-
-	Person(String name, Integer age) {
-		this.name = name;
-		this.age = age;
-	}
-
-	public Integer getId() {
-		return this.id;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
-	public Integer getAge() {
-		return this.age;
-	}
+public interface PersonRepository extends ReactiveCrudRepository<Person, Integer> {
 
 }
