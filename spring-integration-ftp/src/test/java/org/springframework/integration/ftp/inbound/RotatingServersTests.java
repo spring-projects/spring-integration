@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,15 @@ import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
-import org.springframework.integration.dsl.StandardIntegrationFlow;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.aop.RotatingServerAdvice;
 import org.springframework.integration.file.remote.aop.RotationPolicy;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -57,6 +59,7 @@ import org.springframework.integration.ftp.dsl.Ftp;
 import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell
@@ -88,17 +91,44 @@ public class RotatingServersTests extends FtpTestSupport {
 	}
 
 	@Before
+	public void extraSetup() {
+		if (testName.getMethodName().equals("testFairStreaming")) {
+			FtpRemoteFileTemplate rft = new FtpRemoteFileTemplate(sessionFactory());
+			rft.execute(s -> {
+				ByteArrayInputStream bais = new ByteArrayInputStream("foo".getBytes());
+				// 2 files per server, remove empty dirs
+				s.write(bais, "foo/f4");
+				s.write(bais, "baz/f5");
+				s.write(bais, "fiz/f6");
+				s.rmdir("bar");
+				s.rmdir("qux");
+				s.rmdir("buz");
+				return null;
+			});
+		}
+	}
+
+
+
 	@After
-	public void clean() {
-		recursiveDelete(new File(tmpDir));
+	public void extraCleanUp() {
+		if (testName.getMethodName().equals("testFairStreaming")) {
+			FtpRemoteFileTemplate rft = new FtpRemoteFileTemplate(sessionFactory());
+			rft.execute(s -> {
+				s.remove("foo/f4");
+				s.remove("baz/f5");
+				s.remove("fiz/f6");
+				return null;
+			});
+		}
 	}
 
 	@Test
 	public void testStandard() throws Exception {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(StandardConfig.class);
 		StandardConfig config = ctx.getBean(StandardConfig.class);
-		ctx.getBean(StandardIntegrationFlow.class).stop();
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		ctx.getBean(SourcePollingChannelAdapter.class).stop();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		assertThat(sfCalls).containsExactly(1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1);
 		File f1 = new File(tmpDir + File.separator + "standard" + File.separator + "f1");
@@ -115,8 +145,8 @@ public class RotatingServersTests extends FtpTestSupport {
 	public void testFair() throws Exception {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(FairConfig.class);
 		StandardConfig config = ctx.getBean(StandardConfig.class);
-		ctx.getBean(StandardIntegrationFlow.class).stop();
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		ctx.getBean(SourcePollingChannelAdapter.class).stop();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		assertThat(sfCalls).containsExactly(1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3);
 		File f1 = new File(tmpDir + File.separator + "fair" + File.separator + "f1");
@@ -134,7 +164,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(VariableLocalConfig.class);
 		StandardConfig config = ctx.getBean(StandardConfig.class);
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
-		ctx.getBean(StandardIntegrationFlow.class).stop();
+		ctx.getBean(SourcePollingChannelAdapter.class).stop();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		assertThat(sfCalls).containsExactly(1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1);
 		File f1 = new File(tmpDir + File.separator + "variable" + File.separator + "foo" + File.separator + "f1");
@@ -151,15 +181,59 @@ public class RotatingServersTests extends FtpTestSupport {
 	public void testStreaming() throws Exception {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(StreamingConfig.class);
 		StandardConfig config = ctx.getBean(StandardConfig.class);
-		ctx.getBean(StandardIntegrationFlow.class).stop();
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		ctx.getBean(SourcePollingChannelAdapter.class).stop();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		// there's an extra getSession() with this adapter in listFiles
 		assertThat(sfCalls).containsExactly(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 1, 1, 2, 2, 3);
-		assertThat(ctx.getBean("files", QueueChannel.class).getQueueSize()).isEqualTo(3);
+		QueueChannel files = ctx.getBean("files", QueueChannel.class);
+		assertThat(files.getQueueSize()).isEqualTo(3);
+		Message<?> received = files.receive(0);
+		StaticMessageHeaderAccessor.getCloseableResource(received).close();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE, String.class)).isEqualTo("f1");
+		received = files.receive(0);
+		StaticMessageHeaderAccessor.getCloseableResource(received).close();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE, String.class)).isEqualTo("f2");
+		received = files.receive(0);
+		StaticMessageHeaderAccessor.getCloseableResource(received).close();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE, String.class)).isEqualTo("f3");
 		ctx.close();
 	}
 
+	@Test
+	public void testFairStreaming() throws Exception {
+		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(FairStreamingConfig.class);
+		try {
+			StandardConfig config = ctx.getBean(StandardConfig.class);
+			assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+			ctx.getBean(SourcePollingChannelAdapter.class).stop();
+			List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
+			assertThat(sfCalls).containsExactly(1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1, 2, 3, 1, 2);
+			QueueChannel files = ctx.getBean("files", QueueChannel.class);
+			assertThat(files.getQueueSize()).isEqualTo(6);
+			Message<?> received = files.receive(0);
+			StaticMessageHeaderAccessor.getCloseableResource(received).close();
+			assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE, String.class)).isEqualTo("f1");
+			received = files.receive(0);
+			StaticMessageHeaderAccessor.getCloseableResource(received).close();
+			assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE, String.class)).isEqualTo("f2");
+			received = files.receive(0);
+			StaticMessageHeaderAccessor.getCloseableResource(received).close();
+			assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE, String.class)).isEqualTo("f3");
+			received = files.receive(0);
+			StaticMessageHeaderAccessor.getCloseableResource(received).close();
+			assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE, String.class)).isEqualTo("f4");
+			received = files.receive(0);
+			StaticMessageHeaderAccessor.getCloseableResource(received).close();
+			assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE, String.class)).isEqualTo("f5");
+			received = files.receive(0);
+			StaticMessageHeaderAccessor.getCloseableResource(received).close();
+			assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE, String.class)).isEqualTo("f6");
+		}
+		finally {
+			ctx.close();
+		}
+	}
 
 	@Configuration
 	@EnableIntegration
@@ -302,6 +376,38 @@ public class RotatingServersTests extends FtpTestSupport {
 						e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
 					.channel(MessageChannels.queue("files"))
 					.get();
+		}
+
+	}
+
+	@Configuration
+	public static class FairStreamingConfig extends StandardConfig {
+
+		@Override
+		@Bean
+		public RotatingServerAdvice advice() {
+			List<RotationPolicy.KeyDirectory> keyDirectories = new ArrayList<>();
+			keyDirectories.add(new RotationPolicy.KeyDirectory("one", "foo"));
+			keyDirectories.add(new RotationPolicy.KeyDirectory("two", "baz"));
+			keyDirectories.add(new RotationPolicy.KeyDirectory("three", "fiz"));
+			return theAdvice(keyDirectories);
+		}
+
+		@Override
+		@Bean
+		public IntegrationFlow flow() {
+			return IntegrationFlows.from(Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sf()))
+							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
+							.remoteDirectory(".")
+							.maxFetchSize(1),
+						e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
+					.channel(MessageChannels.queue("files"))
+					.get();
+		}
+
+		@Override
+		protected RotatingServerAdvice theAdvice(List<RotationPolicy.KeyDirectory> keyDirectories) {
+			return new RotatingServerAdvice(sf(), keyDirectories, true);
 		}
 
 	}
