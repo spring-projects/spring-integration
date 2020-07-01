@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.security.Principal;
 import java.time.Duration;
@@ -28,9 +29,8 @@ import java.util.Collections;
 import javax.annotation.Resource;
 
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -44,12 +44,15 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.dsl.Channels;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.dsl.Http;
 import org.springframework.integration.support.MessageBuilder;
@@ -76,6 +79,7 @@ import org.springframework.security.test.web.reactive.server.SecurityMockServerC
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.reactive.server.HttpHandlerConnector;
@@ -104,8 +108,7 @@ import reactor.test.StepVerifier;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
-@WebAppConfiguration
+@SpringJUnitWebConfig
 @DirtiesContext
 public class WebFluxDslTests {
 
@@ -130,7 +133,7 @@ public class WebFluxDslTests {
 
 	private WebTestClient webTestClient;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		this.mockMvc =
 				MockMvcBuilders.webAppContextSetup(this.wac)
@@ -320,6 +323,39 @@ public class WebFluxDslTests {
 		flowRegistration.destroy();
 	}
 
+	@Test
+	public void testErrorChannelFlow() {
+		IntegrationFlow flow =
+				IntegrationFlows.from(
+						WebFlux.inboundGateway("/errorFlow")
+								.errorChannel(new FixedSubscriberChannel(
+										new AbstractReplyProducingMessageHandler() {
+
+											@Override
+											protected Object handleRequestMessage(Message<?> requestMessage) {
+												return "Error Response";
+											}
+
+										})))
+						.channel(MessageChannels.flux())
+						.transform((payload) -> {
+							throw new RuntimeException("Error!");
+						})
+						.get();
+
+		IntegrationFlowContext.IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(flow).register();
+
+		this.webTestClient.get().uri("/errorFlow")
+				.headers(headers -> headers.setBasicAuth("guest", "guest"))
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody(String.class)
+				.isEqualTo("Error Response");
+
+		flowRegistration.destroy();
+	}
 
 	@Configuration
 	@EnableWebFlux
