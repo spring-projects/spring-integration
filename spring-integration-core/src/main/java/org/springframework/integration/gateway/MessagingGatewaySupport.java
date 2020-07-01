@@ -613,39 +613,40 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private Mono<Message<?>> doSendAndReceiveMessageReactive(MessageChannel requestChannel, Object object,
 			boolean error) {
+		final Message<?> requestMessage;
+		try {
+			Message<?> message =
+					object instanceof Message<?>
+							? (Message<?>) object
+							: this.requestMapper.toMessage(object);
+
+			message = this.historyWritingPostProcessor.postProcessMessage(message);
+			requestMessage = message;
+		}
+		catch (Exception e) {
+			throw new MessageMappingException("Cannot map to message: " + object, e);
+		}
 
 		return Mono.defer(() -> {
-			Message<?> message;
-			try {
-				message = object instanceof Message<?>
-						? (Message<?>) object
-						: this.requestMapper.toMessage(object);
 
-				message = this.historyWritingPostProcessor.postProcessMessage(message);
-
-			}
-			catch (Exception e) {
-				throw new MessageMappingException("Cannot map to message: " + object, e);
-			}
-
-			Object originalReplyChannelHeader = message.getHeaders().getReplyChannel();
-			Object originalErrorChannelHeader = message.getHeaders().getErrorChannel();
+			Object originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
+			Object originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
 
 			MonoReplyChannel replyChan = new MonoReplyChannel();
 
-			Message<?> requestMessage = MutableMessageBuilder.fromMessage(message)
+			Message<?> messageToSend = MutableMessageBuilder.fromMessage(requestMessage)
 					.setReplyChannel(replyChan)
 					.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
 					.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
 					.setErrorChannel(replyChan)
 					.build();
 
-			sendMessageForReactiveFlow(requestChannel, requestMessage);
+			sendMessageForReactiveFlow(requestChannel, messageToSend);
 
 			return buildReplyMono(requestMessage, replyChan.replyMono, error, originalReplyChannelHeader,
-					originalErrorChannelHeader)
-					.onErrorResume(t -> error ? Mono.error(t) : handleSendError(requestMessage, t));
-		});
+					originalErrorChannelHeader);
+		})
+				.onErrorResume(t -> error ? Mono.error(t) : handleSendError(requestMessage, t));
 	}
 
 	private void sendMessageForReactiveFlow(MessageChannel requestChannel, Message<?> requestMessage) {
