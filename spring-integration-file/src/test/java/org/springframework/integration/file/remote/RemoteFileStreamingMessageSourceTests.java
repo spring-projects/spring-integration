@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.file.remote;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -70,7 +71,7 @@ public class RemoteFileStreamingMessageSourceTests {
 		testRemoteFileStreamingMessageSource.setBeanFactory(mock(BeanFactory.class));
 		testRemoteFileStreamingMessageSource.start();
 
-		assertThat(testRemoteFileStreamingMessageSource.doReceive()).isNull();
+		assertThat(testRemoteFileStreamingMessageSource.doReceive(-1)).isNull();
 	}
 
 	@Test
@@ -94,7 +95,7 @@ public class RemoteFileStreamingMessageSourceTests {
 		testRemoteFileStreamingMessageSource.start();
 
 		assertThatExceptionOfType(UncheckedIOException.class)
-				.isThrownBy(testRemoteFileStreamingMessageSource::doReceive);
+				.isThrownBy(() -> testRemoteFileStreamingMessageSource.doReceive(anyInt()));
 
 		assertThat(cachingSessionFactory.getSession()).isNotNull();
 	}
