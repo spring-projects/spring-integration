@@ -42,6 +42,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -64,6 +65,7 @@ import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
@@ -511,6 +513,27 @@ public class IntegrationFlowTests {
 		);
 	}
 
+	@Autowired
+	@Qualifier("controlBusFlow")
+	Lifecycle controlBusFlow;
+
+	@Test
+	public void testStandardIntegrationFlowLifecycle() {
+		this.controlBusFlow.stop();
+
+		GatewayProxyFactoryBean controlBusGateway =
+				this.beanFactory.getBean("&controlBusGateway", GatewayProxyFactoryBean.class);
+		assertThat(controlBusGateway.isRunning()).isFalse();
+		Lifecycle controlBus = this.beanFactory.getBean("controlBus", Lifecycle.class);
+		assertThat(controlBus.isRunning()).isFalse();
+
+		this.controlBusFlow.start();
+
+		assertThat(controlBusGateway.isRunning()).isTrue();
+		assertThat(controlBus.isRunning()).isTrue();
+	}
+
+
 	@After
 	public void cleanUpList() {
 		outputStringList.clear();
@@ -592,8 +615,8 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow controlBusFlow() {
-			return IntegrationFlows.from(ControlBusGateway.class)
-					.controlBus()
+			return IntegrationFlows.from(ControlBusGateway.class, (gateway) -> gateway.beanName("controlBusGateway"))
+					.controlBus((endpoint) -> endpoint.id("controlBus"))
 					.get();
 		}
 
@@ -941,6 +964,7 @@ public class IntegrationFlowTests {
 		public IntegrationFlow interceptorFlow(List<String> outputStringList) {
 			return IntegrationFlows.from("interceptorChannelIn")
 					.intercept(new ChannelInterceptor() {
+
 						@Override
 						public Message<?> preSend(Message<?> message, MessageChannel channel) {
 							outputStringList.add("Pre send transform: " + message.getPayload());
@@ -954,6 +978,7 @@ public class IntegrationFlowTests {
 					})
 					.transform((String s) -> s.toUpperCase())
 					.intercept(new ChannelInterceptor() {
+
 						@Override
 						public Message<?> preSend(Message<?> message, MessageChannel channel) {
 							outputStringList.add("Pre send handle: " + message.getPayload());
@@ -967,6 +992,7 @@ public class IntegrationFlowTests {
 					})
 					.handle(m -> outputStringList.add("Handle: " + m.getPayload())).get();
 		}
+
 	}
 
 	@Service

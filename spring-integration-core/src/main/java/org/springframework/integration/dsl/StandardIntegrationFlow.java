@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,12 +63,11 @@ import org.springframework.messaging.MessageChannel;
  * @see IntegrationFlows
  * @see org.springframework.integration.dsl.context.IntegrationFlowBeanPostProcessor
  * @see org.springframework.integration.dsl.context.IntegrationFlowContext
+ * @see SmartLifecycle
  */
 public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle {
 
 	private final Map<Object, String> integrationComponents;
-
-	private final List<SmartLifecycle> lifecycles = new LinkedList<>();
 
 	private MessageChannel inputChannel;
 
@@ -113,11 +112,9 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 		if (!this.running) {
 			List<Object> components = new LinkedList<>(this.integrationComponents.keySet());
 			ListIterator<Object> iterator = components.listIterator(this.integrationComponents.size());
-			this.lifecycles.clear();
 			while (iterator.hasPrevious()) {
 				Object component = iterator.previous();
 				if (component instanceof SmartLifecycle) {
-					this.lifecycles.add((SmartLifecycle) component);
 					((SmartLifecycle) component).start();
 				}
 			}
@@ -127,30 +124,29 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	@Override
 	public void stop(Runnable callback) {
-		if (this.lifecycles.size() > 0) {
-			AggregatingCallback aggregatingCallback = new AggregatingCallback(this.lifecycles.size(), callback);
-			ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
-			while (iterator.hasPrevious()) {
-				SmartLifecycle lifecycle = iterator.previous();
+		AggregatingCallback aggregatingCallback = new AggregatingCallback(this.integrationComponents.size(), callback);
+		for (Object component : this.integrationComponents.keySet()) {
+			if (component instanceof SmartLifecycle) {
+				SmartLifecycle lifecycle = (SmartLifecycle) component;
 				if (lifecycle.isRunning()) {
 					lifecycle.stop(aggregatingCallback);
-				}
-				else {
-					aggregatingCallback.run();
+					continue;
 				}
 			}
-		}
-		else {
-			callback.run();
+			aggregatingCallback.run();
 		}
 		this.running = false;
 	}
 
 	@Override
 	public void stop() {
-		ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
-		while (iterator.hasPrevious()) {
-			iterator.previous().stop();
+		for (Object component : this.integrationComponents.keySet()) {
+			if (component instanceof SmartLifecycle) {
+				SmartLifecycle lifecycle = (SmartLifecycle) component;
+				if (lifecycle.isRunning()) {
+					lifecycle.stop();
+				}
+			}
 		}
 		this.running = false;
 	}
