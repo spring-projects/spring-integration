@@ -125,7 +125,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	@Override
 	public void stop(Runnable callback) {
 		AggregatingCallback aggregatingCallback = new AggregatingCallback(this.integrationComponents.size(), callback);
-		for (Object component : integrationComponents.keySet()) {
+		for (Object component : this.integrationComponents.keySet()) {
 			if (component instanceof SmartLifecycle) {
 				SmartLifecycle lifecycle = (SmartLifecycle) component;
 				if (lifecycle.isRunning()) {
@@ -140,7 +140,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	@Override
 	public void stop() {
-		for (Object component : integrationComponents.keySet()) {
+		for (Object component : this.integrationComponents.keySet()) {
 			if (component instanceof SmartLifecycle) {
 				SmartLifecycle lifecycle = (SmartLifecycle) component;
 				if (lifecycle.isRunning()) {
