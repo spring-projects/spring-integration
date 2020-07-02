@@ -204,33 +204,37 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 					break;
 				}
 			}
-			try {
-				String remotePath = remotePath(file);
-				Session<?> session = this.remoteFileTemplate.getSession();
-				if (maxFetchSize > 0) {
-					this.fetched.incrementAndGet();
-				}
-				try {
-					return getMessageBuilderFactory()
-							.withPayload(session.readRaw(remotePath))
-							.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
-							.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
-							.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
-							.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort())
-							.setHeader(FileHeaders.REMOTE_FILE_INFO,
-									this.fileInfoJson ? file.toJson() : file);
-				}
-				catch (IOException e) {
-					session.close();
-					throw new UncheckedIOException("IOException when retrieving " + remotePath, e);
-				}
+			if (maxFetchSize > 0) {
+				this.fetched.incrementAndGet();
 			}
-			catch (RuntimeException e) {
-				resetFilterIfNecessary(file);
-				throw e;
-			}
+			return remoteFileToMessage(file);
 		}
 		return null;
+	}
+
+	private Object remoteFileToMessage(AbstractFileInfo<F> file) {
+		try {
+			String remotePath = remotePath(file);
+			Session<?> session = this.remoteFileTemplate.getSession();
+			try {
+				return getMessageBuilderFactory()
+						.withPayload(session.readRaw(remotePath))
+						.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
+						.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
+						.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
+						.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort())
+						.setHeader(FileHeaders.REMOTE_FILE_INFO,
+								this.fileInfoJson ? file.toJson() : file);
+			}
+			catch (IOException e) {
+				session.close();
+				throw new UncheckedIOException("IOException when retrieving " + remotePath, e);
+			}
+		}
+		catch (RuntimeException e) {
+			resetFilterIfNecessary(file);
+			throw e;
+		}
 	}
 
 	protected AbstractFileInfo<F> poll() {

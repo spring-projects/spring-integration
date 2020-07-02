@@ -613,13 +613,14 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private Mono<Message<?>> doSendAndReceiveMessageReactive(MessageChannel requestChannel, Object object,
 			boolean error) {
-		final Message<?> requestMessage;
+
+		Message<?> requestMessage;
 		try {
 			Message<?> message =
 					object instanceof Message<?>
 							? (Message<?>) object
 							: this.requestMapper.toMessage(object);
-
+			Assert.state(message != null, () -> "request mapper resulted in no message for " + object);
 			message = this.historyWritingPostProcessor.postProcessMessage(message);
 			requestMessage = message;
 		}
@@ -628,7 +629,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 
 		return Mono.defer(() -> {
-
 			Object originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
 			Object originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
 
