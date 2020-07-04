@@ -16,6 +16,13 @@
 
 package org.springframework.integration.dsl.context;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -31,13 +38,6 @@ import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Standard implementation of {@link IntegrationFlowContext}.
@@ -98,14 +98,16 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 				registerBeanLock.lock();
 				flowId = generateBeanName(integrationFlow, null);
 				builder.id(flowId);
-			} else if (this.registry.containsKey(flowId)) {
+			}
+			else if (this.registry.containsKey(flowId)) {
 				throw new IllegalArgumentException("An IntegrationFlow '" + this.registry.get(flowId) +
 						"' with flowId '" + flowId + "' is already registered.\n" +
 						"An existing IntegrationFlowRegistration must be destroyed before overriding.");
 			}
 
 			integrationFlow = registerFlowBean(integrationFlow, flowId, builder.source);
-		} finally {
+		}
+		finally {
 			if (registerBeanLock != null) {
 				registerBeanLock.unlock();
 			}
@@ -183,7 +185,8 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 			removeDependantBeans(flowId);
 
 			this.beanDefinitionRegistry.removeBeanDefinition(flowId);
-		} else {
+		}
+		else {
 			throw new IllegalStateException("An IntegrationFlow with the id "
 					+ "[" + flowId + "] doesn't exist in the registry.");
 		}
