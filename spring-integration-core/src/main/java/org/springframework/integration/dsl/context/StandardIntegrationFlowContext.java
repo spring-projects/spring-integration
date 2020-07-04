@@ -16,6 +16,13 @@
 
 package org.springframework.integration.dsl.context;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -32,19 +39,14 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * Standard implementation of {@link IntegrationFlowContext}.
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.1
+ *
  */
 public final class StandardIntegrationFlowContext implements IntegrationFlowContext, BeanFactoryAware {
 
@@ -74,7 +76,6 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	/**
 	 * Associate provided {@link IntegrationFlow} with an {@link StandardIntegrationFlowRegistrationBuilder}
 	 * for additional options and farther registration in the application context.
-	 *
 	 * @param integrationFlow the {@link IntegrationFlow} to register
 	 * @return the IntegrationFlowRegistrationBuilder associated with the provided {@link IntegrationFlow}
 	 */
@@ -98,14 +99,16 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 				registerBeanLock.lock();
 				flowId = generateBeanName(integrationFlow, null);
 				builder.id(flowId);
-			} else if (this.registry.containsKey(flowId)) {
+			}
+			else if (this.registry.containsKey(flowId)) {
 				throw new IllegalArgumentException("An IntegrationFlow '" + this.registry.get(flowId) +
 						"' with flowId '" + flowId + "' is already registered.\n" +
 						"An existing IntegrationFlowRegistration must be destroyed before overriding.");
 			}
 
 			integrationFlow = registerFlowBean(integrationFlow, flowId, builder.source);
-		} finally {
+		}
+		finally {
 			if (registerBeanLock != null) {
 				registerBeanLock.unlock();
 			}
@@ -159,7 +162,6 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	/**
 	 * Obtain an {@link IntegrationFlowRegistration} for the {@link IntegrationFlow}
 	 * associated with the provided {@code flowId}.
-	 *
 	 * @param flowId the bean name to obtain
 	 * @return the IntegrationFlowRegistration for provided {@code id} or {@code null}
 	 */
@@ -171,19 +173,19 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	/**
 	 * Destroy an {@link IntegrationFlow} bean (as well as all its dependant beans)
 	 * for provided {@code flowId} and clean up all the local cache for it.
-	 *
 	 * @param flowId the bean name to destroy from
 	 */
 	@Override
 	public void remove(String flowId) {
 		final IntegrationFlowRegistration flowRegistration = this.registry.remove(flowId);
-		if (flowRegistration != null) {
+		if (flowRegistration!=null) {
 			flowRegistration.stop();
 
 			removeDependantBeans(flowId);
 
 			this.beanDefinitionRegistry.removeBeanDefinition(flowId);
-		} else {
+		}
+		else {
 			throw new IllegalStateException("An IntegrationFlow with the id "
 					+ "[" + flowId + "] doesn't exist in the registry.");
 		}
@@ -209,7 +211,6 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	 * <p> If {@link IntegrationFlow} doesn't start with the
 	 * {@link org.springframework.messaging.MessageChannel}, the
 	 * {@link IllegalStateException} is thrown.
-	 *
 	 * @param flowId the bean name to obtain the input channel from
 	 * @return the {@link MessagingTemplate} instance
 	 */
@@ -222,7 +223,6 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	/**
 	 * Provide the state of the mapping of integration flow names to their
 	 * {@link IntegrationFlowRegistration} instances.
-	 *
 	 * @return the registry of flow ids and their registration.
 	 */
 	@Override
@@ -276,7 +276,6 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		 * Must be unique per context.
 		 * The registration with this {@code id} must be destroyed before reusing for
 		 * a new {@link IntegrationFlow} instance.
-		 *
 		 * @param id the id for the {@link IntegrationFlow} to register
 		 * @return the current builder instance
 		 */
@@ -289,9 +288,8 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		/**
 		 * The {@code boolean} flag to indication if an {@link IntegrationFlow} must be
 		 * started automatically after registration. Defaults to {@code true}.
-		 *
 		 * @param autoStartupToSet start or not the {@link IntegrationFlow} automatically
-		 *                         after registration.
+		 * after registration.
 		 * @return the current builder instance
 		 */
 		@Override
@@ -304,7 +302,6 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		 * Add an object which will be registered as an {@link IntegrationFlow} dependant bean in the
 		 * application context. Usually it is some support component, which needs an application context.
 		 * For example dynamically created connection factories or header mappers for AMQP, JMS, TCP etc.
-		 *
 		 * @param bean an additional arbitrary bean to register into the application context.
 		 * @return the current builder instance
 		 */
@@ -317,7 +314,6 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		 * Add an object which will be registered as an {@link IntegrationFlow} dependant bean in the
 		 * application context. Usually it is some support component, which needs an application context.
 		 * For example dynamically created connection factories or header mappers for AMQP, JMS, TCP etc.
-		 *
 		 * @param name the name for the bean to register.
 		 * @param bean an additional arbitrary bean to register into the application context.
 		 * @return the current builder instance
@@ -344,7 +340,6 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		 * Register an {@link IntegrationFlow} and all the dependant and support components
 		 * in the application context and return an associated {@link IntegrationFlowRegistration}
 		 * control object.
-		 *
 		 * @return the {@link IntegrationFlowRegistration} instance.
 		 */
 		@Override
