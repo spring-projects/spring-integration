@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Alexander Shaklein
  *
  * @since 5.1
  *
@@ -177,8 +178,8 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	 */
 	@Override
 	public void remove(String flowId) {
-		if (this.registry.containsKey(flowId)) {
-			IntegrationFlowRegistration flowRegistration = this.registry.remove(flowId);
+		final IntegrationFlowRegistration flowRegistration = this.registry.remove(flowId);
+		if (flowRegistration != null) {
 			flowRegistration.stop();
 
 			removeDependantBeans(flowId);
