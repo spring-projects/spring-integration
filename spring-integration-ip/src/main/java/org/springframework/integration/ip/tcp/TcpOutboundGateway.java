@@ -135,7 +135,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @param replyChannel The reply channel.
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
-		this.setOutputChannel(replyChannel);
+		setOutputChannel(replyChannel);
 	}
 
 	/**
@@ -145,7 +145,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @since 5.0
 	 */
 	public void setReplyChannelName(String replyChannel) {
-		this.setOutputChannelName(replyChannel);
+		setOutputChannelName(replyChannel);
 	}
 
 	/**
