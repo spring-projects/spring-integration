@@ -26,6 +26,7 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * A {@link MessageHandlerSpec} for {@link TcpOutboundGateway}s.
@@ -111,6 +112,28 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	 */
 	public TcpOutboundGatewaySpec async(boolean async) {
 		this.target.setAsync(async);
+		return this;
+	}
+
+	/**
+	 * Set the unsolicited message channel name.
+	 * @param channelName the name.
+	 * @return the spec.
+	 * @since 5.4
+	 */
+	public TcpOutboundGatewaySpec unsolictedMessageChannelName(String channelName) {
+		this.target.setUnsolicitedMessageChannelName(channelName);
+		return this;
+	}
+
+	/**
+	 * Set the unsolicited message channel.
+	 * @param channel the channel.
+	 * @return the spec.
+	 * @since 5.4
+	 */
+	public TcpOutboundGatewaySpec unsolictedMessageChannelName(MessageChannel channel) {
+		this.target.setUnsolicitedMessageChannel(channel);
 		return this;
 	}
 

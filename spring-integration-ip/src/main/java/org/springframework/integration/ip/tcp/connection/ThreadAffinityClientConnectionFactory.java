@@ -251,6 +251,11 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	}
 
 	@Override
+	public List<TcpSender> getSenders() {
+		return this.connectionFactory.getSenders();
+	}
+
+	@Override
 	public Serializer<?> getSerializer() {
 		return this.connectionFactory.getSerializer();
 	}

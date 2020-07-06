@@ -910,6 +910,12 @@ This only applies when using the `TcpNetClientConnectionFactory`, it is ignored 
 IMPORTANT: When using a shared connection (`singleUse=false`), a new request, while another is in process, will be blocked until the current reply is received.
 Consider using the `CachingClientConnectionFactory` if you wish to support concurrent requests on a pool of long-lived connections.
 
+Starting with version 5.4, the inbound can be configured with an `unsolicitedMessageChannel`.
+Unsolicited inbound messages will be sent to this channel, as well as late replies (where the client timed out).
+To support this on the server side, you can now register multiple `TcpSender` s with the connection factory.
+Gateways and Channel Adapters automatically register themselves.
+When sending unsolicited messages from the server, you must add the appropriate `IpHeaders.CONNECTION_ID` to the messages sent.
+
 [[ip-correlation]]
 === TCP Message Correlation
 
@@ -970,6 +976,10 @@ This meant that, if no data were received by the inbound adapter for this period
 This default behavior was not appropriate in a truly asynchronous environment, so it now defaults to an infinite timeout.
 You can reinstate the previous default behavior by setting the `so-timeout` attribute on the client connection factory to 10000 milliseconds.
 =====
+
+Starting with version 5.4, multiple outbound channel adapters and one `TcpInboundChannelAdapter` can share the same connection factory.
+This allows an application to support both request/reply and arbitrary server -> client messaging.
+See <<tcp-gateways>> for more information.
 
 [[ip-headers]]
 ==== Transferring Headers
@@ -2054,6 +2064,11 @@ Only applies if the reply-channel might block (such as a bounded QueueChannel th
 | `async`
 |
 | Release the sending thread after the send; the reply (or error) will be sent on the receiving thread.
+
+| `unsolicited`
+`MessageChannel`
+|
+| A channel to which to send unsolicited messages and late replies.
 |===
 
 .IP Message Headers
