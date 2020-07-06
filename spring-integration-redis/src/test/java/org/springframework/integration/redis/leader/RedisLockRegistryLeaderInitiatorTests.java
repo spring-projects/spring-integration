@@ -129,12 +129,10 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 		initiator1.setLeaderEventPublisher(new CountingPublisher(new CountDownLatch(1), revoked11,
 				new CountDownLatch(1)));
 
-		initiator1.getContext().yield();
+		initiator1.stop();
 
 		assertThat(revoked11.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(initiator1.getContext().isLeader()).isFalse();
-
-		initiator1.stop();
 	}
 
 	private static class CountingPublisher implements LeaderEventPublisher {
