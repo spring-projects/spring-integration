@@ -218,10 +218,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 				connection.registerListener(listener);
 			}
 		}
-		TcpSender sender = getSender();
-		if (sender != null) {
-			connection.registerSender(sender);
-		}
+		connection.registerSenders(getSenders());
 		connection.setMapper(getMapper());
 		connection.setDeserializer(getDeserializer());
 		connection.setSerializer(getSerializer());

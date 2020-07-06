@@ -114,6 +114,11 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 		return this;
 	}
 
+	public TcpOutboundGatewaySpec unsolictedMessageChannelName(String channelName) {
+		this.target.setUnsolicitedMessageChannelName(channelName);
+		return this;
+	}
+
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		return this.connectionFactory != null

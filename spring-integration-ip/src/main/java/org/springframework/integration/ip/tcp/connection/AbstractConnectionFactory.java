@@ -79,13 +79,13 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private final BlockingQueue<PendingIO> delayedReads = new LinkedBlockingQueue<>();
 
+	private final List<TcpSender> senders = Collections.synchronizedList(new ArrayList<>());
+
 	private String host;
 
 	private int port;
 
 	private TcpListener listener;
-
-	private TcpSender sender;
 
 	private int soTimeout = -1;
 
@@ -326,11 +326,20 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
-	 * @return the sender
+	 * @return the first sender, if present.
 	 */
 	@Nullable
 	public TcpSender getSender() {
-		return this.sender;
+		return this.senders.size() > 0 ? this.senders.get(0) : null;
+	}
+
+	/**
+	 * Return the list of senders.
+	 * @return the senders.
+	 * @since 5.4
+	 */
+	public List<TcpSender> getSenders() {
+		return Collections.unmodifiableList(this.senders);
 	}
 
 	/**
@@ -372,8 +381,16 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @param senderToRegister The sender
 	 */
 	public void registerSender(TcpSender senderToRegister) {
-		Assert.isNull(this.sender, this.getClass().getName() + " may only be used by one outbound adapter");
-		this.sender = senderToRegister;
+		this.senders.add(senderToRegister);
+	}
+
+	/**
+	 * Unregister a TcpSender.
+	 * @param sender the sender.
+	 * @return true if the sender was registered.
+	 */
+	public boolean unregisterSender(TcpSender sender) {
+		return this.senders.remove(sender);
 	}
 
 	/**
@@ -600,7 +617,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				if (this.listener == null) {
 					connection.registerListener(wrapper);
 				}
-				if (this.sender == null) {
+				if (this.senders.size() == 0) {
 					connection.registerSender(wrapper);
 				}
 				connection = wrapper;

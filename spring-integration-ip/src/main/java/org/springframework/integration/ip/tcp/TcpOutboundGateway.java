@@ -91,6 +91,17 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private boolean closeStreamAfterSend;
 
+	private String unsolicitedMessageChannelName;
+
+	private MessageChannel unsolicitedMessageChannel;
+
+	public void setConnectionFactory(AbstractClientConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
+		connectionFactory.registerListener(this);
+		connectionFactory.registerSender(this);
+		this.isSingleUse = connectionFactory.isSingleUse();
+	}
+
 	/**
 	 * @param requestTimeout the requestTimeout to set
 	 */
@@ -118,14 +129,53 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		this.evaluationContextSet = true;
 	}
 
-	@Override
-	protected void doInit() {
-		super.doInit();
-		if (!this.evaluationContextSet) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		}
-		Assert.state(!this.closeStreamAfterSend || this.isSingleUse,
-				"Single use connection needed with closeStreamAfterSend");
+	/**
+	 * Specify the Spring Integration reply channel. If this property is not
+	 * set the gateway will check for a 'replyChannel' header on the request.
+	 * @param replyChannel The reply channel.
+	 */
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.setOutputChannel(replyChannel);
+	}
+
+	/**
+	 * Specify the Spring Integration reply channel name. If this property is not
+	 * set the gateway will check for a 'replyChannel' header on the request.
+	 * @param replyChannel The reply channel.
+	 * @since 5.0
+	 */
+	public void setReplyChannelName(String replyChannel) {
+		this.setOutputChannelName(replyChannel);
+	}
+
+	/**
+	 * Set the channel name for unsolicited incoming messages, or late replies.
+	 * @param unsolicitedMessageChannelName the channel name.
+	 * @since 5.4
+	 */
+	public void setUnsolicitedMessageChannelName(String unsolicitedMessageChannelName) {
+		this.unsolicitedMessageChannelName = unsolicitedMessageChannelName;
+	}
+
+	/**
+	 * Set the channel for unsolicited incoming messages, or late replies.
+	 * @param unsolicitedMessageChannel the channel.
+	 * @since 5.4
+	 */
+	public void setUnsolicitedMessageChannel(MessageChannel unsolicitedMessageChannel) {
+		this.unsolicitedMessageChannel = unsolicitedMessageChannel;
+	}
+
+	/**
+	 * Set to true to close the connection ouput stream after sending without
+	 * closing the connection. Use to signal EOF to the server, such as when using
+	 * a {@link org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer}.
+	 * Requires a single-use connection factory.
+	 * @param closeStreamAfterSend true to close.
+	 * @since 5.2
+	 */
+	public void setCloseStreamAfterSend(boolean closeStreamAfterSend) {
+		this.closeStreamAfterSend = closeStreamAfterSend;
 	}
 
 	/**
@@ -138,6 +188,21 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	 */
 	public void setSecondChanceDelay(int secondChanceDelay) {
 		this.secondChanceDelay = secondChanceDelay;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "ip:tcp-outbound-gateway";
+	}
+
+	@Override
+	protected void doInit() {
+		super.doInit();
+		if (!this.evaluationContextSet) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		}
+		Assert.state(!this.closeStreamAfterSend || this.isSingleUse,
+				"Single use connection needed with closeStreamAfterSend");
 	}
 
 	@Override
@@ -260,6 +325,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	public boolean onMessage(Message<?> message) {
 		String connectionId = message.getHeaders().get(IpHeaders.CONNECTION_ID, String.class);
 		if (connectionId == null) {
+			if (unsolicitedSupported(message)) {
+				return false;
+			}
 			logger.error("Cannot correlate response - no connection id");
 			publishNoConnectionEvent(message, null, "Cannot correlate response - no connection id");
 			return false;
@@ -277,6 +345,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				return false;
 			}
 			else {
+				if (unsolicitedSupported(message)) {
+					return false;
+				}
 				String errorMessage = "Cannot correlate response - no pending reply for " + connectionId;
 				logger.error(errorMessage);
 				publishNoConnectionEvent(message, connectionId, errorMessage);
@@ -293,19 +364,30 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		return false;
 	}
 
+	private boolean unsolicitedSupported(Message<?> message) {
+		String channelName = this.unsolicitedMessageChannelName;
+		if (channelName != null) {
+			this.unsolicitedMessageChannel = getChannelResolver().resolveDestination(channelName);
+			this.unsolicitedMessageChannelName = null;
+		}
+		if (this.unsolicitedMessageChannel != null) {
+			try {
+				this.messagingTemplate.send(this.unsolicitedMessageChannel, message);
+			}
+			catch (Exception e) {
+				logger.error("Failed to send unsolicited message " + message, e);
+			}
+			return true;
+		}
+		return false;
+	}
+
 	private void publishNoConnectionEvent(Message<?> message, String connectionId, String errorMessage) {
 		ApplicationEventPublisher applicationEventPublisher = this.connectionFactory.getApplicationEventPublisher();
 		if (applicationEventPublisher != null) {
 			applicationEventPublisher.publishEvent(new TcpConnectionFailedCorrelationEvent(this, connectionId,
 					new MessagingException(message, errorMessage)));
 		}
-	}
-
-	public void setConnectionFactory(AbstractClientConnectionFactory connectionFactory) {
-		this.connectionFactory = connectionFactory;
-		connectionFactory.registerListener(this);
-		connectionFactory.registerSender(this);
-		this.isSingleUse = connectionFactory.isSingleUse();
 	}
 
 	@Override
@@ -316,42 +398,6 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	@Override
 	public void removeDeadConnection(TcpConnection connection) {
 		// do nothing - no asynchronous multiplexing supported
-	}
-
-	/**
-	 * Specify the Spring Integration reply channel. If this property is not
-	 * set the gateway will check for a 'replyChannel' header on the request.
-	 * @param replyChannel The reply channel.
-	 */
-	public void setReplyChannel(MessageChannel replyChannel) {
-		this.setOutputChannel(replyChannel);
-	}
-
-	/**
-	 * Specify the Spring Integration reply channel name. If this property is not
-	 * set the gateway will check for a 'replyChannel' header on the request.
-	 * @param replyChannel The reply channel.
-	 * @since 5.0
-	 */
-	public void setReplyChannelName(String replyChannel) {
-		this.setOutputChannelName(replyChannel);
-	}
-
-	/**
-	 * Set to true to close the connection ouput stream after sending without
-	 * closing the connection. Use to signal EOF to the server, such as when using
-	 * a {@link org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer}.
-	 * Requires a single-use connection factory.
-	 * @param closeStreamAfterSend true to close.
-	 * @since 5.2
-	 */
-	public void setCloseStreamAfterSend(boolean closeStreamAfterSend) {
-		this.closeStreamAfterSend = closeStreamAfterSend;
-	}
-
-	@Override
-	public String getComponentType() {
-		return "ip:tcp-outbound-gateway";
 	}
 
 	@Override
