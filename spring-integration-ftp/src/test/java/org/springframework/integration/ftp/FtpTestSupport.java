@@ -29,6 +29,7 @@ import org.apache.ftpserver.ftplet.AuthenticationFailedException;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.User;
 import org.apache.ftpserver.ftplet.UserManager;
+import org.apache.ftpserver.impl.DefaultConnectionConfig;
 import org.apache.ftpserver.listener.Listener;
 import org.apache.ftpserver.listener.ListenerFactory;
 import org.apache.ftpserver.usermanager.impl.BaseUser;
@@ -61,6 +62,8 @@ public class FtpTestSupport extends RemoteFileTestSupport {
 	@BeforeAll
 	public static void createServer() throws Exception {
 		FtpServerFactory serverFactory = new FtpServerFactory();
+		DefaultConnectionConfig config = new DefaultConnectionConfig(true, 500, 100, 100, 3, 0);
+		serverFactory.setConnectionConfig(config);
 		serverFactory.setUserManager(new TestUserManager(getRemoteTempFolder().getAbsolutePath()));
 
 		ListenerFactory factory = new ListenerFactory();
