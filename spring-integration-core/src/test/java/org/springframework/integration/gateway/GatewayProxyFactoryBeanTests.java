@@ -47,6 +47,7 @@ import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -163,6 +164,23 @@ public class GatewayProxyFactoryBeanTests {
 				proxyFactory.getGateways().get(ClassUtils.getMethod(TestService.class, "getMessage"));
 		assertThat(messagingGatewaySupport.getIntegrationPatternType())
 				.isEqualTo(IntegrationPatternType.outbound_channel_adapter);
+	}
+
+	@Test
+	public void testReactiveReplyChannel() {
+		QueueChannel requestChannel = new QueueChannel();
+		startResponder(requestChannel);
+		FluxMessageChannel replyChannel = new FluxMessageChannel();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setDefaultReplyChannel(replyChannel);
+
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.afterPropertiesSet();
+		TestService service = (TestService) proxyFactory.getObject();
+
+		String result = service.requestReply("test");
+		assertThat(result).isEqualTo("testbar");
 	}
 
 	@Test

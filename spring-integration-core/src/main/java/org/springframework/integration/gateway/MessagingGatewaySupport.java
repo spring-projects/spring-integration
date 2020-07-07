@@ -794,23 +794,21 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				}
 				else if (replyChan instanceof PollableChannel) {
 					PollingConsumer endpoint = new PollingConsumer((PollableChannel) replyChan, handler);
-					if (beanFactory != null) {
-						endpoint.setBeanFactory(beanFactory);
-					}
 					endpoint.setReceiveTimeout(this.replyTimeout);
-					endpoint.afterPropertiesSet();
 					correlator = endpoint;
 				}
 				else if (replyChan instanceof ReactiveStreamsSubscribableChannel) {
-					ReactiveStreamsConsumer endpoint =
-							new ReactiveStreamsConsumer(replyChan, (Subscriber<Message<?>>) handler);
-					endpoint.afterPropertiesSet();
-					correlator = endpoint;
+					correlator = new ReactiveStreamsConsumer(replyChan, (Subscriber<Message<?>>) handler);
 				}
 				else {
 					throw new MessagingException("Unsupported 'replyChannel' type [" + replyChan.getClass() + "]."
 							+ "SubscribableChannel or PollableChannel type are supported.");
 				}
+
+				if (beanFactory != null) {
+					correlator.setBeanFactory(beanFactory);
+				}
+				correlator.afterPropertiesSet();
 				this.replyMessageCorrelator = correlator;
 			}
 			if (isRunning()) {
