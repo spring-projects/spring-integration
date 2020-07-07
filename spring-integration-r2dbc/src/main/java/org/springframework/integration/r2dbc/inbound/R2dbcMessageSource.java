@@ -73,7 +73,7 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	 * It assumes that the {@link DatabaseClient} is fully initialized and ready to be used.
 	 * The 'query' will be evaluated on every call to the {@link #receive()} method.
 	 *
-	 * @param databaseClient The reactive r2dbc template.
+	 * @param databaseClient The reactive database client for performing database calls.
 	 * @param query          The query String.
 	 */
 	public R2dbcMessageSource(DatabaseClient databaseClient, String query) {
@@ -81,12 +81,12 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	}
 
 	/**
-	 * Create an instance with the provided {@link R2dbcEntityOperations} and SpEL expression
+	 * Create an instance with the provided {@link DatabaseClient} and SpEL expression
 	 * which should resolve to a Relational 'query' string.
-	 * It assumes that the {@link R2dbcEntityOperations} is fully initialized and ready to be used.
+	 * It assumes that the {@link DatabaseClient} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 *
-	 * @param databaseClient  The reactive r2dbc template.
+	 * @param databaseClient  The reactive for performing database calls.
 	 * @param queryExpression The query expression.
 	 */
 	public R2dbcMessageSource(DatabaseClient databaseClient, Expression queryExpression) {
