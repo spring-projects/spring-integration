@@ -1,4 +1,0 @@
-# Tooling related information for the integration syslog namespace
-http\://www.springframework.org/schema/integration/syslog@name=integration syslog Namespace
-http\://www.springframework.org/schema/integration/syslog@prefix=int-syslog
-http\://www.springframework.org/schema/integration/syslog@icon=org/springframework/integration/syslog/config/spring-integration-syslog.gif

@@ -1,4 +1,0 @@
-http\://www.springframework.org/schema/integration/rsocket/spring-integration-rsocket-5.2.xsd=org/springframework/integration/rsocket/config/spring-integration-rsocket.xsd
-http\://www.springframework.org/schema/integration/rsocket/spring-integration-rsocket.xsd=org/springframework/integration/rsocket/config/spring-integration-rsocket.xsd
-https\://www.springframework.org/schema/integration/rsocket/spring-integration-rsocket-5.2.xsd=org/springframework/integration/rsocket/config/spring-integration-rsocket.xsd
-https\://www.springframework.org/schema/integration/rsocket/spring-integration-rsocket.xsd=org/springframework/integration/rsocket/config/spring-integration-rsocket.xsd

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://www.example.org/validationTestsSchema" xmlns:tns="https://www.example.org/validationTestsSchema" elementFormDefault="qualified">
-
-    <xsd:element name="greeting" type="xsd:string"/>
-    
-</xsd:schema>

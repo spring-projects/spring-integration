@@ -1,4 +1,0 @@
-# Tooling related information for the integration webflux namespace
-http\://www.springframework.org/schema/integration/webflux@name=integration webflux Namespace
-http\://www.springframework.org/schema/integration/webflux@prefix=int-webflux
-http\://www.springframework.org/schema/integration/webflux@icon=org/springframework/integration/webflux/config/spring-integration-webflux.gif

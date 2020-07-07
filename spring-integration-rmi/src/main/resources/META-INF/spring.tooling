@@ -1,4 +1,0 @@
-# Tooling related information for the integration rmi namespace
-http\://www.springframework.org/schema/integration/rmi@name=integration rmi Namespace
-http\://www.springframework.org/schema/integration/rmi@prefix=int-rmi
-http\://www.springframework.org/schema/integration/rmi@icon=org/springframework/integration/rmi/config/spring-integration-rmi.gif

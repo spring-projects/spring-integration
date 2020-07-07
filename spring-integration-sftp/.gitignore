@@ -1,4 +1,0 @@
-local-test-dir/*.test
-local-test-dir/rollback
-remote-target-dir/*foo*
-remote-target-dir/*test*

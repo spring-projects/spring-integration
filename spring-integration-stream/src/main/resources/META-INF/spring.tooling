@@ -1,4 +1,0 @@
-# Tooling related information for the integration stream namespace
-http\://www.springframework.org/schema/integration/stream@name=integration stream Namespace
-http\://www.springframework.org/schema/integration/stream@prefix=int-stream
-http\://www.springframework.org/schema/integration/stream@icon=org/springframework/integration/stream/config/spring-integration-stream.gif

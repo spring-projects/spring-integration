@@ -1,4 +1,0 @@
-# Tooling related information for the integration sftp namespace
-http\://www.springframework.org/schema/integration/sftp@name=integration sftp Namespace
-http\://www.springframework.org/schema/integration/sftp@prefix=int-sftp
-http\://www.springframework.org/schema/integration/sftp@icon=org/springframework/integration/sftp/config/spring-integration-sftp.gif

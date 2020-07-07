@@ -1,4 +1,0 @@
-# Tooling related information for the integration xmpp namespace
-http\://www.springframework.org/schema/integration/xmpp@name=integration xmpp Namespace
-http\://www.springframework.org/schema/integration/xmpp@prefix=int-xmpp
-http\://www.springframework.org/schema/integration/xmpp@icon=org/springframework/integration/xmpp/config/spring-integration-xmpp.gif

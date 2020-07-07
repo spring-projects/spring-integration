@@ -1,1 +1,0 @@
-http\://www.springframework.org/schema/integration/mqtt=org.springframework.integration.mqtt.config.xml.MqttNamespaceHandler

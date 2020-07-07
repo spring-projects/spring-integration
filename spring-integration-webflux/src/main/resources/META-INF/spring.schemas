@@ -1,8 +1,0 @@
-http\://www.springframework.org/schema/integration/webflux/spring-integration-webflux-5.0.xsd=/org/springframework/integration/webflux/config/spring-integration-webflux.xsd
-http\://www.springframework.org/schema/integration/webflux/spring-integration-webflux-5.1.xsd=/org/springframework/integration/webflux/config/spring-integration-webflux.xsd
-http\://www.springframework.org/schema/integration/webflux/spring-integration-webflux-5.2.xsd=/org/springframework/integration/webflux/config/spring-integration-webflux.xsd
-http\://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd=org/springframework/integration/webflux/config/spring-integration-webflux.xsd
-https\://www.springframework.org/schema/integration/webflux/spring-integration-webflux-5.0.xsd=/org/springframework/integration/webflux/config/spring-integration-webflux.xsd
-https\://www.springframework.org/schema/integration/webflux/spring-integration-webflux-5.1.xsd=/org/springframework/integration/webflux/config/spring-integration-webflux.xsd
-https\://www.springframework.org/schema/integration/webflux/spring-integration-webflux-5.2.xsd=/org/springframework/integration/webflux/config/spring-integration-webflux.xsd
-https\://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd=org/springframework/integration/webflux/config/spring-integration-webflux.xsd

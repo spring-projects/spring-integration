@@ -1,4 +1,0 @@
-# Tooling related information for the integration mail namespace
-http\://www.springframework.org/schema/integration/mail@name=integration mail Namespace
-http\://www.springframework.org/schema/integration/mail@prefix=int-mail
-http\://www.springframework.org/schema/integration/mail@icon=org/springframework/integration/mail/config/spring-integration-mail.gif

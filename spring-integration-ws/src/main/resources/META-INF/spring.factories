@@ -1,2 +1,0 @@
-org.springframework.integration.config.IntegrationConfigurationInitializer=\
-org.springframework.integration.ws.config.WsIntegrationConfigurationInitializer

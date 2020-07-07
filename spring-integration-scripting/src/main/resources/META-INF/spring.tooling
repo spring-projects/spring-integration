@@ -1,4 +1,0 @@
-# Tooling related information for the integration scripting namespace
-http\://www.springframework.org/schema/integration/scripting@name=integration scripting Namespace
-http\://www.springframework.org/schema/integration/scripting@prefix=int-script
-http\://www.springframework.org/schema/integration/scripting@icon=org/springframework/integration/scripting/config/spring-integration-scripting.gif

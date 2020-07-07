@@ -1,4 +1,0 @@
-# Tooling related information for the integration mqtt namespace
-http\://www.springframework.org/schema/integration/mqttadapter@name=integration mqtt Namespace
-http\://www.springframework.org/schema/integration/mqttadapter@prefix=int-mqtt
-http\://www.springframework.org/schema/integration/mqttadapter@icon=org/springframework/integration/config/xml/spring-integration-mqtt.gif

@@ -1,1 +1,0 @@
-http\://www.springframework.org/schema/integration/scripting=org.springframework.integration.scripting.config.jsr223.ScriptNamespaceHandler

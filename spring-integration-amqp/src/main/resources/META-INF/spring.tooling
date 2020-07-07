@@ -1,4 +1,0 @@
-# Tooling related information for the integration AMQP namespace
-http\://www.springframework.org/schema/integration/amqp@name=integration AMQP Namespace
-http\://www.springframework.org/schema/integration/amqp@prefix=int-amqp
-http\://www.springframework.org/schema/integration/amqp@icon=org/springframework/integration/amqp/config/spring-integration-amqp.gif
