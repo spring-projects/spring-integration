@@ -18,7 +18,9 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -68,6 +70,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private final SocketInfo socketInfo;
 
+	private final List<TcpSender> senders = Collections.synchronizedList(new ArrayList<>());
+
 	@SuppressWarnings("rawtypes")
 	private Deserializer deserializer;
 
@@ -79,8 +83,6 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	private TcpListener listener;
 
 	private volatile TcpListener testListener;
-
-	private TcpSender sender;
 
 	private String connectionId;
 
@@ -162,8 +164,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	@Override
 	public void close() {
-		if (this.sender != null) {
-			this.sender.removeDeadConnection(this);
+		for (TcpSender sender : this.senders) {
+			sender.removeDeadConnection(this);
 		}
 		// close() may be called multiple times; only publish once
 		if (!this.closePublished.getAndSet(true)) {
@@ -297,11 +299,25 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * Registers a sender. Used on server side connections so a
 	 * sender can determine which connection to send a reply
 	 * to.
-	 * @param sender the sender.
+	 * @param senderToRegister the sender.
 	 */
-	public void registerSender(@Nullable TcpSender sender) {
-		this.sender = sender;
-		if (sender != null) {
+	public void registerSender(@Nullable TcpSender senderToRegister) {
+		if (senderToRegister != null) {
+			this.senders.add(senderToRegister);
+			senderToRegister.addNewConnection(this);
+		}
+	}
+
+	/**
+	 * Registers the senders. Used on server side connections so a
+	 * sender can determine which connection to send a reply
+	 * to.
+	 * @param sendersToRegister the sender.
+	 * @since 5.4
+	 */
+	public void registerSenders(List<TcpSender> sendersToRegister) {
+		this.senders.addAll(sendersToRegister);
+		for (TcpSender sender : sendersToRegister) {
 			sender.addNewConnection(this);
 		}
 	}
@@ -336,10 +352,20 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	/**
-	 * @return the sender
+	 * @return the first sender, if present.
 	 */
+	@Nullable
 	public TcpSender getSender() {
-		return this.sender;
+		return this.senders.size() > 0 ? this.senders.get(0) : null;
+	}
+
+	/**
+	 * Return the list of senders.
+	 * @return the senders.
+	 * @since 5.4
+	 */
+	public List<TcpSender> getSenders() {
+		return Collections.unmodifiableList(this.senders);
 	}
 
 	@Override

@@ -1085,6 +1085,12 @@ If so, you can specify the `id` to be associated with the `DefaultLockRepository
 Starting with version 5.1.8, the `JdbcLockRegistry` can be configured with the `idleBetweenTries` - a `Duration` to sleep between lock record insert/update executions.
 By default it is `100` milliseconds and in some environments non-leaders pollute connections with data source too often.
 
+Starting with version 5.4, the `RenewableLockRegistry` interface has been introduced and added to `JdbcLockRegistry`.
+The `renewLock()` method must be called during locked process in case of the locked process would be longer than time to live of the lock.
+So the time to live can be highly reduce and deployments can retake a lost lock quickly.
+
+NOTE: The lock renewal can be done only if the lock is held by the current thread.
+
 [[jdbc-metadata-store]]
 === JDBC Metadata Store
 

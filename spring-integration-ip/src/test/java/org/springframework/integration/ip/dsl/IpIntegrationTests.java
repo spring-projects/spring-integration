@@ -18,6 +18,7 @@ package org.springframework.integration.ip.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,6 +44,7 @@ import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
+import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
@@ -110,6 +112,13 @@ public class IpIntegrationTests {
 	@Autowired
 	private AtomicBoolean adviceCalled;
 
+	@Autowired
+	@Qualifier("unsolicitedServerSide.input")
+	private MessageChannel unsolicitedServerSide;
+
+	@Autowired
+	private QueueChannel unsolicited;
+
 	@Test
 	void testTcpAdapters() {
 		ApplicationEventPublisher publisher = e -> { };
@@ -149,6 +158,11 @@ public class IpIntegrationTests {
 		assertThat(messagingTemplate.convertSendAndReceive("foo", String.class)).isEqualTo("FOO");
 		assertThat(messagingTemplate.convertSendAndReceive("junk", String.class)).isEqualTo("error:non-convertible");
 		assertThat(this.adviceCalled.get()).isTrue();
+
+		GenericMessage<String> unsol = new GenericMessage<>("foo",
+				Collections.singletonMap(IpHeaders.CONNECTION_ID, this.config.connectionId));
+		this.unsolicitedServerSide.send(unsol);
+		assertThat(this.unsolicited.receive(10_000).getPayload()).isEqualTo("foo".getBytes());
 	}
 
 	@Test
@@ -227,6 +241,8 @@ public class IpIntegrationTests {
 
 		private volatile int serverPort;
 
+		private volatile String connectionId;
+
 		@Bean
 		public AbstractServerConnectionFactory server1() {
 			return Tcp.netServer(0)
@@ -242,10 +258,21 @@ public class IpIntegrationTests {
 							.replyTimeout(1)
 							.errorOnTimeout(true)
 							.errorChannel("inTcpGatewayErrorFlow.input"))
+					.handle(this, "captureId")
 					.transform(Transformers.objectToString())
 					.<String>filter((payload) -> !"junk".equals(payload))
 					.<String, String>transform(String::toUpperCase)
 					.get();
+		}
+
+		public Message<?> captureId(Message<?> msg) {
+			this.connectionId = msg.getHeaders().get(IpHeaders.CONNECTION_ID, String.class);
+			return msg;
+		}
+
+		@Bean
+		public IntegrationFlow unsolicitedServerSide() {
+			return f -> f.handle(Tcp.outboundAdapter(server1()));
 		}
 
 		@Bean
@@ -299,7 +326,13 @@ public class IpIntegrationTests {
 		public TcpOutboundGateway tcpOut() {
 			return Tcp.outboundGateway(client1())
 					.remoteTimeout(m -> 5000)
+					.unsolictedMessageChannelName("unsolicited")
 					.get();
+		}
+
+		@Bean
+		public QueueChannel unsolicited() {
+			return new QueueChannel();
 		}
 
 		@Bean

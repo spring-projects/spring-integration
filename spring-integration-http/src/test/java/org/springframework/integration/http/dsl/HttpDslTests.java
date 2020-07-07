@@ -31,9 +31,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,10 +45,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.multipart.UploadedMultipartFile;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
@@ -70,8 +71,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -94,8 +94,7 @@ import org.springframework.web.servlet.DispatcherServlet;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
-@WebAppConfiguration
+@SpringJUnitWebConfig
 @DirtiesContext
 public class HttpDslTests {
 
@@ -110,7 +109,7 @@ public class HttpDslTests {
 
 	private MockMvc mockMvc;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		this.mockMvc =
 				MockMvcBuilders.webAppContextSetup(this.wac)
@@ -259,6 +258,37 @@ public class HttpDslTests {
 						.param("p2", "P2"))
 				.andExpect(status().isBadRequest())
 				.andExpect(status().reason("Not valid request param"));
+
+		flowRegistration.destroy();
+	}
+
+	@Test
+	public void testErrorChannelFlow() throws Exception {
+		IntegrationFlow flow =
+				IntegrationFlows.from(
+						Http.inboundGateway("/errorFlow")
+								.errorChannel(new FixedSubscriberChannel(
+										new AbstractReplyProducingMessageHandler() {
+
+											@Override
+											protected Object handleRequestMessage(Message<?> requestMessage) {
+												return "Error Response";
+											}
+
+										})))
+						.transform((payload) -> {
+							throw new RuntimeException("Error!");
+						})
+						.get();
+
+		IntegrationFlowContext.IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(flow).register();
+
+		this.mockMvc.perform(
+				get("/errorFlow")
+						.with(httpBasic("user", "user")))
+				.andExpect(status().isOk())
+				.andExpect(content().string("Error Response"));
 
 		flowRegistration.destroy();
 	}

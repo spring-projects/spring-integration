@@ -127,7 +127,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 		if (listener != null) {
 			connection.registerListener(listener);
 		}
-		connection.registerSender(getSender());
+		connection.registerSenders(getSenders());
 		connection.setMapper(getMapper());
 		connection.setDeserializer(getDeserializer());
 		connection.setSerializer(getSerializer());

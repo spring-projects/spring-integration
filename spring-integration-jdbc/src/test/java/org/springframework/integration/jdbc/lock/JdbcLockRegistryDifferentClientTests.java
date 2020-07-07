@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,29 +34,27 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.StopWatch;
 
 /**
  * @author Dave Syer
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Alexandre Strubel
  *
  * @since 4.3
  */
-@ContextConfiguration("JdbcLockRegistryTests-context.xml")
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig(locations = "JdbcLockRegistryTests-context.xml")
 @DirtiesContext
 public class JdbcLockRegistryDifferentClientTests {
 
@@ -76,7 +74,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	@Autowired
 	private DataSource dataSource;
 
-	@Before
+	@BeforeEach
 	public void clear() {
 		this.registry.expireUnusedOlderThan(0);
 		this.client.close();
@@ -86,7 +84,7 @@ public class JdbcLockRegistryDifferentClientTests {
 		this.child.refresh();
 	}
 
-	@After
+	@AfterEach
 	public void close() {
 		if (this.child != null) {
 			this.child.close();
@@ -268,6 +266,113 @@ public class JdbcLockRegistryDifferentClientTests {
 		data.add(2);
 		Thread.sleep(100);
 		data.add(3);
+		lock1.unlock();
+		for (int i = 0; i < 6; i++) {
+			Integer integer = data.poll(10, TimeUnit.SECONDS);
+			assertThat(integer).isNotNull();
+			assertThat(integer.intValue()).isEqualTo(i + 1);
+		}
+	}
+
+	@Test
+	public void testOutOfDateLockTaken() throws Exception {
+		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
+		client1.setTimeToLive(500);
+		client1.afterPropertiesSet();
+		final DefaultLockRepository client2 = new DefaultLockRepository(dataSource);
+		client2.afterPropertiesSet();
+		Lock lock1 = new JdbcLockRegistry(client1).obtain("foo");
+		final BlockingQueue<Integer> data = new LinkedBlockingQueue<>();
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(1);
+		lock1.lockInterruptibly();
+		Thread.sleep(500);
+		new SimpleAsyncTaskExecutor()
+				.execute(() -> {
+					Lock lock2 = new JdbcLockRegistry(client2).obtain("foo");
+					try {
+						latch1.countDown();
+						StopWatch stopWatch = new StopWatch();
+						stopWatch.start();
+						lock2.lockInterruptibly();
+						stopWatch.stop();
+						data.add(1);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+					finally {
+						lock2.unlock();
+					}
+					latch2.countDown();
+				});
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		data.add(2);
+		lock1.unlock();
+		for (int i = 0; i < 2; i++) {
+			Integer integer = data.poll(10, TimeUnit.SECONDS);
+			assertThat(integer).isNotNull();
+			assertThat(integer.intValue()).isEqualTo(i + 1);
+		}
+	}
+
+	@Test
+	public void testRenewLock() throws Exception {
+		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
+		client1.setTimeToLive(500);
+		client1.afterPropertiesSet();
+		final DefaultLockRepository client2 = new DefaultLockRepository(dataSource);
+		client2.afterPropertiesSet();
+		JdbcLockRegistry registry = new JdbcLockRegistry(client1);
+		Lock lock1 = registry.obtain("foo");
+		final BlockingQueue<Integer> data = new LinkedBlockingQueue<>();
+		final CountDownLatch latch1 = new CountDownLatch(2);
+		final CountDownLatch latch2 = new CountDownLatch(1);
+		lock1.lockInterruptibly();
+		new SimpleAsyncTaskExecutor()
+				.execute(() -> {
+					Lock lock2 = new JdbcLockRegistry(client2).obtain("foo");
+					try {
+						latch1.countDown();
+						StopWatch stopWatch = new StopWatch();
+						stopWatch.start();
+						lock2.lockInterruptibly();
+						stopWatch.stop();
+						data.add(4);
+						Thread.sleep(10);
+						data.add(5);
+						Thread.sleep(10);
+						data.add(6);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+					finally {
+						lock2.unlock();
+					}
+				});
+		new SimpleAsyncTaskExecutor()
+				.execute(() -> {
+					try {
+						latch1.countDown();
+						Thread.sleep(1000);
+						data.add(1);
+						Thread.sleep(100);
+						data.add(2);
+						Thread.sleep(100);
+						data.add(3);
+						latch2.countDown();
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+				});
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		while (latch2.getCount() > 0) {
+			Thread.sleep(100);
+			registry.renewLock("foo");
+		}
 		lock1.unlock();
 		for (int i = 0; i < 6; i++) {
 			Integer integer = data.poll(10, TimeUnit.SECONDS);
