@@ -7,13 +7,24 @@ assignees: ''
 
 ---
 
+**In what version(s) of Spring Integration are you seeing this issue?**
+
+For example:
+
+5.3.2.RELEASE
+
+Between 4.3.15 and 5.2.5
+
 **Describe the bug**
+
 A clear and concise description of what the bug is.
 
 **To Reproduce**
+
 Steps to reproduce the behavior.
 
 **Expected behavior**
+
 A clear and concise description of what you expected to happen.
 
 **Sample**
