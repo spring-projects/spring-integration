@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.data.relational.core.query.Query;
 import org.springframework.expression.Expression;
@@ -31,6 +32,8 @@ import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.util.Assert;
+
+import reactor.core.publisher.Mono;
 
 /**
  * An instance of {@link org.springframework.integration.core.MessageSource} which returns
@@ -47,13 +50,14 @@ import org.springframework.util.Assert;
  * for the single object returned from the query.
  *
  * @author Rohan Mukesh
+ *
  * @since 5.4
  */
 public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 
-	private final Expression queryExpression;
+	private final DatabaseClient databaseClient;
 
-	private final R2dbcEntityOperations r2dbcEntityOperations;
+	private final Expression queryExpression;
 
 	private Class<?> payloadType = Map.class;
 
@@ -64,15 +68,16 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	private volatile boolean initialized = false;
 
 	/**
-	 * Create an instance with the provided {@link R2dbcEntityOperations} and SpEL expression
+	 * Create an instance with the provided {@link DatabaseClient} and SpEL expression
 	 * which should resolve to a Relational 'query' string.
-	 * It assumes that the {@link R2dbcEntityOperations} is fully initialized and ready to be used.
+	 * It assumes that the {@link DatabaseClient} is fully initialized and ready to be used.
 	 * The 'query' will be evaluated on every call to the {@link #receive()} method.
-	 * @param r2dbcEntityOperations The reactive r2dbc template.
-	 * @param query                 The query String.
+	 *
+	 * @param databaseClient The reactive r2dbc template.
+	 * @param query          The query String.
 	 */
-	public R2dbcMessageSource(R2dbcEntityOperations r2dbcEntityOperations, String query) {
-		this(r2dbcEntityOperations, new LiteralExpression(query));
+	public R2dbcMessageSource(DatabaseClient databaseClient, String query) {
+		this(databaseClient, new LiteralExpression(query));
 	}
 
 	/**
@@ -80,13 +85,14 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	 * which should resolve to a Relational 'query' string.
 	 * It assumes that the {@link R2dbcEntityOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
-	 * @param r2dbcEntityOperations The reactive r2dbc template.
-	 * @param queryExpression       The query expression.
+	 *
+	 * @param databaseClient  The reactive r2dbc template.
+	 * @param queryExpression The query expression.
 	 */
-	public R2dbcMessageSource(R2dbcEntityOperations r2dbcEntityOperations, Expression queryExpression) {
-		Assert.notNull(r2dbcEntityOperations, "'r2dbcEntityOperations' must not be null");
+	public R2dbcMessageSource(DatabaseClient databaseClient, Expression queryExpression) {
+		Assert.notNull(databaseClient, "'databaseClient' must not be null");
 		Assert.notNull(queryExpression, "'queryExpression' must not be null");
-		this.r2dbcEntityOperations = r2dbcEntityOperations;
+		this.databaseClient = databaseClient;
 		this.queryExpression = queryExpression;
 	}
 
@@ -94,6 +100,7 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	 * Provide a way to set the type of the entityClass that will be passed to the
 	 * {@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)}
 	 * method.
+	 *
 	 * @param payloadType The t class.
 	 */
 	public void setPayloadType(Class<?> payloadType) {
@@ -109,6 +116,7 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	 * and will fetch one and the payload of the returned {@link org.springframework.messaging.Message}
 	 * will be the returned target Object of type
 	 * identified by {@link #payloadType} instead of a List.
+	 *
 	 * @param expectSingleResult true if a single result is expected.
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
@@ -145,29 +153,31 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	@Override
 	protected Object doReceive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
-		Object value = this.queryExpression.getValue(this.evaluationContext);
-		Object result;
-		if (value instanceof String) {
-			result = executeQuery((String) value);
-		}
-		else {
-			throw new IllegalStateException("'queryExpression' must evaluate to String " +
-					"or org.springframework.data.relational.core.query.Query, but not: " + value);
-		}
-		return getMessageBuilderFactory().withPayload(result);
+		return Mono.fromSupplier(() -> this.queryExpression.getValue(this.evaluationContext))
+				.map(value -> {
+					Object result;
+					if (value instanceof String) {
+						result = executeQuery((String) value);
+					}
+					else {
+						throw new IllegalStateException("'queryExpression' must evaluate to String " +
+								"or org.springframework.data.relational.core.query.Query, but not: " + value);
+					}
+					return result;
+				}).block();
 	}
 
 	private Object executeQuery(String queryString) {
 		Object result;
 		if (this.expectSingleResult) {
-			result = this.r2dbcEntityOperations.getDatabaseClient()
+			result = this.databaseClient
 					.execute(queryString)
 					.as(this.payloadType)
 					.fetch()
 					.one();
 		}
 		else {
-			result = this.r2dbcEntityOperations.getDatabaseClient()
+			result = this.databaseClient
 					.execute(queryString)
 					.as(this.payloadType)
 					.fetch()

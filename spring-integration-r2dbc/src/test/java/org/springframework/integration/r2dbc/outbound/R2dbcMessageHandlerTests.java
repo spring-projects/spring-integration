@@ -17,8 +17,6 @@
 package org.springframework.integration.r2dbc.outbound;
 
 
-import static org.mockito.Mockito.mock;
-
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,13 +27,9 @@ import java.util.Optional;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Answers;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.r2dbc.core.DatabaseClient;
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.r2dbc.config.R2dbcIntegrationTestConfiguration;
@@ -53,6 +47,7 @@ import reactor.test.StepVerifier;
 
 /**
  * @author Rohan Mukesh
+ *
  * @since 5.4
  */
 @SpringJUnitConfig(R2dbcIntegrationTestConfiguration.class)
@@ -64,17 +59,17 @@ public class R2dbcMessageHandlerTests {
 	@Autowired
 	H2ConnectionFactory factory;
 
-	R2dbcEntityTemplate entityTemplate;
-
 	@Autowired
 	PersonRepository personRepository;
 
+	@Autowired
+	R2dbcMessageHandler handler;
 
 	@BeforeEach
 	public void setup() {
-		entityTemplate = new R2dbcEntityTemplate(client);
 		Hooks.onOperatorDebug();
-
+		handler.setQueryType(R2dbcMessageHandler.Type.INSERT);
+		handler.setTableNameExpression(null);
 		List<String> statements = Arrays.asList(
 				"DROP TABLE IF EXISTS person;",
 				"CREATE table person (id INT AUTO_INCREMENT NOT NULL, name VARCHAR2, age INT NOT NULL);");
@@ -90,11 +85,7 @@ public class R2dbcMessageHandlerTests {
 
 	@Test
 	public void validateMessageHandlingWithDefaultInsertCollection() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
-		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob", 35)).build();
+		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
 		waitFor(handler.handleMessage(message));
 
 		personRepository.findAll()
@@ -105,13 +96,9 @@ public class R2dbcMessageHandlerTests {
 
 	@Test
 	public void validateMessageHandlingWithInsertQueryCollection() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.setValuesExpression(new FunctionExpression<Message<?>>(Message::getPayload));
 		handler.setQueryType(R2dbcMessageHandler.Type.INSERT);
 		handler.setTableName("person");
-		handler.afterPropertiesSet();
 		Map<String, Object> payload = new HashMap<>();
 		payload.put("name", "rohan");
 		payload.put("age", 35);
@@ -128,11 +115,7 @@ public class R2dbcMessageHandlerTests {
 
 	@Test
 	public void validateMessageHandlingWithDefaultUpdateCollection() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
-		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob", 35)).build();
+		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
 		waitFor(handler.handleMessage(message));
 
 		handler.setQueryType(R2dbcMessageHandler.Type.UPDATE);
@@ -158,15 +141,9 @@ public class R2dbcMessageHandlerTests {
 
 	@Test
 	public void validateMessageHandlingWithUpdateQueryCollection() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.setValuesExpression(new FunctionExpression<Message<?>>(Message::getPayload));
-
-
 		handler.setQueryType(R2dbcMessageHandler.Type.INSERT);
 		handler.setTableName("person");
-		handler.afterPropertiesSet();
 		Map<String, Object> payload = new HashMap<>();
 		payload.put("name", "Bob");
 		payload.put("age", 35);
@@ -204,11 +181,7 @@ public class R2dbcMessageHandlerTests {
 
 	@Test
 	public void validateMessageHandlingWithDefaultDeleteCollection() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
-		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob", 35)).build();
+		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
 		waitFor(handler.handleMessage(message));
 
 		Person person = this.client
@@ -231,14 +204,9 @@ public class R2dbcMessageHandlerTests {
 
 	@Test
 	public void validateMessageHandlingWithDeleteQueryCollection() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.setValuesExpression(new FunctionExpression<Message<?>>(Message::getPayload));
-
 		handler.setQueryType(R2dbcMessageHandler.Type.INSERT);
 		handler.setTableName("person");
-		handler.afterPropertiesSet();
 		Map<String, Object> payload = new HashMap<>();
 		payload.put("name", "Bob");
 		payload.put("age", 35);
@@ -268,14 +236,9 @@ public class R2dbcMessageHandlerTests {
 
 	@Test
 	public void validateMessageHandlingWithDeleteQueryCollection_MultipleRows() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.setValuesExpression(new FunctionExpression<Message<?>>(Message::getPayload));
-
 		handler.setQueryType(R2dbcMessageHandler.Type.INSERT);
 		handler.setTableName("person");
-		handler.afterPropertiesSet();
 		Map<String, Object> payload = new HashMap<>();
 		payload.put("name", "Bob");
 		payload.put("age", 35);

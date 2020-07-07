@@ -16,8 +16,8 @@
 
 package org.springframework.integration.r2dbc.inbound;
 
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -26,15 +26,12 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Answers;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.r2dbc.BadSqlGrammarException;
 import org.springframework.data.r2dbc.core.DatabaseClient;
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.r2dbc.config.R2dbcIntegrationTestConfiguration;
 import org.springframework.integration.r2dbc.entity.Person;
@@ -44,13 +41,13 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import io.r2dbc.h2.H2ConnectionFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 
 /**
  *  @author Rohan Mukesh
@@ -67,14 +64,17 @@ public class R2dbcMessageSourceTests {
 	@Autowired
 	H2ConnectionFactory factory;
 
-	R2dbcEntityTemplate entityTemplate;
-
 	@Autowired
 	PersonRepository personRepository;
 
+	@Autowired
+	R2dbcMessageHandler handler;
+
+	@Autowired
+	R2dbcMessageSource messageSource;
+
 	@BeforeEach
 	public void setup() {
-		entityTemplate = new R2dbcEntityTemplate(client);
 		Hooks.onOperatorDebug();
 
 		List<String> statements = Arrays.asList(
@@ -92,19 +92,13 @@ public class R2dbcMessageSourceTests {
 
 	@Test
 	public void validateSuccessfulQueryWithSingleElementFluxOfStringObject() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
-		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob", 35)).build();
+		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
 		waitFor(handler.handleMessage(message));
 
-		R2dbcMessageSource messageSource = new R2dbcMessageSource(this.entityTemplate, "select name from Person Where" +
-				" id=1");
-		messageSource.setBeanFactory(mock(BeanFactory.class));
-		messageSource.afterPropertiesSet();
-		messageSource.setPayloadType(Person.class);
-		StepVerifier.create((Flux<?>) messageSource.receive().getPayload())
+		ReflectionTestUtils.setField(messageSource, "queryExpression", new LiteralExpression("select name from Person Where" +
+				" id=1"));
+
+		StepVerifier.create((Mono<?>) messageSource.receive().getPayload())
 				.assertNext(person -> assertThat(((Person) person).getName()).isEqualTo("Bob"))
 				.verifyComplete();
 
@@ -112,20 +106,14 @@ public class R2dbcMessageSourceTests {
 
 	@Test
 	public void validateSuccessfulQueryWithMultipleElementFluxOfStringObject() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
-		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob", 35)).build();
+		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
 		waitFor(handler.handleMessage(message));
 
-		message = MessageBuilder.withPayload(this.createPerson("Tom", 40)).build();
+		message = MessageBuilder.withPayload(createPerson("Tom", 40)).build();
 		waitFor(handler.handleMessage(message));
 
-		R2dbcMessageSource messageSource = new R2dbcMessageSource(this.entityTemplate, "select * from Person");
-		messageSource.setBeanFactory(mock(BeanFactory.class));
-		messageSource.afterPropertiesSet();
-		messageSource.setPayloadType(Person.class);
+		ReflectionTestUtils.setField(messageSource, "queryExpression", new LiteralExpression("select * from Person"));
+
 		StepVerifier.create((Flux<?>) messageSource.receive().getPayload())
 				.assertNext(person -> assertThat(((Person) person).getName()).isEqualTo("Bob"))
 				.assertNext(person -> assertThat(((Person) person).getName()).isEqualTo("Tom"))
@@ -135,21 +123,15 @@ public class R2dbcMessageSourceTests {
 
 	@Test
 	public void validateSuccessfulQueryWithOneExpectedElement() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
-		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob", 35)).build();
+		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
 		waitFor(handler.handleMessage(message));
 
-		message = MessageBuilder.withPayload(this.createPerson("Tom", 40)).build();
+		message = MessageBuilder.withPayload(createPerson("Tom", 40)).build();
 		waitFor(handler.handleMessage(message));
 
-		R2dbcMessageSource messageSource = new R2dbcMessageSource(this.entityTemplate, "select * from Person where id=1");
-		messageSource.setBeanFactory(mock(BeanFactory.class));
-		messageSource.afterPropertiesSet();
-		messageSource.setPayloadType(Person.class);
+		ReflectionTestUtils.setField(messageSource, "queryExpression", new LiteralExpression("select * from Person where id=1"));
 		messageSource.setExpectSingleResult(true);
+
 		StepVerifier.create((Mono<?>) messageSource.receive().getPayload())
 				.assertNext(person -> assertThat(((Person) person).getName()).isEqualTo("Bob"))
 				.verifyComplete();
@@ -158,20 +140,12 @@ public class R2dbcMessageSourceTests {
 
 	@Test
 	public void validateExceptionQueryWithOneExpectedElement() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
-		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob", 35)).build();
+		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
 		waitFor(handler.handleMessage(message));
 
-		message = MessageBuilder.withPayload(this.createPerson("Tom", 40)).build();
+		message = MessageBuilder.withPayload(createPerson("Tom", 40)).build();
 		waitFor(handler.handleMessage(message));
-
-		R2dbcMessageSource messageSource = new R2dbcMessageSource(this.entityTemplate, "select * from Person");
-		messageSource.setBeanFactory(mock(BeanFactory.class));
-		messageSource.afterPropertiesSet();
-		messageSource.setPayloadType(Person.class);
+		ReflectionTestUtils.setField(messageSource, "queryExpression", new LiteralExpression("select * from Person"));
 		messageSource.setExpectSingleResult(true);
 		StepVerifier.create((Mono<?>) messageSource.receive().getPayload())
 				.expectErrorMatches(throwable -> throwable instanceof IncorrectResultSizeDataAccessException)
@@ -180,20 +154,13 @@ public class R2dbcMessageSourceTests {
 
 	@Test
 	public void testBadQueryExpression() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
-		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob", 35)).build();
+		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
 		waitFor(handler.handleMessage(message));
 
-		message = MessageBuilder.withPayload(this.createPerson("Tom", 40)).build();
+		message = MessageBuilder.withPayload(createPerson("Tom", 40)).build();
 		waitFor(handler.handleMessage(message));
 
-		R2dbcMessageSource messageSource = new R2dbcMessageSource(this.entityTemplate, "Incorrect");
-		messageSource.setBeanFactory(mock(BeanFactory.class));
-		messageSource.afterPropertiesSet();
-		messageSource.setPayloadType(Person.class);
+		ReflectionTestUtils.setField(messageSource, "queryExpression", new LiteralExpression("Incorrect"));
 		messageSource.setExpectSingleResult(true);
 		StepVerifier.create((Mono<?>) messageSource.receive().getPayload())
 				.expectErrorMatches(throwable -> throwable instanceof BadSqlGrammarException)
@@ -202,21 +169,13 @@ public class R2dbcMessageSourceTests {
 
 	@Test
 	public void testAnyOtherObjectQueryExpression() {
-		R2dbcMessageHandler handler = new R2dbcMessageHandler(this.entityTemplate);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
-		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob", 35)).build();
+		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
 		waitFor(handler.handleMessage(message));
 
-		message = MessageBuilder.withPayload(this.createPerson("Tom", 40)).build();
+		message = MessageBuilder.withPayload(createPerson("Tom", 40)).build();
 		waitFor(handler.handleMessage(message));
 
-		R2dbcMessageSource messageSource = new R2dbcMessageSource(this.entityTemplate,
-				new ValueExpression<>(new Object()));
-		messageSource.setBeanFactory(mock(BeanFactory.class));
-		messageSource.afterPropertiesSet();
-		messageSource.setPayloadType(Person.class);
+		ReflectionTestUtils.setField(messageSource, "queryExpression", new ValueExpression<>(new Object()));
 		messageSource.setExpectSingleResult(true);
 		Assertions.assertThrows(IllegalStateException.class, () -> messageSource.receive().getPayload());
 	}
