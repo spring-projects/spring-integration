@@ -68,7 +68,6 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	 * which should resolve to a Relational 'query' string.
 	 * It assumes that the {@link R2dbcEntityOperations} is fully initialized and ready to be used.
 	 * The 'query' will be evaluated on every call to the {@link #receive()} method.
-	 *
 	 * @param r2dbcEntityOperations The reactive r2dbc template.
 	 * @param query                 The query String.
 	 */
@@ -81,7 +80,6 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	 * which should resolve to a Relational 'query' string.
 	 * It assumes that the {@link R2dbcEntityOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
-	 *
 	 * @param r2dbcEntityOperations The reactive r2dbc template.
 	 * @param queryExpression       The query expression.
 	 */
@@ -96,7 +94,6 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	 * Provide a way to set the type of the entityClass that will be passed to the
 	 * {@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)}
 	 * method.
-	 *
 	 * @param payloadType The t class.
 	 */
 	public void setPayloadType(Class<?> payloadType) {
@@ -112,7 +109,6 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	 * and will fetch one and the payload of the returned {@link org.springframework.messaging.Message}
 	 * will be the returned target Object of type
 	 * identified by {@link #payloadType} instead of a List.
-	 *
 	 * @param expectSingleResult true if a single result is expected.
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
