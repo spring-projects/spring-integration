@@ -16,21 +16,20 @@
 
 package org.springframework.integration.r2dbc.inbound;
 
+
+import java.util.Map;
+
 import org.reactivestreams.Publisher;
 
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.data.relational.core.query.Query;
 import org.springframework.expression.Expression;
 import org.springframework.expression.TypeLocator;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.expression.ValueExpression;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -48,27 +47,34 @@ import org.springframework.util.Assert;
  * for the single object returned from the query.
  *
  * @author Rohan Mukesh
- *
  * @since 5.4
- *
  */
-public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>>
-		implements ApplicationContextAware {
+public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 
-	private Expression queryExpression;
+	private final Expression queryExpression;
 
-	private StandardEvaluationContext evaluationContext;
+	private final R2dbcEntityOperations r2dbcEntityOperations;
 
-	@Nullable
-	private R2dbcEntityOperations r2dbcEntityOperations;
-
-	private Class<?> entityClass;
+	private Class<?> payloadType = Map.class;
 
 	private boolean expectSingleResult = false;
 
-	private ApplicationContext applicationContext;
+	private StandardEvaluationContext evaluationContext;
 
 	private volatile boolean initialized = false;
+
+	/**
+	 * Create an instance with the provided {@link R2dbcEntityOperations} and SpEL expression
+	 * which should resolve to a Relational 'query' string.
+	 * It assumes that the {@link R2dbcEntityOperations} is fully initialized and ready to be used.
+	 * The 'query' will be evaluated on every call to the {@link #receive()} method.
+	 *
+	 * @param r2dbcEntityOperations The reactive r2dbc template.
+	 * @param query                 The query String.
+	 */
+	public R2dbcMessageSource(R2dbcEntityOperations r2dbcEntityOperations, String query) {
+		this(r2dbcEntityOperations, new LiteralExpression(query));
+	}
 
 	/**
 	 * Create an instance with the provided {@link R2dbcEntityOperations} and SpEL expression
@@ -77,48 +83,35 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>>
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 *
 	 * @param r2dbcEntityOperations The reactive r2dbc template.
+	 * @param queryExpression       The query expression.
 	 */
-	public R2dbcMessageSource(R2dbcEntityOperations r2dbcEntityOperations) {
+	public R2dbcMessageSource(R2dbcEntityOperations r2dbcEntityOperations, Expression queryExpression) {
 		Assert.notNull(r2dbcEntityOperations, "'r2dbcEntityOperations' must not be null");
-		this.r2dbcEntityOperations = r2dbcEntityOperations;
-
-	}
-
-	/**
-	 * Allow you to set query String
-	 *{@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)}
-	 *
-	 * @param query The reactive r2dbc template.
-	 */
-	public void setQuery(String query) {
-		setQueryExpression(new ValueExpression<>(query));
-	}
-
-	public void setQueryExpression(Expression queryExpression) {
 		Assert.notNull(queryExpression, "'queryExpression' must not be null");
+		this.r2dbcEntityOperations = r2dbcEntityOperations;
 		this.queryExpression = queryExpression;
 	}
 
 	/**
-	 * Allow you to set the type of the entityClass that will be passed to the
-	 * {@link R2dbcEntityOperations#select(Query, Class)} or {@link R2dbcEntityOperations#selectOne(Query, Class)}
+	 * Provide a way to set the type of the entityClass that will be passed to the
+	 * {@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)}
 	 * method.
 	 *
-	 * @param entityClass The entity class.
+	 * @param payloadType The t class.
 	 */
-	public void setEntityClass(Class<?> entityClass) {
-		Assert.notNull(entityClass, "'entityClass' must not be null");
-		this.entityClass = entityClass;
+	public void setPayloadType(Class<?> payloadType) {
+		Assert.notNull(payloadType, "'payloadType' must not be null");
+		this.payloadType = payloadType;
 	}
 
 	/**
-	 * Allow you to manage which find* method to invoke on {@link R2dbcEntityOperations}.
+	 * Provide a way to manage which find* method to invoke on {@link R2dbcEntityOperations}.
 	 * Default is 'false', which means the {@link #receive()} method will use
-	 * the {@link R2dbcEntityOperations#select(Query, Class)} method. If set to 'true',
-	 * {@link #receive()} will use {@link R2dbcEntityOperations#selectOne(Query, Class)},
-	 * and the payload of the returned {@link org.springframework.messaging.Message}
+	 * the {@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)} method and will fetch all. If set
+	 * to 'true'{@link #receive()} will use {@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)}
+	 * and will fetch one and the payload of the returned {@link org.springframework.messaging.Message}
 	 * will be the returned target Object of type
-	 * identified by {@link #entityClass} instead of a List.
+	 * identified by {@link #payloadType} instead of a List.
 	 *
 	 * @param expectSingleResult true if a single result is expected.
 	 */
@@ -127,13 +120,8 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>>
 	}
 
 	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
-	}
-
-	@Override
 	public String getComponentType() {
-		return "r2dbc:reactive-inbound-channel-adapter";
+		return "r2dbc:inbound-channel-adapter";
 	}
 
 	@Override
@@ -152,30 +140,25 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>>
 	/**
 	 * Execute a {@link Query} returning its results as the Message payload.
 	 * The payload can be either {@link reactor.core.publisher.Flux} or
-	 * {@link reactor.core.publisher.Mono} of objects of type identified by {@link #entityClass},
-	 * or a single element of type identified by {@link #entityClass}
+	 * {@link reactor.core.publisher.Mono} of objects of type identified by {@link #payloadType},
+	 * or a single element of type identified by {@link #payloadType}
 	 * based on the value of {@link #expectSingleResult} attribute which defaults to 'false' resulting
 	 * {@link org.springframework.messaging.Message} with payload of type
 	 * {@link reactor.core.publisher.Flux}. The collection name used in the
 	 */
 	@Override
-	public Object doReceive() {
+	protected Object doReceive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
-		Assert.notNull(this.queryExpression, "'queryExpression' must not be null");
 		Object value = this.queryExpression.getValue(this.evaluationContext);
 		Object result;
-		if (value instanceof Query) {
-			result = executeQuery(((Query) value));
-		}
-		else if (value instanceof String) {
+		if (value instanceof String) {
 			result = executeQuery((String) value);
 		}
 		else {
 			throw new IllegalStateException("'queryExpression' must evaluate to String " +
 					"or org.springframework.data.relational.core.query.Query, but not: " + value);
 		}
-		return getMessageBuilderFactory()
-				.withPayload(result);
+		return getMessageBuilderFactory().withPayload(result);
 	}
 
 	private Object executeQuery(String queryString) {
@@ -183,30 +166,17 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>>
 		if (this.expectSingleResult) {
 			result = this.r2dbcEntityOperations.getDatabaseClient()
 					.execute(queryString)
-					.as(this.entityClass)
+					.as(this.payloadType)
 					.fetch()
 					.one();
 		}
 		else {
 			result = this.r2dbcEntityOperations.getDatabaseClient()
 					.execute(queryString)
-					.as(this.entityClass)
+					.as(this.payloadType)
 					.fetch()
 					.all();
 		}
 		return result;
 	}
-
-	private Object executeQuery(Query query) {
-		Object result;
-		if (this.expectSingleResult) {
-			result = this.r2dbcEntityOperations.selectOne(query, this.entityClass);
-		}
-		else {
-			result = this.r2dbcEntityOperations.select(query, this.entityClass);
-		}
-		return result;
-	}
-
-
 }
