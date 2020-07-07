@@ -135,6 +135,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		ctx.getBean(SourcePollingChannelAdapter.class).stop();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
+		System.out.println(sfCalls);
 		assertThat(sfCalls).containsExactly(1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1);
 		File f1 = new File(tmpDir + File.separator + "standard" + File.separator + "f1");
 		assertThat(f1.exists()).isTrue();
@@ -171,6 +172,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		ctx.getBean(SourcePollingChannelAdapter.class).stop();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
+		System.out.println(sfCalls);
 		assertThat(sfCalls).containsExactly(1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1);
 		File f1 = new File(tmpDir + File.separator + "variable" + File.separator + "foo" + File.separator + "f1");
 		assertThat(f1.exists()).isTrue();
@@ -189,6 +191,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		ctx.getBean(SourcePollingChannelAdapter.class).stop();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
+		System.out.println(sfCalls);
 		// there's an extra getSession() with this adapter in listFiles
 		assertThat(sfCalls).containsExactly(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 1, 1, 2, 2, 3);
 		QueueChannel files = ctx.getBean("files", QueueChannel.class);
