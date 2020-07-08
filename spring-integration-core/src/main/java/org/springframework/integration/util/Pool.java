@@ -72,4 +72,11 @@ public interface Pool<T> {
 	 */
 	int getAllocatedCount();
 
+	/**
+	 * Close the pool; returned items will be destroyed.
+	 * @since 4.3.23
+	 */
+	default void close() {
+	}
+
 }
