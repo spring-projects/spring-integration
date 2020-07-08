@@ -19,102 +19,109 @@ package org.springframework.integration.r2dbc.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.data.r2dbc.BadSqlGrammarException;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.r2dbc.core.DatabaseClient;
-import org.springframework.expression.common.LiteralExpression;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.integration.expression.ValueExpression;
-import org.springframework.integration.r2dbc.config.R2dbcIntegrationTestConfiguration;
+import org.springframework.integration.r2dbc.config.R2dbcDatabaseConfiguration;
 import org.springframework.integration.r2dbc.entity.Person;
-import org.springframework.integration.r2dbc.outbound.R2dbcMessageHandler;
-import org.springframework.integration.r2dbc.repository.PersonRepository;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import io.r2dbc.h2.H2ConnectionFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 /**
- *  @author Rohan Mukesh
+ * @author Rohan Mukesh
  *
- *  @since 5.4
+ * @since 5.4
  */
-@SpringJUnitConfig (R2dbcIntegrationTestConfiguration.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class R2dbcMessageSourceTests {
 
 	@Autowired
 	DatabaseClient client;
 
-	@Autowired
-	H2ConnectionFactory factory;
+	R2dbcEntityTemplate entityTemplate;
 
 	@Autowired
-	PersonRepository personRepository;
+	R2dbcMessageSource r2dbcMessageSourceSelectOne;
 
 	@Autowired
-	R2dbcMessageHandler handler;
+	R2dbcMessageSource r2dbcMessageSourceSelectMany;
 
 	@Autowired
-	R2dbcMessageSource messageSource;
+	R2dbcMessageSource r2dbcMessageSourceError;
 
 	@BeforeEach
 	public void setup() {
 		Hooks.onOperatorDebug();
-
+		entityTemplate = new R2dbcEntityTemplate(this.client);
 		List<String> statements = Arrays.asList(
 				"DROP TABLE IF EXISTS person;",
 				"CREATE table person (id INT AUTO_INCREMENT NOT NULL, name VARCHAR2, age INT NOT NULL);");
 
-		statements.forEach(it -> client.execute(it)
+		statements.forEach(it -> this.client.execute(it)
 				.fetch()
 				.rowsUpdated()
 				.as(StepVerifier::create)
 				.expectNextCount(1)
 				.verifyComplete());
-
 	}
 
 	@Test
-	public void validateSuccessfulQueryWithSingleElementFluxOfStringObject() {
-		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
-		waitFor(handler.handleMessage(message));
+	public void validateSuccessfulQueryWithoutSettingExpectedElement() {
+		this.entityTemplate.insert(new Person("Bob", 35))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
 
-		ReflectionTestUtils.setField(messageSource, "queryExpression", new LiteralExpression("select name from Person Where" +
-				" id=1"));
+		StepVerifier.create((Flux<?>) r2dbcMessageSourceSelectMany.receive().getPayload())
+				.assertNext(person -> assertThat(((Person) person).getName()).isEqualTo("Bob"))
+				.verifyComplete();
+	}
 
-		StepVerifier.create((Mono<?>) messageSource.receive().getPayload())
+
+	@Test
+	public void validateSuccessfulQueryWithSingleElementOfMonoDBObject() {
+		this.entityTemplate.insert(new Person("Bob", 35))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
+
+		r2dbcMessageSourceSelectOne.setExpectSingleResult(true);
+
+		StepVerifier.create((Mono<?>) r2dbcMessageSourceSelectOne.receive().getPayload())
 				.assertNext(person -> assertThat(((Person) person).getName()).isEqualTo("Bob"))
 				.verifyComplete();
 
 	}
 
 	@Test
-	public void validateSuccessfulQueryWithMultipleElementFluxOfStringObject() {
-		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
-		waitFor(handler.handleMessage(message));
+	public void validateSuccessfulQueryWithMultipleElementOfFluxDBObject() {
+		this.entityTemplate.insert(new Person("Bob", 35))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
 
-		message = MessageBuilder.withPayload(createPerson("Tom", 40)).build();
-		waitFor(handler.handleMessage(message));
+		this.entityTemplate.insert(new Person("Tom", 40))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
 
-		ReflectionTestUtils.setField(messageSource, "queryExpression", new LiteralExpression("select * from Person"));
-
-		StepVerifier.create((Flux<?>) messageSource.receive().getPayload())
+		StepVerifier.create((Flux<?>) r2dbcMessageSourceSelectMany.receive().getPayload())
 				.assertNext(person -> assertThat(((Person) person).getName()).isEqualTo("Bob"))
 				.assertNext(person -> assertThat(((Person) person).getName()).isEqualTo("Tom"))
 				.verifyComplete();
@@ -122,70 +129,41 @@ public class R2dbcMessageSourceTests {
 	}
 
 	@Test
-	public void validateSuccessfulQueryWithOneExpectedElement() {
-		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
-		waitFor(handler.handleMessage(message));
-
-		message = MessageBuilder.withPayload(createPerson("Tom", 40)).build();
-		waitFor(handler.handleMessage(message));
-
-		ReflectionTestUtils.setField(messageSource, "queryExpression", new LiteralExpression("select * from Person where id=1"));
-		messageSource.setExpectSingleResult(true);
-
-		StepVerifier.create((Mono<?>) messageSource.receive().getPayload())
-				.assertNext(person -> assertThat(((Person) person).getName()).isEqualTo("Bob"))
-				.verifyComplete();
-
-	}
-
-	@Test
-	public void validateExceptionQueryWithOneExpectedElement() {
-		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
-		waitFor(handler.handleMessage(message));
-
-		message = MessageBuilder.withPayload(createPerson("Tom", 40)).build();
-		waitFor(handler.handleMessage(message));
-		ReflectionTestUtils.setField(messageSource, "queryExpression", new LiteralExpression("select * from Person"));
-		messageSource.setExpectSingleResult(true);
-		StepVerifier.create((Mono<?>) messageSource.receive().getPayload())
-				.expectErrorMatches(throwable -> throwable instanceof IncorrectResultSizeDataAccessException)
-				.verify();
-	}
-
-	@Test
-	public void testBadQueryExpression() {
-		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
-		waitFor(handler.handleMessage(message));
-
-		message = MessageBuilder.withPayload(createPerson("Tom", 40)).build();
-		waitFor(handler.handleMessage(message));
-
-		ReflectionTestUtils.setField(messageSource, "queryExpression", new LiteralExpression("Incorrect"));
-		messageSource.setExpectSingleResult(true);
-		StepVerifier.create((Mono<?>) messageSource.receive().getPayload())
-				.expectErrorMatches(throwable -> throwable instanceof BadSqlGrammarException)
-				.verify();
-	}
-
-	@Test
 	public void testAnyOtherObjectQueryExpression() {
-		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob", 35)).build();
-		waitFor(handler.handleMessage(message));
 
-		message = MessageBuilder.withPayload(createPerson("Tom", 40)).build();
-		waitFor(handler.handleMessage(message));
-
-		ReflectionTestUtils.setField(messageSource, "queryExpression", new ValueExpression<>(new Object()));
-		messageSource.setExpectSingleResult(true);
-		Assertions.assertThrows(IllegalStateException.class, () -> messageSource.receive().getPayload());
+		StepVerifier.create((Flux<?>) r2dbcMessageSourceError.receive().getPayload())
+				.expectErrorMatches(throwable -> throwable instanceof IllegalStateException
+						&& throwable.getMessage().contains("'queryExpression' must evaluate to String or"))
+				.verify();
 	}
 
-	private Person createPerson(String bob, Integer age) {
-		return new Person(bob, age);
-	}
+	@Configuration
+	@Import(R2dbcDatabaseConfiguration.class)
+	static class R2dbcMessageSourceConfiguration {
 
-	private static <T> T waitFor(Mono<T> mono) {
-		return mono.block(Duration.ofSeconds(10));
-	}
+		@Autowired
+		DatabaseClient databaseClient;
 
+		@Bean(name = "r2dbcMessageSourceSelectOne")
+		public R2dbcMessageSource r2dbcMessageSourceSelectOne() {
+			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient, "select * from person Where id" +
+					" = 1");
+			r2dbcMessageSource.setPayloadType(Person.class);
+			return r2dbcMessageSource;
+		}
+
+		@Bean(name = "r2dbcMessageSourceSelectMany")
+		public R2dbcMessageSource r2dbcMessageSourceSelectMany() {
+			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient, "select * from person");
+			r2dbcMessageSource.setPayloadType(Person.class);
+			return r2dbcMessageSource;
+		}
+
+		@Bean(name = "r2dbcMessageSourceError")
+		public R2dbcMessageSource r2dbcMessageSourceError() {
+			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient, new ValueExpression<>(new Object()));
+			r2dbcMessageSource.setPayloadType(Person.class);
+			return r2dbcMessageSource;
+		}
+	}
 }

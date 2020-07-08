@@ -17,21 +17,11 @@
 package org.springframework.integration.r2dbc.config;
 
 
-import static org.mockito.Mockito.mock;
-
-import org.mockito.Answers;
-
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
 import org.springframework.data.r2dbc.core.DatabaseClient;
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
-import org.springframework.integration.r2dbc.entity.Person;
-import org.springframework.integration.r2dbc.inbound.R2dbcMessageSource;
-import org.springframework.integration.r2dbc.outbound.R2dbcMessageHandler;
 
 import io.r2dbc.h2.H2ConnectionConfiguration;
 import io.r2dbc.h2.H2ConnectionFactory;
@@ -44,7 +34,7 @@ import io.r2dbc.spi.ConnectionFactory;
  */
 @Configuration
 @EnableR2dbcRepositories(basePackages = "org.springframework.integration.r2dbc.repository")
-public class R2dbcIntegrationTestConfiguration extends AbstractR2dbcConfiguration {
+public class R2dbcDatabaseConfiguration extends AbstractR2dbcConfiguration {
 
 	@Bean
 	@Override
@@ -65,23 +55,4 @@ public class R2dbcIntegrationTestConfiguration extends AbstractR2dbcConfiguratio
 	public DatabaseClient databaseClient(ConnectionFactory connectionFactory) {
 		return DatabaseClient.create(connectionFactory);
 	}
-
-	@Bean
-	public R2dbcMessageHandler r2dbcMessageHandler(DatabaseClient databaseClient) {
-		R2dbcMessageHandler r2dbcMessageHandler = new R2dbcMessageHandler(new R2dbcEntityTemplate(databaseClient));
-		r2dbcMessageHandler.setBeanFactory(mock(BeanFactory.class));
-		r2dbcMessageHandler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
-		r2dbcMessageHandler.afterPropertiesSet();
-		return r2dbcMessageHandler;
-	}
-
-	@Bean
-	public R2dbcMessageSource r2dbcMessageSource(DatabaseClient databaseClient) {
-		R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient, "");
-		r2dbcMessageSource.setBeanFactory(mock(BeanFactory.class));
-		r2dbcMessageSource.afterPropertiesSet();
-		r2dbcMessageSource.setPayloadType(Person.class);
-		return r2dbcMessageSource;
-	}
-
 }
