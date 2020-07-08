@@ -393,7 +393,6 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	@Override
 	public void destroy() throws Exception {
 		this.pool.close();
-		this.pool.removeAllIdleItems();
 	}
 
 	private final class CachedConnection extends TcpConnectionInterceptorSupport {

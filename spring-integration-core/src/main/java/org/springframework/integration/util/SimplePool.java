@@ -261,6 +261,7 @@ public class SimplePool<T> implements Pool<T> {
 	@Override
 	public synchronized void close() {
 		this.closed = true;
+		removeAllIdleItems();
 	}
 
 	/**

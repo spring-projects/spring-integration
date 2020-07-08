@@ -256,10 +256,12 @@ public class SimplePoolTests {
 	@Test
 	void testClose() {
 		SimplePool<String> pool = stringPool(10, new HashSet<>(), new AtomicBoolean());
-		String item = pool.getItem();
+		String item1 = pool.getItem();
+		String item2 = pool.getItem();
+		pool.releaseItem(item2);
+		assertThat(pool.getAllocatedCount()).isEqualTo(2);
 		pool.close();
-		assertThat(pool.getAllocatedCount()).isEqualTo(1);
-		pool.releaseItem(item);
+		pool.releaseItem(item1);
 		assertThat(pool.getAllocatedCount()).isEqualTo(0);
 		assertThatIllegalStateException().isThrownBy(pool::getItem);
 	}
