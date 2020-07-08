@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,19 @@
 
 package org.springframework.integration.util;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 
 import org.junit.Test;
 
@@ -124,13 +127,18 @@ public class SimplePoolTests {
 		assertEquals(2, pool.getAllocatedCount());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testForeignObject() {
 		final Set<String> strings = new HashSet<String>();
 		final AtomicBoolean stale = new AtomicBoolean();
 		SimplePool<String> pool = stringPool(2, strings, stale);
 		pool.getItem();
-		pool.releaseItem("Hello, world!");
+		try {
+			pool.releaseItem("Hello, world!");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalArgumentException.class));
+		}
 	}
 
 	@Test
@@ -149,16 +157,37 @@ public class SimplePoolTests {
 	}
 
 
+	@Test
+	public void testClose() {
+		SimplePool<String> pool = stringPool(10, new HashSet<>(), new AtomicBoolean());
+		String item1 = pool.getItem();
+		String item2 = pool.getItem();
+		pool.releaseItem(item2);
+		assertEquals(2, pool.getAllocatedCount());
+		pool.close();
+		pool.releaseItem(item1);
+		assertEquals(0, pool.getAllocatedCount());
+		try {
+			pool.getItem();
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalStateException.class));
+		}
+	}
+
 	private SimplePool<String> stringPool(int size, final Set<String> strings,
 			final AtomicBoolean stale) {
+
 		SimplePool<String> pool = new SimplePool<String>(size, new SimplePool.PoolItemCallback<String>() {
 			private int i;
+
 			@Override
 			public String createForPool() {
 				String string = "String" + i++;
 				strings.add(string);
 				return string;
 			}
+
 			@Override
 			public boolean isStale(String item) {
 				if (stale.get()) {
@@ -166,10 +195,12 @@ public class SimplePoolTests {
 				}
 				return stale.get();
 			}
+
 			@Override
 			public void removedFromPool(String item) {
 				strings.remove(item);
 			}
+
 		});
 		return pool;
 	}

@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
@@ -41,7 +42,7 @@ import org.springframework.messaging.support.ErrorMessage;
  * @since 2.2
  *
  */
-public class CachingClientConnectionFactory extends AbstractClientConnectionFactory {
+public class CachingClientConnectionFactory extends AbstractClientConnectionFactory implements DisposableBean {
 
 	private final AbstractClientConnectionFactory targetConnectionFactory;
 
@@ -387,6 +388,11 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	public synchronized void stop() {
 		this.targetConnectionFactory.stop();
 		this.pool.removeAllIdleItems();
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		this.pool.close();
 	}
 
 	private final class CachedConnection extends TcpConnectionInterceptorSupport {

@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.QueueChannel;
@@ -138,6 +139,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 				anyOf(equalTo(" sftpSource1.txt"), equalTo("sftpSource2.txt")));
 
 		received.getPayload().close();
+		StaticMessageHeaderAccessor.getCloseableResource(received).close();
 	}
 
 	@Test
@@ -152,6 +154,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 				anyOf(equalTo(" sftpSource1.txt"), equalTo("sftpSource2.txt")));
 
 		received.getPayload().close();
+		StaticMessageHeaderAccessor.getCloseableResource(received).close();
 	}
 
 	@Test
@@ -166,6 +169,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 				anyOf(equalTo(" sftpSource1.txt"), equalTo("sftpSource2.txt")));
 
 		received.getPayload().close();
+		StaticMessageHeaderAccessor.getCloseableResource(received).close();
 	}
 
 	private SftpStreamingMessageSource buildSource() {
