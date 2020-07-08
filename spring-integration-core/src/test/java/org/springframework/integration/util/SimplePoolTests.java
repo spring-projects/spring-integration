@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
@@ -27,7 +29,7 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.test.util.TestUtils;
 
@@ -127,13 +129,13 @@ public class SimplePoolTests {
 		assertThat(pool.getAllocatedCount()).isEqualTo(2);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testForeignObject() {
 		final Set<String> strings = new HashSet<String>();
 		final AtomicBoolean stale = new AtomicBoolean();
 		SimplePool<String> pool = stringPool(2, strings, stale);
 		pool.getItem();
-		pool.releaseItem("Hello, world!");
+		assertThatIllegalArgumentException().isThrownBy(() -> pool.releaseItem("Hello, world!"));
 	}
 
 	@Test
@@ -251,16 +253,32 @@ public class SimplePoolTests {
 		assertThat(pool.getActiveCount()).isEqualTo(0);
 	}
 
+	@Test
+	void testClose() {
+		SimplePool<String> pool = stringPool(10, new HashSet<>(), new AtomicBoolean());
+		String item1 = pool.getItem();
+		String item2 = pool.getItem();
+		pool.releaseItem(item2);
+		assertThat(pool.getAllocatedCount()).isEqualTo(2);
+		pool.close();
+		pool.releaseItem(item1);
+		assertThat(pool.getAllocatedCount()).isEqualTo(0);
+		assertThatIllegalStateException().isThrownBy(pool::getItem);
+	}
+
 	private SimplePool<String> stringPool(int size, final Set<String> strings,
 			final AtomicBoolean stale) {
+
 		SimplePool<String> pool = new SimplePool<String>(size, new SimplePool.PoolItemCallback<String>() {
 			private int i;
+
 			@Override
 			public String createForPool() {
 				String string = "String" + i++;
 				strings.add(string);
 				return string;
 			}
+
 			@Override
 			public boolean isStale(String item) {
 				if (stale.get()) {
@@ -268,10 +286,12 @@ public class SimplePoolTests {
 				}
 				return stale.get();
 			}
+
 			@Override
 			public void removedFromPool(String item) {
 				strings.remove(item);
 			}
+
 		});
 		return pool;
 	}
