@@ -128,7 +128,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 */
 	@Override
 	public void destroy() {
-		this.pool.removeAllIdleItems();
+		this.pool.close();
 	}
 
 	/**
