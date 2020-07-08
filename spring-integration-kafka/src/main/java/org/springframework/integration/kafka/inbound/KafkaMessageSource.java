@@ -55,6 +55,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
 import org.springframework.kafka.listener.ConsumerProperties;
+import org.springframework.kafka.listener.ListenerUtils;
 import org.springframework.kafka.listener.LoggingCommitCallback;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -667,6 +668,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 		private final boolean isSyncCommits;
 
+		private final boolean logOnlyMetadata;
+
 		private volatile boolean acknowledged;
 
 		private boolean autoAckEnabled = true;
@@ -690,6 +693,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 					consumerProperties != null
 							? consumerProperties.getCommitLogLevel()
 							: LogIfLevelEnabled.Level.DEBUG);
+			this.logOnlyMetadata = consumerProperties.isOnlyLogRecordMetadata();
 		}
 
 		@Override
@@ -739,7 +743,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 									})
 									.collect(Collectors.toList());
 					if (rewound.size() > 0 && this.logger.isWarnEnabled()) {
-						this.logger.warn("Rolled back " + record + " later in-flight offsets "
+						this.logger.warn("Rolled back " + ListenerUtils.recordToString(record, this.logOnlyMetadata)
+								+ " later in-flight offsets "
 								+ rewound + " will also be re-fetched");
 					}
 				}
@@ -749,7 +754,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		private void commitIfPossible(ConsumerRecord<K, V> record) {
 			if (this.ackInfo.isRolledBack()) {
 				if (this.logger.isWarnEnabled()) {
-					this.logger.warn("Cannot commit offset for " + record
+					this.logger.warn("Cannot commit offset for "
+							+ ListenerUtils.recordToString(record, this.logOnlyMetadata)
 							+ "; an earlier offset was rolled back");
 				}
 			}
@@ -773,13 +779,17 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 						if (toCommit.size() > 0) {
 							ackInformation = toCommit.get(toCommit.size() - 1);
 							KafkaAckInfo<K, V> ackInformationToLog = ackInformation;
-							this.commitLogger.log(() -> "Committing pending offsets for " + record
-									+ " and all deferred to " + ackInformationToLog.getRecord());
+							this.commitLogger.log(() -> "Committing pending offsets for "
+									+ ListenerUtils.recordToString(record, this.logOnlyMetadata)
+									+ " and all deferred to "
+									+ ListenerUtils.recordToString(ackInformationToLog.getRecord(),
+											this.logOnlyMetadata));
 							candidates.removeAll(toCommit);
 						}
 						else {
 							ackInformation = this.ackInfo;
-							this.commitLogger.log(() -> "Committing offset for " + record);
+							this.commitLogger.log(() -> "Committing offset for "
+									+ ListenerUtils.recordToString(record, this.logOnlyMetadata));
 						}
 					}
 					else { // earlier offsets present
