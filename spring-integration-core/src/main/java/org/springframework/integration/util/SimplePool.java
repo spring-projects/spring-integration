@@ -244,6 +244,7 @@ public class SimplePool<T> implements Pool<T> {
 		while ((item = this.available.poll()) != null) {
 			doRemoveItem(item);
 		}
+		System.out.println("XXX:" + this.inUse);
 	}
 
 	private void doRemoveItem(T item) {
