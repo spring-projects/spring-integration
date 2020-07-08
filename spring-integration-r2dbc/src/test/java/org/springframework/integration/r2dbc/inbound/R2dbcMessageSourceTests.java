@@ -144,7 +144,7 @@ public class R2dbcMessageSourceTests {
 		@Autowired
 		DatabaseClient databaseClient;
 
-		@Bean(name = "r2dbcMessageSourceSelectOne")
+		@Bean
 		public R2dbcMessageSource r2dbcMessageSourceSelectOne() {
 			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient, "select * from person Where id" +
 					" = 1");
@@ -152,14 +152,14 @@ public class R2dbcMessageSourceTests {
 			return r2dbcMessageSource;
 		}
 
-		@Bean(name = "r2dbcMessageSourceSelectMany")
+		@Bean
 		public R2dbcMessageSource r2dbcMessageSourceSelectMany() {
 			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient, "select * from person");
 			r2dbcMessageSource.setPayloadType(Person.class);
 			return r2dbcMessageSource;
 		}
 
-		@Bean(name = "r2dbcMessageSourceError")
+		@Bean
 		public R2dbcMessageSource r2dbcMessageSourceError() {
 			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient, new ValueExpression<>(new Object()));
 			r2dbcMessageSource.setPayloadType(Person.class);

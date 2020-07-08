@@ -41,6 +41,7 @@ import org.springframework.integration.r2dbc.entity.Person;
 import org.springframework.integration.r2dbc.repository.PersonRepository;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.publisher.Flux;
@@ -54,6 +55,7 @@ import reactor.test.StepVerifier;
  * @since 5.4
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class R2dbcMessageHandlerTests {
 
 	@Autowired
@@ -288,7 +290,7 @@ public class R2dbcMessageHandlerTests {
 		@Autowired
 		DatabaseClient databaseClient;
 
-		@Bean(name = "r2dbcMessageHandler")
+		@Bean
 		public R2dbcMessageHandler r2dbcMessageHandler() {
 			R2dbcMessageHandler r2dbcMessageHandler = new R2dbcMessageHandler(new R2dbcEntityTemplate(databaseClient));
 			return r2dbcMessageHandler;

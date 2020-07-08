@@ -157,29 +157,29 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 		return queryMono.flatMapMany(this::select);
 	}
 
-	private Mono<?> selectOne(Object queryMono) {
-		String query = evaluateQueryObject(queryMono);
+	private Mono<?> selectOne(Object queryObject) {
+		String queryString = evaluateQueryObject(queryObject);
 		return this.databaseClient
-				.execute(query)
+				.execute(queryString)
 				.as(this.payloadType)
 				.fetch()
 				.one();
 	}
 
-	private Flux<?> select(Object queryMono) {
-		String query = evaluateQueryObject(queryMono);
+	private Flux<?> select(Object queryObject) {
+		String queryString = evaluateQueryObject(queryObject);
 		return this.databaseClient
-				.execute(query)
+				.execute(queryString)
 				.as(this.payloadType)
 				.fetch()
 				.all();
 	}
 
-	private String evaluateQueryObject(Object query) {
-		if (query instanceof String) {
-			return (String) query;
+	private String evaluateQueryObject(Object queryObject) {
+		if (queryObject instanceof String) {
+			return (String) queryObject;
 		}
 		throw new IllegalStateException("'queryExpression' must evaluate to String " +
-				"or org.springframework.data.relational.core.query.Query, but not: " + query);
+				"or org.springframework.data.relational.core.query.Query, but not: " + queryObject);
 	}
 }
