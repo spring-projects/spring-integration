@@ -62,6 +62,8 @@ public class SimplePool<T> implements Pool<T> {
 
 	private final PoolItemCallback<T> callback;
 
+	private volatile boolean closed;
+
 	/**
 	 * Creates a SimplePool with a specific limit.
 	 * @param poolSize The maximum number of items the pool supports.
@@ -218,7 +220,7 @@ public class SimplePool<T> implements Pool<T> {
 		Assert.isTrue(this.allocated.contains(item),
 				"You can only release items that were obtained from the pool");
 		if (this.inUse.contains(item)) {
-			if (this.poolSize.get() > this.targetPoolSize.get()) {
+			if (this.poolSize.get() > this.targetPoolSize.get() || this.closed) {
 				this.poolSize.decrementAndGet();
 				doRemoveItem(item);
 			}
@@ -244,7 +246,6 @@ public class SimplePool<T> implements Pool<T> {
 		while ((item = this.available.poll()) != null) {
 			doRemoveItem(item);
 		}
-		System.out.println("XXX:" + this.inUse);
 	}
 
 	private void doRemoveItem(T item) {
@@ -254,6 +255,11 @@ public class SimplePool<T> implements Pool<T> {
 		this.allocated.remove(item);
 		this.inUse.remove(item);
 		this.callback.removedFromPool(item);
+	}
+
+	@Override
+	public synchronized void close() {
+		this.closed = true;
 	}
 
 	/**
