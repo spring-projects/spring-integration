@@ -17,7 +17,9 @@
 package org.springframework.integration.r2dbc.inbound;
 
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import org.reactivestreams.Publisher;
 
@@ -30,9 +32,13 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.r2dbc.core.ColumnMapRowMapper;
+import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.core.RowsFetchSpec;
 import org.springframework.util.Assert;
 
+import io.r2dbc.spi.Row;
+import io.r2dbc.spi.RowMetadata;
 import reactor.core.publisher.Mono;
 
 /**
@@ -54,7 +60,7 @@ import reactor.core.publisher.Mono;
  */
 public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 
-	private final R2dbcEntityOperations r2dbcEntityOperations;
+	private final DatabaseClient databaseClient;
 
 	private final ReactiveDataAccessStrategy dataAccessStrategy;
 
@@ -62,9 +68,15 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 
 	private Class<?> payloadType = Map.class;
 
+	private BiFunction<Row, RowMetadata, ?> rowMapper = ColumnMapRowMapper.INSTANCE;
+
 	private boolean expectSingleResult = false;
 
 	private StandardEvaluationContext evaluationContext;
+
+	private String updateSql;
+
+	private BiFunction<DatabaseClient.GenericExecuteSpec, Object, DatabaseClient.GenericExecuteSpec> bindFunction;
 
 	private volatile boolean initialized = false;
 
@@ -91,8 +103,8 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	public R2dbcMessageSource(R2dbcEntityOperations r2dbcEntityOperations, Expression queryExpression) {
 		Assert.notNull(r2dbcEntityOperations, "'r2dbcEntityOperations' must not be null");
 		Assert.notNull(queryExpression, "'queryExpression' must not be null");
-		this.r2dbcEntityOperations = r2dbcEntityOperations;
-		this.dataAccessStrategy = this.r2dbcEntityOperations.getDataAccessStrategy();
+		this.databaseClient = r2dbcEntityOperations.getDatabaseClient();
+		this.dataAccessStrategy = r2dbcEntityOperations.getDataAccessStrategy();
 		this.queryExpression = queryExpression;
 	}
 
@@ -108,10 +120,33 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	}
 
 	/**
-	 * Provide a way to return all the records matching criteria or only and only a one otherwise.
+	 * Provide a way to set update query that will be passed to the
+	 * {@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)}
+	 * method.
+	 * @param updateSql Update query string.
+	 */
+	public void setUpdateSql(String updateSql) {
+		this.updateSql = updateSql;
+	}
+
+	/**
+	 * Provide a way to set BindFunction which will be used to bind parameters
+	 * in the update query.
+	 * @param bindFunction The bindFunction.
+	 */
+	@SuppressWarnings("unchecked")
+	public void setBindFunction(
+			BiFunction<DatabaseClient.GenericExecuteSpec, ?, DatabaseClient.GenericExecuteSpec> bindFunction) {
+
+		this.bindFunction =
+				(BiFunction<DatabaseClient.GenericExecuteSpec, Object, DatabaseClient.GenericExecuteSpec>) bindFunction;
+	}
+
+	/**
+	 * Provide a way to manage which find* method to invoke on {@link R2dbcEntityOperations}.
 	 * Default is 'false', which means the {@link #receive()} method will use
-	 * the {@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)} method and will fetch all. If set
-	 * to 'true'{@link #receive()} will use {@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)}
+	 * the {@link DatabaseClient#sql(String)} method and will fetch all. If set
+	 * to 'true'{@link #receive()} will use {@link DatabaseClient#sql(String)}
 	 * and will fetch one and the payload of the returned {@link org.springframework.messaging.Message}
 	 * will be the returned target Object of type
 	 * identified by {@link #payloadType} instead of a List.
@@ -136,6 +171,9 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 			 */
 			((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.relational.core.query");
 		}
+		if (!Map.class.isAssignableFrom(this.payloadType)) {
+			this.rowMapper = this.dataAccessStrategy.getRowMapper(this.payloadType);
+		}
 		this.initialized = true;
 	}
 
@@ -155,17 +193,31 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 				Mono.fromSupplier(() -> this.queryExpression.getValue(this.evaluationContext))
 						.map(this::prepareFetch);
 		if (this.expectSingleResult) {
-			return queryMono.flatMap(RowsFetchSpec::one);
+			return queryMono.flatMap(RowsFetchSpec::one)
+					.flatMap(this::executeUpdate);
 		}
-		return queryMono.flatMapMany(RowsFetchSpec::all);
+
+		return queryMono.flatMapMany(RowsFetchSpec::all)
+				.flatMap(this::executeUpdate);
+	}
+
+	private Mono<Object> executeUpdate(Object result) {
+		if (this.updateSql != null) {
+			DatabaseClient.GenericExecuteSpec genericExecuteSpec = this.databaseClient.sql(this.updateSql);
+			if (this.bindFunction != null) {
+				genericExecuteSpec = this.bindFunction.apply(genericExecuteSpec, result);
+			}
+			return genericExecuteSpec.then()
+					.thenReturn(result);
+		}
+		return Mono.just(result);
 	}
 
 	private RowsFetchSpec<?> prepareFetch(Object queryObject) {
 		String queryString = evaluateQueryObject(queryObject);
-		return this.r2dbcEntityOperations
-				.getDatabaseClient()
+		return this.databaseClient
 				.sql(queryString)
-				.map(this.dataAccessStrategy.getRowMapper(this.payloadType));
+				.map(this.rowMapper);
 	}
 
 	private String evaluateQueryObject(Object queryObject) {
