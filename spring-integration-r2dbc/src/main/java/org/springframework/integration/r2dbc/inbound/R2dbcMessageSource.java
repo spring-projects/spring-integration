@@ -18,6 +18,7 @@ package org.springframework.integration.r2dbc.inbound;
 
 
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import org.reactivestreams.Publisher;
 
@@ -67,6 +68,10 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 
 	private StandardEvaluationContext evaluationContext;
 
+	private String updateSql;
+
+	private BiFunction<DatabaseClient.BindSpec<?>, Object, DatabaseClient.BindSpec<?>> bindFunction;
+
 	private volatile boolean initialized = false;
 
 	/**
@@ -105,6 +110,25 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	public void setPayloadType(Class<?> payloadType) {
 		Assert.notNull(payloadType, "'payloadType' must not be null");
 		this.payloadType = payloadType;
+	}
+
+	/**
+	 * Provide a way to set update query that will be passed to the
+	 * {@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)}
+	 * method.
+	 * @param updateSql Update query string.
+	 */
+	public void setUpdateSql(String updateSql) {
+		this.updateSql = updateSql;
+	}
+
+	/**
+	 * Provide a way to set BindFunction which will be used to bind parameters
+	 * in the update query.
+	 * @param bindFunction The bindFunction.
+	 */
+	public <T> void setBindFunction(BiFunction<DatabaseClient.BindSpec<?>, T, DatabaseClient.BindSpec<?>> bindFunction) {
+		this.bindFunction = (BiFunction<DatabaseClient.BindSpec<?>, Object, DatabaseClient.BindSpec<?>>) bindFunction;
 	}
 
 	/**
@@ -155,9 +179,24 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 				Mono.fromSupplier(() -> this.queryExpression.getValue(this.evaluationContext))
 						.map(this::prepareFetch);
 		if (this.expectSingleResult) {
-			return queryMono.flatMap(FetchSpec::one);
+			return queryMono.flatMap(FetchSpec::one)
+					.flatMap(this::executeUpdate);
 		}
-		return queryMono.flatMapMany(FetchSpec::all);
+
+		return queryMono.flatMapMany(FetchSpec::all)
+				.flatMap(this::executeUpdate);
+	}
+
+	private Mono<Object> executeUpdate(Object result) {
+		if (this.updateSql != null) {
+			DatabaseClient.GenericExecuteSpec genericExecuteSpec = this.databaseClient.execute(this.updateSql);
+			if (this.bindFunction != null) {
+				genericExecuteSpec = (DatabaseClient.GenericExecuteSpec) this.bindFunction.apply(genericExecuteSpec, result);
+			}
+			return genericExecuteSpec.then()
+					.thenReturn(result);
+		}
+		return Mono.just(result);
 	}
 
 	private FetchSpec<?> prepareFetch(Object queryObject) {

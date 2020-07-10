@@ -58,6 +58,9 @@ public class R2dbcMessageSourceTests {
 	R2dbcEntityTemplate entityTemplate;
 
 	@Autowired
+	R2dbcMessageSource defaultR2dbcMessageSource;
+
+	@Autowired
 	R2dbcMessageSource r2dbcMessageSourceSelectOne;
 
 	@Autowired
@@ -70,6 +73,9 @@ public class R2dbcMessageSourceTests {
 	public void setup() {
 		Hooks.onOperatorDebug();
 		entityTemplate = new R2dbcEntityTemplate(this.client);
+		r2dbcMessageSourceSelectMany.setExpectSingleResult(false);
+		defaultR2dbcMessageSource.setBindFunction(null);
+
 		List<String> statements = Arrays.asList(
 				"DROP TABLE IF EXISTS person;",
 				"CREATE table person (id INT AUTO_INCREMENT NOT NULL, name VARCHAR2, age INT NOT NULL);");
@@ -130,6 +136,134 @@ public class R2dbcMessageSourceTests {
 	}
 
 	@Test
+	public void validateSuccessfulUpdateWithSingleElementOfMonoDBObject() {
+		this.entityTemplate.insert(new Person("Bob", 35))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
+
+		r2dbcMessageSourceSelectMany.setUpdateSql("UPDATE Person SET name='Foo' where age = :age");
+		r2dbcMessageSourceSelectMany.<Person>setBindFunction((bindSpec, o) -> bindSpec.bind("age", o.getAge()));
+		r2dbcMessageSourceSelectMany.setExpectSingleResult(true);
+
+		StepVerifier.create(r2dbcMessageSourceSelectMany.receive().getPayload())
+				.assertNext(person -> assertThat(((Person) person).getName()).isEqualTo("Bob"))
+				.verifyComplete();
+
+		this.entityTemplate.select(Person.class)
+				.all()
+				.as(StepVerifier::create)
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Foo"))
+				.verifyComplete();
+
+	}
+
+	@Test
+	public void validateSuccessfulUpdateWithMultiplesElementsOfFluxDBObject() {
+		this.entityTemplate.insert(new Person("Bob", 35))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
+
+		this.entityTemplate.insert(new Person("Tom", 40))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
+
+		r2dbcMessageSourceSelectMany.setUpdateSql("UPDATE person SET name='Foo' where id = :id");
+		r2dbcMessageSourceSelectMany.<Person>setBindFunction((bindSpec, o) -> bindSpec.bind("id", o.getId()));
+
+		StepVerifier.create(r2dbcMessageSourceSelectMany.receive().getPayload())
+				.expectNextCount(2)
+				.verifyComplete();
+
+		this.entityTemplate.select(Person.class)
+				.all()
+				.as(StepVerifier::create)
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Foo"))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Foo"))
+				.verifyComplete();
+
+	}
+
+	@Test
+	public void validateSuccessfulUpdateWithoutBindFunction() {
+		this.entityTemplate.insert(new Person("Bob", 35))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
+
+		this.entityTemplate.insert(new Person("Tom", 40))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
+
+		r2dbcMessageSourceSelectMany.setUpdateSql("UPDATE person SET name='Foo' where id = 1");
+
+		StepVerifier.create(r2dbcMessageSourceSelectMany.receive().getPayload())
+				.expectNextCount(2)
+				.verifyComplete();
+
+		this.entityTemplate.select(Person.class)
+				.all()
+				.as(StepVerifier::create)
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Foo"))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Tom"))
+				.verifyComplete();
+
+	}
+
+	@Test
+	public void validateSuccessfulUpdateWithoutPayloadType() {
+		this.entityTemplate.insert(new Person("Bob", 35))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
+
+		this.entityTemplate.insert(new Person("Tom", 40))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
+
+		defaultR2dbcMessageSource.setUpdateSql("UPDATE person SET name='Foo' where id = 1");
+
+		StepVerifier.create(defaultR2dbcMessageSource.receive().getPayload())
+				.expectNextCount(2)
+				.verifyComplete();
+
+		this.client.execute("select * from person")
+				.fetch()
+				.all()
+				.as(StepVerifier::create)
+				.assertNext(person -> assertThat(person.get("name")).isEqualTo("Foo"))
+				.assertNext(person -> assertThat(person.get("name")).isEqualTo("Tom"))
+				.verifyComplete();
+
+	}
+
+	@Test
+	public void testWrongPayloadTypeInBindFunction() {
+		this.entityTemplate.insert(new Person("Bob", 35))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
+
+		this.entityTemplate.insert(new Person("Tom", 40))
+				.then()
+				.as(StepVerifier::create)
+				.verifyComplete();
+
+		defaultR2dbcMessageSource.setUpdateSql("UPDATE person SET name='Foo' where id = 1");
+		defaultR2dbcMessageSource.<Person>setBindFunction((bindSpec, o) -> bindSpec.bind("id", o.getId()));
+
+		StepVerifier.create(defaultR2dbcMessageSource.receive().getPayload())
+				.expectErrorMatches(throwable -> throwable instanceof ClassCastException)
+				.verify();
+
+	}
+
+
+	@Test
 	public void testAnyOtherObjectQueryExpression() {
 
 		StepVerifier.create((Flux<?>) r2dbcMessageSourceError.receive().getPayload())
@@ -146,26 +280,33 @@ public class R2dbcMessageSourceTests {
 		DatabaseClient databaseClient;
 
 		@Bean
+		public R2dbcMessageSource defaultR2dbcMessageSource() {
+			return new R2dbcMessageSource(databaseClient, "select * from " +
+					"person");
+		}
+
+		@Bean
 		public R2dbcMessageSource r2dbcMessageSourceSelectOne() {
-			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient,
+			R2dbcMessageSource r2dbcMessageSourceSelectOne = new R2dbcMessageSource(databaseClient,
 					"select * from person Where id = 1");
-			r2dbcMessageSource.setPayloadType(Person.class);
-			return r2dbcMessageSource;
+			r2dbcMessageSourceSelectOne.setPayloadType(Person.class);
+			return r2dbcMessageSourceSelectOne;
 		}
 
 		@Bean
 		public R2dbcMessageSource r2dbcMessageSourceSelectMany() {
-			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient, "select * from person");
-			r2dbcMessageSource.setPayloadType(Person.class);
-			return r2dbcMessageSource;
+			R2dbcMessageSource r2dbcMessageSourceSelectMany = new R2dbcMessageSource(databaseClient, "select * from " +
+					"person");
+			r2dbcMessageSourceSelectMany.setPayloadType(Person.class);
+			return r2dbcMessageSourceSelectMany;
 		}
 
 		@Bean
 		public R2dbcMessageSource r2dbcMessageSourceError() {
-			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient,
+			R2dbcMessageSource r2dbcMessageSourceError = new R2dbcMessageSource(databaseClient,
 					new ValueExpression<>(new Object()));
-			r2dbcMessageSource.setPayloadType(Person.class);
-			return r2dbcMessageSource;
+			r2dbcMessageSourceError.setPayloadType(Person.class);
+			return r2dbcMessageSourceError;
 		}
 
 	}
