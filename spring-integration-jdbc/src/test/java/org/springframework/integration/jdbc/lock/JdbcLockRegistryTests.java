@@ -36,10 +36,13 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import javax.sql.DataSource;
+
 /**
  * @author Dave Syer
  * @author Artem Bilan
  * @author Stefan Vassilev
+ * @author Alexandre Strubel
  *
  * @since 4.3
  */
@@ -54,6 +57,9 @@ public class JdbcLockRegistryTests {
 
 	@Autowired
 	private LockRepository client;
+
+	@Autowired
+	private DataSource dataSource;
 
 	@BeforeEach
 	public void clear() {
@@ -124,6 +130,26 @@ public class JdbcLockRegistryTests {
 			finally {
 				lock1.unlock();
 			}
+		}
+	}
+
+	@Test
+	public void testReentrantLockAfterExpiration() throws Exception {
+		DefaultLockRepository client = new DefaultLockRepository(dataSource);
+		client.setTimeToLive(500);
+		client.afterPropertiesSet();
+		JdbcLockRegistry registry = new JdbcLockRegistry(client);
+		Lock lock1 = registry.obtain("foo");
+		assertThat(lock1.tryLock()).isTrue();
+		Thread.sleep(500);
+		try {
+			Lock lock2 = registry.obtain("foo");
+			assertThat(lock2).isSameAs(lock1);
+			assertThat(lock2.tryLock()).isTrue();
+			lock2.unlock();
+		}
+		finally {
+			lock1.unlock();
 		}
 	}
 
