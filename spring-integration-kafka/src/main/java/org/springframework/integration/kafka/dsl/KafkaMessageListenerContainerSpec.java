@@ -24,11 +24,8 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.listener.AbstractMessageListenerContainer;
-import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.listener.ErrorHandler;
 import org.springframework.kafka.listener.GenericErrorHandler;
 import org.springframework.kafka.support.TopicPartitionOffset;
 
@@ -68,12 +65,13 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	}
 
 	@Override
-	public KafkaMessageListenerContainerSpec<K, V> id(String id) {
+	public KafkaMessageListenerContainerSpec<K, V> id(String id) { // NOSONAR - increase visibility
 		return super.id(id);
 	}
 
 	/**
-	 * Specify a concurrency maximum number for the {@link AbstractMessageListenerContainer}.
+	 * Specify a concurrency maximum number for the
+	 * {@link org.springframework.kafka.listener.AbstractMessageListenerContainer}.
 	 * @param concurrency the concurrency maximum number.
 	 * @return the spec.
 	 * @see ConcurrentMessageListenerContainer#setConcurrency(int)
@@ -84,10 +82,11 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	}
 
 	/**
-	 * Specify an {@link ErrorHandler} for the {@link AbstractMessageListenerContainer}.
-	 * @param errorHandler the {@link ErrorHandler}.
+	 * Specify an {@link org.springframework.kafka.listener.ErrorHandler} for the
+	 * {@link org.springframework.kafka.listener.AbstractMessageListenerContainer}.
+	 * @param errorHandler the {@link org.springframework.kafka.listener.ErrorHandler}.
 	 * @return the spec.
-	 * @see ErrorHandler
+	 * @see org.springframework.kafka.listener.ErrorHandler
 	 */
 	public KafkaMessageListenerContainerSpec<K, V> errorHandler(GenericErrorHandler<?> errorHandler) {
 		this.target.setGenericErrorHandler(errorHandler);
@@ -104,7 +103,7 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	 * {@code #setPollTimeout(long) pollTimeout}.</li>
 	 * <li>COUNT: Ack after at least this number of records have been received</li>
 	 * <li>MANUAL: Listener is responsible for acking - use a
-	 * {@link AcknowledgingMessageListener}.
+	 * {@link org.springframework.kafka.listener.AcknowledgingMessageListener}.
 	 * </ul>
 	 * @param ackMode the {@link ContainerProperties.AckMode}; default BATCH.
 	 * @return the spec.

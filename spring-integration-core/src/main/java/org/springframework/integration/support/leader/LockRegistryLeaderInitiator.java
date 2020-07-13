@@ -66,7 +66,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 	public static final long DEFAULT_BUSY_WAIT_TIME = 50L;
 
-	private static final Log logger = LogFactory.getLog(LockRegistryLeaderInitiator.class);
+	private static final Log LOGGER = LogFactory.getLog(LockRegistryLeaderInitiator.class);
 
 	private final Object lifecycleMonitor = new Object();
 
@@ -295,7 +295,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 				this.leaderSelector = new LeaderSelector(buildLeaderPath());
 				this.running = true;
 				this.future = this.executorService.submit(this.leaderSelector);
-				logger.debug("Started LeaderInitiator");
+				LOGGER.debug("Started LeaderInitiator");
 			}
 		}
 	}
@@ -321,7 +321,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 					this.future.cancel(true);
 				}
 				this.future = null;
-				logger.debug("Stopped LeaderInitiator for " + getContext());
+				LOGGER.debug("Stopped LeaderInitiator for " + getContext());
 			}
 		}
 	}
@@ -369,7 +369,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 						this.lock.unlock();
 					}
 					catch (Exception e) {
-						logger.debug("Could not unlock during stop for " + this.context
+						LOGGER.debug("Could not unlock during stop for " + this.context
 								+ " - treat as broken. Revoking...", e);
 					}
 					// We are stopping, therefore not leading any more
@@ -380,8 +380,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		}
 
 		private void tryAcquireLock() throws InterruptedException {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Acquiring the lock for " + this.context);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Acquiring the lock for " + this.context);
 			}
 			// We always try to acquire the lock, in case it expired
 			boolean acquired = this.lock.tryLock(LockRegistryLeaderInitiator.this.heartBeatMillis,
@@ -423,7 +423,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 					this.lock.unlock();
 				}
 				catch (Exception e1) {
-					logger.debug("Could not unlock - treat as broken " + this.context +
+					LOGGER.debug("Could not unlock - treat as broken " + this.context +
 							". Revoking " + (isRunning() ? " and retrying..." : "..."), e1);
 
 				}
@@ -449,8 +449,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 						Thread.currentThread().interrupt();
 					}
 				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("Error acquiring the lock for " + this.context +
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Error acquiring the lock for " + this.context +
 							". " + (isRunning() ? "Retrying..." : ""), ex);
 				}
 			}
@@ -458,7 +458,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		}
 
 		private void restartSelectorBecauseOfError(Exception ex) {
-			logger.warn("Restarting LeaderSelector for " + this.context + " because of error.", ex);
+			LOGGER.warn("Restarting LeaderSelector for " + this.context + " because of error.", ex);
 			LockRegistryLeaderInitiator.this.future =
 					LockRegistryLeaderInitiator.this.executorService.submit(
 							() -> {
@@ -480,7 +480,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							LockRegistryLeaderInitiator.this, this.context, this.lockKey);
 				}
 				catch (Exception e) {
-					logger.warn("Error publishing OnGranted event.", e);
+					LOGGER.warn("Error publishing OnGranted event.", e);
 				}
 			}
 		}
@@ -494,7 +494,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							LockRegistryLeaderInitiator.this.candidate.getRole());
 				}
 				catch (Exception e) {
-					logger.warn("Error publishing OnRevoked event.", e);
+					LOGGER.warn("Error publishing OnRevoked event.", e);
 				}
 			}
 		}
@@ -508,7 +508,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							LockRegistryLeaderInitiator.this.candidate.getRole());
 				}
 				catch (Exception e) {
-					logger.warn("Error publishing OnFailedToAcquire event.", e);
+					LOGGER.warn("Error publishing OnFailedToAcquire event.", e);
 				}
 			}
 		}
@@ -530,8 +530,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 		@Override
 		public void yield() {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Yielding leadership from " + this);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Yielding leadership from " + this);
 			}
 			if (LockRegistryLeaderInitiator.this.future != null) {
 				LockRegistryLeaderInitiator.this.future.cancel(true);

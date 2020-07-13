@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,11 @@
 
 package org.springframework.integration.kafka.dsl;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.dsl.MessageSourceSpec;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource.KafkaAckCallbackFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.ConsumerProperties;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 
 /**
@@ -36,6 +31,7 @@ import org.springframework.kafka.support.converter.RecordMessageConverter;
  *
  * @author Gary Russell
  * @author Anshul Mehra
+ * @author Artem Bilan
  *
  * @since 5.4
  *
@@ -72,7 +68,7 @@ public class KafkaInboundChannelAdapterSpec<K, V>
 
 	/**
 	 * Set the message converter to replace the default.
-	 * {@link MessagingMessageConverter}.
+	 * {@link org.springframework.kafka.support.converter.MessagingMessageConverter}.
 	 * @param messageConverter the converter.
 	 * @return the spec.
 	 */
@@ -93,9 +89,9 @@ public class KafkaInboundChannelAdapterSpec<K, V>
 	}
 
 	/**
-	 * Set to true to include the raw {@link ConsumerRecord} as headers with keys
-	 * {@link KafkaHeaders#RAW_DATA} and
-	 * {@link IntegrationMessageHeaderAccessor#SOURCE_DATA}. enabling callers to have
+	 * Set to true to include the raw {@link org.apache.kafka.clients.consumer.ConsumerRecord} as headers with keys
+	 * {@link org.springframework.kafka.support.KafkaHeaders#RAW_DATA} and
+	 * {@link org.springframework.integration.IntegrationMessageHeaderAccessor#SOURCE_DATA}. enabling callers to have
 	 * access to the record to process errors.
 	 * @param rawMessageHeader true to include the header.
 	 * @return the spec.

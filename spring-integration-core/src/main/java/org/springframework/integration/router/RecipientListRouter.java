@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
@@ -210,7 +211,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 			MessageSelector selector = next.getSelector();
 			MessageChannel channel = next.getChannel();
 			if (selector instanceof ExpressionEvaluatingSelector
-					&& channel.equals(targetChannel)
+					&& targetChannel.equals(channel)
 					&& ((ExpressionEvaluatingSelector) selector).getExpressionString().equals(selectorExpression)) {
 				it.remove();
 				counter++;
@@ -307,14 +308,13 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 			return this.selector;
 		}
 
+		@Nullable
 		public MessageChannel getChannel() {
 			if (this.channel == null) {
 				String channelNameForInitialization = this.channelName;
-				if (channelNameForInitialization != null) {
-					if (this.channelResolver != null) {
-						this.channel = this.channelResolver.resolveDestination(channelNameForInitialization);
-						this.channelName = null;
-					}
+				if (channelNameForInitialization != null && this.channelResolver != null) {
+					this.channel = this.channelResolver.resolveDestination(channelNameForInitialization);
+					this.channelName = null;
 				}
 			}
 			return this.channel;

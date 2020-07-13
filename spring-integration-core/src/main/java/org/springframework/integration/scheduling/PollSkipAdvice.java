@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class PollSkipAdvice implements MethodInterceptor {
 
-	private static final Log logger = LogFactory.getLog(PollSkipAdvice.class);
+	private static final Log LOGGER = LogFactory.getLog(PollSkipAdvice.class);
 
 	private final PollSkipStrategy pollSkipStrategy;
 
@@ -51,8 +51,8 @@ public class PollSkipAdvice implements MethodInterceptor {
 	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		if ("call".equals(invocation.getMethod().getName()) && this.pollSkipStrategy.skipPoll()) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Skipping poll because "
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Skipping poll because "
 						+ this.pollSkipStrategy.getClass().getName()
 						+ ".skipPoll() returned true");
 			}

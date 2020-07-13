@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.springframework.integration.kafka.inbound.KafkaInboundGateway;
 import org.springframework.integration.support.ObjectStringMapBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ConsumerSeekAware;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.retry.RecoveryCallback;
@@ -116,8 +115,8 @@ public class KafkaInboundGatewaySpec<K, V, R, S extends KafkaInboundGatewaySpec<
 	}
 
 	/**
-	 * A {@link ConcurrentMessageListenerContainer} configuration {@link KafkaInboundGatewaySpec}
-	 * extension.
+	 * A {@link org.springframework.kafka.listener.ConcurrentMessageListenerContainer}
+	 * configuration {@link KafkaInboundGatewaySpec} extension.
 	 * @param <K> the key type.
 	 * @param <V> the request value type.
 	 * @param <R> the reply value type.

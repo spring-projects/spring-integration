@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -397,11 +397,10 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		private void processMapArgument(Object messageOrPayload, boolean foundPayloadAnnotation,
 				Map<String, Object> headersToPopulate, Map<?, ?> argumentValue) {
 
-			if (messageOrPayload instanceof Map && !foundPayloadAnnotation) {
-				if (GatewayMethodInboundMessageMapper.this.payloadExpression == null) {
-					throw new MessagingException("Ambiguous method parameters; found more than one " +
-							"Map-typed parameter and neither one contains a @Payload annotation");
-				}
+			if (messageOrPayload instanceof Map && !foundPayloadAnnotation
+					&& GatewayMethodInboundMessageMapper.this.payloadExpression == null) {
+				throw new MessagingException("Ambiguous method parameters; found more than one " +
+						"Map-typed parameter and neither one contains a @Payload annotation");
 			}
 			copyHeaders(argumentValue, headersToPopulate);
 		}

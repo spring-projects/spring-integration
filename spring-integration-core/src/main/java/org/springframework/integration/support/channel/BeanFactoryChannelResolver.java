@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,11 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  *
- * @see org.springframework.beans.factory.BeanFactory
+ * @see BeanFactory
  */
 public class BeanFactoryChannelResolver implements DestinationResolver<MessageChannel>, BeanFactoryAware {
 
-	private static final Log logger = LogFactory.getLog(BeanFactoryChannelResolver.class);
+	private static final Log LOGGER = LogFactory.getLog(BeanFactoryChannelResolver.class);
 
 	private BeanFactory beanFactory;
 
@@ -102,7 +102,7 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 									HeaderChannelRegistry.class);
 						}
 						catch (Exception ex) {
-							logger.debug("No HeaderChannelRegistry found");
+							LOGGER.debug("No HeaderChannelRegistry found");
 						}
 						this.initialized = true;
 					}

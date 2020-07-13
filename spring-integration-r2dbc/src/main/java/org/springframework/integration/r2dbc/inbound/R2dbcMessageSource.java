@@ -23,8 +23,6 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.data.r2dbc.core.FetchSpec;
-import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
-import org.springframework.data.relational.core.query.Query;
 import org.springframework.expression.Expression;
 import org.springframework.expression.TypeLocator;
 import org.springframework.expression.common.LiteralExpression;
@@ -39,15 +37,13 @@ import reactor.core.publisher.Mono;
 /**
  * An instance of {@link org.springframework.integration.core.MessageSource} which returns
  * a {@link org.springframework.messaging.Message} with a payload which is the result of
- * execution of a {@link Query}. When {@code expectSingleResult} is false (default), the R2dbc
- * {@link Query} is executed using {@link R2dbcEntityOperations#select(Query, Class)} method which
- * returns a {@link reactor.core.publisher.Flux}.
+ * execution of query. When {@code expectSingleResult} is false (default), the R2DBC
+ * query is executed returning a {@link reactor.core.publisher.Flux}.
  * The returned {@link reactor.core.publisher.Flux} will be used as the payload of the
  * {@link org.springframework.messaging.Message} returned by the {@link #receive()}
  * method.
  * <p>
- * When {@code expectSingleResult} is true, the {@link R2dbcEntityOperations#selectOne(Query, Class)} is
- * used instead, and the message payload will be a {@link reactor.core.publisher.Mono}
+ * When {@code expectSingleResult} is true, the query is executed returning a {@link reactor.core.publisher.Mono}
  * for the single object returned from the query.
  *
  * @author Rohan Mukesh
@@ -108,7 +104,7 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	}
 
 	/**
-	 * Provide a way to manage which find* method to invoke on {@link R2dbcEntityOperations}.
+	 * Provide a way to return all the records matching criteria or only and only a one otherwise.
 	 * Default is 'false', which means the {@link #receive()} method will use
 	 * the {@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)} method and will fetch all. If set
 	 * to 'true'{@link #receive()} will use {@link org.springframework.data.r2dbc.core.DatabaseClient#execute(String)}
@@ -140,7 +136,7 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	}
 
 	/**
-	 * Execute a {@link Query} returning its results as the Message payload.
+	 * Execute a query returning its results as the Message payload.
 	 * The payload can be either {@link reactor.core.publisher.Flux} or
 	 * {@link reactor.core.publisher.Mono} of objects of type identified by {@link #payloadType},
 	 * or a single element of type identified by {@link #payloadType}

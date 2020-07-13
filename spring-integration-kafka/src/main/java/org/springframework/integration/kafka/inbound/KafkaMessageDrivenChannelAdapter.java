@@ -33,7 +33,6 @@ import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
-import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
@@ -54,6 +53,7 @@ import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryCallback;
@@ -78,7 +78,7 @@ import org.springframework.util.Assert;
 public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport implements OrderlyShutdownCapable,
 		Pausable {
 
-	private static final ThreadLocal<AttributeAccessor> attributesHolder = new ThreadLocal<>();
+	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
 	private final AbstractMessageListenerContainer<K, V> messageListenerContainer;
 
@@ -354,7 +354,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * If there's a retry template, it will set the attributes holder via the listener. If
 	 * there's no retry template, but there's an error channel, we create a new attributes
 	 * holder here. If an attributes holder exists (by either method), we set the
-	 * attributes for use by the {@link ErrorMessageStrategy}.
+	 * attributes for use by the {@link org.springframework.integration.support.ErrorMessageStrategy}.
 	 * @param record the record.
 	 * @param message the message.
 	 * @since 2.1.1
@@ -363,10 +363,10 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
 		boolean needAttributes = needHolder | this.retryTemplate != null;
 		if (needHolder) {
-			attributesHolder.set(ErrorMessageUtils.getAttributeAccessor(null, null));
+			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
 		}
 		if (needAttributes) {
-			AttributeAccessor attributes = attributesHolder.get();
+			AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
 			if (attributes != null) {
 				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
 				attributes.setAttribute(KafkaHeaders.RAW_DATA, record);
@@ -376,7 +376,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	@Override
 	protected AttributeAccessor getErrorMessageAttributes(Message<?> message) {
-		AttributeAccessor attributes = attributesHolder.get();
+		AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
 		if (attributes == null) {
 			return super.getErrorMessageAttributes(message);
 		}
@@ -392,7 +392,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			}
 			finally {
 				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate == null) {
-					attributesHolder.remove();
+					ATTRIBUTES_HOLDER.remove();
 				}
 			}
 		}
@@ -456,7 +456,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				Map<String, Object> rawHeaders = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
 				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
 					AtomicInteger deliveryAttempt =
-							new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
+							new AtomicInteger(((RetryContext) ATTRIBUTES_HOLDER.get()).getRetryCount() + 1);
 					rawHeaders.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
 				}
 				else if (KafkaMessageDrivenChannelAdapter.this.containerDeliveryAttemptPresent) {
@@ -472,7 +472,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
 				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
 					AtomicInteger deliveryAttempt =
-							new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
+							new AtomicInteger(((RetryContext) ATTRIBUTES_HOLDER.get()).getRetryCount() + 1);
 					builder.setHeader(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
 				}
 				else if (KafkaMessageDrivenChannelAdapter.this.containerDeliveryAttemptPresent) {
@@ -491,7 +491,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		@Override
 		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
 			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
-				attributesHolder.set(context);
+				ATTRIBUTES_HOLDER.set(context);
 			}
 			return true;
 		}
@@ -500,7 +500,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
 				Throwable throwable) {
 
-			attributesHolder.remove();
+			ATTRIBUTES_HOLDER.remove();
 		}
 
 		@Override
@@ -536,8 +536,9 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			}
 			catch (RuntimeException e) {
 				Exception exception = new ConversionException("Failed to convert to message for: " + records, e);
-				if (getErrorChannel() != null) {
-					getMessagingTemplate().send(getErrorChannel(), new ErrorMessage(exception));
+				MessageChannel errorChannel = getErrorChannel();
+				if (errorChannel != null) {
+					getMessagingTemplate().send(errorChannel, new ErrorMessage(exception));
 				}
 			}
 
@@ -547,7 +548,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		@Override
 		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
 			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
-				attributesHolder.set(context);
+				ATTRIBUTES_HOLDER.set(context);
 			}
 			return true;
 		}
@@ -556,7 +557,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
 				Throwable throwable) {
 
-			attributesHolder.remove();
+			ATTRIBUTES_HOLDER.remove();
 		}
 
 		@Override

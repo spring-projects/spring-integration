@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import org.springframework.util.ClassUtils;
  */
 public abstract class AbstractJacksonJsonObjectMapper<N, P, J> implements JsonObjectMapper<N, P>, BeanClassLoaderAware {
 
-	protected static final Collection<Class<?>> supportedJsonTypes =
+	protected static final Collection<Class<?>> SUPPORTED_JSON_TYPES =
 			Arrays.asList(String.class, byte[].class, File.class, URL.class, InputStream.class, Reader.class);
 
 	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();

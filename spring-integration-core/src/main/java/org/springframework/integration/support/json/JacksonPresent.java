@@ -29,27 +29,13 @@ public final class JacksonPresent {
 
 	private static final ClassLoader CLASS_LOADER = ClassUtils.getDefaultClassLoader();
 
-	private static final boolean jackson2Present =
+	private static final boolean JACKSON_2_PRESENT =
 			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", CLASS_LOADER) &&
 					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", CLASS_LOADER);
 
-	private static final boolean jacksonPresent =
-			ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper", CLASS_LOADER) &&
-					ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", CLASS_LOADER);
-
 	public static boolean isJackson2Present() {
-		return jackson2Present;
+		return JACKSON_2_PRESENT;
 	}
-
-	/**
-	 * @return true if Jackson 1.x is present on classpath
-	 * @deprecated Jackson 1.x is not supported any more. Use Jackson 2.x.
-	 */
-	@Deprecated
-	public static boolean isJacksonPresent() {
-		return jacksonPresent;
-	}
-
 
 	private JacksonPresent() {
 	}
