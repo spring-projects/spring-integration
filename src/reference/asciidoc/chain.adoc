@@ -54,7 +54,7 @@ The `<header-enricher>` element used in the preceding example sets a message hea
 A header enricher is a specialization of `Transformer` that touches only header values.
 You could obtain the same result by implementing a `MessageHandler` that did the header modifications and wiring that as a bean, but the header-enricher is a simpler option.
 
-The `<chain>` can be configured as the last 'black-box' consumer of the message flow.
+The `<chain>` can be configured as the last "`closed-box`" consumer of the message flow.
 For this solution, you can to put it at the end of the <chain> some <outbound-channel-adapter>, as the following example shows:
 
 ====
