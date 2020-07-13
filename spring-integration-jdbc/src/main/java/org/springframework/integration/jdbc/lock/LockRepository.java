@@ -34,6 +34,8 @@ public interface LockRepository extends Closeable {
 
 	void delete(String lock);
 
+	void deleteExpired();
+
 	boolean acquire(String lock);
 
 	boolean renew(String lock);
