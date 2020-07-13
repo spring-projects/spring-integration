@@ -82,7 +82,7 @@ java -jar my.jar < foo.txt
 ----
 ====
 
-This approach lets the application terminate when the pipe is closed.
+This approach lets the application stop when the pipe is closed.
 
 Four convenient factory methods are available:
 

@@ -830,7 +830,7 @@ public class JpaJavaApplication {
 The JPA inbound channel adapter lets you poll a database to retrieve one or more JPA entities.
 The retrieved data is consequently used to start a Spring Integration flow that uses the retrieved data as message payload.
 
-Additionally, you can use JPA outbound channel adapters at the end of your flow in order to persist data, essentially terminating the flow at the end of the persistence operation.
+Additionally, you can use JPA outbound channel adapters at the end of your flow in order to persist data, essentially stopping the flow at the end of the persistence operation.
 
 However, how can you execute JPA persistence operations in the middle of a flow? For example, you may have business data that you are processing in your Spring Integration message flow and that you would like to persist, yet you still need to use other components further downstream.
 Alternatively, instead of polling the database using a poller, you need to execute JPQL queries and actively retrieve data, which is then processed in subsequent components within your flow.
