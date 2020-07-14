@@ -428,23 +428,11 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		if (this.paused && this.recordsIterator == null) {
 			this.logger.debug("Consumer is paused; no records will be returned");
 		}
-		ConsumerRecord<K, V> record;
-		if (this.recordsIterator != null) {
-			record = nextRecord();
-		}
-		else {
-			synchronized (this.consumerMonitor) {
-				ConsumerRecords<K, V> records = this.consumer
-						.poll(this.assignedPartitions.isEmpty() ? this.assignTimeout : this.pollTimeout);
-				if (records == null || records.count() == 0) {
-					return null;
-				}
-				this.remainingCount.set(records.count());
-				this.recordsIterator = records.iterator();
-				record = nextRecord();
-			}
-		}
-		return recordToMessage(record);
+		ConsumerRecord<K, V> record = pollRecord();
+
+		return record != null
+				? recordToMessage(record)
+				: null;
 	}
 
 	protected void createConsumer() {
@@ -461,52 +449,75 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				this.consumer.subscribe(topicPattern, rebalanceCallback);
 			}
 			else if (partitions != null) {
-				List<TopicPartition> topicPartitionsToAssign =
-						Arrays.stream(partitions)
-								.map(TopicPartitionOffset::getTopicPartition)
-								.collect(Collectors.toList());
-				this.consumer.assign(topicPartitionsToAssign);
-				this.assignedPartitions.addAll(topicPartitionsToAssign);
-
-				for (TopicPartitionOffset partition : partitions) {
-					if (TopicPartitionOffset.SeekPosition.BEGINNING.equals(partition.getPosition())) {
-						this.consumer.seekToBeginning(Collections.singleton(partition.getTopicPartition()));
-					}
-					else if (TopicPartitionOffset.SeekPosition.END.equals(partition.getPosition())) {
-						this.consumer.seekToEnd(Collections.singleton(partition.getTopicPartition()));
-					}
-					else {
-						TopicPartition topicPartition = partition.getTopicPartition();
-						Long offset = partition.getOffset();
-						if (offset != null) {
-							long newOffset = offset;
-
-							if (offset < 0) {
-								if (!partition.isRelativeToCurrent()) {
-									this.consumer.seekToEnd(Collections.singleton(topicPartition));
-									continue;
-								}
-								newOffset = Math.max(0, this.consumer.position(topicPartition) + offset);
-							}
-							else if (partition.isRelativeToCurrent()) {
-								newOffset = this.consumer.position(topicPartition) + offset;
-							}
-
-							try {
-								this.consumer.seek(topicPartition, newOffset);
-							}
-							catch (Exception e) {
-								this.logger.error("Failed to set initial offset for " + topicPartition
-										+ " at " + newOffset + ". Position is " + this.consumer
-										.position(topicPartition), e);
-							}
-						}
-					}
-				}
+				assignAndSeekPartitionts(partitions);
 			}
 			else {
 				this.consumer.subscribe(Arrays.asList(this.consumerProperties.getTopics()), // NOSONAR
 						rebalanceCallback);
+			}
+		}
+	}
+
+	private void assignAndSeekPartitionts(TopicPartitionOffset[] partitions) {
+		List<TopicPartition> topicPartitionsToAssign =
+				Arrays.stream(partitions)
+						.map(TopicPartitionOffset::getTopicPartition)
+						.collect(Collectors.toList());
+		this.consumer.assign(topicPartitionsToAssign);
+		this.assignedPartitions.addAll(topicPartitionsToAssign);
+
+		for (TopicPartitionOffset partition : partitions) {
+			if (TopicPartitionOffset.SeekPosition.BEGINNING.equals(partition.getPosition())) {
+				this.consumer.seekToBeginning(Collections.singleton(partition.getTopicPartition()));
+			}
+			else if (TopicPartitionOffset.SeekPosition.END.equals(partition.getPosition())) {
+				this.consumer.seekToEnd(Collections.singleton(partition.getTopicPartition()));
+			}
+			else {
+				TopicPartition topicPartition = partition.getTopicPartition();
+				Long offset = partition.getOffset();
+				if (offset != null) {
+					long newOffset = offset;
+
+					if (offset < 0) {
+						if (!partition.isRelativeToCurrent()) {
+							this.consumer.seekToEnd(Collections.singleton(topicPartition));
+							continue;
+						}
+						newOffset = Math.max(0, this.consumer.position(topicPartition) + offset);
+					}
+					else if (partition.isRelativeToCurrent()) {
+						newOffset = this.consumer.position(topicPartition) + offset;
+					}
+
+					try {
+						this.consumer.seek(topicPartition, newOffset);
+					}
+					catch (Exception e) {
+						this.logger.error("Failed to set initial offset for " + topicPartition
+								+ " at " + newOffset + ". Position is " + this.consumer
+								.position(topicPartition), e);
+					}
+				}
+			}
+		}
+	}
+
+	@Nullable
+	private ConsumerRecord<K, V> pollRecord() {
+		if (this.recordsIterator != null) {
+			return nextRecord();
+		}
+		else {
+			synchronized (this.consumerMonitor) {
+				ConsumerRecords<K, V> records = this.consumer
+						.poll(this.assignedPartitions.isEmpty() ? this.assignTimeout : this.pollTimeout);
+				if (records == null || records.count() == 0) {
+					return null;
+				}
+				this.remainingCount.set(records.count());
+				this.recordsIterator = records.iterator();
+				return nextRecord();
 			}
 		}
 	}

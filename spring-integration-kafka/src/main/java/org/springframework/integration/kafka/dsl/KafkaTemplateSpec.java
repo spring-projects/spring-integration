@@ -49,7 +49,7 @@ public class KafkaTemplateSpec<K, V>
 	}
 
 	@Override
-	public KafkaTemplateSpec<K, V> id(String id) {
+	public KafkaTemplateSpec<K, V> id(String id) { // NOSONAR - visibility
 		return super.id(id);
 	}
 

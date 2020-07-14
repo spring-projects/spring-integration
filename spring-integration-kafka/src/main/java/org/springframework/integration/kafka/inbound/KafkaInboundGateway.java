@@ -32,7 +32,6 @@ import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -43,7 +42,6 @@ import org.springframework.kafka.listener.adapter.RecordMessagingMessageListener
 import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.kafka.support.converter.BatchMessageConverter;
 import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
@@ -110,7 +108,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 
 	/**
 	 * Set the message converter; must be a {@link RecordMessageConverter} or
-	 * {@link BatchMessageConverter} depending on mode.
+	 * {@link org.springframework.kafka.support.converter.BatchMessageConverter} depending on mode.
 	 * @param messageConverter the converter.
 	 */
 	public void setMessageConverter(RecordMessageConverter messageConverter) {
@@ -216,7 +214,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	 * If there's a retry template, it will set the attributes holder via the listener. If
 	 * there's no retry template, but there's an error channel, we create a new attributes
 	 * holder here. If an attributes holder exists (by either method), we set the
-	 * attributes for use by the {@link ErrorMessageStrategy}.
+	 * attributes for use by the {@link org.springframework.integration.support.ErrorMessageStrategy}.
 	 * @param record the record.
 	 * @param message the message.
 	 */

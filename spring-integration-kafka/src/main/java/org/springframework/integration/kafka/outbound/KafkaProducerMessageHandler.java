@@ -566,8 +566,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			ListenableFuture<SendResult<K, V>> future, MessageChannel metadataChannel)
 			throws InterruptedException, ExecutionException {
 
-		final MessageChannel sendFailureChannel = getSendFailureChannel();
-		if (sendFailureChannel != null || metadataChannel != null) {
+		final MessageChannel failureChannel = getSendFailureChannel();
+		if (failureChannel != null || metadataChannel != null) {
 			future.addCallback(new ListenableFutureCallback<SendResult<K, V>>() { // NOSONAR
 
 				@Override
@@ -581,8 +581,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 				@Override
 				public void onFailure(Throwable ex) {
-					if (sendFailureChannel != null) {
-						KafkaProducerMessageHandler.this.messagingTemplate.send(sendFailureChannel,
+					if (failureChannel != null) {
+						KafkaProducerMessageHandler.this.messagingTemplate.send(failureChannel,
 								KafkaProducerMessageHandler.this.errorMessageStrategy.buildErrorMessage(
 										new KafkaSendFailureException(message, producerRecord, ex), null));
 					}
