@@ -38,9 +38,6 @@
 
 	<bean id="ems" class="org.springframework.integration.kafka.config.xml.KafkaOutboundGatewayParserTests$EMS"/>
 
-	<bean id="template" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.kafka.requestreply.ReplyingKafkaTemplate"/>
-	</bean>
+	<bean id="customHeaderMapper" class="org.springframework.kafka.support.DefaultKafkaHeaderMapper"/>
 
-	<bean id="customHeaderMapper" class="org.springframework.kafka.support.DefaultKafkaHeaderMapper" />
 </beans>

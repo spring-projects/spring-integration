@@ -30,6 +30,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Headers;
@@ -101,7 +102,10 @@ import org.springframework.util.concurrent.SettableListenableFuture;
 public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMessageHandler
 		implements Lifecycle {
 
-	private static final long DEFAULT_SEND_TIMEOUT = 10000;
+	/**
+	 * Buffer added to ensure our timeout is longer than Kafka's.
+	 */
+	private static final int TIMEOUT_BUFFER = 5000;
 
 	private final Map<String, Set<Integer>> replyTopicsAndPartitions = new HashMap<>();
 
@@ -114,6 +118,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	private final boolean allowNonTransactional;
 
 	private final AtomicBoolean running = new AtomicBoolean();
+
+	private final long deliveryTimeoutMsProperty;
 
 	private EvaluationContext evaluationContext;
 
@@ -130,7 +136,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private boolean sync;
 
-	private Expression sendTimeoutExpression = new ValueExpression<>(DEFAULT_SEND_TIMEOUT);
+	private Expression sendTimeoutExpression;
 
 	private KafkaHeaderMapper headerMapper;
 
@@ -174,6 +180,25 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		if (this.transactional && this.isGateway) {
 			logger.warn("The KafkaTemplate is transactional; this gateway will only work if the consumer is "
 					+ "configured to read uncommitted records");
+		}
+		determineSendTimeout();
+		this.deliveryTimeoutMsProperty = this.sendTimeoutExpression.getValue(Long.class) - TIMEOUT_BUFFER;
+	}
+
+	private void determineSendTimeout() {
+		Map<String, Object> props = this.kafkaTemplate.getProducerFactory().getConfigurationProperties();
+		Object dt = props.get(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG);
+		if (dt == null) {
+			dt = ProducerConfig.configDef().defaultValues().get(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG);
+		}
+		if (dt instanceof Long) {
+			this.sendTimeoutExpression = new ValueExpression<>(((Long) dt) + TIMEOUT_BUFFER);
+		}
+		else if (dt instanceof Integer) {
+			this.sendTimeoutExpression = new ValueExpression<>(Long.valueOf((Integer) dt) + TIMEOUT_BUFFER);
+		}
+		else if (dt instanceof String) {
+			this.sendTimeoutExpression = new ValueExpression<>(Long.parseLong((String) dt) + TIMEOUT_BUFFER);
 		}
 	}
 
@@ -243,10 +268,10 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	/**
 	 * Specify a timeout in milliseconds for how long this
-	 * {@link KafkaProducerMessageHandler} should wait wait for send operation
-	 * results. Defaults to 10 seconds. The timeout is applied only in {@link #sync} mode.
-	 * Also applies when sending to the success or failure channels.
-	 * @param sendTimeout the timeout to wait for result fo send operation.
+	 * {@link KafkaProducerMessageHandler} should wait wait for send operation results.
+	 * Defaults to the kafka {@code delivery.timeout.ms} property + 5 seconds. The timeout
+	 * is applied Also applies when sending to the success or failure channels.
+	 * @param sendTimeout the timeout to wait for result for a send operation.
 	 * @since 2.0.1
 	 */
 	@Override
@@ -257,13 +282,14 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	/**
 	 * Specify a SpEL expression to evaluate a timeout in milliseconds for how long this
-	 * {@link KafkaProducerMessageHandler} should wait wait for send operation
-	 * results. Defaults to 10 seconds. The timeout is applied only in {@link #sync} mode.
+	 * {@link KafkaProducerMessageHandler} should wait wait for send operation results.
+	 * Defaults to the kafka {@code delivery.timeout.ms} property + 5 seconds. The timeout
+	 * is applied only in {@link #sync} mode.
 	 * @param sendTimeoutExpression the {@link Expression} for timeout to wait for result
-	 * fo send operation.
+	 * for a send operation.
 	 * @since 2.1.1
 	 */
-	public void setSendTimeoutExpression(Expression sendTimeoutExpression) {
+	public final void setSendTimeoutExpression(Expression sendTimeoutExpression) {
 		Assert.notNull(sendTimeoutExpression, "'sendTimeoutExpression' must not be null");
 		this.sendTimeoutExpression = sendTimeoutExpression;
 	}
@@ -591,8 +617,15 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			});
 		}
 
-		if (this.sync) {
+		if (this.sync || this.isGateway) {
 			Long sendTimeout = this.sendTimeoutExpression.getValue(this.evaluationContext, message, Long.class);
+			if (sendTimeout != null && sendTimeout <= this.deliveryTimeoutMsProperty) {
+				this.logger.debug("'sendTimeout' increased to "
+						+ (this.deliveryTimeoutMsProperty + TIMEOUT_BUFFER)
+						+ "ms; it must be greater than the 'delivery.timeout.ms' Kafka producer "
+						+ "property to avoid false failures");
+				sendTimeout = this.deliveryTimeoutMsProperty + TIMEOUT_BUFFER;
+			}
 			if (sendTimeout == null || sendTimeout < 0) {
 				future.get();
 			}
