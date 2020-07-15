@@ -17,15 +17,24 @@
 package org.springframework.integration.kafka.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -74,7 +83,19 @@ public class KafkaOutboundGatewayParserTests {
 				.isSameAs(this.context.getBean("customHeaderMapper"));
 	}
 
+	@Component
 	public static class EMS extends DefaultErrorMessageStrategy {
+
+		@SuppressWarnings("rawtypes")
+		@Bean
+		public KafkaTemplate template() {
+			ProducerFactory pf = mock(ProducerFactory.class);
+			Map<String, Object> props = new HashMap<>();
+			given(pf.getConfigurationProperties()).willReturn(props);
+			KafkaTemplate template = mock(KafkaTemplate.class);
+			given(template.getProducerFactory()).willReturn(pf);
+			return template;
+		}
 
 	}
 
