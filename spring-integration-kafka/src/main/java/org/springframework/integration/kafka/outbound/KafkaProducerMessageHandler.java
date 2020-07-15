@@ -192,13 +192,13 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			dt = ProducerConfig.configDef().defaultValues().get(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG);
 		}
 		if (dt instanceof Long) {
-			this.sendTimeoutExpression = new ValueExpression<>(((Long) dt) + TIMEOUT_BUFFER);
+			setSendTimeout(((Long) dt) + TIMEOUT_BUFFER);
 		}
 		else if (dt instanceof Integer) {
-			this.sendTimeoutExpression = new ValueExpression<>(Long.valueOf((Integer) dt) + TIMEOUT_BUFFER);
+			setSendTimeout(Long.valueOf((Integer) dt) + TIMEOUT_BUFFER);
 		}
 		else if (dt instanceof String) {
-			this.sendTimeoutExpression = new ValueExpression<>(Long.parseLong((String) dt) + TIMEOUT_BUFFER);
+			setSendTimeout(Long.parseLong((String) dt) + TIMEOUT_BUFFER);
 		}
 	}
 
@@ -275,7 +275,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * @since 2.0.1
 	 */
 	@Override
-	public void setSendTimeout(long sendTimeout) {
+	public final void setSendTimeout(long sendTimeout) {
 		super.setSendTimeout(sendTimeout);
 		setSendTimeoutExpression(new ValueExpression<>(sendTimeout));
 	}
@@ -289,7 +289,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * for a send operation.
 	 * @since 2.1.1
 	 */
-	public final void setSendTimeoutExpression(Expression sendTimeoutExpression) {
+	public void setSendTimeoutExpression(Expression sendTimeoutExpression) {
 		Assert.notNull(sendTimeoutExpression, "'sendTimeoutExpression' must not be null");
 		this.sendTimeoutExpression = sendTimeoutExpression;
 	}
