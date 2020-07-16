@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@
 package org.springframework.integration.aggregator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -31,10 +34,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroup;
@@ -57,7 +61,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 public class AbstractCorrelatingMessageHandlerTests {
 
-	@Test // INT-2751
+	@Test
 	public void testReaperDoesntReapAProcessingGroup() throws Exception {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
 		final CountDownLatch waitForSendLatch = new CountDownLatch(1);
@@ -147,7 +151,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		exec.shutdownNow();
 	}
 
-	@Test // INT-2833
+	@Test
 	public void testReaperReapsAnEmptyGroup() {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
@@ -176,7 +180,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 				.isEqualTo(0);
 	}
 
-	@Test // INT-2833
+	@Test
 	public void testReaperReapsAnEmptyGroupAfterConfiguredDelay() throws Exception {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
@@ -251,7 +255,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		assertThat(payload.size()).isEqualTo(1);
 	}
 
-	@Test /* INT-3216 */
+	@Test
 	public void testDontReapIfAlreadyComplete() throws Exception {
 		MessageGroupProcessor mgp = new DefaultAggregatingMessageGroupProcessor();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(mgp);
@@ -384,7 +388,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	}
 
 	@Test
-	@Ignore("Time sensitive: the empty group might be removed before main thread reaches assertion for size")
+	@Disabled("Time sensitive: the empty group might be removed before main thread reaches assertion for size")
 	public void testScheduleRemoveAnEmptyGroupAfterConfiguredDelay() throws Exception {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
@@ -430,7 +434,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	}
 
 	@Test
-	@Ignore("Until 5.2 with new 'owner' feature on groups")
+	@Disabled("Until 5.2 with new 'owner' feature on groups")
 	public void testDontReapMessageOfOtherHandler() {
 		MessageGroupStore groupStore = new SimpleMessageStore();
 
@@ -482,6 +486,47 @@ public class AbstractCorrelatingMessageHandlerTests {
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(2);
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(2);
 		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isTrue();
+	}
+
+	@Test
+	public void testPurgeOrphanedGroupsOnStartup() throws InterruptedException {
+		MessageGroupStore groupStore = new SimpleMessageStore();
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
+		handler.setReleaseStrategy(group -> false);
+		QueueChannel discardChannel = new QueueChannel();
+		handler.setDiscardChannel(discardChannel);
+		handler.setExpireTimeout(1);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		handler.handleMessageInternal(MessageBuilder.withPayload("test").setCorrelationId("test").build());
+		Thread.sleep(100);
+		handler.start();
+		Message<?> receive = discardChannel.receive(10000);
+		assertThat(receive).isNotNull();
+		assertThat(groupStore.getMessageGroupCount()).isEqualTo(0);
+	}
+
+	@Test
+	public void testPurgeOrphanedGroupsScheduled() {
+		MessageGroupStore groupStore = spy(new SimpleMessageStore());
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
+		handler.setReleaseStrategy(group -> false);
+		QueueChannel discardChannel = new QueueChannel();
+		handler.setDiscardChannel(discardChannel);
+		handler.setExpireTimeout(100);
+		handler.setExpireDuration(Duration.ofMillis(10));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		handler.setTaskScheduler(taskScheduler);
+		handler.afterPropertiesSet();
+		handler.handleMessageInternal(MessageBuilder.withPayload("test").setCorrelationId("test").build());
+		handler.start();
+		Message<?> receive = discardChannel.receive(10000);
+		assertThat(receive).isNotNull();
+		assertThat(groupStore.getMessageGroupCount()).isEqualTo(0);
+		verify(groupStore, atLeast(2)).expireMessageGroups(100);
+		taskScheduler.destroy();
 	}
 
 }

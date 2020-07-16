@@ -16,6 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -53,6 +54,7 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -82,6 +84,11 @@ import org.springframework.util.ObjectUtils;
  * Use proper {@link CorrelationStrategy} for cases when same
  * {@link org.springframework.integration.store.MessageStore} is used
  * for multiple handlers to ensure uniqueness of message groups across handlers.
+ * <p>
+ * When the {@link #expireTimeout} is more than 0, the groups which older then this timeout
+ * is purged from the store on start up (or when {@link #purgeOrphanedGroups()} is called).
+ * If {@link #expireDuration} is provide, the task is scheduled to perform
+ * {@link #purgeOrphanedGroups()} periodically.
  *
  * @author Iwein Fuld
  * @author Dave Syer
@@ -131,6 +138,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private Expression groupTimeoutExpression;
 
 	private List<Advice> forceReleaseAdviceChain;
+
+	private long expireTimeout;
+
+	@Nullable
+	private Duration expireDuration;
 
 	private MessageGroupProcessor forceReleaseProcessor = new ForceReleaseMessageGroupProcessor();
 
@@ -308,6 +320,32 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	 */
 	public void setReleaseLockBeforeSend(boolean releaseLockBeforeSend) {
 		this.releaseLockBeforeSend = releaseLockBeforeSend;
+	}
+
+	/**
+	 * Configure a timeout in milliseconds for purging old orphaned groups from the store.
+	 * Used on startup and if {@link #expireDuration} is provided the task for {@link #purgeOrphanedGroups()}
+	 * is scheduled with that period.
+	 * The {@link #forceReleaseProcessor} is used to process those expired groups according
+	 * the "force complete" options.
+	 * @param expireTimeout the number of milliseconds to determine old orphaned groups in the store to purge.
+	 * @since 5.4
+	 * @see #purgeOrphanedGroups()
+	 */
+	public void setExpireTimeout(long expireTimeout) {
+		Assert.isTrue(expireTimeout > 0, "'expireTimeout' must be more than 0.");
+		this.expireTimeout = expireTimeout;
+	}
+
+	/**
+	 * Configure a {@link Duration} how often to clean up old orphaned groups from the store.
+	 * @param expireDuration the delay how often to call {@link #purgeOrphanedGroups()}.
+	 * @since 5.4
+	 * @see #purgeOrphanedGroups()
+	 * @see #setExpireTimeout(long)
+	 */
+	public void setExpireDuration(@Nullable Duration expireDuration) {
+		this.expireDuration = expireDuration;
 	}
 
 	@Override
@@ -896,6 +934,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (this.releaseStrategy instanceof Lifecycle) {
 				((Lifecycle) this.releaseStrategy).start();
 			}
+			if (this.expireTimeout > 0) {
+				purgeOrphanedGroups();
+				if (this.expireDuration != null) {
+					getTaskScheduler()
+							.scheduleWithFixedDelay(this::purgeOrphanedGroups, this.expireDuration);
+				}
+			}
 		}
 	}
 
@@ -915,6 +960,17 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	@Override
 	public boolean isRunning() {
 		return this.running;
+	}
+
+	/**
+	 * Perform a {@link MessageGroupStore#expireMessageGroups(long)} with the provided {@link #expireTimeout}.
+	 * Can be called externally at any time.
+	 * Internally it is called from the scheduled task with the configured {@link #expireDuration}.
+	 * @since 5.4
+	 */
+	public void purgeOrphanedGroups() {
+		Assert.isTrue(expireTimeout > 0, "'expireTimeout' must be more than 0.");
+		this.messageStore.expireMessageGroups(this.expireTimeout);
 	}
 
 	protected static class SequenceAwareMessageGroup extends SimpleMessageGroup {
