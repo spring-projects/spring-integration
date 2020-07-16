@@ -182,7 +182,9 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 					+ "configured to read uncommitted records");
 		}
 		determineSendTimeout();
-		this.deliveryTimeoutMsProperty = this.sendTimeoutExpression.getValue(Long.class) - TIMEOUT_BUFFER;
+		this.deliveryTimeoutMsProperty =
+				this.sendTimeoutExpression.getValue(Long.class) // NOSONAR - never null after determineSendTimeout()
+						- TIMEOUT_BUFFER;
 	}
 
 	private void determineSendTimeout() {

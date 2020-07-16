@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public final class IntegrationUtils {
 	/**
 	 * Should be set to TRUE on CI plans and framework developer systems.
 	 */
-	public static final boolean fatalWhenNoBeanFactory =
+	public static final boolean FATAL_WHEN_NO_BEANFACTORY =
 			Boolean.parseBoolean(System.getenv("SI_FATAL_WHEN_NO_BEANFACTORY"));
 
 	private IntegrationUtils() {
@@ -96,7 +96,7 @@ public final class IntegrationUtils {
 		}
 		else {
 			LOGGER.debug("No 'beanFactory' supplied; cannot find MessageBuilderFactory, using default.");
-			if (fatalWhenNoBeanFactory) {
+			if (FATAL_WHEN_NO_BEANFACTORY) {
 				throw new IllegalStateException("All Message creators need a BeanFactory");
 			}
 		}
