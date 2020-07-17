@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.integration.support.management.IntegrationManagedReso
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -54,14 +55,35 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 
 	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
 
-	public AbstractMqttMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
+	/**
+	 * Construct an instance with the provided properties.
+	 * @param clientId the client id.
+	 * @param topics the topics.
+	 * @since 5.4.
+	 */
+	@SuppressWarnings("deprecation")
+	public AbstractMqttMessageDrivenChannelAdapter(String clientId, String... topics) {
+		this(null, clientId, topics);
+	}
+
+	/**
+	 * Deprecated - do not use; implementations must maintain the url or other connection
+	 * information.
+	 * @deprecated in favor of
+	 * {@link #AbstractMqttMessageDrivenChannelAdapter(String, String...)}.
+	 * @param url the url.
+	 * @param clientId the client id.
+	 * @param topics the topics.
+	 */
+	@Deprecated
+	public AbstractMqttMessageDrivenChannelAdapter(@Nullable String url, String clientId, String... topics) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
-		Assert.notNull(topic, "'topics' cannot be null");
-		Assert.noNullElements(topic, "'topics' cannot have null elements");
+		Assert.notNull(topics, "'topics' cannot be null");
+		Assert.noNullElements(topics, "'topics' cannot have null elements");
 		this.url = url;
 		this.clientId = clientId;
 		this.topics = new LinkedHashSet<>();
-		for (String t : topic) {
+		for (String t : topics) {
 			this.topics.add(new Topic(t, 1));
 		}
 	}
@@ -110,6 +132,14 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		}
 	}
 
+	/**
+	 * Deprecated - implementations must maintain the url or other connection
+	 * information.
+	 * @deprecated
+	 * @return the url.
+	 */
+	@Deprecated
+	@Nullable
 	protected String getUrl() {
 		return this.url;
 	}

@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
+import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
@@ -46,7 +47,7 @@ import org.springframework.util.Assert;
  *
  */
 public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
-		implements MqttCallback, ApplicationEventPublisherAware {
+		implements MqttCallback, MqttPahoComponent, ApplicationEventPublisherAware {
 
 	/**
 	 * The default completion timeout in milliseconds.
@@ -73,13 +74,18 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	private volatile IMqttAsyncClient client;
 
 	/**
-	 * Use this constructor for a single url (although it may be overridden
-	 * if the server URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()}
-	 * provided by the {@link MqttPahoClientFactory}).
+	 * Use this constructor for a single url (although it may be overridden if the server
+	 * URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()} provided by
+	 * the {@link MqttPahoClientFactory}).
+	 * @deprecated in favor of
+	 * {@link #MqttPahoMessageHandler(String, MqttPahoClientFactory)} - set the url in the
+	 * client factory connection options.
 	 * @param url the URL.
 	 * @param clientId The client id.
 	 * @param clientFactory The client factory.
 	 */
+	@Deprecated
+	@SuppressWarnings("deprecation")
 	public MqttPahoMessageHandler(String url, String clientId, MqttPahoClientFactory clientFactory) {
 		super(url, clientId);
 		this.clientFactory = clientFactory;
@@ -92,6 +98,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	 * @param clientFactory The client factory.
 	 * @since 4.1
 	 */
+	@SuppressWarnings("deprecation")
 	public MqttPahoMessageHandler(String clientId, MqttPahoClientFactory clientFactory) {
 		super(null, clientId);
 		this.clientFactory = clientFactory;
@@ -155,6 +162,11 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	}
 
 	@Override
+	public MqttConnectOptions getConnectionInfo() {
+		return this.clientFactory.getConnectionOptions();
+	}
+
+	@Override
 	protected void onInit() {
 		super.onInit();
 		Assert.state(getConverter() instanceof MqttMessageConverter,
@@ -180,6 +192,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private synchronized IMqttAsyncClient checkConnection() throws MqttException {
 		if (this.client != null && !this.client.isConnected()) {
 			this.client.setCallback(null);

@@ -27,4 +27,6 @@
 		</property>
 	</bean>
 
+	<bean class = "org.springframework.integration.mqtt.BackToBackAdapterTests$EventsListener"/>
+
 </beans>

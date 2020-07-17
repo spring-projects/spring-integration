@@ -35,6 +35,7 @@ import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
+import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -52,7 +53,7 @@ import org.springframework.util.Assert;
  *
  */
 public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter
-		implements MqttCallback, ApplicationEventPublisherAware {
+		implements MqttCallback, MqttPahoComponent, ApplicationEventPublisherAware {
 
 	/**
 	 * The default completion timeout in milliseconds.
@@ -89,14 +90,19 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	/**
-	 * Use this constructor for a single url (although it may be overridden
-	 * if the server URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()}
-	 * provided by the {@link MqttPahoClientFactory}).
+	 * Use this constructor for a single url (although it may be overridden if the server
+	 * URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()} provided by
+	 * the {@link MqttPahoClientFactory}).
+	 * @deprecated in favor of
+	 * {@link #MqttPahoMessageDrivenChannelAdapter(String, MqttPahoClientFactory, String...)}
+	 * - set the url in the client factory connection options.
 	 * @param url the URL.
 	 * @param clientId The client id.
 	 * @param clientFactory The client factory.
 	 * @param topic The topic(s).
 	 */
+	@Deprecated
+	@SuppressWarnings("deprecation")
 	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, MqttPahoClientFactory clientFactory,
 			String... topic) {
 		super(url, clientId, topic);
@@ -104,13 +110,15 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	/**
-	 * Use this constructor if the server URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()}
-	 * provided by the {@link MqttPahoClientFactory}.
+	 * Use this constructor if the server URI(s) are provided by the
+	 * {@link MqttConnectOptions#getServerURIs()} provided by the
+	 * {@link MqttPahoClientFactory}.
 	 * @param clientId The client id.
 	 * @param clientFactory The client factory.
 	 * @param topic The topic(s).
 	 * @since 4.1
 	 */
+	@SuppressWarnings("deprecation")
 	public MqttPahoMessageDrivenChannelAdapter(String clientId, MqttPahoClientFactory clientFactory,
 			String... topic) {
 		super(null, clientId, topic);
@@ -123,8 +131,15 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 * @param clientId The client id.
 	 * @param topic The topic(s).
 	 */
+	@SuppressWarnings("deprecation")
 	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
-		this(url, clientId, new DefaultMqttPahoClientFactory(), topic);
+		this(url, clientId, buildFactory(url), topic);
+	}
+
+	private static DefaultMqttPahoClientFactory buildFactory(String url) {
+		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
+		factory.getConnectionOptions().setServerURIs(new String[] { url });
+		return factory;
 	}
 
 	/**
@@ -172,6 +187,11 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher; // NOSONAR (inconsistent synchronization)
+	}
+
+	@Override
+	public MqttConnectOptions getConnectionInfo() {
+		return this.clientFactory.getConnectionOptions();
 	}
 
 	@Override
@@ -258,6 +278,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private synchronized void connectAndSubscribe() throws MqttException {
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 		this.cleanSession = connectionOptions.isCleanSession();
