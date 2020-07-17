@@ -576,6 +576,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		localHandlerMethodFactory.afterPropertiesSet();
 	}
 
+	@Nullable
 	private Object invokeHandlerMethod(HandlerMethod handlerMethod, ParametersWrapper parameters) {
 		try {
 			return handlerMethod.invoke(parameters);
@@ -1093,13 +1094,18 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			this.invocableHandlerMethod = newInvocableHandlerMethod;
 		}
 
+		@Nullable
 		public Object invoke(ParametersWrapper parameters) {
 			Message<?> message = parameters.getMessage();
 			if (this.canProcessMessageList) {
 				message = new MutableMessage<>(parameters.getMessages(), parameters.getHeaders());
 			}
 			try {
-				return this.invocableHandlerMethod.invoke(message);
+				Object result = this.invocableHandlerMethod.invoke(message);
+				if (result != null && result.getClass().getName().equals("kotlin.Unit")) {
+					result = null;
+				}
+				return result;
 			}
 			catch (RuntimeException ex) { // NOSONAR no way to handle conditional catch according Sonar rules
 				throw ex;
