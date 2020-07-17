@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@ package org.springframework.integration.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
@@ -54,7 +54,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Marius Bogoevici
@@ -65,7 +65,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @author Gunnar Hillert
  * @author Gary Russell
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 public class AggregatorParserTests {
 
 	@Autowired
@@ -194,6 +194,9 @@ public class AggregatorParserTests {
 		assertThat(TestUtils.getPropertyValue(consumer, "order")).isEqualTo(5);
 		assertThat(TestUtils.getPropertyValue(consumer, "forceReleaseAdviceChain")).isNotNull();
 		assertThat(TestUtils.getPropertyValue(consumer, "popSequence", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(consumer, "expireTimeout")).isEqualTo(250L);
+		assertThat(TestUtils.getPropertyValue(consumer, "expireDuration", Duration.class))
+				.isEqualTo(Duration.ofSeconds(10));
 	}
 
 	@Test

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -326,6 +327,30 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 */
 	public S popSequence(boolean popSequence) {
 		this.handler.setPopSequence(popSequence);
+		return _this();
+	}
+
+	/**
+	 * Configure a timeout for old groups in the store to purge.
+	 * @param expireTimeout the timeout in milliseconds to use.
+	 * @return the endpoint spec.
+	 * @since 5.4
+	 * @see AbstractCorrelatingMessageHandler#setExpireTimeout(long)
+	 */
+	public S setExpireTimeout(long expireTimeout) {
+		this.handler.setExpireTimeout(expireTimeout);
+		return _this();
+	}
+
+	/**
+	 * Configure a {@link Duration} how often to run a scheduled purge task.
+	 * @param expireDuration the duration for scheduled purge task.
+	 * @return the endpoint spec.
+	 * @since 5.4
+	 * @see AbstractCorrelatingMessageHandler#setExpireDuration(Duration)
+	 */
+	public S setExpireDuration(Duration expireDuration) {
+		this.handler.setExpireDuration(expireDuration);
 		return _this();
 	}
 

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -62,13 +63,6 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 	private String outputChannelName;
 
-	@SuppressWarnings("deprecation")
-	private org.springframework.integration.support.management.AbstractMessageHandlerMetrics metrics;
-
-	private Boolean statsEnabled;
-
-	private Boolean countsEnabled;
-
 	private LockRegistry lockRegistry;
 
 	private MessageGroupStore messageStore;
@@ -97,6 +91,10 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 	private Boolean releaseLockBeforeSend;
 
+	private Long expireTimeout;
+
+	private Long expireDuration;
+
 	private Function<MessageGroup, Map<String, Object>> headersFunction;
 
 	public void setProcessorBean(Object processorBean) {
@@ -118,25 +116,6 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 	@Override
 	public void setOutputChannelName(String outputChannelName) {
 		this.outputChannelName = outputChannelName;
-	}
-
-	/**
-	 * Deprecated.
-	 * @param metrics the metrics.
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@SuppressWarnings("deprecation")
-	public void setMetrics(org.springframework.integration.support.management.AbstractMessageHandlerMetrics metrics) {
-		this.metrics = metrics;
-	}
-
-	public void setStatsEnabled(Boolean statsEnabled) {
-		this.statsEnabled = statsEnabled;
-	}
-
-	public void setCountsEnabled(Boolean countsEnabled) {
-		this.countsEnabled = countsEnabled;
 	}
 
 	public void setLockRegistry(LockRegistry lockRegistry) {
@@ -199,7 +178,14 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.headersFunction = headersFunction;
 	}
 
-	@SuppressWarnings("deprecation")
+	public void setExpireTimeout(Long expireTimeout) {
+		this.expireTimeout = expireTimeout;
+	}
+
+	public void setExpireDurationMillis(Long expireDuration) {
+		this.expireDuration = expireDuration;
+	}
+
 	@Override
 	protected AggregatingMessageHandler createHandler() {
 		MessageGroupProcessor outputProcessor;
@@ -229,9 +215,6 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 				.acceptIfNotNull(this.expireGroupsUponCompletion, aggregator::setExpireGroupsUponCompletion)
 				.acceptIfNotNull(this.sendTimeout, aggregator::setSendTimeout)
 				.acceptIfNotNull(this.outputChannelName, aggregator::setOutputChannelName)
-				.acceptIfNotNull(this.metrics, aggregator::configureMetrics)
-				.acceptIfNotNull(this.statsEnabled, aggregator::setStatsEnabled)
-				.acceptIfNotNull(this.countsEnabled, aggregator::setCountsEnabled)
 				.acceptIfNotNull(this.lockRegistry, aggregator::setLockRegistry)
 				.acceptIfNotNull(this.messageStore, aggregator::setMessageStore)
 				.acceptIfNotNull(this.correlationStrategy, aggregator::setCorrelationStrategy)
@@ -245,7 +228,10 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 				.acceptIfNotNull(this.minimumTimeoutForEmptyGroups, aggregator::setMinimumTimeoutForEmptyGroups)
 				.acceptIfNotNull(this.expireGroupsUponTimeout, aggregator::setExpireGroupsUponTimeout)
 				.acceptIfNotNull(this.popSequence, aggregator::setPopSequence)
-				.acceptIfNotNull(this.releaseLockBeforeSend, aggregator::setReleaseLockBeforeSend);
+				.acceptIfNotNull(this.releaseLockBeforeSend, aggregator::setReleaseLockBeforeSend)
+				.acceptIfNotNull(this.expireDuration,
+						(duration) -> aggregator.setExpireDuration(Duration.ofMillis(duration)))
+				.acceptIfNotNull(this.expireTimeout, aggregator::setExpireTimeout);
 
 		return aggregator;
 	}

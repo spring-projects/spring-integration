@@ -85,9 +85,9 @@ import org.springframework.util.ObjectUtils;
  * {@link org.springframework.integration.store.MessageStore} is used
  * for multiple handlers to ensure uniqueness of message groups across handlers.
  * <p>
- * When the {@link #expireTimeout} is more than 0, the groups which older then this timeout
- * is purged from the store on start up (or when {@link #purgeOrphanedGroups()} is called).
- * If {@link #expireDuration} is provide, the task is scheduled to perform
+ * When the {@link #expireTimeout} is greater than 0, groups which are older than this timeout
+ * are purged from the store on start up (or when {@link #purgeOrphanedGroups()} is called).
+ * If {@link #expireDuration} is provided, the task is scheduled to perform
  * {@link #purgeOrphanedGroups()} periodically.
  *
  * @author Iwein Fuld
@@ -324,10 +324,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	/**
 	 * Configure a timeout in milliseconds for purging old orphaned groups from the store.
-	 * Used on startup and if {@link #expireDuration} is provided the task for {@link #purgeOrphanedGroups()}
-	 * is scheduled with that period.
+	 * Used on startup and when an {@link #expireDuration} is provided, the task for running
+	 * {@link #purgeOrphanedGroups()} is scheduled with that period.
 	 * The {@link #forceReleaseProcessor} is used to process those expired groups according
-	 * the "force complete" options.
+	 * the "force complete" options. A group can be orphaned if a persistent message group
+	 * store is used and no new messages arrive for that group after a restart.
 	 * @param expireTimeout the number of milliseconds to determine old orphaned groups in the store to purge.
 	 * @since 5.4
 	 * @see #purgeOrphanedGroups()
@@ -335,6 +336,18 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	public void setExpireTimeout(long expireTimeout) {
 		Assert.isTrue(expireTimeout > 0, "'expireTimeout' must be more than 0.");
 		this.expireTimeout = expireTimeout;
+	}
+
+	/**
+	 * Configure a {@link Duration} (ini millis) how often to clean up old orphaned groups from the store.
+	 * @param expireDuration the delay how often to call {@link #purgeOrphanedGroups()}.
+	 * @since 5.4
+	 * @see #purgeOrphanedGroups()
+	 * @see #setExpireDuration(Duration)
+	 * @see #setExpireTimeout(long)
+	 */
+	public void setExpireDurationMillis(long expireDuration) {
+		setExpireDuration(Duration.ofMillis(expireDuration));
 	}
 
 	/**
@@ -969,7 +982,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	 * @since 5.4
 	 */
 	public void purgeOrphanedGroups() {
-		Assert.isTrue(expireTimeout > 0, "'expireTimeout' must be more than 0.");
+		Assert.isTrue(this.expireTimeout > 0, "'expireTimeout' must be more than 0.");
 		this.messageStore.expireMessageGroups(this.expireTimeout);
 	}
 

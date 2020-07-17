@@ -56,7 +56,9 @@
 		scheduler="scheduler"
 		message-store="store"
 		pop-sequence="false"
-		order="5">
+		order="5"
+		expire-duration="10000"
+		expire-timeout="250">
 			<expire-transactional/>
 	</aggregator>
 
