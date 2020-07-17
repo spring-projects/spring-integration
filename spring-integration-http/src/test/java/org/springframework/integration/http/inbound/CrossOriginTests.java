@@ -85,7 +85,8 @@ public class CrossOriginTests {
 		CorsConfiguration config = getCorsConfiguration(chain, false);
 		assertThat(config).isNotNull();
 		assertThat(config.getAllowedMethods().toArray()).isEqualTo(new String[] { "GET" });
-		assertThat(config.getAllowedOrigins().toArray()).isEqualTo(new String[] { "*" });
+		assertThat(config.getAllowedOrigins()).isNull();
+		assertThat(config.getAllowedOriginPatterns().toArray()).isEqualTo(new String[] { "*" });
 		assertThat(config.getAllowCredentials()).isTrue();
 		assertThat(config.getAllowedHeaders().toArray()).isEqualTo(new String[] { "*" });
 		assertThat(config.getExposedHeaders()).isEmpty();
@@ -116,7 +117,8 @@ public class CrossOriginTests {
 		CorsConfiguration config = getCorsConfiguration(chain, true);
 		assertThat(config).isNotNull();
 		assertThat(config.getAllowedMethods().toArray()).isEqualTo(new String[] { "GET" });
-		assertThat(config.getAllowedOrigins().toArray()).isEqualTo(new String[] { "*" });
+		assertThat(config.getAllowedOrigins()).isNull();
+		assertThat(config.getAllowedOriginPatterns().toArray()).isEqualTo(new String[] { "*" });
 		assertThat(config.getAllowCredentials()).isTrue();
 		assertThat(config.getAllowedHeaders().toArray()).isEqualTo(new String[] { "*" });
 		assertThat(config.getExposedHeaders()).isEmpty();
@@ -133,7 +135,8 @@ public class CrossOriginTests {
 		CorsConfiguration config = getCorsConfiguration(chain, true);
 		assertThat(config).isNotNull();
 		assertThat(config.getAllowedMethods().toArray()).isEqualTo(new String[] { "*" });
-		assertThat(config.getAllowedOrigins().toArray()).isEqualTo(new String[] { "*" });
+		assertThat(config.getAllowedOrigins()).isNull();
+		assertThat(config.getAllowedOriginPatterns().toArray()).isEqualTo(new String[] { "*" });
 		assertThat(config.getAllowedHeaders().toArray()).isEqualTo(new String[] { "*" });
 		assertThat(config.getAllowCredentials()).isTrue();
 		assertThat(config.getExposedHeaders()).isNull();
@@ -149,7 +152,8 @@ public class CrossOriginTests {
 		CorsConfiguration config = getCorsConfiguration(chain, true);
 		assertThat(config).isNotNull();
 		assertThat(config.getAllowedMethods().toArray()).isEqualTo(new String[] { "*" });
-		assertThat(config.getAllowedOrigins().toArray()).isEqualTo(new String[] { "*" });
+		assertThat(config.getAllowedOrigins()).isNull();
+		assertThat(config.getAllowedOriginPatterns().toArray()).isEqualTo(new String[] { "*" });
 		assertThat(config.getAllowedHeaders().toArray()).isEqualTo(new String[] { "*" });
 		assertThat(config.getAllowCredentials()).isTrue();
 		assertThat(config.getExposedHeaders()).isNull();
