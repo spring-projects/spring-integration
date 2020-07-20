@@ -339,7 +339,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	/**
-	 * Configure a {@link Duration} (ini millis) how often to clean up old orphaned groups from the store.
+	 * Configure a {@link Duration} (in millis) how often to clean up old orphaned groups from the store.
 	 * @param expireDuration the delay how often to call {@link #purgeOrphanedGroups()}.
 	 * @since 5.4
 	 * @see #purgeOrphanedGroups()
