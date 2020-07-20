@@ -268,7 +268,7 @@ public abstract class ClassUtils {
 	 * Check if class is {@code kotlin.Unit}.
 	 * @param aClass the {@link Class} to check.
 	 * @return true if class is a {@code kotlin.Unit} implementation.
-	 * @since 5.4
+	 * @since 5.3.2
 	 */
 	public static boolean isKotlinUnit(Class<?> aClass) {
 		return KOTLIN_UNIT_CLASS != null && KOTLIN_UNIT_CLASS.isAssignableFrom(aClass);
