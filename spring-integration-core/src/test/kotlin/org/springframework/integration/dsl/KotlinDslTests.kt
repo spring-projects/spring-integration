@@ -17,12 +17,9 @@
 package org.springframework.integration.dsl
 
 import assertk.assertThat
-import assertk.assertions.isEqualTo
-import assertk.assertions.isGreaterThanOrEqualTo
-import assertk.assertions.isInstanceOf
-import assertk.assertions.isNotNull
-import assertk.assertions.isTrue
-import assertk.assertions.size
+import assertk.assertions.*
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,6 +48,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import reactor.core.publisher.Flux
 import reactor.test.StepVerifier
 import java.util.*
+import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Function
 
 /**
@@ -208,6 +206,23 @@ class KotlinDslTests {
 		assertThat(bestQuoteMessage).isNotNull()
 		val payload = bestQuoteMessage!!.payload
 		assertThat(payload).isInstanceOf(List::class.java).size().isGreaterThanOrEqualTo(1)
+	}
+
+	@Test
+	fun `no reply from handle`() {
+		val payloadReference = AtomicReference<String>()
+		val integrationFlow =
+				integrationFlow("handlerInputChanenl") {
+					handle<String> { payload, _ ->  payloadReference.set(payload) }
+				}
+
+		val registration = this.integrationFlowContext.registration(integrationFlow).register()
+
+		registration.inputChannel.send(GenericMessage("test"))
+
+		assertThat(payloadReference.get()).isEqualTo("test")
+
+		registration.destroy()
 	}
 
 	@Configuration
