@@ -1102,7 +1102,9 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			}
 			try {
 				Object result = this.invocableHandlerMethod.invoke(message);
-				if (result != null && result.getClass().getName().equals("kotlin.Unit")) {
+				if (result != null
+						&& org.springframework.integration.util.ClassUtils.isKotlinUnit(result.getClass())) {
+
 					result = null;
 				}
 				return result;
