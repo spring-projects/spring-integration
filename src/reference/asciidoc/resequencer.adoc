@@ -121,4 +121,6 @@ Starting with version 5.0, empty groups are also scheduled for removal after the
 The default is 'false'.
 ====
 
+Also see <<./aggregator.adoc#aggregator-expiring-groups, Aggregator Expiring Groups>> for more information.
+
 NOTE: Since there is no custom behavior to be implemented in Java classes for resequencers, there is no annotation support for it.

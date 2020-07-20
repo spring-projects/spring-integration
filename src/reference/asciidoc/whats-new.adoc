@@ -50,3 +50,6 @@ See <<./ip.adoc#ip-collaborating-adapters,Collaborating Channel Adapters>> and <
 
 The one-way messaging gateway (the `void` method return type) now sets a `nullChannel` explicitly into the `replyChannel` header to ignore any possible downstream replies.
 See <<./gateway.adoc#gateway-default-reply-channel,Setting the Default Reply Channel>> for more information.
+
+The aggregator (and resequencer) can now expire orphaned groups (groups in a persistent store where no new messages arrive after an application restart).
+See <<./aggregator.adoc#aggregator-expiring-groups, Aggregator Expiring Groups>> for more information.

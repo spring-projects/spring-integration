@@ -513,6 +513,7 @@ Only this sub-element or `<expire-transactional/>` is allowed.
 A transaction `Advice` can also be configured here by using the Spring `tx` namespace.
 ====
 
+[[aggregator-expiring-groups]]
 [IMPORTANT]
 .Expiring Groups
 =====
@@ -535,6 +536,18 @@ Timed-out groups are either discarded or a partial release occurs (based on `sen
 
 Since version 5.0, empty groups are also scheduled for removal after `empty-group-min-timeout`.
 If `expireGroupsUponCompletion == false` and `minimumTimeoutForEmptyGroups > 0`, the task to remove the group is scheduled when normal or partial sequences release happens.
+
+Starting with version 5.4, the aggregator (and resequencer) can be configured to expire orphaned groups (groups in a persistent message store that might not otherwise be released).
+The `expireTimeout` (if greater than `0`) indicates that groups older than this value in the store should be purged.
+The `purgeOrphanedGroups()` method is called on start up and, together with the provided `expireDuration`, periodically within a scheduled task.
+This method is also can be called externally at any time.
+The expiration logic is fully delegated to the `forceComplete(MessageGroup)` functionality according to the provided expiration options mentioned above.
+Such a periodic purge functionality is useful when a message store is needed to be cleaned up from those old groups which are not going to be released any more with regular message arrival logic.
+In most cases this happens after an application restart, when using a persistent message group store.
+The functionality is similar to the `MessageGroupStoreReaper` with a scheduled task, but provides a convenient way to deal with old groups within specific components, when using group timeout instead of a reaper.
+The `MessageGroupStore` must be provided exclusively for the current correlation endpoint.
+Otherwise one aggregator may purge groups from another.
+With the aggregator, groups expired using this technique will either be discarded or released as a partial group, depending on the `expireGroupsUponCompletion` property.
 =====
 
 We generally recommend using a `ref` attribute if a custom aggregator handler implementation may be referenced in other `<aggregator>` definitions.

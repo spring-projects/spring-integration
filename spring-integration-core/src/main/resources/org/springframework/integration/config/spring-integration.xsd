@@ -4037,6 +4037,22 @@
 						<xsd:union memberTypes="xsd:boolean xsd:string"/>
 					</xsd:simpleType>
 				</xsd:attribute>
+				<xsd:attribute name="expire-timeout" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							The timeout for old groups in the store to purge on startup.
+							If 'expire-duration' is also provided, the purge task is scheduled
+							periodically to purge old groups with this expiration timeout.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="expire-duration" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							The 'Duration' (in milliseconds) how often to run purge old groups scheduled task.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
