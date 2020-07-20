@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import com.esotericsoftware.kryo.Registration;
  */
 public abstract class AbstractKryoRegistrar implements KryoRegistrar {
 
-	protected static final Kryo kryo = new Kryo(); // NOSONAR TODO uppercase in 5.2
+	protected static final Kryo KRYO = new Kryo();
 
 	protected final Log log = LogFactory.getLog(getClass()); // NOSONAR property is final
 

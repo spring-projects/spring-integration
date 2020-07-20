@@ -68,7 +68,7 @@ public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 		if (!CollectionUtils.isEmpty(this.registeredClasses)) {
 			for (int i = 0; i < this.registeredClasses.size(); i++) {
 				registrations.add(new Registration(this.registeredClasses.get(i),
-						kryo.getSerializer(this.registeredClasses.get(i)), i + this.initialValue));
+						KRYO.getSerializer(this.registeredClasses.get(i)), i + this.initialValue));
 			}
 		}
 		return registrations;

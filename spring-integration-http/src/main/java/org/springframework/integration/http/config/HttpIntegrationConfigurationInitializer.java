@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.springframework.integration.http.inbound.IntegrationRequestMappingHan
  */
 public class HttpIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
 
-	private static final Log logger = LogFactory.getLog(HttpIntegrationConfigurationInitializer.class);
+	private static final Log LOGGER = LogFactory.getLog(HttpIntegrationConfigurationInitializer.class);
 
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -45,7 +45,7 @@ public class HttpIntegrationConfigurationInitializer implements IntegrationConfi
 			registerRequestMappingHandlerMappingIfNecessary((BeanDefinitionRegistry) beanFactory);
 		}
 		else {
-			logger.warn("'IntegrationRequestMappingHandlerMapping' isn't registered because 'beanFactory'" +
+			LOGGER.warn("'IntegrationRequestMappingHandlerMapping' isn't registered because 'beanFactory'" +
 					" isn't an instance of `BeanDefinitionRegistry`.");
 		}
 	}
