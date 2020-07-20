@@ -449,7 +449,8 @@ The MBeans are now registered during context initialization and unregistered whe
 [[jmx-mbean-shutdown]]
 ===== Orderly Shutdown Managed Operation
 
-The MBean exporter provides a JMX operation to shut down the application in an orderly manner, intended for use before terminating the JVM.
+The MBean exporter lets a JMX operation shut down the application in an orderly manner.
+It is intended for use before stopping the JVM.
 The following example shows how to use it:
 
 ====

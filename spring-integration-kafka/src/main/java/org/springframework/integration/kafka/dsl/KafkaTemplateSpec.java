@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.kafka.dsl;
 import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.LoggingProducerListener;
 import org.springframework.kafka.support.ProducerListener;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 
@@ -50,7 +49,7 @@ public class KafkaTemplateSpec<K, V>
 	}
 
 	@Override
-	public KafkaTemplateSpec<K, V> id(String id) {
+	public KafkaTemplateSpec<K, V> id(String id) { // NOSONAR - visibility
 		return super.id(id);
 	}
 
@@ -68,7 +67,7 @@ public class KafkaTemplateSpec<K, V>
 
 	/**
 	 * Set a {@link ProducerListener} which will be invoked when Kafka acknowledges
-	 * a send operation. By default a {@link LoggingProducerListener} is configured
+	 * a send operation. By default a {@link org.springframework.kafka.support.LoggingProducerListener} is configured
 	 * which logs errors only.
 	 * @param producerListener the listener; may be {@code null}.
 	 * @return the spec

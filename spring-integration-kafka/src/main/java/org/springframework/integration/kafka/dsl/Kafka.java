@@ -18,8 +18,6 @@ package org.springframework.integration.kafka.dsl;
 
 import java.util.regex.Pattern;
 
-import org.apache.kafka.common.TopicPartition;
-
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource.KafkaAckCallbackFactory;
@@ -225,7 +223,7 @@ public final class Kafka {
 	 * Create an initial
 	 * {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
 	 * @param consumerFactory the {@link ConsumerFactory}.
-	 * @param topicPartitions the {@link TopicPartition} vararg.
+	 * @param topicPartitions the {@link TopicPartitionOffset} vararg.
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
@@ -244,7 +242,7 @@ public final class Kafka {
 	 * {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
 	 * @param consumerFactory the {@link ConsumerFactory}.
 	 * @param listenerMode the {@link KafkaMessageDrivenChannelAdapter.ListenerMode}.
-	 * @param topicPartitions the {@link TopicPartition} vararg.
+	 * @param topicPartitions the {@link TopicPartitionOffset} vararg.
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.

@@ -204,13 +204,16 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 	}
 
 	private String evaluateTableNameExpression(Message<?> message) {
-		String tableName = this.tableNameExpression.getValue(this.evaluationContext, message, String.class);
+		String tableName =
+				this.tableNameExpression.getValue(this.evaluationContext, message, String.class); // NOSONAR
 		Assert.notNull(tableName, "'tableNameExpression' must not evaluate to null");
 		return tableName;
 	}
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> evaluateValuesExpression(Message<?> message) {
+		Assert.notNull(this.valuesExpression,
+				"'this.valuesExpression' must not be null when 'tableNameExpression' mode is used");
 		Map<String, Object> fieldValues =
 				(Map<String, Object>) this.valuesExpression.getValue(this.evaluationContext, message, Map.class);
 		Assert.notNull(fieldValues, "'valuesExpression' must not evaluate to null");
@@ -218,6 +221,8 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 	}
 
 	private Criteria evaluateCriteriaExpression(Message<?> message) {
+		Assert.notNull(this.criteriaExpression,
+				"'this.criteriaExpression' must not be null when 'tableNameExpression' mode is used");
 		Criteria criteria =
 				this.criteriaExpression.getValue(this.evaluationContext, message, Criteria.class);
 		Assert.notNull(criteria, "'criteriaExpression' must not evaluate to null");

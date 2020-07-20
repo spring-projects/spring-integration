@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import org.springframework.integration.dsl.ComponentsRegistration;
-import org.springframework.integration.dsl.IntegrationComponentSpec;
-import org.springframework.integration.dsl.MessageHandlerSpec;
-import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.GenericMessageListenerContainer;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
@@ -34,7 +30,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageHandlerSpec} implementation for the {@link KafkaProducerMessageHandler}
+ * A {@link org.springframework.integration.dsl.MessageHandlerSpec}
+ * implementation for the {@link org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler}
  * as a gateway.
  * @param <K> the key type.
  * @param <V> the outbound value type.
@@ -64,7 +61,7 @@ public class KafkaOutboundGatewaySpec<K, V, R, S extends KafkaOutboundGatewaySpe
 	}
 
 	/**
-	 * A {@link KafkaTemplate}-based {@link KafkaProducerMessageHandlerSpec} extension.
+	 * A {@link org.springframework.kafka.core.KafkaTemplate}-based {@link KafkaProducerMessageHandlerSpec} extension.
 	 *
 	 * @param <K> the key type.
 	 * @param <V> the outbound value type.
@@ -107,7 +104,8 @@ public class KafkaOutboundGatewaySpec<K, V, R, S extends KafkaOutboundGatewaySpe
 	}
 
 	/**
-	 * An {@link IntegrationComponentSpec} implementation for the {@link KafkaTemplate}.
+	 * An {@link org.springframework.integration.dsl.IntegrationComponentSpec}
+	 * implementation for the {@link org.springframework.kafka.core.KafkaTemplate}.
 	 *
 	 * @param <K> the key type.
 	 * @param <V> the request value type.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import org.springframework.beans.BeanUtils;
  */
 public final class SimpleJsonSerializer {
 
-	private static final Log logger = LogFactory.getLog(SimpleJsonSerializer.class);
+	private static final Log LOGGER = LogFactory.getLog(SimpleJsonSerializer.class);
 
 	private SimpleJsonSerializer() {
 	}
@@ -69,12 +69,12 @@ public final class SimpleJsonSerializer {
 				}
 				catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
 					Throwable exception = e;
-					if (e instanceof InvocationTargetException) {
+					if (e instanceof InvocationTargetException) { // NOSONAR
 						exception = e.getCause();
 					}
 
-					if (logger.isDebugEnabled()) {
-						logger.debug("Failed to serialize property " + propertyName, exception);
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("Failed to serialize property " + propertyName, exception);
 					}
 
 					result =

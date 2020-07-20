@@ -22,7 +22,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Configures a Messaging Gateway Endpoint for the
-					'org.springframework.integration.rsocket.inbound.RSocketInboundGateway to receive RSocket
+					'org.springframework.integration.rsocket.inbound.RSocketInboundGateway' to receive RSocket
 					requests and produce RSocket responses.
 				</xsd:documentation>
 			</xsd:annotation>

@@ -30,6 +30,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Headers;
@@ -66,7 +67,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -102,7 +102,10 @@ import org.springframework.util.concurrent.SettableListenableFuture;
 public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMessageHandler
 		implements Lifecycle {
 
-	private static final long DEFAULT_SEND_TIMEOUT = 10000;
+	/**
+	 * Buffer added to ensure our timeout is longer than Kafka's.
+	 */
+	private static final int TIMEOUT_BUFFER = 5000;
 
 	private final Map<String, Set<Integer>> replyTopicsAndPartitions = new HashMap<>();
 
@@ -115,6 +118,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	private final boolean allowNonTransactional;
 
 	private final AtomicBoolean running = new AtomicBoolean();
+
+	private final long deliveryTimeoutMsProperty;
 
 	private EvaluationContext evaluationContext;
 
@@ -131,7 +136,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private boolean sync;
 
-	private Expression sendTimeoutExpression = new ValueExpression<>(DEFAULT_SEND_TIMEOUT);
+	private Expression sendTimeoutExpression;
 
 	private KafkaHeaderMapper headerMapper;
 
@@ -151,7 +156,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private ProducerRecordCreator<K, V> producerRecordCreator =
 			(message, topic, partition, timestamp, key, value, headers) ->
-				new ProducerRecord<>(topic, partition, timestamp, key, value, headers);
+					new ProducerRecord<>(topic, partition, timestamp, key, value, headers);
 
 	private volatile byte[] singleReplyTopic;
 
@@ -162,7 +167,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		if (this.isGateway) {
 			setAsync(true);
 			updateNotPropagatedHeaders(
-					new String[] { KafkaHeaders.TOPIC, KafkaHeaders.PARTITION_ID, KafkaHeaders.MESSAGE_KEY }, false);
+					new String[]{KafkaHeaders.TOPIC, KafkaHeaders.PARTITION_ID, KafkaHeaders.MESSAGE_KEY}, false);
 		}
 		if (JacksonPresent.isJackson2Present()) {
 			this.headerMapper = new DefaultKafkaHeaderMapper();
@@ -175,6 +180,27 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		if (this.transactional && this.isGateway) {
 			logger.warn("The KafkaTemplate is transactional; this gateway will only work if the consumer is "
 					+ "configured to read uncommitted records");
+		}
+		determineSendTimeout();
+		this.deliveryTimeoutMsProperty =
+				this.sendTimeoutExpression.getValue(Long.class) // NOSONAR - never null after determineSendTimeout()
+						- TIMEOUT_BUFFER;
+	}
+
+	private void determineSendTimeout() {
+		Map<String, Object> props = this.kafkaTemplate.getProducerFactory().getConfigurationProperties();
+		Object dt = props.get(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG);
+		if (dt == null) {
+			dt = ProducerConfig.configDef().defaultValues().get(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG);
+		}
+		if (dt instanceof Long) {
+			setSendTimeout(((Long) dt) + TIMEOUT_BUFFER);
+		}
+		else if (dt instanceof Integer) {
+			setSendTimeout(Long.valueOf((Integer) dt) + TIMEOUT_BUFFER);
+		}
+		else if (dt instanceof String) {
+			setSendTimeout(Long.parseLong((String) dt) + TIMEOUT_BUFFER);
 		}
 	}
 
@@ -244,24 +270,25 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	/**
 	 * Specify a timeout in milliseconds for how long this
-	 * {@link KafkaProducerMessageHandler} should wait wait for send operation
-	 * results. Defaults to 10 seconds. The timeout is applied only in {@link #sync} mode.
-	 * Also applies when sending to the success or failure channels.
-	 * @param sendTimeout the timeout to wait for result fo send operation.
+	 * {@link KafkaProducerMessageHandler} should wait wait for send operation results.
+	 * Defaults to the kafka {@code delivery.timeout.ms} property + 5 seconds. The timeout
+	 * is applied Also applies when sending to the success or failure channels.
+	 * @param sendTimeout the timeout to wait for result for a send operation.
 	 * @since 2.0.1
 	 */
 	@Override
-	public void setSendTimeout(long sendTimeout) {
+	public final void setSendTimeout(long sendTimeout) {
 		super.setSendTimeout(sendTimeout);
 		setSendTimeoutExpression(new ValueExpression<>(sendTimeout));
 	}
 
 	/**
 	 * Specify a SpEL expression to evaluate a timeout in milliseconds for how long this
-	 * {@link KafkaProducerMessageHandler} should wait wait for send operation
-	 * results. Defaults to 10 seconds. The timeout is applied only in {@link #sync} mode.
+	 * {@link KafkaProducerMessageHandler} should wait wait for send operation results.
+	 * Defaults to the kafka {@code delivery.timeout.ms} property + 5 seconds. The timeout
+	 * is applied only in {@link #sync} mode.
 	 * @param sendTimeoutExpression the {@link Expression} for timeout to wait for result
-	 * fo send operation.
+	 * for a send operation.
 	 * @since 2.1.1
 	 */
 	public void setSendTimeoutExpression(Expression sendTimeoutExpression) {
@@ -270,7 +297,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	}
 
 	/**
-	 * Set the failure channel. After a send failure, an {@link ErrorMessage} will be sent
+	 * Set the failure channel. After a send failure, an
+	 * {@link org.springframework.messaging.support.ErrorMessage} will be sent
 	 * to this channel with a payload of a {@link KafkaSendFailureException} with the
 	 * failed message and cause.
 	 * @param sendFailureChannel the failure channel.
@@ -281,7 +309,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	}
 
 	/**
-	 * Set the failure channel name. After a send failure, an {@link ErrorMessage} will be
+	 * Set the failure channel name. After a send failure, an
+	 * {@link org.springframework.messaging.support.ErrorMessage} will be
 	 * sent to this channel name with a payload of a {@link KafkaSendFailureException}
 	 * with the failed message and cause.
 	 * @param sendFailureChannelName the failure channel name.
@@ -392,10 +421,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	@Override
 	public void stop() {
-		if (this.running.compareAndSet(true, false)) {
-			if (!this.transactional || this.allowNonTransactional) {
-				this.kafkaTemplate.flush();
-			}
+		if (this.running.compareAndSet(true, false) && (!this.transactional || this.allowNonTransactional)) {
+			this.kafkaTemplate.flush();
 		}
 	}
 
@@ -404,11 +431,12 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		return this.running.get();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked") // NOSONAR - complexity
 	@Override
 	protected Object handleRequestMessage(final Message<?> message) {
 		final ProducerRecord<K, V> producerRecord;
-		boolean flush = this.flushExpression.getValue(this.evaluationContext, message, Boolean.class);
+		boolean flush =
+				Boolean.TRUE.equals(this.flushExpression.getValue(this.evaluationContext, message, Boolean.class));
 		boolean preBuilt = message.getPayload() instanceof ProducerRecord;
 		if (preBuilt) {
 			producerRecord = (ProducerRecord<K, V>) message.getPayload();
@@ -430,9 +458,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			if (this.transactional
 					&& TransactionSynchronizationManager.getResource(this.kafkaTemplate.getProducerFactory()) == null
 					&& !this.allowNonTransactional) {
-				sendFuture = this.kafkaTemplate.executeInTransaction(template -> {
-					return template.send(producerRecord);
-				});
+				sendFuture = this.kafkaTemplate.executeInTransaction(template -> template.send(producerRecord));
 			}
 			else {
 				sendFuture = this.kafkaTemplate.send(producerRecord);
@@ -446,7 +472,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			throw new MessageHandlingException(message, e);
 		}
 		catch (ExecutionException e) {
-			throw new MessageHandlingException(message, e.getCause());
+			throw new MessageHandlingException(message, e.getCause()); // NOSONAR
 		}
 		if (flush) {
 			this.kafkaTemplate.flush();
@@ -488,12 +514,11 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			headers = new RecordHeaders();
 			this.headerMapper.fromHeaders(messageHeaders, headers);
 		}
-		final ProducerRecord<K, V> producerRecord = this.producerRecordCreator.create(message, topic, partitionId,
-				timestamp, (K) messageKey, payload, headers);
-		return producerRecord;
+		return this.producerRecordCreator.create(message, topic, partitionId, timestamp, (K) messageKey, payload,
+				headers);
 	}
 
-	private byte[] getReplyTopic(final Message<?> message) {
+	private byte[] getReplyTopic(Message<?> message) { // NOSONAR
 		if (this.replyTopicsAndPartitions.isEmpty()) {
 			determineValidReplyTopicsAndPartitions();
 		}
@@ -569,8 +594,9 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			ListenableFuture<SendResult<K, V>> future, MessageChannel metadataChannel)
 			throws InterruptedException, ExecutionException {
 
-		if (getSendFailureChannel() != null || metadataChannel != null) {
-			future.addCallback(new ListenableFutureCallback<SendResult<K, V>>() {
+		final MessageChannel failureChannel = getSendFailureChannel();
+		if (failureChannel != null || metadataChannel != null) {
+			future.addCallback(new ListenableFutureCallback<SendResult<K, V>>() { // NOSONAR
 
 				@Override
 				public void onSuccess(SendResult<K, V> result) {
@@ -583,8 +609,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 				@Override
 				public void onFailure(Throwable ex) {
-					if (getSendFailureChannel() != null) {
-						KafkaProducerMessageHandler.this.messagingTemplate.send(getSendFailureChannel(),
+					if (failureChannel != null) {
+						KafkaProducerMessageHandler.this.messagingTemplate.send(failureChannel,
 								KafkaProducerMessageHandler.this.errorMessageStrategy.buildErrorMessage(
 										new KafkaSendFailureException(message, producerRecord, ex), null));
 					}
@@ -593,8 +619,15 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			});
 		}
 
-		if (this.sync) {
+		if (this.sync || this.isGateway) {
 			Long sendTimeout = this.sendTimeoutExpression.getValue(this.evaluationContext, message, Long.class);
+			if (sendTimeout != null && sendTimeout <= this.deliveryTimeoutMsProperty) {
+				this.logger.debug("'sendTimeout' increased to "
+						+ (this.deliveryTimeoutMsProperty + TIMEOUT_BUFFER)
+						+ "ms; it must be greater than the 'delivery.timeout.ms' Kafka producer "
+						+ "property to avoid false failures");
+				sendTimeout = this.deliveryTimeoutMsProperty + TIMEOUT_BUFFER;
+			}
 			if (sendTimeout == null || sendTimeout < 0) {
 				future.get();
 			}
@@ -623,7 +656,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		}
 
 		private void addCallback(final RequestReplyFuture<?, ?, Object> future) {
-			future.addCallback(new ListenableFutureCallback<ConsumerRecord<?, Object>>() {
+			future.addCallback(new ListenableFutureCallback<ConsumerRecord<?, Object>>() { // NOSONAR
 
 				@Override
 				public void onSuccess(ConsumerRecord<?, Object> result) {

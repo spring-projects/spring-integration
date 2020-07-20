@@ -59,8 +59,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import io.rsocket.RSocket;
+import io.rsocket.core.RSocketConnector;
 import io.rsocket.core.RSocketServer;
 import io.rsocket.frame.decoder.PayloadDecoder;
+import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
 import reactor.core.Disposable;
@@ -497,14 +499,22 @@ public class RSocketOutboundGatewayIntegrationTests {
 		@Bean(destroyMethod = "dispose")
 		@Nullable
 		public RSocket rsocketForServerRequests() {
-			return RSocketRequester.builder()
+			Sinks.StandaloneMonoSink<RSocketConnector> rsocketConnector = Sinks.promise();
+
+			RSocketRequester.builder()
 					.setupRoute("clientConnect")
-					.rsocketConnector(connector ->
-							connector.acceptor(
-									RSocketMessageHandler.responder(RSocketStrategies.create(), controller())))
-					.connectTcp("localhost", server.address().getPort())
-					.block()
-					.rsocket();
+					.rsocketConnector(connector -> {
+						connector.acceptor(
+								RSocketMessageHandler.responder(RSocketStrategies.create(), controller()));
+						rsocketConnector.success(connector);
+					})
+					.tcp("localhost", server.address().getPort());
+
+			return rsocketConnector.asMono()
+					.flatMap(rSocketConnector ->
+							rSocketConnector.connect(
+									TcpClientTransport.create("localhost", server.address().getPort())))
+					.block();
 		}
 
 		@Bean

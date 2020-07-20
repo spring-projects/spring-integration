@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -251,13 +251,13 @@ class MessageSourceTests {
 			return null;
 		}).given(consumer).commitAsync(any(), any());
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
-		records1.put(topicPartition, Arrays.asList(
+		records1.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
-		records2.put(topicPartition, Arrays.asList(
+		records2.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar")));
 		Map<TopicPartition, List<ConsumerRecord>> records3 = new LinkedHashMap<>();
-		records3.put(topicPartition, Arrays.asList(
+		records3.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 2L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "baz")));
 		Map<TopicPartition, List<ConsumerRecord>> records4 = new LinkedHashMap<>();
 		records4.put(topicPartition, Collections.singletonList(

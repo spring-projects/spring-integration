@@ -19,6 +19,7 @@ package org.springframework.integration.http.inbound;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -175,10 +176,19 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 			for (RequestMethod requestMethod : crossOrigin.getMethod()) {
 				config.addAllowedMethod(requestMethod.name());
 			}
-			config.setAllowedOrigins(Arrays.asList(crossOrigin.getOrigin()));
 			config.setAllowedHeaders(Arrays.asList(crossOrigin.getAllowedHeaders()));
 			config.setExposedHeaders(Arrays.asList(crossOrigin.getExposedHeaders()));
-			config.setAllowCredentials(crossOrigin.getAllowCredentials());
+			Boolean allowCredentials = crossOrigin.getAllowCredentials();
+			config.setAllowCredentials(allowCredentials);
+			List<String> allowedOrigins = Arrays.asList(crossOrigin.getOrigin());
+			if (Boolean.TRUE.equals(allowCredentials)
+					&& CollectionUtils.contains(allowedOrigins.iterator(), CorsConfiguration.ALL)) {
+				config.setAllowedOriginPatterns(allowedOrigins);
+			}
+			else {
+				config.setAllowedOrigins(allowedOrigins);
+			}
+
 			if (crossOrigin.getMaxAge() != -1) {
 				config.setMaxAge(crossOrigin.getMaxAge());
 			}

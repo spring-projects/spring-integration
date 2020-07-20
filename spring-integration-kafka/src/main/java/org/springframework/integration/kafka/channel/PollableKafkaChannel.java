@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  * Pollable channel backed by a Kafka topic.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.4
  *
@@ -68,8 +69,9 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 
 	private static String topic(KafkaMessageSource<?, ?> source) {
 		Assert.notNull(source, "'source' cannot be null");
-		Assert.isTrue(source.getConsumerProperties().getTopics().length == 1, "Only one topic is allowed");
-		return source.getConsumerProperties().getTopics()[0];
+		String[] topics = source.getConsumerProperties().getTopics();
+		Assert.isTrue(topics != null && topics.length == 1, "Only one topic is allowed");
+		return topics[0];
 	}
 
 	@Override

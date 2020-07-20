@@ -1259,7 +1259,7 @@ By default, the files are located on the classpath, but you can override this by
 
 Starting with version 4.3.6, when you use NIO, you can specify an `ssl-handshake-timeout` (in seconds) on the connection factory.
 This timeout (the default is 30 seconds) is used during SSL handshake when waiting for data.
-If the timeout is exceeded, the process is aborted and the socket is closed.
+If the timeout is exceeded, the process is stopped and the socket is closed.
 
 [[tcp-ssl-host-verification]]
 ==== Host Verification

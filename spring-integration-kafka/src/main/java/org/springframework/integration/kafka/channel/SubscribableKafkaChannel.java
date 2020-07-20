@@ -19,7 +19,6 @@ package org.springframework.integration.kafka.channel;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
-import org.springframework.context.Phased;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
@@ -37,6 +36,7 @@ import org.springframework.util.Assert;
  * Subscribable channel backed by a Kafka topic.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.4
  *
@@ -79,7 +79,7 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 	/**
 	 * Set the phase.
 	 * @param phase the phase.
-	 * @see Phased
+	 * @see org.springframework.context.Phased
 	 */
 	public void setPhase(int phase) {
 		this.phase = phase;

@@ -20,6 +20,9 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 The standalone https://projects.spring.io/spring-integration-kafka/[Spring Integration Kafka] project has been merged as a `spring-integration-kafka` module to this project.
 See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
 
+The `KafkaProducerMessageHandler` `sendTimeoutExpression` default has changed.
+See <<./kafka.adoc#kafka-outbound,Kafka Outbound Channel Adapter>> for more information.
+
 ==== R2DBC Channel Adapters
 
 The Channel Adapters for R2DBC database interaction have been introduced.

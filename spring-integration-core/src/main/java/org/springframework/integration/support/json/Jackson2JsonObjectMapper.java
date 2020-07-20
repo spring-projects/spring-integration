@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,7 +150,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 			return this.objectMapper.readValue((Reader) json, type);
 		}
 		else {
-			throw new IllegalArgumentException("'json' argument must be an instance of: " + supportedJsonTypes
+			throw new IllegalArgumentException("'json' argument must be an instance of: " + SUPPORTED_JSON_TYPES
 					+ " , but gotten: " + json.getClass());
 		}
 	}

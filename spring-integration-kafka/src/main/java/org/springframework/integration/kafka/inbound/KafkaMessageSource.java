@@ -30,7 +30,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
@@ -55,6 +55,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
 import org.springframework.kafka.listener.ConsumerProperties;
+import org.springframework.kafka.listener.ListenerUtils;
 import org.springframework.kafka.listener.LoggingCommitCallback;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -106,9 +107,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 */
 	public static final String REMAINING_RECORDS = KafkaHeaders.PREFIX + "remainingRecords";
 
-	private final Supplier<Duration> minTimeoutProvider =
-			() -> Duration.ofMillis(Math.max(this.pollTimeout.toMillis() * 20, MIN_ASSIGN_TIMEOUT));
-
 	private final ConsumerFactory<K, V> consumerFactory;
 
 	private final KafkaAckCallbackFactory<K, V> ackCallbackFactory;
@@ -123,7 +121,11 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private final Collection<TopicPartition> assignedPartitions = new LinkedHashSet<>();
 
-	private Duration pollTimeout;
+	private final Duration commitTimeout;
+
+	private final Duration assignTimeout;
+
+	private final Duration pollTimeout;
 
 	private RecordMessageConverter messageConverter = new MessagingMessageConverter();
 
@@ -131,11 +133,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private boolean rawMessageHeader;
 
-	private Duration commitTimeout;
-
 	private boolean running;
-
-	private Duration assignTimeout;
 
 	private volatile Consumer<K, V> consumer;
 
@@ -230,7 +228,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		this.consumerFactory = fixOrRejectConsumerFactory(consumerFactory, allowMultiFetch);
 		this.ackCallbackFactory = ackCallbackFactory;
 		this.pollTimeout = Duration.ofMillis(consumerProperties.getPollTimeout());
-		this.assignTimeout = this.minTimeoutProvider.get();
+		this.assignTimeout =
+				Duration.ofMillis(Math.max(this.pollTimeout.toMillis() * 20, MIN_ASSIGN_TIMEOUT)); // NOSONAR - magic
 		this.commitTimeout = consumerProperties.getSyncCommitTimeout();
 	}
 
@@ -429,10 +428,85 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		if (this.paused && this.recordsIterator == null) {
 			this.logger.debug("Consumer is paused; no records will be returned");
 		}
-		ConsumerRecord<K, V> record;
-		TopicPartition topicPartition;
+		ConsumerRecord<K, V> record = pollRecord();
+
+		return record != null
+				? recordToMessage(record)
+				: null;
+	}
+
+	protected void createConsumer() {
+		synchronized (this.consumerMonitor) {
+			this.consumer = this.consumerFactory.createConsumer(this.consumerProperties.getGroupId(),
+					this.consumerProperties.getClientId(), null, this.consumerProperties.getKafkaConsumerProperties());
+
+			ConsumerRebalanceListener rebalanceCallback =
+					new ItegrationConsumerRebalanceListener(this.consumerProperties.getConsumerRebalanceListener());
+
+			Pattern topicPattern = this.consumerProperties.getTopicPattern();
+			TopicPartitionOffset[] partitions = this.consumerProperties.getTopicPartitions();
+			if (topicPattern != null) {
+				this.consumer.subscribe(topicPattern, rebalanceCallback);
+			}
+			else if (partitions != null) {
+				assignAndSeekPartitionts(partitions);
+			}
+			else {
+				this.consumer.subscribe(Arrays.asList(this.consumerProperties.getTopics()), // NOSONAR
+						rebalanceCallback);
+			}
+		}
+	}
+
+	private void assignAndSeekPartitionts(TopicPartitionOffset[] partitions) {
+		List<TopicPartition> topicPartitionsToAssign =
+				Arrays.stream(partitions)
+						.map(TopicPartitionOffset::getTopicPartition)
+						.collect(Collectors.toList());
+		this.consumer.assign(topicPartitionsToAssign);
+		this.assignedPartitions.addAll(topicPartitionsToAssign);
+
+		for (TopicPartitionOffset partition : partitions) {
+			if (TopicPartitionOffset.SeekPosition.BEGINNING.equals(partition.getPosition())) {
+				this.consumer.seekToBeginning(Collections.singleton(partition.getTopicPartition()));
+			}
+			else if (TopicPartitionOffset.SeekPosition.END.equals(partition.getPosition())) {
+				this.consumer.seekToEnd(Collections.singleton(partition.getTopicPartition()));
+			}
+			else {
+				TopicPartition topicPartition = partition.getTopicPartition();
+				Long offset = partition.getOffset();
+				if (offset != null) {
+					long newOffset = offset;
+
+					if (offset < 0) {
+						if (!partition.isRelativeToCurrent()) {
+							this.consumer.seekToEnd(Collections.singleton(topicPartition));
+							continue;
+						}
+						newOffset = Math.max(0, this.consumer.position(topicPartition) + offset);
+					}
+					else if (partition.isRelativeToCurrent()) {
+						newOffset = this.consumer.position(topicPartition) + offset;
+					}
+
+					try {
+						this.consumer.seek(topicPartition, newOffset);
+					}
+					catch (Exception e) {
+						this.logger.error("Failed to set initial offset for " + topicPartition
+								+ " at " + newOffset + ". Position is " + this.consumer
+								.position(topicPartition), e);
+					}
+				}
+			}
+		}
+	}
+
+	@Nullable
+	private ConsumerRecord<K, V> pollRecord() {
 		if (this.recordsIterator != null) {
-			record = nextRecord();
+			return nextRecord();
 		}
 		else {
 			synchronized (this.consumerMonitor) {
@@ -443,10 +517,23 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				}
 				this.remainingCount.set(records.count());
 				this.recordsIterator = records.iterator();
-				record = nextRecord();
+				return nextRecord();
 			}
 		}
-		topicPartition = new TopicPartition(record.topic(), record.partition());
+	}
+
+	private ConsumerRecord<K, V> nextRecord() {
+		ConsumerRecord<K, V> record;
+		record = this.recordsIterator.next();
+		if (!this.recordsIterator.hasNext()) {
+			this.recordsIterator = null;
+		}
+		this.remainingCount.decrementAndGet();
+		return record;
+	}
+
+	private Object recordToMessage(ConsumerRecord<K, V> record) {
+		TopicPartition topicPartition = new TopicPartition(record.topic(), record.partition());
 		KafkaAckInfo<K, V> ackInfo = new KafkaAckInfoImpl(record, topicPartition);
 		AcknowledgmentCallback ackCallback = this.ackCallbackFactory.createCallback(ackInfo);
 		this.inflightRecords.computeIfAbsent(topicPartition, tp -> Collections.synchronizedSet(new TreeSet<>()))
@@ -476,137 +563,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 	}
 
-	private ConsumerRecord<K, V> nextRecord() {
-		ConsumerRecord<K, V> record;
-		record = this.recordsIterator.next();
-		if (!this.recordsIterator.hasNext()) {
-			this.recordsIterator = null;
-		}
-		this.remainingCount.decrementAndGet();
-		return record;
-	}
-
-	protected void createConsumer() {
-		synchronized (this.consumerMonitor) {
-			this.consumer = this.consumerFactory.createConsumer(this.consumerProperties.getGroupId(),
-					this.consumerProperties.getClientId(), null, this.consumerProperties.getKafkaConsumerProperties());
-			ConsumerRebalanceListener providedRebalanceListener = this.consumerProperties
-					.getConsumerRebalanceListener();
-			boolean isConsumerAware = providedRebalanceListener instanceof ConsumerAwareRebalanceListener;
-			ConsumerRebalanceListener rebalanceCallback = new ConsumerRebalanceListener() {
-
-				@Override
-				public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-					KafkaMessageSource.this.assignedPartitions.removeAll(partitions);
-					if (KafkaMessageSource.this.logger.isInfoEnabled()) {
-						KafkaMessageSource.this.logger
-								.info("Partitions revoked: " + partitions);
-					}
-					if (providedRebalanceListener != null) {
-						if (isConsumerAware) {
-							((ConsumerAwareRebalanceListener) providedRebalanceListener)
-									.onPartitionsRevokedAfterCommit(KafkaMessageSource.this.consumer, partitions);
-						}
-						else {
-							providedRebalanceListener.onPartitionsRevoked(partitions);
-						}
-					}
-
-				}
-
-				@Override
-				public void onPartitionsLost(Collection<TopicPartition> partitions) {
-					if (providedRebalanceListener != null) {
-						if (isConsumerAware) {
-							((ConsumerAwareRebalanceListener) providedRebalanceListener).onPartitionsLost(partitions);
-						}
-						else {
-							providedRebalanceListener.onPartitionsLost(partitions);
-						}
-					}
-					onPartitionsRevoked(partitions);
-				}
-
-				@Override
-				public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-					KafkaMessageSource.this.assignedPartitions.addAll(partitions);
-					if (KafkaMessageSource.this.paused) {
-						KafkaMessageSource.this.consumer.pause(KafkaMessageSource.this.assignedPartitions);
-						KafkaMessageSource.this.logger.warn("Paused consumer resumed by Kafka due to rebalance; "
-								+ "consumer paused again, so the initial poll() will never return any records");
-					}
-					if (KafkaMessageSource.this.logger.isInfoEnabled()) {
-						KafkaMessageSource.this.logger
-								.info("Partitions assigned: " + partitions);
-					}
-					if (providedRebalanceListener != null) {
-						if (isConsumerAware) {
-							((ConsumerAwareRebalanceListener) providedRebalanceListener)
-									.onPartitionsAssigned(KafkaMessageSource.this.consumer, partitions);
-						}
-						else {
-							providedRebalanceListener.onPartitionsAssigned(partitions);
-						}
-					}
-				}
-
-			};
-
-			if (this.consumerProperties.getTopicPattern() != null) {
-				this.consumer.subscribe(this.consumerProperties.getTopicPattern(), rebalanceCallback);
-			}
-			else if (this.consumerProperties.getTopicPartitions() != null) {
-				List<TopicPartition> topicPartitionsToAssign = Arrays
-						.stream(this.consumerProperties.getTopicPartitions())
-						.map(TopicPartitionOffset::getTopicPartition)
-						.collect(Collectors.toList());
-				this.consumer.assign(topicPartitionsToAssign);
-				this.assignedPartitions.addAll(topicPartitionsToAssign);
-
-				TopicPartitionOffset[] partitions = this.consumerProperties.getTopicPartitions();
-
-				for (TopicPartitionOffset partition : partitions) {
-					if (TopicPartitionOffset.SeekPosition.BEGINNING.equals(partition.getPosition())) {
-						this.consumer.seekToBeginning(Collections.singleton(partition.getTopicPartition()));
-					}
-					else if (TopicPartitionOffset.SeekPosition.END.equals(partition.getPosition())) {
-						this.consumer.seekToEnd(Collections.singleton(partition.getTopicPartition()));
-					}
-					else {
-						TopicPartition topicPartition = partition.getTopicPartition();
-						Long offset = partition.getOffset();
-						if (offset != null) {
-							long newOffset = offset;
-
-							if (offset < 0) {
-								if (!partition.isRelativeToCurrent()) {
-									this.consumer.seekToEnd(Collections.singleton(topicPartition));
-									continue;
-								}
-								newOffset = Math.max(0, this.consumer.position(topicPartition) + offset);
-							}
-							else if (partition.isRelativeToCurrent()) {
-								newOffset = this.consumer.position(topicPartition) + offset;
-							}
-
-							try {
-								this.consumer.seek(topicPartition, newOffset);
-							}
-							catch (Exception e) {
-								this.logger.error("Failed to set initial offset for " + topicPartition
-										+ " at " + newOffset + ". Position is " + this.consumer
-										.position(topicPartition), e);
-							}
-						}
-					}
-				}
-			}
-			else {
-				this.consumer.subscribe(Arrays.asList(this.consumerProperties.getTopics()), rebalanceCallback);
-			}
-		}
-	}
-
 	@Override
 	public synchronized void destroy() {
 		stopConsumer();
@@ -620,6 +576,67 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				this.assignedPartitions.clear();
 			}
 		}
+	}
+
+	private class ItegrationConsumerRebalanceListener implements ConsumerRebalanceListener {
+
+		private final ConsumerRebalanceListener providedRebalanceListener;
+
+		private final boolean isConsumerAware;
+
+		ItegrationConsumerRebalanceListener(ConsumerRebalanceListener providedRebalanceListener) {
+			this.providedRebalanceListener = providedRebalanceListener;
+			this.isConsumerAware = providedRebalanceListener instanceof ConsumerAwareRebalanceListener;
+		}
+
+		@Override
+		public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+			KafkaMessageSource.this.assignedPartitions.removeAll(partitions);
+			if (KafkaMessageSource.this.logger.isInfoEnabled()) {
+				KafkaMessageSource.this.logger.info("Partitions revoked: " + partitions);
+			}
+			if (this.providedRebalanceListener != null) {
+				if (this.isConsumerAware) {
+					((ConsumerAwareRebalanceListener) this.providedRebalanceListener)
+							.onPartitionsRevokedAfterCommit(KafkaMessageSource.this.consumer, partitions);
+				}
+				else {
+					this.providedRebalanceListener.onPartitionsRevoked(partitions);
+				}
+			}
+
+		}
+
+		@Override
+		public void onPartitionsLost(Collection<TopicPartition> partitions) {
+			if (this.providedRebalanceListener != null) {
+				this.providedRebalanceListener.onPartitionsLost(partitions);
+			}
+			onPartitionsRevoked(partitions);
+		}
+
+		@Override
+		public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+			KafkaMessageSource.this.assignedPartitions.addAll(partitions);
+			if (KafkaMessageSource.this.paused) {
+				KafkaMessageSource.this.consumer.pause(KafkaMessageSource.this.assignedPartitions);
+				KafkaMessageSource.this.logger.warn("Paused consumer resumed by Kafka due to rebalance; "
+						+ "consumer paused again, so the initial poll() will never return any records");
+			}
+			if (KafkaMessageSource.this.logger.isInfoEnabled()) {
+				KafkaMessageSource.this.logger.info("Partitions assigned: " + partitions);
+			}
+			if (this.providedRebalanceListener != null) {
+				if (this.isConsumerAware) {
+					((ConsumerAwareRebalanceListener) this.providedRebalanceListener)
+							.onPartitionsAssigned(KafkaMessageSource.this.consumer, partitions);
+				}
+				else {
+					this.providedRebalanceListener.onPartitionsAssigned(partitions);
+				}
+			}
+		}
+
 	}
 
 	/**
@@ -667,6 +684,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 		private final boolean isSyncCommits;
 
+		private final boolean logOnlyMetadata;
+
 		private volatile boolean acknowledged;
 
 		private boolean autoAckEnabled = true;
@@ -690,6 +709,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 					consumerProperties != null
 							? consumerProperties.getCommitLogLevel()
 							: LogIfLevelEnabled.Level.DEBUG);
+			this.logOnlyMetadata = consumerProperties != null && consumerProperties.isOnlyLogRecordMetadata();
 		}
 
 		@Override
@@ -739,17 +759,19 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 									})
 									.collect(Collectors.toList());
 					if (rewound.size() > 0 && this.logger.isWarnEnabled()) {
-						this.logger.warn("Rolled back " + record + " later in-flight offsets "
+						this.logger.warn("Rolled back " + ListenerUtils.recordToString(record, this.logOnlyMetadata)
+								+ " later in-flight offsets "
 								+ rewound + " will also be re-fetched");
 					}
 				}
 			}
 		}
 
-		private void commitIfPossible(ConsumerRecord<K, V> record) {
+		private void commitIfPossible(ConsumerRecord<K, V> record) { // NOSONAR
 			if (this.ackInfo.isRolledBack()) {
 				if (this.logger.isWarnEnabled()) {
-					this.logger.warn("Cannot commit offset for " + record
+					this.logger.warn("Cannot commit offset for "
+							+ ListenerUtils.recordToString(record, this.logOnlyMetadata)
 							+ "; an earlier offset was rolled back");
 				}
 			}
@@ -773,13 +795,17 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 						if (toCommit.size() > 0) {
 							ackInformation = toCommit.get(toCommit.size() - 1);
 							KafkaAckInfo<K, V> ackInformationToLog = ackInformation;
-							this.commitLogger.log(() -> "Committing pending offsets for " + record
-									+ " and all deferred to " + ackInformationToLog.getRecord());
+							this.commitLogger.log(() -> "Committing pending offsets for "
+									+ ListenerUtils.recordToString(record, this.logOnlyMetadata)
+									+ " and all deferred to "
+									+ ListenerUtils.recordToString(ackInformationToLog.getRecord(),
+									this.logOnlyMetadata));
 							candidates.removeAll(toCommit);
 						}
 						else {
 							ackInformation = this.ackInfo;
-							this.commitLogger.log(() -> "Committing offset for " + record);
+							this.commitLogger.log(() -> "Committing offset for "
+									+ ListenerUtils.recordToString(record, this.logOnlyMetadata));
 						}
 					}
 					else { // earlier offsets present
@@ -835,7 +861,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	/**
 	 * Information for building an KafkaAckCallback.
 	 */
-	public class KafkaAckInfoImpl implements KafkaAckInfo<K, V> {
+	public class KafkaAckInfoImpl implements KafkaAckInfo<K, V> { // NOSONAR - no equals() impl
 
 		private final ConsumerRecord<K, V> record;
 
