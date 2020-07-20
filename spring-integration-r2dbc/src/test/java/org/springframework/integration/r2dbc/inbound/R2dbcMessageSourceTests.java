@@ -143,7 +143,8 @@ public class R2dbcMessageSourceTests {
 				.verifyComplete();
 
 		r2dbcMessageSourceSelectMany.setUpdateSql("UPDATE Person SET name='Foo' where age = :age");
-		r2dbcMessageSourceSelectMany.<Person>setBindFunction((bindSpec, o) -> bindSpec.bind("age", o.getAge()));
+		r2dbcMessageSourceSelectMany.setBindFunction((DatabaseClient.BindSpec<?> bindSpec, Person o) -> bindSpec.bind(
+				"age", o.getAge()));
 		r2dbcMessageSourceSelectMany.setExpectSingleResult(true);
 
 		StepVerifier.create(r2dbcMessageSourceSelectMany.receive().getPayload())
@@ -171,8 +172,8 @@ public class R2dbcMessageSourceTests {
 				.verifyComplete();
 
 		r2dbcMessageSourceSelectMany.setUpdateSql("UPDATE person SET name='Foo' where id = :id");
-		r2dbcMessageSourceSelectMany.<Person>setBindFunction((bindSpec, o) -> bindSpec.bind("id", o.getId()));
-
+		r2dbcMessageSourceSelectMany.setBindFunction((DatabaseClient.BindSpec<?> bindSpec, Person o) -> bindSpec.bind(
+				"id",	o.getId()));
 		StepVerifier.create(r2dbcMessageSourceSelectMany.receive().getPayload())
 				.expectNextCount(2)
 				.verifyComplete();
@@ -254,7 +255,7 @@ public class R2dbcMessageSourceTests {
 				.verifyComplete();
 
 		defaultR2dbcMessageSource.setUpdateSql("UPDATE person SET name='Foo' where id = 1");
-		defaultR2dbcMessageSource.<Person>setBindFunction((bindSpec, o) -> bindSpec.bind("id", o.getId()));
+		defaultR2dbcMessageSource.setBindFunction((DatabaseClient.BindSpec<?> bindSpec, Person o) -> bindSpec.bind("id", o.getId()));
 
 		StepVerifier.create(defaultR2dbcMessageSource.receive().getPayload())
 				.expectErrorMatches(throwable -> throwable instanceof ClassCastException)

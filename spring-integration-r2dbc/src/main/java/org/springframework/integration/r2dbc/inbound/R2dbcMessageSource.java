@@ -123,7 +123,7 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	 * in the update query.
 	 * @param bindFunction The bindFunction.
 	 */
-	public <T> void setBindFunction(BiFunction<DatabaseClient.BindSpec<?>, T, DatabaseClient.BindSpec<?>> bindFunction) {
+	public void setBindFunction(BiFunction<DatabaseClient.BindSpec<?>, ?, DatabaseClient.BindSpec<?>> bindFunction) {
 		this.bindFunction = (BiFunction<DatabaseClient.BindSpec<?>, Object, DatabaseClient.BindSpec<?>>) bindFunction;
 	}
 
