@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Marcin Pilaczynski
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -63,20 +64,21 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		IpAdapterParserUtils.addConstructorValueIfAttributeDefined(builder, element, IpAdapterParserUtils.ACK_PORT);
 		IpAdapterParserUtils.addConstructorValueIfAttributeDefined(builder, element, IpAdapterParserUtils.ACK_TIMEOUT);
 		String ack = element.getAttribute(IpAdapterParserUtils.ACK);
-		if (ack.equals("true")) {
-			if (!StringUtils.hasText(element
-					.getAttribute(IpAdapterParserUtils.ACK_HOST))
-					|| !StringUtils.hasText(element
-							.getAttribute(IpAdapterParserUtils.ACK_PORT))
-					|| !StringUtils.hasText(element
-							.getAttribute(IpAdapterParserUtils.ACK_TIMEOUT))) {
-				parserContext.getReaderContext().error("When "
-						+ IpAdapterParserUtils.ACK + " is true, "
-						+ IpAdapterParserUtils.ACK_HOST + ", "
-						+ IpAdapterParserUtils.ACK_PORT + ", and "
-						+ IpAdapterParserUtils.ACK_TIMEOUT
-						+ " must be supplied", element);
-			}
+		if (ack.equals("true") &&
+				(!StringUtils.hasText(element
+						.getAttribute(IpAdapterParserUtils.ACK_HOST))
+						|| !StringUtils.hasText(element
+						.getAttribute(IpAdapterParserUtils.ACK_PORT))
+						|| !StringUtils.hasText(element
+						.getAttribute(IpAdapterParserUtils.ACK_TIMEOUT)))) {
+
+			parserContext.getReaderContext()
+					.error("When "
+							+ IpAdapterParserUtils.ACK + " is true, "
+							+ IpAdapterParserUtils.ACK_HOST + ", "
+							+ IpAdapterParserUtils.ACK_PORT + ", and "
+							+ IpAdapterParserUtils.ACK_TIMEOUT
+							+ " must be supplied", element);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,23 +25,25 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * {@link MultipartFileReader} implementation that copies the MulitpartFile's
+ * {@link MultipartFileReader} implementation that copies the MultipartFile's
  * content to a new temporary File in the specified directory. If no directory
  * is provided, the Files will be created in the default temporary directory.
  *
  * @author Mark Fisher
+ * @author Artyem Bilan
+ *
  * @since 2.0
  */
 public class FileCopyingMultipartFileReader implements MultipartFileReader<MultipartFile> {
 
-	private static final Log logger = LogFactory.getLog(FileCopyingMultipartFileReader.class);
+	private static final Log LOGGER = LogFactory.getLog(FileCopyingMultipartFileReader.class);
 
 
 	private final File directory;
 
-	private volatile String prefix = "si_";
+	private String prefix = "si_";
 
-	private volatile String suffix = ".tmp";
+	private String suffix = ".tmp";
 
 
 	/**
@@ -55,7 +57,6 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 	/**
 	 * Create a {@link FileCopyingMultipartFileReader} that creates temporary
 	 * Files in the given directory.
-	 *
 	 * @param directory The directory.
 	 */
 	public FileCopyingMultipartFileReader(File directory) {
@@ -65,7 +66,6 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 
 	/**
 	 * Specify the prefix to use for temporary files.
-	 *
 	 * @param prefix The prefix.
 	 */
 	public void setPrefix(String prefix) {
@@ -74,7 +74,6 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 
 	/**
 	 * Specify the suffix to use for temporary files.
-	 *
 	 * @param suffix The suffix.
 	 */
 	public void setSuffix(String suffix) {
@@ -87,8 +86,8 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 		multipartFile.transferTo(upload);
 		UploadedMultipartFile uploadedMultipartFile = new UploadedMultipartFile(upload, multipartFile.getSize(),
 				multipartFile.getContentType(), multipartFile.getName(), multipartFile.getOriginalFilename());
-		if (logger.isDebugEnabled()) {
-			logger.debug("copied uploaded file [" + multipartFile.getOriginalFilename() +
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("copied uploaded file [" + multipartFile.getOriginalFilename() +
 					"] to [" + upload.getAbsolutePath() + "]");
 		}
 		return uploadedMultipartFile;

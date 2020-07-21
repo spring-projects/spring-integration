@@ -35,16 +35,16 @@ import org.springframework.messaging.support.MessageHandlingRunnable;
 import org.springframework.util.Assert;
 
 /**
- * A broadcasting dispatcher implementation. If the 'ignoreFailures' property is set to <code>false</code> (the
+ * A broadcasting dispatcher implementation. If the 'ignoreFailures' property is set to false (the
  * default), it will fail fast such that any Exception thrown by a MessageHandler may prevent subsequent handlers from
  * receiving the Message. However, when an Executor is provided, the Messages may be dispatched in separate Threads so
- * that other handlers are invoked even when the 'ignoreFailures' flag is <code>false</code>.
+ * that other handlers are invoked even when the 'ignoreFailures' flag is false.
  * <p>
- * If the 'ignoreFailures' flag is set to <code>true</code> on the other hand, it will make a best effort to send the
- * message to each of its handlers. In other words, when 'ignoreFailures' is <code>true</code>, if it fails to send to
+ * If the 'ignoreFailures' flag is set to true on the other hand, it will make a best effort to send the
+ * message to each of its handlers. In other words, when 'ignoreFailures' is true, if it fails to send to
  * any one handler, it will simply log a warn-level message but continue to send the Message to any other handlers.
  * <p>
- * If the 'requireSubscribers' flag is set to <code>true</code>, the sent message is considered as non-dispatched
+ * If the 'requireSubscribers' flag is set to true, the sent message is considered as non-dispatched
  * and rejected to the caller with the {@code "Dispatcher has no subscribers"} {@link MessageDispatchingException}.
  *
  * @author Mark Fisher
@@ -92,15 +92,14 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 	}
 
 	/**
-	 * Specify whether failures for one or more of the handlers should be ignored. By default this is <code>false</code>
+	 * Specify whether failures for one or more of the handlers should be ignored. By default this is false
 	 * meaning that an Exception will be thrown when a handler fails. To override this and suppress Exceptions, set the
-	 * value to <code>true</code>.
+	 * value to true.
 	 * <p>
 	 * Keep in mind that when using an Executor, even without ignoring the failures, other handlers may be invoked after
 	 * one throws an Exception. Since the Executor is most likely using a different thread, this flag would only affect
 	 * whether an error Message is sent to the error channel or not in the case that such an Executor has been
 	 * configured.
-	 *
 	 * @param ignoreFailures true when failures are to be ignored.
 	 */
 	public void setIgnoreFailures(boolean ignoreFailures) {
@@ -108,9 +107,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 	}
 
 	/**
-	 * Specify whether to apply sequence numbers to the messages prior to sending to the handlers. By default, sequence
-	 * numbers will <em>not</em> be applied.
-	 *
+	 * Specify whether to apply sequence numbers to the messages prior to sending to the handlers.
+	 * By default, sequence numbers will not be applied.
 	 * @param applySequence true when sequence information should be applied.
 	 */
 	public void setApplySequence(boolean applySequence) {
@@ -226,9 +224,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		}
 		catch (RuntimeException e) {
 			if (!this.ignoreFailures) {
-				if (e instanceof MessagingException
-						&& ((MessagingException) e).getFailedMessage() == null) { // NOSONAR
-
+				if (e instanceof MessagingException && ((MessagingException) e).getFailedMessage() == null) { // NOSONAR
 					throw new MessagingException(message, "Failed to handle Message", e);
 				}
 				throw e;

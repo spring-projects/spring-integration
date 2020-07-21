@@ -141,7 +141,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private long expireTimeout;
 
-	@Nullable
 	private Duration expireDuration;
 
 	private MessageGroupProcessor forceReleaseProcessor = new ForceReleaseMessageGroupProcessor();

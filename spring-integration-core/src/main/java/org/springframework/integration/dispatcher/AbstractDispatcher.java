@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,15 +40,15 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Diego Belfer
+ * @author Artem Bilan
  */
 public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
-	private volatile int maxSubscribers = Integer.MAX_VALUE;
+	private final OrderedAwareCopyOnWriteArraySet<MessageHandler> handlers = new OrderedAwareCopyOnWriteArraySet<>();
 
-	private final OrderedAwareCopyOnWriteArraySet<MessageHandler> handlers =
-			new OrderedAwareCopyOnWriteArraySet<MessageHandler>();
+	private volatile int maxSubscribers = Integer.MAX_VALUE;
 
 	private volatile MessageHandler theOneHandler;
 
@@ -125,7 +125,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " with handlers: " + this.handlers.toString();
+		return getClass().getSimpleName() + " with handlers: " + this.handlers.toString();
 	}
 
 	@Override
