@@ -18,9 +18,7 @@ package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.ScheduledFuture;
-import java.util.function.Supplier;
 
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -39,6 +37,7 @@ import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
+import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.support.MqttUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -47,7 +46,11 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * Eclipse Paho Implementation.
+ * Eclipse Paho Implementation. When consuming {@link MqttIntegrationEvent}s published by
+ * this component use {@code MqttPahoComponent adapter = event.getSourceAsType()} to get a
+ * reference, allowing you to obtain the bean name and {@link MqttConnectOptions}. This
+ * technique allows consumption of events from both inbound and outbound endpoints in the
+ * same event listener.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -71,8 +74,6 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	private static final int DEFAULT_RECOVERY_INTERVAL = 10_000;
 
 	private final MqttPahoClientFactory clientFactory;
-
-	private Supplier<List<String>> uriSupplier;
 
 	private int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
@@ -186,9 +187,12 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	@Override
 	public MqttConnectOptions getConnectionInfo() {
 		MqttConnectOptions options = this.clientFactory.getConnectionOptions();
-		if (options.getServerURIs() == null && getUrl() != null) {
-			options = MqttUtils.cloneConnectOptions(options);
-			options.setServerURIs(new String[] { getUrl() });
+		if (options.getServerURIs() == null) {
+			String url = getUrl();
+			if (url != null) {
+				options = MqttUtils.cloneConnectOptions(options);
+				options.setServerURIs(new String[] { url });
+			}
 		}
 		return options;
 	}
@@ -277,7 +281,6 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	private synchronized void connectAndSubscribe() throws MqttException {
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 		this.cleanSession = connectionOptions.isCleanSession();
