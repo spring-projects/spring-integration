@@ -81,7 +81,7 @@ ext {
 	micrometerVersion = '1.3.9'
 	mockitoVersion = '3.2.4'
 	mysqlVersion = '8.0.20'
-	pahoMqttClientVersion = '1.2.2'
+	pahoMqttClientVersion = '1.2.4'
 	postgresVersion = '42.2.12'
 	reactorVersion = 'Dysprosium-SR8'
 	resilience4jVersion = '1.1.0'
