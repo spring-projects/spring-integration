@@ -86,7 +86,7 @@ ext {
 	mockitoVersion = '3.3.3'
 	mongoDriverVersion = '4.0.4'
 	mysqlVersion = '8.0.20'
-	pahoMqttClientVersion = '1.2.2'
+	pahoMqttClientVersion = '1.2.4'
 	postgresVersion = '42.2.14'
 	reactorVersion = '2020.0.0-M1'
 	resilience4jVersion = '1.5.0'
