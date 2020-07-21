@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
@@ -67,24 +68,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	private int clientInstance;
 
-	/**
-	 * Construct an instance with the provided property.
-	 * @param clientId the client id.
-	 */
-	@SuppressWarnings("deprecation")
-	public AbstractMqttMessageHandler(String clientId) {
-		this(null, clientId);
-	}
-
-	/**
-	 * Deprecated - implementations should maintain their own URL or other connection
-	 * information.
-	 * @deprecated in favor of {@link #AbstractMqttMessageHandler(String)}.
-	 * @param url the url.
-	 * @param clientId the client id.
-	 */
-	@Deprecated
-	public AbstractMqttMessageHandler(String url, String clientId) {
+	public AbstractMqttMessageHandler(@Nullable String url, String clientId) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
 		this.url = url;
 		this.clientId = clientId;
@@ -202,13 +186,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		return this.converter;
 	}
 
-	/**
-	 * Deprecated - implementations should maintain their own URL or other connection
-	 * information.
-	 * @deprecated
-	 * @return the url.
-	 */
-	@Deprecated
+	@Nullable
 	protected String getUrl() {
 		return this.url;
 	}

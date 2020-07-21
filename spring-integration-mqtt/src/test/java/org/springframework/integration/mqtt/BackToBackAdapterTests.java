@@ -87,14 +87,13 @@ public class BackToBackAdapterTests {
 
 	@Test
 	public void testSingleTopic() {
-		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-out");
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
-		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-in", "mqtt-foo");
+		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883",
+				"si-test-in", "mqtt-foo");
 		QueueChannel outputChannel = new QueueChannel();
 		inbound.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -110,6 +109,7 @@ public class BackToBackAdapterTests {
 		inbound.stop();
 		assertThat(out.getPayload()).isEqualTo("foo");
 		assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-foo");
+		assertThat(adapter.getConnectionInfo().getServerURIs()[0]).isEqualTo("tcp://localhost:1883");
 	}
 
 	@Test
@@ -123,8 +123,7 @@ public class BackToBackAdapterTests {
 	}
 
 	private void testJsonCommon(String... trusted) {
-		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-out");
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper(
@@ -134,8 +133,8 @@ public class BackToBackAdapterTests {
 		adapter.setConverter(converter);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-in", "mqtt-foo");
+		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883",
+				"si-test-in", "mqtt-foo");
 		QueueChannel outputChannel = new QueueChannel();
 		inbound.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -162,14 +161,12 @@ public class BackToBackAdapterTests {
 
 	@Test
 	public void testAddRemoveTopic() {
-		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-out");
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
-		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-in");
+		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in");
 		QueueChannel outputChannel = new QueueChannel();
 		inbound.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -216,14 +213,13 @@ public class BackToBackAdapterTests {
 
 	@Test
 	public void testTwoTopics() {
-		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-out");
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
-		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-in", "mqtt-foo", "mqtt-bar");
+		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883",
+				"si-test-in", "mqtt-foo", "mqtt-bar");
 		QueueChannel outputChannel = new QueueChannel();
 		inbound.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -249,8 +245,7 @@ public class BackToBackAdapterTests {
 
 	@Test
 	public void testAsync() throws Exception {
-		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-out");
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.setAsync(true);
@@ -259,8 +254,8 @@ public class BackToBackAdapterTests {
 		adapter.setApplicationEventPublisher(publisher);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-in", "mqtt-foo");
+		MqttPahoMessageDrivenChannelAdapter inbound =
+				new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in", "mqtt-foo");
 		QueueChannel outputChannel = new QueueChannel();
 		inbound.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -285,8 +280,7 @@ public class BackToBackAdapterTests {
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
 		MqttClientPersistence persistence = new MqttDefaultFilePersistence(folder.getRoot().getAbsolutePath());
 		factory.setPersistence(persistence);
-		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-out",
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out",
 				factory);
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
@@ -298,8 +292,8 @@ public class BackToBackAdapterTests {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter(
-				Collections.singletonList("tcp://localhost:1883"), "si-test-in", "mqtt-foo", "mqtt-bar");
+		MqttPahoMessageDrivenChannelAdapter inbound =
+				new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in", "mqtt-foo", "mqtt-bar");
 		QueueChannel outputChannel = new QueueChannel();
 		inbound.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();

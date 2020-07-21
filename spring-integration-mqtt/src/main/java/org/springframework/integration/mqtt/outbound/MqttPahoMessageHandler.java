@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mqtt.outbound;
 
-import java.util.List;
-
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -34,6 +32,7 @@ import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.integration.mqtt.support.MqttUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -79,31 +78,13 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	 * Use this constructor for a single url (although it may be overridden if the server
 	 * URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()} provided by
 	 * the {@link MqttPahoClientFactory}).
-	 * @deprecated in favor of
-	 * {@link #MqttPahoMessageHandler(List, String, MqttPahoClientFactory)}.
 	 * @param url the URL.
 	 * @param clientId The client id.
 	 * @param clientFactory The client factory.
 	 */
-	@Deprecated
-	@SuppressWarnings("deprecation")
 	public MqttPahoMessageHandler(String url, String clientId, MqttPahoClientFactory clientFactory) {
 		super(url, clientId);
 		this.clientFactory = clientFactory;
-	}
-
-	/**
-	 * Use this constructor to override the {@link MqttConnectOptions#getServerURIs() serverUris} provided by
-	 * the {@link MqttPahoClientFactory}).
-	 * @param serverUris the server URIs.
-	 * @param clientId The client id.
-	 * @param clientFactory The client factory.
-	 * @since 5.4
-	 */
-	public MqttPahoMessageHandler(List<String> serverUris, String clientId, MqttPahoClientFactory clientFactory) {
-		super(clientId);
-		this.clientFactory = clientFactory;
-		this.clientFactory.setServerUris(serverUris);
 	}
 
 	/**
@@ -123,21 +104,9 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
 	 * @param url The URL.
 	 * @param clientId The client id.
-	 * @deprecated in favor of {@link #MqttPahoMessageHandler(List, String)}.
-	 * @since 5.4
 	 */
-	@Deprecated
 	public MqttPahoMessageHandler(String url, String clientId) {
 		this(url, clientId, new DefaultMqttPahoClientFactory());
-	}
-
-	/**
-	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
-	 * @param serverUris The URL.
-	 * @param clientId The client id.
-	 */
-	public MqttPahoMessageHandler(List<String> serverUris, String clientId) {
-		this(serverUris, clientId, new DefaultMqttPahoClientFactory());
 	}
 
 	/**
@@ -190,7 +159,15 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	@Override
 	public MqttConnectOptions getConnectionInfo() {
-		return this.clientFactory.getConnectionOptions();
+		MqttConnectOptions options = this.clientFactory.getConnectionOptions();
+		if (options.getServerURIs() == null && getUrl() != null) {
+			if (options.getServerURIs() == null && getUrl() != null) {
+				options = MqttUtils.cloneConnectOptions(options);
+				options.setServerURIs(new String[] { getUrl() });
+			}
+			options.setServerURIs(new String[] { getUrl() });
+		}
+		return options;
 	}
 
 	@Override

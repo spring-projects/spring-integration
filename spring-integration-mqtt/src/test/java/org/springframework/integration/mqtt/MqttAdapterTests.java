@@ -36,7 +36,6 @@ import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
@@ -157,15 +156,13 @@ public class MqttAdapterTests {
 		connectOptions.setSSLProperties(props);
 		connectOptions.setUserName("user");
 		connectOptions.setWill("foo", "bar".getBytes(), 2, true);
-		connectOptions.setServerURIs(new String[] { "tcp://foo" });
 		factory.setConnectionOptions(connectOptions);
 
 		factory = spy(factory);
 		final MqttAsyncClient client = mock(MqttAsyncClient.class);
-		willAnswer(invocation -> client).given(factory).getAsyncClientInstance(isNull(), anyString());
+		willAnswer(invocation -> client).given(factory).getAsyncClientInstance(anyString(), anyString());
 
-		MqttPahoMessageHandler handler =
-				new MqttPahoMessageHandler(Collections.singletonList("tcp://bar"), "bar", factory);
+		MqttPahoMessageHandler handler = new MqttPahoMessageHandler("foo", "bar", factory);
 		handler.setDefaultTopic("mqtt-foo");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
@@ -184,7 +181,6 @@ public class MqttAdapterTests {
 			assertThat(options.getWillDestination()).isEqualTo("foo");
 			assertThat(new String(options.getWillMessage().getPayload())).isEqualTo("bar");
 			assertThat(options.getWillMessage().getQos()).isEqualTo(2);
-			assertThat(options.getServerURIs()[0]).isEqualTo("tcp://bar");
 			connectCalled.set(true);
 			return token;
 		}).given(client).connect(any(MqttConnectOptions.class));
@@ -227,12 +223,11 @@ public class MqttAdapterTests {
 		connectOptions.setSSLProperties(props);
 		connectOptions.setUserName("user");
 		connectOptions.setWill("foo", "bar".getBytes(), 2, true);
-		connectOptions.setServerURIs(new String[] { "tcp://foo" });
 		factory.setConnectionOptions(connectOptions);
 
 		factory = spy(factory);
 		final IMqttClient client = mock(IMqttClient.class);
-		willAnswer(invocation -> client).given(factory).getClientInstance(isNull(), anyString());
+		willAnswer(invocation -> client).given(factory).getClientInstance(anyString(), anyString());
 
 		final AtomicBoolean connectCalled = new AtomicBoolean();
 		final AtomicBoolean failConnection = new AtomicBoolean();
@@ -269,7 +264,7 @@ public class MqttAdapterTests {
 
 		given(client.isConnected()).willReturn(true);
 
-		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("bar", factory,
+		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory,
 				"baz", "fix");
 		adapter.setManualAcks(true);
 		QueueChannel outputChannel = new QueueChannel();
@@ -452,13 +447,11 @@ public class MqttAdapterTests {
 		connectOptions.setSSLProperties(props);
 		connectOptions.setUserName("user");
 		connectOptions.setWill("foo", "bar".getBytes(), 2, true);
-		connectOptions.setServerURIs(new String[] { "tcp://foo" });
 
-		factory.setConnectionOptions(connectOptions);
 		factory = spy(factory);
 		MqttAsyncClient aClient = mock(MqttAsyncClient.class);
 		final MqttClient client = mock(MqttClient.class);
-		willAnswer(invocation -> client).given(factory).getClientInstance(isNull(), anyString());
+		willAnswer(invocation -> client).given(factory).getClientInstance(anyString(), anyString());
 		given(client.isConnected()).willReturn(true);
 		new DirectFieldAccessor(client).setPropertyValue("aClient", aClient);
 		willAnswer(new CallsRealMethods()).given(client).connect(any(MqttConnectOptions.class));
@@ -471,7 +464,7 @@ public class MqttAdapterTests {
 		given(token.getGrantedQos()).willReturn(new int[] { 0x80 });
 		willReturn(token).given(aClient).subscribe(any(String[].class), any(int[].class), isNull(), isNull(), any());
 
-		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("bar", factory,
+		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory,
 				"baz", "fix");
 		AtomicReference<Method> method = new AtomicReference<>();
 		ReflectionUtils.doWithMethods(MqttPahoMessageDrivenChannelAdapter.class, m -> {
@@ -503,13 +496,11 @@ public class MqttAdapterTests {
 		connectOptions.setSSLProperties(props);
 		connectOptions.setUserName("user");
 		connectOptions.setWill("foo", "bar".getBytes(), 2, true);
-		connectOptions.setServerURIs(new String[] { "tcp://foo" });
-		factory.setConnectionOptions(connectOptions);
 
 		factory = spy(factory);
 		MqttAsyncClient aClient = mock(MqttAsyncClient.class);
 		final MqttClient client = mock(MqttClient.class);
-		willAnswer(invocation -> client).given(factory).getClientInstance(isNull(), anyString());
+		willAnswer(invocation -> client).given(factory).getClientInstance(anyString(), anyString());
 		given(client.isConnected()).willReturn(true);
 		new DirectFieldAccessor(client).setPropertyValue("aClient", aClient);
 		willAnswer(new CallsRealMethods()).given(client).connect(any(MqttConnectOptions.class));
@@ -522,7 +513,7 @@ public class MqttAdapterTests {
 		given(token.getGrantedQos()).willReturn(new int[] { 2, 0 });
 		willReturn(token).given(aClient).subscribe(any(String[].class), any(int[].class), isNull(), isNull(), any());
 
-		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("bar", factory,
+		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory,
 				"baz", "fix");
 		AtomicReference<Method> method = new AtomicReference<>();
 		ReflectionUtils.doWithMethods(MqttPahoMessageDrivenChannelAdapter.class, m -> {
@@ -609,8 +600,7 @@ public class MqttAdapterTests {
 
 		@Bean
 		public MqttPahoMessageHandler handler() {
-			MqttPahoMessageHandler handler = new MqttPahoMessageHandler(
-					Collections.singletonList("tcp://localhost:1883"), "bar");
+			MqttPahoMessageHandler handler = new MqttPahoMessageHandler("tcp://localhost:1883", "bar");
 			handler.setTopicExpressionString("@topic");
 			handler.setQosExpressionString("@qos");
 			handler.setRetainedExpressionString("@retained");
@@ -634,8 +624,7 @@ public class MqttAdapterTests {
 
 		@Bean
 		public MqttPahoMessageHandler handlerWithNullExpressions() {
-			MqttPahoMessageHandler handler = new MqttPahoMessageHandler(
-					Collections.singletonList("tcp://localhost:1883"), "bar");
+			MqttPahoMessageHandler handler = new MqttPahoMessageHandler("tcp://localhost:1883", "bar");
 			handler.setDefaultQos(1);
 			handler.setQosExpressionString("null");
 			handler.setDefaultRetained(true);

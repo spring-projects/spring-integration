@@ -40,6 +40,7 @@ import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
+import org.springframework.integration.mqtt.support.MqttUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -97,36 +98,16 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 * Use this constructor for a single url (although it may be overridden if the server
 	 * URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()} provided by
 	 * the {@link MqttPahoClientFactory}).
-	 * @deprecated in favor of
-	 * {@link #MqttPahoMessageDrivenChannelAdapter(List, String, MqttPahoClientFactory, String...)}
-	 * - set the url in the client factory connection options.
 	 * @param url the URL.
 	 * @param clientId The client id.
 	 * @param clientFactory The client factory.
 	 * @param topic The topic(s).
 	 */
-	@Deprecated
-	@SuppressWarnings("deprecation")
 	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, MqttPahoClientFactory clientFactory,
 			String... topic) {
+
 		super(url, clientId, topic);
 		this.clientFactory = clientFactory;
-	}
-
-	/**
-	 * Use this constructor with a list of server URIs, which will take precedence over
-	 * the factory's connection options' server URIs.
-	 * @param serverUris the server URIs.
-	 * @param clientId The client id.
-	 * @param clientFactory The client factory.
-	 * @param topic The topic(s).
-	 * @since 5.4
-	 */
-	public MqttPahoMessageDrivenChannelAdapter(List<String> serverUris, String clientId,
-			MqttPahoClientFactory clientFactory, String... topic) {
-		super(clientId, topic);
-		this.clientFactory = clientFactory;
-		this.clientFactory.setServerUris(serverUris);
 	}
 
 	/**
@@ -140,7 +121,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 */
 	public MqttPahoMessageDrivenChannelAdapter(String clientId, MqttPahoClientFactory clientFactory,
 			String... topic) {
-		super(clientId, topic);
+		super(null, clientId, topic);
 		this.clientFactory = clientFactory;
 	}
 
@@ -150,35 +131,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 * @param url The URL.
 	 * @param clientId The client id.
 	 * @param topic The topic(s).
-	 * @deprecated in favor of
-	 * {@link #MqttPahoMessageDrivenChannelAdapter(List, String, String...)}
-	 * - set the url in the client factory connection options.
 	 */
-	@Deprecated
-	@SuppressWarnings("deprecation")
 	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
-		this(url, clientId, buildFactory(url), topic);
-	}
-
-	/**
-	 * Use this constructor with a list of server URIs.
-	 * @param serverUris The URIs.
-	 * @param clientId The client id.
-	 * @param topics The topic(s).
-	 * @since 5.4
-	 */
-	public MqttPahoMessageDrivenChannelAdapter(List<String> serverUris, String clientId, String... topics) {
-		this(serverUris, clientId, new DefaultMqttPahoClientFactory(), topics);
-	}
-
-	private static String getFirstUri(List<String> serverUris) {
-		return serverUris != null && serverUris.size() > 0 ? serverUris.get(0) : null;
-	}
-
-	private static DefaultMqttPahoClientFactory buildFactory(String url) {
-		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
-		factory.getConnectionOptions().setServerURIs(new String[] { url });
-		return factory;
+		this(url, clientId, new DefaultMqttPahoClientFactory(), topic);
 	}
 
 	/**
@@ -230,7 +185,12 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	@Override
 	public MqttConnectOptions getConnectionInfo() {
-		return this.clientFactory.getConnectionOptions();
+		MqttConnectOptions options = this.clientFactory.getConnectionOptions();
+		if (options.getServerURIs() == null && getUrl() != null) {
+			options = MqttUtils.cloneConnectOptions(options);
+			options.setServerURIs(new String[] { getUrl() });
+		}
+		return options;
 	}
 
 	@Override
