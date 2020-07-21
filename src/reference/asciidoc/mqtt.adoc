@@ -403,3 +403,14 @@ Certain application events are published by the adapters.
 * `MqttSubscribedEvent` - published by the inbound adapter after subscribing to the topics.
 
 These events can be received by an `ApplicationListener<MqttIntegrationEvent>` or with an `@EventListener` method.
+
+To determine the source of an event, use the following; you can check the bean name and/or the connect options (to access the server URIs etc).
+
+====
+[source, java]
+----
+MqttPahoComponent source = event.getSourceAsType();
+String beanName = source.getBeanName();
+MqttConnectOptions options = source.getConnectionInfo();
+----
+====

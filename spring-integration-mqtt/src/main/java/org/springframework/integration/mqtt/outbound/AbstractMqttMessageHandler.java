@@ -27,6 +27,7 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
@@ -67,7 +68,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	private int clientInstance;
 
-	public AbstractMqttMessageHandler(String url, String clientId) {
+	public AbstractMqttMessageHandler(@Nullable String url, String clientId) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
 		this.url = url;
 		this.clientId = clientId;
@@ -185,6 +186,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		return this.converter;
 	}
 
+	@Nullable
 	protected String getUrl() {
 		return this.url;
 	}

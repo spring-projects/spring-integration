@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -35,10 +36,13 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationListener;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
+import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
+import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
@@ -78,6 +82,9 @@ public class BackToBackAdapterTests {
 	@Autowired
 	private PollableChannel in;
 
+	@Autowired
+	private EventsListener listener;
+
 	@Test
 	public void testSingleTopic() {
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
@@ -102,6 +109,7 @@ public class BackToBackAdapterTests {
 		inbound.stop();
 		assertThat(out.getPayload()).isEqualTo("foo");
 		assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-foo");
+		assertThat(adapter.getConnectionInfo().getServerURIs()[0]).isEqualTo("tcp://localhost:1883");
 	}
 
 	@Test
@@ -369,6 +377,20 @@ public class BackToBackAdapterTests {
 		Message<?> message = in.receive(20000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("foo");
+		MqttPahoComponent source = this.listener.event.getSourceAsType();
+		assertThat(Arrays.toString(source.getConnectionInfo().getServerURIs()))
+				.isEqualTo("[tcp://localhost:1883, tcp://localhost:1883]");
+	}
+
+	public static class EventsListener implements ApplicationListener<MqttSubscribedEvent> {
+
+		volatile MqttSubscribedEvent event;
+
+		@Override
+		public void onApplicationEvent(MqttSubscribedEvent event) {
+			this.event = event;
+		}
+
 	}
 
 	private class EventPublisher implements ApplicationEventPublisher {

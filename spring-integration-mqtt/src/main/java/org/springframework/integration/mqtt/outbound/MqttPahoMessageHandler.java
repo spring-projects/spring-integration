@@ -27,17 +27,24 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
+import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
+import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.integration.mqtt.support.MqttUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * Eclipse Paho implementation.
+ * Eclipse Paho Implementation. When consuming {@link MqttIntegrationEvent}s published by
+ * this component use {@code MqttPahoComponent handler = event.getSourceAsType()} to get a
+ * reference, allowing you to obtain the bean name and {@link MqttConnectOptions}. This
+ * technique allows consumption of events from both inbound and outbound endpoints in the
+ * same event listener.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -46,7 +53,7 @@ import org.springframework.util.Assert;
  *
  */
 public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
-		implements MqttCallback, ApplicationEventPublisherAware {
+		implements MqttCallback, MqttPahoComponent, ApplicationEventPublisherAware {
 
 	/**
 	 * The default completion timeout in milliseconds.
@@ -73,9 +80,9 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	private volatile IMqttAsyncClient client;
 
 	/**
-	 * Use this constructor for a single url (although it may be overridden
-	 * if the server URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()}
-	 * provided by the {@link MqttPahoClientFactory}).
+	 * Use this constructor for a single url (although it may be overridden if the server
+	 * URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()} provided by
+	 * the {@link MqttPahoClientFactory}).
 	 * @param url the URL.
 	 * @param clientId The client id.
 	 * @param clientFactory The client factory.
@@ -98,7 +105,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	}
 
 	/**
-	 * Use this URL when you don't need additional {@link MqttConnectOptions}.
+	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
 	 * @param url The URL.
 	 * @param clientId The client id.
 	 */
@@ -152,6 +159,19 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	@Override
+	public MqttConnectOptions getConnectionInfo() {
+		MqttConnectOptions options = this.clientFactory.getConnectionOptions();
+		if (options.getServerURIs() == null) {
+			String url = getUrl();
+			if (url != null) {
+				options = MqttUtils.cloneConnectOptions(options);
+				options.setServerURIs(new String[] { url });
+			}
+		}
+		return options;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ package org.springframework.integration.mqtt.event;
 import org.springframework.integration.events.IntegrationEvent;
 
 /**
- * Base class for Mqtt Events.
+ * Base class for Mqtt Events. For {@link #getSourceAsType()}, you should use a sub type
+ * of {@link org.springframework.integration.mqtt.core.MqttComponent} for the receiving
+ * variable.
  * @author Gary Russell
  *
  * @since 4.1

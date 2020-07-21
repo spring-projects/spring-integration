@@ -35,15 +35,22 @@ import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
+import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
+import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
+import org.springframework.integration.mqtt.support.MqttUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * Eclipse Paho Implementation.
+ * Eclipse Paho Implementation. When consuming {@link MqttIntegrationEvent}s published by
+ * this component use {@code MqttPahoComponent adapter = event.getSourceAsType()} to get a
+ * reference, allowing you to obtain the bean name and {@link MqttConnectOptions}. This
+ * technique allows consumption of events from both inbound and outbound endpoints in the
+ * same event listener.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -52,7 +59,7 @@ import org.springframework.util.Assert;
  *
  */
 public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter
-		implements MqttCallback, ApplicationEventPublisherAware {
+		implements MqttCallback, MqttPahoComponent, ApplicationEventPublisherAware {
 
 	/**
 	 * The default completion timeout in milliseconds.
@@ -89,9 +96,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	/**
-	 * Use this constructor for a single url (although it may be overridden
-	 * if the server URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()}
-	 * provided by the {@link MqttPahoClientFactory}).
+	 * Use this constructor for a single url (although it may be overridden if the server
+	 * URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()} provided by
+	 * the {@link MqttPahoClientFactory}).
 	 * @param url the URL.
 	 * @param clientId The client id.
 	 * @param clientFactory The client factory.
@@ -99,13 +106,15 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 */
 	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, MqttPahoClientFactory clientFactory,
 			String... topic) {
+
 		super(url, clientId, topic);
 		this.clientFactory = clientFactory;
 	}
 
 	/**
-	 * Use this constructor if the server URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()}
-	 * provided by the {@link MqttPahoClientFactory}.
+	 * Use this constructor if the server URI(s) are provided by the
+	 * {@link MqttConnectOptions#getServerURIs()} provided by the
+	 * {@link MqttPahoClientFactory}.
 	 * @param clientId The client id.
 	 * @param clientFactory The client factory.
 	 * @param topic The topic(s).
@@ -117,8 +126,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this.clientFactory = clientFactory;
 	}
 
+
 	/**
-	 * Use this URL when you don't need additional {@link MqttConnectOptions}.
+	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
 	 * @param url The URL.
 	 * @param clientId The client id.
 	 * @param topic The topic(s).
@@ -172,6 +182,19 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher; // NOSONAR (inconsistent synchronization)
+	}
+
+	@Override
+	public MqttConnectOptions getConnectionInfo() {
+		MqttConnectOptions options = this.clientFactory.getConnectionOptions();
+		if (options.getServerURIs() == null) {
+			String url = getUrl();
+			if (url != null) {
+				options = MqttUtils.cloneConnectOptions(options);
+				options.setServerURIs(new String[] { url });
+			}
+		}
+		return options;
 	}
 
 	@Override
