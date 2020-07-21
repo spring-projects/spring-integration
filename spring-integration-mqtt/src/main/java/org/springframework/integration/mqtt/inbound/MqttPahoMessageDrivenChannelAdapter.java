@@ -18,7 +18,9 @@ package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
+import java.util.function.Supplier;
 
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -69,6 +71,8 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private final MqttPahoClientFactory clientFactory;
 
+	private Supplier<List<String>> uriSupplier;
+
 	private int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
@@ -94,7 +98,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 * URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()} provided by
 	 * the {@link MqttPahoClientFactory}).
 	 * @deprecated in favor of
-	 * {@link #MqttPahoMessageDrivenChannelAdapter(String, MqttPahoClientFactory, String...)}
+	 * {@link #MqttPahoMessageDrivenChannelAdapter(List, String, MqttPahoClientFactory, String...)}
 	 * - set the url in the client factory connection options.
 	 * @param url the URL.
 	 * @param clientId The client id.
@@ -110,6 +114,22 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	/**
+	 * Use this constructor with a list of server URIs, which will take precedence over
+	 * the factory's connection options' server URIs.
+	 * @param serverUris the server URIs.
+	 * @param clientId The client id.
+	 * @param clientFactory The client factory.
+	 * @param topic The topic(s).
+	 * @since 5.4
+	 */
+	public MqttPahoMessageDrivenChannelAdapter(List<String> serverUris, String clientId,
+			MqttPahoClientFactory clientFactory, String... topic) {
+		super(clientId, topic);
+		this.clientFactory = clientFactory;
+		this.clientFactory.setServerUris(serverUris);
+	}
+
+	/**
 	 * Use this constructor if the server URI(s) are provided by the
 	 * {@link MqttConnectOptions#getServerURIs()} provided by the
 	 * {@link MqttPahoClientFactory}.
@@ -118,22 +138,41 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 * @param topic The topic(s).
 	 * @since 4.1
 	 */
-	@SuppressWarnings("deprecation")
 	public MqttPahoMessageDrivenChannelAdapter(String clientId, MqttPahoClientFactory clientFactory,
 			String... topic) {
-		super(null, clientId, topic);
+		super(clientId, topic);
 		this.clientFactory = clientFactory;
 	}
 
+
 	/**
-	 * Use this URL when you don't need additional {@link MqttConnectOptions}.
+	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
 	 * @param url The URL.
 	 * @param clientId The client id.
 	 * @param topic The topic(s).
+	 * @deprecated in favor of
+	 * {@link #MqttPahoMessageDrivenChannelAdapter(List, String, String...)}
+	 * - set the url in the client factory connection options.
 	 */
+	@Deprecated
 	@SuppressWarnings("deprecation")
 	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		this(url, clientId, buildFactory(url), topic);
+	}
+
+	/**
+	 * Use this constructor with a list of server URIs.
+	 * @param serverUris The URIs.
+	 * @param clientId The client id.
+	 * @param topics The topic(s).
+	 * @since 5.4
+	 */
+	public MqttPahoMessageDrivenChannelAdapter(List<String> serverUris, String clientId, String... topics) {
+		this(serverUris, clientId, new DefaultMqttPahoClientFactory(), topics);
+	}
+
+	private static String getFirstUri(List<String> serverUris) {
+		return serverUris != null && serverUris.size() > 0 ? serverUris.get(0) : null;
 	}
 
 	private static DefaultMqttPahoClientFactory buildFactory(String url) {

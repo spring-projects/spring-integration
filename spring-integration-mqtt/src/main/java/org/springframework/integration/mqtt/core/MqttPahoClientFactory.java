@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.mqtt.core;
+
+import java.util.List;
 
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
@@ -62,5 +64,14 @@ public interface MqttPahoClientFactory {
 	 * @since 4.3
 	 */
 	ConsumerStopAction getConsumerStopAction();
+
+	/**
+	 * Set a list of URIs to override those in the connection options.
+	 * @param serverUris the URIs.
+	 * @since 5.4
+	 */
+	default void setServerUris(List<String> serverUris) {
+		throw new UnsupportedOperationException("This client factory does not support this method");
+	}
 
 }

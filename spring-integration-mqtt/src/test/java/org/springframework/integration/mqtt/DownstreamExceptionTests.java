@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
@@ -81,7 +82,8 @@ public class DownstreamExceptionTests {
 			return null;
 		}).when(logger).error(anyString(), any(Throwable.class));
 		new DirectFieldAccessor(noErrorChannel).setPropertyValue("logger", logger);
-		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(
+				Collections.singletonList("tcp://localhost:1883"), "si-test-out");
 		adapter.setDefaultTopic("mqtt-fooEx1");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
@@ -101,7 +103,8 @@ public class DownstreamExceptionTests {
 	public void testWithErrorChannel() throws Exception {
 		assertThat(TestUtils.getPropertyValue(this.withErrorChannel, "errorChannel")).isSameAs(this.errors);
 		service.n = 0;
-		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(
+				Collections.singletonList("tcp://localhost:1883"), "si-test-out");
 		adapter.setDefaultTopic("mqtt-fooEx2");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();

@@ -36,6 +36,7 @@ import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
@@ -163,7 +164,8 @@ public class MqttAdapterTests {
 		final MqttAsyncClient client = mock(MqttAsyncClient.class);
 		willAnswer(invocation -> client).given(factory).getAsyncClientInstance(isNull(), anyString());
 
-		MqttPahoMessageHandler handler = new MqttPahoMessageHandler("bar", factory);
+		MqttPahoMessageHandler handler =
+				new MqttPahoMessageHandler(Collections.singletonList("tcp://bar"), "bar", factory);
 		handler.setDefaultTopic("mqtt-foo");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
@@ -182,6 +184,7 @@ public class MqttAdapterTests {
 			assertThat(options.getWillDestination()).isEqualTo("foo");
 			assertThat(new String(options.getWillMessage().getPayload())).isEqualTo("bar");
 			assertThat(options.getWillMessage().getQos()).isEqualTo(2);
+			assertThat(options.getServerURIs()[0]).isEqualTo("tcp://bar");
 			connectCalled.set(true);
 			return token;
 		}).given(client).connect(any(MqttConnectOptions.class));
@@ -606,7 +609,8 @@ public class MqttAdapterTests {
 
 		@Bean
 		public MqttPahoMessageHandler handler() {
-			MqttPahoMessageHandler handler = new MqttPahoMessageHandler("tcp://localhost:1883", "bar");
+			MqttPahoMessageHandler handler = new MqttPahoMessageHandler(
+					Collections.singletonList("tcp://localhost:1883"), "bar");
 			handler.setTopicExpressionString("@topic");
 			handler.setQosExpressionString("@qos");
 			handler.setRetainedExpressionString("@retained");
@@ -630,7 +634,8 @@ public class MqttAdapterTests {
 
 		@Bean
 		public MqttPahoMessageHandler handlerWithNullExpressions() {
-			MqttPahoMessageHandler handler = new MqttPahoMessageHandler("tcp://localhost:1883", "bar");
+			MqttPahoMessageHandler handler = new MqttPahoMessageHandler(
+					Collections.singletonList("tcp://localhost:1883"), "bar");
 			handler.setDefaultQos(1);
 			handler.setQosExpressionString("null");
 			handler.setDefaultRetained(true);
