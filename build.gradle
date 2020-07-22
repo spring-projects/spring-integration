@@ -84,7 +84,7 @@ ext {
 	log4jVersion = '2.13.3'
 	micrometerVersion = '1.5.2'
 	mockitoVersion = '3.3.3'
-	mongoDriverVersion = '4.0.4'
+	mongoDriverVersion = '4.1.0-rc0'
 	mysqlVersion = '8.0.20'
 	pahoMqttClientVersion = '1.2.4'
 	postgresVersion = '42.2.14'
