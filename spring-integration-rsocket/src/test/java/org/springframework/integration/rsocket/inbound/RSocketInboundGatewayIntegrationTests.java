@@ -96,8 +96,7 @@ public class RSocketInboundGatewayIntegrationTests {
 			this.serverRsocketRequester = serverConfig.clientRequester.asMono().block(Duration.ofSeconds(10));
 		}
 		else {
-			this.clientRsocketRequester =
-					this.clientRSocketConnector.getRSocketRequester();
+			this.clientRsocketRequester = this.clientRSocketConnector.getRequester();
 		}
 	}
 

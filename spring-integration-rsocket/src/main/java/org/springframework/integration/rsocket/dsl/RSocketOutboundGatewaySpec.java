@@ -48,7 +48,7 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 
 	/**
 	 * Configure a {@link ClientRSocketConnector} for client side requests based on the connection
-	 * provided by the {@link ClientRSocketConnector#getRSocketRequester()}.
+	 * provided by the {@link ClientRSocketConnector#getRequester()}.
 	 * @param clientRSocketConnector the {@link ClientRSocketConnector} to use.
 	 * @return the spec
 	 * @see RSocketOutboundGateway#setClientRSocketConnector(ClientRSocketConnector)

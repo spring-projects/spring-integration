@@ -120,7 +120,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	/**
 	 * Configure a {@link ClientRSocketConnector} for client side requests based on the connection
-	 * provided by the {@link ClientRSocketConnector#getRSocketRequester()}.
+	 * provided by the {@link ClientRSocketConnector#getRequester()}.
 	 * In case of server side, an {@link RSocketRequester} must be provided in the
 	 * {@link RSocketRequesterMethodArgumentResolver#RSOCKET_REQUESTER_HEADER} header of request message.
 	 * @param clientRSocketConnector the {@link ClientRSocketConnector} to use.
@@ -207,7 +207,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		super.doInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.clientRSocketConnector != null) {
-			this.rsocketRequester = this.clientRSocketConnector.getRSocketRequester();
+			this.rsocketRequester = this.clientRSocketConnector.getRequester();
 		}
 	}
 
