@@ -17,6 +17,7 @@
 package org.springframework.integration.codec.kryo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.util.Assert;
@@ -44,6 +45,13 @@ public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 	private int initialValue = DEFAULT_INITIAL_ID;
 
 	/**
+	 * @param classes the vararg of classes to validateRegistration
+	 */
+	public KryoClassListRegistrar(Class<?>... classes) {
+		this(Arrays.asList(classes));
+	}
+
+	/**
 	 * @param classes the list of classes to validateRegistration
 	 */
 	public KryoClassListRegistrar(List<Class<?>> classes) {
@@ -56,8 +64,7 @@ public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 	 * @param initialValue the initial value
 	 */
 	public void setInitialValue(int initialValue) {
-		Assert.isTrue(initialValue >= MIN_REGISTRATION_VALUE,
-				"'initialValue' must be >= " + MIN_REGISTRATION_VALUE);
+		Assert.isTrue(initialValue >= MIN_REGISTRATION_VALUE, "'initialValue' must be >= " + MIN_REGISTRATION_VALUE);
 		this.initialValue = initialValue;
 	}
 
