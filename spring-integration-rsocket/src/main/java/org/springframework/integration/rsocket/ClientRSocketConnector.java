@@ -26,12 +26,11 @@ import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 
-import io.rsocket.core.RSocketConnector;
 import io.rsocket.transport.ClientTransport;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.client.WebsocketClientTransport;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
 /**
  * A client {@link AbstractRSocketConnector} extension to the RSocket connection.
@@ -40,7 +39,7 @@ import reactor.core.publisher.Sinks;
  *
  * @since 5.2
  *
- * @see io.rsocket.RSocketFactory.ClientRSocketFactory
+ * @see io.rsocket.core.RSocketConnector
  * @see RSocketRequester
  */
 public class ClientRSocketConnector extends AbstractRSocketConnector {
@@ -176,27 +175,21 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
 
-		Sinks.StandaloneMonoSink<RSocketConnector> rsocketConnector = Sinks.promise();
-
-		RSocketRequester rsocketRequester =
-				RSocketRequester.builder()
-						.dataMimeType(getDataMimeType())
-						.metadataMimeType(getMetadataMimeType())
-						.rsocketStrategies(getRSocketStrategies())
-						.setupData(this.setupData)
-						.setupRoute(this.setupRoute, this.setupRouteVars)
-						.apply((builder) -> this.setupMetadata.forEach(builder::setupMetadata))
-						.rsocketConnector(this.connectorConfigurer)
-						.rsocketConnector((connector) -> {
-							connector.acceptor(this.rSocketMessageHandler.responder());
-							rsocketConnector.success(connector);
-						})
-						.transport(this.clientTransport);
+		RSocketRequester rsocketRequester = RSocketRequester.builder()
+				.dataMimeType(getDataMimeType())
+				.metadataMimeType(getMetadataMimeType())
+				.rsocketStrategies(getRSocketStrategies())
+				.setupData(this.setupData)
+				.setupRoute(this.setupRoute, this.setupRouteVars)
+				.rsocketConnector(this.connectorConfigurer)
+				.rsocketConnector((connector) ->
+						connector.acceptor(this.rSocketMessageHandler.responder()))
+				.apply((builder) -> this.setupMetadata.forEach(builder::setupMetadata))
+				.transport(this.clientTransport);
 
 		this.rsocketRequesterMono =
-				rsocketConnector.asMono()
-						.flatMap(rSocketConnector -> rSocketConnector.connect(this.clientTransport))
-						.thenReturn(rsocketRequester)
+				Mono.just(rsocketRequester)
+						.doOnSubscribe((sub) -> rsocketRequester.rsocketClient().source().subscribe())
 						.cache();
 	}
 
@@ -215,7 +208,8 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 	@Override
 	public void destroy() {
 		this.rsocketRequesterMono
-				.doOnNext(RSocketRequester::dispose)
+				.flatMap((requester) -> requester.rsocketClient().source())
+				.doOnNext(Disposable::dispose)
 				.subscribe();
 	}
 
