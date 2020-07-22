@@ -106,7 +106,7 @@ public class KryoCodecTests {
 		map.put("one", 1);
 		map.put("two", 2);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		codec.encode(map, bos);4
+		codec.encode(map, bos);
 		Map<?, ?> m2 = (Map<?, ?>) codec.decode(bos.toByteArray(), HashMap.class);
 		assertThat(m2.size()).isEqualTo(2);
 		assertThat(m2.get("one")).isEqualTo(1);
