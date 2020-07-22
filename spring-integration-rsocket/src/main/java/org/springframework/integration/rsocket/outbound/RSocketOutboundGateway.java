@@ -89,7 +89,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	private EvaluationContext evaluationContext;
 
 	@Nullable
-	private Mono<RSocketRequester> rsocketRequesterMono;
+	private RSocketRequester rsocketRequester;
 
 	/**
 	 * Instantiate based on the provided RSocket endpoint {@code route}
@@ -207,27 +207,24 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		super.doInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.clientRSocketConnector != null) {
-			this.rsocketRequesterMono = this.clientRSocketConnector.getRSocketRequester();
+			this.rsocketRequester = this.clientRSocketConnector.getRSocketRequester();
 		}
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		RSocketRequester rsocketRequester = requestMessage.getHeaders()
-				.get(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, RSocketRequester.class);
-		Mono<RSocketRequester> requesterMono;
-		if (rsocketRequester != null) {
-			requesterMono = Mono.just(rsocketRequester);
-		}
-		else {
-			requesterMono = this.rsocketRequesterMono;
+		RSocketRequester requester =
+				requestMessage.getHeaders()
+						.get(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, RSocketRequester.class);
+		if (requester == null) {
+			requester = this.rsocketRequester;
 		}
 
-		Assert.notNull(requesterMono,
+		Assert.notNull(requester,
 				() -> "The 'RSocketRequester' must be configured via 'ClientRSocketConnector' or provided in the '" +
 						RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER + "' request message headers.");
 
-		return requesterMono
+		return Mono.just(requester)
 				.map((rSocketRequester) -> createRequestSpec(rSocketRequester, requestMessage))
 				.map((requestSpec) -> prepareRetrieveSpec(requestSpec, requestMessage))
 				.flatMap((retrieveSpec) -> performRetrieve(retrieveSpec, requestMessage));

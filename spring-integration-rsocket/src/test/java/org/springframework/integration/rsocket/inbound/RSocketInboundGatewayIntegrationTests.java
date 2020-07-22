@@ -97,7 +97,7 @@ public class RSocketInboundGatewayIntegrationTests {
 		}
 		else {
 			this.clientRsocketRequester =
-					this.clientRSocketConnector.getRSocketRequester().block(Duration.ofSeconds(10));
+					this.clientRSocketConnector.getRSocketRequester();
 		}
 	}
 

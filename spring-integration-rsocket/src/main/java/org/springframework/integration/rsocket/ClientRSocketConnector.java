@@ -29,8 +29,6 @@ import org.springframework.util.MimeType;
 import io.rsocket.transport.ClientTransport;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.client.WebsocketClientTransport;
-import reactor.core.Disposable;
-import reactor.core.publisher.Mono;
 
 /**
  * A client {@link AbstractRSocketConnector} extension to the RSocket connection.
@@ -58,7 +56,7 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	private boolean autoConnect;
 
-	private Mono<RSocketRequester> rsocketRequesterMono;
+	private RSocketRequester rsocketRequester;
 
 	/**
 	 * Instantiate a connector based on the {@link TcpClientTransport}.
@@ -175,7 +173,7 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
 
-		RSocketRequester rsocketRequester = RSocketRequester.builder()
+		this.rsocketRequester = RSocketRequester.builder()
 				.dataMimeType(getDataMimeType())
 				.metadataMimeType(getMetadataMimeType())
 				.rsocketStrategies(getRSocketStrategies())
@@ -186,11 +184,6 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 						connector.acceptor(this.rSocketMessageHandler.responder()))
 				.apply((builder) -> this.setupMetadata.forEach(builder::setupMetadata))
 				.transport(this.clientTransport);
-
-		this.rsocketRequesterMono =
-				Mono.just(rsocketRequester)
-						.doOnSubscribe((sub) -> rsocketRequester.rsocketClient().source().subscribe())
-						.cache();
 	}
 
 	@Override
@@ -207,21 +200,18 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	@Override
 	public void destroy() {
-		this.rsocketRequesterMono
-				.flatMap((requester) -> requester.rsocketClient().source())
-				.doOnNext(Disposable::dispose)
-				.subscribe();
+		this.rsocketRequester.rsocketClient().dispose();
 	}
 
 	/**
 	 * Perform subscription into the RSocket server for incoming requests.
 	 */
 	public void connect() {
-		this.rsocketRequesterMono.subscribe();
+		this.rsocketRequester.rsocketClient().source().subscribe();
 	}
 
-	public Mono<RSocketRequester> getRSocketRequester() {
-		return this.rsocketRequesterMono;
+	public RSocketRequester getRSocketRequester() {
+		return this.rsocketRequester;
 	}
 
 }
