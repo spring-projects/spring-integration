@@ -37,7 +37,6 @@ import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
-import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.support.MqttUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -46,8 +45,8 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * Eclipse Paho Implementation. When consuming {@link MqttIntegrationEvent}s published by
- * this component use {@code MqttPahoComponent adapter = event.getSourceAsType()} to get a
+ * Eclipse Paho Implementation. When consuming {@link org.springframework.integration.mqtt.event.MqttIntegrationEvent}s
+ * published by this component use {@code MqttPahoComponent adapter = event.getSourceAsType()} to get a
  * reference, allowing you to obtain the bean name and {@link MqttConnectOptions}. This
  * technique allows consumption of events from both inbound and outbound endpoints in the
  * same event listener.
@@ -423,7 +422,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	/**
-	 * Used to complete message arrival when {@link AckMode#MANUAL}.
+	 * Used to complete message arrival when {@link #manualAcks} is true.
 	 *
 	 * @since 5.3
 	 */

@@ -29,7 +29,6 @@ import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
-import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
@@ -40,8 +39,8 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * Eclipse Paho Implementation. When consuming {@link MqttIntegrationEvent}s published by
- * this component use {@code MqttPahoComponent handler = event.getSourceAsType()} to get a
+ * Eclipse Paho Implementation. When consuming {@link org.springframework.integration.mqtt.event.MqttIntegrationEvent}s
+ * published by this component use {@code MqttPahoComponent handler = event.getSourceAsType()} to get a
  * reference, allowing you to obtain the bean name and {@link MqttConnectOptions}. This
  * technique allows consumption of events from both inbound and outbound endpoints in the
  * same event listener.
