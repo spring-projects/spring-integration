@@ -1,6 +1,7 @@
 [[rmi]]
 == RMI Support
 
+IMPORTANT: this module is deprecated since 5.4 with no replacement and will be removed in 6.0.
 
 This chapter explains how to use channel adapters that are specific to RMI (Remote Method Invocation) to distribute a system over multiple JVMs.
 The first section deals with sending messages over RMI.

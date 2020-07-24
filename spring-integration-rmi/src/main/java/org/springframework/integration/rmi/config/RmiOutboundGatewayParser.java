@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,20 +23,21 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundGatewayParser;
-import org.springframework.integration.rmi.RmiInboundGateway;
-import org.springframework.integration.rmi.RmiOutboundGateway;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;outbound-gateway/&gt; element of the 'rmi' namespace.
  *
  * @author Mark Fisher
+ *
+ * @deprecated since 5.4 with no replacement.
  */
+@Deprecated
 public class RmiOutboundGatewayParser extends AbstractOutboundGatewayParser {
 
 	@Override
 	protected String getGatewayClassName(Element element) {
-		return RmiOutboundGateway.class.getName();
+		return org.springframework.integration.rmi.RmiOutboundGateway.class.getName();
 	}
 
 	@Override
@@ -49,7 +50,8 @@ public class RmiOutboundGatewayParser extends AbstractOutboundGatewayParser {
 		}
 		String portAttribute = element.getAttribute("port");
 		String port = StringUtils.hasText(portAttribute) ? portAttribute : "" + Registry.REGISTRY_PORT;
-		return "rmi://" + host + ":" + port + "/" + RmiInboundGateway.SERVICE_NAME_PREFIX + remoteChannel;
+		return "rmi://" + host + ":" + port + "/"
+				+ org.springframework.integration.rmi.RmiInboundGateway.SERVICE_NAME_PREFIX + remoteChannel;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.remoting.rmi.RmiServiceExporter;
 import org.springframework.remoting.support.RemoteInvocationExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -36,14 +35,18 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
+ * @deprecated since 5.4 with no replacement.
  */
+@Deprecated
 public class RmiInboundGateway extends MessagingGatewaySupport
 		implements RequestReplyExchanger {
 
 	public static final String SERVICE_NAME_PREFIX = "org.springframework.integration.rmiGateway.";
 
 
-	private final RmiServiceExporter exporter = new RmiServiceExporter();
+	private final org.springframework.remoting.rmi.RmiServiceExporter exporter =
+			new org.springframework.remoting.rmi.RmiServiceExporter();
 
 	private String requestChannelName;
 

@@ -38,13 +38,6 @@ See <<./redis.adoc#redis-stream-outbound,Redis Stream Outbound Channel Adapter>>
 A Renewable lock registry has been introduced to allow renew lease of a distributed lock.
 See <<./jdbc.adoc#jdbc-lock-registry,JDBC implementation>> for more information.
 
-==== TCP Changes
-
-Connection factories now support multiple sending components (`TcpSender`); they remain limited to one receiving component (`TcpListener`).
-This allows, for example, an inbound gateway and outbound channel adapter to share the same factory, supporting both request/reply and arbitrary messaging from the server to the client.
-Shared factories should not be used with outbound gateways, unless single-use connections or the `ThreadAffinityClientConnectionFactory` are being used.
-See <<./ip.adoc#ip-collaborating-adapters,Collaborating Channel Adapters>> and <<./ip.adoc#tcp-gateways, TCP Gateways>> for more information.
-
 [[x5.4-general]]
 === General Changes
 
@@ -53,3 +46,17 @@ See <<./gateway.adoc#gateway-default-reply-channel,Setting the Default Reply Cha
 
 The aggregator (and resequencer) can now expire orphaned groups (groups in a persistent store where no new messages arrive after an application restart).
 See <<./aggregator.adoc#aggregator-expiring-groups, Aggregator Expiring Groups>> for more information.
+
+[[x5.4-tcp]]
+=== TCP Changes
+
+Connection factories now support multiple sending components (`TcpSender`); they remain limited to one receiving component (`TcpListener`).
+This allows, for example, an inbound gateway and outbound channel adapter to share the same factory, supporting both request/reply and arbitrary messaging from the server to the client.
+Shared factories should not be used with outbound gateways, unless single-use connections or the `ThreadAffinityClientConnectionFactory` are being used.
+See <<./ip.adoc#ip-collaborating-adapters,Collaborating Channel Adapters>> and <<./ip.adoc#tcp-gateways, TCP Gateways>> for more information.
+
+[[x5.4-rmi]]
+=== RMI Changes
+
+The `spring-integration-rmi` module is deprecated with no replacement and is going to be removed in the next major version.
+See <<./rmi.adoc#rmi, RMI Support>> for more information.

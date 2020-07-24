@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 
 /**
  * An outbound Messaging Gateway for RMI-based remoting.
@@ -31,7 +30,10 @@ import org.springframework.remoting.rmi.RmiProxyFactoryBean;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
+ * @deprecated since 5.4 with no replacement.
  */
+@Deprecated
 public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final RequestReplyExchanger proxy;
@@ -40,7 +42,7 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	/**
 	 * Construct an instance with a `RequestReplyExchanger` built from the
-	 * default {@link RmiProxyFactoryBean}.
+	 * default {@link org.springframework.remoting.rmi.RmiProxyFactoryBean}.
 	 * @param url the url.
 	 */
 	public RmiOutboundGateway(String url) {
@@ -49,7 +51,7 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	/**
 	 * Construct an instance with a `RequestReplyExchanger` built from the
-	 * default {@link RmiProxyFactoryBean} which can be modified by the
+	 * default {@link org.springframework.remoting.rmi.RmiProxyFactoryBean} which can be modified by the
 	 * configurer.
 	 * @param url the url.
 	 * @param configurer the {@link RmiProxyFactoryBeanConfigurer}.
@@ -86,7 +88,8 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	private RequestReplyExchanger createProxy(String url) {
-		RmiProxyFactoryBean proxyFactory = new RmiProxyFactoryBean();
+		org.springframework.remoting.rmi.RmiProxyFactoryBean proxyFactory =
+				new org.springframework.remoting.rmi.RmiProxyFactoryBean();
 		proxyFactory.setServiceInterface(RequestReplyExchanger.class);
 		proxyFactory.setServiceUrl(url);
 		proxyFactory.setLookupStubOnStartup(false);
@@ -109,7 +112,7 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 		 * {@code RequestReplyExchanger} is created.
 		 * @param factoryBean the factory bean.
 		 */
-		void configure(RmiProxyFactoryBean factoryBean);
+		void configure(org.springframework.remoting.rmi.RmiProxyFactoryBean factoryBean);
 
 	}
 

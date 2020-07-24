@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,16 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.rmi.RmiInboundGateway;
 
 /**
  * Parser for the &lt;inbound-gateway/&gt; element of the 'rmi' namespace.
  *
  * @author Mark Fisher
  * @author Gary Russell
+ *
+ * @deprecated since 5.4 with no replacement.
  */
+@Deprecated
 public class RmiInboundGatewayParser extends AbstractInboundGatewayParser {
 
 	private static final String REMOTE_INVOCATION_EXECUTOR_ATTRIBUTE = "remote-invocation-executor";
@@ -36,7 +38,7 @@ public class RmiInboundGatewayParser extends AbstractInboundGatewayParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return RmiInboundGateway.class.getName();
+		return org.springframework.integration.rmi.RmiInboundGateway.class.getName();
 	}
 
 	@Override
