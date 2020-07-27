@@ -34,6 +34,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -800,7 +801,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	@Component
 	public static class Config {
 
-		final List<ApacheMinaFtpEvent> events = new ArrayList<>();
+		final List<ApacheMinaFtpEvent> events = Collections.synchronizedList(new ArrayList<>());
 
 		private volatile String targetLocalDirectoryName;
 
