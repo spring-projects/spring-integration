@@ -236,7 +236,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 	}
 
 	@Override
-	public void destroy() {
+	public void destroy() throws Exception {
 		super.destroy();
 		if (this.sizeGauge != null) {
 			this.sizeGauge.remove();
