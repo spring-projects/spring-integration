@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,5 +44,9 @@ public final class RedisHeaders {
 	public static final String COMMAND = PREFIX + "command";
 
 	public static final String MESSAGE_SOURCE = PREFIX + "messageSource";
+
+	public static final String STREAM_KEY = PREFIX + "streamKey";
+
+	public static final String STREAM_MESSAGE_ID = PREFIX + "streamMessageId";
 
 }
