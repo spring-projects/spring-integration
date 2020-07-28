@@ -285,8 +285,8 @@ public class IntegrationManagementConfigurer
 	}
 
 	private void injectCaptor() {
-		Map<String, IntegrationManagement> managed = this.applicationContext
-				.getBeansOfType(IntegrationManagement.class);
+		Map<String, IntegrationManagement> managed =
+				this.applicationContext.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
 			IntegrationManagement bean = entry.getValue();
 			if (!getOverrides(bean).loggingConfigured) {
@@ -299,7 +299,7 @@ public class IntegrationManagementConfigurer
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String name) throws BeansException {
 		if (this.singletonsInstantiated) {
-			if (bean instanceof IntegrationManagement) {
+			if (this.metricsCaptor != null && bean instanceof IntegrationManagement) {
 				((IntegrationManagement) bean).registerMetricsCaptor(this.metricsCaptor);
 			}
 			return doConfigureMetrics(bean, name);
