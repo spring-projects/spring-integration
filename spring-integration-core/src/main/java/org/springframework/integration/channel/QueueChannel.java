@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.support.management.QueueChannelManagement;
+import org.springframework.integration.support.management.metrics.GaugeFacade;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -48,6 +50,12 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 	private final Queue<Message<?>> queue;
 
 	protected final Semaphore queueSemaphore = new Semaphore(0);
+
+	@Nullable
+	private GaugeFacade sizeGauge;
+
+	@Nullable
+	private GaugeFacade remainingCapacityGauge;
 
 	/**
 	 * Create a channel with the specified queue.
@@ -77,6 +85,26 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 	 */
 	public QueueChannel() {
 		this(new LinkedBlockingQueue<>());
+	}
+
+	@Override
+	public void registerMetricsCaptor(MetricsCaptor metricsCaptor) {
+		super.registerMetricsCaptor(metricsCaptor);
+		this.sizeGauge =
+				metricsCaptor.gaugeBuilder("spring.integration.channel.queue.size", this,
+						(channel) -> getQueueSize())
+						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+						.tag("type", "channel")
+						.description("The size of the queue channel")
+						.build();
+
+		this.remainingCapacityGauge =
+				metricsCaptor.gaugeBuilder("spring.integration.channel.queue.remaining.capacity", this,
+						(channel) -> getRemainingCapacity())
+						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+						.tag("type", "channel")
+						.description("The remaining capacity of the queue channel")
+						.build();
 	}
 
 	@Override
@@ -204,6 +232,17 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 		else {
 			//Assume that underlying Queue implementation takes care of its size on "offer".
 			return Integer.MAX_VALUE;
+		}
+	}
+
+	@Override
+	public void destroy() {
+		super.destroy();
+		if (this.sizeGauge != null) {
+			this.sizeGauge.remove();
+		}
+		if (this.remainingCapacityGauge != null) {
+			this.remainingCapacityGauge.remove();
 		}
 	}
 

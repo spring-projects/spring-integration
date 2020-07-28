@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -167,6 +167,16 @@ public class MicrometerMetricsTests {
 				.tag("result", "success")
 				.counter().count()).isEqualTo(1);
 
+		this.queue.send(message);
+
+		assertThat(registry.get("spring.integration.channel.queue.size")
+				.tag("name", "queue")
+				.gauge().value()).isEqualTo(2d);
+
+		assertThat(registry.get("spring.integration.channel.queue.remaining.capacity")
+				.tag("name", "queue")
+				.gauge().value()).isEqualTo(8d);
+
 		assertThat(registry.get("spring.integration.send")
 				.tag("name", "nullChannel")
 				.tag("result", "success")
@@ -271,7 +281,7 @@ public class MicrometerMetricsTests {
 
 		@Bean
 		public QueueChannel queue() {
-			return new QueueChannel();
+			return new QueueChannel(10);
 		}
 
 		@Bean
