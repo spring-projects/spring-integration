@@ -18,6 +18,9 @@ package org.springframework.integration.redis.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +34,6 @@ import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.redis.rules.RedisAvailable;
@@ -67,9 +69,6 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 	@Autowired
 	private ReactiveMessageHandlerAdapter handlerAdapter;
 
-	@Autowired
-	private ReactiveRedisStreamMessageHandler streamMessageHandler;
-
 	@Before
 	public void deleteStreamKey() {
 		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate<>(this.redisConnectionFactory,
@@ -80,15 +79,13 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 
 	@Test
 	@RedisAvailable
-	public void integrationStreamOutboundTest() {
+	public void testIntegrationStreamOutbound() {
 		String messagePayload = "Hello stream message";
 
-		messageChannel.send(new GenericMessage<>(messagePayload));
-
-		RedisSerializationContext<String, ?> serializationContext = redisSerializationContext();
+		this.messageChannel.send(new GenericMessage<>(messagePayload));
 
 		ReactiveRedisTemplate<String, ?> template =
-				new ReactiveRedisTemplate<>(redisConnectionFactory, serializationContext);
+				new ReactiveRedisTemplate<>(this.redisConnectionFactory, RedisSerializationContext.string());
 
 		ObjectRecord<String, String> record =
 				template.opsForStream()
@@ -102,21 +99,33 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 
 	@Test
 	@RedisAvailable
-	public void explicitSerializationContextWithModelTest() {
+	public void testMessageWithListPayload() {
+		List<String> messagePayload = Arrays.asList("Hello", "stream", "message");
+		this.handlerAdapter.handleMessage(new GenericMessage<>(messagePayload));
+
+		ReactiveRedisTemplate<String, ?> template = new ReactiveRedisTemplate<>(this.redisConnectionFactory,
+				RedisSerializationContext.string());
+		ObjectRecord<String, ?> record = template.opsForStream().read(List.class, StreamOffset
+				.fromStart(STREAM_KEY))
+				.blockFirst();
+
+		assertThat(record.getStream()).isEqualTo(STREAM_KEY);
+		assertThat(record.getValue()).isEqualTo(messagePayload);
+	}
+
+
+	@Test
+	@RedisAvailable
+	public void testExplicitSerializationContextWithModel() {
 		Address address = new Address("Rennes, France");
 		Person person = new Person(address, "Attoumane");
 
 		Message<?> message = new GenericMessage<>(person);
 
-		RedisSerializationContext<String, ?> serializationContext = redisSerializationContext();
-
-		streamMessageHandler.setSerializationContext(serializationContext);
-		streamMessageHandler.afterPropertiesSet();
-
-		handlerAdapter.handleMessage(message);
+		this.handlerAdapter.handleMessage(message);
 
 		ReactiveRedisTemplate<String, ?> template =
-				new ReactiveRedisTemplate<>(redisConnectionFactory, serializationContext);
+				new ReactiveRedisTemplate<>(this.redisConnectionFactory, RedisSerializationContext.string());
 
 		ObjectRecord<String, Person> record =
 				template.opsForStream()
@@ -127,12 +136,6 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 		assertThat(record.getValue().getName()).isEqualTo("Attoumane");
 		assertThat(record.getValue().getAddress().getAddress()).isEqualTo("Rennes, France");
 	}
-
-
-	private RedisSerializationContext<String, ?> redisSerializationContext() {
-		return RedisSerializationContext.fromSerializer(StringRedisSerializer.UTF_8);
-	}
-
 
 	@Configuration
 	public static class ReactiveRedisStreamMessageHandlerTestsContext {
