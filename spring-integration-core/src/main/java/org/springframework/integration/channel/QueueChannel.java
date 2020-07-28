@@ -95,7 +95,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 						(channel) -> getQueueSize())
 						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 						.tag("type", "channel")
-						.description("The size of queue channel.")
+						.description("The size of queue channel")
 						.build();
 
 		this.remainingCapacityGauge =
@@ -103,7 +103,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 						(channel) -> getRemainingCapacity())
 						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 						.tag("type", "channel")
-						.description("The remaining.capacity of queue channel.")
+						.description("The remaining.capacity of queue channel")
 						.build();
 	}
 

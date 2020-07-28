@@ -92,6 +92,7 @@ public class MicrometerMetricsTests {
 	@Autowired
 	private NullChannel nullChannel;
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testMicrometerMetrics() {
 		GenericMessage<String> message = new GenericMessage<>("foo");
