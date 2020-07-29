@@ -170,14 +170,14 @@ Starting with version 5.1.13, the `QueueChannel` exposes Micrometer gauges for q
 * `name`: `spring.integration.channel.queue.size`
 * `tag`: `type:channel`
 * `tag`: `name:<componentName>`
-* `description`: `The size of queue channel`
+* `description`: `The size of the queue channel`
 
 and
 
 * `name`: `spring.integration.channel.queue.remaining.capacity`
 * `tag`: `type:channel`
 * `tag`: `name:<componentName>`
-* `description`: `The remaining.capacity of queue channel`
+* `description`: `The remaining capacity of the queue channel`
 
 [[mgmt-channel-features]]
 ==== `MessageChannel` Metric Features
