@@ -582,7 +582,7 @@ public class Mover {
 
 IMPORTANT: For the message to be still available for manipulation after the transaction, _should-delete-messages_ must be set to 'false'.
 
-[[java-dsl-configuration]]
+[[mail-java-dsl-configuration]]
 === Configuring channel adapters with the Java DSL
 
 To configure mail mail component in Java DSL, the framework provides a `o.s.i.mail.dsl.Mail` factory, which can be used like this:
