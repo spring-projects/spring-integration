@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
@@ -602,25 +603,44 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 				: getMessageBuilderFactory().withPayload(replyObject);
 	}
 
+	/**
+	 * Build Spring message object based on the provided returned AMQP message info.
+	 * @param message the returned AMQP message
+	 * @param replyCode the returned message reason code
+	 * @param replyText the returned message reason text
+	 * @param exchange the exchange the message returned from
+	 * @param returnedRoutingKey the routing key for returned message
+	 * @param converter the converter to deserialize body of the returned AMQP message
+	 * @return the Spring message which represents a returned AMQP message
+	 * @deprecated since 5.4 in favor of {@link #buildReturnedMessage(ReturnedMessage, MessageConverter)}
+	 */
+	@Deprecated
 	protected Message<?> buildReturnedMessage(org.springframework.amqp.core.Message message,
 			int replyCode, String replyText, String exchange, String returnedRoutingKey, MessageConverter converter) {
 
-		Object returnedObject = converter.fromMessage(message);
+		return buildReturnedMessage(new ReturnedMessage(message, replyCode, replyText, exchange, returnedRoutingKey),
+				converter);
+	}
+
+	protected Message<?> buildReturnedMessage(ReturnedMessage returnedMessage, MessageConverter converter) {
+		org.springframework.amqp.core.Message amqpMessage = returnedMessage.getMessage();
+		Object returnedObject = converter.fromMessage(amqpMessage);
 		AbstractIntegrationMessageBuilder<?> builder = prepareMessageBuilder(returnedObject);
-		Map<String, ?> headers = getHeaderMapper().toHeadersFromReply(message.getMessageProperties());
+		Map<String, ?> headers = getHeaderMapper().toHeadersFromReply(amqpMessage.getMessageProperties());
 		if (this.errorMessageStrategy == null) {
 			builder.copyHeadersIfAbsent(headers)
-					.setHeader(AmqpHeaders.RETURN_REPLY_CODE, replyCode)
-					.setHeader(AmqpHeaders.RETURN_REPLY_TEXT, replyText)
-					.setHeader(AmqpHeaders.RETURN_EXCHANGE, exchange)
-					.setHeader(AmqpHeaders.RETURN_ROUTING_KEY, returnedRoutingKey);
+					.setHeader(AmqpHeaders.RETURN_REPLY_CODE, returnedMessage.getReplyCode())
+					.setHeader(AmqpHeaders.RETURN_REPLY_TEXT, returnedMessage.getReplyText())
+					.setHeader(AmqpHeaders.RETURN_EXCHANGE, returnedMessage.getExchange())
+					.setHeader(AmqpHeaders.RETURN_ROUTING_KEY, returnedMessage.getRoutingKey());
 		}
-		Message<?> returnedMessage = builder.build();
+		Message<?> message = builder.build();
 		if (this.errorMessageStrategy != null) {
-			returnedMessage = this.errorMessageStrategy.buildErrorMessage(new ReturnedAmqpMessageException(
-					returnedMessage, message, replyCode, replyText, exchange, returnedRoutingKey), null);
+			message = this.errorMessageStrategy.buildErrorMessage(new ReturnedAmqpMessageException(
+					message, amqpMessage, returnedMessage.getReplyCode(), returnedMessage.getReplyText(),
+					returnedMessage.getExchange(), returnedMessage.getRoutingKey()), null);
 		}
-		return returnedMessage;
+		return message;
 	}
 
 	protected void handleConfirm(CorrelationData correlationData, boolean ack, String cause) {

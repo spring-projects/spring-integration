@@ -23,11 +23,11 @@ import java.util.concurrent.TimeoutException;
 
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.connection.CorrelationData.Confirm;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate.ConfirmCallback;
-import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnCallback;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationPatternType;
@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
  * @since 2.1
  */
 public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
-		implements ConfirmCallback, ReturnCallback {
+		implements ConfirmCallback, RabbitTemplate.ReturnsCallback {
 
 	private static final Duration DEFAULT_CONFIRM_TIMEOUT = Duration.ofSeconds(5);
 
@@ -141,7 +141,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		if (getReturnChannel() != null) {
 			Assert.notNull(this.rabbitTemplate,
 					"RabbitTemplate implementation is required for publisher confirms");
-			this.rabbitTemplate.setReturnCallback(this);
+			this.rabbitTemplate.setReturnsCallback(this);
 		}
 		Duration confirmTimeout = getConfirmTimeout();
 		if (confirmTimeout != null) {
@@ -267,13 +267,10 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 	}
 
 	@Override
-	public void returnedMessage(org.springframework.amqp.core.Message message, int replyCode, String replyText,
-			String exchange, String routingKey) {
-
+	public void returnedMessage(ReturnedMessage returnedMessage) {
 		// no need for null check; we asserted we have a RabbitTemplate in doInit()
 		MessageConverter converter = this.rabbitTemplate.getMessageConverter();
-		Message<?> returned = buildReturnedMessage(message, replyCode, replyText, exchange,
-				routingKey, converter);
+		Message<?> returned = buildReturnedMessage(returnedMessage, converter);
 		getReturnChannel().send(returned);
 	}
 

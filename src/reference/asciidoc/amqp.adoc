@@ -309,7 +309,7 @@ The following example shows how to configure an `AmqpMessageSource` with Java co
 ----
 @Bean
 public AmqpMessageSource source(ConnectionFactory connectionFactory) {
-    return new AmpqpMessageSource(connectionFactory, "someQueue");
+    return new AmqpMessageSource(connectionFactory, "someQueue");
 }
 ----
 ====
