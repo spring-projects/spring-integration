@@ -18,6 +18,7 @@ package org.springframework.integration.amqp.outbound;
 
 import org.springframework.amqp.core.AmqpMessageReturnedException;
 import org.springframework.amqp.core.AmqpReplyTimeoutException;
+import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
@@ -147,8 +148,9 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 				else {
 					AmqpMessageReturnedException amre = (AmqpMessageReturnedException) ex;
 					Message<?> returnedMessage = buildReturnedMessage(
-							amre.getReturnedMessage(), amre.getReplyCode(), amre.getReplyText(), amre.getExchange(),
-							amre.getRoutingKey(), AsyncAmqpOutboundGateway.this.messageConverter);
+							new ReturnedMessage(amre.getReturnedMessage(), amre.getReplyCode(), amre.getReplyText(),
+									amre.getExchange(), amre.getRoutingKey()),
+							AsyncAmqpOutboundGateway.this.messageConverter);
 					sendOutput(returnedMessage, getReturnChannel(), true);
 				}
 			}
