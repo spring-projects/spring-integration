@@ -16,24 +16,22 @@
 
 package org.springframework.integration.redis.inbound;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.StreamInfo;
 import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.ReactiveStreamOperations;
 import org.springframework.data.redis.core.StreamOperations;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.stream.StreamReceiver;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.redis.support.RedisHeaders;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -44,8 +42,9 @@ import reactor.core.publisher.Flux;
 /**
  * A {@link MessageProducerSupport} for Redis that reads message from a Redis Stream and publishes it to the provided
  * output channel.
- * By default this adapter reads message as a standalone client {@code XREAD} Redis command but we can switch to a
- * Consumer Group feature {@code XREADGROUP} by setting {@link #consumerGroupName} and {@link #consumerName} fields.
+ * By default this adapter reads message as a standalone client {@code XREAD} (Redis command) but can be switched to a
+ * Consumer Group feature {@code XREADGROUP} by setting {@link #consumerName} field. By default the Consumer Group name
+ * is the id the bean {@link #getBeanName()}
  *
  * @author Attoumane Ahamadi
  *
@@ -55,9 +54,11 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private final ReactiveRedisConnectionFactory reactiveConnectionFactory;
 
-	private final Expression streamKeyExpression;
+	private final String streamKey;
 
-	private EvaluationContext evaluationContext;
+	private ReactiveRedisTemplate<String, ?> reactiveRedisTemplate;
+
+	private ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
 
 	private StreamReceiver.StreamReceiverOptions<String, ?> streamReceiverOptions = StreamReceiver
 			.StreamReceiverOptions.builder().pollTimeout(Duration.ZERO).build();
@@ -68,25 +69,22 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private boolean extractPayload = true;
 
-	private String streamKey;
+	private boolean autoAck = true;
 
 	@Nullable
-	private String consumerGroupName;
+	private String consumerGroup;
 
 	@Nullable
 	private String consumerName;
 
-	private boolean createConsumerGroupIfNotExist;
+	private boolean createConsumerGroup;
 
 	public ReactiveRedisStreamMessageProducer(ReactiveRedisConnectionFactory reactiveConnectionFactory,
 			String streamKey) {
-		this(reactiveConnectionFactory, new LiteralExpression(streamKey));
-	}
-
-	public ReactiveRedisStreamMessageProducer(ReactiveRedisConnectionFactory connectionFactory,
-			Expression streamKeyExpression) {
-		this.reactiveConnectionFactory = connectionFactory;
-		this.streamKeyExpression = streamKeyExpression;
+		Assert.notNull(reactiveConnectionFactory, "'connectionFactory' must not be null");
+		Assert.hasText(streamKey, "'streamKey' must be set");
+		this.reactiveConnectionFactory = reactiveConnectionFactory;
+		this.streamKey = streamKey;
 	}
 
 	/**
@@ -106,17 +104,26 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Set the name of the Consumer Group. It is possible to create that Consumer Group if desired, see:
-	 * {@link #createConsumerGroupIfNotExist}. Note that if this value is set, {@link #consumerName} should also be set
-	 * @param consumerGroupName the Consumer Group which this adapter should register to listen messages.
+	 * Set whether or not acknowledge message read in the Consumer Group. {@code true} by default.
+	 * @param autoAck the acknowledge option.
 	 */
-	public void setConsumerGroupName(@Nullable String consumerGroupName) {
-		this.consumerGroupName = consumerGroupName;
+	public void setAutoAck(boolean autoAck) {
+		this.autoAck = autoAck;
 	}
 
 	/**
-	 * If the Consumer Group is used, this value should be provided. Note that this value should be unique in the group
-	 * @param consumerName the conusmer name in the Consumer Group
+	 * Set the name of the Consumer Group. It is possible to create that Consumer Group if desired, see:
+	 * {@link #createConsumerGroup}. If not set, the defined bean name {@link #getBeanName()} is used.
+	 * @param consumerGroup the Consumer Group on which this adapter should register to listen messages.
+	 */
+	public void setConsumerGroup(@Nullable String consumerGroup) {
+		this.consumerGroup = consumerGroup;
+	}
+
+	/**
+	 * Set the name of the consumer. When a consumer name is provided, this adapter is switched to the Consumer Group
+	 * feature. Note that this value should be unique in the group
+	 * @param consumerName the consumer name in the Consumer Group
 	 */
 	public void setConsumerName(@Nullable String consumerName) {
 		this.consumerName = consumerName;
@@ -124,12 +131,11 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	/**
 	 * Create the Consumer Group if and only if it does not exist. During the
-	 * creation we also create the stream {@see MKSTREAM}. If the stream already exists {@code MKSTREAM}
-	 * has no effect.
-	 * @param createConsumerGroupIfNotExist specify if we should create the Consumer Group, {@code false} by default
+	 * creation we also create the stream, see {@code MKSTREAM}.
+	 * @param createConsumerGroup specify if we should create the Consumer Group, {@code false} by default
 	 */
-	public void setCreateConsumerGroupIfNotExist(boolean createConsumerGroupIfNotExist) {
-		this.createConsumerGroupIfNotExist = createConsumerGroupIfNotExist;
+	public void setCreateConsumerGroup(boolean createConsumerGroup) {
+		this.createConsumerGroup = createConsumerGroup;
 	}
 
 	/**
@@ -143,65 +149,80 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	}
 
 	@Override
+	public String getComponentType() {
+		return "redis:stream-inbound-channel-adapter";
+	}
+
+	@Override
 	protected void onInit() {
 		super.onInit();
-		if (this.streamReceiverOptions != null) {
-			this.streamReceiver = StreamReceiver.create(this.reactiveConnectionFactory, this.streamReceiverOptions);
+		this.streamReceiver = StreamReceiver.create(this.reactiveConnectionFactory, this.streamReceiverOptions);
+		if (StringUtils.hasText(this.consumerName) && StringUtils.isEmpty(this.consumerGroup)) {
+			this.consumerGroup = getBeanName();
 		}
-		else {
-			this.streamReceiver = StreamReceiver.create(this.reactiveConnectionFactory);
-		}
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		this.reactiveRedisTemplate = new ReactiveRedisTemplate<>(this.reactiveConnectionFactory,
+				RedisSerializationContext.string());
+		this.reactiveStreamOperations = this.reactiveRedisTemplate.opsForStream();
 	}
 
 	@Override
 	protected void doStart() {
 		super.doStart();
 
-		this.streamKey = this.streamKeyExpression.getValue(this.evaluationContext, String.class);
-
-		Assert.notNull(this.streamKey, "'streamKey' must not be null");
-
 		StreamOffset<String> offset = StreamOffset.create(this.streamKey, this.readOffset);
 
 		Flux<Message<?>> messageFlux;
 
-		if (StringUtils.isEmpty(this.consumerGroupName)) {
+		if (StringUtils.isEmpty(this.consumerName)) {
 			messageFlux = this.streamReceiver
 					.receive(offset)
-					.map(event -> MessageBuilder.withPayload(this.extractPayload ? event.getValue() : event)
+					.map(event -> getMessageBuilderFactory().withPayload(this.extractPayload ? event.getValue() : event)
 							.setHeader(RedisHeaders.STREAM_KEY, event.getStream())
 							.setHeader(RedisHeaders.STREAM_MESSAGE_ID, event.getId())
 							.build());
 		}
 		else {
-			createConsumerGroup();
-			Consumer consumer = Consumer.from(this.consumerGroupName, this.consumerName);
+			Assert.notNull(this.consumerGroup, "'consumerGroup' must not be null");
+
+			if (this.createConsumerGroup) {
+				Assert.hasText(this.consumerName, "'consumerName' must be set");
+				//We check that the group does not already exist before creating it
+				this.reactiveRedisTemplate.hasKey(this.streamKey)
+						.subscribe(keyExists -> {
+							if (!keyExists) {
+								this.reactiveStreamOperations.createGroup(this.streamKey, this.consumerGroup)
+										.subscribe();
+							}
+							else {
+								this.reactiveStreamOperations.groups(this.streamKey)
+										.map(StreamInfo.XInfoGroup::groupName)
+										.filter(groupName -> groupName.equals(this.consumerGroup))
+										.switchIfEmpty(this.reactiveStreamOperations.createGroup(this.streamKey,
+												this.consumerGroup))
+										.subscribe();
+							}
+						});
+			}
+
+			Consumer consumer = Consumer.from(this.consumerGroup, this.consumerName);
+
 			messageFlux = this.streamReceiver
-					.receiveAutoAck(consumer, offset)
-					.map(event -> MessageBuilder.withPayload(this.extractPayload ? event.getValue() : event)
-							.setHeader(RedisHeaders.STREAM_KEY, event.getStream())
-							.setHeader(RedisHeaders.STREAM_MESSAGE_ID, event.getId())
-							.build());
+					.receive(consumer, offset)
+					.map(event -> {
+						Message<?> message = getMessageBuilderFactory().withPayload(this.extractPayload ? event.getValue() : event)
+								.setHeader(RedisHeaders.STREAM_KEY, event.getStream())
+								.setHeader(RedisHeaders.STREAM_MESSAGE_ID, event.getId())
+								.setHeader(RedisHeaders.CONSUMER_GROUP, this.consumerGroup)
+								.setHeader(RedisHeaders.CONSUMER, this.consumerName)
+								.build();
+						if (this.autoAck) {
+							message.getHeaders().put(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
+									this.reactiveStreamOperations.acknowledge(this.consumerGroup, event).subscribe());
+						}
+						return message;
+					});
 		}
 
 		subscribeToPublisher(messageFlux);
-	}
-
-	@Override
-	public String getComponentType() {
-		return "redis:stream-inbound-channel-adapter";
-	}
-
-	private void createConsumerGroup() {
-		if (this.createConsumerGroupIfNotExist) {
-			Assert.hasText(this.consumerGroupName, "'consumerGroupName' must be set");
-			Assert.hasText(this.consumerName, "'consumerName' must be set");
-
-			this.reactiveConnectionFactory.getReactiveConnection()
-					.streamCommands()
-					.xGroupCreate(ByteBuffer.wrap(this.streamKey.getBytes(StandardCharsets.UTF_8)),
-							this.consumerGroupName, this.readOffset, true);
-		}
 	}
 }

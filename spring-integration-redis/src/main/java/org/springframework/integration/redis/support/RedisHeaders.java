@@ -49,4 +49,8 @@ public final class RedisHeaders {
 
 	public static final String STREAM_MESSAGE_ID = PREFIX + "streamMessageId";
 
+	public static final String CONSUMER_GROUP = PREFIX + "consumerGroup";
+
+	public static final String CONSUMER = PREFIX + "consumer";
+
 }
