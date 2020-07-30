@@ -22,12 +22,14 @@ import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.connection.CorrelationData.Confirm;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.support.MappingUtils;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -87,11 +89,11 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 		addDelayProperty(requestMessage, amqpMessage);
 		RabbitMessageFuture future = this.template.sendAndReceive(generateExchangeName(requestMessage),
 				generateRoutingKey(requestMessage), amqpMessage);
-		future.addCallback(new FutureCallback(requestMessage));
 		CorrelationData correlationData = generateCorrelationData(requestMessage);
 		if (correlationData != null && future.getConfirm() != null) {
 			future.getConfirm().addCallback(new CorrelationCallback(correlationData, future));
 		}
+		future.addCallback(new FutureCallback(requestMessage, correlationData));
 		return null;
 	}
 
@@ -99,8 +101,11 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 
 		private final Message<?> requestMessage;
 
-		FutureCallback(Message<?> requestMessage) {
+		private final CorrelationDataWrapper correlationData;
+
+		FutureCallback(Message<?> requestMessage, CorrelationData correlationData) {
 			this.requestMessage = requestMessage;
+			this.correlationData = (CorrelationDataWrapper) correlationData;
 		}
 
 		@Override
@@ -141,18 +146,21 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 				}
 			}
 			if (ex instanceof AmqpMessageReturnedException) {
-				if (getReturnChannel() == null) {
-					logger.error("Returned message received and no return channel "
-							+ ((AmqpMessageReturnedException) ex).getReturnedMessage());
-				}
-				else {
-					AmqpMessageReturnedException amre = (AmqpMessageReturnedException) ex;
+				AmqpMessageReturnedException amre = (AmqpMessageReturnedException) ex;
+				MessageChannel returnChannel = getReturnChannel();
+				if (returnChannel != null) {
 					Message<?> returnedMessage = buildReturnedMessage(
 							new ReturnedMessage(amre.getReturnedMessage(), amre.getReplyCode(), amre.getReplyText(),
 									amre.getExchange(), amre.getRoutingKey()),
 							AsyncAmqpOutboundGateway.this.messageConverter);
-					sendOutput(returnedMessage, getReturnChannel(), true);
+					sendOutput(returnedMessage, returnChannel, true);
 				}
+				this.correlationData.setReturnedMessage(amre.getReturnedMessage());
+				/*
+				 *  Complete the user's future (if present) since the async template will only complete
+				 *  once, successfully, or with a failure.
+				 */
+				this.correlationData.getFuture().set(new Confirm(true, null));
 			}
 			else {
 				sendErrorMessage(this.requestMessage, exceptionToSend);

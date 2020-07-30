@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.amqp.core.AmqpReplyTimeoutException;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -49,6 +50,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.amqp.support.NackedAmqpMessageException;
 import org.springframework.integration.amqp.support.ReturnedAmqpMessageException;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.condition.LogLevels;
@@ -217,6 +219,40 @@ class AsyncAmqpGatewayTests {
 
 		asyncTemplate.stop();
 		receiver.stop();
+		ccf.destroy();
+	}
+
+	@Test
+	void confirmsAndReturnsNoChannels() throws Exception {
+		CachingConnectionFactory ccf = new CachingConnectionFactory("localhost");
+		ccf.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.CORRELATED);
+		ccf.setPublisherReturns(true);
+		RabbitTemplate template = new RabbitTemplate(ccf);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(ccf);
+		container.setBeanName("replyContainer");
+		container.setQueueNames("asyncRQ1");
+		container.afterPropertiesSet();
+		container.start();
+		AsyncRabbitTemplate asyncTemplate = new AsyncRabbitTemplate(template, container);
+		asyncTemplate.setEnableConfirms(true);
+		asyncTemplate.setMandatory(true);
+
+		AsyncAmqpOutboundGateway gateway = new AsyncAmqpOutboundGateway(asyncTemplate);
+		gateway.setOutputChannel(new NullChannel());
+		gateway.setExchangeName("");
+		gateway.setRoutingKey("noRoute");
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.afterPropertiesSet();
+		gateway.start();
+
+		CorrelationData corr = new CorrelationData("foo");
+		gateway.handleMessage(MessageBuilder.withPayload("test")
+				.setHeader(AmqpHeaders.PUBLISH_CONFIRM_CORRELATION, corr)
+				.build());
+		assertThat(corr.getFuture().get(10, TimeUnit.SECONDS).isAck()).isTrue();
+		assertThat(corr.getReturnedMessage()).isNotNull();
+
+		asyncTemplate.stop();
 		ccf.destroy();
 	}
 
