@@ -60,3 +60,8 @@ See <<./ip.adoc#ip-collaborating-adapters,Collaborating Channel Adapters>> and <
 
 The `spring-integration-rmi` module is deprecated with no replacement and is going to be removed in the next major version.
 See <<./rmi.adoc#rmi, RMI Support>> for more information.
+
+=== AMQP Changes
+
+The outbound endpoints now have a new mechanism for handling publisher confirms and returns.
+See <<./amqp.adoc#alternative-confirms-returns,Alternative Mechanism for Publisher Confirms and Returns>> for more information.

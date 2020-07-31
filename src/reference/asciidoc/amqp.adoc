@@ -601,18 +601,22 @@ Version 4.1 introduced the `amqp_publishConfirmNackCause` message header.
 It contains the `cause` of a 'nack' for a publisher confirmation.
 Starting with version 4.2, if the expression resolves to a `Message<?>` instance (such as `#this`), the message emitted on the `ack`/`nack` channel is based on that message, with the additional header(s) added.
 Previously, a new message was created with the correlation data as its payload, regardless of type.
+Also see <<alternative-confirms-returns>>.
 Optional.
 <11> The channel to which positive (`ack`) publisher confirms are sent.
 The payload is the correlation data defined by the `confirm-correlation-expression`.
 If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `true`.
+Also see <<alternative-confirms-returns>>.
 Optional (the default is `nullChannel`).
 <12> The channel to which negative (`nack`) publisher confirmations are sent.
 The payload is the correlation data defined by the `confirm-correlation-expression` (if there is no `ErrorMessageStrategy` configured).
 If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `false`.
 When there is an `ErrorMessageStrategy`, the message is an `ErrorMessage` with a `NackedAmqpMessageException` payload.
+Also see <<alternative-confirms-returns>>.
 Optional (the default is `nullChannel`).
 <13> When set, the adapter will synthesize a negative acknowledgment (nack) if a publisher confirm is not received within this time in milliseconds.
 Pending confirms are checked every 50% of this value, so the actual time a nack is sent will be between 1x and 1.5x this value.
+Also see <<alternative-confirms-returns>>.
 Default none (nacks will not be generated).
 <14> When set to true, the calling thread will block, waiting for a publisher confirmation.
 This requires a `RabbitTemplate` configured for confirms as well as a `confirm-correlation-expression`.
@@ -623,6 +627,7 @@ If returns are enabled and a message is returned, or any other exception occurs 
 When provided, the underlying AMQP template is configured to return undeliverable messages to the adapter.
 When there is no `ErrorMessageStrategy` configured, the message is constructed from the data received from AMQP, with the following additional headers: `amqp_returnReplyCode`, `amqp_returnReplyText`, `amqp_returnExchange`, `amqp_returnRoutingKey`.
 When there is an `ErrorMessageStrategy`, the message is an `ErrorMessage` with a `ReturnedAmqpMessageException` payload.
+Also see <<alternative-confirms-returns>>.
 Optional.
 <16> A reference to an `ErrorMessageStrategy` implementation used to build `ErrorMessage` instances when sending returned or negatively acknowledged messages.
 <17> A reference to an `AmqpHeaderMapper` to use when sending AMQP Messages.
@@ -815,15 +820,18 @@ Examples: `headers['myCorrelationData']` and `payload`.
 If the expression resolves to a `Message<?>` instance (such as `#this`), the message
 emitted on the `ack`/`nack` channel is based on that message, with the additional headers added.
 Previously, a new message was created with the correlation data as its payload, regardless of type.
+Also see <<alternative-confirms-returns>>.
 Optional.
 <14> The channel to which positive (`ack`) publisher confirmations are sent.
 The payload is the correlation data defined by `confirm-correlation-expression`.
 If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `true`.
+Also see <<alternative-confirms-returns>>.
 Optional (the default is `nullChannel`).
 <15> The channel to which negative (`nack`) publisher confirmations are sent.
 The payload is the correlation data defined by `confirm-correlation-expression` (if there is no `ErrorMessageStrategy` configured).
 If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `false`.
 When there is an `ErrorMessageStrategy`, the message is an `ErrorMessage` with a `NackedAmqpMessageException` payload.
+Also see <<alternative-confirms-returns>>.
 Optional (the default is `nullChannel`).
 <16> When set, the gateway will synthesize a negative acknowledgment (nack) if a publisher confirm is not received within this time in milliseconds.
 Pending confirms are checked every 50% of this value, so the actual time a nack is sent will be between 1x and 1.5x this value.
@@ -832,6 +840,7 @@ Default none (nacks will not be generated).
 When provided, the underlying AMQP template is configured to return undeliverable messages to the adapter.
 When there is no `ErrorMessageStrategy` configured, the message is constructed from the data received from AMQP, with the following additional headers: `amqp_returnReplyCode`, `amqp_returnReplyText`, `amqp_returnExchange`, and `amqp_returnRoutingKey`.
 When there is an `ErrorMessageStrategy`, the message is an `ErrorMessage` with a `ReturnedAmqpMessageException` payload.
+Also see <<alternative-confirms-returns>>.
 Optional.
 <18> A reference to an `ErrorMessageStrategy` implementation used to build `ErrorMessage` instances when sending returned or negatively acknowledged messages.
 <19> When set to `false`, the endpoint attempts to connect to the broker during application context initialization.
@@ -1026,23 +1035,28 @@ The payload of the confirmation is the correlation data as defined by this expre
 For `nack` instances, an additional header (`amqp_publishConfirmNackCause`) is provided.
 Examples: `headers['myCorrelationData']`, `payload`.
 If the expression resolves to a `Message<?>` instance (such as "`#this`"), the message emitted on the `ack`/`nack` channel is based on that message, with the additional headers added.
+Also see <<alternative-confirms-returns>>.
 Optional.
 <14> The channel to which positive (`ack`) publisher confirmations are sent.
 The payload is the correlation data defined by the `confirm-correlation-expression`.
 Requires the underlying `AsyncRabbitTemplate` to have its `enableConfirms` property set to `true`.
+Also see <<alternative-confirms-returns>>.
 Optional (the default is `nullChannel`).
 <15> Since version 4.2.
 The channel to which negative (`nack`) publisher confirmations are sent.
 The payload is the correlation data defined by the `confirm-correlation-expression`.
 Requires the underlying `AsyncRabbitTemplate` to have its `enableConfirms` property set to `true`.
+Also see <<alternative-confirms-returns>>.
 Optional (the default is `nullChannel`).
 <16> When set, the gateway will synthesize a negative acknowledgment (nack) if a publisher confirm is not received within this time in milliseconds.
 Pending confirms are checked every 50% of this value, so the actual time a nack is sent will be between 1x and 1.5x this value.
+Also see <<alternative-confirms-returns>>.
 Default none (nacks will not be generated).
 <17> The channel to which returned messages are sent.
 When provided, the underlying AMQP template is configured to return undeliverable messages to the gateway.
 The message is constructed from the data received from AMQP, with the following additional headers: `amqp_returnReplyCode`, `amqp_returnReplyText`, `amqp_returnExchange`, and `amqp_returnRoutingKey`.
 Requires the underlying `AsyncRabbitTemplate` to have its `mandatory` property set to `true`.
+Also see <<alternative-confirms-returns>>.
 Optional.
 <18> When set to `false`, the endpoint tries to connect to the broker during application context initialization.
 Doing so allows "`fail fast`" detection of bad configuration, by logging an error message if the broker is down.
@@ -1136,6 +1150,39 @@ public class AmqpAsyncApplication {
 }
 ----
 ====
+
+[[alternative-confirms-returns]]
+=== Alternative Mechanism for Publisher Confirms and Returns
+
+When the connection factory is configured for publisher confirms and returns, the sections above discuss the configuration of message channels to receive the confirms and returns asynchronously.
+Starting with version 5.4, there is an additional mechanism which is generally easier to use.
+
+In this case, do not configure a `confirm-correlation-expression` or the confirm and return channels.
+Instead, add a `CorrelationData` instance in the `AmqpHeaders.PUBLISH_CONFIRM_CORRELATION` header; you can then wait for the result(s) later, by checking the state of the future in the `CorrelationData` instances for which you have sent messages.
+The `returnedMessage` field will always be populated (if a message is returned) before the future is completed.
+
+====
+[source, java]
+----
+CorrelationData corr = new CorrelationData("someId"); // <--- Unique "id" is required for returns
+someFlow.getInputChannel().send(MessageBuilder.withPayload("test")
+        .setHeader("rk", "someKeyThatWontRoute")
+        .setHeader(AmqpHeaders.PUBLISH_CONFIRM_CORRELATION, corr)
+        .build());
+...
+try {
+    Confirm Confirm = corr.getFuture().get(10, TimeUnit.SECONDS);
+    Message returned = corr.getReturnedMessage();
+    if (returned !- null) {
+        // meessage could not be routed
+    }
+}
+catch { ... }
+----
+====
+
+To improve performance, you may wish to send multiple messages and wait for the confirmations later, rather than one-at-a-time.
+The returned message is the raw message after conversion; you can subclass `CorrelationData` with whatever additional data you need.
 
 [[amqp-conversion-inbound]]
 === Inbound Message Conversion

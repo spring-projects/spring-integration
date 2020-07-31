@@ -63,7 +63,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
 public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		implements Lifecycle {
 
-	private static final UUID NO_ID = new UUID(0L, 0L);
+	private static final String NO_ID = new UUID(0L, 0L).toString();
 
 	private String exchangeName;
 
@@ -548,18 +548,31 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	protected CorrelationData generateCorrelationData(Message<?> requestMessage) {
 		CorrelationData correlationData = null;
+		UUID uuid = requestMessage.getHeaders().getId();
+		String messageId;
+		if (uuid == null) {
+			messageId = NO_ID;
+		}
+		else {
+			messageId = uuid.toString();
+		}
 		if (this.correlationDataGenerator != null) {
-			UUID messageId = requestMessage.getHeaders().getId();
-			if (messageId == null) {
-				messageId = NO_ID;
-			}
 			Object userData = this.correlationDataGenerator.processMessage(requestMessage);
 			if (userData != null) {
-				correlationData = new CorrelationDataWrapper(messageId.toString(), userData, requestMessage);
+				correlationData = new CorrelationDataWrapper(messageId, userData, requestMessage);
 			}
 			else {
 				this.logger.debug("'confirmCorrelationExpression' resolved to 'null'; "
 						+ "no publisher confirm will be sent to the ack or nack channel");
+			}
+		}
+		if (correlationData == null) {
+			Object correlation = requestMessage.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM_CORRELATION);
+			if (correlation instanceof CorrelationData) {
+				correlationData = (CorrelationData) correlation;
+			}
+			if (correlationData != null) {
+				correlationData = new CorrelationDataWrapper(messageId, correlationData, requestMessage);
 			}
 		}
 		return correlationData;
@@ -652,19 +665,21 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 			return;
 		}
 		Object userCorrelationData = wrapper.getUserData();
-		Message<?> confirmMessage;
-		confirmMessage = buildConfirmMessage(ack, cause, wrapper, userCorrelationData);
-		if (ack && getConfirmAckChannel() != null) {
-			sendOutput(confirmMessage, getConfirmAckChannel(), true);
-		}
-		else if (!ack && getConfirmNackChannel() != null) {
-			sendOutput(confirmMessage, getConfirmNackChannel(), true);
+		MessageChannel ackChannel = getConfirmAckChannel();
+		if (ack && ackChannel != null) {
+			sendOutput(buildConfirmMessage(ack, cause, wrapper, userCorrelationData), ackChannel, true);
 		}
 		else {
-			if (logger.isInfoEnabled()) {
-				logger.info("Nowhere to send publisher confirm "
-						+ (ack ? "ack" : "nack") + " for "
-						+ userCorrelationData);
+			MessageChannel nackChannel = getConfirmNackChannel();
+			if (!ack && nackChannel != null) {
+				sendOutput(buildConfirmMessage(ack, cause, wrapper, userCorrelationData), nackChannel, true);
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Nowhere to send publisher confirm "
+							+ (ack ? "ack" : "nack") + " for "
+							+ userCorrelationData);
+				}
 			}
 		}
 	}
