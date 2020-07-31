@@ -140,7 +140,7 @@ public class WebFluxDslTests {
 				WebTestClient.bindToApplicationContext(this.wac)
 						.apply(SecurityMockServerConfigurers.springSecurity())
 						.configureClient()
-						.responseTimeout(Duration.ofSeconds(600))
+						.responseTimeout(Duration.ofSeconds(10))
 						.build();
 	}
 
@@ -249,15 +249,12 @@ public class WebFluxDslTests {
 
 	@Test
 	public void testSse() {
-		Flux<String> responseBody =
-				this.webTestClient.get().uri("/sse")
-						.headers(headers -> headers.setBasicAuth("guest", "guest"))
-						.exchange()
-						.returnResult(String.class)
-						.getResponseBody();
-
-		StepVerifier
-				.create(responseBody)
+		this.webTestClient.get().uri("/sse")
+				.headers(headers -> headers.setBasicAuth("guest", "guest"))
+				.exchange()
+				.returnResult(String.class)
+				.getResponseBody()
+				.as(StepVerifier::create)
 				.expectNext("foo", "bar", "baz")
 				.verifyComplete();
 	}
