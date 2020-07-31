@@ -29,6 +29,7 @@ import javax.annotation.Resource;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 
@@ -106,6 +107,7 @@ import reactor.test.StepVerifier;
  */
 @SpringJUnitWebConfig
 @DirtiesContext
+@Disabled
 public class WebFluxDslTests {
 
 	@Autowired
