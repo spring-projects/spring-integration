@@ -70,6 +70,7 @@ ext {
 	javaxAnnotationVersion= '1.3.2'
 	javaxMailVersion = '1.6.2'
 	jaxbVersion = '2.3.3'
+	jeroMqVersion = '0.5.2'
 	jmsApiVersion = '2.0.1'
 	jpa21ApiVersion = '1.0.2.Final'
 	jpaApiVersion = '2.2.1'
@@ -861,6 +862,14 @@ project('spring-integration-xmpp') {
 
 		testImplementation project(':spring-integration-stream')
 		testImplementation "org.igniterealtime.smack:smack-experimental:$smackVersion"
+	}
+}
+
+project('spring-integration-zeromq') {
+	description = 'Spring Integration ZeroMQ Support'
+	dependencies {
+		api project(':spring-integration-core')
+		api "org.zeromq:jeromq:$jeroMqVersion"
 	}
 }
 
