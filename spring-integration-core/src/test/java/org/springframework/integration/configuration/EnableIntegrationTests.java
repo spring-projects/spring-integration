@@ -332,7 +332,7 @@ public class EnableIntegrationTests {
 
 		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint2, "trigger", Trigger.class);
 		assertThat(trigger).isInstanceOf(CronTrigger.class);
-		assertThat(TestUtils.getPropertyValue(trigger, "sequenceGenerator.expression")).isEqualTo("0 5 7 * * *");
+		assertThat(TestUtils.getPropertyValue(trigger, "expression.expression")).isEqualTo("0 5 7 * * *");
 
 		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint3, "trigger", Trigger.class);
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
