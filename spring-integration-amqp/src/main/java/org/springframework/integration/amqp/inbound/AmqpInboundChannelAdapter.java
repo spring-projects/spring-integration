@@ -43,6 +43,7 @@ import org.springframework.integration.amqp.support.EndpointUtils;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.ErrorMessageUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryOperations;
@@ -66,6 +67,12 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		OrderlyShutdownCapable {
 
 	/**
+	 * Header containing {@code List<Map<String, Object>} headers when batch mode
+	 * is {@link BatchMode#EXTRACT_PAYLOADS_WITH_HEADERS}.
+	 */
+	public static final String CONSOLIDATED_HEADERS = AmqpHeaders.PREFIX + "batchedHeaders";
+
+	/**
 	 * Defines the payload type when the listener container is configured with consumerBatchEnabled.
 	 */
 	public enum BatchMode {
@@ -80,7 +87,14 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		 * Payload is a {@code List<?>} where each element is the converted body of the
 		 * Spring AMQP Message.
 		 */
-		EXTRACT_PAYLOADS
+		EXTRACT_PAYLOADS,
+
+		/**
+		 * Payload is a {@code List<?>} where each element is the converted body of the
+		 * Spring AMQP Message. The headers for each message are provided in a header
+		 * {@link AmqpInboundChannelAdapter#CONSOLIDATED_HEADERS}.
+		 */
+		EXTRACT_PAYLOADS_WITH_HEADERS
 
 	}
 
@@ -332,7 +346,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 				headers.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, message);
 			}
 			long deliveryTag = message.getMessageProperties().getDeliveryTag();
-			return createMessageFromPayload(payload, channel, headers, deliveryTag);
+			return createMessageFromPayload(payload, channel, headers, deliveryTag, null);
 		}
 
 		protected Object convertPayload(Message message) {
@@ -350,7 +364,8 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		}
 
 		protected org.springframework.messaging.Message<Object> createMessageFromPayload(Object payload,
-				Channel channel, Map<String, Object> headers, long deliveryTag) {
+				Channel channel, Map<String, Object> headers, long deliveryTag,
+				@Nullable List<Map<String, Object>> listHeaders) {
 
 			if (this.manualAcks) {
 				headers.put(AmqpHeaders.DELIVERY_TAG, deliveryTag);
@@ -358,6 +373,9 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			}
 			if (AmqpInboundChannelAdapter.this.retryTemplate != null) {
 				headers.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, new AtomicInteger());
+			}
+			if (listHeaders != null) {
+				headers.put(CONSOLIDATED_HEADERS, listHeaders);
 			}
 			return getMessageBuilderFactory()
 					.withPayload(payload)
@@ -374,16 +392,23 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		@Override
 		public void onMessageBatch(List<Message> messages, Channel channel) {
 			List<?> converted;
+			List<Map<String, Object>> headers = null;
 			if (this.batchModeMessages) {
 				converted = convertMessages(messages, channel);
 			}
 			else {
 				converted = convertPayloads(messages, channel);
+				if (BatchMode.EXTRACT_PAYLOADS_WITH_HEADERS.equals(AmqpInboundChannelAdapter.this.batchMode)) {
+					List<Map<String, Object>> listHeaders = new ArrayList<>();
+					messages.forEach(msg -> listHeaders.add(AmqpInboundChannelAdapter.this.headerMapper
+							.toHeadersFromRequest(msg.getMessageProperties())));
+					headers = listHeaders;
+				}
 			}
 			if (converted != null) {
 				org.springframework.messaging.Message<?> message =
 						createMessageFromPayload(converted, channel, new HashMap<>(),
-								messages.get(messages.size() - 1).getMessageProperties().getDeliveryTag());
+								messages.get(messages.size() - 1).getMessageProperties().getDeliveryTag(), headers);
 				try {
 					if (this.retryOps == null) {
 						setAttributesIfNecessary(messages, message);

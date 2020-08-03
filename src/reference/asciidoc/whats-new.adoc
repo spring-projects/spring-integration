@@ -65,3 +65,6 @@ See <<./rmi.adoc#rmi, RMI Support>> for more information.
 
 The outbound endpoints now have a new mechanism for handling publisher confirms and returns.
 See <<./amqp.adoc#alternative-confirms-returns,Alternative Mechanism for Publisher Confirms and Returns>> for more information.
+
+A new `BatchMode.EXTRACT_PAYLOAD_WITH_HEADERS` is supported by the `AmqpInboundChannelAdapter`.
+See <<./amqp.adoc#amqp-inbound-channel-adapter,Inbound Channel Adapter>> for more information.

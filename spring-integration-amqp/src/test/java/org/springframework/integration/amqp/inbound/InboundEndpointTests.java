@@ -449,7 +449,7 @@ public class InboundEndpointTests {
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
-		adapter.setBatchMode(BatchMode.EXTRACT_PAYLOADS);
+		adapter.setBatchMode(BatchMode.EXTRACT_PAYLOADS_WITH_HEADERS);
 		adapter.afterPropertiesSet();
 		ChannelAwareBatchMessageListener listener = (ChannelAwareBatchMessageListener) container.getMessageListener();
 		MessageProperties messageProperties = new MessageProperties();
@@ -461,6 +461,8 @@ public class InboundEndpointTests {
 		Message<?> received = out.receive(0);
 		assertThat(received).isNotNull();
 		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
+		assertThat(received.getHeaders().get(AmqpInboundChannelAdapter.CONSOLIDATED_HEADERS, List.class))
+			.hasSize(2);
 	}
 
 	@SuppressWarnings({ "unchecked" })
