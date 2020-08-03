@@ -91,8 +91,7 @@ public class InboundChannelAdapterExpressionTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
 		assertThat(trigger.getClass()).isEqualTo(CronTrigger.class);
-		assertThat(new DirectFieldAccessor(new DirectFieldAccessor(
-				trigger).getPropertyValue("sequenceGenerator")).getPropertyValue("expression"))
+		assertThat(TestUtils.getPropertyValue(trigger, "expression.expression"))
 				.isEqualTo("7 6 5 4 3 ?");
 		assertThat(adapterAccessor.getPropertyValue("outputChannel")).isEqualTo(this.context.getBean("cronChannel"));
 		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);

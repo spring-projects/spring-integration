@@ -21,10 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,10 +47,7 @@ public class CronTriggerParserTests {
 		PollerMetadata metadata = (PollerMetadata) poller;
 		Trigger trigger = metadata.getTrigger();
 		assertThat(trigger.getClass()).isEqualTo(CronTrigger.class);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
-		String expression = (String) new DirectFieldAccessor(
-				accessor.getPropertyValue("sequenceGenerator"))
-				.getPropertyValue("expression");
+		String expression = TestUtils.getPropertyValue(trigger, "expression.expression", String.class);
 		assertThat(expression).isEqualTo("*/10 * 9-17 * * MON-FRI");
 	}
 
