@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
@@ -45,7 +44,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -329,7 +327,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).resume(partitions.getAllValues().get(1));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close();
+		inOrder.verify(consumer).close(any());
 		inOrder.verifyNoMoreInteractions();
 		if (!sync) {
 			assertThat(callbackCount.get()).isEqualTo(4);
@@ -444,7 +442,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(6L)));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close();
+		inOrder.verify(consumer).close(any());
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -513,7 +511,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)),
 				Duration.ofSeconds(30));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close();
+		inOrder.verify(consumer).close(any());
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -599,7 +597,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close();
+		inOrder.verify(consumer).close(any());
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -744,7 +742,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(4L)));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close();
+		inOrder.verify(consumer).close(any());
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -922,9 +920,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close();
-		inOrder.verify(consumer).close(anyLong(), any(TimeUnit.class));
-		inOrder.verifyNoMoreInteractions();
+		inOrder.verify(consumer).close(any());
 	}
 
 }

@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerGroupMetadata;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -505,6 +506,8 @@ class KafkaProducerMessageHandlerTests {
 				return null;
 			}
 		}).given(mockConsumer).poll(any(Duration.class));
+		ConsumerGroupMetadata meta = new ConsumerGroupMetadata("group");
+		given(mockConsumer.groupMetadata()).willReturn(meta);
 		ConsumerFactory cf = mock(ConsumerFactory.class);
 		willReturn(mockConsumer).given(cf).createConsumer("group", "", null, KafkaTestUtils.defaultPropertyOverrides());
 		Producer producer = mock(Producer.class);
@@ -543,7 +546,7 @@ class KafkaProducerMessageHandlerTests {
 		InOrder inOrder = inOrder(producer);
 		inOrder.verify(producer).beginTransaction();
 		inOrder.verify(producer).sendOffsetsToTransaction(Collections.singletonMap(topicPartition,
-				new OffsetAndMetadata(0)), "group");
+				new OffsetAndMetadata(0)), meta);
 		inOrder.verify(producer).commitTransaction();
 		inOrder.verify(producer).close(any());
 		inOrder.verify(producer).beginTransaction();
@@ -551,7 +554,7 @@ class KafkaProducerMessageHandlerTests {
 		inOrder.verify(producer).send(captor.capture(), any(Callback.class));
 		assertThat(captor.getValue()).isEqualTo(new ProducerRecord("topic", null, "bar", "value"));
 		inOrder.verify(producer).sendOffsetsToTransaction(Collections.singletonMap(topicPartition,
-				new OffsetAndMetadata(1)), "group");
+				new OffsetAndMetadata(1)), meta);
 		inOrder.verify(producer).commitTransaction();
 		inOrder.verify(producer).close(any());
 		container.stop();
@@ -617,6 +620,8 @@ class KafkaProducerMessageHandlerTests {
 				return null;
 			}
 		}).given(mockConsumer).poll(any(Duration.class));
+		ConsumerGroupMetadata meta = new ConsumerGroupMetadata("group");
+		given(mockConsumer.groupMetadata()).willReturn(meta);
 		ConsumerFactory cf = mock(ConsumerFactory.class);
 		willReturn(mockConsumer).given(cf).createConsumer("group", "", null, KafkaTestUtils.defaultPropertyOverrides());
 		Producer producer = mock(Producer.class);
@@ -663,7 +668,7 @@ class KafkaProducerMessageHandlerTests {
 		InOrder inOrder = inOrder(producer);
 		inOrder.verify(producer).beginTransaction();
 		inOrder.verify(producer).sendOffsetsToTransaction(Collections.singletonMap(topicPartition,
-				new OffsetAndMetadata(0)), "group");
+				new OffsetAndMetadata(0)), meta);
 		inOrder.verify(producer).commitTransaction();
 		inOrder.verify(producer).close(any());
 		inOrder.verify(producer).beginTransaction();
@@ -671,7 +676,7 @@ class KafkaProducerMessageHandlerTests {
 		inOrder.verify(producer).send(captor.capture(), any(Callback.class));
 		assertThat(captor.getValue()).isEqualTo(new ProducerRecord("topic", null, "bar", "value"));
 		inOrder.verify(producer).sendOffsetsToTransaction(Collections.singletonMap(topicPartition,
-				new OffsetAndMetadata(1)), "group");
+				new OffsetAndMetadata(1)), meta);
 		inOrder.verify(producer).commitTransaction();
 		inOrder.verify(producer).close(any());
 		container.stop();

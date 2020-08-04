@@ -101,6 +101,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private static final long MIN_ASSIGN_TIMEOUT = 2000L;
 
+	private static int DEFAULT_CLOSE_TIMEOUT = 30;
+
 	/**
 	 * The number of records remaining from the previous poll.
 	 * @since 3.2
@@ -134,6 +136,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	private boolean rawMessageHeader;
 
 	private boolean running;
+
+	private Duration closeTimeout = Duration.ofSeconds(DEFAULT_CLOSE_TIMEOUT);
 
 	private volatile Consumer<K, V> consumer;
 
@@ -332,6 +336,15 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	protected Duration getCommitTimeout() {
 		return this.commitTimeout;
+	}
+
+	/**
+	 * Set the close timeout - default 30 seconds.
+	 * @param closeTimeout the close timeout.
+	 */
+	public void setCloseTimeout(Duration closeTimeout) {
+		Assert.notNull(closeTimeout, "'closeTimeout' cannot be null");
+		this.closeTimeout = closeTimeout;
 	}
 
 	private ConsumerFactory<K, V> fixOrRejectConsumerFactory(ConsumerFactory<K, V> suppliedConsumerFactory,
@@ -571,7 +584,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	private void stopConsumer() {
 		synchronized (this.consumerMonitor) {
 			if (this.consumer != null) {
-				this.consumer.close();
+				this.consumer.close(this.closeTimeout);
 				this.consumer = null;
 				this.assignedPartitions.clear();
 			}
