@@ -108,11 +108,11 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 		Flux<? extends Message<?>> receiveData =
 				this.subscribeSocket
-						.flatMap((socket) -> {
+						.<byte[]>handle((socket, sink) -> {
 							byte[] data = socket.recv(ZMQ.NOBLOCK);
-							return data != null
-									? Mono.just(data)
-									: Mono.empty();
+							if (data != null) {
+								sink.next(data);
+							}
 						})
 						.publishOn(Schedulers.parallel())
 						.map(this.messageMapper::toMessage)
@@ -165,21 +165,15 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 			Executors.newSingleThreadExecutor()
 					.submit(() -> {
-						ZMQ.Socket inSocket =
-								this.context.createSocket(this.pubSub ? SocketType.XSUB : SocketType.PULL);
-						inSocket.bind(this.bindInUrl);
-						ZMQ.Socket outSocket =
-								this.context.createSocket(this.pubSub ? SocketType.XPUB : SocketType.PUSH);
-						outSocket.bind(this.bindOutUrl);
-						ZMQ.Socket controlSocket = context.createSocket(SocketType.PAIR);
-						controlSocket.bind("inproc://" + getComponentName() + ".control");
-						try {
+						try (ZMQ.Socket inSocket =
+									 this.context.createSocket(this.pubSub ? SocketType.XSUB : SocketType.PULL);
+							 ZMQ.Socket outSocket =
+									 this.context.createSocket(this.pubSub ? SocketType.XPUB : SocketType.PUSH);
+							 ZMQ.Socket controlSocket = this.context.createSocket(SocketType.PAIR)) {
+							inSocket.bind(this.bindInUrl);
+							outSocket.bind(this.bindOutUrl);
+							controlSocket.bind("inproc://" + getComponentName() + ".control");
 							zmq.ZMQ.proxy(inSocket.base(), outSocket.base(), null, controlSocket.base());
-						}
-						finally {
-							inSocket.close();
-							outSocket.close();
-							controlSocket.close();
 						}
 					});
 		}
@@ -223,10 +217,10 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 	public void destroy() {
 		this.initialized = false;
 		super.destroy();
-		ZMQ.Socket command = context.createSocket(SocketType.PAIR);
-		command.connect("inproc://" + getComponentName() + ".control");
-		command.send(zmq.ZMQ.PROXY_TERMINATE);
-		command.close();
+		try (ZMQ.Socket commandSocket = context.createSocket(SocketType.PAIR)) {
+			commandSocket.connect("inproc://" + getComponentName() + ".control");
+			commandSocket.send(zmq.ZMQ.PROXY_TERMINATE);
+		}
 		this.sendSocket.doOnNext(ZMQ.Socket::close).block();
 		this.publisherScheduler.dispose();
 		HashSet<MessageHandler> handlersCopy = new HashSet<>(this.subscribers.keySet());
