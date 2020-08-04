@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -89,19 +90,45 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		this.context = context;
 		this.pubSub = pubSub;
 
+		Supplier<String> localPairConnection = () -> "inproc://" + getComponentName() + ".pair";
+
 		this.sendSocket =
-				Mono.just(this.context.createSocket(this.pubSub ? SocketType.PUB : SocketType.PUSH))
+				Mono
+						.fromCallable(() -> {
+							if (this.connectSendUrl == null) {
+								return this.context.createSocket(SocketType.PAIR);
+							}
+							else {
+								return this.context.createSocket(this.pubSub ? SocketType.PUB : SocketType.PUSH);
+							}
+						})
 						.publishOn(this.publisherScheduler)
-						.doOnNext((socket) -> socket.connect(this.connectSendUrl))
+						.doOnNext((socket) ->
+								socket.connect(this.connectSendUrl != null
+										? this.connectSendUrl
+										: localPairConnection.get()))
 						.cache();
 
 		this.subscribeSocket =
-				Mono.just(this.context.createSocket(this.pubSub ? SocketType.SUB : SocketType.PULL))
+				Mono
+						.fromCallable(() -> {
+							if (this.connectSubscribeUrl == null) {
+								return this.context.createSocket(SocketType.PAIR);
+							}
+							else {
+								return this.context.createSocket(this.pubSub ? SocketType.SUB : SocketType.PULL);
+							}
+						})
 						.publishOn(this.subscriberScheduler)
 						.doOnNext((socket) -> {
-							socket.connect(this.connectSubscribeUrl);
-							if (this.pubSub) {
-								socket.subscribe(ZMQ.SUBSCRIPTION_ALL);
+							if (this.connectSubscribeUrl != null) {
+								socket.connect(this.connectSubscribeUrl);
+								if (this.pubSub) {
+									socket.subscribe(ZMQ.SUBSCRIPTION_ALL);
+								}
+							}
+							else {
+								socket.bind(localPairConnection.get());
 							}
 						})
 						.cache();
@@ -155,27 +182,28 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 	@Override
 	protected void onInit() {
 		super.onInit();
+		Assert.state(this.connectSendUrl == null || this.bindInUrl == null,
+				"Only 'connectUrl' or `bindUrl` can be provided (or none), but not both");
 		if (this.connectSendUrl == null) {
-			if (this.bindInUrl == null) {
-				this.bindInUrl = "inproc://" + getComponentName() + ".in";
-				this.bindOutUrl = "inproc://" + getComponentName() + ".out";
-				this.connectSendUrl = this.bindInUrl;
-				this.connectSubscribeUrl = this.bindOutUrl;
-			}
+			if (this.bindInUrl != null) {
+				this.connectSendUrl = this.bindInUrl.replaceFirst("\\*", "localhost");
+				this.connectSubscribeUrl = this.bindOutUrl.replaceFirst("\\*", "localhost");
 
-			Executors.newSingleThreadExecutor()
-					.submit(() -> {
-						try (ZMQ.Socket inSocket =
-									 this.context.createSocket(this.pubSub ? SocketType.XSUB : SocketType.PULL);
-							 ZMQ.Socket outSocket =
-									 this.context.createSocket(this.pubSub ? SocketType.XPUB : SocketType.PUSH);
-							 ZMQ.Socket controlSocket = this.context.createSocket(SocketType.PAIR)) {
-							inSocket.bind(this.bindInUrl);
-							outSocket.bind(this.bindOutUrl);
-							controlSocket.bind("inproc://" + getComponentName() + ".control");
-							zmq.ZMQ.proxy(inSocket.base(), outSocket.base(), null, controlSocket.base());
-						}
-					});
+				Executors.newSingleThreadExecutor()
+						.submit(() -> {
+							try (ZMQ.Socket inSocket =
+										 this.context.createSocket(this.pubSub ? SocketType.SUB : SocketType.PULL);
+								 ZMQ.Socket outSocket =
+										 this.context.createSocket(this.pubSub ? SocketType.PUB : SocketType.PUSH);
+								 ZMQ.Socket controlSocket = this.context.createSocket(SocketType.PAIR)) {
+
+								inSocket.bind(this.bindInUrl);
+								outSocket.bind(this.bindOutUrl);
+								controlSocket.bind("inproc://" + getComponentName() + ".control");
+								ZMQ.proxy(inSocket, outSocket, null, controlSocket);
+							}
+						});
+			}
 		}
 
 		this.initialized = true;
@@ -188,10 +216,11 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		byte[] data = this.messageMapper.fromMessage(message);
 		Assert.state(data != null, () -> "The '" + this.messageMapper + "' returned null for '" + message + '\'');
 
+		Mono<Boolean> sendMono = this.sendSocket.map((socket) -> socket.send(data));
 		Boolean sent =
-				this.sendSocket
-						.map((socket) -> socket.send(data))
-						.block(Duration.ofMillis(timeout));
+				timeout > 0
+						? sendMono.block(Duration.ofMillis(timeout))
+						: sendMono.block();
 
 		return Boolean.TRUE.equals(sent);
 	}
@@ -217,9 +246,11 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 	public void destroy() {
 		this.initialized = false;
 		super.destroy();
-		try (ZMQ.Socket commandSocket = context.createSocket(SocketType.PAIR)) {
-			commandSocket.connect("inproc://" + getComponentName() + ".control");
-			commandSocket.send(zmq.ZMQ.PROXY_TERMINATE);
+		if (this.bindInUrl != null) {
+			try (ZMQ.Socket commandSocket = context.createSocket(SocketType.PAIR)) {
+				commandSocket.connect("inproc://" + getComponentName() + ".control");
+				commandSocket.send(zmq.ZMQ.PROXY_TERMINATE);
+			}
 		}
 		this.sendSocket.doOnNext(ZMQ.Socket::close).block();
 		this.publisherScheduler.dispose();

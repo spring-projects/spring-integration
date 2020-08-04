@@ -18,12 +18,14 @@ package org.springframework.integration.zeromq.channel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.zeromq.Utils;
 import org.zeromq.ZContext;
 
 import org.springframework.messaging.Message;
@@ -46,7 +48,7 @@ public class ZeroMqChannelTests {
 	@Test
 	void testSimpleSendAndReceive() throws InterruptedException {
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT);
-		channel.setBeanName("testChannel");
+		channel.setBeanName("testChannel1");
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
@@ -60,6 +62,60 @@ public class ZeroMqChannelTests {
 		assertThat(message).isNotNull().extracting(Message::getPayload).isEqualTo("test1");
 		message = received.poll(10, TimeUnit.SECONDS);
 		assertThat(message).isNotNull().extracting(Message::getPayload).isEqualTo("test2");
+
+		// Ensure that second subscriber doesn't make it as pub-sub
+		channel.subscribe(received::offer);
+
+		assertThat(channel.send(new GenericMessage<>("test3"))).isTrue();
+
+		message = received.poll(10, TimeUnit.SECONDS);
+		assertThat(message).isNotNull().extracting(Message::getPayload).isEqualTo("test3");
+		assertThat(received.poll(100, TimeUnit.MILLISECONDS)).isNull();
+
+		channel.destroy();
+	}
+
+	@Test
+	void testPubSubLocal() throws InterruptedException {
+		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
+		channel.setBeanName("testChannel2");
+		channel.afterPropertiesSet();
+
+		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
+
+		channel.subscribe(received::offer);
+		channel.subscribe(received::offer);
+
+		GenericMessage<String> testMessage = new GenericMessage<>("test1");
+		assertThat(channel.send(testMessage)).isTrue();
+
+		Message<?> message = received.poll(10, TimeUnit.SECONDS);
+		assertThat(message).isNotNull().isEqualTo(testMessage);
+		message = received.poll(10, TimeUnit.SECONDS);
+		assertThat(message).isNotNull().isEqualTo(testMessage);
+
+		channel.destroy();
+	}
+
+	@Test
+	void testPubSubBind() throws InterruptedException, IOException {
+		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
+		channel.setBindUrl("tcp://*:" + Utils.findOpenPort() + ':' + Utils.findOpenPort());
+		channel.setBeanName("testChannel3");
+		channel.afterPropertiesSet();
+
+		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
+
+		channel.subscribe(received::offer);
+		channel.subscribe(received::offer);
+
+		GenericMessage<String> testMessage = new GenericMessage<>("test1");
+		assertThat(channel.send(testMessage)).isTrue();
+
+		Message<?> message = received.poll(10, TimeUnit.SECONDS);
+		assertThat(message).isNotNull().isEqualTo(testMessage);
+		message = received.poll(10, TimeUnit.SECONDS);
+		assertThat(message).isNotNull().isEqualTo(testMessage);
 
 		channel.destroy();
 	}
