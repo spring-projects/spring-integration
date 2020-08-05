@@ -18,9 +18,11 @@ package org.springframework.integration.redis.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +82,7 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 		this.template.delete(STREAM_KEY).subscribe();
 	}
 
-	@AfterEach
+	@After
 	public void tearDown() {
 		this.redisStreamMessageProducer.stop();
 	}
@@ -102,20 +104,22 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 	/*@Test
 	@RedisAvailable*/
 	public void readingMessageAsStandaloneClientTest() {
-		Address address = new Address("Rennes, France");
+		Address address = new Address("Rennes 3, France");
 		Person person = new Person(address, "Attoumane");
 		this.messageHandler.handleMessage(new GenericMessage<>(person));
 
 		this.redisStreamMessageProducer.start();
 
-		Flux.from(this.fluxMessageChannel)
+		StepVerifier stepVerifier = Flux.from(this.fluxMessageChannel)
 				.as(StepVerifier::create)
 				.assertNext(message -> {
 					assertThat(message.getPayload()).isInstanceOf(Person.class)
 							.extracting("body")
 							.isEqualTo(person);
 				}).thenCancel()
-				.verify();
+				.verifyLater();
+
+		stepVerifier.verify(Duration.ofSeconds(2));
 	}
 
 	@Test

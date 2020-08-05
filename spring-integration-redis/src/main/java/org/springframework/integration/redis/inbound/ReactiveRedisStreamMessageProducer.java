@@ -65,7 +65,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private StreamReceiver<String, ?> streamReceiver;
 
-	private ReadOffset readOffset = ReadOffset.lastConsumed();
+	private ReadOffset readOffset = ReadOffset.latest();
 
 	private boolean extractPayload = true;
 
@@ -88,7 +88,10 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Define the offset from which we want to read message. By defaut the {@link ReadOffset#lastConsumed()} is used.
+	 * Define the offset from which we want to read message. By default the {@link ReadOffset#latest()} is used.
+	 * {@link ReadOffset#latest()} is equal to '$', which is the Id used with {@code XREAD} to get new data added to
+	 * the stream. Note that when switching to the Consumer Group feature, we set it to
+	 * {@link ReadOffset#lastConsumed()} if it is still equal to {@link ReadOffset#latest()}.
 	 * @param readOffset the desired offset
 	 */
 	public void setReadOffset(ReadOffset readOffset) {
@@ -174,9 +177,8 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 		Flux<Message<?>> messageFlux;
 
 		if (StringUtils.isEmpty(this.consumerName)) {
-			messageFlux = this.streamReceiver
-					.receive(offset)
-					.map(event -> getMessageBuilderFactory().withPayload(this.extractPayload ? event.getValue() : event)
+			messageFlux = this.streamReceiver.receive(offset).map(event ->
+					getMessageBuilderFactory().withPayload(this.extractPayload ? event.getValue() : event)
 							.setHeader(RedisHeaders.STREAM_KEY, event.getStream())
 							.setHeader(RedisHeaders.STREAM_MESSAGE_ID, event.getId())
 							.build());
@@ -206,21 +208,36 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 			Consumer consumer = Consumer.from(this.consumerGroup, this.consumerName);
 
-			messageFlux = this.streamReceiver
-					.receive(consumer, offset)
-					.map(event -> {
-						Message<?> message = getMessageBuilderFactory().withPayload(this.extractPayload ? event.getValue() : event)
+			if (offset.getOffset().equals(ReadOffset.latest())) {
+				// for consumer group offset id should be equal '>'
+				offset = StreamOffset.create(this.streamKey, ReadOffset.lastConsumed());
+			}
+
+			if (this.autoAck) {
+				messageFlux = this.streamReceiver.receiveAutoAck(consumer, offset).map(event ->
+						getMessageBuilderFactory()
+								.withPayload(this.extractPayload ? event.getValue() : event)
 								.setHeader(RedisHeaders.STREAM_KEY, event.getStream())
 								.setHeader(RedisHeaders.STREAM_MESSAGE_ID, event.getId())
 								.setHeader(RedisHeaders.CONSUMER_GROUP, this.consumerGroup)
 								.setHeader(RedisHeaders.CONSUMER, this.consumerName)
-								.build();
-						if (this.autoAck) {
-							message.getHeaders().put(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
-									this.reactiveStreamOperations.acknowledge(this.consumerGroup, event).subscribe());
-						}
-						return message;
-					});
+								.build()
+				);
+			}
+			else {
+				messageFlux = this.streamReceiver.receive(consumer, offset).map(event ->
+						getMessageBuilderFactory()
+								.withPayload(this.extractPayload ? event.getValue() : event)
+								.setHeader(RedisHeaders.STREAM_KEY, event.getStream())
+								.setHeader(RedisHeaders.STREAM_MESSAGE_ID, event.getId())
+								.setHeader(RedisHeaders.CONSUMER_GROUP, this.consumerGroup)
+								.setHeader(RedisHeaders.CONSUMER, this.consumerName)
+								.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
+										this.reactiveStreamOperations.acknowledge(this.consumerGroup, event)
+												.subscribe())
+								.build()
+				);
+			}
 		}
 
 		subscribeToPublisher(messageFlux);
