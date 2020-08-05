@@ -19,8 +19,8 @@ package org.springframework.integration.r2dbc.outbound;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
+import org.springframework.data.r2dbc.core.StatementMapper;
 import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.data.relational.core.query.Update;
 import org.springframework.data.relational.core.sql.SqlIdentifier;
@@ -34,6 +34,8 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractReactiveMessageHandler;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
+import org.springframework.r2dbc.core.Parameter;
+import org.springframework.r2dbc.core.PreparedOperation;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Mono;
@@ -51,6 +53,8 @@ import reactor.core.publisher.Mono;
 public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 
 	private final R2dbcEntityOperations r2dbcEntityOperations;
+
+	private final StatementMapper statementMapper;
 
 	private StandardEvaluationContext evaluationContext;
 
@@ -75,6 +79,7 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 	public R2dbcMessageHandler(R2dbcEntityOperations r2dbcEntityOperations) {
 		Assert.notNull(r2dbcEntityOperations, "'r2dbcEntityOperations' must not be null");
 		this.r2dbcEntityOperations = r2dbcEntityOperations;
+		this.statementMapper = this.r2dbcEntityOperations.getDataAccessStrategy().getStatementMapper();
 	}
 
 
@@ -146,11 +151,12 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 		if (this.tableNameExpression != null) {
 			String tableName = evaluateTableNameExpression(message);
 			Criteria criteria = evaluateCriteriaExpression(message);
-			DatabaseClient.DeleteMatchingSpec deleteSpec =
-					this.r2dbcEntityOperations.getDatabaseClient()
-							.delete()
-							.from(tableName);
-			return deleteSpec.matching(criteria)
+			StatementMapper.DeleteSpec deleteSpec =
+					this.statementMapper.createDelete(tableName)
+							.withCriteria(criteria);
+			PreparedOperation<?> operation = this.statementMapper.getMappedObject(deleteSpec);
+			return this.r2dbcEntityOperations.getDatabaseClient()
+					.sql(operation)
 					.then();
 		}
 		else {
@@ -165,11 +171,13 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 			Map<String, Object> values = evaluateValuesExpression(message);
 			Map<SqlIdentifier, Object> updateMap = transformIntoSqlIdentifierMap(values);
 			Criteria criteria = evaluateCriteriaExpression(message);
-			DatabaseClient.GenericUpdateSpec updateSpec =
-					this.r2dbcEntityOperations.getDatabaseClient().update()
-							.table(tableName);
-			return updateSpec.using(Update.from(updateMap))
-					.matching(criteria)
+
+			StatementMapper.UpdateSpec updateSpec =
+					this.statementMapper.createUpdate(tableName, Update.from(updateMap))
+							.withCriteria(criteria);
+			PreparedOperation<?> operation = this.statementMapper.getMappedObject(updateSpec);
+			return this.r2dbcEntityOperations.getDatabaseClient()
+					.sql(operation)
 					.then();
 		}
 		else {
@@ -188,14 +196,18 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 		if (this.tableNameExpression != null) {
 			String tableName = evaluateTableNameExpression(message);
 			Map<String, Object> values = evaluateValuesExpression(message);
-			DatabaseClient.GenericInsertSpec<Map<String, Object>> insertSpec =
-					this.r2dbcEntityOperations.getDatabaseClient()
-							.insert()
-							.into(tableName);
+
+			StatementMapper.InsertSpec insertSpec = this.statementMapper.createInsert(tableName);
+
 			for (Map.Entry<String, Object> entry : values.entrySet()) {
-				insertSpec = insertSpec.value(entry.getKey(), entry.getValue());
+				insertSpec = insertSpec.withColumn(entry.getKey(),
+						Parameter.fromOrEmpty(entry.getValue(), Object.class));
 			}
-			return insertSpec.then();
+
+			PreparedOperation<?> operation = this.statementMapper.getMappedObject(insertSpec);
+			return this.r2dbcEntityOperations.getDatabaseClient()
+					.sql(operation)
+					.then();
 		}
 		else {
 			return this.r2dbcEntityOperations.insert(message.getPayload())
@@ -223,8 +235,7 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 	private Criteria evaluateCriteriaExpression(Message<?> message) {
 		Assert.notNull(this.criteriaExpression,
 				"'this.criteriaExpression' must not be null when 'tableNameExpression' mode is used");
-		Criteria criteria =
-				this.criteriaExpression.getValue(this.evaluationContext, message, Criteria.class);
+		Criteria criteria = this.criteriaExpression.getValue(this.evaluationContext, message, Criteria.class);
 		Assert.notNull(criteria, "'criteriaExpression' must not evaluate to null");
 		return criteria;
 	}

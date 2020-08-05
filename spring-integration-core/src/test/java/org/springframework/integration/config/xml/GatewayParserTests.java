@@ -88,9 +88,9 @@ public class GatewayParserTests {
 		Message<?> result = channel.receive(10000);
 		assertThat(result.getPayload()).isEqualTo("foo");
 
-		Sinks.StandaloneMonoSink<Object> defaultMethodHandler = Sinks.promise();
+		Sinks.One<Object> defaultMethodHandler = Sinks.one();
 
-		this.errorChannel.subscribe(message -> defaultMethodHandler.success(message.getPayload()));
+		this.errorChannel.subscribe(message -> defaultMethodHandler.emitValue(message.getPayload()));
 
 		String defaultMethodPayload = "defaultMethodPayload";
 		service.defaultMethodGateway(defaultMethodPayload);

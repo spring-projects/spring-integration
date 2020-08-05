@@ -180,7 +180,7 @@ public class RSocketInboundGatewayIntegrationTests {
 	@EnableIntegration
 	static class ServerConfig extends CommonConfig {
 
-		final Sinks.StandaloneMonoSink<RSocketRequester> clientRequester = Sinks.promise();
+		final Sinks.One<RSocketRequester> clientRequester = Sinks.one();
 
 		@Bean
 		public CloseableChannel rsocketServer() {
@@ -203,7 +203,7 @@ public class RSocketInboundGatewayIntegrationTests {
 
 		@EventListener
 		public void onApplicationEvent(RSocketConnectedEvent event) {
-			this.clientRequester.success(event.getRequester());
+			this.clientRequester.emitValue(event.getRequester());
 		}
 
 	}

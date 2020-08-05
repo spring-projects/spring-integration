@@ -47,7 +47,7 @@ public class ReactiveMessageSourceProducer extends MessageProducerSupport {
 		Assert.notNull(messageSource, "'messageSource' must not be null");
 		this.messageFlux =
 				IntegrationReactiveUtils.messageSourceToFlux(messageSource)
-						.subscriberContext((ctx) ->
+						.contextWrite((ctx) ->
 								ctx.put(IntegrationReactiveUtils.DELAY_WHEN_EMPTY_KEY, this.delayWhenEmpty));
 	}
 

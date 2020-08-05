@@ -429,7 +429,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			return collector()::add;
 		}
 
-		Sinks.StandaloneMonoSink<Message<?>> messageMono = Sinks.promise();
+		Sinks.One<Message<?>> messageMono = Sinks.one();
 
 		@Bean
 		MessageChannel reactiveMessageHandlerChannel() {
@@ -440,7 +440,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@ServiceActivator(inputChannel = "reactiveMessageHandlerChannel")
 		public ReactiveMessageHandler reactiveMessageHandlerService() {
 			return (message) -> {
-				messageMono.success(message);
+				messageMono.emitValue(message);
 				return Mono.empty();
 			};
 		}

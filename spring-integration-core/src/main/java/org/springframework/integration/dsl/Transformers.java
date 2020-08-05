@@ -319,22 +319,20 @@ public abstract class Transformers {
 
 		return Flux.from(publisher)
 				.flatMap(message ->
-						Mono.subscriberContext()
-								.map(ctx -> {
-									ctx.get(RequestMessageHolder.class).set(message);
-									return message;
-								}))
+						Mono.deferContextual(ctx -> {
+							ctx.get(RequestMessageHolder.class).set(message);
+							return Mono.just(message);
+						}))
 				.transform(fluxFunction)
 				.flatMap(data ->
 						data instanceof Message<?>
 								? Mono.just((Message<O>) data)
-								: Mono.subscriberContext()
-										.map(ctx -> ctx.get(RequestMessageHolder.class).get())
-										.map(requestMessage ->
-												MessageBuilder.withPayload(data)
-														.copyHeaders(requestMessage.getHeaders())
-														.build()))
-				.subscriberContext(ctx -> ctx.put(RequestMessageHolder.class, new RequestMessageHolder()));
+								: Mono.deferContextual(ctx -> Mono.just(ctx.get(RequestMessageHolder.class).get()))
+								.map(requestMessage ->
+										MessageBuilder.withPayload(data)
+												.copyHeaders(requestMessage.getHeaders())
+												.build()))
+				.contextWrite(ctx -> ctx.put(RequestMessageHolder.class, new RequestMessageHolder()));
 	}
 
 

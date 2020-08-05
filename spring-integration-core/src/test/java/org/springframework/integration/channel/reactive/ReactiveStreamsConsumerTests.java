@@ -58,9 +58,8 @@ import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxIdentityProcessor;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Processors;
+import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 import reactor.util.Loggers;
 
@@ -299,11 +298,11 @@ public class ReactiveStreamsConsumerTests {
 	public void testReactiveStreamsConsumerFluxMessageChannelReactiveMessageHandler() {
 		FluxMessageChannel testChannel = new FluxMessageChannel();
 
-		FluxIdentityProcessor<Message<?>> processor = Processors.more().multicast(2, false);
+		Sinks.Many<Object> sink = Sinks.many().multicast().onBackpressureBuffer(2, false);
 
 		ReactiveMessageHandler messageHandler =
 				m -> {
-					processor.onNext(m);
+					sink.emitNext(m);
 					return Mono.empty();
 				};
 
@@ -327,7 +326,7 @@ public class ReactiveStreamsConsumerTests {
 		Message<?> testMessage2 = new GenericMessage<>("test2");
 		testChannel.send(testMessage2);
 
-		StepVerifier.create(processor)
+		StepVerifier.create(sink.asFlux())
 				.expectNext(testMessage, testMessage2)
 				.thenCancel()
 				.verify();

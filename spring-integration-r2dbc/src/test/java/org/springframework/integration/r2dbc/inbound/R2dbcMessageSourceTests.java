@@ -29,16 +29,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+import org.springframework.data.r2dbc.dialect.H2Dialect;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.r2dbc.config.R2dbcDatabaseConfiguration;
 import org.springframework.integration.r2dbc.entity.Person;
+import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -68,13 +68,12 @@ public class R2dbcMessageSourceTests {
 
 	@BeforeEach
 	public void setup() {
-		Hooks.onOperatorDebug();
-		entityTemplate = new R2dbcEntityTemplate(this.client);
+		this.entityTemplate = new R2dbcEntityTemplate(this.client, H2Dialect.INSTANCE);
 		List<String> statements = Arrays.asList(
 				"DROP TABLE IF EXISTS person;",
 				"CREATE table person (id INT AUTO_INCREMENT NOT NULL, name VARCHAR2, age INT NOT NULL);");
 
-		statements.forEach(it -> this.client.execute(it)
+		statements.forEach(it -> this.client.sql(it)
 				.fetch()
 				.rowsUpdated()
 				.as(StepVerifier::create)
@@ -143,11 +142,11 @@ public class R2dbcMessageSourceTests {
 	static class R2dbcMessageSourceConfiguration {
 
 		@Autowired
-		DatabaseClient databaseClient;
+		R2dbcEntityTemplate r2dbcEntityTemplate;
 
 		@Bean
 		public R2dbcMessageSource r2dbcMessageSourceSelectOne() {
-			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient,
+			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(this.r2dbcEntityTemplate,
 					"select * from person Where id = 1");
 			r2dbcMessageSource.setPayloadType(Person.class);
 			return r2dbcMessageSource;
@@ -155,14 +154,15 @@ public class R2dbcMessageSourceTests {
 
 		@Bean
 		public R2dbcMessageSource r2dbcMessageSourceSelectMany() {
-			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient, "select * from person");
+			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(this.r2dbcEntityTemplate,
+					"select * from person");
 			r2dbcMessageSource.setPayloadType(Person.class);
 			return r2dbcMessageSource;
 		}
 
 		@Bean
 		public R2dbcMessageSource r2dbcMessageSourceError() {
-			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(databaseClient,
+			R2dbcMessageSource r2dbcMessageSource = new R2dbcMessageSource(this.r2dbcEntityTemplate,
 					new ValueExpression<>(new Object()));
 			r2dbcMessageSource.setPayloadType(Person.class);
 			return r2dbcMessageSource;

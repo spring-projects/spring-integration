@@ -39,6 +39,7 @@ import org.springframework.util.ErrorHandler;
 
 import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
+import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 
 
@@ -172,17 +173,28 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		else if (this.subscriber != null) {
 			this.subscription =
 					Flux.from(this.publisher)
-							.subscribe((data) -> {
-										try {
-											this.subscriber.onNext(data);
-										}
-										catch (Exception ex) {
-											this.errorHandler.handleError(ex);
-										}
-									},
-									null,
-									this.subscriber::onComplete,
-									this.subscriber::onSubscribe);
+							.subscribeWith(new BaseSubscriber<Message<?>>() {
+
+								@Override
+								protected void hookOnSubscribe(Subscription subscription) {
+									ReactiveStreamsConsumer.this.subscriber.onSubscribe(subscription);
+								}
+
+								@Override
+								protected void hookOnNext(Message<?> value) {
+									try {
+										ReactiveStreamsConsumer.this.subscriber.onNext(value);
+									}
+									catch (Exception ex) {
+										ReactiveStreamsConsumer.this.errorHandler.handleError(ex);
+									}
+								}
+
+								@Override
+								protected void hookOnComplete() {
+									ReactiveStreamsConsumer.this.subscriber.onComplete();
+								}
+							});
 		}
 	}
 

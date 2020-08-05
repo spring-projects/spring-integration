@@ -25,9 +25,8 @@ import org.springframework.util.Assert;
 import reactor.core.Disposable;
 import reactor.core.Disposables;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxIdentityProcessor;
+import reactor.core.publisher.FluxProcessor;
 import reactor.core.publisher.FluxSink;
-import reactor.core.publisher.Processors;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
@@ -44,17 +43,17 @@ import reactor.core.scheduler.Schedulers;
 public class FluxMessageChannel extends AbstractMessageChannel
 		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel {
 
-	private final FluxIdentityProcessor<Message<?>> processor;
+	private final FluxProcessor<Message<?>, Message<?>> processor;
 
 	private final FluxSink<Message<?>> sink;
 
-	private final Sinks.StandaloneFluxSink<Boolean> subscribedSignal = Sinks.replay(1);
+	private final Sinks.Many<Boolean> subscribedSignal = Sinks.many().replay().limit(1);
 
 	private final Disposable.Composite upstreamSubscriptions = Disposables.composite();
 
 	@SuppressWarnings("deprecation")
 	public FluxMessageChannel() {
-		this.processor = Processors.more().multicast(1, false);
+		this.processor = FluxProcessor.fromSink(Sinks.many().multicast().onBackpressureBuffer(1, false));
 		this.sink = this.processor.sink(FluxSink.OverflowStrategy.BUFFER);
 	}
 
@@ -69,9 +68,9 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.processor
-				.doFinally((s) -> this.subscribedSignal.next(this.processor.hasDownstreams()))
+				.doFinally((s) -> this.subscribedSignal.emitNext(this.processor.hasDownstreams()))
 				.subscribe(subscriber);
-		this.subscribedSignal.next(this.processor.hasDownstreams());
+		this.subscribedSignal.emitNext(this.processor.hasDownstreams());
 	}
 
 	@Override
@@ -93,7 +92,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	public void destroy() {
-		this.subscribedSignal.next(false);
+		this.subscribedSignal.emitNext(false);
 		this.upstreamSubscriptions.dispose();
 		this.processor.onComplete();
 		super.destroy();

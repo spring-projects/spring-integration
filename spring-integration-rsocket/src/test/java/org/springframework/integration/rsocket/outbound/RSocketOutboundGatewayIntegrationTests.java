@@ -538,13 +538,13 @@ public class RSocketOutboundGatewayIntegrationTests {
 	@Controller
 	static class TestController {
 
-		final Sinks.StandaloneFluxSink<String> fireForgetPayloads = Sinks.replayAll();
+		final Sinks.Many<String> fireForgetPayloads = Sinks.many().replay().all();
 
-		final Sinks.StandaloneMonoSink<RSocketRequester> clientRequester = Sinks.promise();
+		final Sinks.One<RSocketRequester> clientRequester = Sinks.one();
 
 		@MessageMapping("receive")
 		void receive(String payload) {
-			this.fireForgetPayloads.next(payload);
+			this.fireForgetPayloads.emitNext(payload);
 		}
 
 		@MessageMapping("echo")
@@ -596,7 +596,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		@ConnectMapping("clientConnect")
 		void clientConnect(RSocketRequester requester) {
-			this.clientRequester.success(requester);
+			this.clientRequester.emitValue(requester);
 		}
 
 	}

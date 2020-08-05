@@ -21,8 +21,8 @@ import java.util.Map;
 
 import org.reactivestreams.Publisher;
 
-import org.springframework.data.r2dbc.core.DatabaseClient;
-import org.springframework.data.r2dbc.core.FetchSpec;
+import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
+import org.springframework.data.r2dbc.core.ReactiveDataAccessStrategy;
 import org.springframework.expression.Expression;
 import org.springframework.expression.TypeLocator;
 import org.springframework.expression.common.LiteralExpression;
@@ -30,6 +30,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.r2dbc.core.RowsFetchSpec;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Mono;
@@ -53,7 +54,9 @@ import reactor.core.publisher.Mono;
  */
 public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 
-	private final DatabaseClient databaseClient;
+	private final R2dbcEntityOperations r2dbcEntityOperations;
+
+	private final ReactiveDataAccessStrategy dataAccessStrategy;
 
 	private final Expression queryExpression;
 
@@ -66,29 +69,30 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	private volatile boolean initialized = false;
 
 	/**
-	 * Create an instance with the provided {@link DatabaseClient} and SpEL expression
+	 * Create an instance with the provided {@link R2dbcEntityOperations} and SpEL expression
 	 * which should resolve to a Relational 'query' string.
-	 * It assumes that the {@link DatabaseClient} is fully initialized and ready to be used.
+	 * It assumes that the {@link R2dbcEntityOperations} is fully initialized and ready to be used.
 	 * The 'query' will be evaluated on every call to the {@link #receive()} method.
-	 * @param databaseClient The reactive database client for performing database calls.
+	 * @param r2dbcEntityOperations The reactive database client for performing database calls.
 	 * @param query The query String.
 	 */
-	public R2dbcMessageSource(DatabaseClient databaseClient, String query) {
-		this(databaseClient, new LiteralExpression(query));
+	public R2dbcMessageSource(R2dbcEntityOperations r2dbcEntityOperations, String query) {
+		this(r2dbcEntityOperations, new LiteralExpression(query));
 	}
 
 	/**
-	 * Create an instance with the provided {@link DatabaseClient} and SpEL expression
+	 * Create an instance with the provided {@link R2dbcEntityOperations} and SpEL expression
 	 * which should resolve to a Relational 'query' string.
-	 * It assumes that the {@link DatabaseClient} is fully initialized and ready to be used.
+	 * It assumes that the {@link R2dbcEntityOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
-	 * @param databaseClient  The reactive for performing database calls.
+	 * @param r2dbcEntityOperations  The reactive for performing database calls.
 	 * @param queryExpression The query expression.
 	 */
-	public R2dbcMessageSource(DatabaseClient databaseClient, Expression queryExpression) {
-		Assert.notNull(databaseClient, "'databaseClient' must not be null");
+	public R2dbcMessageSource(R2dbcEntityOperations r2dbcEntityOperations, Expression queryExpression) {
+		Assert.notNull(r2dbcEntityOperations, "'r2dbcEntityOperations' must not be null");
 		Assert.notNull(queryExpression, "'queryExpression' must not be null");
-		this.databaseClient = databaseClient;
+		this.r2dbcEntityOperations = r2dbcEntityOperations;
+		this.dataAccessStrategy = this.r2dbcEntityOperations.getDataAccessStrategy();
 		this.queryExpression = queryExpression;
 	}
 
@@ -147,21 +151,21 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	@Override
 	protected Object doReceive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
-		Mono<FetchSpec<?>> queryMono =
+		Mono<RowsFetchSpec<?>> queryMono =
 				Mono.fromSupplier(() -> this.queryExpression.getValue(this.evaluationContext))
 						.map(this::prepareFetch);
 		if (this.expectSingleResult) {
-			return queryMono.flatMap(FetchSpec::one);
+			return queryMono.flatMap(RowsFetchSpec::one);
 		}
-		return queryMono.flatMapMany(FetchSpec::all);
+		return queryMono.flatMapMany(RowsFetchSpec::all);
 	}
 
-	private FetchSpec<?> prepareFetch(Object queryObject) {
+	private RowsFetchSpec<?> prepareFetch(Object queryObject) {
 		String queryString = evaluateQueryObject(queryObject);
-		return this.databaseClient
-				.execute(queryString)
-				.as(this.payloadType)
-				.fetch();
+		return this.r2dbcEntityOperations
+				.getDatabaseClient()
+				.sql(queryString)
+				.map(this.dataAccessStrategy.getRowMapper(this.payloadType));
 	}
 
 	private String evaluateQueryObject(Object queryObject) {

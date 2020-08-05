@@ -31,9 +31,8 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxIdentityProcessor;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Processors;
+import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
 /**
@@ -75,8 +74,7 @@ public final class IntegrationReactiveUtils {
 	public static <T> Flux<Message<T>> messageSourceToFlux(MessageSource<T> messageSource) {
 		return Mono.
 				<Message<T>>create(monoSink ->
-						monoSink.onRequest(value ->
-								monoSink.success(messageSource.receive())))
+						monoSink.onRequest(value -> monoSink.success(messageSource.receive())))
 				.doOnSuccess((message) ->
 						AckUtils.autoAck(StaticMessageHeaderAccessor.getAcknowledgmentCallback(message)))
 				.doOnError(MessagingException.class,
@@ -89,10 +87,9 @@ public final class IntegrationReactiveUtils {
 				.subscribeOn(Schedulers.boundedElastic())
 				.repeatWhenEmpty((repeat) ->
 						repeat.flatMap((increment) ->
-								Mono.subscriberContext()
-										.flatMap(ctx ->
-												Mono.delay(ctx.getOrDefault(DELAY_WHEN_EMPTY_KEY,
-														DEFAULT_DELAY_WHEN_EMPTY)))))
+								Mono.deferContextual(ctx ->
+										Mono.delay(ctx.getOrDefault(DELAY_WHEN_EMPTY_KEY,
+												DEFAULT_DELAY_WHEN_EMPTY)))))
 				.repeat()
 				.retry();
 	}
@@ -102,7 +99,7 @@ public final class IntegrationReactiveUtils {
 	 * - a {@link org.springframework.integration.channel.FluxMessageChannel}
 	 * is returned as is because it is already a {@link Publisher};
 	 * - a {@link SubscribableChannel} is subscribed with a {@link MessageHandler}
-	 * for the {@link FluxIdentityProcessor#onNext(Object)} which is returned from this method;
+	 * for the {@link Sinks.Many#emitNext(Object)} which is returned from this method;
 	 * - a {@link PollableChannel} is wrapped into a {@link MessageSource} lambda and reuses
 	 * {@link #messageSourceToFlux(MessageSource)}.
 	 * @param messageChannel the {@link MessageChannel} to adapt.
@@ -128,11 +125,11 @@ public final class IntegrationReactiveUtils {
 
 	private static <T> Flux<Message<T>> adaptSubscribableChannelToPublisher(SubscribableChannel inputChannel) {
 		return Flux.defer(() -> {
-			FluxIdentityProcessor<Message<T>> publisher = Processors.more().multicast(1);
+			Sinks.Many<Message<T>> sink = Sinks.many().multicast().onBackpressureBuffer(1);
 			@SuppressWarnings("unchecked")
-			MessageHandler messageHandler = (message) -> publisher.onNext((Message<T>) message);
+			MessageHandler messageHandler = (message) -> sink.emitNext((Message<T>) message);
 			inputChannel.subscribe(messageHandler);
-			return publisher
+			return sink.asFlux()
 					.doOnCancel(() -> inputChannel.unsubscribe(messageHandler));
 		});
 	}
