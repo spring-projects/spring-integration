@@ -53,7 +53,8 @@ public class ServerRSocketConnector extends AbstractRSocketConnector implements 
 
 	private final ServerTransport<CloseableChannel> serverTransport;
 
-	private Consumer<RSocketServer> serverConfigurer = (rsocketServer) -> { };
+	private Consumer<RSocketServer> serverConfigurer = (rsocketServer) -> {
+	};
 
 	private Mono<CloseableChannel> serverMono;
 
@@ -101,18 +102,6 @@ public class ServerRSocketConnector extends AbstractRSocketConnector implements 
 
 	private ServerRSocketMessageHandler serverRSocketMessageHandler() {
 		return (ServerRSocketMessageHandler) this.rSocketMessageHandler;
-	}
-
-	/**
-	 * Provide a {@link Consumer} to configure the {@link io.rsocket.RSocketFactory.ServerRSocketFactory}.
-	 * @param factoryConfigurer the {@link Consumer} to configure the {@link io.rsocket.RSocketFactory.ServerRSocketFactory}.
-	 * @deprecated since 5.2.6 in favor of {@link #setServerConfigurer(Consumer)}
-	 */
-	@Deprecated
-	public void setFactoryConfigurer(Consumer<io.rsocket.RSocketFactory.ServerRSocketFactory> factoryConfigurer) {
-		Assert.notNull(factoryConfigurer, "'factoryConfigurer' must not be null");
-		setServerConfigurer((server) ->
-				factoryConfigurer.accept(new io.rsocket.RSocketFactory.ServerRSocketFactory(server)));
 	}
 
 	/**

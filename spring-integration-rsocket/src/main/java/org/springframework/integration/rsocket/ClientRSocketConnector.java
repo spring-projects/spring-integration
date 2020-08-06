@@ -91,27 +91,6 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	/**
 	 * Callback to configure the {@code ClientRSocketFactory} directly.
-	 * Note: this class adds extra {@link org.springframework.messaging.rsocket.ClientRSocketFactoryConfigurer} to the
-	 * target {@link RSocketRequester} to populate a reference to an internal
-	 * {@link IntegrationRSocketMessageHandler#responder()}.
-	 * This overrides possible external
-	 * {@link io.rsocket.RSocketFactory.ClientRSocketFactory#acceptor(io.rsocket.SocketAcceptor)}
-	 * @param factoryConfigurer the {@link org.springframework.messaging.rsocket.ClientRSocketFactoryConfigurer} to
-	 *  configure the {@link io.rsocket.RSocketFactory.ClientRSocketFactory}.
-	 * @see RSocketRequester.Builder#rsocketFactory(org.springframework.messaging.rsocket.ClientRSocketFactoryConfigurer)
-	 * @deprecated since 5.2.6 in favor of {@link #setConnectorConfigurer(RSocketConnectorConfigurer)}
-	 */
-	@Deprecated
-	public void setFactoryConfigurer(
-			org.springframework.messaging.rsocket.ClientRSocketFactoryConfigurer factoryConfigurer) {
-
-		Assert.notNull(factoryConfigurer, "'factoryConfigurer' must not be null");
-		setConnectorConfigurer((connector) ->
-				factoryConfigurer.configure(new io.rsocket.RSocketFactory.ClientRSocketFactory(connector)));
-	}
-
-	/**
-	 * Callback to configure the {@code ClientRSocketFactory} directly.
 	 * Note: this class adds extra {@link RSocketConnectorConfigurer} to the
 	 * target {@link RSocketRequester} to populate a reference to an internal
 	 * {@link IntegrationRSocketMessageHandler#responder()}.
