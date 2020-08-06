@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
@@ -45,7 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  */
 public abstract class AbstractEndpoint extends IntegrationObjectSupport
-		implements SmartLifecycle, DisposableBean {
+		implements ManageableSmartLifecycle, DisposableBean {
 
 	private boolean autoStartupSetExplicitly;
 

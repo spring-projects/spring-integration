@@ -28,6 +28,7 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.IntegrationInboundManagement;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MeterFacade;
@@ -38,6 +39,10 @@ import org.springframework.messaging.Message;
 import org.springframework.util.CollectionUtils;
 
 /**
+ * Abstract message source.
+ *
+ * @param <T> The payload type.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -45,11 +50,9 @@ import org.springframework.util.CollectionUtils;
  *
  * @since 2.0
  */
-@SuppressWarnings("deprecation")
 @IntegrationManagedResource
 public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluator
-		implements MessageSource<T>, org.springframework.integration.support.management.MessageSourceMetrics,
-		NamedComponent, BeanNameAware {
+		implements MessageSource<T>, IntegrationInboundManagement, NamedComponent, BeanNameAware {
 
 	private final AtomicLong messageCount = new AtomicLong();
 
@@ -64,8 +67,6 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	private String managedType;
 
 	private String managedName;
-
-	private boolean countsEnabled;
 
 	private boolean loggingEnabled = true;
 
@@ -120,17 +121,6 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Override
-	public boolean isCountsEnabled() {
-		return this.countsEnabled;
-	}
-
-	@Override
-	public void setCountsEnabled(boolean countsEnabled) {
-		this.countsEnabled = countsEnabled;
-		this.managementOverrides.countsConfigured = true;
-	}
-
-	@Override
 	public boolean isLoggingEnabled() {
 		return this.loggingEnabled;
 	}
@@ -139,38 +129,6 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	public void setLoggingEnabled(boolean loggingEnabled) {
 		this.loggingEnabled = loggingEnabled;
 		this.managementOverrides.loggingConfigured = true;
-	}
-
-	/**
-	 * Deprecated.
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public void reset() {
-		this.messageCount.set(0);
-	}
-
-	/**
-	 * Deprecated.
-	 * @return count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public int getMessageCount() {
-		return (int) this.messageCount.get();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public long getMessageCountLong() {
-		return this.messageCount.get();
 	}
 
 	@Override
@@ -222,12 +180,10 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 							.copyHeaders(headers)
 							.build();
 		}
-		if (this.countsEnabled) {
-			if (this.metricsCaptor != null) {
-				incrementReceiveCounter();
-			}
-			this.messageCount.incrementAndGet();
+		if (this.metricsCaptor != null) {
+			incrementReceiveCounter();
 		}
+		this.messageCount.incrementAndGet();
 		return (Message<T>) message;
 	}
 

@@ -19,7 +19,6 @@ package org.springframework.integration.scattergather;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -31,6 +30,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -53,7 +53,7 @@ import org.springframework.util.ClassUtils;
  *
  * @since 4.1
  */
-public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
+public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler implements ManageableLifecycle {
 
 	private static final String GATHER_RESULT_CHANNEL = "gatherResultChannel";
 

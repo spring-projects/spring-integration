@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.websocket;
 import java.util.Arrays;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.integration.util.JavaUtils;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -51,7 +51,7 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
  * @since 4.1
  */
 public class ServerWebSocketContainer extends IntegrationWebSocketContainer
-		implements WebSocketConfigurer, SmartLifecycle {
+		implements WebSocketConfigurer, ManageableSmartLifecycle {
 
 	private final String[] paths;
 

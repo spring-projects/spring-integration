@@ -22,9 +22,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  */
 @ManagedResource
-public class WireTap implements ChannelInterceptor, Lifecycle, VetoCapableInterceptor, BeanFactoryAware {
+public class WireTap implements ChannelInterceptor, ManageableLifecycle, VetoCapableInterceptor, BeanFactoryAware {
 
 	private static final Log LOGGER = LogFactory.getLog(WireTap.class);
 

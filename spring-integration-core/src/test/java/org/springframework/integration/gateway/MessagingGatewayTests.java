@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,6 @@ public class MessagingGatewayTests {
 		this.messagingGateway.setReplyChannel(this.replyChannel);
 
 		this.messagingGateway.setBeanFactory(this.applicationContext);
-		this.messagingGateway.setCountsEnabled(true);
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
 		this.applicationContext.refresh();
@@ -93,7 +92,8 @@ public class MessagingGatewayTests {
 		Mockito.when(requestChannel.send(messageMock, 1000L)).thenReturn(true);
 		this.messagingGateway.send(messageMock);
 		Mockito.verify(requestChannel).send(messageMock, 1000L);
-		assertThat(this.messagingGateway.getMessageCount()).isEqualTo(1);
+		// TODO Micrometer counter
+//		assertThat(this.messagingGateway.getMessageCount()).isEqualTo(1);
 	}
 
 	@Test(expected = MessageDeliveryException.class)

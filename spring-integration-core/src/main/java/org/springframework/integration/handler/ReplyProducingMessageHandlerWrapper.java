@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.handler;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
@@ -37,7 +38,7 @@ import org.springframework.util.Assert;
  * @since 5.0
  */
 public class ReplyProducingMessageHandlerWrapper extends AbstractReplyProducingMessageHandler
-		implements Lifecycle {
+		implements ManageableLifecycle {
 
 	private final MessageHandler target;
 

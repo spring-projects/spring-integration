@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,27 +29,7 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
 public class MessageGatewayNode extends ErrorCapableEndpointNode {
 
 	public MessageGatewayNode(int nodeId, String name, MessagingGatewaySupport gateway, String output, String errors) {
-		super(nodeId, name, gateway, output, errors, new Stats(gateway));
-	}
-
-
-	public static final class Stats extends IntegrationNode.Stats {
-
-		private final MessagingGatewaySupport gateway;
-
-		Stats(MessagingGatewaySupport gateway) {
-			this.gateway = gateway;
-		}
-
-		@Override
-		protected boolean isAvailable() {
-			return this.gateway.isCountsEnabled();
-		}
-
-		public long getSendCount() {
-			return this.gateway.getMessageCountLong();
-		}
-
+		super(nodeId, name, gateway, output, errors);
 	}
 
 }

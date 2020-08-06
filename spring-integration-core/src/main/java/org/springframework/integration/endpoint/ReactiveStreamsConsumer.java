@@ -28,6 +28,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.router.MessageRouter;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.util.IntegrationReactiveUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -188,7 +189,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 	}
 
 	private static final class MessageHandlerSubscriber
-			implements CoreSubscriber<Message<?>>, Disposable, Lifecycle {
+			implements CoreSubscriber<Message<?>>, Disposable, ManageableLifecycle {
 
 		private final Consumer<Message<?>> consumer;
 

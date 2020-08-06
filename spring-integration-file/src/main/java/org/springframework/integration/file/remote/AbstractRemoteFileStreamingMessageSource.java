@@ -29,7 +29,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -40,6 +39,7 @@ import org.springframework.integration.file.filters.ResettableFileListFilter;
 import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.support.FileUtils;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -56,7 +56,7 @@ import org.springframework.util.ObjectUtils;
  *
  */
 public abstract class AbstractRemoteFileStreamingMessageSource<F>
-		extends AbstractFetchLimitingMessageSource<InputStream> implements Lifecycle {
+		extends AbstractFetchLimitingMessageSource<InputStream> implements ManageableLifecycle {
 
 	private final RemoteFileTemplate<F> remoteFileTemplate;
 

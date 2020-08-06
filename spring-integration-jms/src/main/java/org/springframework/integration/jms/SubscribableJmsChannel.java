@@ -21,7 +21,6 @@ import javax.jms.MessageListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.context.IntegrationProperties;
@@ -31,6 +30,7 @@ import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -52,7 +52,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class SubscribableJmsChannel extends AbstractJmsChannel
-		implements BroadcastCapableChannel, SmartLifecycle {
+		implements BroadcastCapableChannel, ManageableSmartLifecycle {
 
 	private final AbstractMessageListenerContainer container;
 

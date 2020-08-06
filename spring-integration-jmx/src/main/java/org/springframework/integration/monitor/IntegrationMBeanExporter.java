@@ -42,6 +42,7 @@ import org.springframework.beans.factory.config.DestructionAwareBeanPostProcesso
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.config.IntegrationManagementConfigurer;
@@ -50,15 +51,17 @@ import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.endpoint.IntegrationConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.integration.support.management.MappingMessageRouterManagement;
-import org.springframework.integration.support.management.MessageSourceManagement;
-import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.integration.support.management.IntegrationInboundManagement;
+import org.springframework.integration.support.management.IntegrationManagement;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.support.utils.PatternMatchUtils;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.UnableToRegisterMBeanException;
@@ -66,8 +69,10 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 import org.springframework.jmx.support.MetricType;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
@@ -116,22 +121,15 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private final Map<Object, AtomicLong> anonymousSourceCounters = new HashMap<>();
 
-	private final Set<org.springframework.integration.support.management.MessageHandlerMetrics>
-		handlers = new HashSet<>();
+	private final Map<String, IntegrationManagement> handlers = new HashMap<>();
 
-	private final Set<org.springframework.integration.support.management.MessageSourceMetrics>
-		sources = new HashSet<>();
+	private final Map<String, IntegrationInboundManagement> sources = new HashMap<>();
+
+	private final Map<IntegrationInboundManagement, ManageableLifecycle> sourceLifecycles = new HashMap<>();
 
 	private final Set<Lifecycle> inboundLifecycleMessageProducers = new HashSet<>();
 
-	private final Set<org.springframework.integration.support.management.MessageChannelMetrics>
-		channels = new HashSet<>();
-
-	private final Map<String, org.springframework.integration.support.management.MessageChannelMetrics>
-		allChannelsByName = new HashMap<>();
-
-	private final Map<String, org.springframework.integration.support.management.MessageSourceMetrics>
-		allSourcesByName = new HashMap<>();
+	private final Map<String, IntegrationManagement> channels = new HashMap<>();
 
 	private final Map<Object, String> endpointsByMonitor = new HashMap<>();
 
@@ -146,7 +144,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	private final Set<Object> runtimeBeans = new HashSet<>();
 
 	private final MetadataNamingStrategy defaultNamingStrategy =
-			new IntegrationMetadataNamingStrategy(this.attributeSource);
+			new MetadataNamingStrategy(this.attributeSource);
 
 	private String domain = DEFAULT_DOMAIN;
 
@@ -162,7 +160,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		// Shouldn't be necessary, but to be on the safe side...
 		setAutodetect(false);
 		setNamingStrategy(this.defaultNamingStrategy);
-		setAssembler(new IntegrationMetadataMBeanInfoAssembler(this.attributeSource));
+		setAssembler(new MetadataMBeanInfoAssembler(this.attributeSource));
 	}
 
 	/**
@@ -248,14 +246,12 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	private void populateMessageHandlers() {
-		Map<String, org.springframework.integration.support.management.MessageHandlerMetrics> messageHandlers =
-				this.applicationContext
-					.getBeansOfType(org.springframework.integration.support.management.MessageHandlerMetrics.class);
-		for (Entry<String, org.springframework.integration.support.management.MessageHandlerMetrics> entry
-				: messageHandlers.entrySet()) {
+		Map<String, MessageHandler> messageHandlers = this.applicationContext
+					.getBeansOfType(MessageHandler.class);
+		for (Entry<String, MessageHandler> entry : messageHandlers.entrySet()) {
 
 			String beanName = entry.getKey();
-			org.springframework.integration.support.management.MessageHandlerMetrics bean = entry.getValue();
+			MessageHandler bean = entry.getValue();
 			if (this.handlerInAnonymousWrapper(bean) != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Skipping " + beanName + " because it wraps another handler");
@@ -264,34 +260,35 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			}
 			// If the handler is proxied, we have to extract the target to expose as an MBean.
 			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
-			org.springframework.integration.support.management.MessageHandlerMetrics monitor =
-					(org.springframework.integration.support.management.MessageHandlerMetrics) extractTarget(bean);
-			this.handlers.add(monitor);
+			MessageHandler monitor = (MessageHandler) extractTarget(bean);
+			if (monitor instanceof IntegrationManagement) {
+				this.handlers.put(beanName, (IntegrationManagement) monitor);
+			}
 		}
 	}
 
 	private void populateMessageSources() {
 		this.applicationContext.getBeansOfType(
-			org.springframework.integration.support.management.MessageSourceMetrics.class)
+			IntegrationInboundManagement.class)
 				.values()
 				.stream()
-				// If the channel is proxied, we have to extract the target to expose as an MBean.
+				// If the source is proxied, we have to extract the target to expose as an MBean.
 				// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
 				.map(this::extractTarget)
-				.map(org.springframework.integration.support.management.MessageSourceMetrics.class::cast)
-				.forEach(this.sources::add);
+				.map(IntegrationInboundManagement.class::cast)
+				.forEach(src -> this.sources.put(src.getComponentName(), src));
 	}
 
 	private void populateMessageChannels() {
-		this.applicationContext.getBeansOfType(
-			org.springframework.integration.support.management.MessageChannelMetrics.class)
+		this.applicationContext.getBeansOfType(MessageChannel.class)
 				.values()
 				.stream()
 				// If the channel is proxied, we have to extract the target to expose as an MBean.
 				// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
 				.map(this::extractTarget)
-				.map(org.springframework.integration.support.management.MessageChannelMetrics.class::cast)
-				.forEach(this.channels::add);
+				.filter(ch -> ch instanceof IntegrationManagement)
+				.map(IntegrationManagement.class::cast)
+				.forEach(ch -> this.channels.put(ch.getComponentName(), ch));
 	}
 
 	private void populateMessageProducers() {
@@ -305,8 +302,6 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	private void configureManagementConfigurer() {
 		if (!this.applicationContext.containsBean(IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME)) {
 			this.managementConfigurer = new IntegrationManagementConfigurer();
-			this.managementConfigurer.setDefaultCountsEnabled(true);
-			this.managementConfigurer.setDefaultStatsEnabled(true);
 			this.managementConfigurer.setApplicationContext(this.applicationContext);
 			this.managementConfigurer.setBeanName(IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME);
 			this.managementConfigurer.afterSingletonsInstantiated();
@@ -322,12 +317,13 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (this.singletonsInstantiated) {
 			try {
-				if (bean instanceof org.springframework.integration.support.management.MessageChannelMetrics) {
-					org.springframework.integration.support.management.MessageChannelMetrics monitor =
-						(org.springframework.integration.support.management.MessageChannelMetrics) extractTarget(bean);
-					this.channels.add(monitor);
-					registerChannel(monitor);
-					this.runtimeBeans.add(bean);
+				if (bean instanceof MessageChannel) {
+					MessageChannel monitor = (MessageChannel) extractTarget(bean);
+					if (monitor instanceof IntegrationManagement) {
+						this.channels.put(beanName, (IntegrationManagement) monitor);
+						registerChannel((IntegrationManagement) monitor);
+						this.runtimeBeans.add(bean);
+					}
 				}
 				else if (bean instanceof MessageProducer && bean instanceof Lifecycle) {
 					registerProducer((MessageProducer) bean);
@@ -348,25 +344,25 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		if (bean instanceof IntegrationConsumer) {
 			IntegrationConsumer integrationConsumer = (IntegrationConsumer) bean;
 			MessageHandler handler = integrationConsumer.getHandler();
-			if (handler instanceof org.springframework.integration.support.management.MessageHandlerMetrics) {
-				org.springframework.integration.support.management.MessageHandlerMetrics messageHandlerMetrics =
-						(org.springframework.integration.support.management.MessageHandlerMetrics) extractTarget(handler);
-				registerHandler(messageHandlerMetrics);
-				this.handlers.add(messageHandlerMetrics);
-				this.runtimeBeans.add(messageHandlerMetrics);
+			if (handler instanceof AbstractMessageHandler) {
+				MessageHandler monitor = (MessageHandler) extractTarget(handler);
+				if (monitor instanceof IntegrationManagement) {
+					registerHandler((IntegrationManagement) monitor);
+					this.handlers.put(((IntegrationManagement) monitor).getComponentName(),
+							(IntegrationManagement) monitor);
+					this.runtimeBeans.add(monitor);
+				}
 				return;
 			}
 		}
 		else if (bean instanceof SourcePollingChannelAdapter) {
 			SourcePollingChannelAdapter pollingChannelAdapter = (SourcePollingChannelAdapter) bean;
 			MessageSource<?> messageSource = pollingChannelAdapter.getMessageSource();
-			if (messageSource instanceof org.springframework.integration.support.management.MessageSourceMetrics) {
-				org.springframework.integration.support.management.MessageSourceMetrics messageSourceMetrics =
-						(org.springframework.integration.support.management.MessageSourceMetrics)
-							extractTarget(messageSource);
-				registerSource(messageSourceMetrics);
-				this.sources.add(messageSourceMetrics);
-				this.runtimeBeans.add(messageSourceMetrics);
+			if (messageSource instanceof IntegrationInboundManagement) {
+				IntegrationInboundManagement monitor = (IntegrationInboundManagement) extractTarget(messageSource);
+				registerSource(monitor);
+				this.sourceLifecycles.put(monitor, pollingChannelAdapter);
+				this.runtimeBeans.add(monitor);
 				return;
 			}
 		}
@@ -384,9 +380,9 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	@Override
 	public boolean requiresDestruction(Object bean) {
-		return bean instanceof org.springframework.integration.support.management.MessageChannelMetrics || // NOSONAR
-				bean instanceof org.springframework.integration.support.management.MessageHandlerMetrics ||
-				bean instanceof org.springframework.integration.support.management.MessageSourceMetrics ||
+		return bean instanceof AbstractMessageChannel || // NOSONAR
+				bean instanceof AbstractMessageHandler ||
+				bean instanceof AbstractMessageSource<?> ||
 				(bean instanceof MessageProducer && bean instanceof Lifecycle) ||
 				bean instanceof AbstractEndpoint;
 	}
@@ -403,21 +399,16 @@ public class IntegrationMBeanExporter extends MBeanExporter
 				else {
 
 					this.endpointsByMonitor.remove(bean);
-					if (bean instanceof org.springframework.integration.support.management.MessageChannelMetrics) {
-						this.channels.remove(bean);
-						this.allChannelsByName.remove(((NamedComponent) bean).getComponentName());
+					if (bean instanceof IntegrationManagement) {
+						this.channels.remove(((NamedComponent) bean).getComponentName());
 					}
-					else if (bean instanceof org.springframework.integration.support.management.MessageHandlerMetrics) {
-						this.handlers.remove(bean);
+					else if (bean instanceof IntegrationManagement) {
+						this.handlers.remove(((NamedComponent) bean).getComponentName());
 						this.endpointNames.remove(((NamedComponent) bean).getComponentName());
 					}
-					else if (bean instanceof org.springframework.integration.support.management.MessageSourceMetrics) {
-						this.sources.remove(bean);
+					else if (bean instanceof IntegrationInboundManagement) {
+						this.sources.remove(((NamedComponent) bean).getComponentName());
 						this.endpointNames.remove(((NamedComponent) bean).getComponentName());
-						String managedName =
-								((org.springframework.integration.support.management.MessageSourceMetrics) bean)
-									.getManagedName();
-						this.allSourcesByName.remove(managedName);
 					}
 				}
 			}
@@ -488,20 +479,6 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		}
 	}
 
-	@Override
-	public void destroy() {
-		super.destroy();
-		for (org.springframework.integration.support.management.MessageChannelMetrics monitor : this.channels) {
-			logger.info("Summary on shutdown: " + monitor);
-		}
-		for (org.springframework.integration.support.management.MessageHandlerMetrics monitor : this.handlers) {
-			logger.info("Summary on shutdown: " + monitor);
-		}
-		for (org.springframework.integration.support.management.MessageSourceMetrics monitor : this.sources) {
-			logger.info("Summary on shutdown: " + monitor);
-		}
-	}
-
 	/**
 	 * Shutdown active components.
 	 * @param howLong The time to wait in total for all activities to complete
@@ -556,20 +533,11 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	 */
 	@ManagedOperation
 	public void stopMessageSources() {
-		for (org.springframework.integration.support.management.MessageSourceMetrics sourceMetrics
-				: this.allSourcesByName.values()) {
-
-			if (sourceMetrics instanceof Lifecycle) {
-				if (logger.isInfoEnabled()) {
-					logger.info("Stopping message source " + sourceMetrics);
-				}
-				((Lifecycle) sourceMetrics).stop();
+		for (Lifecycle source : this.sourceLifecycles.values()) {
+			if (logger.isInfoEnabled()) {
+				logger.info("Stopping message source " + source);
 			}
-			else {
-				if (logger.isInfoEnabled()) {
-					logger.info("Message source " + sourceMetrics + " cannot be stopped");
-				}
-			}
+			source.stop();
 		}
 	}
 
@@ -592,8 +560,8 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	@ManagedOperation
 	public void stopActiveChannels() {
 		// Stop any "active" channels (JMS etc).
-		for (org.springframework.integration.support.management.MessageChannelMetrics metrics : this.allChannelsByName.values()) {
-			MessageChannel channel = (MessageChannel) metrics;
+		for (IntegrationManagement metrics : this.channels.values()) {
+			IntegrationManagement channel = metrics;
 			if (channel instanceof Lifecycle) {
 				if (logger.isInfoEnabled()) {
 					logger.info("Stopping channel " + channel);
@@ -631,41 +599,41 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Count")
 	public int getChannelCount() {
-		return this.managementConfigurer.getChannelNames().length;
+		return this.channels.size();
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageHandler Count")
 	public int getHandlerCount() {
-		return this.managementConfigurer.getHandlerNames().length;
+		return this.handlers.size();
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageSource Count")
 	public int getSourceCount() {
-		return this.managementConfigurer.getSourceNames().length;
+		return this.sources.size();
 	}
 
 	@ManagedAttribute
 	public String[] getHandlerNames() {
-		return this.managementConfigurer.getHandlerNames();
+		return this.handlers.values().stream()
+				.map(hand -> hand.getManagedName())
+				.toArray(n -> new String[n]);
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Active Handler Count")
+	@Deprecated
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "No longer supported")
 	public int getActiveHandlerCount() {
-		return (int) getActiveHandlerCountLong();
+		return 0;
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Active Handler Count")
+	@Deprecated
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "No longer supported")
 	public long getActiveHandlerCountLong() {
-		int count = 0;
-		for (org.springframework.integration.support.management.MessageHandlerMetrics monitor : this.handlers) {
-			count += monitor.getActiveCountLong();
-		}
-		return count;
+		return 0;
 	}
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Queued Message Count")
 	public int getQueuedMessageCount() {
-		return this.channels.stream()
+		return this.channels.values().stream()
 				.filter(QueueChannel.class::isInstance)
 				.map(QueueChannel.class::cast)
 				.mapToInt(QueueChannel::getQueueSize)
@@ -674,93 +642,51 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	@ManagedAttribute
 	public String[] getChannelNames() {
-		return this.managementConfigurer.getChannelNames();
+		return this.channels.keySet().stream()
+				.toArray(n -> new String[n]);
 	}
 
-	public org.springframework.integration.support.management.MessageHandlerMetrics getHandlerMetrics(String name) {
-		return this.managementConfigurer.getHandlerMetrics(name);
+	@Nullable
+	@Deprecated
+	public AbstractMessageHandler getHandlerMetrics(String name) {
+		return null;
 	}
 
-	public org.springframework.integration.support.management.Statistics getHandlerDuration(String name) {
-		org.springframework.integration.support.management.MessageHandlerMetrics handlerMetrics = getHandlerMetrics(name);
-		return handlerMetrics != null ? handlerMetrics.getDuration() : null;
+	@Nullable
+	public IntegrationManagement getHandler(String name) {
+		return this.handlers.get(name);
 	}
 
 	@ManagedAttribute
 	public String[] getSourceNames() {
-		return this.managementConfigurer.getSourceNames();
+		return this.sources.keySet().stream()
+				.toArray(n -> new String[n]);
 	}
 
-	public org.springframework.integration.support.management.MessageSourceMetrics getSourceMetrics(String name) {
-		return this.managementConfigurer.getSourceMetrics(name);
+	@Deprecated
+	public IntegrationInboundManagement getSourceMetrics(String name) {
+		return this.sources.get(name);
 	}
 
-	public int getSourceMessageCount(String name) {
-		return (int) getSourceMessageCountLong(name);
+	@Deprecated
+	public IntegrationManagement getChannelMetrics(String name) {
+		return this.channels.get(name);
 	}
 
-	public long getSourceMessageCountLong(String name) {
-		org.springframework.integration.support.management.MessageSourceMetrics sourceMetrics = getSourceMetrics(name);
-		return sourceMetrics != null ? sourceMetrics.getMessageCountLong() : -1;
+	public IntegrationInboundManagement getSource(String name) {
+		return this.sources.get(name);
 	}
 
-	public org.springframework.integration.support.management.MessageChannelMetrics getChannelMetrics(String name) {
-		return this.managementConfigurer.getChannelMetrics(name);
-	}
-
-	public int getChannelSendCount(String name) {
-		return (int) getChannelSendCountLong(name);
-	}
-
-	public long getChannelSendCountLong(String name) {
-		org.springframework.integration.support.management.MessageChannelMetrics channelMetrics =
-				getChannelMetrics(name);
-		return channelMetrics != null ? channelMetrics.getSendCountLong() : -1;
-	}
-
-	public int getChannelSendErrorCount(String name) {
-		return (int) getChannelSendErrorCountLong(name);
-	}
-
-	public long getChannelSendErrorCountLong(String name) {
-		org.springframework.integration.support.management.MessageChannelMetrics channelMetrics = getChannelMetrics(name);
-		return channelMetrics != null ? channelMetrics.getSendErrorCountLong() : -1;
-	}
-
-	public int getChannelReceiveCount(String name) {
-		return (int) getChannelReceiveCountLong(name);
-	}
-
-	public long getChannelReceiveCountLong(String name) {
-		org.springframework.integration.support.management.MessageChannelMetrics channelMetrics =
-				getChannelMetrics(name);
-		if (channelMetrics instanceof org.springframework.integration.support.management.PollableChannelManagement) {
-			return ((org.springframework.integration.support.management.PollableChannelManagement) channelMetrics)
-					.getReceiveCountLong();
-		}
-		return -1;
-	}
-
-	@ManagedOperation
-	public org.springframework.integration.support.management.Statistics getChannelSendRate(String name) {
-		org.springframework.integration.support.management.MessageChannelMetrics channelMetrics =
-				getChannelMetrics(name);
-		return channelMetrics != null ? channelMetrics.getSendRate() : null;
-	}
-
-	public org.springframework.integration.support.management.Statistics getChannelErrorRate(String name) {
-		org.springframework.integration.support.management.MessageChannelMetrics channelMetrics =
-				getChannelMetrics(name);
-		return channelMetrics != null ? channelMetrics.getErrorRate() : null;
+	public IntegrationManagement getChannel(String name) {
+		return this.channels.get(name);
 	}
 
 	private void registerChannels() {
-		this.channels.forEach(this::registerChannel);
+		this.channels.values().forEach(this::registerChannel);
 	}
 
-	private void registerChannel(org.springframework.integration.support.management.MessageChannelMetrics monitor) {
-		String name = ((NamedComponent) monitor).getComponentName();
-		this.allChannelsByName.put(name, monitor);
+	private void registerChannel(IntegrationManagement monitor) {
+		String name = monitor.getComponentName();
 		if (matches(this.componentNamePatterns, name)) {
 			String beanKey = getChannelBeanKey(name);
 			if (logger.isInfoEnabled()) {
@@ -772,31 +698,30 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	private void registerHandlers() {
-		this.handlers.forEach(this::registerHandler);
+		this.handlers.values().forEach(this::registerHandler);
 
 	}
 
-	private void registerHandler(org.springframework.integration.support.management.MessageHandlerMetrics handler) {
-		org.springframework.integration.support.management.MessageHandlerMetrics monitor = enhanceHandlerMonitor(handler);
-		String name = monitor.getManagedName();
-		if (!this.objectNames.containsKey(handler) && matches(this.componentNamePatterns, name)) {
+	private void registerHandler(IntegrationManagement monitor2) {
+		IntegrationManagement monitor = enhanceHandlerMonitor(monitor2);
+		String name = monitor.getComponentName();
+		if (!this.objectNames.containsKey(monitor2) && matches(this.componentNamePatterns, name)) {
 			String beanKey = getHandlerBeanKey(monitor);
 			if (logger.isInfoEnabled()) {
 				logger.info("Registering MessageHandler " + name);
 			}
 			ObjectName objectName = registerBeanNameOrInstance(monitor, beanKey);
-			this.objectNames.put(handler, objectName);
+			this.objectNames.put(monitor2, objectName);
 		}
 	}
 
 	private void registerSources() {
-		this.sources.forEach(this::registerSource);
+		this.sources.values().forEach(this::registerSource);
 	}
 
-	private void registerSource(org.springframework.integration.support.management.MessageSourceMetrics source) {
-		org.springframework.integration.support.management.MessageSourceMetrics monitor = enhanceSourceMonitor(source);
+	private void registerSource(IntegrationInboundManagement source) {
+		IntegrationInboundManagement monitor = enhanceSourceMonitor(source);
 		String name = monitor.getManagedName();
-		this.allSourcesByName.put(name, monitor);
 		if (!this.objectNames.containsKey(source) && matches(this.componentNamePatterns, name)) {
 			String beanKey = getSourceBeanKey(monitor);
 			if (logger.isInfoEnabled()) {
@@ -804,6 +729,14 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			}
 			ObjectName objectName = registerBeanNameOrInstance(monitor, beanKey);
 			this.objectNames.put(source, objectName);
+			Lifecycle lifecycle = this.sourceLifecycles.get(source);
+			if (lifecycle != null) {
+				beanKey = getEndpointBeanKey(source.getManagedName() + ".adapter", source.getManagedType());
+				if (logger.isInfoEnabled()) {
+					logger.info("Registering Endpoint " + beanKey);
+				}
+				this.objectNames.put(lifecycle, registerBeanNameOrInstance(lifecycle, beanKey));
+			}
 		}
 	}
 
@@ -882,16 +815,16 @@ public class IntegrationMBeanExporter extends MBeanExporter
 				quoteIfNecessary(channel), extra);
 	}
 
-	private String getHandlerBeanKey(org.springframework.integration.support.management.MessageHandlerMetrics handler) {
+	private String getHandlerBeanKey(IntegrationManagement monitor) {
 		// This ordering of keys seems to work with default settings of JConsole
 		return String.format(this.domain + ":type=MessageHandler,name=%s,bean=%s" + getStaticNames(),
-				quoteIfNecessary(handler.getManagedName()), quoteIfNecessary(handler.getManagedType()));
+				quoteIfNecessary(monitor.getManagedName()), quoteIfNecessary(monitor.getManagedType()));
 	}
 
-	private String getSourceBeanKey(org.springframework.integration.support.management.MessageSourceMetrics source) {
+	private String getSourceBeanKey(IntegrationInboundManagement monitor) {
 		// This ordering of keys seems to work with default settings of JConsole
 		return String.format(this.domain + ":type=MessageSource,name=%s,bean=%s" + getStaticNames(),
-				quoteIfNecessary(source.getManagedName()), quoteIfNecessary(source.getManagedType()));
+				quoteIfNecessary(monitor.getManagedName()), quoteIfNecessary(monitor.getManagedType()));
 	}
 
 	private String getEndpointBeanKey(String name, String source) {
@@ -925,11 +858,10 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	@SuppressWarnings("unlikely-arg-type")
-	private org.springframework.integration.support.management.MessageHandlerMetrics enhanceHandlerMonitor(
-			org.springframework.integration.support.management.MessageHandlerMetrics monitor) {
+	private IntegrationManagement enhanceHandlerMonitor(IntegrationManagement monitor2) {
 
-		if (monitor.getManagedName() != null && monitor.getManagedType() != null) {
-			return monitor;
+		if (monitor2.getManagedName() != null && monitor2.getManagedType() != null) {
+			return monitor2;
 		}
 
 		// Assignment algorithm and bean id, with bean id pulled reflectively out of enclosing endpoint if possible
@@ -944,32 +876,32 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			endpoint = this.applicationContext.getBean(beanName, IntegrationConsumer.class);
 			try {
 				MessageHandler handler = endpoint.getHandler();
-				if (handler.equals(monitor) ||
-						extractTarget(handlerInAnonymousWrapper(handler)).equals(monitor)) {
+				if (handler.equals(monitor2) ||
+						extractTarget(handlerInAnonymousWrapper(handler)).equals(monitor2)) {
 					name = beanName;
 					endpointName = beanName;
 					break;
 				}
 			}
 			catch (Exception e) {
-				logger.trace("Could not get handler from bean = " + beanName);
+				logger.trace("Could not get handler from bean = " + beanName, e);
 				endpoint = null;
 			}
 		}
 
-		org.springframework.integration.support.management.MessageHandlerMetrics messageHandlerMetrics =
-				buildMessageHandlerMetrics(monitor, name, source, endpoint);
+		IntegrationManagement messageHandlerMetrics =
+				buildMessageHandlerMetrics(monitor2, name, source, endpoint);
 		if (endpointName != null) {
 			this.endpointsByMonitor.put(messageHandlerMetrics, endpointName);
 		}
 		return messageHandlerMetrics;
 	}
 
-	private org.springframework.integration.support.management.MessageHandlerMetrics buildMessageHandlerMetrics(
-			org.springframework.integration.support.management.MessageHandlerMetrics monitor,
+	private IntegrationManagement buildMessageHandlerMetrics(
+			IntegrationManagement monitor2,
 			String name, String source, IntegrationConsumer endpoint) {
 
-		org.springframework.integration.support.management.MessageHandlerMetrics result = monitor;
+		IntegrationManagement result = monitor2;
 		String managedType = source;
 		String managedName = name;
 
@@ -985,16 +917,10 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			}
 		}
 
-		if (endpoint instanceof Lifecycle) {
-			result = wrapMessageHandlerInLifecycleMetrics(monitor, (Lifecycle) endpoint);
-		}
-
 		if (managedName == null) {
-			if (monitor instanceof NamedComponent) {
-				managedName = ((NamedComponent) monitor).getComponentName();
-			}
+			managedName = ((NamedComponent) monitor2).getComponentName();
 			if (managedName == null) {
-				managedName = monitor.toString();
+				managedName = monitor2.toString();
 			}
 			managedType = "handler";
 		}
@@ -1020,52 +946,20 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		return channelName + (total > 1 ? "#" + total : "");
 	}
 
-	/**
-	 * Wrap the monitor in a lifecycle so it exposes the start/stop operations
-	 */
-	private org.springframework.integration.support.management.MessageHandlerMetrics
-		wrapMessageHandlerInLifecycleMetrics(
-				org.springframework.integration.support.management.MessageHandlerMetrics monitor,
-				Lifecycle endpoint) {
-
-		org.springframework.integration.support.management.MessageHandlerMetrics result;
-		if (monitor instanceof MappingMessageRouterManagement) {
-			if (monitor instanceof TrackableComponent) {
-				result = new org.springframework.integration.support.management.TrackableRouterMetrics(endpoint,
-						(MappingMessageRouterManagement) monitor);
-			}
-			else {
-				result = new org.springframework.integration.support.management.RouterMetrics(endpoint,
-						(MappingMessageRouterManagement) monitor);
-			}
-		}
-		else {
-			if (monitor instanceof TrackableComponent) {
-				result = new org.springframework.integration.support.management.
-						LifecycleTrackableMessageHandlerMetrics(endpoint, monitor);
-			}
-			else {
-				result = new org.springframework.integration.support.management.
-						LifecycleMessageHandlerMetrics(endpoint, monitor);
-			}
-		}
-		return result;
-	}
-
 	private String getInternalComponentName(String name) {
 		return name.substring(('_' + IntegrationConfigUtils.BASE_PACKAGE).length() + 1);
 	}
 
-	private org.springframework.integration.support.management.MessageSourceMetrics enhanceSourceMonitor(
-			org.springframework.integration.support.management.MessageSourceMetrics monitor) {
+	private IntegrationInboundManagement enhanceSourceMonitor(IntegrationInboundManagement source2) {
 
-		if (monitor.getManagedName() != null) {
-			return monitor;
+		if (source2.getManagedName() != null) {
+			return source2;
 		}
 
 		String endpointName = null;
 		String source = "endpoint";
-		AbstractEndpoint endpoint = getEndpointForMonitor(monitor);
+		AbstractEndpoint endpoint = getEndpointForMonitor(source2);
+		this.sourceLifecycles.put(source2, endpoint);
 
 		if (endpoint != null) {
 			endpointName = endpoint.getBeanName();
@@ -1075,8 +969,8 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			source = "internal";
 		}
 
-		org.springframework.integration.support.management.MessageSourceMetrics messageSourceMetrics =
-				buildMessageSourceMetricsIfAny(monitor, endpointName, source, endpoint);
+		IntegrationInboundManagement messageSourceMetrics =
+				buildMessageSourceMetricsIfAny(source2, endpointName, source, endpoint);
 		if (endpointName != null) {
 			this.endpointsByMonitor.put(messageSourceMetrics, endpointName);
 		}
@@ -1084,29 +978,28 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	@SuppressWarnings("unlikely-arg-type")
-	private AbstractEndpoint getEndpointForMonitor(
-			org.springframework.integration.support.management.MessageSourceMetrics monitor) {
+	private AbstractEndpoint getEndpointForMonitor(IntegrationInboundManagement source2) {
 
 		for (AbstractEndpoint endpoint : this.applicationContext.getBeansOfType(AbstractEndpoint.class).values()) {
 			Object target = null;
-			if (monitor instanceof MessagingGatewaySupport && endpoint.equals(monitor)) {
-				target = monitor;
+			if (source2 instanceof MessagingGatewaySupport && endpoint.equals(source2)) {
+				target = source2;
 			}
 			else if (endpoint instanceof SourcePollingChannelAdapter) {
 				target = ((SourcePollingChannelAdapter) endpoint).getMessageSource();
 			}
-			if (monitor.equals(target)) {
+			if (source2.equals(target)) {
 				return endpoint;
 			}
 		}
 		return null;
 	}
 
-	private org.springframework.integration.support.management.MessageSourceMetrics buildMessageSourceMetricsIfAny(
-			org.springframework.integration.support.management.MessageSourceMetrics monitor, String name,
+	private IntegrationInboundManagement buildMessageSourceMetricsIfAny(
+			IntegrationInboundManagement source2, String name,
 			String source, Object endpoint) {
 
-		org.springframework.integration.support.management.MessageSourceMetrics result = monitor;
+		IntegrationInboundManagement result = source2;
 		String managedType = source;
 		String managedName = name;
 
@@ -1136,10 +1029,6 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			}
 		}
 
-		if (endpoint instanceof Lifecycle) {
-			result = wrapMessageSourceInLifecycleMetrics(result, endpoint);
-		}
-
 		if (managedName == null) {
 			managedName = result.toString();
 			managedType = "source";
@@ -1147,38 +1036,6 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 		result.setManagedType(managedType);
 		result.setManagedName(managedName);
-		return result;
-	}
-
-	/**
-	 * Wrap the monitor in a lifecycle so it exposes the start/stop operations
-	 */
-	private org.springframework.integration.support.management.MessageSourceMetrics wrapMessageSourceInLifecycleMetrics(
-			org.springframework.integration.support.management.MessageSourceMetrics monitor, Object endpoint) {
-
-		org.springframework.integration.support.management.MessageSourceMetrics result;
-		if (endpoint instanceof TrackableComponent) {
-			if (monitor instanceof MessageSourceManagement) {
-				result = new org.springframework.integration.support.management.
-							LifecycleTrackableMessageSourceManagement((Lifecycle) endpoint,
-						(MessageSourceManagement) monitor);
-			}
-			else {
-				result = new org.springframework.integration.support.management.
-						LifecycleTrackableMessageSourceMetrics((Lifecycle) endpoint, monitor);
-			}
-		}
-		else {
-			if (monitor instanceof MessageSourceManagement) {
-				result = new org.springframework.integration.support.management.
-							LifecycleMessageSourceManagement((Lifecycle) endpoint,
-						(MessageSourceManagement) monitor);
-			}
-			else {
-				result = new org.springframework.integration.support.management.LifecycleMessageSourceMetrics(
-						(Lifecycle) endpoint, monitor);
-			}
-		}
 		return result;
 	}
 

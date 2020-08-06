@@ -53,6 +53,7 @@ import org.springframework.integration.store.UniqueExpiryCallback;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -103,7 +104,7 @@ import org.springframework.util.ObjectUtils;
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
-		implements DiscardingMessageHandler, ApplicationEventPublisherAware, Lifecycle {
+		implements DiscardingMessageHandler, ApplicationEventPublisherAware, ManageableLifecycle {
 
 	private final Comparator<Message<?>> sequenceNumberComparator = new MessageSequenceComparator();
 

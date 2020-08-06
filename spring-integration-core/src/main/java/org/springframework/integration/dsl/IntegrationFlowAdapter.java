@@ -22,10 +22,10 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 
-import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -58,7 +58,7 @@ import org.springframework.util.Assert;
  *
  * @since 5.0
  */
-public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLifecycle {
+public abstract class IntegrationFlowAdapter implements IntegrationFlow, ManageableSmartLifecycle {
 
 	private final AtomicBoolean running = new AtomicBoolean();
 

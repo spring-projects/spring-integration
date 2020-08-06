@@ -31,8 +31,8 @@ import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -50,7 +50,8 @@ import org.springframework.util.StringUtils;
  */
 @ManagedResource
 @IntegrationManagedResource
-public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAware, DestructionAwareBeanPostProcessor {
+public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanFactoryAware,
+		DestructionAwareBeanPostProcessor {
 
 	private static final Log LOGGER = LogFactory.getLog(MessageHistoryConfigurer.class);
 

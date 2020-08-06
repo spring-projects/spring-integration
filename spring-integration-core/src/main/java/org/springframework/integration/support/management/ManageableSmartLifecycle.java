@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package org.springframework.integration.support.management;
 
+import org.springframework.context.SmartLifecycle;
+
 /**
- * Marker interface for metrics.
+ * Extend {@link ManageableLifecycle} to make those methods manageable.
  *
  * @author Gary Russell
- * @since 4.2
+ * @since 5.4
  *
- * @deprecated in favor of Micrometer metrics.
  */
-@Deprecated
-public interface ConfigurableMetrics {
+public interface ManageableSmartLifecycle extends SmartLifecycle, ManageableLifecycle {
 
 }

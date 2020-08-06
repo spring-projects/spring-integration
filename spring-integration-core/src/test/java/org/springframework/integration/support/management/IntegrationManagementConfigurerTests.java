@@ -66,8 +66,6 @@ public class IntegrationManagementConfigurerTests {
 		assertThat(channel.isLoggingEnabled()).isTrue();
 		assertThat(handler.isLoggingEnabled()).isTrue();
 		assertThat(source.isLoggingEnabled()).isTrue();
-		channel.setCountsEnabled(true);
-		channel.setStatsEnabled(true);
 		ApplicationContext ctx = mock(ApplicationContext.class);
 		Map<String, IntegrationManagement> beans = new HashMap<String, IntegrationManagement>();
 		beans.put("foo", channel);
@@ -82,8 +80,6 @@ public class IntegrationManagementConfigurerTests {
 		assertThat(channel.isLoggingEnabled()).isFalse();
 		assertThat(handler.isLoggingEnabled()).isFalse();
 		assertThat(source.isLoggingEnabled()).isFalse();
-		assertThat(channel.isCountsEnabled()).isTrue();
-		assertThat(channel.isStatsEnabled()).isTrue();
 	}
 
 	@Test
@@ -91,8 +87,6 @@ public class IntegrationManagementConfigurerTests {
 		AnnotationConfigApplicationContext ctx =
 				new AnnotationConfigApplicationContext(ConfigEmptyAnnotation.class);
 		AbstractMessageChannel channel = ctx.getBean("channel", AbstractMessageChannel.class);
-		assertThat(channel.isCountsEnabled()).isTrue();
-		assertThat(channel.isStatsEnabled()).isTrue();
 		channel = ctx.getBean("loggingOffChannel", AbstractMessageChannel.class);
 		assertThat(channel.isLoggingEnabled()).isFalse();
 		ctx.close();

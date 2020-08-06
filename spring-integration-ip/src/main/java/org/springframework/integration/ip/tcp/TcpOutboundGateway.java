@@ -42,6 +42,7 @@ import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorr
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpNioConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -65,7 +66,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @since 2.0
  */
 public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
-		implements TcpSender, TcpListener, Lifecycle {
+		implements TcpSender, TcpListener, ManageableLifecycle {
 
 	private static final long DEFAULT_REMOTE_TIMEOUT = 10_000L;
 

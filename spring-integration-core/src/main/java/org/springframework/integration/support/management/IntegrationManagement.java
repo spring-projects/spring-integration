@@ -17,9 +17,10 @@
 package org.springframework.integration.support.management;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.lang.Nullable;
 
 /**
  * Base interface for Integration managed components.
@@ -28,7 +29,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
  * @since 4.2
  *
  */
-public interface IntegrationManagement extends DisposableBean {
+public interface IntegrationManagement extends NamedComponent, DisposableBean {
 
 	String METER_PREFIX = "spring.integration.";
 
@@ -36,37 +37,35 @@ public interface IntegrationManagement extends DisposableBean {
 
 	String RECEIVE_COUNTER_NAME = METER_PREFIX + "receive";
 
+	/**
+	 * Enable logging or not.
+	 * @param enabled dalse to disable.
+	 */
 	@ManagedAttribute(description = "Use to disable debug logging during normal message flow")
 	void setLoggingEnabled(boolean enabled);
 
+	/**
+	 * Return whether logging is enabled.
+	 * @return true if enabled.
+	 */
 	@ManagedAttribute
 	boolean isLoggingEnabled();
 
-	/**
-	 * Deprecated.
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@ManagedOperation
-	void reset();
+	default void setManagedName(String managedName) {
+	}
 
-	/**
-	 * Deprecated.
-	 * @param countsEnabled the countsEnabled
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@ManagedAttribute(description = "Enable message counting statistics")
-	void setCountsEnabled(boolean countsEnabled);
+	@Nullable
+	default String getManagedName() {
+		return null;
+	}
 
-	/**
-	 * Deprecated.
-	 * @return counts enabled
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@ManagedAttribute
-	boolean isCountsEnabled();
+	default void setManagedType(String managedType) {
+	}
+
+	@Nullable
+	default String getManagedType() {
+		return null;
+	}
 
 	/**
 	 * Return the overrides.
@@ -84,14 +83,21 @@ public interface IntegrationManagement extends DisposableBean {
 		// no op
 	}
 
-
-
 	@Override
 	default void destroy() {
 		// no op
 	}
 
-
+	/**
+	 * Return this {@link IntegrationManagement} as its concrete type.
+	 * @param <T> the type.
+	 * @return this.
+	 * @since 5.4
+	 */
+	@SuppressWarnings("unchecked")
+	default <T> T getThisAs() {
+		return (T) this;
+	}
 
 	/**
 	 * Toggles to inform the management configurer to not set these properties since
@@ -103,12 +109,6 @@ public interface IntegrationManagement extends DisposableBean {
 	class ManagementOverrides {
 
 		public boolean loggingConfigured; // NOSONAR
-
-		public boolean countsConfigured; // NOSONAR
-
-		public boolean statsConfigured; // NOSONAR
-
-		public boolean metricsConfigured; // NOSONAR
 
 	}
 

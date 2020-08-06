@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -35,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  */
 public abstract class AbstractMessageProcessingSelector
-		implements MessageSelector, BeanFactoryAware, Lifecycle {
+		implements MessageSelector, BeanFactoryAware, ManageableLifecycle {
 
 	private final MessageProcessor<Boolean> messageProcessor;
 
@@ -52,12 +53,14 @@ public abstract class AbstractMessageProcessingSelector
 		}
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		if (this.messageProcessor instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
 		}
 	}
 
+	@Override
 	public final boolean accept(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
 		Assert.notNull(result, "result must not be null");

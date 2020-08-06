@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.core;
 
-import org.springframework.context.Lifecycle;
+import org.springframework.integration.support.management.ManageableLifecycle;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 
 /**
  * Endpoints implementing this interface can be paused/resumed. A paused endpoint might
@@ -27,16 +28,18 @@ import org.springframework.context.Lifecycle;
  * @since 5.0.3
  *
  */
-public interface Pausable extends Lifecycle {
+public interface Pausable extends ManageableLifecycle {
 
 	/**
 	 * Pause the endpoint.
 	 */
+	@ManagedOperation(description = "Pause the component")
 	void pause();
 
 	/**
 	 * Resume the endpoint if paused.
 	 */
+	@ManagedOperation(description = "Resume the component")
 	void resume();
 
 }

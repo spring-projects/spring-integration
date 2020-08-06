@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
@@ -43,7 +43,7 @@ import org.springframework.util.MimeType;
  */
 public abstract class AbstractRSocketConnector
 		implements ApplicationContextAware, InitializingBean, DisposableBean, SmartInitializingSingleton,
-		SmartLifecycle {
+			ManageableSmartLifecycle {
 
 	protected final IntegrationRSocketMessageHandler rSocketMessageHandler; // NOSONAR - final
 

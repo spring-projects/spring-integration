@@ -17,7 +17,6 @@
 package org.springframework.integration.gateway;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -46,6 +45,7 @@ import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
+import org.springframework.integration.support.management.IntegrationInboundManagement;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -77,7 +77,7 @@ import reactor.core.publisher.MonoProcessor;
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		implements org.springframework.integration.support.management.TrackableComponent,
-		org.springframework.integration.support.management.MessageSourceMetrics, IntegrationPattern {
+			IntegrationInboundManagement, IntegrationPattern {
 
 	private static final long DEFAULT_TIMEOUT = 1000L;
 
@@ -91,8 +91,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	private final Object replyMessageCorrelatorMonitor = new Object();
 
 	private boolean errorOnTimeout;
-
-	private final AtomicLong messageCount = new AtomicLong();
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
 
@@ -114,13 +112,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private InboundMessageMapper<Object> requestMapper = new DefaultRequestMapper();
 
+	private boolean loggingEnabled = true;
+
 	private String managedType;
 
 	private String managedName;
-
-	private boolean countsEnabled;
-
-	private boolean loggingEnabled = true;
 
 	private volatile AbstractEndpoint replyMessageCorrelator;
 
@@ -275,36 +271,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	@Override
-	public int getMessageCount() {
-		return (int) this.messageCount.get();
-	}
-
-	@Override
-	public long getMessageCountLong() {
-		return this.messageCount.get();
-	}
-
-	@Override
-	public void setManagedName(String name) {
-		this.managedName = name;
-	}
-
-	@Override
-	public String getManagedName() {
-		return this.managedName;
-	}
-
-	@Override
-	public void setManagedType(String type) {
-		this.managedType = type;
-	}
-
-	@Override
-	public String getManagedType() {
-		return this.managedType;
-	}
-
-	@Override
 	public String getComponentType() {
 		return "gateway";
 	}
@@ -318,17 +284,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	@Override
 	public boolean isLoggingEnabled() {
 		return this.loggingEnabled;
-	}
-
-	@Override
-	public void setCountsEnabled(boolean countsEnabled) {
-		this.countsEnabled = countsEnabled;
-		this.managementOverrides.countsConfigured = true;
-	}
-
-	@Override
-	public boolean isCountsEnabled() {
-		return this.countsEnabled;
 	}
 
 	/**
@@ -345,6 +300,26 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	@Override
 	public ManagementOverrides getOverrides() {
 		return this.managementOverrides;
+	}
+
+	@Override
+	public void setManagedType(String managedType) {
+		this.managedType = managedType;
+	}
+
+	@Override
+	public String getManagedType() {
+		return this.managedType;
+	}
+
+	@Override
+	public void setManagedName(String managedName) {
+		this.managedName = managedName;
+	}
+
+	@Override
+	public String getManagedName() {
+		return this.managedName;
 	}
 
 	@Override
@@ -430,9 +405,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		Assert.state(channel != null,
 				"send is not supported, because no request channel has been configured");
 		try {
-			if (this.countsEnabled) {
-				this.messageCount.incrementAndGet();
-			}
+			// TODO Micrometer counter
 			this.messagingTemplate.convertAndSend(channel, object, this.historyWritingPostProcessor);
 		}
 		catch (Exception e) {
@@ -507,9 +480,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		Object reply;
 		Message<?> requestMessage = null;
 		try {
-			if (this.countsEnabled) {
-				this.messageCount.incrementAndGet();
-			}
+			// TODO Micrometer counter
 			if (shouldConvert) {
 				reply = this.messagingTemplate.convertSendAndReceive(channel, object, Object.class,
 						this.historyWritingPostProcessor);
@@ -675,8 +646,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 		return reply
 				.doOnSubscribe(s -> {
-					if (!error && this.countsEnabled) {
-						this.messageCount.incrementAndGet();
+					if (!error) {
+						// TODO Micrometer counter
 					}
 				})
 				.<Message<?>>map(replyMessage -> {
@@ -830,12 +801,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			this.replyMessageCorrelator.stop();
 		}
 	}
-
-	@Override
-	public void reset() {
-		this.messageCount.set(0);
-	}
-
 
 	private static class DefaultRequestMapper implements InboundMessageMapper<Object> {
 

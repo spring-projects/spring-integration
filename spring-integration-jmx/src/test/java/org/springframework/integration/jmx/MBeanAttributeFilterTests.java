@@ -76,11 +76,11 @@ public class MBeanAttributeFilterTests {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> bean = (Map<String, Object>) payload
-				.get(domain + ":name=in,type=MessageChannel");
+				.get(this.domain + ":name=out,type=MessageChannel");
 
 		assertThat(bean.size()).isEqualTo(2);
-		assertThat(bean.containsKey("SendCount")).isTrue();
-		assertThat(bean.containsKey("SendErrorCount")).isTrue();
+		assertThat(bean.containsKey("QueueSize")).isTrue();
+		assertThat(bean.containsKey("RemainingCapacity")).isTrue();
 
 		adapter.stop();
 	}
@@ -106,10 +106,7 @@ public class MBeanAttributeFilterTests {
 
 		List<String> keys = new ArrayList<>(bean.keySet());
 		Collections.sort(keys);
-		assertThat(keys)
-				.containsExactly("LoggingEnabled", "MaxSendDuration", "MeanErrorRate", "MeanErrorRatio",
-						"MeanSendDuration", "MeanSendRate", "MinSendDuration", "StandardDeviationSendDuration",
-						"SubscriberCount", "TimeSinceLastSend");
+		assertThat(keys).containsExactly("LoggingEnabled", "SubscriberCount");
 
 		adapterNot.stop();
 	}

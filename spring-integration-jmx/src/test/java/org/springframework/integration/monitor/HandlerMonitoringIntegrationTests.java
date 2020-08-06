@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 the original author or authors.
+ * Copyright 2009-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,10 +88,6 @@ public class HandlerMonitoringIntegrationTests {
 			int before = service.getCounter();
 			channel.send(new GenericMessage<>("bar"));
 			assertThat(service.getCounter()).isEqualTo(before + 1);
-
-			int count = messageHandlersMonitor.getHandlerDuration(monitor).getCount();
-			assertThat(count > 0).as("No statistics for input channel").isTrue();
-
 		}
 		finally {
 			context.close();
@@ -118,11 +114,13 @@ public class HandlerMonitoringIntegrationTests {
 
 		private int counter;
 
+		@Override
 		public void execute(String input) throws Exception {
 			Thread.sleep(10L); // make the duration non-zero
 			this.counter++;
 		}
 
+		@Override
 		public int getCounter() {
 			return counter;
 		}

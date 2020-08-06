@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.util.Assert;
 
 /**
@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @author Dave Turanski
  * @author Artem Bilan
  */
-public class MessageGroupStoreReaper implements Runnable, DisposableBean, InitializingBean, SmartLifecycle {
+public class MessageGroupStoreReaper implements Runnable, DisposableBean, InitializingBean, ManageableSmartLifecycle {
 
 	private static Log logger = LogFactory.getLog(MessageGroupStoreReaper.class);
 

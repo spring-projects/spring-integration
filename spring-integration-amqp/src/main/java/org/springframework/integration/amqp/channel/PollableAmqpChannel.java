@@ -50,10 +50,8 @@ import org.springframework.util.Assert;
  *
  * @since 2.1
  */
-@SuppressWarnings("deprecation")
 public class PollableAmqpChannel extends AbstractAmqpChannel
-		implements PollableChannel, org.springframework.integration.support.management.PollableChannelManagement,
-		ExecutorChannelInterceptorAware {
+		implements PollableChannel, ExecutorChannelInterceptorAware {
 
 	private final String channelName;
 
@@ -115,50 +113,6 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		setAdmin(amqpAdmin);
 	}
 
-	/**
-	 * Deprecated.
-	 * @return receive count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public int getReceiveCount() {
-		return getMetrics().getReceiveCount();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return receive count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public long getReceiveCountLong() {
-		return getMetrics().getReceiveCountLong();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return receive error count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public int getReceiveErrorCount() {
-		return getMetrics().getReceiveErrorCount();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return receive error count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public long getReceiveErrorCountLong() {
-		return getMetrics().getReceiveErrorCountLong();
-	}
-
 	@Override
 	protected String getRoutingKey() {
 		return this.queue != null ? this.queue.getName() : super.getRoutingKey();
@@ -208,7 +162,6 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		ChannelInterceptorList interceptorList = getIChannelInterceptorList();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		AtomicBoolean counted = new AtomicBoolean();
-		boolean countsEnabled = isCountsEnabled();
 		boolean traceEnabled = isLoggingEnabled() && logger.isTraceEnabled();
 		try {
 			if (traceEnabled) {
@@ -221,8 +174,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 				}
 			}
 			Object object = performReceive(timeout);
-			Message<?> message = buildMessageFromResult(object, traceEnabled, countsEnabled ? counted : null);
-
+			Message<?> message = buildMessageFromResult(object, traceEnabled, counted);
 
 			if (message != null) {
 				message = interceptorList.postReceive(message, this);
@@ -231,7 +183,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 			return message;
 		}
 		catch (RuntimeException ex) {
-			if (countsEnabled && !counted.get()) {
+			if (!counted.get()) {
 				incrementReceiveErrorCounter(ex);
 			}
 			interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
@@ -279,16 +231,10 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		}
 	}
 
-	private Message<?> buildMessageFromResult(@Nullable Object object, boolean traceEnabled,
-			@Nullable AtomicBoolean counted) {
+	private Message<?> buildMessageFromResult(@Nullable Object object, boolean traceEnabled, AtomicBoolean counted) {
 
 		Message<?> message = null;
 		if (object != null) {
-			if (counted != null) {
-				incrementReceiveCounter();
-				getMetrics().afterReceive();
-				counted.set(true);
-			}
 			if (object instanceof Message<?>) {
 				message = (Message<?>) object;
 			}
@@ -298,6 +244,8 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 						.build();
 			}
 		}
+		incrementReceiveCounter();
+		counted.set(true);
 
 		if (traceEnabled) {
 			logger.trace("postReceive on channel '" + this
@@ -322,7 +270,6 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		if (metricsCaptor != null) {
 			buildReceiveCounter(metricsCaptor, ex).increment();
 		}
-		getMetrics().afterError();
 	}
 
 	private CounterFacade buildReceiveCounter(MetricsCaptor metricsCaptor, @Nullable Exception ex) {

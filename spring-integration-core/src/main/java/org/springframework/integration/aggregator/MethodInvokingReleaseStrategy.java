@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.support.management.ManageableLifecycle;
 
 /**
  * A {@link ReleaseStrategy} that invokes a method on a plain old Java object.
@@ -31,7 +31,7 @@ import org.springframework.integration.store.MessageGroup;
  * @author Dave Syer
  * @author Artme Bilan
  */
-public class MethodInvokingReleaseStrategy implements ReleaseStrategy, BeanFactoryAware, Lifecycle {
+public class MethodInvokingReleaseStrategy implements ReleaseStrategy, BeanFactoryAware, ManageableLifecycle {
 
 	private final MethodInvokingMessageListProcessor<Boolean> adapter;
 
