@@ -124,7 +124,7 @@ public class ZeroMqChannelTests {
 	void testPubSubBind() throws InterruptedException, IOException {
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
 		channel.setBindUrl("tcp://*:" + Utils.findOpenPort() + ':' + Utils.findOpenPort());
-		channel.setBeanName("testChannel3");
+		channel.setBeanName("testChannel4");
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();

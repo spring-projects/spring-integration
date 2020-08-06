@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
-import java.util.logging.Level;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -69,16 +68,19 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 	private BytesMessageMapper messageMapper = new EmbeddedJsonHeadersMessageMapper();
 
 	@Nullable
-	private String connectSendUrl;
-
-	@Nullable
-	private String connectSubscribeUrl;
-
-	@Nullable
 	private String bindInUrl;
 
 	@Nullable
 	private String bindOutUrl;
+
+	@Nullable
+	private volatile String connectSendUrl;
+
+	@Nullable
+	private volatile String connectSubscribeUrl;
+
+	@Nullable
+	private volatile Disposable subscriberDataDisposable;
 
 	private volatile boolean initialized;
 
@@ -94,27 +96,28 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		Supplier<String> localPairConnection = () -> "inproc://" + getComponentName() + ".pair";
 
 		this.sendSocket =
-				Mono
-						.fromCallable(() ->
-								this.context.createSocket(
-										this.connectSendUrl == null
-												? SocketType.PAIR
-												: (this.pubSub ? SocketType.PUB : SocketType.PUSH))
-						)
+				Mono.fromCallable(() ->
+						this.context.createSocket(
+								this.connectSendUrl == null
+										? SocketType.PAIR
+										: (this.pubSub ? SocketType.XPUB : SocketType.PUSH))
+				)
 						.publishOn(this.publisherScheduler)
 						.doOnNext((socket) ->
 								socket.connect(this.connectSendUrl != null
 										? this.connectSendUrl
 										: localPairConnection.get()))
+						.delayUntil((socket) -> (this.pubSub && this.connectSendUrl != null)
+								? Mono.just(socket).map(ZMQ.Socket::recv)
+								: Mono.empty())
 						.cache();
 
 		this.subscribeSocket =
-				Mono
-						.fromCallable(() ->
-								this.context.createSocket(
-										this.connectSubscribeUrl == null
-												? SocketType.PAIR
-												: (this.pubSub ? SocketType.SUB : SocketType.PULL)))
+				Mono.fromCallable(() ->
+						this.context.createSocket(
+								this.connectSubscribeUrl == null
+										? SocketType.PAIR
+										: (this.pubSub ? SocketType.SUB : SocketType.PULL)))
 						.publishOn(this.subscriberScheduler)
 						.doOnNext((socket) -> {
 							if (this.connectSubscribeUrl != null) {
@@ -131,24 +134,30 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 		Flux<? extends Message<?>> receiveData =
 				this.subscribeSocket
-						.<byte[]>handle((socket, sink) -> {
-							byte[] data = socket.recv(ZMQ.NOBLOCK);
-							if (data != null) {
-								sink.next(data);
+						.flatMap((socket) -> {
+							if (this.initialized) {
+								byte[] data = socket.recv(ZMQ.NOBLOCK);
+								if (data != null) {
+									return Mono.just(data);
+								}
 							}
+							return Mono.empty();
 						})
 						.publishOn(Schedulers.parallel())
 						.map(this.messageMapper::toMessage)
 						.doOnError((error) -> logger.error("Error processing ZeroMQ message", error))
-						.repeatWhenEmpty((repeat) -> repeat.delayElements(Duration.ofMillis(100)))
-						.repeat(() -> this.initialized)
-						.retry();
+						.repeatWhenEmpty((repeat) ->
+								this.initialized
+										? repeat.delayElements(Duration.ofMillis(100))
+										: repeat)
+						.repeat(() -> this.initialized);
 
 		if (this.pubSub) {
-			receiveData = receiveData.publish().autoConnect();
+			receiveData = receiveData.publish()
+					.autoConnect(1, (disposable) -> this.subscriberDataDisposable = disposable);
 		}
 
-		this.subscriberData = receiveData.log("subscribe", Level.WARNING);
+		this.subscriberData = receiveData;
 
 	}
 
@@ -180,28 +189,29 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		super.onInit();
 		Assert.state(this.connectSendUrl == null || this.bindInUrl == null,
 				"Only 'connectUrl' or `bindUrl` can be provided (or none), but not both");
-		if (this.connectSendUrl == null) {
-			if (this.bindInUrl != null) {
-				this.connectSendUrl = this.bindInUrl.replaceFirst("\\*", "localhost");
-				this.connectSubscribeUrl = this.bindOutUrl.replaceFirst("\\*", "localhost");
 
-				Executors.newSingleThreadExecutor()
-						.submit(() -> {
-							try (ZMQ.Socket inSocket =
-										 this.context.createSocket(this.pubSub ? SocketType.XSUB : SocketType.PULL);
-								 ZMQ.Socket outSocket =
-										 this.context.createSocket(this.pubSub ? SocketType.XPUB : SocketType.PUSH);
-								 ZMQ.Socket controlSocket = this.context.createSocket(SocketType.PAIR)) {
+		if (this.connectSendUrl == null && this.bindInUrl != null) {
+			this.connectSendUrl = this.bindInUrl.replaceFirst("\\*", "localhost");
+			this.connectSubscribeUrl = this.bindOutUrl.replaceFirst("\\*", "localhost");
 
-								inSocket.bind(this.bindInUrl);
-								outSocket.bind(this.bindOutUrl);
-								controlSocket.bind("inproc://" + getComponentName() + ".control");
+			Executors.newSingleThreadExecutor()
+					.submit(() -> {
+						try (ZMQ.Socket inSocket =
+									 this.context.createSocket(this.pubSub ? SocketType.XSUB : SocketType.PULL);
+							 ZMQ.Socket outSocket =
+									 this.context.createSocket(this.pubSub ? SocketType.XPUB : SocketType.PUSH);
+							 ZMQ.Socket controlSocket = this.context.createSocket(SocketType.PAIR)) {
 
-								ZMQ.proxy(inSocket, outSocket, null, controlSocket);
-							}
-						});
-			}
+							inSocket.bind(this.bindInUrl);
+							outSocket.bind(this.bindOutUrl);
+							controlSocket.bind("inproc://" + getComponentName() + ".control");
+
+							ZMQ.proxy(inSocket, outSocket, null, controlSocket);
+						}
+					});
 		}
+
+		this.sendSocket.subscribe();
 
 		this.initialized = true;
 	}
@@ -213,7 +223,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		byte[] data = this.messageMapper.fromMessage(message);
 		Assert.state(data != null, () -> "The '" + this.messageMapper + "' returned null for '" + message + '\'');
 
-		Mono<Boolean> sendMono = this.sendSocket.map((socket) -> socket.send(data)).log("publish", Level.WARNING);
+		Mono<Boolean> sendMono = this.sendSocket.map((socket) -> socket.send(data));
 		Boolean sent =
 				timeout > 0
 						? sendMono.block(Duration.ofMillis(timeout))
@@ -243,18 +253,22 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 	public void destroy() {
 		this.initialized = false;
 		super.destroy();
+		this.sendSocket.doOnNext(ZMQ.Socket::close).block();
+		this.publisherScheduler.dispose();
 		if (this.bindInUrl != null) {
 			try (ZMQ.Socket commandSocket = context.createSocket(SocketType.PAIR)) {
 				commandSocket.connect("inproc://" + getComponentName() + ".control");
 				commandSocket.send(zmq.ZMQ.PROXY_TERMINATE);
 			}
 		}
-		this.sendSocket.doOnNext(ZMQ.Socket::close).block();
-		this.publisherScheduler.dispose();
 		HashSet<MessageHandler> handlersCopy = new HashSet<>(this.subscribers.keySet());
 		handlersCopy.forEach(this::unsubscribe);
 		this.subscribeSocket.doOnNext(ZMQ.Socket::close).block();
 		this.subscriberScheduler.dispose();
+
+		if (this.subscriberDataDisposable != null) {
+			this.subscriberDataDisposable.dispose();
+		}
 	}
 
 }
