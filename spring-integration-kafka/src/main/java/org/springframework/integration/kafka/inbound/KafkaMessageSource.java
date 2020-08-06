@@ -101,7 +101,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private static final long MIN_ASSIGN_TIMEOUT = 2000L;
 
-	private static int DEFAULT_CLOSE_TIMEOUT = 30;
+	private static final int DEFAULT_CLOSE_TIMEOUT = 30;
 
 	/**
 	 * The number of records remaining from the previous poll.

@@ -173,28 +173,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		else if (this.subscriber != null) {
 			this.subscription =
 					Flux.from(this.publisher)
-							.subscribeWith(new BaseSubscriber<Message<?>>() {
-
-								@Override
-								protected void hookOnSubscribe(Subscription subscription) {
-									ReactiveStreamsConsumer.this.subscriber.onSubscribe(subscription);
-								}
-
-								@Override
-								protected void hookOnNext(Message<?> value) {
-									try {
-										ReactiveStreamsConsumer.this.subscriber.onNext(value);
-									}
-									catch (Exception ex) {
-										ReactiveStreamsConsumer.this.errorHandler.handleError(ex);
-									}
-								}
-
-								@Override
-								protected void hookOnComplete() {
-									ReactiveStreamsConsumer.this.subscriber.onComplete();
-								}
-							});
+							.subscribeWith(new SubscriberDecorator(this.subscriber, this.errorHandler));
 		}
 	}
 
@@ -275,6 +254,39 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		@Override
 		public boolean isRunning() {
 			return !(this.messageHandler instanceof Lifecycle) || ((Lifecycle) this.messageHandler).isRunning();
+		}
+
+	}
+
+	private static final class SubscriberDecorator extends BaseSubscriber<Message<?>> {
+
+		private final Subscriber<Message<?>> delegate;
+
+		private final ErrorHandler errorHandler;
+
+		SubscriberDecorator(Subscriber<Message<?>> delegate, ErrorHandler errorHandler) {
+			this.delegate = delegate;
+			this.errorHandler = errorHandler;
+		}
+
+		@Override
+		protected void hookOnSubscribe(Subscription subscription) {
+			this.delegate.onSubscribe(subscription);
+		}
+
+		@Override
+		protected void hookOnNext(Message<?> value) {
+			try {
+				this.delegate.onNext(value);
+			}
+			catch (Exception ex) {
+				this.errorHandler.handleError(ex);
+			}
+		}
+
+		@Override
+		protected void hookOnComplete() {
+			this.delegate.onComplete();
 		}
 
 	}
