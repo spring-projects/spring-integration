@@ -98,6 +98,29 @@ public class ZeroMqChannelTests {
 	}
 
 	@Test
+	void testPushPullBind() throws InterruptedException, IOException {
+		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT);
+		channel.setBindUrl("tcp://*:" + Utils.findOpenPort() + ':' + Utils.findOpenPort());
+		channel.setBeanName("testChannel3");
+		channel.afterPropertiesSet();
+
+		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
+
+		channel.subscribe(received::offer);
+		channel.subscribe(received::offer);
+
+		GenericMessage<String> testMessage = new GenericMessage<>("test1");
+		assertThat(channel.send(testMessage)).isTrue();
+
+		Message<?> message = received.poll(10, TimeUnit.SECONDS);
+		assertThat(message).isNotNull().isEqualTo(testMessage);
+		assertThat(received.poll(100, TimeUnit.MILLISECONDS)).isNull();
+
+		channel.destroy();
+	}
+
+
+	@Test
 	void testPubSubBind() throws InterruptedException, IOException {
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
 		channel.setBindUrl("tcp://*:" + Utils.findOpenPort() + ':' + Utils.findOpenPort());
