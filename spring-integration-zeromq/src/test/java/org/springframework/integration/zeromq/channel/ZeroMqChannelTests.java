@@ -17,17 +17,17 @@
 package org.springframework.integration.zeromq.channel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
-import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import org.zeromq.Utils;
 import org.zeromq.ZContext;
 
+import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -98,9 +98,16 @@ public class ZeroMqChannelTests {
 	}
 
 	@Test
-	void testPushPullBind() throws InterruptedException, IOException {
+	void testPushPullBind() throws InterruptedException {
+		ZeroMqProxy proxy = new ZeroMqProxy(CONTEXT);
+		proxy.setBeanName("pullPushProxy");
+		proxy.afterPropertiesSet();
+		proxy.start();
+
+		await().until(() -> proxy.getBackendPort() > 0);
+
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT);
-		channel.setBindUrl("tcp://*:" + Utils.findOpenPort() + ':' + Utils.findOpenPort());
+		channel.setConnectUrl("tcp://*:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
 		channel.setBeanName("testChannel3");
 		channel.afterPropertiesSet();
 
@@ -117,13 +124,21 @@ public class ZeroMqChannelTests {
 		assertThat(received.poll(100, TimeUnit.MILLISECONDS)).isNull();
 
 		channel.destroy();
+		proxy.stop();
 	}
 
 
 	@Test
-	void testPubSubBind() throws InterruptedException, IOException {
+	void testPubSubBind() throws InterruptedException {
+		ZeroMqProxy proxy = new ZeroMqProxy(CONTEXT, ZeroMqProxy.Type.SUB_PUB);
+		proxy.setBeanName("subPubProxy");
+		proxy.afterPropertiesSet();
+		proxy.start();
+
+		await().until(() -> proxy.getBackendPort() > 0);
+
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
-		channel.setBindUrl("tcp://*:" + Utils.findOpenPort() + ':' + Utils.findOpenPort());
+		channel.setConnectUrl("tcp://*:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
 		channel.setBeanName("testChannel4");
 		channel.afterPropertiesSet();
 
@@ -141,6 +156,7 @@ public class ZeroMqChannelTests {
 		assertThat(message).isNotNull().isEqualTo(testMessage);
 
 		channel.destroy();
+		proxy.stop();
 	}
 
 }
