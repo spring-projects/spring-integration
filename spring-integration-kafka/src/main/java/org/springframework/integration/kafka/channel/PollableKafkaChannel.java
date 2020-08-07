@@ -19,7 +19,6 @@ package org.springframework.integration.kafka.channel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource;
@@ -42,10 +41,8 @@ import org.springframework.util.Assert;
  * @since 5.4
  *
  */
-@SuppressWarnings("deprecation")
 public class PollableKafkaChannel extends AbstractKafkaChannel
-		implements PollableChannel, org.springframework.integration.support.management.PollableChannelManagement,
-		ExecutorChannelInterceptorAware {
+		implements PollableChannel, ExecutorChannelInterceptorAware {
 
 	private final KafkaMessageSource<?, ?> source;
 
@@ -75,26 +72,6 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 	}
 
 	@Override
-	public int getReceiveCount() {
-		return getMetrics().getReceiveCount();
-	}
-
-	@Override
-	public long getReceiveCountLong() {
-		return getMetrics().getReceiveCountLong();
-	}
-
-	@Override
-	public int getReceiveErrorCount() {
-		return getMetrics().getReceiveErrorCount();
-	}
-
-	@Override
-	public long getReceiveErrorCountLong() {
-		return getMetrics().getReceiveErrorCountLong();
-	}
-
-	@Override
 	@Nullable
 	public Message<?> receive() {
 		return doReceive();
@@ -110,8 +87,7 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 	protected Message<?> doReceive() {
 		ChannelInterceptorList interceptorList = getIChannelInterceptorList();
 		Deque<ChannelInterceptor> interceptorStack = null;
-		AtomicBoolean counted = new AtomicBoolean();
-		boolean countsEnabled = isCountsEnabled();
+		boolean counted = false;
 		boolean traceEnabled = isLoggingEnabled() && logger.isTraceEnabled();
 		try {
 			if (traceEnabled) {
@@ -126,13 +102,14 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 			Message<?> message = this.source.receive();
 			if (message != null) {
 				incrementReceiveCounter();
+				counted = true;
 				message = interceptorList.postReceive(message, this);
 			}
 			interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			return message;
 		}
 		catch (RuntimeException ex) {
-			if (countsEnabled && !counted.get()) {
+			if (!counted) {
 				incrementReceiveErrorCounter(ex);
 			}
 			interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
@@ -155,7 +132,6 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 		if (metricsCaptor != null) {
 			buildReceiveCounter(metricsCaptor, ex).increment();
 		}
-		getMetrics().afterError();
 	}
 
 	private CounterFacade buildReceiveCounter(MetricsCaptor metricsCaptor, @Nullable Exception ex) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,13 @@
 package org.springframework.integration.support.management;
 
 /**
- * Classes implementing this interface can accept a {@link ConfigurableMetrics}.
+ * Marker interface indicating that this {@link IntegrationManagement} component initiates
+ * message flow.
  *
  * @author Gary Russell
- * @since 4.2
+ * @since 5.4
  *
- * @deprecated in favor of Micrometer metrics.
  */
-@Deprecated
-@FunctionalInterface
-public interface ConfigurableMetricsAware<M extends ConfigurableMetrics> {
-
-	void configureMetrics(M metrics);
+public interface IntegrationInboundManagement extends IntegrationManagement {
 
 }

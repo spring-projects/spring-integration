@@ -37,7 +37,6 @@ import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageTimeoutException;
@@ -49,6 +48,7 @@ import org.springframework.integration.kafka.support.KafkaIntegrationHeaders;
 import org.springframework.integration.kafka.support.KafkaSendFailureException;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.requestreply.RequestReplyFuture;
@@ -100,7 +100,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @since 5.4
  */
 public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMessageHandler
-		implements Lifecycle {
+		implements ManageableLifecycle {
 
 	/**
 	 * Buffer added to ensure our timeout is longer than Kafka's.

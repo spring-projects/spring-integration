@@ -16,7 +16,7 @@
 
 	<si:channel id="controlChannel"/>
 
-	<si:control-bus input-channel="controlChannel"/>
+	<si:control-bus id = "cb" input-channel="controlChannel"/>
 
 	<jmx:mbean-export id="integrationMbeanExporter" server="mbs" default-domain="tests.ControlBusParser"/>
 

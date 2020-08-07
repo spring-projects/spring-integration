@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.channel;
 import java.util.List;
 
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
@@ -50,12 +51,14 @@ public interface QueueChannelOperations {
 	 * Obtain the current number of queued {@link Message Messages} in this channel.
 	 * @return The current number of queued {@link Message Messages} in this channel.
 	 */
+	@ManagedAttribute(description = "Queue size")
 	int getQueueSize();
 
 	/**
 	 * Obtain the remaining capacity of this channel.
 	 * @return The remaining capacity of this channel.
 	 */
+	@ManagedAttribute(description = "Queue remaining capacity")
 	int getRemainingCapacity();
 
 }

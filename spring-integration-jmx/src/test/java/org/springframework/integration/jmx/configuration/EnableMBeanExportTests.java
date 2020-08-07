@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,10 +69,6 @@ public class EnableMBeanExportTests {
 	@Autowired
 	private IntegrationManagementConfigurer configurer;
 
-	@SuppressWarnings("deprecation")
-	@Autowired
-	private org.springframework.integration.support.management.MetricsFactory myMetricsFactory;
-
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEnableMBeanExport() throws MalformedObjectNameException, ClassNotFoundException {
@@ -80,14 +76,7 @@ public class EnableMBeanExportTests {
 		assertThat(this.exporter.getServer()).isSameAs(this.mBeanServer);
 		String[] componentNamePatterns = TestUtils.getPropertyValue(this.exporter, "componentNamePatterns", String[].class);
 		assertThat(componentNamePatterns).containsExactly("input", "inputX", "in*");
-		String[] enabledCounts = TestUtils.getPropertyValue(this.configurer, "enabledCountsPatterns", String[].class);
-		assertThat(enabledCounts).containsExactly("foo", "bar", "baz");
-		String[] enabledStats = TestUtils.getPropertyValue(this.configurer, "enabledStatsPatterns", String[].class);
-		assertThat(enabledStats).containsExactly("qux", "!*");
 		assertThat(TestUtils.getPropertyValue(this.configurer, "defaultLoggingEnabled", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.configurer, "defaultCountsEnabled", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.configurer, "defaultStatsEnabled", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.configurer, "metricsFactory")).isSameAs(this.myMetricsFactory);
 
 		Set<ObjectName> names = this.mBeanServer.queryNames(ObjectName.getInstance("FOO:type=MessageChannel,*"), null);
 		// Only one registered (out of >2 available)
@@ -118,12 +107,7 @@ public class EnableMBeanExportTests {
 			defaultDomain = "${managed.domain}",
 			managedComponents = {"input", "${managed.component}"})
 	@EnableIntegrationManagement(
-		defaultLoggingEnabled = "false",
-		defaultCountsEnabled = "true",
-		defaultStatsEnabled = "true",
-		countsEnabled = { "foo", "${count.patterns}" },
-		statsEnabled = { "qux", "!*" },
-		metricsFactory = "myMetricsFactory")
+		defaultLoggingEnabled = "false")
 	public static class ContextConfiguration {
 
 		@Bean
@@ -139,12 +123,6 @@ public class EnableMBeanExportTests {
 		@Bean
 		public QueueChannel output() {
 			return new QueueChannel();
-		}
-
-		@SuppressWarnings("deprecation")
-		@Bean
-		public org.springframework.integration.support.management.MetricsFactory myMetricsFactory() {
-			return new org.springframework.integration.support.management.DefaultMetricsFactory();
 		}
 
 	}

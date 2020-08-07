@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,13 +221,11 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	}
 
 	@Override
-	@Nullable
 	public void persist(Object entity) {
 		persist(entity, 0, false);
 	}
 
 	@Override
-	@Nullable
 	public void persist(Object entity, int flushSize, boolean clearOnFlush) {
 		Assert.notNull(entity, "The object to persist must not be null.");
 		persistOrMerge(entity, false, flushSize, clearOnFlush);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.http.HttpHeaders;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -49,7 +49,7 @@ import org.springframework.web.socket.client.WebSocketClient;
  *
  * @since 4.1
  */
-public final class ClientWebSocketContainer extends IntegrationWebSocketContainer implements SmartLifecycle {
+public final class ClientWebSocketContainer extends IntegrationWebSocketContainer implements ManageableSmartLifecycle {
 
 	private static final int DEFAULT_CONNECTION_TIMEOUT = 10;
 

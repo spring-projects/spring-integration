@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ import org.apache.curator.utils.CloseableUtils;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
-import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.metadata.ListenableMetadataStore;
 import org.springframework.integration.metadata.MetadataStoreListener;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.util.Assert;
 
@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
  *
  * @since 4.2
  */
-public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLifecycle {
+public class ZookeeperMetadataStore implements ListenableMetadataStore, ManageableSmartLifecycle {
 
 	private static final String KEY_MUST_NOT_BE_NULL = "'key' must not be null.";
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.Map;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelParserConfiguration;
@@ -34,6 +33,7 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -57,7 +57,7 @@ import org.springframework.util.ReflectionUtils;
  *
  * @since 2.1
  */
-public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle {
+public class ContentEnricher extends AbstractReplyProducingMessageHandler implements ManageableLifecycle {
 
 	/**
 	 * Customized SpelExpressionParser to allow to specify nested properties when paren is null

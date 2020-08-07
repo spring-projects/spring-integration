@@ -47,6 +47,8 @@ See <<./gateway.adoc#gateway-default-reply-channel,Setting the Default Reply Cha
 The aggregator (and resequencer) can now expire orphaned groups (groups in a persistent store where no new messages arrive after an application restart).
 See <<./aggregator.adoc#aggregator-expiring-groups, Aggregator Expiring Groups>> for more information.
 
+The legacy metrics that were replaced by Micrometer meters have been removed.
+
 [[x5.4-tcp]]
 === TCP Changes
 

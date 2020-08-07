@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.endpoint;
 import java.lang.reflect.Method;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -31,7 +32,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class MethodInvokingMessageSource extends AbstractMessageSource<Object> implements Lifecycle {
+public class MethodInvokingMessageSource extends AbstractMessageSource<Object> implements ManageableLifecycle {
 
 	private volatile Object object;
 

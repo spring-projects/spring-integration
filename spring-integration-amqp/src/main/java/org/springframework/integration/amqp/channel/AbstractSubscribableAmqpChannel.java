@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
@@ -38,6 +37,7 @@ import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -52,7 +52,7 @@ import org.springframework.util.Assert;
  * @since 2.1
  */
 abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
-		implements SubscribableChannel, SmartLifecycle {
+		implements SubscribableChannel, ManageableSmartLifecycle {
 
 	private final String channelName;
 

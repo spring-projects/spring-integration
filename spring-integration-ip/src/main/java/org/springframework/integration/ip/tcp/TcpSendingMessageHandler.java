@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -33,6 +32,7 @@ import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorrelationEvent;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -52,7 +52,7 @@ import org.springframework.util.Assert;
  *
  */
 public class TcpSendingMessageHandler extends AbstractMessageHandler implements
-		TcpSender, Lifecycle, ClientModeCapable {
+		TcpSender, ManageableLifecycle, ClientModeCapable {
 
 	/**
 	 * A default retry interval for the {@link ClientModeConnectionManager} rescheduling.

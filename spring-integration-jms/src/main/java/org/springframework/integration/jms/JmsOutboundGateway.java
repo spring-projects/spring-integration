@@ -45,7 +45,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageTimeoutException;
@@ -54,6 +53,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.util.JavaUtils;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -82,7 +82,8 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler implements Lifecycle, MessageListener {
+public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
+		implements ManageableLifecycle, MessageListener {
 
 	/**
 	 * A default receive timeout in milliseconds.

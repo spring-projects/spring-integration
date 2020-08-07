@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.integration.file.filters.DiscardAwareFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ResettableFileListFilter;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -91,7 +92,7 @@ import org.springframework.util.Assert;
  * @author Steven Pearce
  */
 public class FileReadingMessageSource extends AbstractMessageSource<File>
-		implements Lifecycle {
+		implements ManageableLifecycle {
 
 	private static final int DEFAULT_INTERNAL_QUEUE_CAPACITY = 5;
 
@@ -416,7 +417,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 
 	}
 
-	private class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implements Lifecycle {
+	private class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implements ManageableLifecycle {
 
 		private final ConcurrentMap<Path, WatchKey> pathKeys = new ConcurrentHashMap<>();
 

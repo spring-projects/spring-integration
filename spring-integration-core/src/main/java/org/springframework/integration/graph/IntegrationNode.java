@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,6 @@ public abstract class IntegrationNode {
 
 	private final String nodeName;
 
-	private final Stats stats;
-
 	private final String componentType;
 
 	@Nullable
@@ -59,14 +57,13 @@ public abstract class IntegrationNode {
 
 	private final Map<String, Object> unmodifiableProperties = Collections.unmodifiableMap(this.properties);
 
-	protected IntegrationNode(int nodeId, String name, Object nodeObject, Stats stats) {
+	protected IntegrationNode(int nodeId, String name, Object nodeObject) {
 		this.nodeId = nodeId;
 		this.nodeName = name;
 		this.componentType =
 				nodeObject instanceof NamedComponent
 						? ((NamedComponent) nodeObject).getComponentType()
 						: nodeObject.getClass().getSimpleName();
-		this.stats = stats;
 		if (nodeObject instanceof ExpressionCapable) {
 			Expression expression = ((ExpressionCapable) nodeObject).getExpression();
 			if (expression != null) {
@@ -117,10 +114,6 @@ public abstract class IntegrationNode {
 		return this.integrationPatternCategory;
 	}
 
-	public Stats getStats() {
-		return this.stats.isAvailable() ? this.stats : null;
-	}
-
 	public Map<String, Object> getProperties() {
 		return this.unmodifiableProperties;
 	}
@@ -145,18 +138,6 @@ public abstract class IntegrationNode {
 		if (props != null) {
 			this.properties.putAll(props);
 		}
-	}
-
-	public static class Stats {
-
-		protected boolean isAvailable() {
-			return false;
-		}
-
-		public String getDeprecated() {
-			return "stats are deprecated in favor of sendTimers and receiveCounters";
-		}
-
 	}
 
 }

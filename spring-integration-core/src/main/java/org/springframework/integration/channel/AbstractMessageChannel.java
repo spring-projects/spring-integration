@@ -36,6 +36,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
@@ -66,13 +67,9 @@ import org.springframework.util.StringUtils;
 @IntegrationManagedResource
 @SuppressWarnings("deprecation")
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
-		implements MessageChannel, TrackableComponent, InterceptableChannel,
-		org.springframework.integration.support.management.MessageChannelMetrics,
-		org.springframework.integration.support.management.ConfigurableMetricsAware<
-				org.springframework.integration.support.management.AbstractMessageChannelMetrics>,
-		IntegrationPattern {
+		implements MessageChannel, TrackableComponent, InterceptableChannel, IntegrationManagement, IntegrationPattern {
 
-	protected final ChannelInterceptorList interceptors; // NOSONAR
+	protected final ChannelInterceptorList interceptors = new ChannelInterceptorList(logger); // NOSONAR
 
 	private final Comparator<Object> orderComparator = new OrderComparator();
 
@@ -88,24 +85,13 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private volatile MessageConverter messageConverter;
 
-	private volatile boolean countsEnabled;
-
-	private volatile boolean statsEnabled;
-
 	private volatile boolean loggingEnabled = true;
-
-	private volatile org.springframework.integration.support.management.AbstractMessageChannelMetrics channelMetrics
-			= new org.springframework.integration.support.management.DefaultMessageChannelMetrics();
 
 	private MetricsCaptor metricsCaptor;
 
 	private TimerFacade successTimer;
 
 	private TimerFacade failureTimer;
-
-	public AbstractMessageChannel() {
-		this.interceptors = new ChannelInterceptorList(logger);
-	}
 
 	@Override
 	public String getComponentType() {
@@ -133,37 +119,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	@Override
-	public void setCountsEnabled(boolean countsEnabled) {
-		this.countsEnabled = countsEnabled;
-		this.managementOverrides.countsConfigured = true;
-		if (!countsEnabled) {
-			this.statsEnabled = false;
-			this.managementOverrides.statsConfigured = true;
-		}
-	}
-
-	@Override
-	public boolean isCountsEnabled() {
-		return this.countsEnabled;
-	}
-
-	@Override
-	public void setStatsEnabled(boolean statsEnabled) {
-		if (statsEnabled) {
-			this.countsEnabled = true;
-			this.managementOverrides.countsConfigured = true;
-		}
-		this.statsEnabled = statsEnabled;
-		this.channelMetrics.setFullStatsEnabled(statsEnabled);
-		this.managementOverrides.statsConfigured = true;
-	}
-
-	@Override
-	public boolean isStatsEnabled() {
-		return this.statsEnabled;
-	}
-
-	@Override
 	public boolean isLoggingEnabled() {
 		return this.loggingEnabled;
 	}
@@ -172,31 +127,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	public void setLoggingEnabled(boolean loggingEnabled) {
 		this.loggingEnabled = loggingEnabled;
 		this.managementOverrides.loggingConfigured = true;
-	}
-
-	/**
-	 * Deprecated.
-	 * @return channel metrics.
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	protected org.springframework.integration.support.management.AbstractMessageChannelMetrics getMetrics() {
-		return this.channelMetrics;
-	}
-
-	/**
-	 * Deprecated.
-	 * @param metrics the metrics
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public void configureMetrics(
-			org.springframework.integration.support.management.AbstractMessageChannelMetrics metrics) {
-
-		Assert.notNull(metrics, "'metrics' must not be null");
-		this.channelMetrics = metrics;
-		this.managementOverrides.metricsConfigured = true;
 	}
 
 	/**
@@ -289,181 +219,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		return this.interceptors;
 	}
 
-	/**
-	 * Deprecated.
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public void reset() {
-		this.channelMetrics.reset();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return send count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public int getSendCount() {
-		return this.channelMetrics.getSendCount();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return send count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public long getSendCountLong() {
-		return this.channelMetrics.getSendCountLong();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return send error count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public int getSendErrorCount() {
-		return this.channelMetrics.getSendErrorCount();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return send error count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public long getSendErrorCountLong() {
-		return this.channelMetrics.getSendErrorCountLong();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return time since last
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public double getTimeSinceLastSend() {
-		return this.channelMetrics.getTimeSinceLastSend();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return mean send rate
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public double getMeanSendRate() {
-		return this.channelMetrics.getMeanSendRate();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return mean error rate
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public double getMeanErrorRate() {
-		return this.channelMetrics.getMeanErrorRate();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return mean error ratio
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public double getMeanErrorRatio() {
-		return this.channelMetrics.getMeanErrorRatio();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return mean send duration
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public double getMeanSendDuration() {
-		return this.channelMetrics.getMeanSendDuration();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return min send duration
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public double getMinSendDuration() {
-		return this.channelMetrics.getMinSendDuration();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return max send duration
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public double getMaxSendDuration() {
-		return this.channelMetrics.getMaxSendDuration();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return standard deviation send duration
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public double getStandardDeviationSendDuration() {
-		return this.channelMetrics.getStandardDeviationSendDuration();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return statistics
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public org.springframework.integration.support.management.Statistics getSendDuration() {
-		return this.channelMetrics.getSendDuration();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return statistics
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public org.springframework.integration.support.management.Statistics getSendRate() {
-		return this.channelMetrics.getSendRate();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return statistics
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public org.springframework.integration.support.management.Statistics getErrorRate() {
-		return this.channelMetrics.getErrorRate();
-	}
-
 	@Override
 	public ManagementOverrides getOverrides() {
 		return this.managementOverrides;
@@ -483,9 +238,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 								IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME,
 								MessageConverter.class);
 			}
-		}
-		if (this.statsEnabled) {
-			this.channelMetrics.setFullStatsEnabled(true);
 		}
 		this.fullChannelName = null;
 	}
@@ -544,10 +296,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean sent = false;
 		boolean metricsProcessed = false;
-		org.springframework.integration.support.management.MetricsContext metricsContext = null;
-		boolean countsAreEnabled = this.countsEnabled;
 		ChannelInterceptorList interceptorList = this.interceptors;
-		org.springframework.integration.support.management.AbstractMessageChannelMetrics metrics = this.channelMetrics;
 		SampleFacade sample = null;
 		try {
 			message = convertPayloadIfNecessary(message);
@@ -562,21 +311,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 					return false;
 				}
 			}
-			if (countsAreEnabled) {
-				metricsContext = metrics.beforeSend();
-				if (this.metricsCaptor != null) {
-					sample = this.metricsCaptor.start();
-				}
-				sent = doSend(message, timeout);
-				if (sample != null) {
-					sample.stop(sendTimer(sent));
-				}
-				metrics.afterSend(metricsContext, sent);
-				metricsProcessed = true;
+			if (this.metricsCaptor != null) {
+				sample = this.metricsCaptor.start();
 			}
-			else {
-				sent = doSend(message, timeout);
+			sent = doSend(message, timeout);
+			if (sample != null) {
+				sample.stop(sendTimer(sent));
 			}
+			metricsProcessed = true;
 
 			if (debugEnabled) {
 				logger.debug("postSend (sent=" + sent + ") on channel '" + this + "', message: " + message);
@@ -588,11 +330,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			return sent;
 		}
 		catch (Exception ex) {
-			if (countsAreEnabled && !metricsProcessed) {
+			if (!metricsProcessed) {
 				if (sample != null) {
 					sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
 				}
-				metrics.afterSend(metricsContext, false);
 			}
 			if (interceptorStack != null) {
 				interceptorList.afterSendCompletion(message, this, sent, ex, interceptorStack);

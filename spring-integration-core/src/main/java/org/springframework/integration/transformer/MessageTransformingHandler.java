@@ -25,6 +25,7 @@ import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -38,7 +39,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  */
-public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
+public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler implements ManageableLifecycle {
 
 	private final Transformer transformer;
 

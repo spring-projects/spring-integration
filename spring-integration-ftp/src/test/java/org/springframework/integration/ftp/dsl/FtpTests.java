@@ -144,11 +144,7 @@ public class FtpTests extends FtpTestSupport {
 		MessageSource<?> source = context.getBean(FtpInboundFileSynchronizingMessageSource.class);
 		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize")).isEqualTo(10);
 
-		assertThat(this.integrationManagementConfigurer.getSourceMetrics("ftpInboundAdapter.source")).isNotNull();
-
 		registration.destroy();
-
-		assertThat(this.integrationManagementConfigurer.getSourceMetrics("ftpInboundAdapter.source")).isNull();
 	}
 
 	@Test

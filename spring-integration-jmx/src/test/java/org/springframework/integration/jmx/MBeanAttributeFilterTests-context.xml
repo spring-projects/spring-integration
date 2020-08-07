@@ -29,8 +29,8 @@
 				<bean class="org.springframework.integration.jmx.NamedFieldsMBeanAttributeFilter">
 					<constructor-arg>
 						<array>
-							<value type="java.lang.String">SendCount</value>
-							<value type="java.lang.String">SendErrorCount</value>
+							<value type="java.lang.String">QueueSize</value>
+							<value type="java.lang.String">RemainingCapacity</value>
 						</array>
 					</constructor-arg>
 				</bean>
@@ -47,7 +47,7 @@
 	</int:service-activator>
 
 	<int:channel id="out">
-		<int:queue/>
+		<int:queue capacity="10" />
 	</int:channel>
 
 	<int-jmx:tree-polling-channel-adapter id="adapterNot"

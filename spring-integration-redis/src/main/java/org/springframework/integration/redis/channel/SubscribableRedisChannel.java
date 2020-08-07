@@ -20,7 +20,6 @@ import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -37,6 +36,7 @@ import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
@@ -58,7 +58,7 @@ import org.springframework.util.StringUtils;
  */
 @SuppressWarnings("rawtypes")
 public class SubscribableRedisChannel extends AbstractMessageChannel
-		implements BroadcastCapableChannel, SmartLifecycle {
+		implements BroadcastCapableChannel, ManageableSmartLifecycle {
 
 	private final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 

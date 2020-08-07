@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.springframework.messaging.MessageHandler;
  * @since 4.3
  *
  */
-@SuppressWarnings("deprecation")
 public class MessageHandlerNode extends EndpointNode implements SendTimersAware {
 
 	private final String input;
@@ -38,10 +37,7 @@ public class MessageHandlerNode extends EndpointNode implements SendTimersAware 
 	private Supplier<SendTimers> sendTimers;
 
 	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output) {
-		super(nodeId, name, handler, output,
-				handler instanceof org.springframework.integration.support.management.MessageHandlerMetrics
-						? new Stats((org.springframework.integration.support.management.MessageHandlerMetrics) handler)
-						: new IntegrationNode.Stats());
+		super(nodeId, name, handler, output);
 		this.input = input;
 	}
 
@@ -57,65 +53,6 @@ public class MessageHandlerNode extends EndpointNode implements SendTimersAware 
 	@Override
 	public void sendTimers(Supplier<SendTimers> timers) {
 		this.sendTimers = timers;
-	}
-
-	public static final class Stats extends IntegrationNode.Stats {
-
-		private final org.springframework.integration.support.management.MessageHandlerMetrics handler;
-
-		Stats(org.springframework.integration.support.management.MessageHandlerMetrics handler) {
-			this.handler = handler;
-		}
-
-		@Override
-		protected boolean isAvailable() {
-			return this.handler.isCountsEnabled();
-		}
-
-		public boolean isLoggingEnabled() {
-			return this.handler.isLoggingEnabled();
-		}
-
-		public long getHandleCount() {
-			return this.handler.getHandleCountLong();
-		}
-
-		public long getErrorCount() {
-			return this.handler.getErrorCountLong();
-		}
-
-		public double getMeanDuration() {
-			return this.handler.getMeanDuration();
-		}
-
-		public double getMinDuration() {
-			return this.handler.getMinDuration();
-		}
-
-		public double getMaxDuration() {
-			return this.handler.getMaxDuration();
-		}
-
-		public double getStandardDeviationDuration() {
-			return this.handler.getStandardDeviationDuration();
-		}
-
-		public long getActiveCount() {
-			return this.handler.getActiveCountLong();
-		}
-
-		public org.springframework.integration.support.management.Statistics getDuration() {
-			return this.handler.getDuration();
-		}
-
-		public boolean isStatsEnabled() {
-			return this.handler.isStatsEnabled();
-		}
-
-		public boolean isCountsEnabled() {
-			return this.handler.isCountsEnabled();
-		}
-
 	}
 
 }

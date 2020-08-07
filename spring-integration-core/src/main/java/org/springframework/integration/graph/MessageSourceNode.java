@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,17 +30,12 @@ import org.springframework.lang.Nullable;
  * @since 4.3
  *
  */
-@SuppressWarnings("deprecation")
 public class MessageSourceNode extends ErrorCapableEndpointNode implements ReceiveCountersAware {
 
 	private Supplier<ReceiveCounters> receiveCounters;
 
 	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, String output, String errors) {
-		super(nodeId, name, messageSource, output, errors,
-				messageSource instanceof org.springframework.integration.support.management.MessageSourceMetrics
-						? new Stats(
-								(org.springframework.integration.support.management.MessageSourceMetrics) messageSource)
-						: new IntegrationNode.Stats());
+		super(nodeId, name, messageSource, output, errors);
 	}
 
 	@Nullable
@@ -51,25 +46,6 @@ public class MessageSourceNode extends ErrorCapableEndpointNode implements Recei
 	@Override
 	public void receiveCounters(Supplier<ReceiveCounters> counters) {
 		this.receiveCounters = counters;
-	}
-
-	public static final class Stats extends IntegrationNode.Stats {
-
-		private final org.springframework.integration.support.management.MessageSourceMetrics source;
-
-		Stats(org.springframework.integration.support.management.MessageSourceMetrics source) {
-			this.source = source;
-		}
-
-		@Override
-		protected boolean isAvailable() {
-			return this.source.isCountsEnabled();
-		}
-
-		public long getMessageCount() {
-			return this.source.getMessageCountLong();
-		}
-
 	}
 
 }

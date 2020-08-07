@@ -74,7 +74,6 @@ class MessageChannelReactiveUtilsTests {
 	@Disabled("Backpressure is not honored")
 	void testOverproducingWithSubscribableChannel() {
 		DirectChannel channel = new DirectChannel();
-		channel.setCountsEnabled(true);
 
 		Disposable.Composite compositeDisposable = Disposables.composite();
 		AtomicInteger sendCount = new AtomicInteger();

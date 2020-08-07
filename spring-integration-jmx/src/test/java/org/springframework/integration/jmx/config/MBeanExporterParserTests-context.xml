@@ -20,12 +20,7 @@
 					  object-naming-strategy="keyNamer"
 					  managed-components="\!excluded, f*, b*, q*, t*" />
 
-	<si:management
-		default-logging-enabled="false"
-		default-counts-enabled="false"
-		default-stats-enabled="false"
-		counts-enabled-patterns="foo, !baz, ba*"
-		stats-enabled-patterns="fiz, buz" />
+	<si:management default-logging-enabled="false"/>
 
 	<util:properties id="appProperties">
 		<prop key="foo">foo</prop>

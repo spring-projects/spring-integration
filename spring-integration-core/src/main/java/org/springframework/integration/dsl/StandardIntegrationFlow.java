@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -65,7 +66,7 @@ import org.springframework.messaging.MessageChannel;
  * @see org.springframework.integration.dsl.context.IntegrationFlowContext
  * @see SmartLifecycle
  */
-public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle {
+public class StandardIntegrationFlow implements IntegrationFlow, ManageableSmartLifecycle {
 
 	private final Map<Object, String> integrationComponents;
 

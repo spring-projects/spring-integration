@@ -38,10 +38,8 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  *
  * @since 2.0
  */
-@SuppressWarnings("deprecation")
 public class PollableJmsChannel extends AbstractJmsChannel
-		implements PollableChannel, org.springframework.integration.support.management.PollableChannelManagement,
-		ExecutorChannelInterceptorAware {
+		implements PollableChannel, ExecutorChannelInterceptorAware {
 
 	private String messageSelector;
 
@@ -55,50 +53,6 @@ public class PollableJmsChannel extends AbstractJmsChannel
 
 	public void setMessageSelector(String messageSelector) {
 		this.messageSelector = messageSelector;
-	}
-
-	/**
-	 * Deprecated.
-	 * @return receive count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public int getReceiveCount() {
-		return getMetrics().getReceiveCount();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return receive count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public long getReceiveCountLong() {
-		return getMetrics().getReceiveCountLong();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return receive error count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public int getReceiveErrorCount() {
-		return getMetrics().getReceiveErrorCount();
-	}
-
-	/**
-	 * Deprecated.
-	 * @return receive error count
-	 * @deprecated in favor of Micrometer metrics.
-	 */
-	@Deprecated
-	@Override
-	public long getReceiveErrorCountLong() {
-		return getMetrics().getReceiveErrorCountLong();
 	}
 
 	@Override
@@ -119,7 +73,6 @@ public class PollableJmsChannel extends AbstractJmsChannel
 		ChannelInterceptorList interceptorList = getIChannelInterceptorList();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
-		boolean countsEnabled = isCountsEnabled();
 		try {
 			if (isLoggingEnabled() && logger.isTraceEnabled()) {
 				logger.trace("preReceive on channel '" + this + "'");
@@ -146,11 +99,8 @@ public class PollableJmsChannel extends AbstractJmsChannel
 				}
 			}
 			else {
-				if (countsEnabled) {
-					incrementReceiveCounter();
-					getMetrics().afterReceive();
-					counted = true;
-				}
+				incrementReceiveCounter();
+				counted = true;
 				if (object instanceof Message<?>) {
 					message = (Message<?>) object;
 				}
@@ -170,7 +120,7 @@ public class PollableJmsChannel extends AbstractJmsChannel
 			return message;
 		}
 		catch (RuntimeException ex) {
-			if (countsEnabled && !counted) {
+			if (!counted) {
 				incrementReceiveErrorCounter(ex);
 			}
 			interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
@@ -193,7 +143,6 @@ public class PollableJmsChannel extends AbstractJmsChannel
 		if (metricsCaptor != null) {
 			buildReceiveCounter(metricsCaptor, ex).increment();
 		}
-		getMetrics().afterError();
 	}
 
 	private CounterFacade buildReceiveCounter(MetricsCaptor metricsCaptor, @Nullable Exception ex) {

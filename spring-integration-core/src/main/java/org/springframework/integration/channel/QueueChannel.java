@@ -44,8 +44,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  */
 @SuppressWarnings("deprecation")
-public class QueueChannel extends AbstractPollableChannel implements QueueChannelOperations,
-		org.springframework.integration.support.management.QueueChannelManagement {
+public class QueueChannel extends AbstractPollableChannel implements QueueChannelOperations {
 
 	private final Queue<Message<?>> queue;
 

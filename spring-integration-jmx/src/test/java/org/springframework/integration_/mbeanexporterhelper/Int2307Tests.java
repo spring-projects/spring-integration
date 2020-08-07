@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,12 +47,12 @@ public class Int2307Tests {
 		int count = 0;
 		for (ObjectInstance mbean : mbeans) {
 			if (mbean.toString()
-					.startsWith("org.springframework.integration.support.management.LifecycleTrackableMessageHandlerMetrics[test.domain:type=MessageHandler,name=rlr,bean=endpoint,random=")) {
+					.startsWith("org.springframework.integration.router.RecipientListRouter[test.domain:type=MessageHandler,name=rlr,bean=endpoint,random=")) {
 				bits |= 2;
 				count++;
 			}
 			else if (mbean.toString()
-					.startsWith("org.springframework.integration.support.management.TrackableRouterMetrics[test.domain:type=MessageHandler,name=hvr,bean=endpoint,random=")) {
+					.startsWith("org.springframework.integration.router.HeaderValueRouter[test.domain:type=MessageHandler,name=hvr,bean=endpoint,random=")) {
 				bits |= 8;
 				count++;
 			}

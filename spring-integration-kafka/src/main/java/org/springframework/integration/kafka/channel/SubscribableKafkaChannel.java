@@ -23,6 +23,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.KafkaOperations;
 import org.springframework.kafka.listener.MessageListenerContainer;
@@ -41,7 +42,8 @@ import org.springframework.util.Assert;
  * @since 5.4
  *
  */
-public class SubscribableKafkaChannel extends AbstractKafkaChannel implements SubscribableChannel, SmartLifecycle {
+public class SubscribableKafkaChannel extends AbstractKafkaChannel implements SubscribableChannel,
+		ManageableSmartLifecycle {
 
 	private static final int DEFAULT_PHASE = Integer.MAX_VALUE / 2; // same as MessageProducerSupport
 

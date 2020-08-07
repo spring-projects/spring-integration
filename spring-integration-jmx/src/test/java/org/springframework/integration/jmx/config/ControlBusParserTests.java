@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,9 +46,8 @@ public class ControlBusParserTests {
 	public void testControlMessageToChannelMetrics() {
 		MessageChannel control = this.context.getBean("controlChannel", MessageChannel.class);
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		Object value = messagingTemplate.convertSendAndReceive(control,
-				"@integrationMbeanExporter.getChannelSendRate('testChannel').count", Object.class);
-		assertThat(value).isEqualTo(0);
+		Object value = messagingTemplate.convertSendAndReceive(control, "@cb.isRunning()", Object.class);
+		assertThat(value).isEqualTo(Boolean.TRUE);
 	}
 
 }

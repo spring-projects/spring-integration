@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,29 @@
 
 package org.springframework.integration.support.management;
 
-
-
+import org.springframework.context.Lifecycle;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 
 /**
- * Default implementation.
- * @deprecated in favor of dimensional metrics via
- * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
- * Built-in metrics will be removed in a future release.
+ * Makes {@link Lifecycle} methods manageable.
  *
  * @author Gary Russell
- * @since 4.2
+ * @since 5.4
  *
- * @deprecated in favor of Micrometer metrics.
  */
-@Deprecated
-public class DefaultMetricsFactory implements MetricsFactory {
+public interface ManageableLifecycle extends Lifecycle {
 
+	@ManagedOperation(description = "Start the component")
 	@Override
-	public AbstractMessageChannelMetrics createChannelMetrics(String name) {
-		return new DefaultMessageChannelMetrics(name);
-	}
+	void start();
 
+	@ManagedOperation(description = "Stop the component")
 	@Override
-	public AbstractMessageHandlerMetrics createHandlerMetrics(String name) {
-		return new DefaultMessageHandlerMetrics(name);
-	}
+	void stop();
+
+	@ManagedAttribute(description = "Is the component running?")
+	@Override
+	boolean isRunning();
 
 }

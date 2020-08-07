@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -58,6 +57,7 @@ import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.locks.PassThruLockRegistry;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.util.WhileLockedProcessor;
 import org.springframework.messaging.Message;
@@ -109,7 +109,7 @@ import org.springframework.util.StringUtils;
  * @author Alen Turkovic
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler
-		implements Lifecycle, MessageTriggerAction {
+		implements ManageableLifecycle, MessageTriggerAction {
 
 	private static final int DEFAULT_BUFFER_SIZE = 8192;
 

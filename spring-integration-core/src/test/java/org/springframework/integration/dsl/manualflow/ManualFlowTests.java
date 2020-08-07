@@ -148,15 +148,9 @@ public class ManualFlowTests {
 
 		assertThat(replyProducers.contains(bridgeHandler)).isTrue();
 
-		assertThat(this.integrationManagementConfigurer.getChannelMetrics("channel")).isNotNull();
-		assertThat(this.integrationManagementConfigurer.getHandlerMetrics("bridge")).isNotNull();
-
 		flowRegistration.destroy();
 
 		assertThat(replyProducers.contains(bridgeHandler)).isFalse();
-
-		assertThat(this.integrationManagementConfigurer.getChannelMetrics("channel")).isNull();
-		assertThat(this.integrationManagementConfigurer.getHandlerMetrics("bridge")).isNull();
 	}
 
 	@Test

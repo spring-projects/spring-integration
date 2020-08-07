@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -32,6 +31,7 @@ import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.event.StompExceptionEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
 import org.springframework.integration.stomp.support.StompHeaderMapper;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
@@ -54,7 +54,8 @@ import org.springframework.util.Assert;
  *
  * @since 4.2
  */
-public class StompMessageHandler extends AbstractMessageHandler implements ApplicationEventPublisherAware, Lifecycle {
+public class StompMessageHandler extends AbstractMessageHandler
+		implements ApplicationEventPublisherAware, ManageableLifecycle {
 
 	private static final int DEFAULT_CONNECT_TIMEOUT = 3000;
 

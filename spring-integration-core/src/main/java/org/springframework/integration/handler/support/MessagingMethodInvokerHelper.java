@@ -77,6 +77,7 @@ import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.integration.util.AnnotatedMethodFilter;
 import org.springframework.integration.util.FixedMethodFilter;
@@ -120,7 +121,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator implements Lifecycle {
+public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator implements ManageableLifecycle {
 
 	private static final String CANDIDATE_METHODS = "CANDIDATE_METHODS";
 

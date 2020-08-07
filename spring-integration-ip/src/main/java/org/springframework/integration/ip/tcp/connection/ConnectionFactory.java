@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2019 the original author or authors.
+ * Copyright 2001-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import org.springframework.context.Lifecycle;
+import org.springframework.integration.support.management.ManageableLifecycle;
 
 
 
@@ -27,7 +27,7 @@ import org.springframework.context.Lifecycle;
  * @since 2.0
  *
  */
-public interface ConnectionFactory extends Lifecycle {
+public interface ConnectionFactory extends ManageableLifecycle {
 
 	TcpConnection getConnection() throws InterruptedException;
 

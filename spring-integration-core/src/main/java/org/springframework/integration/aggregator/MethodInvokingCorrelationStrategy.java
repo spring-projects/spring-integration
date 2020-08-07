@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import java.lang.reflect.Method;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  */
-public class MethodInvokingCorrelationStrategy implements CorrelationStrategy, BeanFactoryAware, Lifecycle {
+public class MethodInvokingCorrelationStrategy implements CorrelationStrategy, BeanFactoryAware, ManageableLifecycle {
 
 	private final MethodInvokingMessageProcessor<?> processor;
 

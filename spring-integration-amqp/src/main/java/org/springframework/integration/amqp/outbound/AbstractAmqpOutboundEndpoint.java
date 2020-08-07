@@ -32,7 +32,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
@@ -46,6 +45,7 @@ import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -61,7 +61,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  *
  */
 public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
-		implements Lifecycle {
+		implements ManageableLifecycle {
 
 	private static final String NO_ID = new UUID(0L, 0L).toString();
 

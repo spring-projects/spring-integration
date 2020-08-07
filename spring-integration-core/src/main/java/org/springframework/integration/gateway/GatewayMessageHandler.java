@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.integration.gateway;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
@@ -31,7 +31,7 @@ import org.springframework.messaging.MessageChannel;
  *
  * @since 5.0
  */
-public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
+public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler implements ManageableLifecycle {
 
 	private final GatewayProxyFactoryBean gatewayProxyFactoryBean;
 

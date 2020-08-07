@@ -38,43 +38,29 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 		implements MessageHandler, CoreSubscriber<Message<?>> {
 
 	@Override // NOSONAR
-	@SuppressWarnings("deprecation")
 	public void handleMessage(Message<?> message) {
 		Message<?> messageToUse = message;
 		Assert.notNull(messageToUse, "Message must not be null");
 		if (isLoggingEnabled() && this.logger.isDebugEnabled()) {
 			this.logger.debug(this + " received message: " + messageToUse);
 		}
-		org.springframework.integration.support.management.MetricsContext start = null;
 		SampleFacade sample = null;
 		MetricsCaptor metricsCaptor = getMetricsCaptor();
-		if (metricsCaptor != null && isCountsEnabled()) {
+		if (metricsCaptor != null) {
 			sample = metricsCaptor.start();
 		}
 		try {
 			if (shouldTrack()) {
 				messageToUse = MessageHistory.write(messageToUse, this, getMessageBuilderFactory());
 			}
-			org.springframework.integration.support.management.AbstractMessageHandlerMetrics handlerMetrics
-					= getHandlerMetrics();
-			if (isCountsEnabled()) {
-				start = handlerMetrics.beforeHandle();
-				handleMessageInternal(messageToUse);
-				if (sample != null) {
-					sample.stop(sendTimer());
-				}
-				handlerMetrics.afterHandle(start, true);
-			}
-			else {
-				handleMessageInternal(messageToUse);
+			handleMessageInternal(messageToUse);
+			if (sample != null) {
+				sample.stop(sendTimer());
 			}
 		}
 		catch (Exception e) {
 			if (sample != null) {
 				sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
-			}
-			if (isCountsEnabled()) {
-				getHandlerMetrics().afterHandle(start, false);
 			}
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(messageToUse,
 					() -> "error occurred in message handler [" + this + "]", e);

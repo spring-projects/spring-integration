@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
  *
  */
 public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
-		implements HeaderChannelRegistry, Lifecycle, Runnable {
+		implements HeaderChannelRegistry, ManageableLifecycle, Runnable {
 
 	private static final int DEFAULT_REAPER_DELAY = 60000;
 
