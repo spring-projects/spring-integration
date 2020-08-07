@@ -17,6 +17,7 @@
 package org.springframework.integration.core;
 
 import org.springframework.integration.support.management.ManageableLifecycle;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
 /**
@@ -41,5 +42,15 @@ public interface Pausable extends ManageableLifecycle {
 	 */
 	@ManagedOperation(description = "Resume the component")
 	void resume();
+
+	/**
+	 * Check if the endpoint is paused.
+	 * @return true if paused.
+	 * @since 5.3
+	 */
+	@ManagedAttribute(description = "Is the component paused?")
+	default boolean isPaused() {
+		throw new UnsupportedOperationException("This component does not implement this method");
+	}
 
 }

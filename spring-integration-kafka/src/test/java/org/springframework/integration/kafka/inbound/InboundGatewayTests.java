@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,8 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.event.ConsumerPausedEvent;
+import org.springframework.kafka.event.ConsumerResumedEvent;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.support.Acknowledgment;
@@ -118,8 +120,19 @@ class InboundGatewayTests {
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic1);
 		containerProps.setIdleEventInterval(100L);
+		containerProps.setPollTimeout(200L);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
+		CountDownLatch pausedLatch = new CountDownLatch(1);
+		CountDownLatch resumedLatch = new CountDownLatch(1);
+		container.setApplicationEventPublisher(event -> {
+			if (event instanceof ConsumerPausedEvent) {
+				pausedLatch.countDown();
+			}
+			else if (event instanceof ConsumerResumedEvent) {
+				resumedLatch.countDown();
+			}
+		});
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
@@ -175,6 +188,12 @@ class InboundGatewayTests {
 		assertThat(record).has(partition(1));
 		assertThat(record).has(value("FOO"));
 		assertThat(onPartitionsAssignedCalledLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		gateway.pause();
+		assertThat(pausedLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(gateway.isPaused()).isTrue();
+		gateway.resume();
+		assertThat(resumedLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(gateway.isPaused()).isFalse();
 
 		gateway.stop();
 	}

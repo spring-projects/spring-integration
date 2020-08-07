@@ -607,8 +607,10 @@ class MessageDrivenAdapterTests {
 		assertThat(outputChannel.getQueueSize()).isEqualTo(2);
 		adapter.pause();
 		assertThat(pauseLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(adapter.isPaused()).isTrue();
 		adapter.resume();
 		assertThat(resumeLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(adapter.isPaused()).isFalse();
 		adapter.stop();
 	}
 

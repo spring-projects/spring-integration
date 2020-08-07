@@ -340,6 +340,11 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	}
 
 	@Override
+	public boolean isPaused() {
+		return this.messageListenerContainer.isContainerPaused();
+	}
+
+	@Override
 	public int beforeShutdown() {
 		this.messageListenerContainer.stop();
 		return getPhase();
