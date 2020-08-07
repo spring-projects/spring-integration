@@ -41,14 +41,17 @@ public interface IntegrationManagement extends NamedComponent, DisposableBean {
 	 * @param enabled dalse to disable.
 	 */
 	@ManagedAttribute(description = "Use to disable debug logging during normal message flow")
-	void setLoggingEnabled(boolean enabled);
+	default void setLoggingEnabled(boolean enabled) {
+	}
 
 	/**
 	 * Return whether logging is enabled.
 	 * @return true if enabled.
 	 */
 	@ManagedAttribute
-	boolean isLoggingEnabled();
+	default boolean isLoggingEnabled() {
+		return true;
+	}
 
 	default void setManagedName(String managedName) {
 	}
@@ -69,7 +72,10 @@ public interface IntegrationManagement extends NamedComponent, DisposableBean {
 	 * @return the overrides.
 	 * @since 5.0
 	 */
-	ManagementOverrides getOverrides();
+	@Nullable
+	default ManagementOverrides getOverrides() {
+		return null;
+	}
 
 	/**
 	 * Inject a {@link MetricsCaptor}

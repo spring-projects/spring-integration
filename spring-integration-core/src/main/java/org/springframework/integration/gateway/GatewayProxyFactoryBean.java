@@ -63,7 +63,9 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
+import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.util.JavaUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -100,7 +102,8 @@ import reactor.core.publisher.Mono;
  * @author Artem Bilan
  */
 public class GatewayProxyFactoryBean extends AbstractEndpoint
-		implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
+		implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware,
+			IntegrationManagement {
 
 	private final Object initializationMonitor = new Object();
 
@@ -153,6 +156,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	private boolean proxyDefaultMethods;
 
 	private EvaluationContext evaluationContext = new StandardEvaluationContext();
+
+	private MetricsCaptor metricsCaptor;
 
 	/**
 	 * Create a Factory whose service interface type can be configured by setter injection.
@@ -434,6 +439,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	 */
 	public Map<Method, MessagingGatewaySupport> getGateways() {
 		return Collections.unmodifiableMap(this.gatewayMap);
+	}
+
+	@Override
+	public void registerMetricsCaptor(MetricsCaptor metricsCaptorToRegister) {
+		this.metricsCaptor = metricsCaptorToRegister;
+		this.gatewayMap.values().forEach(gw -> gw.registerMetricsCaptor(metricsCaptorToRegister));
 	}
 
 	@Override
@@ -856,6 +867,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		gateway.setBeanName(getComponentName());
 		gateway.setBeanFactory(getBeanFactory());
 		gateway.setShouldTrack(this.shouldTrack);
+		gateway.registerMetricsCaptor(this.metricsCaptor);
 		gateway.afterPropertiesSet();
 
 		return gateway;
@@ -1018,6 +1030,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		else {
 			return this.typeConverter.convertIfNecessary(source, expectedReturnType);
 		}
+	}
+
+	@Override
+	public void destroy() {
+		this.gatewayMap.values().forEach(gw -> gw.destroy());
 	}
 
 	private static final class MethodInvocationGateway extends MessagingGatewaySupport {
