@@ -46,7 +46,7 @@ public interface Pausable extends ManageableLifecycle {
 	/**
 	 * Check if the endpoint is paused.
 	 * @return true if paused.
-	 * @since 5.3
+	 * @since 5.4
 	 */
 	@ManagedAttribute(description = "Is the component paused?")
 	default boolean isPaused() {
