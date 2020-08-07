@@ -41,6 +41,20 @@ import org.springframework.context.annotation.Import;
 public @interface EnableIntegrationManagement {
 
 	/**
+	 * @deprecated this property is no longer used.
+	 * @return the patterns.
+	 */
+	@Deprecated
+	String[] metersEnabled() default "*";
+
+	/**
+	 * @deprecated this property is no longer used.
+	 * @return the value; false by default, or true when JMX is enabled.
+	 */
+	@Deprecated
+	String defaultCountsEnabled() default "false";
+
+	/**
 	 * Use to disable all logging in the main message flow in framework components. When 'false', such logging will be
 	 * skipped, regardless of logging level. When 'true', the logging is controlled as normal by the logging
 	 * subsystem log level configuration.
