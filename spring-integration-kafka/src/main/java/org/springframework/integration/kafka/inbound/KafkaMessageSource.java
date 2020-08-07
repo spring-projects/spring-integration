@@ -246,15 +246,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		return Collections.unmodifiableCollection(this.assignedPartitions);
 	}
 
-	/**
-	 * Return true if the source is currently paused.
-	 * @return true if paused.
-	 * @since 3.2.2
-	 */
-	public boolean isPaused() {
-		return this.paused;
-	}
-
 	@Override
 	protected void onInit() {
 		if (!StringUtils.hasText(this.consumerProperties.getClientId())) {
@@ -406,22 +397,19 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		this.running = false;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * @since 3.1.2
-	 */
 	@Override
 	public synchronized void pause() {
 		this.pausing = true;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * @since 3.1.2
-	 */
 	@Override
 	public synchronized void resume() {
 		this.pausing = false;
+	}
+
+	@Override
+	public boolean isPaused() {
+		return this.paused;
 	}
 
 	@Override

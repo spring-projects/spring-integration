@@ -29,6 +29,7 @@ import org.apache.kafka.common.header.Header;
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.OrderlyShutdownCapable;
+import org.springframework.integration.core.Pausable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -68,7 +69,7 @@ import org.springframework.util.Assert;
  * @since 5.4
  *
  */
-public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implements OrderlyShutdownCapable {
+public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implements Pausable, OrderlyShutdownCapable {
 
 	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
@@ -192,6 +193,21 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	@Override
 	protected void doStop() {
 		this.messageListenerContainer.stop();
+	}
+
+	@Override
+	public void pause() {
+		this.messageListenerContainer.pause();
+	}
+
+	@Override
+	public void resume() {
+		this.messageListenerContainer.resume();
+	}
+
+	@Override
+	public boolean isPaused() {
+		return this.messageListenerContainer.isContainerPaused();
 	}
 
 	@Override
