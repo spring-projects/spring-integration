@@ -40,12 +40,10 @@ import org.springframework.integration.redis.rules.RedisAvailableRule;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.util.Address;
 import org.springframework.integration.redis.util.Person;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 

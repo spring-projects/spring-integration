@@ -54,8 +54,12 @@ public class Person implements Serializable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		Person person = (Person) o;
 		return Objects.equals(this.address, person.address) &&
 				Objects.equals(this.name, person.name);
