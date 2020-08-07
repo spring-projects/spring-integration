@@ -42,6 +42,25 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 /**
+ * The {@link SubscribableChannel} implementation over ZeroMQ sockets.
+ * It can work in two messaging models:
+ * - {@code push-pull}, where sent messages are distributed to subscribers in a round-robin manner
+ * according a respective ZeroMQ {@link SocketType#PUSH} and {@link SocketType#PULL} socket types logic;
+ * - {@code pub-sub}, where sent messages are distributed to all subscribers;
+ * <p>
+ * This message channel can work in local mode, when a pair of ZeroMQ sockets of {@link SocketType#PAIR} type
+ * are connected between publisher (send operation) and subscriber using inter-thread transport binding.
+ * <p>
+ * In distributed mode this channel has to be connected to an externally managed ZeroMQ proxy.
+ * The {@link #setConnectUrl(String)} has to be as a standard ZeroMQ connect string, but with an extra port
+ * over the colon - representing a frontend and backend sockets pair on ZeroMQ proxy.
+ * For example: {@code tcp://localhost:6001:6002}.
+ * This way a sending and receiving operations on this channel are similar to interaction over a messaging broker.
+ * <p>
+ * An internal logic of this message channel implementation is based on the project Reactor using its
+ * {@link Mono}, {@link Flux} and {@link Scheduler} API for better thead model and flow control to avoid
+ * concurrency primitives for multi-publisher(subscriber) communication within the same application.
+ *
  * @author Artem Bilan
  *
  * @since 5.4

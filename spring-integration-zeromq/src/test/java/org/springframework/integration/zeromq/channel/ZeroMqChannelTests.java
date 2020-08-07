@@ -25,8 +25,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.zeromq.SocketType;
 import org.zeromq.ZContext;
+import org.zeromq.ZMQ;
 
+import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
 import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -101,10 +104,15 @@ public class ZeroMqChannelTests {
 	void testPushPullBind() throws InterruptedException {
 		ZeroMqProxy proxy = new ZeroMqProxy(CONTEXT);
 		proxy.setBeanName("pullPushProxy");
+		proxy.setExposeCaptureSocket(true);
 		proxy.afterPropertiesSet();
 		proxy.start();
 
 		await().until(() -> proxy.getBackendPort() > 0);
+
+		ZMQ.Socket captureSocket = CONTEXT.createSocket(SocketType.SUB);
+		captureSocket.connect(proxy.getCaptureAddress());
+		captureSocket.subscribe(ZMQ.SUBSCRIPTION_ALL);
 
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT);
 		channel.setConnectUrl("tcp://*:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
@@ -124,6 +132,13 @@ public class ZeroMqChannelTests {
 		assertThat(received.poll(100, TimeUnit.MILLISECONDS)).isNull();
 
 		channel.destroy();
+
+		byte[] recv = captureSocket.recv();
+		assertThat(recv).isNotNull();
+		Message<?> capturedMessage = new EmbeddedJsonHeadersMessageMapper().toMessage(recv);
+		assertThat(capturedMessage).isEqualTo(testMessage);
+		captureSocket.close();
+
 		proxy.stop();
 	}
 
@@ -147,6 +162,13 @@ public class ZeroMqChannelTests {
 		channel.subscribe(received::offer);
 		channel.subscribe(received::offer);
 
+		ZeroMqChannel channel2 = new ZeroMqChannel(CONTEXT, true);
+		channel2.setConnectUrl("tcp://*:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
+		channel2.setBeanName("testChannel5");
+		channel2.afterPropertiesSet();
+
+		channel.subscribe(received::offer);
+
 		GenericMessage<String> testMessage = new GenericMessage<>("test1");
 		assertThat(channel.send(testMessage)).isTrue();
 
@@ -154,6 +176,9 @@ public class ZeroMqChannelTests {
 		assertThat(message).isNotNull().isEqualTo(testMessage);
 		message = received.poll(10, TimeUnit.SECONDS);
 		assertThat(message).isNotNull().isEqualTo(testMessage);
+		message = received.poll(10, TimeUnit.SECONDS);
+		assertThat(message).isNotNull().isEqualTo(testMessage);
+		assertThat(received.poll(100, TimeUnit.MILLISECONDS)).isNull();
 
 		channel.destroy();
 		proxy.stop();

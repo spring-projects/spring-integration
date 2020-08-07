@@ -17,6 +17,7 @@
 package org.springframework.integration.zeromq;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,6 +30,7 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.lang.Nullable;
@@ -36,20 +38,24 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
- * This class encapsulates a logic to configure and manage ZeroMQ proxy.
+ * This class encapsulates the logic to configure and manage a ZeroMQ proxy.
  * It binds frontend and backend sockets over TCP on all the available network interfaces
- * with provided ports or randomly selected otherwise.
+ * with either provided or randomly selected ports.
  * <p>
  * The {@link ZeroMqProxy.Type} dictates which pair of ZeroMQ sockets to bind with this proxy
  * to implement any possible patterns for ZeroMQ intermediary. Defaults to @link {@link ZeroMqProxy.Type#PULL_PUSH}.
  * <p>
  * The control socket is exposed as a {@link SocketType#PAIR} with an inter-thread transport
- * on tne {@code "inproc://" + beanName + ".control"} address - can be obtained via {@link #getControlAddress()}.
+ * on tne {@code "inproc://" + beanName + ".control"} address; it can be obtained via {@link #getControlAddress()}.
  * Should be used with the same application from {@link SocketType#PAIR} socket to send
  * {@link zmq.ZMQ#PROXY_TERMINATE}, {@link zmq.ZMQ#PROXY_PAUSE} and/or {@link zmq.ZMQ#PROXY_RESUME} commands.
  * <p>
- * If proxy cannot be started for some reason, the error message is logged respectively and this component is
- * left in the non-starting state.
+ * If the proxy cannot be started for some reason, an error message is logged and this component is
+ * left in the non-started state.
+ * <p>
+ * With an {@link #exposeCaptureSocket} option, an additional capture data socket is bound to inter-thread transport
+ * as a {@link SocketType#PUB}. There is no specific topic selection, so all the subscribers to this socket
+ * must subscribe with plain {@link ZMQ#SUBSCRIPTION_ALL}.
  *
  * @author Artem Bilan
  *
@@ -57,7 +63,7 @@ import org.springframework.util.Assert;
  *
  * @see ZMQ#proxy(ZMQ.Socket, ZMQ.Socket, ZMQ.Socket)
  */
-public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAware {
+public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAware, DisposableBean {
 
 	private static final Log LOG = LogFactory.getLog(ZeroMqProxy.class);
 
@@ -75,11 +81,18 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 
 	private Executor proxyExecutor;
 
+	private boolean proxyExecutorExplicitlySet;
+
 	@Nullable
 	private Consumer<ZMQ.Socket> frontendSocketConfigurer;
 
 	@Nullable
 	private Consumer<ZMQ.Socket> backendSocketConfigurer;
+
+	private boolean exposeCaptureSocket;
+
+	@Nullable
+	private String captureAddress;
 
 	private String beanName;
 
@@ -101,6 +114,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	public void setProxyExecutor(Executor proxyExecutor) {
 		Assert.notNull(proxyExecutor, "'proxyExecutor' must not be null");
 		this.proxyExecutor = proxyExecutor;
+		this.proxyExecutorExplicitlySet = true;
 	}
 
 	public void setFrontendPort(int frontendPort) {
@@ -127,6 +141,14 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	 */
 	public void setBackendSocketConfigurer(@Nullable Consumer<ZMQ.Socket> backendSocketConfigurer) {
 		this.backendSocketConfigurer = backendSocketConfigurer;
+	}
+
+	/**
+	 * Whether to bind and expose a capture socket for the proxy data.
+	 * @param exposeCaptureSocket true to bind capture socket for proxy
+	 */
+	public void setExposeCaptureSocket(boolean exposeCaptureSocket) {
+		this.exposeCaptureSocket = exposeCaptureSocket;
 	}
 
 	@Override
@@ -163,12 +185,22 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	}
 
 	/**
-	 * Return the address an {@code inproc} control socket is bound if this proxy has not been started yet.
+	 * Return the address an {@code inproc} control socket is bound or null if this proxy has not been started yet.
 	 * @return the the address for control socket or null
 	 */
 	@Nullable
 	public String getControlAddress() {
 		return this.controlAddress;
+	}
+
+	/**
+	 * Return the address an {@code inproc} capture socket is bound or null if this proxy has not been started yet
+	 * or {@link #captureAddress} is false.
+	 * @return the the address for capture socket or null
+	 */
+	@Nullable
+	public String getCaptureAddress() {
+		return this.captureAddress;
 	}
 
 	@Override
@@ -184,9 +216,12 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	@Override
 	public void afterPropertiesSet() {
 		if (this.proxyExecutor == null) {
-			proxyExecutor = Executors.newSingleThreadExecutor(new CustomizableThreadFactory(this.beanName));
+			this.proxyExecutor = Executors.newSingleThreadExecutor(new CustomizableThreadFactory(this.beanName));
 		}
 		this.controlAddress = "inproc://" + this.beanName + ".control";
+		if (this.exposeCaptureSocket) {
+			this.captureAddress = "inproc://" + this.beanName + ".capture";
+		}
 	}
 
 	@Override
@@ -194,9 +229,15 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 		if (!this.running.get()) {
 			this.proxyExecutor
 					.execute(() -> {
-						try (ZMQ.Socket frontendSocket = this.context.createSocket(this.type.getFrontendSocketType());
-							 ZMQ.Socket backendSocket = this.context.createSocket(this.type.getBackendSocketType());
-							 ZMQ.Socket controlSocket = this.context.createSocket(SocketType.PAIR)) {
+						ZMQ.Socket captureSocket = null;
+						if (this.exposeCaptureSocket) {
+							captureSocket = this.context.createSocket(SocketType.PUB);
+						}
+						try (
+								ZMQ.Socket frontendSocket = this.context.createSocket(this.type.getFrontendSocketType());
+								ZMQ.Socket backendSocket = this.context.createSocket(this.type.getBackendSocketType());
+								ZMQ.Socket controlSocket = this.context.createSocket(SocketType.PAIR)
+						) {
 
 							if (this.frontendSocketConfigurer != null) {
 								this.frontendSocketConfigurer.accept(frontendSocket);
@@ -213,11 +254,23 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 								throw new IllegalArgumentException("Cannot bind ZeroMQ socket to address: "
 										+ this.controlAddress);
 							}
+							if (captureSocket != null) {
+								bound = captureSocket.bind(this.captureAddress);
+								if (!bound) {
+									throw new IllegalArgumentException("Cannot bind ZeroMQ socket to address: "
+											+ this.captureAddress);
+								}
+							}
 							this.running.set(true);
-							ZMQ.proxy(frontendSocket, backendSocket, null, controlSocket);
+							ZMQ.proxy(frontendSocket, backendSocket, captureSocket, controlSocket);
 						}
 						catch (Exception ex) {
 							LOG.error("Cannot start ZeroMQ proxy from bean: " + this.beanName, ex);
+						}
+						finally {
+							if (captureSocket != null) {
+								captureSocket.close();
+							}
 						}
 					});
 		}
@@ -226,7 +279,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	@Override
 	public synchronized void stop() {
 		if (this.running.getAndSet(false)) {
-			try (ZMQ.Socket commandSocket = context.createSocket(SocketType.PAIR)) {
+			try (ZMQ.Socket commandSocket = this.context.createSocket(SocketType.PAIR)) {
 				commandSocket.connect(this.controlAddress);
 				commandSocket.send(zmq.ZMQ.PROXY_TERMINATE);
 			}
@@ -236,6 +289,13 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	@Override
 	public boolean isRunning() {
 		return this.running.get();
+	}
+
+	@Override
+	public void destroy() {
+		if (!this.proxyExecutorExplicitlySet) {
+			((ExecutorService) this.proxyExecutor).shutdown();
+		}
 	}
 
 	private static int bindSocket(ZMQ.Socket socket, int port) {
