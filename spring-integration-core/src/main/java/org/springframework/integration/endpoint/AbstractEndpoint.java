@@ -26,6 +26,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
@@ -45,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  */
+@IntegrationManagedResource
 public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		implements ManageableSmartLifecycle, DisposableBean {
 

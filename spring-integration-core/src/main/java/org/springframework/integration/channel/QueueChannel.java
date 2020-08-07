@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.support.management.metrics.GaugeFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
-import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -219,13 +218,11 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 		return purgedMessages;
 	}
 
-	@ManagedAttribute(description = "Queue size")
 	@Override
 	public int getQueueSize() {
 		return this.queue.size();
 	}
 
-	@ManagedAttribute(description = "Queue remaining capacity")
 	@Override
 	public int getRemainingCapacity() {
 		if (this.queue instanceof BlockingQueue) {

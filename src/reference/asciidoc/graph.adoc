@@ -91,20 +91,8 @@ A Spring Integration application with only the default components would expose a
 ----
 ====
 
-NOTE: Version 5.2 has deprecated the legacy metrics in favor of Micrometer meters as discussed <<./metrics.adoc#metrics-management,Metrics Management>>.
-While not shown above, the legacy metrics (under the `stats` child node) will continue to appear in the graph, but with an extra child node `"deprecated" : "stats are deprecated in favor of sendTimers and receiveCounters"`.
-
-With some JSON serializers, you can suppress the inclusion of legacy statistics using several techniques; for example, with Jackson, you can register a `SimpleModule` configured with a `NullSerializer` with the `ObjectMapper`:
-
-====
-[source, java]
-----
-objectMapper.registerModule(new SimpleModule()
-        .addSerializer(IntegrationNode.Stats.class, NullSerializer.instance));
-----
-====
-
-The resulting json contains `"stats" : null`.
+NOTE: Version 5.2 deprecated the legacy metrics in favor of Micrometer meters as discussed <<./metrics.adoc#metrics-management,Metrics Management>>.
+The legacy metrics were removed in Version 5.4 and will no longer appear in the graph.
 
 In the preceding example, the graph consists of three top-level elements.
 

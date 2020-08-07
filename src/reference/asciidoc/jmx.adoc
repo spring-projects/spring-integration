@@ -251,7 +251,7 @@ The following example shows how to declare an instance of an `IntegrationMBeanEx
 The MBean exporter is orthogonal to the one provided in Spring core.
 It registers message channels and message handlers but does not register itself.
 You can expose the exporter itself (and certain other components in Spring Integration) by using the standard `<context:mbean-export/>` tag.
-The exporter has some metrics attached to it -- for instance, a count of the number of active handlers and the number of queued messages.
+The exporter has some metrics attached to it -- for instance, a count of the number of handlers and the number of queued messages.
 
 It also has a useful operation, as discussed in <<jmx-mbean-shutdown>>.
 =====
@@ -365,68 +365,13 @@ These resulted in a significant performance improvement of the JMX statistics co
 However, it has some implications for user code in a few specific (uncommon) situations.
 These changes are detailed below, with a caution where necessary.
 
-Metrics Capture::
-Previously, `MessageSource`, `MessageChannel`, and `MessageHandler` metrics were captured by wrapping the object in a JDK dynamic proxy to intercept appropriate method calls and capture the statistics.
-The proxy was added when an integration MBean exporter was declared in the context.
-+
-Now, the statistics are captured by the beans themselves.
-See <<./metrics.adoc#metrics-management,Metrics and Management>> for more information.
-+
-WARNING: This change means that you no longer automatically get an MBean or statistics for custom `MessageHandler` implementations, unless those custom handlers extend `AbstractMessageHandler`.
-The simplest way to resolve this is to extend `AbstractMessageHandler`.
-If you cannot do so, another work around is to implement the `MessageHandlerMetrics` interface.
-For convenience, a `DefaultMessageHandlerMetrics` is provided to capture and report statistics.
-You should invoke the `beforeHandle` and `afterHandle` at the appropriate times.
-Your `MessageHandlerMetrics` methods can then delegate to this object to obtain each statistic.
-Similarly, `MessageSource` implementations must extend `AbstractMessageSource` or implement `MessageSourceMetrics`.
-Message sources capture only a count, so there is no provided convenience class.
-You should maintain the count in an `AtomicLong` field.
-+
-The removal of the proxy has two additional benefits:
-+
-* Stack traces in exceptions are reduced (when JMX is enabled) because the proxy is not on the stack
-* Cases where two MBeans were exported for the same bean now only export a single MBean with consolidated attributes and operations (see the MBean consolidation bullet, later).
-
-Resolution::
-`System.nanoTime()` (rather than `System.currentTimeMillis()`) is now used to capture times .
-This may provide more accuracy on some JVMs, espcially when you expect durations of less than one millisecond.
-
-Setting Initial Statistics Collection State::
-Previously, when JMX was enabled, all sources, channels, and handlers captured statistics.
-You can now control whether the statistics are enabled on an individual component.
-Further, you can capture simple counts on `MessageChannel` instances and `MessageHandler` instances instead of capturing the complete time-based statistics.
-This can have significant performance implications, because you can selectively configure where you need detailed statistics and enable and disable collection at runtime.
-+
-See <<./metrics.adoc#metrics-management,Metrics and Management>>.
-
 @IntegrationManagedResource::
 Similar to the `@ManagedResource` annotation, the `@IntegrationManagedResource` marks a class as being eligible to be exported as an MBean.
 However, it is exported only if the application context has an `IntegrationMBeanExporter`.
 +
-Certain Spring Integration classes (in the `org.springframework.integration`) package) that were previously annotated with`@ManagedResource` are now annotated with both `@ManagedResource` and `@IntegrationManagedResource`.
+Certain Spring Integration classes (in the `org.springframework.integration`) package) that were previously annotated with `@ManagedResource` are now annotated with both `@ManagedResource` and `@IntegrationManagedResource`.
 This is for backwards compatibility (see the next item).
 Such MBeans are exported by any context `MBeanServer` or by an `IntegrationMBeanExporter` (but not both -- if both exporters are present, the bean is exported by the integration exporter if the bean matches a `managed-components` pattern).
-
-Consolidated MBeans::
-Certain classes within the framework (mapping routers, for example) have additional attributes and operations over and above those provided by metrics and `Lifecycle`.
-We use a `Router` as an example here.
-+
-Previously, beans of these types were exported as two distinct MBeans:
-+
-* The metrics MBean (with an object name such as `intDomain:type=MessageHandler,name=myRouter,bean=endpoint`).
-This MBean had metrics attributes and metrics/Lifecycle operations.
-* A second MBean (with an object name such as `ctxDomain:name=org.springframework.integration.config.` `RouterFactoryBean#0`,type=MethodInvokingRouter`) was exported with the channel mappings attribute and operations.
-+
-Now the attributes and operations are consolidated into a single MBean.
-The object name depends on the exporter.
-If exported by the integration MBean exporter, the object name is, for example: `intDomain:type=MessageHandler,name=myRouter,bean=endpoint`.
-If exported by another exporter, the object name is, for example: `ctxDomain:name=org.springframework.integration.config.` `RouterFactoryBean#0,type=MethodInvokingRouter`.
-There is no difference between these MBeans (aside from the object name), except that the statistics are not enabled (the attributes are `0`) by exporters other than the integration exporter.
-You can enable statistics at runtime by using the JMX operations.
-When exported by the integration MBean exporter, the initial state can be managed as described earlier.
-+
-WARNING: If you currently use the second MBean to change, for example, channel mappings and you use the integration MBean exporter, note that the object name has changed because of the MBean consolidation.
-There is no change if you are not using the integration MBean exporter.
 
 MBean Exporter Bean Name Patterns::
 Previously, the `managed-components` patterns were inclusive only.

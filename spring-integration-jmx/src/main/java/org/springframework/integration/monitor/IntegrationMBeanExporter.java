@@ -344,16 +344,14 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		if (bean instanceof IntegrationConsumer) {
 			IntegrationConsumer integrationConsumer = (IntegrationConsumer) bean;
 			MessageHandler handler = integrationConsumer.getHandler();
-			if (handler instanceof AbstractMessageHandler) {
-				MessageHandler monitor = (MessageHandler) extractTarget(handler);
-				if (monitor instanceof IntegrationManagement) {
-					registerHandler((IntegrationManagement) monitor);
-					this.handlers.put(((IntegrationManagement) monitor).getComponentName(),
-							(IntegrationManagement) monitor);
-					this.runtimeBeans.add(monitor);
-				}
-				return;
+			MessageHandler monitor = (MessageHandler) extractTarget(handler);
+			if (monitor instanceof IntegrationManagement) {
+				registerHandler((IntegrationManagement) monitor);
+				this.handlers.put(((IntegrationManagement) monitor).getComponentName(),
+						(IntegrationManagement) monitor);
+				this.runtimeBeans.add(monitor);
 			}
+			return;
 		}
 		else if (bean instanceof SourcePollingChannelAdapter) {
 			SourcePollingChannelAdapter pollingChannelAdapter = (SourcePollingChannelAdapter) bean;
@@ -772,7 +770,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			}
 			this.endpointNames.add(name);
 			beanKey = getEndpointBeanKey(name, source);
-			ObjectName objectName = registerBeanInstance(new ManagedEndpoint(endpoint), beanKey);
+			ObjectName objectName = registerBeanInstance(endpoint, beanKey);
 			this.objectNames.put(endpoint, objectName);
 			if (logger.isInfoEnabled()) {
 				logger.info("Registered endpoint without MessageSource: " + objectName);

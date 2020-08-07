@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.support.management.ManageableSmartLifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
 
 /**
@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @author Dave Turanski
  * @author Artem Bilan
  */
-public class MessageGroupStoreReaper implements Runnable, DisposableBean, InitializingBean, ManageableSmartLifecycle {
+public class MessageGroupStoreReaper implements Runnable, DisposableBean, InitializingBean, SmartLifecycle {
 
 	private static Log logger = LogFactory.getLog(MessageGroupStoreReaper.class);
 
