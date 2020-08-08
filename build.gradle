@@ -870,6 +870,7 @@ project('spring-integration-zeromq') {
 	dependencies {
 		api project(':spring-integration-core')
 		api "org.zeromq:jeromq:$jeroMqVersion"
+		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }
 
