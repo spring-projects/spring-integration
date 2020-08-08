@@ -65,7 +65,6 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  */
 @IntegrationManagedResource
-@SuppressWarnings("deprecation")
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, InterceptableChannel, IntegrationManagement, IntegrationPattern {
 
@@ -140,8 +139,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * @see #setMessageConverter(MessageConverter)
 	 */
 	public void setDatatypes(Class<?>... datatypes) {
-		this.datatypes = (datatypes != null && datatypes.length > 0)
-				? datatypes : new Class<?>[0];
+		this.datatypes =
+				(datatypes != null && datatypes.length > 0)
+						? datatypes
+						: new Class<?>[0];
 	}
 
 	/**
@@ -330,10 +331,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			return sent;
 		}
 		catch (Exception ex) {
-			if (!metricsProcessed) {
-				if (sample != null) {
-					sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
-				}
+			if (!metricsProcessed && sample != null) {
+				sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
 			}
 			if (interceptorStack != null) {
 				interceptorList.afterSendCompletion(message, this, sent, ex, interceptorStack);

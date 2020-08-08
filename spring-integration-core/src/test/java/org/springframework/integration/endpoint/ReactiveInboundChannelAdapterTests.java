@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -60,7 +61,7 @@ public class ReactiveInboundChannelAdapterTests {
 		StepVerifier.create(testFlux)
 				.expectNext(2, 4, 6, 8, 10, 12, 14, 16)
 				.thenCancel()
-				.verify();
+				.verify(Duration.ofSeconds(10));
 	}
 
 	@Configuration

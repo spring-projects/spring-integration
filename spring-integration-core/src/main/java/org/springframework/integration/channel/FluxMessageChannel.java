@@ -26,7 +26,6 @@ import reactor.core.Disposable;
 import reactor.core.Disposables;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxProcessor;
-import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
@@ -43,26 +42,24 @@ import reactor.core.scheduler.Schedulers;
 public class FluxMessageChannel extends AbstractMessageChannel
 		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel {
 
-	private final FluxProcessor<Message<?>, Message<?>> processor;
+	private final Sinks.Many<Message<?>> sink;
 
-	private final FluxSink<Message<?>> sink;
+	private final FluxProcessor<Message<?>, Message<?>> processor;
 
 	private final Sinks.Many<Boolean> subscribedSignal = Sinks.many().replay().limit(1);
 
 	private final Disposable.Composite upstreamSubscriptions = Disposables.composite();
 
-	@SuppressWarnings("deprecation")
 	public FluxMessageChannel() {
-		this.processor = FluxProcessor.fromSink(Sinks.many().multicast().onBackpressureBuffer(1, false));
-		this.sink = this.processor.sink(FluxSink.OverflowStrategy.BUFFER);
+		this.sink = Sinks.many().multicast().onBackpressureBuffer(1, false);
+		this.processor = FluxProcessor.fromSink(this.sink);
 	}
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		Assert.state(this.processor.hasDownstreams(),
 				() -> "The [" + this + "] doesn't have subscribers to accept messages");
-		this.sink.next(message);
-		return true;
+		return this.sink.emitNext(message).hasEmitted();
 	}
 
 	@Override

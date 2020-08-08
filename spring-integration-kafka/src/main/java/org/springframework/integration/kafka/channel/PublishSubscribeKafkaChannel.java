@@ -27,7 +27,7 @@ import org.springframework.kafka.core.KafkaOperations;
  *
  * @author Gary Russell
  *
- * @since 4.4
+ * @since 5.4
  *
  */
 public class PublishSubscribeKafkaChannel extends SubscribableKafkaChannel implements BroadcastCapableChannel {
@@ -40,6 +40,7 @@ public class PublishSubscribeKafkaChannel extends SubscribableKafkaChannel imple
 	 */
 	public PublishSubscribeKafkaChannel(KafkaOperations<?, ?> template, KafkaListenerContainerFactory<?> factory,
 			String channelTopic) {
+
 		super(template, factory, channelTopic);
 	}
 

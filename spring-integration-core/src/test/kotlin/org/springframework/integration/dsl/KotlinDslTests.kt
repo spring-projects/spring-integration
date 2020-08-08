@@ -47,6 +47,7 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import reactor.core.publisher.Flux
 import reactor.test.StepVerifier
+import java.time.Duration
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Function
@@ -167,7 +168,7 @@ class KotlinDslTests {
 
 		val registration = this.integrationFlowContext.registration(integrationFlow).register()
 
-		verifyLater.verify()
+		verifyLater.verify(Duration.ofSeconds(10))
 
 		registration.destroy()
 	}

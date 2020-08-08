@@ -19,7 +19,6 @@ package org.springframework.integration.monitor;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.support.management.IntegrationManagedResource;
-import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
@@ -30,7 +29,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
  * @author Gary Russell
  *
  * @deprecated this is no longer used by the framework. Replaced by
- * {@link ManageableLifecycle}.
+ * {@link org.springframework.integration.support.management.ManageableLifecycle}.
  *
  */
 @Deprecated

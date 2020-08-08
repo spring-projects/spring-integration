@@ -36,7 +36,6 @@ import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
@@ -61,7 +60,7 @@ import org.springframework.util.Assert;
  *
  * @since 4.3.1
  */
-public class LockRegistryLeaderInitiator implements ManageableSmartLifecycle, DisposableBean,
+public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean,
 		ApplicationEventPublisherAware {
 
 	public static final long DEFAULT_HEART_BEAT_TIME = 500L;

@@ -21,7 +21,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.IntegrationProperties;
@@ -80,7 +79,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 	 * Such endpoints can be started/stopped as a group.
 	 * @param role the role for this endpoint.
 	 * @since 5.0
-	 * @see SmartLifecycle
+	 * @see org.springframework.context.SmartLifecycle
 	 * @see org.springframework.integration.support.SmartLifecycleRoleController
 	 */
 	public void setRole(String role) {

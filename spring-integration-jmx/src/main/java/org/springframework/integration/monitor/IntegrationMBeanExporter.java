@@ -107,7 +107,6 @@ import org.springframework.util.ReflectionUtils;
  * @author Meherzad Lahewala
  */
 @ManagedResource
-@SuppressWarnings("deprecation")
 public class IntegrationMBeanExporter extends MBeanExporter
 		implements ApplicationContextAware, DestructionAwareBeanPostProcessor {
 
@@ -148,9 +147,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private String domain = DEFAULT_DOMAIN;
 
-	private String[] componentNamePatterns = { "*" };
-
-	private IntegrationManagementConfigurer managementConfigurer;
+	private String[] componentNamePatterns = {"*"};
 
 	private volatile long shutdownDeadline;
 
@@ -247,7 +244,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private void populateMessageHandlers() {
 		Map<String, MessageHandler> messageHandlers = this.applicationContext
-					.getBeansOfType(MessageHandler.class);
+				.getBeansOfType(MessageHandler.class);
 		for (Entry<String, MessageHandler> entry : messageHandlers.entrySet()) {
 
 			String beanName = entry.getKey();
@@ -269,7 +266,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private void populateMessageSources() {
 		this.applicationContext.getBeansOfType(
-			IntegrationInboundManagement.class)
+				IntegrationInboundManagement.class)
 				.values()
 				.stream()
 				// If the source is proxied, we have to extract the target to expose as an MBean.
@@ -301,15 +298,10 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private void configureManagementConfigurer() {
 		if (!this.applicationContext.containsBean(IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME)) {
-			this.managementConfigurer = new IntegrationManagementConfigurer();
-			this.managementConfigurer.setApplicationContext(this.applicationContext);
-			this.managementConfigurer.setBeanName(IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME);
-			this.managementConfigurer.afterSingletonsInstantiated();
-		}
-		else {
-			this.managementConfigurer =
-					this.applicationContext.getBean(IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME,
-							IntegrationManagementConfigurer.class);
+			IntegrationManagementConfigurer managementConfigurer = new IntegrationManagementConfigurer();
+			managementConfigurer.setApplicationContext(this.applicationContext);
+			managementConfigurer.setBeanName(IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME);
+			managementConfigurer.afterSingletonsInstantiated();
 		}
 	}
 

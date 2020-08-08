@@ -184,7 +184,7 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 				.assertNext(
 						message -> assertThat(((Person) message.getPayload()).getName()).isEqualTo("Oleg"))
 				.thenCancel()
-				.verify();
+				.verify(Duration.ofSeconds(10));
 
 		context.close();
 	}

@@ -160,7 +160,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		StepVerifier.create(controller.fireForgetPayloads.asFlux())
 				.expectNext("Hello")
 				.thenCancel()
-				.verify();
+				.verify(Duration.ofSeconds(10));
 
 		disposable.dispose();
 	}
@@ -195,7 +195,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		verifier.verify();
+		verifier.verify(Duration.ofSeconds(10));
 	}
 
 	@Test
@@ -227,7 +227,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		verifier.verify();
+		verifier.verify(Duration.ofSeconds(10));
 	}
 
 	@Test
@@ -261,7 +261,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		verifier.verify();
+		verifier.verify(Duration.ofSeconds(10));
 	}
 
 	@Test
@@ -295,7 +295,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		verifier.verify();
+		verifier.verify(Duration.ofSeconds(10));
 	}
 
 
@@ -326,7 +326,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		verifier.verify();
+		verifier.verify(Duration.ofSeconds(10));
 	}
 
 	@Test
@@ -356,7 +356,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		verifier.verify();
+		verifier.verify(Duration.ofSeconds(10));
 	}
 
 	@Test
@@ -388,7 +388,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		verifier.verify();
+		verifier.verify(Duration.ofSeconds(10));
 	}
 
 	@Test
@@ -420,7 +420,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		verifier.verify();
+		verifier.verify(Duration.ofSeconds(10));
 	}
 
 	@Test

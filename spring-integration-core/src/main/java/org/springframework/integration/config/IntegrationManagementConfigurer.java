@@ -19,8 +19,6 @@ package org.springframework.integration.config;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.logging.Log;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -54,7 +52,7 @@ public class IntegrationManagementConfigurer
 		implements SmartInitializingSingleton, ApplicationContextAware, BeanNameAware, BeanPostProcessor {
 
 	/**
-	 * Bean name of tehe configurer.
+	 * Bean name of the configurer.
 	 */
 	public static final String MANAGEMENT_CONFIGURER_NAME = "integrationManagementConfigurer";
 
@@ -86,8 +84,8 @@ public class IntegrationManagementConfigurer
 	 * Exception logging (debug or otherwise) is not affected by this setting.
 	 * <p>
 	 * It has been found that in high-volume messaging environments, calls to methods such as
-	 * {@link Log#isDebugEnabled()} can be quite expensive and account for an inordinate amount of CPU
-	 * time.
+	 * {@link org.apache.commons.logging.Log#isDebugEnabled()} can be quite expensive
+	 * and account for an inordinate amount of CPU time.
 	 * <p>
 	 * Set this to false to disable logging by default in all framework components that implement
 	 * {@link IntegrationManagement} (channels, message handlers etc). This turns off logging such as
@@ -121,7 +119,6 @@ public class IntegrationManagementConfigurer
 			if (!getOverrides(bean).loggingConfigured) {
 				bean.setLoggingEnabled(this.defaultLoggingEnabled);
 			}
-			String name = entry.getKey();
 		}
 		this.singletonsInstantiated = true;
 	}
@@ -140,10 +137,8 @@ public class IntegrationManagementConfigurer
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String name) throws BeansException {
-		if (this.singletonsInstantiated) {
-			if (this.metricsCaptor != null && bean instanceof IntegrationManagement) {
-				((IntegrationManagement) bean).registerMetricsCaptor(this.metricsCaptor);
-			}
+		if (this.singletonsInstantiated && this.metricsCaptor != null && bean instanceof IntegrationManagement) {
+			((IntegrationManagement) bean).registerMetricsCaptor(this.metricsCaptor);
 		}
 		return bean;
 	}

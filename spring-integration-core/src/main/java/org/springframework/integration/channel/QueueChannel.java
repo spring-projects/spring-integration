@@ -43,7 +43,6 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@SuppressWarnings("deprecation")
 public class QueueChannel extends AbstractPollableChannel implements QueueChannelOperations {
 
 	private final Queue<Message<?>> queue;

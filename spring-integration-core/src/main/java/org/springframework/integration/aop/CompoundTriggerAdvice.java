@@ -24,7 +24,7 @@ import org.springframework.scheduling.Trigger;
 import org.springframework.util.Assert;
 
 /**
- * An {@link AbstractMessageSourceAdvice} that uses a {@link CompoundTrigger} to adjust
+ * A {@link MessageSourceMutator} that uses a {@link CompoundTrigger} to adjust
  * the poller - when a message is present, the compound trigger's primary trigger is
  * used to determine the next poll. When no message is present, the override trigger is
  * used.
@@ -33,13 +33,13 @@ import org.springframework.util.Assert;
  * {@link CompoundTrigger} instance and must <b>not</b> use a task executor.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
-@SuppressWarnings("deprecation")
 public class CompoundTriggerAdvice
-		extends AbstractMessageSourceAdvice
-		implements ReceiveMessageAdvice {
+		implements MessageSourceMutator, ReceiveMessageAdvice {
 
 	private final CompoundTrigger compoundTrigger;
 

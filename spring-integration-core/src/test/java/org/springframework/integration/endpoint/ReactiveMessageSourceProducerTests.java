@@ -97,7 +97,7 @@ public class ReactiveMessageSourceProducerTests {
 
 		reactiveMessageSourceProducer.start();
 
-		stepVerifier.verify();
+		stepVerifier.verify(Duration.ofSeconds(10));
 
 		reactiveMessageSourceProducer.stop();
 

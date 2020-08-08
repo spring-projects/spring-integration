@@ -30,7 +30,6 @@ import org.springframework.messaging.MessageChannel;
  * @since 4.3
  *
  */
-@SuppressWarnings("deprecation")
 public class MessageChannelNode extends IntegrationNode implements SendTimersAware {
 
 	private Supplier<SendTimers> sendTimers;

@@ -36,10 +36,7 @@ import org.springframework.util.Assert;
  * @since 5.0.7
  *
  */
-@SuppressWarnings("deprecation")
-public class RotatingServerAdvice
-		extends org.springframework.integration.aop.AbstractMessageSourceAdvice
-		implements MessageSourceMutator {
+public class RotatingServerAdvice implements MessageSourceMutator {
 
 	private final RotationPolicy rotationPolicy;
 

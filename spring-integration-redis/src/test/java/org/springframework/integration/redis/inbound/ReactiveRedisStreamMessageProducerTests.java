@@ -100,7 +100,7 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 				.assertNext((infoGroup) ->
 						assertThat(infoGroup.groupName()).isEqualTo(this.redisStreamMessageProducer.getBeanName()))
 				.thenCancel()
-				.verify();
+				.verify(Duration.ofSeconds(10));
 	}
 
 	@Test

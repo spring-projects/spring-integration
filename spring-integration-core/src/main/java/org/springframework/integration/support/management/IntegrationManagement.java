@@ -20,7 +20,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.lang.Nullable;
 
 /**
  * Base interface for Integration managed components.
@@ -54,7 +53,6 @@ public interface IntegrationManagement extends NamedComponent, DisposableBean {
 	default void setManagedName(String managedName) {
 	}
 
-	@Nullable
 	default String getManagedName() {
 		return null;
 	}
@@ -62,7 +60,6 @@ public interface IntegrationManagement extends NamedComponent, DisposableBean {
 	default void setManagedType(String managedType) {
 	}
 
-	@Nullable
 	default String getManagedType() {
 		return null;
 	}

@@ -19,6 +19,7 @@ package org.springframework.integration.r2dbc.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
@@ -134,7 +135,7 @@ public class R2dbcMessageSourceTests {
 		StepVerifier.create((Flux<?>) r2dbcMessageSourceError.receive().getPayload())
 				.expectErrorMatches(throwable -> throwable instanceof IllegalStateException
 						&& throwable.getMessage().contains("'queryExpression' must evaluate to String or"))
-				.verify();
+				.verify(Duration.ofSeconds(10));
 	}
 
 	@Configuration

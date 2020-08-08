@@ -19,7 +19,6 @@ package org.springframework.integration.kafka.channel;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
-import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
@@ -95,7 +94,7 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 	/**
 	 * Set the auto startup.
 	 * @param autoStartup true to automatically start.
-	 * @see SmartLifecycle
+	 * @see org.springframework.context.SmartLifecycle
 	 */
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
@@ -123,7 +122,7 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 								.dispatch(toMessagingMessage(record, acknowledgment, consumer));
 					}
 
-		});
+				});
 	}
 
 	protected MessageDispatcher createDispatcher() {

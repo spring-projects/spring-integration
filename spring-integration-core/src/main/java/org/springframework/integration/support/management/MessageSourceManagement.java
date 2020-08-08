@@ -26,7 +26,6 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
  * @since 5.0
  *
  */
-@SuppressWarnings("deprecation")
 @IntegrationManagedResource
 public interface MessageSourceManagement {
 

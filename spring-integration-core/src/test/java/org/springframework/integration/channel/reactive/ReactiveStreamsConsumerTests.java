@@ -26,6 +26,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -329,7 +330,7 @@ public class ReactiveStreamsConsumerTests {
 		StepVerifier.create(sink.asFlux())
 				.expectNext(testMessage, testMessage2)
 				.thenCancel()
-				.verify();
+				.verify(Duration.ofSeconds(10));
 
 		reactiveConsumer.stop();
 	}

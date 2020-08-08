@@ -189,11 +189,11 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 			Mono<?> consumerGroupMono = Mono.empty();
 			if (this.createConsumerGroup) {
 				consumerGroupMono =
-						this.reactiveStreamOperations.createGroup(this.streamKey, this.consumerGroup)
+						this.reactiveStreamOperations.createGroup(this.streamKey, this.consumerGroup) // NOSONAR
 								.onErrorReturn(this.consumerGroup);
 			}
 
-			Consumer consumer = Consumer.from(this.consumerGroup, this.consumerName);
+			Consumer consumer = Consumer.from(this.consumerGroup, this.consumerName); // NOSONAR
 
 			if (offset.getOffset().equals(ReadOffset.latest())) {
 				// for consumer group offset id should be equal '>'

@@ -37,7 +37,6 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@SuppressWarnings("deprecation")
 public abstract class AbstractPollableChannel extends AbstractMessageChannel
 		implements PollableChannel, ExecutorChannelInterceptorAware {
 
