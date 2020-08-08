@@ -26,7 +26,7 @@ If you encounter out of memory errors during the build, increase an available he
 
 To build and install jars into your local Maven cache:
 
-    ./gradlew install
+    ./gradlew publishToMavenLocal
 
 To build api Javadoc (results will be in `build/api`):
 
