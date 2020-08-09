@@ -26,7 +26,7 @@ import org.jxmpp.util.XmppStringUtils;
 
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.integration.support.management.ManageableSmartLifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.util.StringUtils;
 
 /**
@@ -45,7 +45,7 @@ import org.springframework.util.StringUtils;
  *
  * @see XMPPTCPConnection
  */
-public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnection> implements ManageableSmartLifecycle {
+public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnection> implements SmartLifecycle {
 
 	private final Object lifecycleMonitor = new Object();
 

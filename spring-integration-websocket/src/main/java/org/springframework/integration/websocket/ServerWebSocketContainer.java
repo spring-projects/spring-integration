@@ -19,7 +19,7 @@ package org.springframework.integration.websocket;
 import java.util.Arrays;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.support.management.ManageableSmartLifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.util.JavaUtils;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -51,7 +51,7 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
  * @since 4.1
  */
 public class ServerWebSocketContainer extends IntegrationWebSocketContainer
-		implements WebSocketConfigurer, ManageableSmartLifecycle {
+		implements WebSocketConfigurer, SmartLifecycle {
 
 	private final String[] paths;
 

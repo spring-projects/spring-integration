@@ -32,9 +32,9 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
 import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
-import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.simp.stomp.StompClientSupport;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -69,7 +69,7 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
  * @since 4.2
  */
 public abstract class AbstractStompSessionManager implements StompSessionManager, ApplicationEventPublisherAware,
-		ManageableSmartLifecycle, DisposableBean, BeanNameAware {
+		SmartLifecycle, DisposableBean, BeanNameAware {
 
 	private static final long DEFAULT_RECOVERY_INTERVAL = 10000;
 

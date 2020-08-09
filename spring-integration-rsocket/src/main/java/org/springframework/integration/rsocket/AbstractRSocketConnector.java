@@ -22,7 +22,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.integration.support.management.ManageableSmartLifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
@@ -43,7 +43,7 @@ import org.springframework.util.MimeType;
  */
 public abstract class AbstractRSocketConnector
 		implements ApplicationContextAware, InitializingBean, DisposableBean, SmartInitializingSingleton,
-			ManageableSmartLifecycle {
+		SmartLifecycle {
 
 	protected final IntegrationRSocketMessageHandler rSocketMessageHandler; // NOSONAR - final
 

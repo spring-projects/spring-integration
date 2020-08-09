@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import org.apache.activemq.broker.BrokerService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.ApplicationEvent;
@@ -63,7 +62,7 @@ import org.springframework.util.SocketUtils;
  *
  * @since 4.2
  */
-@Disabled("Until the fix in reactor-netty-core")
+//@Disabled("Until the fix in reactor-netty-core")
 public class StompServerIntegrationTests {
 
 	private static BrokerService activeMQBroker;
