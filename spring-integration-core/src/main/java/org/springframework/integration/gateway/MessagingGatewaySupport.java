@@ -79,7 +79,6 @@ import reactor.core.publisher.MonoProcessor;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@SuppressWarnings("deprecation")
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		implements org.springframework.integration.support.management.TrackableComponent,
