@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.zeromq.SocketType;
@@ -29,6 +30,7 @@ import org.zeromq.ZMQ;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
+import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -55,7 +57,10 @@ import reactor.core.scheduler.Schedulers;
  * The {@link #setConnectUrl(String)} has to be as a standard ZeroMQ connect string, but with an extra port
  * over the colon - representing a frontend and backend sockets pair on ZeroMQ proxy.
  * For example: {@code tcp://localhost:6001:6002}.
- * This way a sending and receiving operations on this channel are similar to interaction over a messaging broker.
+ * Another option is to provide a reference to the {@link ZeroMqProxy} instance managed in the same application:
+ * frontend and backend ports are evaluated from this proxy and respective connection string is built from them.
+ * <p>
+ * This way sending and receiving operations on this channel are similar to interaction over a messaging broker.
  * <p>
  * An internal logic of this message channel implementation is based on the project Reactor using its
  * {@link Mono}, {@link Flux} and {@link Scheduler} API for better thead model and flow control to avoid
@@ -66,6 +71,8 @@ import reactor.core.scheduler.Schedulers;
  * @since 5.4
  */
 public class ZeroMqChannel extends AbstractMessageChannel implements SubscribableChannel {
+
+	public static final Duration DEFAULT_CONSUME_DELAY = Duration.ofSeconds(1);
 
 	private final Map<MessageHandler, Disposable> subscribers = new HashMap<>();
 
@@ -83,7 +90,16 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 	private final Flux<? extends Message<?>> subscriberData;
 
+	private Duration consumeDelay = DEFAULT_CONSUME_DELAY;
+
 	private BytesMessageMapper messageMapper = new EmbeddedJsonHeadersMessageMapper();
+
+	private Consumer<ZMQ.Socket> sendSocketConfigurer = (socket) -> { };
+
+	private Consumer<ZMQ.Socket> subscribeSocketConfigurer = (socket) -> { };
+
+	@Nullable
+	private ZeroMqProxy zeroMqProxy;
 
 	@Nullable
 	private volatile String connectSendUrl;
@@ -107,30 +123,51 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 		Supplier<String> localPairConnection = () -> "inproc://" + getComponentName() + ".pair";
 
+		Mono<?> proxyMono =
+				Mono.defer(() -> {
+					if (this.zeroMqProxy != null) {
+						return Mono.just(this.zeroMqProxy.getBackendPort())
+								.filter((port) -> port > 0)
+								.repeatWhenEmpty((repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
+								.doOnNext((port) ->
+										setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
+												':' + this.zeroMqProxy.getBackendPort()));
+					}
+					else {
+						return Mono.empty();
+					}
+				})
+						.cache();
+
 		this.sendSocket =
-				Mono.fromCallable(() ->
-						this.context.createSocket(
-								this.connectSendUrl == null
-										? SocketType.PAIR
-										: (this.pubSub ? SocketType.XPUB : SocketType.PUSH))
-				)
+				proxyMono
 						.publishOn(this.publisherScheduler)
+						.then(Mono.fromCallable(() ->
+								this.context.createSocket(
+										this.connectSendUrl == null
+												? SocketType.PAIR
+												: (this.pubSub ? SocketType.XPUB : SocketType.PUSH))
+						))
+						.doOnNext(this.sendSocketConfigurer)
 						.doOnNext((socket) ->
 								socket.connect(this.connectSendUrl != null
 										? this.connectSendUrl
 										: localPairConnection.get()))
-						.delayUntil((socket) -> (this.pubSub && this.connectSendUrl != null)
-								? Mono.just(socket).map(ZMQ.Socket::recv)
-								: Mono.empty())
+						.delayUntil((socket) ->
+								(this.pubSub && this.connectSendUrl != null)
+										? Mono.just(socket).map(ZMQ.Socket::recv)
+										: Mono.empty())
 						.cache();
 
 		this.subscribeSocket =
-				Mono.fromCallable(() ->
-						this.context.createSocket(
-								this.connectSubscribeUrl == null
-										? SocketType.PAIR
-										: (this.pubSub ? SocketType.SUB : SocketType.PULL)))
+				proxyMono
 						.publishOn(this.subscriberScheduler)
+						.then(Mono.fromCallable(() ->
+								this.context.createSocket(
+										this.connectSubscribeUrl == null
+												? SocketType.PAIR
+												: (this.pubSub ? SocketType.SUB : SocketType.PULL))))
+						.doOnNext(this.subscribeSocketConfigurer)
 						.doOnNext((socket) -> {
 							if (this.connectSubscribeUrl != null) {
 								socket.connect(this.connectSubscribeUrl);
@@ -160,7 +197,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 						.doOnError((error) -> logger.error("Error processing ZeroMQ message", error))
 						.repeatWhenEmpty((repeat) ->
 								this.initialized
-										? repeat.delayElements(Duration.ofMillis(100))
+										? repeat.delayElements(this.consumeDelay)
 										: repeat)
 						.repeat(() -> this.initialized);
 
@@ -173,6 +210,12 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 	}
 
+	/**
+	 * Configure a connection to the ZeroMQ proxy with the pair of ports over colon
+	 * for proxy frontend and backend sockets. Mutually exclusive with the {@link #setZeroMqProxy(ZeroMqProxy)}.
+	 * @param connectUrl the connection string in format {@code PROTOCOL://HOST:FRONTEND_PORT:BACKEND_PORT},
+	 *                    e.g. {@code tcp://localhost:6001:6002}
+	 */
 	public void setConnectUrl(@Nullable String connectUrl) {
 		if (connectUrl != null) {
 			this.connectSendUrl = connectUrl.substring(0, connectUrl.lastIndexOf(':'));
@@ -182,13 +225,40 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		}
 	}
 
+	/**
+	 * Specify a reference to a {@link ZeroMqProxy} instance in the same application
+	 * to rely on its ports configuration and make a natural lifecycle dependency without guessing
+	 * when the proxy is started. Mutually exclusive with the {@link #setConnectUrl(String)}.
+	 * @param zeroMqProxy the {@link ZeroMqProxy} instance to use
+	 */
+	public void setZeroMqProxy(@Nullable ZeroMqProxy zeroMqProxy) {
+		this.zeroMqProxy = zeroMqProxy;
+	}
+
+	public void setConsumeDelay(Duration consumeDelay) {
+		Assert.notNull(consumeDelay, "'consumeDelay' must not be null");
+		this.consumeDelay = consumeDelay;
+	}
+
 	public void setMessageMapper(BytesMessageMapper messageMapper) {
 		Assert.notNull(messageMapper, "'messageMapper' must not be null");
 		this.messageMapper = messageMapper;
 	}
 
+	public void setSendSocketConfigurer(Consumer<ZMQ.Socket> sendSocketConfigurer) {
+		Assert.notNull(sendSocketConfigurer, "'sendSocketConfigurer' must not be null");
+		this.sendSocketConfigurer = sendSocketConfigurer;
+	}
+
+	public void setSubscribeSocketConfigurer(Consumer<ZMQ.Socket> subscribeSocketConfigurer) {
+		Assert.notNull(subscribeSocketConfigurer, "'subscribeSocketConfigurer' must not be null");
+		this.subscribeSocketConfigurer = subscribeSocketConfigurer;
+	}
+
 	@Override
 	protected void onInit() {
+		Assert.state(this.zeroMqProxy == null || this.connectSendUrl == null,
+				"Or 'zeroMqProxy' or 'connectUrl' can be provided (or none), but not both.");
 		super.onInit();
 		this.sendSocket.subscribe();
 		this.initialized = true;

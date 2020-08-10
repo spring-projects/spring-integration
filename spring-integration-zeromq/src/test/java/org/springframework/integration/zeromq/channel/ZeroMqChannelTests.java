@@ -19,6 +19,7 @@ package org.springframework.integration.zeromq.channel;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +53,7 @@ public class ZeroMqChannelTests {
 	void testSimpleSendAndReceive() throws InterruptedException {
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT);
 		channel.setBeanName("testChannel1");
+		channel.setConsumeDelay(Duration.ofMillis(10));
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
@@ -82,6 +84,7 @@ public class ZeroMqChannelTests {
 	void testPubSubLocal() throws InterruptedException {
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
 		channel.setBeanName("testChannel2");
+		channel.setConsumeDelay(Duration.ofMillis(10));
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
@@ -115,8 +118,9 @@ public class ZeroMqChannelTests {
 		captureSocket.subscribe(ZMQ.SUBSCRIPTION_ALL);
 
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT);
-		channel.setConnectUrl("tcp://*:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
+		channel.setConnectUrl("tcp://localhost:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
 		channel.setBeanName("testChannel3");
+		channel.setConsumeDelay(Duration.ofMillis(10));
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
@@ -150,11 +154,10 @@ public class ZeroMqChannelTests {
 		proxy.afterPropertiesSet();
 		proxy.start();
 
-		await().until(() -> proxy.getBackendPort() > 0);
-
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
-		channel.setConnectUrl("tcp://*:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
+		channel.setZeroMqProxy(proxy);
 		channel.setBeanName("testChannel4");
+		channel.setConsumeDelay(Duration.ofMillis(10));
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
@@ -162,9 +165,12 @@ public class ZeroMqChannelTests {
 		channel.subscribe(received::offer);
 		channel.subscribe(received::offer);
 
+		await().until(() -> proxy.getBackendPort() > 0);
+
 		ZeroMqChannel channel2 = new ZeroMqChannel(CONTEXT, true);
-		channel2.setConnectUrl("tcp://*:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
+		channel2.setConnectUrl("tcp://localhost:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
 		channel2.setBeanName("testChannel5");
+		channel.setConsumeDelay(Duration.ofMillis(10));
 		channel2.afterPropertiesSet();
 
 		channel.subscribe(received::offer);

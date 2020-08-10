@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
  * to implement any possible patterns for ZeroMQ intermediary. Defaults to @link {@link ZeroMqProxy.Type#PULL_PUSH}.
  * <p>
  * The control socket is exposed as a {@link SocketType#PAIR} with an inter-thread transport
- * on tne {@code "inproc://" + beanName + ".control"} address; it can be obtained via {@link #getControlAddress()}.
+ * on the {@code "inproc://" + beanName + ".control"} address; it can be obtained via {@link #getControlAddress()}.
  * Should be used with the same application from {@link SocketType#PAIR} socket to send
  * {@link zmq.ZMQ#PROXY_TERMINATE}, {@link zmq.ZMQ#PROXY_PAUSE} and/or {@link zmq.ZMQ#PROXY_RESUME} commands.
  * <p>
@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  * With an {@link #exposeCaptureSocket} option, an additional capture data socket is bound to inter-thread transport
  * as a {@link SocketType#PUB}. There is no specific topic selection, so all the subscribers to this socket
  * must subscribe with plain {@link ZMQ#SUBSCRIPTION_ALL}.
+ * The address for this socket is {@code "inproc://" + beanName + ".capture"}.
  *
  * @author Artem Bilan
  *
@@ -100,10 +101,21 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 
 	private int phase;
 
+	/**
+	 * Create a {@link ZeroMqProxy} instance based on the provided {@link ZContext}
+	 * and {@link Type#PULL_PUSH} as default mode.
+	 * @param context the {@link ZContext} to use
+	 */
 	public ZeroMqProxy(ZContext context) {
 		this(context, Type.PULL_PUSH);
 	}
 
+	/**
+	 * Create a {@link ZeroMqProxy} instance based on the provided {@link ZContext}
+	 * and {@link Type}.
+	 * @param context the {@link ZContext} to use
+	 * @param type the {@link Type} to use.
+	 */
 	public ZeroMqProxy(ZContext context, Type type) {
 		Assert.notNull(context, "'context' must not be null");
 		Assert.notNull(type, "'type' must not be null");
@@ -111,17 +123,31 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 		this.type = type;
 	}
 
+	/**
+	 * Configure an executor to perform a a ZeroMQ proxy loop.
+	 * The thread is held until ZeroMQ proxy loop is terminated.
+	 * By default an internal {@link Executors#newSingleThreadExecutor} instance is used.
+	 * @param proxyExecutor the {@link Executor} to use for ZeroMQ proxy loop
+	 */
 	public void setProxyExecutor(Executor proxyExecutor) {
 		Assert.notNull(proxyExecutor, "'proxyExecutor' must not be null");
 		this.proxyExecutor = proxyExecutor;
 		this.proxyExecutorExplicitlySet = true;
 	}
 
+	/**
+	 * Specify a fixed port for frontend socket of the proxy.
+	 * @param frontendPort the port to use; must be more than 0
+	 */
 	public void setFrontendPort(int frontendPort) {
 		Assert.isTrue(frontendPort > 0, "'frontendPort' must not be zero or negative");
 		this.frontendPort.set(frontendPort);
 	}
 
+	/**
+	 * Specify a fixed port for backend socket of the proxy.
+	 * @param backendPort the port to use; must be more than 0
+	 */
 	public void setBackendPort(int backendPort) {
 		Assert.isTrue(backendPort > 0, "'backendPort' must not be zero or negative");
 		this.backendPort.set(backendPort);
