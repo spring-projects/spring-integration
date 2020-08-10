@@ -17,7 +17,6 @@
 package org.springframework.integration.r2dbc.inbound;
 
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 

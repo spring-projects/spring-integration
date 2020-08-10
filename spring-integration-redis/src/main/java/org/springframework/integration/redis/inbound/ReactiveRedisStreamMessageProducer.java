@@ -25,9 +25,7 @@ import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveStreamOperations;
-import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.stream.StreamReceiver;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -146,9 +144,10 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Set {@link StreamOperations} used to customize the {@link StreamReceiver}.
+	 * Set {@link ReactiveStreamOperations} used to customize the {@link StreamReceiver}.
 	 * It provides a way to set the polling timeout and the serialization context.
-	 * By default the polling timeout is set to infinite and {@link StringRedisSerializer} is used.
+	 * By default the polling timeout is set to infinite and
+	 * {@link org.springframework.data.redis.serializer.StringRedisSerializer} is used.
 	 * @param streamReceiverOptions the desired receiver options
 	 * */
 	public void setStreamReceiverOptions(
