@@ -41,7 +41,7 @@ import org.springframework.messaging.MessageChannel;
  * declared.
  *
  * @author Artem Bilan
- *
+ * @author Gary Russell
  * @since 5.2
  */
 public class GatewayProxySpec implements ComponentsRegistration {
