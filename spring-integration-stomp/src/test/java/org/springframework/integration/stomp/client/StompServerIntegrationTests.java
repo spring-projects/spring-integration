@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import org.apache.activemq.broker.BrokerService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.ApplicationEvent;
@@ -46,6 +45,7 @@ import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.stomp.outbound.StompMessageHandler;
 import org.springframework.integration.support.converter.PassThruMessageConverter;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -63,7 +63,7 @@ import org.springframework.util.SocketUtils;
  *
  * @since 4.2
  */
-@Disabled("Until the fix in reactor-netty-core")
+@LogLevels(level = "trace", categories = { "reactor.netty.tcp", "io.netty" })
 public class StompServerIntegrationTests {
 
 	private static BrokerService activeMQBroker;
@@ -109,11 +109,12 @@ public class StompServerIntegrationTests {
 		MessageChannel stompOutputChannel1 = context1.getBean("stompOutputChannel", MessageChannel.class);
 		MessageChannel stompOutputChannel2 = context2.getBean("stompOutputChannel", MessageChannel.class);
 
+		int n = 0;
 		Message<?> eventMessage;
 		do {
 			eventMessage = stompEvents1.receive(10000);
 		}
-		while (eventMessage != null && !(eventMessage.getPayload() instanceof StompSessionConnectedEvent));
+		while (eventMessage != null && !(eventMessage.getPayload() instanceof StompSessionConnectedEvent) && n++ < 100);
 
 		assertThat(eventMessage).isNotNull();
 
@@ -193,11 +194,12 @@ public class StompServerIntegrationTests {
 
 		activeMQBroker.stop();
 
+		n = 0;
 		do {
 			eventMessage = stompEvents1.receive(10000);
 			assertThat(eventMessage).isNotNull();
 		}
-		while (!(eventMessage.getPayload() instanceof StompConnectionFailedEvent));
+		while (!(eventMessage.getPayload() instanceof StompConnectionFailedEvent) && n++ < 100);
 
 
 		assertThatExceptionOfType(MessageDeliveryException.class)
@@ -206,11 +208,12 @@ public class StompServerIntegrationTests {
 
 		activeMQBroker.start(false);
 
+		n = 0;
 		do {
 			eventMessage = stompEvents1.receive(20000);
 			assertThat(eventMessage).isNotNull();
 		}
-		while (!(eventMessage.getPayload() instanceof StompReceiptEvent));
+		while (!(eventMessage.getPayload() instanceof StompReceiptEvent) && n++ < 100);
 
 		do {
 			eventMessage = stompEvents2.receive(10000);
