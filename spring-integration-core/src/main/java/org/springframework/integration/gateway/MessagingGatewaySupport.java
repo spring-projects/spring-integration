@@ -68,6 +68,7 @@ import org.springframework.util.Assert;
 
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
+import reactor.core.publisher.Sinks;
 
 /**
  * A convenient base class for connecting application code to
@@ -82,7 +83,7 @@ import reactor.core.publisher.MonoProcessor;
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		implements org.springframework.integration.support.management.TrackableComponent,
-			IntegrationInboundManagement, IntegrationPattern {
+		IntegrationInboundManagement, IntegrationPattern {
 
 	private static final long DEFAULT_TIMEOUT = 1000L;
 
@@ -648,7 +649,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 			sendMessageForReactiveFlow(requestChannel, messageToSend);
 
-			return buildReplyMono(requestMessage, replyChan.replyMono, error, originalReplyChannelHeader,
+			return buildReplyMono(requestMessage, replyChan.replyMono.asMono(), error, originalReplyChannelHeader,
 					originalErrorChannelHeader);
 		})
 				.onErrorResume(t -> error ? Mono.error(t) : handleSendError(requestMessage, t));
@@ -886,21 +887,19 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private static class MonoReplyChannel implements MessageChannel, ReactiveStreamsSubscribableChannel {
 
-		private final MonoProcessor<Message<?>> replyMono = MonoProcessor.create();
+		private final Sinks.One<Message<?>> replyMono = Sinks.one();
 
 		MonoReplyChannel() {
 		}
 
 		@Override
 		public boolean send(Message<?> message, long timeout) {
-			this.replyMono.onNext(message);
-			this.replyMono.onComplete();
-			return true;
+			return Boolean.TRUE.equals(this.replyMono.emitValue(message).hasEmitted());
 		}
 
 		@Override
 		public void subscribeTo(Publisher<? extends Message<?>> publisher) {
-			publisher.subscribe(this.replyMono);
+			publisher.subscribe(MonoProcessor.fromSink(replyMono));
 		}
 
 	}
