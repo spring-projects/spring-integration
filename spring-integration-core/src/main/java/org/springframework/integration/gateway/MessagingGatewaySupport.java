@@ -899,7 +899,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 		@Override
 		public void subscribeTo(Publisher<? extends Message<?>> publisher) {
-			publisher.subscribe(MonoProcessor.fromSink(replyMono));
+			publisher.subscribe(MonoProcessor.fromSink(this.replyMono));
 		}
 
 	}
