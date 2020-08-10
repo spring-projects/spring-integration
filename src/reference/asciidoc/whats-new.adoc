@@ -23,20 +23,29 @@ See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
 The `KafkaProducerMessageHandler` `sendTimeoutExpression` default has changed.
 See <<./kafka.adoc#kafka-outbound,Kafka Outbound Channel Adapter>> for more information.
 
+[[x5.4-r2dbc]]
 ==== R2DBC Channel Adapters
 
 The Channel Adapters for R2DBC database interaction have been introduced.
 See <<./r2dbc.adoc#r2dbc,R2DBC Support>> for more information.
 
+[[x5.4-redis-stream]]
 ==== Redis Stream Support
 
 The Channel Adapters for Redis Stream support have been introduced.
 See <<./redis.adoc#redis-stream-outbound,Redis Stream Outbound Channel Adapter>> for more information.
 
+[[x5.4-renewable-lock]]
 ==== Renewable Lock Registry
 
 A Renewable lock registry has been introduced to allow renew lease of a distributed lock.
 See <<./jdbc.adoc#jdbc-lock-registry,JDBC implementation>> for more information.
+
+[[x5.4-zeromq]]
+==== ZeroMQ Support
+
+A `ZeroMqChannel` has been introduced.
+See <<./zeromq.adoc#zeromq,ZeroMQ Support>> for more information.
 
 [[x5.4-general]]
 === General Changes
@@ -63,6 +72,7 @@ See <<./ip.adoc#ip-collaborating-adapters,Collaborating Channel Adapters>> and <
 The `spring-integration-rmi` module is deprecated with no replacement and is going to be removed in the next major version.
 See <<./rmi.adoc#rmi, RMI Support>> for more information.
 
+[[x5.4-amqp]]
 === AMQP Changes
 
 The outbound endpoints now have a new mechanism for handling publisher confirms and returns.

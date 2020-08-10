@@ -793,3 +793,8 @@ Starting with version 5.0, the `RedisLockRegistry` implements `ExpirableLockRegi
 === Redis Stream Outbound Channel Adapter
 
 TBD
+
+[[redis-stream-inbound]]
+=== Redis Stream Inbound Channel Adapter
+
+TBD
