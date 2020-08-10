@@ -17,6 +17,7 @@
 package org.springframework.integration.util;
 
 import java.time.Duration;
+import java.util.concurrent.locks.LockSupport;
 
 import org.reactivestreams.Publisher;
 
@@ -127,7 +128,11 @@ public final class IntegrationReactiveUtils {
 		return Flux.defer(() -> {
 			Sinks.Many<Message<T>> sink = Sinks.many().multicast().onBackpressureBuffer(1);
 			@SuppressWarnings("unchecked")
-			MessageHandler messageHandler = (message) -> sink.emitNext((Message<T>) message);
+			MessageHandler messageHandler = (message) -> {
+				while (!sink.emitNext((Message<T>) message).hasEmitted()) {
+					LockSupport.parkNanos(10);
+				}
+			};
 			inputChannel.subscribe(messageHandler);
 			return sink.asFlux()
 					.doOnCancel(() -> inputChannel.unsubscribe(messageHandler));

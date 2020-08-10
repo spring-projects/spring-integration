@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.util.IntegrationReactiveUtils;
@@ -71,7 +70,6 @@ class MessageChannelReactiveUtilsTests {
 	}
 
 	@Test
-	@Disabled("Backpressure is not honored")
 	void testOverproducingWithSubscribableChannel() {
 		DirectChannel channel = new DirectChannel();
 
