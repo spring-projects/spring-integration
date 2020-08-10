@@ -17,6 +17,8 @@
 package org.springframework.integration.gateway;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -47,6 +49,10 @@ import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.support.management.IntegrationInboundManagement;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.management.metrics.MeterFacade;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
+import org.springframework.integration.support.management.metrics.SampleFacade;
+import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -73,7 +79,6 @@ import reactor.core.publisher.MonoProcessor;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@SuppressWarnings("deprecation")
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		implements org.springframework.integration.support.management.TrackableComponent,
@@ -90,9 +95,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private final Object replyMessageCorrelatorMonitor = new Object();
 
-	private boolean errorOnTimeout;
-
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
+
+	private final Set<TimerFacade> timers = ConcurrentHashMap.newKeySet();
+
+	private boolean errorOnTimeout;
 
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
@@ -117,6 +124,10 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	private String managedType;
 
 	private String managedName;
+
+	private MetricsCaptor metricsCaptor;
+
+	private TimerFacade successTimer;
 
 	private volatile AbstractEndpoint replyMessageCorrelator;
 
@@ -328,6 +339,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	@Override
+	public void registerMetricsCaptor(MetricsCaptor metricsCaptorToRegister) {
+		this.metricsCaptor = metricsCaptorToRegister;
+	}
+
+	@Override
 	protected void onInit() {
 		Assert.state(!(this.requestChannelName != null && this.requestChannel != null),
 				"'requestChannelName' and 'requestChannel' are mutually exclusive.");
@@ -404,11 +420,20 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		MessageChannel channel = getRequestChannel();
 		Assert.state(channel != null,
 				"send is not supported, because no request channel has been configured");
+		SampleFacade sample = null;
+		if (this.metricsCaptor != null) {
+			sample = this.metricsCaptor.start();
+		}
 		try {
-			// TODO Micrometer counter
 			this.messagingTemplate.convertAndSend(channel, object, this.historyWritingPostProcessor);
+			if (sample != null) {
+				sample.stop(sendTimer());
+			}
 		}
 		catch (Exception e) {
+			if (sample != null) {
+				sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
+			}
 			MessageChannel errorChan = getErrorChannel();
 			if (errorChan != null) {
 				this.messagingTemplate.send(errorChan, new ErrorMessage(e));
@@ -479,8 +504,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 		Object reply;
 		Message<?> requestMessage = null;
+		SampleFacade sample = null;
 		try {
-			// TODO Micrometer counter
+			if (this.metricsCaptor != null) {
+				sample = this.metricsCaptor.start();
+			}
 			if (shouldConvert) {
 				reply = this.messagingTemplate.convertSendAndReceive(channel, object, Object.class,
 						this.historyWritingPostProcessor);
@@ -496,12 +524,18 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			if (reply == null && this.errorOnTimeout) {
 				throwMessageTimeoutException(object, "No reply received within timeout");
 			}
+			if (sample != null) {
+				sample.stop(sendTimer());
+			}
 		}
 		catch (Exception ex) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("failure occurred in gateway sendAndReceive: " + ex.getMessage());
 			}
 			reply = ex;
+			if (sample != null) {
+				sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
+			}
 		}
 
 		if (reply instanceof Throwable || reply instanceof ErrorMessage) {
@@ -644,10 +678,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	private Mono<Message<?>> buildReplyMono(Message<?> requestMessage, Mono<Message<?>> reply, boolean error,
 			@Nullable Object originalReplyChannelHeader, @Nullable Object originalErrorChannelHeader) {
 
+		MetricsCaptor captor = this.metricsCaptor;
 		return reply
 				.doOnSubscribe(s -> {
-					if (!error) {
-						// TODO Micrometer counter
+					if (!error && captor != null) {
+						captor.start().stop(sendTimer());
 					}
 				})
 				.<Message<?>>map(replyMessage -> {
@@ -688,6 +723,25 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			// no errorChannel so we'll propagate
 			throw wrapExceptionIfNecessary(exception, "gateway received checked Exception");
 		}
+	}
+
+	protected TimerFacade sendTimer() {
+		if (this.successTimer == null) {
+			this.successTimer = buildSendTimer(true, "none");
+		}
+		return this.successTimer;
+	}
+
+	protected TimerFacade buildSendTimer(boolean success, String exception) {
+		TimerFacade timer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
+				.tag("type", "source")
+				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("result", success ? "success" : "failure")
+				.tag("exception", exception)
+				.description("Send processing time")
+				.build();
+		this.timers.add(timer);
+		return timer;
 	}
 
 	private long sendTimeout(Message<?> requestMessage) {
@@ -800,6 +854,13 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		if (this.replyMessageCorrelator != null) {
 			this.replyMessageCorrelator.stop();
 		}
+	}
+
+	@Override
+	public void destroy() {
+		this.timers.forEach(MeterFacade::remove);
+		this.timers.clear();
+		super.destroy();
 	}
 
 	private static class DefaultRequestMapper implements InboundMessageMapper<Object> {

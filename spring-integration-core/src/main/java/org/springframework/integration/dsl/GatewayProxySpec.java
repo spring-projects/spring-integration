@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -40,10 +41,10 @@ import org.springframework.messaging.MessageChannel;
  * declared.
  *
  * @author Artem Bilan
- *
+ * @author Gary Russell
  * @since 5.2
  */
-public class GatewayProxySpec {
+public class GatewayProxySpec implements ComponentsRegistration {
 
 	protected  static final SpelExpressionParser PARSER = new SpelExpressionParser(); // NOSONAR - final
 
@@ -285,6 +286,12 @@ public class GatewayProxySpec {
 			this.gatewayProxyFactoryBean.setGlobalMethodMetadata(this.gatewayMethodMetadata);
 		}
 		return this.gatewayProxyFactoryBean;
+	}
+
+	@Override
+	public Map<Object, String> getComponentsToRegister() {
+		return Collections.singletonMap(this.gatewayProxyFactoryBean, this.gatewayProxyFactoryBean.getBeanName()
+				+ ".gateway");
 	}
 
 }
