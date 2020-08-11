@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -157,7 +158,8 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 								(this.pubSub && this.connectSendUrl != null)
 										? Mono.just(socket).map(ZMQ.Socket::recv)
 										: Mono.empty())
-						.cache();
+						.cache()
+						.publishOn(this.publisherScheduler);
 
 		this.subscribeSocket =
 				proxyMono
@@ -179,7 +181,8 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 								socket.bind(localPairConnection.get());
 							}
 						})
-						.cache();
+						.cache()
+						.publishOn(this.subscriberScheduler);
 
 		Flux<? extends Message<?>> receiveData =
 				this.subscribeSocket
