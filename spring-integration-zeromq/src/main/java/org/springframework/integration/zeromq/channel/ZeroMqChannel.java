@@ -126,12 +126,16 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		Mono<?> proxyMono =
 				Mono.defer(() -> {
 					if (this.zeroMqProxy != null) {
-						return Mono.just(this.zeroMqProxy.getBackendPort())
+						return Mono.fromCallable(() -> this.zeroMqProxy.getBackendPort())
 								.filter((port) -> port > 0)
-								.repeatWhenEmpty((repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
+								.repeatWhenEmpty(100, // NOSONAR
+										(repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
 								.doOnNext((port) ->
 										setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
-												':' + this.zeroMqProxy.getBackendPort()));
+												':' + this.zeroMqProxy.getBackendPort()))
+								.doOnError((error) ->
+										logger.error("The provided '"
+												+ this.zeroMqProxy +"' has not been started", error));
 					}
 					else {
 						return Mono.empty();
