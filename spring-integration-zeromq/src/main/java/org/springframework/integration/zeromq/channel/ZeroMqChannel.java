@@ -135,7 +135,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 												':' + this.zeroMqProxy.getBackendPort()))
 								.doOnError((error) ->
 										logger.error("The provided '"
-												+ this.zeroMqProxy +"' has not been started", error));
+												+ this.zeroMqProxy + "' has not been started", error));
 					}
 					else {
 						return Mono.empty();
