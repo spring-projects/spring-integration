@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.logging.Level;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
