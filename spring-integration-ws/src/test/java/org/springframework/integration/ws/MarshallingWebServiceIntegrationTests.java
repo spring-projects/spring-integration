@@ -30,9 +30,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -42,8 +41,7 @@ import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.xml.transform.StringSource;
@@ -51,11 +49,11 @@ import org.springframework.xml.transform.StringSource;
 /**
  *
  * @author Iwein Fuld
+ * @author Artem Bilan
  *
  */
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 public class MarshallingWebServiceIntegrationTests {
 
 	private static final String input = "<hello/>";
@@ -78,13 +76,13 @@ public class MarshallingWebServiceIntegrationTests {
 
 	private Result stringResult = new StreamResult(output);
 
-	@Before
+	@BeforeEach
 	public void setupMocks() {
-		MockitoAnnotations.initMocks(this);
+		MockitoAnnotations.openMocks(this);
 	}
 
 	@Test
-	public void configOk() throws Exception {
+	public void configOk() {
 		// just flag invalid config
 	}
 
@@ -100,8 +98,7 @@ public class MarshallingWebServiceIntegrationTests {
 
 	public static class StubMarshaller implements Marshaller, Unmarshaller {
 
-		public void marshal(Object graph, Result result)
-				throws XmlMappingException, IOException {
+		public void marshal(Object graph, Result result) throws XmlMappingException {
 			Transformer transformer;
 			try {
 				transformer = TransformerFactory.newInstance().newTransformer();
@@ -109,14 +106,12 @@ public class MarshallingWebServiceIntegrationTests {
 				transformer.transform(stringSource, result);
 			}
 			catch (Exception e) {
-				throw new MarshallingFailureException("Stub failed to marshal",
-						e);
+				throw new MarshallingFailureException("Stub failed to marshal", e);
 			}
 		}
 
 
-		@SuppressWarnings("rawtypes")
-		public boolean supports(Class clazz) {
+		public boolean supports(Class<?> clazz) {
 			return true;
 		}
 
@@ -125,6 +120,7 @@ public class MarshallingWebServiceIntegrationTests {
 			//this is a hack, but we're not here to test marshalling
 			return input;
 		}
+
 	}
 
 	public static class StubEndpoint {
@@ -133,5 +129,7 @@ public class MarshallingWebServiceIntegrationTests {
 		public Object handle(Object o) {
 			return o;
 		}
+
 	}
+
 }
