@@ -38,6 +38,7 @@ import org.springframework.integration.redis.outbound.ReactiveRedisStreamMessage
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableRule;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.redis.util.Address;
 import org.springframework.integration.redis.util.Person;
 import org.springframework.messaging.support.GenericMessage;
@@ -118,7 +119,11 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 
 		Flux.from(this.fluxMessageChannel)
 				.as(StepVerifier::create)
-				.assertNext(message -> assertThat(message.getPayload()).isEqualTo(person))
+				.assertNext(message -> {
+					assertThat(message.getPayload()).isEqualTo(person);
+					assertThat(message.getHeaders()).containsKeys(RedisHeaders.STREAM_KEY,
+							RedisHeaders.STREAM_MESSAGE_ID);
+				})
 				.thenCancel()
 				.verify(Duration.ofSeconds(10));
 	}
@@ -126,7 +131,27 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 	@Test
 	@RedisAvailable
 	public void testReadingMessageAsConsumerInConsumerGroup() {
-		//TODO find why the test above does not execute before implementing this one
+		Address address = new Address("Winterfell, Westeros");
+		Person person = new Person(address, "John Snow");
+
+		this.template.opsForStream().createGroup(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
+				.subscribe();
+
+		this.redisStreamMessageProducer.setCreateConsumerGroup(false);
+		this.redisStreamMessageProducer.setConsumerName(CONSUMER);
+		this.redisStreamMessageProducer.afterPropertiesSet();
+		this.redisStreamMessageProducer.start();
+
+		this.messageHandler.handleMessage(new GenericMessage<>(person));
+
+		Flux.from(this.fluxMessageChannel)
+				.as(StepVerifier::create)
+				.assertNext(message -> {
+					assertThat(message.getPayload()).isEqualTo(person);
+					assertThat(message.getHeaders()).containsKeys(RedisHeaders.CONSUMER_GROUP, RedisHeaders.CONSUMER);
+				})
+				.thenCancel()
+				.verify(Duration.ofSeconds(10));
 	}
 
 	@Configuration

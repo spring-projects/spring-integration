@@ -44,7 +44,7 @@ import reactor.core.publisher.Mono;
  * output channel.
  * By default this adapter reads message as a standalone client {@code XREAD} (Redis command) but can be switched to a
  * Consumer Group feature {@code XREADGROUP} by setting {@link #consumerName} field.
- * By default the Consumer Group name is an id of this bean {@link #getBeanName()}.
+ * By default the Consumer Group name is the id of this bean {@link #getBeanName()}.
  *
  * @author Attoumane Ahamadi
  * @author Artem Bilan
@@ -195,7 +195,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 			Consumer consumer = Consumer.from(this.consumerGroup, this.consumerName); // NOSONAR
 
 			if (offset.getOffset().equals(ReadOffset.latest())) {
-				// for consumer group offset id should be equal '>'
+				// for consumer group offset id should be equal to '>'
 				offset = StreamOffset.create(this.streamKey, ReadOffset.lastConsumed());
 			}
 
