@@ -870,6 +870,9 @@ project('spring-integration-zeromq') {
 	dependencies {
 		api project(':spring-integration-core')
 		api "org.zeromq:jeromq:$jeroMqVersion"
+
+		optionalApi 'com.fasterxml.jackson.core:jackson-databind'
+
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }

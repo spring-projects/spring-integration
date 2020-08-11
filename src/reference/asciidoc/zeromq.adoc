@@ -3,6 +3,7 @@
 
 Spring Integration provides components to support https://zeromq.org/[ZeroMQ] communication in the application.
 An implementation is based on well-supported Java API in https://github.com/zeromq/jeromq[JeroMQ] library.
+All components encapsulates ZeroMQ socket lifecycles and manages threads for them internally making an interaction with these components as lock-free and thread-safe.
 
 You need to include this dependency into your project:
 
@@ -29,9 +30,9 @@ compile "org.springframework.integration:spring-integration-zeromq:{project-vers
 
 The `ZeroMqProxy` is Spring-friendly wrapper for the built-in `ZMQ.proxy()` http://zguide.zeromq.org/page:chapter2#toc15[function].
 It encapsulates socket lifecycles and thread management.
-The clients for this proxy still can use a standard ZeroMQ socket connection and interaction API.
+The clients of this proxy still can use a standard ZeroMQ socket connection and interaction API.
 Along side with the standard `ZContext` it requires one of the well-know ZeroMQ proxy mode: SUB/PUB, PULL/PUSH or ROUTER/DEALER.
-This way an appropriate pair of ZeroMQ sockets types are used for frontend and backend of the proxy.
+This way an appropriate pair of ZeroMQ socket types are used for frontend and backend of the proxy.
 See `ZeroMqProxy.Type` for details.
 
 The `ZeroMqProxy` implements a `SmartLifecycle` to to create, bind, configure all the sockets and starts `ZMQ.proxy()` in a dedicated thread from an `Executor` (if any).
