@@ -314,7 +314,7 @@ public class CustomConnectionConfiguration {
 	SASLAuthentication.supportSASLMechanism("EXTERNAL", 0); // static initializer
 
 	ConnectionConfiguration config = new ConnectionConfiguration("localhost", 5223);
-	config.setTrustorePath("path_to_truststore.jks");
+	config.setKeystorePath("path_to_truststore.jks");
 	config.setSecurityEnabled(true);
 	config.setSocketFactory(SSLSocketFactory.getDefault());
 	return new XMPPConnection(config);
