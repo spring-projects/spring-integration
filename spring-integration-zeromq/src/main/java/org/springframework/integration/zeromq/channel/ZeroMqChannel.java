@@ -58,7 +58,7 @@ import reactor.core.scheduler.Schedulers;
  * over the colon - representing a frontend and backend sockets pair on ZeroMQ proxy.
  * For example: {@code tcp://localhost:6001:6002}.
  * Another option is to provide a reference to the {@link ZeroMqProxy} instance managed in the same application:
- * frontend and backend ports are evaluated from this proxy and respective connection string is built from them.
+ * frontend and backend ports are evaluated from this proxy and the respective connection string is built from them.
  * <p>
  * This way sending and receiving operations on this channel are similar to interaction over a messaging broker.
  * <p>
@@ -258,7 +258,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 	@Override
 	protected void onInit() {
 		Assert.state(this.zeroMqProxy == null || this.connectSendUrl == null,
-				"Or 'zeroMqProxy' or 'connectUrl' can be provided (or none), but not both.");
+				"A 'zeroMqProxy' or 'connectUrl' can be provided (or none), but not both.");
 		super.onInit();
 		this.sendSocket.subscribe();
 		this.initialized = true;

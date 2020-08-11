@@ -49,7 +49,7 @@ This socket is bound to the `"inproc://" + beanName + ".capture"` address and do
 The frontend and backend sockets can be customized with additional properties, such as read/write timeout or security.
 This customization is available through `setFrontendSocketConfigurer(Consumer<ZMQ.Socket>)` and `setBackendSocketConfigurer(Consumer<ZMQ.Socket>)` callbacks, respectively.
 
-The `ZeroMqProxy` could be provides as simple bean like this:
+The `ZeroMqProxy` could be provided as simple bean like this:
 
 ====
 [source,java]
@@ -65,7 +65,7 @@ ZeroMqProxy zeroMqProxy() {
 ----
 ====
 
-All the client nodes should connect to host of this proxy via `tcp://` and use respective port of their interest.
+All the client nodes should connect to the host of this proxy via `tcp://` and use the respective port of their interest.
 
 [[zeromq-message-channel]]
 === ZeroMQ Message Channel

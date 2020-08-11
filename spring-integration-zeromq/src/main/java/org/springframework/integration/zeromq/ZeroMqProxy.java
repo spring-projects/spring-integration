@@ -124,7 +124,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	}
 
 	/**
-	 * Configure an executor to perform a a ZeroMQ proxy loop.
+	 * Configure an executor to perform a ZeroMQ proxy loop.
 	 * The thread is held until ZeroMQ proxy loop is terminated.
 	 * By default an internal {@link Executors#newSingleThreadExecutor} instance is used.
 	 * @param proxyExecutor the {@link Executor} to use for ZeroMQ proxy loop
