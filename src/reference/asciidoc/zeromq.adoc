@@ -2,8 +2,8 @@
 == ZeroMQ Support
 
 Spring Integration provides components to support https://zeromq.org/[ZeroMQ] communication in the application.
-An implementation is based on well-supported Java API in https://github.com/zeromq/jeromq[JeroMQ] library.
-All components encapsulates ZeroMQ socket lifecycles and manages threads for them internally making an interaction with these components as lock-free and thread-safe.
+The implementation is based on the well-supported Java API of the https://github.com/zeromq/jeromq[JeroMQ] library.
+All components encapsulate ZeroMQ socket lifecycles and manage threads for them internally making an interaction with these components as lock-free and thread-safe.
 
 You need to include this dependency into your project:
 
@@ -28,14 +28,14 @@ compile "org.springframework.integration:spring-integration-zeromq:{project-vers
 [[zeromq-proxy]]
 === ZeroMQ Proxy
 
-The `ZeroMqProxy` is Spring-friendly wrapper for the built-in `ZMQ.proxy()` http://zguide.zeromq.org/page:chapter2#toc15[function].
+The `ZeroMqProxy` is a Spring-friendly wrapper for the built-in `ZMQ.proxy()` https://zguide.zeromq.org/page:chapter2#toc15[function].
 It encapsulates socket lifecycles and thread management.
 The clients of this proxy still can use a standard ZeroMQ socket connection and interaction API.
-Along side with the standard `ZContext` it requires one of the well-know ZeroMQ proxy mode: SUB/PUB, PULL/PUSH or ROUTER/DEALER.
-This way an appropriate pair of ZeroMQ socket types are used for frontend and backend of the proxy.
+Alongside with the standard `ZContext` it requires one of the well-known ZeroMQ proxy modes: SUB/PUB, PULL/PUSH or ROUTER/DEALER.
+This way an appropriate pair of ZeroMQ socket types are used for the frontend and backend of the proxy.
 See `ZeroMqProxy.Type` for details.
 
-The `ZeroMqProxy` implements a `SmartLifecycle` to to create, bind, configure all the sockets and starts `ZMQ.proxy()` in a dedicated thread from an `Executor` (if any).
+The `ZeroMqProxy` implements a `SmartLifecycle` to create, bind and configure all the sockets and to start `ZMQ.proxy()` in a dedicated thread from an `Executor` (if any).
 The binding for frontend and backend sockets is done over `tcp://` protocol onto all the available network interfaces with the provided ports.
 Otherwise they are bound to random ports which could be obtained later via a respective `getFrontendPort()` and `getBackendPort()` API.
 
