@@ -130,7 +130,7 @@ public final class IntegrationReactiveUtils {
 			@SuppressWarnings("unchecked")
 			MessageHandler messageHandler = (message) -> {
 				while (!sink.emitNext((Message<T>) message).hasEmitted()) {
-					LockSupport.parkNanos(10);
+					LockSupport.parkNanos(100); // NOSONAR
 				}
 			};
 			inputChannel.subscribe(messageHandler);
