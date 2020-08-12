@@ -123,29 +123,10 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 		Supplier<String> localPairConnection = () -> "inproc://" + getComponentName() + ".pair";
 
-		Mono<?> proxyMono =
-				Mono.defer(() -> {
-					if (this.zeroMqProxy != null) {
-						return Mono.fromCallable(() -> this.zeroMqProxy.getBackendPort())
-								.filter((port) -> port > 0)
-								.repeatWhenEmpty(100, // NOSONAR
-										(repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
-								.doOnNext((port) ->
-										setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
-												':' + this.zeroMqProxy.getBackendPort()))
-								.doOnError((error) ->
-										logger.error("The provided '"
-												+ this.zeroMqProxy + "' has not been started", error));
-					}
-					else {
-						return Mono.empty();
-					}
-				})
-						.cache();
+		Mono<?> proxyMono = proxyMono();
 
 		this.sendSocket =
-				proxyMono
-						.publishOn(this.publisherScheduler)
+				proxyMono.publishOn(this.publisherScheduler)
 						.then(Mono.fromCallable(() ->
 								this.context.createSocket(
 										this.connectSendUrl == null
@@ -165,8 +146,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 						.publishOn(this.publisherScheduler);
 
 		this.subscribeSocket =
-				proxyMono
-						.publishOn(this.subscriberScheduler)
+				proxyMono.publishOn(this.subscriberScheduler)
 						.then(Mono.fromCallable(() ->
 								this.context.createSocket(
 										this.connectSubscribeUrl == null
@@ -208,12 +188,30 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 						.repeat(() -> this.initialized);
 
 		if (this.pubSub) {
-			receiveData = receiveData.publish()
-					.autoConnect(1, (disposable) -> this.subscriberDataDisposable = disposable);
+			receiveData =
+					receiveData.publish()
+							.autoConnect(1, (disposable) -> this.subscriberDataDisposable = disposable);
 		}
 
 		this.subscriberData = receiveData;
 
+	}
+
+	private Mono<Integer> proxyMono() {
+		if (this.zeroMqProxy != null) {
+			return Mono.fromCallable(() -> this.zeroMqProxy.getBackendPort())
+					.filter((proxyPort) -> proxyPort > 0)
+					.repeatWhenEmpty(100, (repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
+					.doOnNext((proxyPort) ->
+							setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
+									':' + this.zeroMqProxy.getBackendPort()))
+					.doOnError((error) ->
+							logger.error("The provided '" + this.zeroMqProxy + "' has not been started", error))
+					.cache();
+		}
+		else {
+			return Mono.empty();
+		}
 	}
 
 	/**
@@ -226,7 +224,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		if (connectUrl != null) {
 			this.connectSendUrl = connectUrl.substring(0, connectUrl.lastIndexOf(':'));
 			this.connectSubscribeUrl =
-					this.connectSendUrl.substring(0, this.connectSendUrl.lastIndexOf(':'))
+					this.connectSendUrl.substring(0, this.connectSendUrl.lastIndexOf(':')) // NOSONAR
 							+ connectUrl.substring(connectUrl.lastIndexOf(':'));
 		}
 	}
@@ -314,7 +312,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		this.subscribeSocket.doOnNext(ZMQ.Socket::close).block();
 		this.subscriberScheduler.dispose();
 		if (this.subscriberDataDisposable != null) {
-			this.subscriberDataDisposable.dispose();
+			this.subscriberDataDisposable.dispose(); // NOSONAR
 		}
 	}
 

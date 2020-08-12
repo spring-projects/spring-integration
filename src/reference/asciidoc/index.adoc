@@ -53,6 +53,7 @@ This documentation is also available as single searchable link:index-single.html
 <<./ws.adoc#ws,Web Services Support>> ::
 <<./xml.adoc#xml,XML Support - Dealing with XML Payloads>> ::
 <<./xmpp.adoc#xmpp,XMPP Support>> ::
+<<./zeromq.adoc#zeromq,ZeroMQ Support>> ::
 <<./zookeeper.adoc#zookeeper,Zookeeper Support>> ::
 
 [horizontal]

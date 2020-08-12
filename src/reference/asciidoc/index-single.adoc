@@ -87,6 +87,8 @@ include::./xml.adoc[]
 
 include::./xmpp.adoc[]
 
+include::./zeromq.adoc[]
+
 include::./zookeeper.adoc[]
 
 [[spring-integration-appendices]]

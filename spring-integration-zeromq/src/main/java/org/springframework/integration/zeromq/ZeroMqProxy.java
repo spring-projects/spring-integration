@@ -290,7 +290,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 							this.running.set(true);
 							ZMQ.proxy(frontendSocket, backendSocket, captureSocket, controlSocket);
 						}
-						catch (Exception ex) {
+						catch (Exception ex) { // NOSONAR
 							LOG.error("Cannot start ZeroMQ proxy from bean: " + this.beanName, ex);
 						}
 						finally {
