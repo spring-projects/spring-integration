@@ -123,50 +123,74 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 		Supplier<String> localPairConnection = () -> "inproc://" + getComponentName() + ".pair";
 
-		Mono<?> proxyMono = proxyMono();
+		Mono<?> proxyMono = prepareProxyMono();
+		this.sendSocket = prepareSendSocketMono(localPairConnection, proxyMono);
+		this.subscribeSocket = prepareSubscribeSocketMono(localPairConnection, proxyMono);
+		this.subscriberData = prepareSubscriberDataFlux();
+	}
 
-		this.sendSocket =
-				proxyMono.publishOn(this.publisherScheduler)
-						.then(Mono.fromCallable(() ->
-								this.context.createSocket(
-										this.connectSendUrl == null
-												? SocketType.PAIR
-												: (this.pubSub ? SocketType.XPUB : SocketType.PUSH))
-						))
-						.doOnNext(this.sendSocketConfigurer)
-						.doOnNext((socket) ->
-								socket.connect(this.connectSendUrl != null
-										? this.connectSendUrl
-										: localPairConnection.get()))
-						.delayUntil((socket) ->
-								(this.pubSub && this.connectSendUrl != null)
-										? Mono.just(socket).map(ZMQ.Socket::recv)
-										: Mono.empty())
-						.cache()
-						.publishOn(this.publisherScheduler);
+	private Mono<Integer> prepareProxyMono() {
+		if (this.zeroMqProxy != null) {
+			return Mono.fromCallable(() -> this.zeroMqProxy.getBackendPort())
+					.filter((proxyPort) -> proxyPort > 0)
+					.repeatWhenEmpty(100, (repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
+					.doOnNext((proxyPort) ->
+							setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
+									':' + this.zeroMqProxy.getBackendPort()))
+					.doOnError((error) ->
+							logger.error("The provided '" + this.zeroMqProxy + "' has not been started", error))
+					.cache();
+		}
+		else {
+			return Mono.empty();
+		}
+	}
 
-		this.subscribeSocket =
-				proxyMono.publishOn(this.subscriberScheduler)
-						.then(Mono.fromCallable(() ->
-								this.context.createSocket(
-										this.connectSubscribeUrl == null
-												? SocketType.PAIR
-												: (this.pubSub ? SocketType.SUB : SocketType.PULL))))
-						.doOnNext(this.subscribeSocketConfigurer)
-						.doOnNext((socket) -> {
-							if (this.connectSubscribeUrl != null) {
-								socket.connect(this.connectSubscribeUrl);
-								if (this.pubSub) {
-									socket.subscribe(ZMQ.SUBSCRIPTION_ALL);
-								}
-							}
-							else {
-								socket.bind(localPairConnection.get());
-							}
-						})
-						.cache()
-						.publishOn(this.subscriberScheduler);
+	private Mono<ZMQ.Socket> prepareSendSocketMono(Supplier<String> localPairConnection, Mono<?> proxyMono) {
+		return proxyMono.publishOn(this.publisherScheduler)
+				.then(Mono.fromCallable(() ->
+						this.context.createSocket(
+								this.connectSendUrl == null
+										? SocketType.PAIR
+										: (this.pubSub ? SocketType.XPUB : SocketType.PUSH))
+				))
+				.doOnNext(this.sendSocketConfigurer)
+				.doOnNext((socket) ->
+						socket.connect(this.connectSendUrl != null
+								? this.connectSendUrl
+								: localPairConnection.get()))
+				.delayUntil((socket) ->
+						(this.pubSub && this.connectSendUrl != null)
+								? Mono.just(socket).map(ZMQ.Socket::recv)
+								: Mono.empty())
+				.cache()
+				.publishOn(this.publisherScheduler);
+	}
 
+	private Mono<ZMQ.Socket> prepareSubscribeSocketMono(Supplier<String> localPairConnection, Mono<?> proxyMono) {
+		return proxyMono.publishOn(this.subscriberScheduler)
+				.then(Mono.fromCallable(() ->
+						this.context.createSocket(
+								this.connectSubscribeUrl == null
+										? SocketType.PAIR
+										: (this.pubSub ? SocketType.SUB : SocketType.PULL))))
+				.doOnNext(this.subscribeSocketConfigurer)
+				.doOnNext((socket) -> {
+					if (this.connectSubscribeUrl != null) {
+						socket.connect(this.connectSubscribeUrl);
+						if (this.pubSub) {
+							socket.subscribe(ZMQ.SUBSCRIPTION_ALL);
+						}
+					}
+					else {
+						socket.bind(localPairConnection.get());
+					}
+				})
+				.cache()
+				.publishOn(this.subscriberScheduler);
+	}
+
+	private Flux<? extends Message<?>> prepareSubscriberDataFlux() {
 		Flux<? extends Message<?>> receiveData =
 				this.subscribeSocket
 						.flatMap((socket) -> {
@@ -192,26 +216,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 					receiveData.publish()
 							.autoConnect(1, (disposable) -> this.subscriberDataDisposable = disposable);
 		}
-
-		this.subscriberData = receiveData;
-
-	}
-
-	private Mono<Integer> proxyMono() {
-		if (this.zeroMqProxy != null) {
-			return Mono.fromCallable(() -> this.zeroMqProxy.getBackendPort())
-					.filter((proxyPort) -> proxyPort > 0)
-					.repeatWhenEmpty(100, (repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
-					.doOnNext((proxyPort) ->
-							setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
-									':' + this.zeroMqProxy.getBackendPort()))
-					.doOnError((error) ->
-							logger.error("The provided '" + this.zeroMqProxy + "' has not been started", error))
-					.cache();
-		}
-		else {
-			return Mono.empty();
-		}
+		return receiveData;
 	}
 
 	/**
