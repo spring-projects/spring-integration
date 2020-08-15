@@ -146,18 +146,18 @@ public final class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsOutboundGatewaySpec}.
+	 * The factory to produce a {@link JmsInboundGatewaySpec}.
 	 * @param listenerContainer the JMS {@link AbstractMessageListenerContainer} to build on
-	 * @return the {@link JmsOutboundGatewaySpec} instance
+	 * @return the {@link JmsInboundGatewaySpec} instance
 	 */
 	public static JmsInboundGatewaySpec<?> inboundGateway(AbstractMessageListenerContainer listenerContainer) {
 		return new JmsInboundGatewaySpec<>(listenerContainer);
 	}
 
 	/**
-	 * The factory to produce a {@link JmsOutboundGatewaySpec}.
+	 * The factory to produce a {@link JmsInboundGatewaySpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
-	 * @return the {@link JmsOutboundGatewaySpec} instance
+	 * @return the {@link JmsInboundGatewaySpec} instance
 	 */
 	public static JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>
 	inboundGateway(ConnectionFactory connectionFactory) {
@@ -173,12 +173,12 @@ public final class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsOutboundGatewaySpec}.
+	 * The factory to produce a {@link JmsInboundGatewaySpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param containerClass    the {@link AbstractMessageListenerContainer} implementation class
 	 *                          to instantiate listener container
 	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
-	 * @return the {@link JmsOutboundGatewaySpec} instance
+	 * @return the {@link JmsInboundGatewaySpec} instance
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static <C extends AbstractMessageListenerContainer>
