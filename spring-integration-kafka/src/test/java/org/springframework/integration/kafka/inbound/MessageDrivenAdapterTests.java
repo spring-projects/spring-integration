@@ -17,6 +17,7 @@
 package org.springframework.integration.kafka.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,7 +35,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -64,6 +67,9 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.event.ConsumerPausedEvent;
+import org.springframework.kafka.event.ConsumerResumedEvent;
+import org.springframework.kafka.event.KafkaEvent;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.SeekToCurrentErrorHandler;
@@ -578,25 +584,20 @@ class MessageDrivenAdapterTests {
 			return null;
 		}).given(consumer).commitSync(anyMap(), any());
 		given(consumer.assignment()).willReturn(records.keySet());
-		final CountDownLatch pauseLatch = new CountDownLatch(1);
-		willAnswer(i -> {
-			pauseLatch.countDown();
-			return null;
-		}).given(consumer).pause(records.keySet());
 		given(consumer.paused()).willReturn(records.keySet());
-		final CountDownLatch resumeLatch = new CountDownLatch(1);
-		willAnswer(i -> {
-			resumeLatch.countDown();
-			return null;
-		}).given(consumer).resume(records.keySet());
-		TopicPartitionOffset[] topicPartition = new TopicPartitionOffset[] {
-				new TopicPartitionOffset("foo", 0) };
+		TopicPartitionOffset[] topicPartition = { new TopicPartitionOffset("foo", 0) };
 		ContainerProperties containerProps = new ContainerProperties(topicPartition);
 		containerProps.setAckMode(ContainerProperties.AckMode.RECORD);
 		containerProps.setClientId("clientId");
 		containerProps.setIdleEventInterval(100L);
+		BlockingQueue<KafkaEvent> containerEvents = new LinkedBlockingQueue<>();
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
+		container.setApplicationEventPublisher(event -> {
+			if (event instanceof ConsumerPausedEvent || event instanceof ConsumerResumedEvent) {
+				containerEvents.offer((KafkaEvent) event);
+			}
+		});
 		KafkaMessageDrivenChannelAdapter adapter = new KafkaMessageDrivenChannelAdapter(container);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
@@ -606,10 +607,10 @@ class MessageDrivenAdapterTests {
 		verify(consumer, times(2)).commitSync(anyMap(), any());
 		assertThat(outputChannel.getQueueSize()).isEqualTo(2);
 		adapter.pause();
-		assertThat(pauseLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		await().until(containerEvents::take, ConsumerPausedEvent.class::isInstance);
 		assertThat(adapter.isPaused()).isTrue();
 		adapter.resume();
-		assertThat(resumeLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		await().until(containerEvents::take, ConsumerResumedEvent.class::isInstance);
 		assertThat(adapter.isPaused()).isFalse();
 		adapter.stop();
 	}
