@@ -894,7 +894,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 		@Override
 		public boolean send(Message<?> message, long timeout) {
-			return Boolean.TRUE.equals(this.replyMono.emitValue(message).hasEmitted());
+			return this.replyMono.tryEmitValue(message).hasSucceeded();
 		}
 
 		@Override

@@ -129,7 +129,7 @@ public final class IntegrationReactiveUtils {
 			Sinks.Many<Message<T>> sink = Sinks.many().multicast().onBackpressureBuffer(1);
 			@SuppressWarnings("unchecked")
 			MessageHandler messageHandler = (message) -> {
-				while (!sink.emitNext((Message<T>) message).hasEmitted()) {
+				while (!sink.tryEmitNext((Message<T>) message).hasSucceeded()) {
 					LockSupport.parkNanos(100); // NOSONAR
 				}
 			};

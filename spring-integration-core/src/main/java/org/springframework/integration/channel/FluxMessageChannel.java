@@ -59,7 +59,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	protected boolean doSend(Message<?> message, long timeout) {
 		Assert.state(this.processor.hasDownstreams(),
 				() -> "The [" + this + "] doesn't have subscribers to accept messages");
-		return this.sink.emitNext(message).hasEmitted();
+		return this.sink.tryEmitNext(message).hasSucceeded();
 	}
 
 	@Override
