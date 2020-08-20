@@ -20,12 +20,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -247,9 +249,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	@ManagedAttribute
 	public int getMessageGroupCount() {
 		Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
-		return getMongoTemplate().getCollection(this.collectionName)
-				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject(), Object.class)
-				.into(new ArrayList<>())
+		return getMongoTemplate()
+				.findDistinct(query, MessageDocumentFields.GROUP_ID, this.collectionName, Object.class)
 				.size();
 	}
 
@@ -278,7 +279,9 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	private void updateGroup(Object groupId, Update update) {
-		getMongoTemplate().updateFirst(groupOrderQuery(groupId), update, this.collectionName);
+		getMongoTemplate()
+				.findAndModify(groupOrderQuery(groupId), update, FindAndModifyOptions.none(), Map.class,
+						this.collectionName);
 	}
 
 	private static Update lastModifiedUpdate() {
