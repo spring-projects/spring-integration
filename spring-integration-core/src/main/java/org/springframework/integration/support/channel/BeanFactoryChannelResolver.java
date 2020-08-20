@@ -89,7 +89,7 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 			return this.beanFactory.getBean(name, MessageChannel.class);
 		}
 		catch (BeansException e) {
-			if (!(e instanceof NoSuchBeanDefinitionException)) {
+			if (!(e instanceof NoSuchBeanDefinitionException)) { // NOSONAR
 				throw new DestinationResolutionException("A bean definition with name '"
 						+ name + "' exists, but failed to be created", e);
 			}

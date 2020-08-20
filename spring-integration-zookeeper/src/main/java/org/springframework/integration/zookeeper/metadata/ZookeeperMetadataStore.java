@@ -51,8 +51,6 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	private static final String KEY_MUST_NOT_BE_NULL = "'key' must not be null.";
 
-	private static final String UNUSED = "unused";
-
 	private final Object lifecycleMonitor = new Object();
 
 	private final CuratorFramework client;
@@ -123,7 +121,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				createNode(key, value);
 				return null;
 			}
-			catch (@SuppressWarnings(UNUSED) KeeperException.NodeExistsException e) {
+			catch (KeeperException.NodeExistsException e) {
 				// so the data actually exists, we can read it
 				return get(key);
 			}
@@ -147,14 +145,11 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				}
 				return true;
 			}
-			catch (@SuppressWarnings(UNUSED) KeeperException.NoNodeException e) {
+			catch (KeeperException.NoNodeException | KeeperException.BadVersionException e) {
 				// ignore, the node doesn't exist there's nothing to replace
 				return false;
 			}
-			catch (@SuppressWarnings(UNUSED) KeeperException.BadVersionException e) {
-				// ignore
-				return false;
-			}
+			// ignore
 			catch (Exception e) {
 				throw new ZookeeperMetadataStoreException("Cannot replace value", e);
 			}
@@ -183,7 +178,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 					try {
 						createNode(key, value);
 					}
-					catch (@SuppressWarnings(UNUSED) KeeperException.NodeExistsException e) {
+					catch (KeeperException.NodeExistsException e) {
 						updateNode(key, value, -1);
 					}
 				}
@@ -237,7 +232,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				this.updateMap.put(key, new LocalChildData(null, Integer.MAX_VALUE));
 				return IntegrationUtils.bytesToString(bytes, this.encoding);
 			}
-			catch (@SuppressWarnings(UNUSED) KeeperException.NoNodeException e) {
+			catch (KeeperException.NoNodeException e) {
 				// ignore - the node doesn't exist
 				return null;
 			}
@@ -353,7 +348,8 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			synchronized (ZookeeperMetadataStore.this.updateMap) {
 				String eventPath = event.getData().getPath();
 				String eventKey = getKey(eventPath);
-				byte[] eventData = event.getData().getData();
+				String value =
+						IntegrationUtils.bytesToString(event.getData().getData(), ZookeeperMetadataStore.this.encoding);
 				switch (event.getType()) {
 					case CHILD_ADDED:
 						if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey)) {
@@ -362,10 +358,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 								ZookeeperMetadataStore.this.updateMap.remove(eventPath);
 							}
 						}
-						for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-							listener.onAdd(eventKey, IntegrationUtils.bytesToString(eventData,
-									ZookeeperMetadataStore.this.encoding));
-						}
+						ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onAdd(eventKey, value));
 						break;
 					case CHILD_UPDATED:
 						if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey)) {
@@ -374,17 +367,11 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 								ZookeeperMetadataStore.this.updateMap.remove(eventPath);
 							}
 						}
-						for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-							listener.onUpdate(eventKey, IntegrationUtils.bytesToString(eventData,
-									ZookeeperMetadataStore.this.encoding));
-						}
+						ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onUpdate(eventKey, value));
 						break;
 					case CHILD_REMOVED:
 						ZookeeperMetadataStore.this.updateMap.remove(eventKey);
-						for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-							listener.onRemove(eventKey, IntegrationUtils.bytesToString(eventData,
-									ZookeeperMetadataStore.this.encoding));
-						}
+						ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onRemove(eventKey, value));
 						break;
 					default:
 						// ignore all other events

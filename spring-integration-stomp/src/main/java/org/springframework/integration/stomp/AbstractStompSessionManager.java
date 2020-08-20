@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.NotNull;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
@@ -198,7 +199,25 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			}
 			return;
 		}
-		final CountDownLatch connectLatch = new CountDownLatch(1);
+		CountDownLatch connectLatch = addStompSessionCallback(currentEpoch);
+
+		try {
+			if (!connectLatch.await(30, TimeUnit.SECONDS)) {
+				this.logger.error("No response to connection attempt");
+				if (currentEpoch == this.epoch.get()) {
+					scheduleReconnect(null);
+				}
+			}
+		}
+		catch (InterruptedException e1) {
+			this.logger.error("Interrupted while waiting for connection attempt");
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	@NotNull
+	private CountDownLatch addStompSessionCallback(int currentEpoch) {
+		CountDownLatch connectLatch = new CountDownLatch(1);
 		this.stompSessionListenableFuture.addCallback(
 				stompSession -> {
 					AbstractStompSessionManager.this.logger.debug("onSuccess");
@@ -222,19 +241,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 						scheduleReconnect(e);
 					}
 				});
-
-		try {
-			if (!connectLatch.await(30, TimeUnit.SECONDS)) {
-				this.logger.error("No response to connection attempt");
-				if (currentEpoch == this.epoch.get()) {
-					scheduleReconnect(null);
-				}
-			}
-		}
-		catch (InterruptedException e1) {
-			this.logger.error("Interrupted while waiting for connection attempt");
-			Thread.currentThread().interrupt();
-		}
+		return connectLatch;
 	}
 
 	private void scheduleReconnect(Throwable e) {

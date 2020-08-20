@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,8 @@ import java.net.SocketTimeoutException;
  * behavior, set the {@code treatTimeoutAsEndOfMessage} constructor argument to true.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0.3
  *
  */
@@ -65,20 +67,19 @@ public class ByteArrayRawSerializer extends AbstractPooledBufferByteArraySeriali
 	}
 
 	@Override
-	public void serialize(byte[] bytes, OutputStream outputStream)
-			throws IOException {
+	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
 		outputStream.write(bytes);
 	}
 
 	@Override
 	protected byte[] doDeserialize(InputStream inputStream, byte[] buffer) throws IOException {
 		int n = 0;
-		int bite = 0;
+		int bite;
 		if (logger.isDebugEnabled()) {
-			logger.debug("Available to read:" + inputStream.available());
+			logger.debug("Available to read: " + inputStream.available());
 		}
 		try {
-			while (bite >= 0) {
+			while (true) {
 				try {
 					bite = inputStream.read();
 				}
@@ -95,8 +96,7 @@ public class ByteArrayRawSerializer extends AbstractPooledBufferByteArraySeriali
 					break;
 				}
 				if (n >= getMaxMessageSize()) {
-					throw new IOException("Socket was not closed before max message length: "
-							+ getMaxMessageSize());
+					throw new IOException("Socket was not closed before max message length: " + getMaxMessageSize());
 				}
 				buffer[n++] = (byte) bite;
 			}
@@ -105,11 +105,7 @@ public class ByteArrayRawSerializer extends AbstractPooledBufferByteArraySeriali
 		catch (SoftEndOfStreamException e) { // NOSONAR catch and throw
 			throw e; // it's an IO exception and we don't want an event for this
 		}
-		catch (IOException e) {
-			publishEvent(e, buffer, n);
-			throw e;
-		}
-		catch (RuntimeException e) {
+		catch (IOException | RuntimeException e) {
 			publishEvent(e, buffer, n);
 			throw e;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -29,7 +30,9 @@ import org.springframework.util.Assert;
  *
  * @author Duncan McIntyre
  * @author Gary Russell
- * @since 1.4.1
+ * @author Artem Bilan
+ *
+ * @since 4.1.1
  *
  */
 public class RFC5424SyslogParser {
@@ -57,10 +60,8 @@ public class RFC5424SyslogParser {
 		this.retainOriginal = retainOriginal;
 	}
 
-	public Map<String, ?> parse(String lineArg, int octetCount, boolean shortRead) { // NOSONAR NCSS line count
-
-		Map<String, Object> map = new LinkedHashMap<String, Object>();
-
+	public Map<String, ?> parse(String lineArg, int octetCount, boolean shortRead) {
+		Map<String, Object> map = new LinkedHashMap<>();
 		String line = lineArg;
 		Reader r = new Reader(line);
 
@@ -101,47 +102,26 @@ public class RFC5424SyslogParser {
 			int severity = pri & 0x7;
 			int facility = pri >> 3;
 			map.put(SyslogHeaders.FACILITY, facility);
-
 			map.put(SyslogHeaders.SEVERITY, severity);
 			map.put(SyslogHeaders.SEVERITY_TEXT, Severity.parseInt(severity).label());
-
-			if (timestamp != null) {
-				map.put(SyslogHeaders.TIMESTAMP, timestamp);
-			}
-
-			if (host != null) {
-				map.put(SyslogHeaders.HOST, host);
-			}
-			if (app != null) {
-				map.put(SyslogHeaders.APP_NAME, app);
-			}
-			if (procId != null) {
-				map.put(SyslogHeaders.PROCID, procId);
-			}
-			if (msgId != null) {
-				map.put(SyslogHeaders.MSGID, msgId);
-			}
 			map.put(SyslogHeaders.VERSION, version);
-
-			if (structuredData != null) {
-				map.put(SyslogHeaders.STRUCTURED_DATA, structuredData);
-			}
-
 			map.put(SyslogHeaders.MESSAGE, message);
 			map.put(SyslogHeaders.DECODE_ERRORS, "false");
 
-			if (this.retainOriginal) {
-				map.put(SyslogHeaders.UNDECODED, line);
-			}
+			JavaUtils.INSTANCE
+					.acceptIfNotNull(timestamp, (value) -> map.put(SyslogHeaders.TIMESTAMP, value))
+					.acceptIfNotNull(host, (value) -> map.put(SyslogHeaders.HOST, value))
+					.acceptIfNotNull(app, (value) -> map.put(SyslogHeaders.APP_NAME, value))
+					.acceptIfNotNull(procId, (value) -> map.put(SyslogHeaders.PROCID, value))
+					.acceptIfNotNull(msgId, (value) -> map.put(SyslogHeaders.MSGID, value))
+					.acceptIfNotNull(structuredData, (value) -> map.put(SyslogHeaders.STRUCTURED_DATA, value))
+					.acceptIfCondition(this.retainOriginal, line, (value) -> map.put(SyslogHeaders.UNDECODED, value));
 		}
-		catch (IllegalStateException e) {
+		catch (IllegalStateException | StringIndexOutOfBoundsException ex) {
 			map.put(SyslogHeaders.DECODE_ERRORS, "true");
-			map.put(SyslogHeaders.ERRORS, e.getMessage());
-			map.put(SyslogHeaders.UNDECODED, line);
-		}
-		catch (StringIndexOutOfBoundsException sob) {
-			map.put(SyslogHeaders.DECODE_ERRORS, "true");
-			map.put(SyslogHeaders.ERRORS, "Unexpected end of message: " + sob.getMessage());
+			map.put(SyslogHeaders.ERRORS,
+					(ex instanceof StringIndexOutOfBoundsException ? "Unexpected end of message: " : "")
+							+ ex.getMessage());
 			map.put(SyslogHeaders.UNDECODED, line);
 		}
 		return map;
@@ -188,7 +168,7 @@ public class RFC5424SyslogParser {
 	 * @return the structured data.
 	 */
 	protected Object parseStructuredDataElements(Reader r) {
-		List<String> fragments = new ArrayList<String>();
+		List<String> fragments = new ArrayList<>();
 		while (r.is('[')) {
 			r.mark();
 			r.skipTo(']');
@@ -201,7 +181,7 @@ public class RFC5424SyslogParser {
 
 		private final String line;
 
-		public int idx;
+		private int idx;
 
 		private int mark;
 

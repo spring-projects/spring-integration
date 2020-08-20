@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.expression.TypeConverter;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.ClassUtils;
 
@@ -36,14 +37,15 @@ import org.springframework.util.ClassUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Soby Chacko
+ * @author Artem Bilan
  */
 public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware {
 
-	private volatile SimpleTypeConverter delegate = new SimpleTypeConverter();
+	private SimpleTypeConverter delegate = new SimpleTypeConverter();
+
+	private ConversionService conversionService;
 
 	private volatile boolean haveCalledDelegateGetDefaultEditor;
-
-	private volatile ConversionService conversionService;
 
 
 	public BeanFactoryTypeConverter() {
@@ -109,33 +111,24 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 			Class<?> sourceClass = sourceType.getType();
 			Class<?> targetClass = targetType.getType();
 			if ((sourceClass == MessageHeaders.class && targetClass == MessageHeaders.class) || // NOSONAR
-				(sourceClass == MessageHistory.class && targetClass == MessageHistory.class) ||
-				(sourceType.isAssignableTo(targetType) && ClassUtils.isPrimitiveArray(sourceClass))) {
+					(sourceClass == MessageHistory.class && targetClass == MessageHistory.class) ||
+					(sourceType.isAssignableTo(targetType) && ClassUtils.isPrimitiveArray(sourceClass))) {
 				return value;
 			}
 		}
 		if (this.conversionService.canConvert(sourceType, targetType)) {
 			return this.conversionService.convert(value, sourceType, targetType);
 		}
-		if (!String.class.isAssignableFrom(sourceType.getType())) {
-			PropertyEditor editor = this.delegate.findCustomEditor(sourceType.getType(), null);
-			if (editor == null) {
-				editor = this.getDefaultEditor(sourceType.getType());
-			}
-			if (editor != null) { // INT-1441
-				String text = null;
-				synchronized (editor) {
-					editor.setValue(value);
-					text = editor.getAsText();
-				}
-				if (String.class.isAssignableFrom(targetType.getType())) {
-					return text;
-				}
-				return convertValue(text, TypeDescriptor.valueOf(String.class), targetType);
+
+		Object editorResult = valueFromEditorIfAny(value, sourceType.getType(), targetType);
+
+		if (editorResult == null) {
+			synchronized (this.delegate) {
+				return this.delegate.convertIfNecessary(value, targetType.getType());
 			}
 		}
-		synchronized (this.delegate) {
-			return this.delegate.convertIfNecessary(value, targetType.getType());
+		else {
+			return editorResult;
 		}
 	}
 
@@ -152,6 +145,30 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 			this.haveCalledDelegateGetDefaultEditor = true;
 		}
 		return defaultEditor;
+	}
+
+	@Nullable
+	private Object valueFromEditorIfAny(Object value, Class<?> sourceClass, TypeDescriptor targetType) {
+		if (!String.class.isAssignableFrom(sourceClass)) {
+			PropertyEditor editor = this.delegate.findCustomEditor(sourceClass, null);
+			if (editor == null) {
+				editor = getDefaultEditor(sourceClass);
+			}
+			if (editor != null) { // INT-1441
+				String text;
+				synchronized (editor) {
+					editor.setValue(value);
+					text = editor.getAsText();
+				}
+
+				if (String.class.isAssignableFrom(targetType.getType())) {
+					return text;
+				}
+
+				return convertValue(text, TypeDescriptor.valueOf(String.class), targetType);
+			}
+		}
+		return null;
 	}
 
 }

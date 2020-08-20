@@ -98,23 +98,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 
 	@Override
 	protected void postProcessGateway(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
-		String marshallerRef = element.getAttribute("marshaller");
-		String unmarshallerRef = element.getAttribute("unmarshaller");
-		if (StringUtils.hasText(marshallerRef)) {
-			builder.addConstructorArgReference(marshallerRef);
-			if (StringUtils.hasText(unmarshallerRef)) {
-				builder.addConstructorArgReference(unmarshallerRef);
-			}
-		}
-		else {
-			String sourceExtractorRef = element.getAttribute("source-extractor");
-			if (StringUtils.hasText(sourceExtractorRef)) {
-				builder.addConstructorArgReference(sourceExtractorRef);
-			}
-			else {
-				builder.addConstructorArgValue(null);
-			}
-		}
+		parseMarshallerAttribute(builder, element, parserContext);
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-callback");
 
@@ -156,6 +140,26 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		if (StringUtils.hasText(interceptorListRef)) {
 			builder.addPropertyReference("interceptors", interceptorListRef);
 		}
+	}
+
+	private void parseMarshallerAttribute(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+		String marshallerRef = element.getAttribute("marshaller");
+		String unmarshallerRef = element.getAttribute("unmarshaller");
+		if (StringUtils.hasText(marshallerRef)) {
+			builder.addConstructorArgReference(marshallerRef);
+			if (StringUtils.hasText(unmarshallerRef)) {
+				builder.addConstructorArgReference(unmarshallerRef);
+			}
+		}
+		else {
+			String sourceExtractorRef = element.getAttribute("source-extractor");
+			if (StringUtils.hasText(sourceExtractorRef)) {
+				builder.addConstructorArgReference(sourceExtractorRef);
+			}
+			else {
+				builder.addConstructorArgValue(null);
+			}
+		}
 
 		if (StringUtils.hasText(marshallerRef) || StringUtils.hasText(unmarshallerRef)) {
 			String extractPayload = element.getAttribute("extract-payload");
@@ -168,7 +172,6 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		else {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		}
-
 	}
 
 }

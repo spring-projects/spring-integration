@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.syslog.config;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,6 +27,7 @@ import org.springframework.integration.syslog.MessageConverter;
 import org.springframework.integration.syslog.inbound.SyslogReceivingChannelAdapterSupport;
 import org.springframework.integration.syslog.inbound.TcpSyslogReceivingChannelAdapter;
 import org.springframework.integration.syslog.inbound.UdpSyslogReceivingChannelAdapter;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
@@ -205,30 +205,19 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 		else {
 			throw new IllegalStateException("Unsupported protocol: " + this.protocol.toString());
 		}
-		if (this.port != null) {
-			adapter.setPort(this.port);
-		}
-		if (this.outputChannel != null) {
-			adapter.setOutputChannel(this.outputChannel);
-		}
+
 		adapter.setAutoStartup(this.autoStartup);
 		adapter.setPhase(this.phase);
-		if (this.errorChannel != null) {
-			adapter.setErrorChannel(this.errorChannel);
-		}
-		if (this.sendTimeout != null) {
-			adapter.setSendTimeout(this.sendTimeout);
-		}
-		if (this.converter != null) {
-			adapter.setConverter(this.converter);
-		}
-		if (this.beanName != null) {
-			adapter.setBeanName(this.beanName);
-		}
-		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory != null) {
-			adapter.setBeanFactory(beanFactory);
-		}
+
+		JavaUtils.INSTANCE
+				.acceptIfNotNull(this.port, adapter::setPort)
+				.acceptIfNotNull(this.outputChannel, adapter::setOutputChannel)
+				.acceptIfNotNull(this.errorChannel, adapter::setErrorChannel)
+				.acceptIfNotNull(this.sendTimeout, adapter::setSendTimeout)
+				.acceptIfNotNull(this.converter, adapter::setConverter)
+				.acceptIfNotNull(this.beanName, adapter::setBeanName)
+				.acceptIfNotNull(getBeanFactory(), adapter::setBeanFactory);
+
 		adapter.afterPropertiesSet();
 		this.syslogAdapter = adapter;
 		return this.syslogAdapter;

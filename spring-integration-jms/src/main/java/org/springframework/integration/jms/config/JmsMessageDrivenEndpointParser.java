@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,20 +58,21 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 	private static final String EXPLICIT_QOS_ENABLED_FOR_REPLIES = "explicit-qos-enabled-for-replies";
 
 
-	private static String[] containerAttributes = new String[] {
-		JmsParserUtils.CONNECTION_FACTORY_PROPERTY,
-		JmsParserUtils.DESTINATION_ATTRIBUTE,
-		JmsParserUtils.DESTINATION_NAME_ATTRIBUTE,
-		"destination-resolver", "transaction-manager",
-		"concurrent-consumers", "max-concurrent-consumers",
-		"acknowledge",
-		"max-messages-per-task", "selector",
-		"receive-timeout", "recovery-interval",
-		"idle-consumer-limit", "idle-task-execution-limit",
-		"cache-level", "subscription-durable",
-		"subscription-shared", "subscription-name",
-		"client-id", "task-executor"
-	};
+	private static final String[] CONTAINER_ATTRIBUTES =
+			{
+					JmsParserUtils.CONNECTION_FACTORY_PROPERTY,
+					JmsParserUtils.DESTINATION_ATTRIBUTE,
+					JmsParserUtils.DESTINATION_NAME_ATTRIBUTE,
+					"destination-resolver", "transaction-manager",
+					"concurrent-consumers", "max-concurrent-consumers",
+					"acknowledge",
+					"max-messages-per-task", "selector",
+					"receive-timeout", "recovery-interval",
+					"idle-consumer-limit", "idle-task-execution-limit",
+					"cache-level", "subscription-durable",
+					"subscription-shared", "subscription-name",
+					"client-id", "task-executor"
+			};
 
 
 	private final boolean expectReply;
@@ -90,6 +91,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
+
 		String id = super.resolveId(element, definition, parserContext);
 
 		if (!this.expectReply && !element.hasAttribute("channel")) {
@@ -124,18 +126,10 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 
 	private String parseMessageListenerContainer(Element element, ParserContext parserContext,
 			BeanDefinition adapterBeanDefinition) {
+
 		String containerClass = element.getAttribute("container-class");
 		if (hasExternalContainer(element)) {
-			if (StringUtils.hasText(containerClass)) {
-				parserContext.getReaderContext().error("Cannot have both 'container' and 'container-class'", element);
-			}
-			for (String containerAttribute : containerAttributes) {
-				if (element.hasAttribute(containerAttribute)) {
-					parserContext.getReaderContext().error("The '" + containerAttribute +
-							"' attribute should not be provided when specifying a 'container' reference.", element);
-				}
-			}
-			return element.getAttribute("container");
+			return parseExternalContainer(element, parserContext, containerClass);
 		}
 		// otherwise, we build a DefaultMessageListenerContainer instance
 		BeanDefinitionBuilder builder;
@@ -153,9 +147,9 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		boolean hasDestination = StringUtils.hasText(destination);
 		boolean hasDestinationName = StringUtils.hasText(destinationName);
 		if (hasDestination == hasDestinationName) {
-			parserContext.getReaderContext().error(
-					"Exactly one of '" + destinationAttribute +
-					"' or '" + destinationNameAttribute + "' is required.", element);
+			parserContext.getReaderContext()
+					.error("Exactly one of '" + destinationAttribute +
+							"' or '" + destinationNameAttribute + "' is required.", element);
 		}
 		builder.addPropertyReference(JmsParserUtils.CONNECTION_FACTORY_PROPERTY,
 				JmsParserUtils.determineConnectionFactoryBeanName(element, parserContext));
@@ -164,7 +158,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		}
 		else {
 			builder.addPropertyValue("destinationName", destinationName);
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, pubSubDomainAttribute, "pubSubDomain");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, pubSubDomainAttribute,
+					"pubSubDomain");
 		}
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
@@ -187,6 +182,19 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 				+ ".container";
 		parserContext.getRegistry().registerBeanDefinition(beanName, builder.getBeanDefinition());
 		return beanName;
+	}
+
+	private String parseExternalContainer(Element element, ParserContext parserContext, String containerClass) {
+		if (StringUtils.hasText(containerClass)) {
+			parserContext.getReaderContext().error("Cannot have both 'container' and 'container-class'", element);
+		}
+		for (String containerAttribute : CONTAINER_ATTRIBUTES) {
+			if (element.hasAttribute(containerAttribute)) {
+				parserContext.getReaderContext().error("The '" + containerAttribute +
+						"' attribute should not be provided when specifying a 'container' reference.", element);
+			}
+		}
+		return element.getAttribute("container");
 	}
 
 
@@ -238,7 +246,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			}
 			builder.addPropertyReference("requestChannel", channelName);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout", "requestTimeout");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload", "extractRequestPayload");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload",
+					"extractRequestPayload");
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
@@ -247,7 +256,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 				+ ".listener";
 		BeanDefinition beanDefinition = builder.getBeanDefinition();
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
-		BeanComponentDefinition component = new BeanComponentDefinition(beanDefinition, beanName, new String[] { alias });
+		BeanComponentDefinition component = new BeanComponentDefinition(beanDefinition, beanName, new String[]{ alias });
 		parserContext.registerBeanComponent(component);
 		return beanName;
 	}

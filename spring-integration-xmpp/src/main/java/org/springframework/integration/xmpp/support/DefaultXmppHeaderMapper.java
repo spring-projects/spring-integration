@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,30 +104,15 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 		if (StringUtils.hasText(threadId)) {
 			target.setThread(threadId);
 		}
-		String to = getHeaderIfAvailable(headers, XmppHeaders.TO, String.class);
-		if (StringUtils.hasText(to)) {
-			try {
-				target.setTo(JidCreate.from(to));
-			}
-			catch (XmppStringprepException e) {
-				throw new IllegalStateException("Cannot parse 'xmpp_to' header value", e);
-			}
-		}
+		populateToHeader(headers, target);
 
-		String from = getHeaderIfAvailable(headers, XmppHeaders.FROM, String.class);
-		if (StringUtils.hasText(from)) {
-			try {
-				target.setFrom(JidCreate.from(from));
-			}
-			catch (XmppStringprepException e) {
-				throw new IllegalStateException("Cannot parse 'xmpp_from' header value", e);
-			}
-		}
+		populateFromHeader(headers, target);
 
 		String subject = getHeaderIfAvailable(headers, XmppHeaders.SUBJECT, String.class);
 		if (StringUtils.hasText(subject)) {
 			target.setSubject(subject);
 		}
+
 		Object typeHeader = getHeaderIfAvailable(headers, XmppHeaders.TYPE, Object.class);
 		if (typeHeader instanceof String) {
 			try {
@@ -142,6 +127,30 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 		}
 		if (typeHeader instanceof Message.Type) {
 			target.setType((Message.Type) typeHeader);
+		}
+	}
+
+	private void populateToHeader(Map<String, Object> headers, Message target) {
+		String to = getHeaderIfAvailable(headers, XmppHeaders.TO, String.class);
+		if (StringUtils.hasText(to)) {
+			try {
+				target.setTo(JidCreate.from(to));
+			}
+			catch (XmppStringprepException e) {
+				throw new IllegalStateException("Cannot parse 'xmpp_to' header value", e);
+			}
+		}
+	}
+
+	private void populateFromHeader(Map<String, Object> headers, Message target) {
+		String from = getHeaderIfAvailable(headers, XmppHeaders.FROM, String.class);
+		if (StringUtils.hasText(from)) {
+			try {
+				target.setFrom(JidCreate.from(from));
+			}
+			catch (XmppStringprepException e) {
+				throw new IllegalStateException("Cannot parse 'xmpp_from' header value", e);
+			}
 		}
 	}
 

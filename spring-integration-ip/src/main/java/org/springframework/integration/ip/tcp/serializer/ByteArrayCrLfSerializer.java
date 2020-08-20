@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import java.io.OutputStream;
  * Writes a byte[] to an OutputStream and adds \r\n.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ByteArrayCrLfSerializer extends AbstractPooledBufferByteArraySerializer {
@@ -45,8 +47,8 @@ public class ByteArrayCrLfSerializer extends AbstractPooledBufferByteArraySerial
 	 */
 	@Override
 	public byte[] doDeserialize(InputStream inputStream, byte[] buffer) throws IOException {
-		int n = this.fillToCrLf(inputStream, buffer);
-		return this.copyToSizedArray(buffer, n);
+		int n = fillToCrLf(inputStream, buffer);
+		return copyToSizedArray(buffer, n);
 	}
 
 	public int fillToCrLf(InputStream inputStream, byte[] buffer) throws IOException {
@@ -75,11 +77,7 @@ public class ByteArrayCrLfSerializer extends AbstractPooledBufferByteArraySerial
 		catch (SoftEndOfStreamException e) { // NOSONAR catch and throw
 			throw e; // it's an IO exception and we don't want an event for this
 		}
-		catch (IOException e) {
-			publishEvent(e, buffer, n);
-			throw e;
-		}
-		catch (RuntimeException e) {
+		catch (IOException | RuntimeException e) {
 			publishEvent(e, buffer, n);
 			throw e;
 		}
