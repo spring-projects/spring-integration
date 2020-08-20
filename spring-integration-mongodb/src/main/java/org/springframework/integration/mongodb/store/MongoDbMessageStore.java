@@ -429,20 +429,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@Override
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {
-		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).exists(true)
-				.and(MessageDocumentFields.GROUP_ID).exists(true));
-		long count = this.template.count(query, this.collectionName);
-		Assert.isTrue(count <= Integer.MAX_VALUE, "Message count is out of Integer's range");
-		return (int) count;
+		Query query = Query.query(Criteria.where(GROUP_ID_KEY).exists(true));
+		return (int) this.template.count(query, this.collectionName);
 	}
 
 	@Override
 	@ManagedAttribute
 	public int getMessageGroupCount() {
-		Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
-		return this.template.getCollection(this.collectionName)
-				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject(), Object.class)
-				.into(new ArrayList<>())
+		Query query = Query.query(Criteria.where(GROUP_ID_KEY).exists(true));
+		return this.template.findDistinct(query, GROUP_ID_KEY, this.collectionName, Object.class)
 				.size();
 	}
 
@@ -472,7 +467,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private void updateGroup(Object groupId, Update update) {
 		Query query = whereGroupIdIs(groupId).with(Sort.by(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
-		this.template.updateFirst(query, update, this.collectionName);
+		this.template.findAndModify(query, update, FindAndModifyOptions.none(), Map.class, this.collectionName);
 	}
 
 	private int getNextId() {
