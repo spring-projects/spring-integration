@@ -95,6 +95,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		assertThat(messageA.getHeaders().getId()).isEqualTo(retrievedMessage.getHeaders().getId());
 		// ensure that 'message_group' header that is only used internally is not propagated
 		assertThat(retrievedMessage.getHeaders().get("message_group")).isNull();
+		assertThat(store.getMessageGroupCount()).isEqualTo(1);
 	}
 
 	@Test
