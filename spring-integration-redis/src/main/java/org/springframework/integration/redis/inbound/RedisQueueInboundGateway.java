@@ -248,18 +248,18 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		}
 		Message<?> replyMessage = sendAndReceiveMessage(requestMessage);
 		if (replyMessage != null) {
+			byte[] replyPayload = null;
 			if (this.extractPayload) {
-				value = extractReplyPayload(replyMessage);
+				replyPayload = extractReplyPayload(replyMessage);
 			}
 			else {
 				if (this.serializer != null) {
-					value = ((RedisSerializer<Object>) this.serializer).serialize(replyMessage);
-					if (value == null) {
-						return;
-					}
+					replyPayload = ((RedisSerializer<Object>) this.serializer).serialize(replyMessage);
 				}
 			}
-			this.template.boundListOps(uuid + QUEUE_NAME_SUFFIX).leftPush(value);
+			if (replyPayload != null) {
+				this.template.boundListOps(uuid + QUEUE_NAME_SUFFIX).leftPush(replyPayload);
+			}
 		}
 	}
 

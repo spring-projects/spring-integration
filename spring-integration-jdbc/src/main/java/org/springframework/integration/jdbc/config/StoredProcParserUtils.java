@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -91,31 +92,10 @@ public final class StoredProcParserUtils {
 		String typeName = childElement.getAttribute("type-name");
 		String returnType = childElement.getAttribute("return-type");
 
-		if (StringUtils.hasText(typeName) && StringUtils.hasText(scale)) {
-			parserContext.getReaderContext().error("'type-name' and 'scale' attributes are mutually exclusive " +
-					"for 'sql-parameter-definition' element.", storedProcComponent);
-		}
+		validateParameterAttributes(storedProcComponent, parserContext, scale, typeName, returnType);
 
-		if (StringUtils.hasText(returnType) && StringUtils.hasText(scale)) {
-			parserContext.getReaderContext().error("'returnType' and 'scale' attributes are mutually exclusive " +
-					"for 'sql-parameter-definition' element.", storedProcComponent);
-		}
-
-		final BeanDefinitionBuilder parameterBuilder;
-
-		if ("OUT".equalsIgnoreCase(direction)) {
-			parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlOutParameter.class);
-		}
-		else if ("INOUT".equalsIgnoreCase(direction)) {
-			parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlInOutParameter.class);
-		}
-		else {
-			parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlParameter.class);
-			if (StringUtils.hasText(returnType)) {
-				parserContext.getReaderContext().error("'return-type' attribute can't be provided " +
-						"for IN 'sql-parameter-definition' element.", storedProcComponent);
-			}
-		}
+		BeanDefinitionBuilder parameterBuilder =
+				createParameterBeanDefinitionBuilder(storedProcComponent, parserContext, direction, returnType);
 
 		if (StringUtils.hasText(name)) {
 			parameterBuilder.addConstructorArgValue(name);
@@ -127,7 +107,6 @@ public final class StoredProcParserUtils {
 
 		if (StringUtils.hasText(sqlType)) {
 			JdbcTypesEnum jdbcTypeEnum = JdbcTypesEnum.convertToJdbcTypesEnum(sqlType);
-
 			if (jdbcTypeEnum != null) {
 				parameterBuilder.addConstructorArgValue(jdbcTypeEnum.getCode());
 			}
@@ -151,6 +130,42 @@ public final class StoredProcParserUtils {
 
 		if (StringUtils.hasText(returnType)) {
 			parameterBuilder.addConstructorArgReference(returnType);
+		}
+		return parameterBuilder;
+	}
+
+	private static void validateParameterAttributes(Element storedProcComponent, ParserContext parserContext,
+			String scale, String typeName, String returnType) {
+
+		if (StringUtils.hasText(typeName) && StringUtils.hasText(scale)) {
+			parserContext.getReaderContext().error("'type-name' and 'scale' attributes are mutually exclusive " +
+					"for 'sql-parameter-definition' element.", storedProcComponent);
+		}
+
+		if (StringUtils.hasText(returnType) && StringUtils.hasText(scale)) {
+			parserContext.getReaderContext().error("'returnType' and 'scale' attributes are mutually exclusive " +
+					"for 'sql-parameter-definition' element.", storedProcComponent);
+		}
+	}
+
+	@NotNull
+	private static BeanDefinitionBuilder createParameterBeanDefinitionBuilder(Element storedProcComponent,
+			ParserContext parserContext, String direction, String returnType) {
+
+		final BeanDefinitionBuilder parameterBuilder;
+
+		if ("OUT".equalsIgnoreCase(direction)) {
+			parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlOutParameter.class);
+		}
+		else if ("INOUT".equalsIgnoreCase(direction)) {
+			parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlInOutParameter.class);
+		}
+		else {
+			parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlParameter.class);
+			if (StringUtils.hasText(returnType)) {
+				parserContext.getReaderContext().error("'return-type' attribute can't be provided " +
+						"for IN 'sql-parameter-definition' element.", storedProcComponent);
+			}
 		}
 		return parameterBuilder;
 	}

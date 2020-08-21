@@ -120,7 +120,7 @@ public class RFC5424SyslogParser {
 		catch (IllegalStateException | StringIndexOutOfBoundsException ex) {
 			map.put(SyslogHeaders.DECODE_ERRORS, "true");
 			map.put(SyslogHeaders.ERRORS,
-					(ex instanceof StringIndexOutOfBoundsException ? "Unexpected end of message: " : "")
+					(ex instanceof StringIndexOutOfBoundsException ? "Unexpected end of message: " : "") // NOSONAR
 							+ ex.getMessage());
 			map.put(SyslogHeaders.UNDECODED, line);
 		}
