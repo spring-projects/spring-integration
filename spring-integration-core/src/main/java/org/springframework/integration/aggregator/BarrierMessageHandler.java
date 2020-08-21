@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * the timeout occurs. Only one thread with a particular correlation (result of invoking
  * the {@link CorrelationStrategy}) can be suspended at a time. If the inbound thread does
  * not arrive before the trigger thread, the latter is suspended until it does, or the
- * timeout occurs.
+ * timeout occurs. Separate timeouts may be configured for request and trigger messages.
  * <p>
  * The default {@link CorrelationStrategy} is a {@link HeaderAttributeCorrelationStrategy}.
  * <p>
@@ -57,7 +57,9 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 
 	private final Map<Object, Thread> inProcess = new ConcurrentHashMap<>();
 
-	private final long timeout;
+	private final long requestTimeout;
+
+	private final long triggerTimeout;
 
 	private final CorrelationStrategy correlationStrategy;
 
@@ -70,7 +72,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	/**
 	 * Construct an instance with the provided timeout and default correlation and
 	 * output strategies.
-	 * @param timeout the timeout in milliseconds.
+	 * @param timeout the timeout in milliseconds for both, request and trigger messages.
 	 */
 	public BarrierMessageHandler(long timeout) {
 		this(timeout, new DefaultAggregatingMessageGroupProcessor());
@@ -79,7 +81,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	/**
 	 * Construct an instance with the provided timeout and output processor, and default
 	 * correlation strategy.
-	 * @param timeout the timeout in milliseconds.
+	 * @param timeout the timeout in milliseconds for both, request and trigger messages.
 	 * @param outputProcessor the output {@link MessageGroupProcessor}.
 	 */
 	public BarrierMessageHandler(long timeout, MessageGroupProcessor outputProcessor) {
@@ -89,7 +91,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	/**
 	 * Construct an instance with the provided timeout and correlation strategy, and default
 	 * output processor.
-	 * @param timeout the timeout in milliseconds.
+	 * @param timeout the timeout in milliseconds for both, request and trigger messages.
 	 * @param correlationStrategy the correlation strategy.
 	 */
 	public BarrierMessageHandler(long timeout, CorrelationStrategy correlationStrategy) {
@@ -99,7 +101,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	/**
 	 * Construct an instance with the provided timeout and output processor, and default
 	 * correlation strategy.
-	 * @param timeout the timeout in milliseconds.
+	 * @param timeout the timeout in milliseconds for both, request and trigger messages.
 	 * @param outputProcessor the output {@link MessageGroupProcessor}.
 	 * @param correlationStrategy the correlation strategy.
 	 */
@@ -111,7 +113,60 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 		this.correlationStrategy = (correlationStrategy == null
 				? new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID)
 				: correlationStrategy);
-		this.timeout = timeout;
+		this.requestTimeout = timeout;
+		this.triggerTimeout = timeout;
+	}
+
+	/**
+	 * Construct an instance with the provided timeouts and default correlation and
+	 * output strategies.
+	 * @param requestTimeout the timeout in milliseconds when waiting for trigger message.
+	 * @param triggerTimeout the timeout in milliseconds when waiting for a request message.
+	 */
+	public BarrierMessageHandler(long requestTimeout, long triggerTimeout) {
+		this(requestTimeout, triggerTimeout, new DefaultAggregatingMessageGroupProcessor());
+	}
+
+	/**
+	 * Construct an instance with the provided timeout and output processor, and default
+	 * correlation strategy.
+	 * @param requestTimeout the timeout in milliseconds when waiting for trigger message.
+	 * @param triggerTimeout the timeout in milliseconds when waiting for a request message.
+	 * @param outputProcessor the output {@link MessageGroupProcessor}.
+	 */
+	public BarrierMessageHandler(long requestTimeout, long triggerTimeout, MessageGroupProcessor outputProcessor) {
+		this(requestTimeout, triggerTimeout, outputProcessor, null);
+	}
+
+	/**
+	 * Construct an instance with the provided timeout and correlation strategy, and default
+	 * output processor.
+	 * @param requestTimeout the timeout in milliseconds when waiting for trigger message.
+	 * @param triggerTimeout the timeout in milliseconds when waiting for a request message.
+	 * @param correlationStrategy the correlation strategy.
+	 */
+	public BarrierMessageHandler(long requestTimeout, long triggerTimeout, CorrelationStrategy correlationStrategy) {
+		this(requestTimeout, triggerTimeout, new DefaultAggregatingMessageGroupProcessor(), correlationStrategy);
+	}
+
+	/**
+	 * Construct an instance with the provided timeout and output processor, and default
+	 * correlation strategy.
+	 * @param requestTimeout the timeout in milliseconds when waiting for trigger message.
+	 * @param triggerTimeout the timeout in milliseconds when waiting for a request message.
+	 * @param outputProcessor the output {@link MessageGroupProcessor}.
+	 * @param correlationStrategy the correlation strategy.
+	 */
+	public BarrierMessageHandler(long requestTimeout, long triggerTimeout, MessageGroupProcessor outputProcessor,
+			CorrelationStrategy correlationStrategy) {
+
+		Assert.notNull(outputProcessor, "'messageGroupProcessor' cannot be null");
+		this.messageGroupProcessor = outputProcessor;
+		this.correlationStrategy = (correlationStrategy == null
+				? new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID)
+				: correlationStrategy);
+		this.requestTimeout = requestTimeout;
+		this.triggerTimeout = triggerTimeout;
 	}
 
 	/**
@@ -168,7 +223,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 		}
 		SynchronousQueue<Message<?>> syncQueue = createOrObtainQueue(key);
 		try {
-			Message<?> releaseMessage = syncQueue.poll(this.timeout, TimeUnit.MILLISECONDS);
+			Message<?> releaseMessage = syncQueue.poll(this.requestTimeout, TimeUnit.MILLISECONDS);
 			if (releaseMessage != null) {
 				return processRelease(key, requestMessage, releaseMessage);
 			}
@@ -228,7 +283,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 		}
 		SynchronousQueue<Message<?>> syncQueue = createOrObtainQueue(key);
 		try {
-			if (!syncQueue.offer(message, this.timeout, TimeUnit.MILLISECONDS)) {
+			if (!syncQueue.offer(message, this.triggerTimeout, TimeUnit.MILLISECONDS)) {
 				this.logger.error("Suspending thread timed out or did not arrive within timeout for: " + message);
 				this.suspensions.remove(key);
 				MessageChannel messageChannel = getDiscardChannel();
