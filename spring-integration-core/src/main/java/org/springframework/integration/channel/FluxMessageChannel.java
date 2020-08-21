@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.integration.channel;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -50,6 +53,8 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private final Disposable.Composite upstreamSubscriptions = Disposables.composite();
 
+	private volatile boolean active = true;
+
 	public FluxMessageChannel() {
 		this.sink = Sinks.many().multicast().onBackpressureBuffer(1, false);
 		this.processor = FluxProcessor.fromSink(this.sink);
@@ -57,9 +62,34 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		Assert.state(this.processor.hasDownstreams(),
+		Assert.state(this.active && this.processor.hasDownstreams(),
 				() -> "The [" + this + "] doesn't have subscribers to accept messages");
-		return this.sink.tryEmitNext(message).hasSucceeded();
+		long remainingTime = 0;
+		if (timeout > 0) {
+			remainingTime = timeout;
+		}
+		long parkTimeout = 10; // NOSONAR
+		long parkTimeoutNs = TimeUnit.MILLISECONDS.toNanos(parkTimeout);
+		while (this.active && !tryEmitMessage(message)) {
+			if (timeout >= 0 && (remainingTime -= parkTimeout) <= 0) {
+				return false;
+			}
+			LockSupport.parkNanos(parkTimeoutNs);
+		}
+		return true;
+	}
+
+	private boolean tryEmitMessage(Message<?> message) {
+		switch (this.sink.tryEmitNext(message)) {
+			case FAIL_OVERFLOW:
+				return false;
+			case FAIL_TERMINATED:
+			case FAIL_CANCELLED:
+				throw new IllegalStateException("Cannot emit messages into the cancelled or terminated sink: "
+						+ this.sink);
+			default:
+				return true;
+		}
 	}
 
 	@Override
@@ -89,6 +119,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	public void destroy() {
+		this.active = false;
 		this.subscribedSignal.emitNext(false);
 		this.upstreamSubscriptions.dispose();
 		this.processor.onComplete();

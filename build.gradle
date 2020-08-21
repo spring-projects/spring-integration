@@ -100,7 +100,7 @@ ext {
 	soapVersion = '1.4.0'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.0-SNAPSHOT'
 	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.0-SNAPSHOT'
-	springKafkaVersion = '2.6.0-SNAPSHOT'
+	springKafkaVersion = '2.6.0'
 	springRetryVersion = '1.3.0'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.4.0-RC1'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.0-SNAPSHOT'
@@ -199,7 +199,6 @@ configure(javaProjects) { subproject ->
 	compileKotlin {
 		kotlinOptions {
 			jvmTarget = '1.8'
-			allWarningsAsErrors = true
 		}
 	}
 	compileTestKotlin {

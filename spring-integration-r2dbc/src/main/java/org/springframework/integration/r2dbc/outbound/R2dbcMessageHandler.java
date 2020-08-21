@@ -76,6 +76,7 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 	 * {@link R2dbcEntityOperations}
 	 * @param r2dbcEntityOperations The R2dbcEntityOperations implementation.
 	 */
+	@SuppressWarnings("deprecation")
 	public R2dbcMessageHandler(R2dbcEntityOperations r2dbcEntityOperations) {
 		Assert.notNull(r2dbcEntityOperations, "'r2dbcEntityOperations' must not be null");
 		this.r2dbcEntityOperations = r2dbcEntityOperations;

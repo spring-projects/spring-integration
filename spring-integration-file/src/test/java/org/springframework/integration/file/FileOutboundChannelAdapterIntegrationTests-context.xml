@@ -1,62 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int-file="http://www.springframework.org/schema/integration/file"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:int-file="http://www.springframework.org/schema/integration/file"
+			 xmlns:int="http://www.springframework.org/schema/integration"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 		https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context
-		https://www.springframework.org/schema/context/spring-context.xsd
 		http://www.springframework.org/schema/integration
 		https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/file
 		https://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
-	<int:channel id="inputChannelSaveToBaseDir" />
-	<int:channel id="inputChannelSaveToBaseDirDeleteSource" />
-	<int:channel id="inputChannelSaveToSubDir" />
-	<int:channel id="inputChannelSaveToSubDirAutoCreateOff" />
-	<int:channel id="inputChannelSaveToSubDirWrongExpression" />
-	<int:channel id="inputChannelSaveToSubDirWithHeader" />
-	<int:channel id="inputChannelSaveToSubDirWithFile" />
-	<int:channel id="inputChannelSaveToSubDirEmptyStringExpression" />
+	<int:channel id="inputChannelSaveToBaseDir"/>
+	<int:channel id="inputChannelSaveToBaseDirDeleteSource"/>
+	<int:channel id="inputChannelSaveToSubDir"/>
+	<int:channel id="inputChannelSaveToSubDirAutoCreateOff"/>
+	<int:channel id="inputChannelSaveToSubDirWrongExpression"/>
+	<int:channel id="inputChannelSaveToSubDirWithHeader"/>
+	<int:channel id="inputChannelSaveToSubDirWithFile"/>
+	<int:channel id="inputChannelSaveToSubDirEmptyStringExpression"/>
 
 	<int-file:outbound-channel-adapter id="save-to-base-directory"
-		channel="inputChannelSaveToBaseDir" auto-create-directory="true"
-		filename-generator-expression="'foo.txt'" directory="target/base-directory" />
+									   channel="inputChannelSaveToBaseDir" auto-create-directory="true"
+									   filename-generator-expression="'foo.txt'" directory="target/base-directory"/>
 
 	<int-file:outbound-channel-adapter id="delete-source-files"
-		channel="inputChannelSaveToBaseDirDeleteSource" auto-create-directory="true"
-		delete-source-files="true" filename-generator-expression="'foo.txt'"
-		directory="target/base-directory" />
+									   channel="inputChannelSaveToBaseDirDeleteSource" auto-create-directory="true"
+									   delete-source-files="true" filename-generator-expression="'foo.txt'"
+									   directory="target/base-directory"/>
 
 	<int-file:outbound-channel-adapter id="save-to-sub-directory-wrong-expression"
-		channel="inputChannelSaveToSubDirWrongExpression" auto-create-directory="true"
-		directory-expression="'target/base-directory/sub-directory/foo.txt'" />
+									   channel="inputChannelSaveToSubDirWrongExpression" auto-create-directory="true"
+									   directory-expression="'target/base-directory/sub-directory/foo.txt'"/>
 
 	<int-file:outbound-channel-adapter id="save-to-sub-directory-empty-string-expression"
-		channel="inputChannelSaveToSubDirEmptyStringExpression" auto-create-directory="true"
-		directory-expression="'   '" />
+									   channel="inputChannelSaveToSubDirEmptyStringExpression"
+									   auto-create-directory="true"
+									   directory-expression="'   '"/>
 
 	<int-file:outbound-channel-adapter id="save-to-sub-directory"
-		channel="inputChannelSaveToSubDir" auto-create-directory="true"
-		directory-expression="'target/base-directory/sub-directory'"
-		filename-generator-expression="'foo.txt'" />
+									   channel="inputChannelSaveToSubDir" auto-create-directory="true"
+									   directory-expression="'target/base-directory/sub-directory'"
+									   filename-generator-expression="'foo.txt'"/>
 
 	<int-file:outbound-channel-adapter id="save-to-sub-directory-with-header"
-		channel="inputChannelSaveToSubDirWithHeader" auto-create-directory="true"
-		directory-expression="headers['myFileLocation']"
-		filename-generator-expression="'foo.txt'" />
+									   channel="inputChannelSaveToSubDirWithHeader" auto-create-directory="true"
+									   directory-expression="headers['myFileLocation']"
+									   filename-generator-expression="'foo.txt'"/>
 
 	<int-file:outbound-channel-adapter id="save-to-sub-directory-auto-create-off"
-		channel="inputChannelSaveToSubDirAutoCreateOff" auto-create-directory="false"
-		directory-expression="'target/base-directory2/sub-directory2'"
-		filename-generator-expression="'foo.txt'" />
+									   channel="inputChannelSaveToSubDirAutoCreateOff" auto-create-directory="false"
+									   directory-expression="'target/base-directory2/sub-directory2'"
+									   filename-generator-expression="'foo.txt'"/>
 
 	<int-file:outbound-channel-adapter id="save-to-sub-directory-with-file-expression"
-		channel="inputChannelSaveToSubDirWithFile" auto-create-directory="true"
-		directory-expression="headers['subDirectory']"
-		filename-generator-expression="'foo.txt'" />
+									   channel="inputChannelSaveToSubDirWithFile" auto-create-directory="true"
+									   directory-expression="headers['subDirectory']"
+									   filename-generator-expression="'foo.txt'"/>
 
 </beans:beans>

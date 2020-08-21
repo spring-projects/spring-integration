@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,30 +26,27 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.jdbc.storedproc.CreateUser;
 import org.springframework.integration.jdbc.storedproc.User;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext // close at the end after class
+@SpringJUnitConfig
+@DirtiesContext
 public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 	@Autowired
@@ -67,7 +64,7 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 	@Autowired
 	PollableChannel replyChannel;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		this.jdbcTemplate.execute("delete from USERS");
 	}
@@ -77,7 +74,7 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 		createUser.createUser(new User("myUsername", "myPassword", "myEmail"));
 
-		List<Message<Collection<User>>> received = new ArrayList<Message<Collection<User>>>();
+		List<Message<Collection<User>>> received = new ArrayList<>();
 
 		received.add(consumer.poll(2000));
 
@@ -98,10 +95,9 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 	}
 
-	@Test //INT-1029
-	public void testStoredProcOutboundGatewayInsideChain() throws Exception {
-
-		Message<User> requestMessage = MessageBuilder.withPayload(new User("myUsername", "myPassword", "myEmail")).build();
+	@Test
+	public void testStoredProcOutboundGatewayInsideChain() {
+		Message<User> requestMessage = new GenericMessage<>(new User("myUsername", "myPassword", "myEmail"));
 
 		storedProcOutboundGatewayInsideChain.send(requestMessage);
 
@@ -127,28 +123,30 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 		private final AtomicInteger count = new AtomicInteger();
 
-		public Integer next() throws InterruptedException {
+		public Integer next() {
 			if (count.get() > 2) {
 				//prevent message overload
 				return null;
 			}
 			return count.incrementAndGet();
 		}
+
 	}
 
 
 	static class Consumer {
 
-		private final BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<Message<Collection<User>>>();
+		private final BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<>();
 
 		@ServiceActivator
 		public void receive(Message<Collection<User>> message) {
-			messages.add(message);
+			this.messages.add(message);
 		}
 
 		Message<Collection<User>> poll(long timeoutInMillis) throws InterruptedException {
-			return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
+			return this.messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
 		}
+
 	}
 
 	static class TestService {
@@ -156,6 +154,7 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 		public String quote(String s) {
 			return "'" + s + "'";
 		}
+
 	}
 
 }

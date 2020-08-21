@@ -126,11 +126,22 @@ public final class IntegrationReactiveUtils {
 
 	private static <T> Flux<Message<T>> adaptSubscribableChannelToPublisher(SubscribableChannel inputChannel) {
 		return Flux.defer(() -> {
-			Sinks.Many<Message<T>> sink = Sinks.many().multicast().onBackpressureBuffer(1);
-			@SuppressWarnings("unchecked")
+			Sinks.Many<Message<T>> sink = Sinks.many().unicast().onBackpressureError();
 			MessageHandler messageHandler = (message) -> {
-				while (!sink.tryEmitNext((Message<T>) message).hasSucceeded()) {
-					LockSupport.parkNanos(100); // NOSONAR
+				while (true) {
+					@SuppressWarnings("unchecked")
+					Sinks.Emission emission = sink.tryEmitNext((Message<T>) message);
+					switch (emission) {
+						case FAIL_OVERFLOW:
+							LockSupport.parkNanos(1000); // NOSONAR
+							break;
+						case FAIL_TERMINATED:
+						case FAIL_CANCELLED:
+							throw new IllegalStateException("Cannot emit messages into the cancelled " +
+									"or terminated sink for message channel: " + inputChannel);
+						default:
+							return;
+					}
 				}
 			};
 			inputChannel.subscribe(messageHandler);

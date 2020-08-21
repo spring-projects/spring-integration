@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
@@ -41,9 +43,8 @@ import org.springframework.util.FileCopyUtils;
  * @author Gary Russell
  */
 @SpringJUnitConfig
+@DirtiesContext
 class FileOutboundChannelAdapterIntegrationTests {
-
-	static final String DEFAULT_ENCODING = "UTF-8";
 
 	static final String SAMPLE_CONTENT = "HelloWorld";
 
@@ -78,7 +79,7 @@ class FileOutboundChannelAdapterIntegrationTests {
 	@BeforeEach
 	void setUp(@TempDir File tmpDir) throws Exception {
 		sourceFile = new File(tmpDir, "anyFile.txt");
-		FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING),
+		FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(StandardCharsets.UTF_8),
 				new FileOutputStream(sourceFile, false));
 		message = MessageBuilder.withPayload(sourceFile).build();
 	}
