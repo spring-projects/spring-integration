@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.aggregator.BarrierMessageHandler;
@@ -35,16 +34,16 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class BarrierParserTests {
 
@@ -71,8 +70,8 @@ public class BarrierParserTests {
 
 	@Test
 	public void parserTestsWithMessage() {
-		this.in.send(new GenericMessage<String>("foo"));
-		this.release.send(new GenericMessage<String>("bar"));
+		this.in.send(new GenericMessage<>("foo"));
+		this.release.send(new GenericMessage<>("bar"));
 		Message<?> received = out.receive(10000);
 		assertThat(received).isNotNull();
 		this.barrier1.stop();
@@ -82,7 +81,8 @@ public class BarrierParserTests {
 	public void parserFieldPopulationTests() {
 		BarrierMessageHandler handler = TestUtils.getPropertyValue(this.barrier1, "handler",
 				BarrierMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "timeout")).isEqualTo(10000L);
+		assertThat(TestUtils.getPropertyValue(handler, "requestTimeout")).isEqualTo(10000L);
+		assertThat(TestUtils.getPropertyValue(handler, "triggerTimeout")).isEqualTo(5000L);
 		assertThat(TestUtils.getPropertyValue(handler, "requiresReply", Boolean.class)).isTrue();
 		assertThat(TestUtils.getPropertyValue(this.barrier2, "handler.correlationStrategy"))
 				.isInstanceOf(HeaderAttributeCorrelationStrategy.class);

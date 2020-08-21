@@ -58,6 +58,8 @@ See <<./aggregator.adoc#aggregator-expiring-groups, Aggregator Expiring Groups>>
 
 The legacy metrics that were replaced by Micrometer meters have been removed.
 
+The <<./barrier.adoc#barrier,Thread Barrier>> has now two separate timeout options: `requestTimeout` and `triggerTimeout`.
+
 [[x5.4-tcp]]
 === TCP Changes
 

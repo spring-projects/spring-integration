@@ -11,7 +11,8 @@
 
 	<int:barrier id="barrier1" input-channel="in" output-channel="out" correlation-strategy-expression="'foo'"
 				requires-reply="true" discard-channel="discards"
-				timeout="10000">
+				timeout="10000"
+				trigger-timeout="5000">
 		<int:poller fixed-delay="100" />
 	</int:barrier>
 

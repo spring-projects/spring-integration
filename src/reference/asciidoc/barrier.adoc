@@ -3,30 +3,27 @@
 
 Sometimes, we need to suspend a message flow thread until some other asynchronous event occurs.
 For example, consider an HTTP request that publishes a message to RabbitMQ.
-We might wish to not reply to the user until the RabbitMQ broker has issued an acknowledgment that the message was
-received.
+We might wish to not reply to the user until the RabbitMQ broker has issued an acknowledgment that the message was received.
 
 In version 4.2, Spring Integration introduced the `<barrier/>` component for this purpose.
 The underlying `MessageHandler` is the `BarrierMessageHandler`.
-This class also implements
-`MessageTriggerAction`, in which a message passed to the `trigger()` method releases a corresponding thread in the
-`handleRequestMessage()` method (if present).
+This class also implements `MessageTriggerAction`, in which a message passed to the `trigger()` method releases a corresponding thread in the `handleRequestMessage()` method (if present).
 
 The suspended thread and trigger thread are correlated by invoking a `CorrelationStrategy` on the messages.
-When a message is sent to the `input-channel`, the thread is suspended for up to `timeout` milliseconds, waiting for
-a corresponding trigger message.
+When a message is sent to the `input-channel`, the thread is suspended for up to `requestTimeout` milliseconds, waiting for a corresponding trigger message.
 The default correlation strategy uses the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header.
 When a trigger message arrives with the same correlation, the thread is released.
 The message sent to the `output-channel` after release is constructed by using a `MessageGroupProcessor`.
-By default, the message is a `Collection<?>` of the two payloads, and the headers are merged by using a
-`DefaultAggregatingMessageGroupProcessor`.
+By default, the message is a `Collection<?>` of the two payloads, and the headers are merged by using a `DefaultAggregatingMessageGroupProcessor`.
 
-CAUTION: If the `trigger()` method is invoked first (or after the main thread times out), it is suspended for up to `timeout` waiting for the suspending message to arrive.
+CAUTION: If the `trigger()` method is invoked first (or after the main thread times out), it is suspended for up to `triggerTimeout` waiting for the suspending message to arrive.
 If you do not want to suspend the trigger thread, consider handing off to a `TaskExecutor` instead so that its thread is suspended instead.
 
+NOTE: Prior version 5.4, there was only one `timeout` option for both request and trigger messages, but in some use-case it is better to have different timeouts for those actions.
+Therefore `requestTimeout` and `triggerTimeout` options have been introduced.
+
 The `requires-reply` property determines the action to take if the suspended thread times out before the trigger message arrives.
-By default, it is `false`, which means the endpoint returns `null`, the flow ends, and the thread returns to the
-caller.
+By default, it is `false`, which means the endpoint returns `null`, the flow ends, and the thread returns to the caller.
 When `true`, a `ReplyRequiredException` is thrown.
 
 You can call the `trigger()` method programmatically (obtain the bean reference by using the name, `barrier.handler` -- where `barrier` is the bean name of the barrier endpoint).

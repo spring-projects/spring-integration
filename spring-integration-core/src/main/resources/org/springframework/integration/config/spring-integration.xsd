@@ -1736,8 +1736,7 @@
 		<xsd:complexType>
 			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1"/>
-				<xsd:element name="request-handler-advice-chain" type="handlerAdviceChainType" minOccurs="0"
-							 maxOccurs="1"/>
+				<xsd:element name="request-handler-advice-chain" type="handlerAdviceChainType" minOccurs="0"/>
 				<xsd:element ref="poller"/>
 			</xsd:choice>
 			<xsd:attributeGroup ref="inputOutputChannelGroup"/>
@@ -1751,7 +1750,15 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
+			<xsd:attribute name="trigger-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The time in milliseconds to suspend the trigger thread.
+						If not provided a 'timeout' is used.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="requires-reply" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 						Specify whether the barrier must return a non-null value. This value will be
