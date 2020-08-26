@@ -115,17 +115,21 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 		this.redisStreamMessageProducer.setConsumerName(null);
 		this.redisStreamMessageProducer.setReadOffset(ReadOffset.from("0"));
 		this.redisStreamMessageProducer.afterPropertiesSet();
+
+		StepVerifier stepVerifier =
+				Flux.from(this.fluxMessageChannel)
+						.as(StepVerifier::create)
+						.assertNext(message -> {
+							assertThat(message.getPayload()).isEqualTo(person);
+							assertThat(message.getHeaders()).containsKeys(RedisHeaders.STREAM_KEY,
+									RedisHeaders.STREAM_MESSAGE_ID);
+						})
+						.thenCancel()
+						.verifyLater();
+
 		this.redisStreamMessageProducer.start();
 
-		Flux.from(this.fluxMessageChannel)
-				.as(StepVerifier::create)
-				.assertNext(message -> {
-					assertThat(message.getPayload()).isEqualTo(person);
-					assertThat(message.getHeaders()).containsKeys(RedisHeaders.STREAM_KEY,
-							RedisHeaders.STREAM_MESSAGE_ID);
-				})
-				.thenCancel()
-				.verify(Duration.ofSeconds(10));
+		stepVerifier.verify(Duration.ofSeconds(10));
 	}
 
 	@Test
@@ -134,8 +138,12 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 		Address address = new Address("Winterfell, Westeros");
 		Person person = new Person(address, "John Snow");
 
-		this.template.opsForStream().createGroup(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
-				.subscribe();
+		this.template.opsForStream()
+				.createGroup(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
+				.as(StepVerifier::create)
+				.assertNext(message -> assertThat(message).isEqualTo("OK"))
+				.thenCancel()
+				.verify(Duration.ofSeconds(10));
 
 		this.redisStreamMessageProducer.setCreateConsumerGroup(false);
 		this.redisStreamMessageProducer.setConsumerName(CONSUMER);
