@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -64,15 +63,12 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 	private MessageChannel messageChannel;
 
 	@Autowired
-	private ReactiveRedisConnectionFactory redisConnectionFactory;
-
-	@Autowired
 	private ReactiveMessageHandlerAdapter handlerAdapter;
 
 	@Before
 	public void deleteStreamKey() {
-		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate<>(this.redisConnectionFactory,
-				RedisSerializationContext.string());
+		ReactiveRedisTemplate<String, String> template =
+				new ReactiveRedisTemplate<>(RedisAvailableRule.connectionFactory, RedisSerializationContext.string());
 		template.delete(STREAM_KEY).block();
 	}
 
@@ -85,7 +81,7 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 		this.messageChannel.send(new GenericMessage<>(messagePayload));
 
 		ReactiveRedisTemplate<String, ?> template =
-				new ReactiveRedisTemplate<>(this.redisConnectionFactory, RedisSerializationContext.string());
+				new ReactiveRedisTemplate<>(RedisAvailableRule.connectionFactory, RedisSerializationContext.string());
 
 		ObjectRecord<String, String> record =
 				template.opsForStream()
@@ -103,7 +99,7 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 		List<String> messagePayload = Arrays.asList("Hello", "stream", "message");
 		this.handlerAdapter.handleMessage(new GenericMessage<>(messagePayload));
 
-		ReactiveRedisTemplate<String, ?> template = new ReactiveRedisTemplate<>(this.redisConnectionFactory,
+		ReactiveRedisTemplate<String, ?> template = new ReactiveRedisTemplate<>(RedisAvailableRule.connectionFactory,
 				RedisSerializationContext.string());
 		ObjectRecord<String, ?> record = template.opsForStream().read(List.class, StreamOffset
 				.fromStart(STREAM_KEY))
@@ -125,7 +121,7 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 		this.handlerAdapter.handleMessage(message);
 
 		ReactiveRedisTemplate<String, ?> template =
-				new ReactiveRedisTemplate<>(this.redisConnectionFactory, RedisSerializationContext.string());
+				new ReactiveRedisTemplate<>(RedisAvailableRule.connectionFactory, RedisSerializationContext.string());
 
 		ObjectRecord<String, Person> record =
 				template.opsForStream()
@@ -150,10 +146,9 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 
 
 		@Bean
-		public ReactiveRedisStreamMessageHandler streamMessageHandler(
-				ReactiveRedisConnectionFactory connectionFactory) {
+		public ReactiveRedisStreamMessageHandler streamMessageHandler() {
 
-			return new ReactiveRedisStreamMessageHandler(connectionFactory, STREAM_KEY);
+			return new ReactiveRedisStreamMessageHandler(RedisAvailableRule.connectionFactory, STREAM_KEY);
 		}
 
 		@Bean
@@ -161,11 +156,6 @@ public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests 
 				ReactiveRedisStreamMessageHandler streamMessageHandler) {
 
 			return new ReactiveMessageHandlerAdapter(streamMessageHandler);
-		}
-
-		@Bean
-		public ReactiveRedisConnectionFactory reactiveRedisConnectionFactory() {
-			return RedisAvailableRule.connectionFactory;
 		}
 
 	}
