@@ -93,7 +93,7 @@ ext {
 	reactorVersion = '2020.0.0-SNAPSHOT'
 	resilience4jVersion = '1.5.0'
 	romeToolsVersion = '1.12.2'
-	rsocketVersion = '1.1.0-M1'
+	rsocketVersion = '1.1.0-SNAPSHOT'
 	saajVersion = '1.5.2'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
