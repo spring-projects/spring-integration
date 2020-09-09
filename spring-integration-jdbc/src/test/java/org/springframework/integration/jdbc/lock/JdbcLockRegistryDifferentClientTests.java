@@ -58,7 +58,7 @@ import org.springframework.util.StopWatch;
 @DirtiesContext
 public class JdbcLockRegistryDifferentClientTests {
 
-	private static Log logger = LogFactory.getLog(JdbcLockRegistryDifferentClientTests.class);
+	private static final Log LOGGER = LogFactory.getLog(JdbcLockRegistryDifferentClientTests.class);
 
 	@Autowired
 	private JdbcLockRegistry registry;
@@ -218,7 +218,7 @@ public class JdbcLockRegistryDifferentClientTests {
 				};
 				tasks.add(task);
 			}
-			logger.info("Starting: " + i);
+			LOGGER.info("Starting: " + i);
 			pool.invokeAll(tasks);
 
 			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();

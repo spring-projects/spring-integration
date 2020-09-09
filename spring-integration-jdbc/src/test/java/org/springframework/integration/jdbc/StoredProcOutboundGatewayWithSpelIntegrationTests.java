@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.jdbc;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.sql.CallableStatement;
 import java.util.Collection;
@@ -26,8 +26,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,17 +49,15 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext // close at the end after class
+@SpringJUnitConfig
+@DirtiesContext
 public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 
 	@Autowired
@@ -90,9 +87,7 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 	SqlReturnType clobSqlReturnType;
 
 	@Test
-	@DirtiesContext
-	public void executeStoredProcedureWithMessageHeader() throws Exception {
-
+	public void executeStoredProcedureWithMessageHeader() {
 		User user1 = new User("First User", "my first password", "email1");
 		User user2 = new User("Second User", "my second password", "email2");
 
@@ -122,9 +117,7 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 	}
 
 	@Test
-	@DirtiesContext
-	public void testWithMissingMessageHeader() throws Exception {
-
+	public void testWithMissingMessageHeader() {
 		User user1 = new User("First User", "my first password", "email1");
 
 		Message<User> user1Message = MessageBuilder.withPayload(user1).build();
@@ -153,7 +146,7 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 
 		this.jdbcTemplate.update("INSERT INTO json_message VALUES (?,?)", messageId, jsonMessage);
 
-		this.getMessageChannel.send(new GenericMessage<String>(messageId));
+		this.getMessageChannel.send(new GenericMessage<>(messageId));
 		Message<?> resultMessage = this.output2Channel.receive(10000);
 		assertThat(resultMessage).isNotNull();
 		Object resultPayload = resultMessage.getPayload();
@@ -163,31 +156,27 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		assertThat(message.getPayload()).isEqualTo(testMessage.getPayload());
 		assertThat(message.getHeaders().get("FOO")).isEqualTo(testMessage.getHeaders().get("FOO"));
 		Mockito.verify(clobSqlReturnType).getTypeValue(Mockito.any(CallableStatement.class),
-				Mockito.eq(2), Mockito.eq(JdbcTypesEnum.CLOB.getCode()), Mockito.eq((String) null));
+				Mockito.eq(2), Mockito.eq(JdbcTypesEnum.CLOB.getCode()), Mockito.eq(null));
 	}
 
 	@Test
 	public void testNoIllegalArgumentButRequiresReplyException() {
-		try {
-			this.getMessageChannel.send(new GenericMessage<String>("foo"));
-			fail("ReplyRequiredException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(ReplyRequiredException.class);
-		}
+		assertThatExceptionOfType(ReplyRequiredException.class)
+				.isThrownBy(() -> this.getMessageChannel.send(new GenericMessage<>("foo")));
 	}
 
 	static class Counter {
 
 		private final AtomicInteger count = new AtomicInteger();
 
-		public Integer next() throws InterruptedException {
+		public Integer next() {
 			if (count.get() > 2) {
 				//prevent message overload
 				return null;
 			}
 			return count.incrementAndGet();
 		}
+
 	}
 
 	/**
@@ -197,7 +186,7 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 	 */
 	static class Consumer {
 
-		private volatile BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<Message<Collection<User>>>();
+		private volatile BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<>();
 
 		@ServiceActivator
 		public void receive(Message<Collection<User>> message) {

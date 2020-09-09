@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -36,14 +35,13 @@ import org.springframework.integration.jdbc.storedproc.CreateUser;
 import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext // close at the end after class
 public class StoredProcOutboundGatewayWithSpringContextIntegrationTests {
 
@@ -58,10 +56,9 @@ public class StoredProcOutboundGatewayWithSpringContextIntegrationTests {
 
 	@Test
 	public void test() throws Exception {
-
 		createUser.createUser(new User("myUsername", "myPassword", "myEmail"));
 
-		List<Message<Collection<User>>> received = new ArrayList<Message<Collection<User>>>();
+		List<Message<Collection<User>>> received = new ArrayList<>();
 
 		received.add(consumer.poll(2000));
 
@@ -81,19 +78,20 @@ public class StoredProcOutboundGatewayWithSpringContextIntegrationTests {
 
 		private final AtomicInteger count = new AtomicInteger();
 
-		public Integer next() throws InterruptedException {
+		public Integer next() {
 			if (count.get() > 2) {
 				//prevent message overload
 				return null;
 			}
 			return Integer.valueOf(count.incrementAndGet());
 		}
+
 	}
 
 
 	static class Consumer {
 
-		private final BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<Message<Collection<User>>>();
+		private final BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<>();
 
 		@ServiceActivator
 		public void receive(Message<Collection<User>> message) {
@@ -103,5 +101,7 @@ public class StoredProcOutboundGatewayWithSpringContextIntegrationTests {
 		Message<Collection<User>> poll(long timeoutInMillis) throws InterruptedException {
 			return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
 		}
+
 	}
+
 }

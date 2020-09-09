@@ -106,7 +106,7 @@ ext {
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.0-SNAPSHOT'
 	springWsVersion = '3.0.9.RELEASE'
 	tomcatVersion = "9.0.37"
-	xstreamVersion = '1.4.12'
+	xstreamVersion = '1.4.13'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
 }

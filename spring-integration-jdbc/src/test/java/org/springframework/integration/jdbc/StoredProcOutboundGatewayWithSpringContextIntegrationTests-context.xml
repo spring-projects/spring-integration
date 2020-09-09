@@ -1,44 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
-	xmlns:tx="http://www.springframework.org/schema/tx"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xmlns:p="http://www.springframework.org/schema/p"
-	xsi:schemaLocation="http://www.springframework.org/schema/jdbc https://www.springframework.org/schema/jdbc/spring-jdbc.xsd
-		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd
-		http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd">
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<import resource="classpath:derby-stored-procedures-setup-context.xml"/>
 
 	<int:poller id="defaultPoller" default="true" fixed-rate="5000"/>
 
 	<int:gateway id="startGateway" default-request-channel="startChannel"
-		service-interface="org.springframework.integration.jdbc.storedproc.CreateUser" />
+				 service-interface="org.springframework.integration.jdbc.storedproc.CreateUser"/>
 
 	<int:channel id="startChannel"/>
 
 	<bean id="storedProcExecutor" class="org.springframework.integration.jdbc.StoredProcExecutor">
 		<constructor-arg name="dataSource" ref="dataSource"/>
 		<property name="storedProcedureName" value="CREATE_USER_RETURN_ALL"/>
-		<property name="isFunction"          value="false"/>
+		<property name="isFunction" value="false"/>
 		<property name="procedureParameters">
 			<util:list>
 				<bean class="org.springframework.integration.jdbc.storedproc.ProcedureParameter">
-					<property name="name"       value="username"/>
+					<property name="name" value="username"/>
 					<property name="expression" value="payload.username"/>
 				</bean>
 				<bean class="org.springframework.integration.jdbc.storedproc.ProcedureParameter">
-					<property name="name"       value="password"/>
+					<property name="name" value="password"/>
 					<property name="expression" value="payload.password"/>
 				</bean>
 				<bean class="org.springframework.integration.jdbc.storedproc.ProcedureParameter">
-					<property name="name"       value="email"/>
+					<property name="name" value="email"/>
 					<property name="expression" value="payload.email"/>
 				</bean>
 			</util:list>
@@ -50,24 +43,25 @@
 		</property>
 	</bean>
 
-	<bean  id="gateway" class="org.springframework.integration.jdbc.StoredProcOutboundGateway">
-		<constructor-arg name="storedProcExecutor" ref="storedProcExecutor" />
-		<property name="expectSingleResult"  value="true"/>
-		<property name="outputChannel"       ref="outputChannel"/>
+	<bean id="gateway" class="org.springframework.integration.jdbc.StoredProcOutboundGateway">
+		<constructor-arg name="storedProcExecutor" ref="storedProcExecutor"/>
+		<property name="expectSingleResult" value="true"/>
+		<property name="outputChannel" ref="outputChannel"/>
 	</bean>
 
 	<bean id="storedProcedureEndpoint"
-			class="org.springframework.integration.endpoint.EventDrivenConsumer">
+		  class="org.springframework.integration.endpoint.EventDrivenConsumer">
 		<constructor-arg name="inputChannel" ref="startChannel"/>
-		<constructor-arg name="handler"      ref="gateway"/>
+		<constructor-arg name="handler" ref="gateway"/>
 	</bean>
 
 	<bean id="rowMapper" class="org.springframework.integration.jdbc.storedproc.UserMapper"/>
 
 	<int:channel id="outputChannel"/>
 
-	<int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer" />
-	<bean id="consumer" class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithSpringContextIntegrationTests$Consumer"/>
+	<int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer"/>
+	<bean id="consumer"
+		  class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithSpringContextIntegrationTests$Consumer"/>
 
 	<int:logging-channel-adapter channel="errorChannel" log-full-message="true"/>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,14 @@ package org.springframework.integration.jdbc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
@@ -39,6 +38,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gunnar Hillert
@@ -51,24 +52,26 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 
 	private static JdbcTemplate jdbcTemplate;
 
-	@BeforeClass
-	public static void setUp() throws SQLException {
-		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-		builder.setType(EmbeddedDatabaseType.DERBY);
-		builder.addScript("classpath:derby-stored-procedures.sql");
-		embeddedDatabase = builder.build();
+	@BeforeAll
+	public static void setUp() {
+		embeddedDatabase =
+				new EmbeddedDatabaseBuilder()
+						.setType(EmbeddedDatabaseType.DERBY)
+						.addScript("classpath:derby-stored-procedures.sql")
+						.build();
 		jdbcTemplate = new JdbcTemplate(embeddedDatabase);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown() {
 		embeddedDatabase.shutdown();
 	}
 
-	@After
+	@AfterEach
 	public void cleanup() {
 		jdbcTemplate.execute("DELETE FROM USERS");
 	}
+
 	@Test
 	public void testDerbyStoredProcedureInsertWithDefaultSqlSource() {
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(embeddedDatabase);
@@ -152,7 +155,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 
 		storedProcExecutor.setStoredProcedureName("CREATE_USER");
 
-		final List<ProcedureParameter> procedureParameters = new ArrayList<ProcedureParameter>();
+		final List<ProcedureParameter> procedureParameters = new ArrayList<>();
 		procedureParameters.add(new ProcedureParameter("username", null, "payload.username.toUpperCase()"));
 		procedureParameters.add(new ProcedureParameter("password", null, "payload.password.toUpperCase()"));
 		procedureParameters.add(new ProcedureParameter("email", null, "payload.email.toUpperCase()"));
@@ -164,8 +167,8 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		messageHandler.setBeanFactory(mock(BeanFactory.class));
 		messageHandler.afterPropertiesSet();
 
-		MessageBuilder<User> message = MessageBuilder.withPayload(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));
-		messageHandler.handleMessage(message.build());
+		Message<User> message = new GenericMessage<>(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));
+		messageHandler.handleMessage(message);
 
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "ERIC.CARTMAN");
 
@@ -181,8 +184,9 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 
 		storedProcExecutor.setStoredProcedureName("CREATE_USER");
 
-		final List<ProcedureParameter> procedureParameters = new ArrayList<ProcedureParameter>();
-		procedureParameters.add(new ProcedureParameter("USERNAME", null, "headers[business_id] + '_' + payload.username"));
+		final List<ProcedureParameter> procedureParameters = new ArrayList<>();
+		procedureParameters.add(new ProcedureParameter("USERNAME", null,
+				"headers[business_id] + '_' + payload.username"));
 		procedureParameters.add(new ProcedureParameter("password", "static_password", null));
 		procedureParameters.add(new ProcedureParameter("email", "static_email", null));
 
@@ -193,9 +197,11 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		messageHandler.setBeanFactory(mock(BeanFactory.class));
 		messageHandler.afterPropertiesSet();
 
-		MessageBuilder<User> message = MessageBuilder.withPayload(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));
-		message.setHeader("business_id", "1234");
-		messageHandler.handleMessage(message.build());
+		Message<User> message =
+				MessageBuilder.withPayload(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"))
+						.setHeader("business_id", "1234")
+						.build();
+		messageHandler.handleMessage(message);
 
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "1234_Eric.Cartman");
 
