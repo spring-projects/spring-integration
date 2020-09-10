@@ -323,7 +323,7 @@ public class RemoteFileOutboundGatewayTests {
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				madeDirs.add((String) invocation.getArguments()[0]);
-				return null;
+				return true;
 			}
 		}).when(session).mkdir(anyString());
 		when(sessionFactory.getSession()).thenReturn(session);

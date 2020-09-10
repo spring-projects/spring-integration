@@ -216,7 +216,7 @@ public class SftpOutboundTests {
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				madeDirs.add((String) invocation.getArguments()[0]);
-				return null;
+				return true;
 			}
 		}).when(session).mkdir(anyString());
 		handler.handleMessage(new GenericMessage<String>("qux"));
