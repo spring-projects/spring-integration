@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,6 +121,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			MessageSessionCallback<F, ?> messageSessionCallback) {
 
 		this(new RemoteFileTemplate<>(sessionFactory), messageSessionCallback);
+		remoteFileTemplateExplicitlySet(false);
 	}
 
 	/**
@@ -165,6 +166,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			@Nullable String expression) {
 
 		this(new RemoteFileTemplate<>(sessionFactory), command, expression);
+		remoteFileTemplateExplicitlySet(false);
 	}
 
 	/**
@@ -516,6 +518,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 
 		populateBeanFactoryIntoComponentsIfAny();
+		if (!this.remoteFileTemplateExplicitlySet) {
+			this.remoteFileTemplate.afterPropertiesSet();
+		}
 	}
 
 	private void populateBeanFactoryIntoComponentsIfAny() {
