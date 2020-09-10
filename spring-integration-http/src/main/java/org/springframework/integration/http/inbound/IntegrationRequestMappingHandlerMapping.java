@@ -21,8 +21,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -175,6 +177,18 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 			return buildCorsConfiguration(crossOrigin, mappingInfo);
 		}
 		return null;
+	}
+
+	@Override
+	protected HandlerMethod handleNoMatch(Set<RequestMappingInfo> infos, String path, HttpServletRequest request) {
+		try {
+			return super.handleNoMatch(infos, path, request);
+		}
+		catch (ServletException ex) {
+			// Since this component has a higher precedence the 'null' return allows a
+			// 'DispatcherServlet' to try other 'HandlerMapping'
+			return null;
+		}
 	}
 
 	private static CorsConfiguration buildCorsConfiguration(CrossOrigin crossOrigin, RequestMappingInfo mappingInfo) {

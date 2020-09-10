@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
@@ -85,6 +87,7 @@ import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 /**
  * @author Artem Bilan
@@ -208,6 +211,7 @@ public class HttpDslTests {
 	}
 
 	@Autowired
+	@Qualifier("customValidator")
 	private Validator validator;
 
 	@Test
@@ -293,9 +297,20 @@ public class HttpDslTests {
 		flowRegistration.destroy();
 	}
 
+	@Test
+	public void testMixWithMvcRequestMapping() throws Exception {
+		this.mockMvc.perform(
+				get("/mvcRequest")
+						.with(httpBasic("user", "user")))
+				.andExpect(status().isOk())
+				.andExpect(content().string("MVC reply"));
+	}
+
 	@Configuration
 	@EnableWebSecurity
 	@EnableIntegration
+	@EnableWebMvc
+	@RestController
 	public static class ContextConfiguration extends WebSecurityConfigurerAdapter {
 
 		@Override
@@ -408,6 +423,19 @@ public class HttpDslTests {
 		public Validator customValidator() {
 			return new TestModelValidator();
 		}
+
+
+		@GetMapping("/mvcRequest")
+		ResponseEntity<?> mvcGet() {
+			return ResponseEntity.ok("MVC reply");
+		}
+
+		@Bean
+		HttpRequestHandlerEndpointSpec mvcHandler() {
+			return Http.inboundChannelAdapter("/mvcRequest")
+					.requestMapping((mapping) -> mapping.methods(HttpMethod.POST));
+		}
+
 
 	}
 

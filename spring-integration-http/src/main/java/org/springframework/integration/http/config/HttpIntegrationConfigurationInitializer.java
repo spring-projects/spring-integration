@@ -55,8 +55,7 @@ public class HttpIntegrationConfigurationInitializer implements IntegrationConfi
 	 * which could also be overridden by the user by simply registering
 	 * a {@link IntegrationRequestMappingHandlerMapping} {@code <bean>} with 'id'
 	 * {@link HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
-	 * <p>
-	 * In addition, checks if the {@code javax.servlet.Servlet} class is present on the classpath.
+	 * <p> In addition, checks if the {@code javax.servlet.Servlet} class is present on the classpath.
 	 * When Spring Integration HTTP is used only as an HTTP client, there is no reason to use and register
 	 * the HTTP server components.
 	 */
@@ -64,9 +63,9 @@ public class HttpIntegrationConfigurationInitializer implements IntegrationConfi
 		if (HttpContextUtils.WEB_MVC_PRESENT &&
 				!registry.containsBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
 			BeanDefinitionBuilder requestMappingBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(IntegrationRequestMappingHandlerMapping.class);
-			requestMappingBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			requestMappingBuilder.addPropertyValue(IntegrationNamespaceUtils.ORDER, 0);
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationRequestMappingHandlerMapping.class)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+							.addPropertyValue(IntegrationNamespaceUtils.ORDER, -1);
 			registry.registerBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME,
 					requestMappingBuilder.getBeanDefinition());
 		}
