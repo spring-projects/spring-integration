@@ -295,7 +295,7 @@ public class RemoteFileOutboundGatewayTests {
 		final List<String> madeDirs = new ArrayList<>();
 		doAnswer(invocation -> {
 			madeDirs.add(invocation.getArgument(0));
-			return null;
+			return true;
 		}).when(session).mkdir(anyString());
 		when(sessionFactory.getSession()).thenReturn(session);
 		Message<String> requestMessage = MessageBuilder.withPayload("foo")
@@ -939,7 +939,6 @@ public class RemoteFileOutboundGatewayTests {
 		Session<TestLsEntry> session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "mput", "payload");
 		gw.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		gw.setBeanFactory(mock(BeanFactory.class));
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		final AtomicReference<String> written = new AtomicReference<>();
