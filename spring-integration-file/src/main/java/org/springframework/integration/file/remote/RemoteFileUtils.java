@@ -28,6 +28,7 @@ import org.springframework.integration.file.remote.session.Session;
  * Utility methods for supporting remote file operations.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 3.0
  *
@@ -50,9 +51,7 @@ public final class RemoteFileUtils {
 			Log logger) throws IOException {
 
 		if (!session.exists(path)) {
-
 			int nextSeparatorIndex = path.lastIndexOf(remoteFileSeparator);
-
 			if (nextSeparatorIndex > -1) {
 				List<String> pathsToCreate = new LinkedList<>();
 				while (nextSeparatorIndex > -1) {
@@ -71,12 +70,18 @@ public final class RemoteFileUtils {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Creating '" + pathToCreate + "'");
 					}
-					session.mkdir(pathToCreate);
+					tryCreateRemoteDirectory(session, pathToCreate);
 				}
 			}
 			else {
-				session.mkdir(path);
+				tryCreateRemoteDirectory(session, path);
 			}
+		}
+	}
+
+	private static void tryCreateRemoteDirectory(Session<?> session, String path) throws IOException {
+		if (!session.mkdir(path)) {
+			throw new IOException("Could not create a remote directory: " + path);
 		}
 	}
 
