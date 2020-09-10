@@ -253,10 +253,7 @@ public class SftpSession implements Session<LsEntry> {
 			this.channel.mkdir(remoteDirectory);
 		}
 		catch (SftpException ex) {
-			if (ex.id == ChannelSftp.SSH_FX_FAILURE && exists(remoteDirectory)) {
-				return false;
-			}
-			else {
+			if (ex.id != ChannelSftp.SSH_FX_FAILURE || !exists(remoteDirectory)) {
 				throw new NestedIOException("failed to create remote directory '" + remoteDirectory + "'.", ex);
 			}
 		}
