@@ -560,7 +560,7 @@ public IntegrationFlow serverGateway(
         ConcurrentMessageListenerContainer<Integer, String> container,
         KafkaTemplate<Integer, String> replyTemplate) {
     return IntegrationFlows
-            .from(Kafka.inboundGateway(container, template)
+            .from(Kafka.inboundGateway(container, replyTemplate)
                 .replyTimeout(30_000))
             .<String, String>transform(String::toUpperCase)
             .get();
