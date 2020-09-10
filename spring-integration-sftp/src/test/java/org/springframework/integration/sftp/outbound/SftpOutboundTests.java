@@ -219,7 +219,7 @@ public class SftpOutboundTests {
 		final List<String> madeDirs = new ArrayList<>();
 		doAnswer(invocation -> {
 			madeDirs.add(invocation.getArgument(0));
-			return null;
+			return true;
 		}).when(session).mkdir(anyString());
 		handler.handleMessage(new GenericMessage<>("qux"));
 		assertThat(madeDirs.size()).isEqualTo(3);
