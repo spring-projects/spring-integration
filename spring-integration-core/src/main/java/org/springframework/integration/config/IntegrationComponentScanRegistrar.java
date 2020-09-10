@@ -154,7 +154,7 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 	}
 
 	protected Collection<String> getBasePackages(AnnotationMetadata importingClassMetadata,
-			BeanDefinitionRegistry registry) {
+			@SuppressWarnings("unused") BeanDefinitionRegistry registry) {
 
 		Map<String, Object> componentScan =
 				importingClassMetadata.getAnnotationAttributes(IntegrationComponentScan.class.getName());
