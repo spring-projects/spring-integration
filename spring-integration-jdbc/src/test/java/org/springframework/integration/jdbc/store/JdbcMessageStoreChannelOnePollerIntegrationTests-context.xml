@@ -11,11 +11,11 @@
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<jdbc:embedded-database id="dataSource" type="DERBY" />
+	<jdbc:embedded-database id="dataSource" type="H2" />
 
 	<jdbc:initialize-database ignore-failures="DROPS">
-		<jdbc:script location="org/springframework/integration/jdbc/schema-drop-derby.sql"/>
-		<jdbc:script location="org/springframework/integration/jdbc/schema-derby.sql" />
+		<jdbc:script location="org/springframework/integration/jdbc/schema-drop-h2.sql"/>
+		<jdbc:script location="org/springframework/integration/jdbc/schema-h2.sql" />
 	</jdbc:initialize-database>
 
 	<int-jdbc:message-store id="messageStore"
