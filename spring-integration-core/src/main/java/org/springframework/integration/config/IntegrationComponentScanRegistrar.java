@@ -67,8 +67,7 @@ import org.springframework.util.StringUtils;
 public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRegistrar,
 		ResourceLoaderAware, EnvironmentAware {
 
-	private final Map<TypeFilter, ImportBeanDefinitionRegistrar> componentRegistrars =
-			new HashMap<TypeFilter, ImportBeanDefinitionRegistrar>();
+	private final Map<TypeFilter, ImportBeanDefinitionRegistrar> componentRegistrars = new HashMap<>();
 
 	private ResourceLoader resourceLoader;
 
@@ -107,6 +106,11 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 					protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
 						return beanDefinition.getMetadata().isIndependent()
 								&& !beanDefinition.getMetadata().isAnnotation();
+					}
+
+					@Override
+					protected BeanDefinitionRegistry getRegistry() {
+						return registry;
 					}
 
 				};
@@ -163,7 +167,7 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 			}
 		}
 
-		for (Class<?> clazz : (Class[]) componentScan.get("basePackageClasses")) {
+		for (Class<?> clazz : (Class<?>[]) componentScan.get("basePackageClasses")) {
 			basePackages.add(ClassUtils.getPackageName(clazz));
 		}
 
@@ -216,10 +220,13 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 
 	private static void invokeAwareMethods(Object parserStrategyBean, Environment environment,
 			ResourceLoader resourceLoader, BeanDefinitionRegistry registry) {
+
 		if (parserStrategyBean instanceof Aware) {
 			if (parserStrategyBean instanceof BeanClassLoaderAware) {
-				ClassLoader classLoader = (registry instanceof ConfigurableBeanFactory ?
-						((ConfigurableBeanFactory) registry).getBeanClassLoader() : resourceLoader.getClassLoader());
+				ClassLoader classLoader =
+						registry instanceof ConfigurableBeanFactory
+								? ((ConfigurableBeanFactory) registry).getBeanClassLoader()
+								: resourceLoader.getClassLoader();
 				if (classLoader != null) {
 					((BeanClassLoaderAware) parserStrategyBean).setBeanClassLoader(classLoader);
 				}
