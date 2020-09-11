@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ class WebFluxRequestExecutingMessageHandlerTests {
 				.assertNext(m -> assertThat(m.getHeaders()).containsEntry(HttpHeaders.STATUS_CODE, HttpStatus.OK))
 				.expectNoEvent(Duration.ofMillis(100))
 				.thenCancel()
-				.verify(Duration.ofSeconds(1));
+				.verify(Duration.ofSeconds(10));
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,7 @@ import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.webflux.inbound.WebFluxInboundEndpoint;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
 
 /**
@@ -44,7 +43,7 @@ import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
  *
  * @since 5.0.1
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class WebFluxInboundGatewayParserTests {
 
@@ -115,7 +114,7 @@ public class WebFluxInboundGatewayParserTests {
 
 		CrossOrigin crossOrigin = (CrossOrigin) endpointAccessor.getPropertyValue("crossOrigin");
 		assertThat(crossOrigin).isNotNull();
-		assertThat(crossOrigin.getOrigin()).isEqualTo(new String[] { "foo" });
+		assertThat(crossOrigin.getOrigin()).isEqualTo(new String[]{ "foo" });
 
 		assertThat(endpointAccessor.getPropertyValue("requestPayloadType"))
 				.isEqualTo(ResolvableType.forClass(byte[].class));

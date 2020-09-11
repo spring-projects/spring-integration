@@ -124,14 +124,14 @@ public final class IntegrationReactiveUtils {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private static <T> Flux<Message<T>> adaptSubscribableChannelToPublisher(SubscribableChannel inputChannel) {
 		return Flux.defer(() -> {
 			Sinks.Many<Message<T>> sink = Sinks.many().unicast().onBackpressureError();
 			MessageHandler messageHandler = (message) -> {
 				while (true) {
-					@SuppressWarnings("unchecked")
-					Sinks.Emission emission = sink.tryEmitNext((Message<T>) message);
-					switch (emission) {
+					switch (sink.tryEmitNext((Message<T>) message)) {
+						case FAIL_NON_SERIALIZED:
 						case FAIL_OVERFLOW:
 							LockSupport.parkNanos(1000); // NOSONAR
 							break;

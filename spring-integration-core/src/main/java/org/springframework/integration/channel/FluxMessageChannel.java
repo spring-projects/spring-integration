@@ -83,6 +83,9 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private boolean tryEmitMessage(Message<?> message) {
 		switch (this.sink.tryEmitNext(message)) {
+			case OK:
+				return true;
+			case FAIL_NON_SERIALIZED:
 			case FAIL_OVERFLOW:
 				return false;
 			case FAIL_TERMINATED:
@@ -90,7 +93,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 				throw new IllegalStateException("Cannot emit messages into the cancelled or terminated sink: "
 						+ this.sink);
 			default:
-				return true;
+				throw new UnsupportedOperationException();
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.webflux.management;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -26,8 +25,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.http.config.EnableIntegrationGraphController;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.reactive.config.EnableWebFlux;
@@ -37,8 +35,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
  *
  * @since 5.0.2
  */
-@RunWith(SpringRunner.class)
-@WebAppConfiguration
+@SpringJUnitWebConfig
 @TestPropertySource(properties = "spring.application.name:testApplication")
 @DirtiesContext
 public class IntegrationGraphControllerTests {
