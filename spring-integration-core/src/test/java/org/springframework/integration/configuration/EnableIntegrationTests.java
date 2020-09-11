@@ -17,7 +17,8 @@
 package org.springframework.integration.configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -43,6 +44,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -53,6 +55,9 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Lazy;
@@ -60,6 +65,7 @@ import org.springframework.context.expression.EnvironmentAccessor;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -448,15 +454,11 @@ public class EnableIntegrationTests {
 	@Test
 	@DirtiesContext
 	public void testChangePatterns() {
-		try {
-			this.configurer.setComponentNamePatterns(new String[] { "*" });
-			fail("ExpectedException");
-		}
-		catch (IllegalStateException e) {
-			assertThat(e.getMessage()).contains("cannot be changed");
-		}
+		assertThatIllegalStateException()
+				.isThrownBy(() -> this.configurer.setComponentNamePatterns(new String[]{ "*" }))
+				.withMessageContaining("cannot be changed");
 		this.configurer.stop();
-		this.configurer.setComponentNamePatterns(new String[] { "*" });
+		this.configurer.setComponentNamePatterns(new String[]{ "*" });
 		assertThat(TestUtils.getPropertyValue(this.configurer, "componentNamePatterns", String[].class)[0])
 				.isEqualTo("*");
 	}
@@ -484,6 +486,9 @@ public class EnableIntegrationTests {
 		this.testGateway.sendAsync("foo");
 		assertThat(this.asyncAnnotationProcessLatch.await(1, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.asyncAnnotationProcessThread.get()).isNotSameAs(Thread.currentThread());
+
+		assertThatExceptionOfType(NoSuchBeanDefinitionException.class)
+				.isThrownBy(() -> this.context.getBean(ConditionalGateway.class));
 	}
 
 	/**
@@ -636,14 +641,10 @@ public class EnableIntegrationTests {
 		assertThat(testMessage).isSameAs(receive);
 		assertThat(this.pollableBridgeOutput.receive(10)).isNull();
 
-		try {
-			this.metaBridgeInput.send(testMessage);
-			fail("MessageDeliveryException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageDeliveryException.class);
-			assertThat(e.getMessage()).contains("Dispatcher has no subscribers");
-		}
+
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.metaBridgeInput.send(testMessage))
+				.withMessageContaining("Dispatcher has no subscribers");
 
 		this.context.getBean("enableIntegrationTests.ContextConfiguration.metaBridgeOutput.bridgeFrom",
 				Lifecycle.class).start();
@@ -668,14 +669,9 @@ public class EnableIntegrationTests {
 		assertThat(bridgeMessage).isSameAs(receive);
 		assertThat(replyChannel.receive(10)).isNull();
 
-		try {
-			this.myBridgeToInput.send(testMessage);
-			fail("MessageDeliveryException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageDeliveryException.class);
-			assertThat(e.getMessage()).contains("Dispatcher has no subscribers");
-		}
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.myBridgeToInput.send(testMessage))
+				.withMessageContaining("Dispatcher has no subscribers");
 
 		this.context.getBean("enableIntegrationTests.ContextConfiguration.myBridgeToInput.bridgeTo",
 				Lifecycle.class).start();
@@ -778,7 +774,7 @@ public class EnableIntegrationTests {
 	private PollableChannel myHandlerSuccessChannel;
 
 	@Test
-	public void testAdvicedServiceActivator() {
+	public void testAdvisedServiceActivator() {
 		Date testDate = new Date();
 
 		this.myHandlerChannel.send(new GenericMessage<>(testDate));
@@ -1433,6 +1429,14 @@ public class EnableIntegrationTests {
 
 	}
 
+	@Conditional(TestCondition.class)
+	@MessagingGateway
+	public interface ConditionalGateway {
+
+		void testGateway(Object payload);
+
+	}
+
 	@TestMessagingGateway
 	public interface TestGateway {
 
@@ -1691,6 +1695,15 @@ public class EnableIntegrationTests {
 
 		public static Object bar(Object o) {
 			return o;
+		}
+
+	}
+
+	public static class TestCondition implements Condition {
+
+		@Override
+		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+			return context.getBeanFactory().containsBean("DoesNotExist");
 		}
 
 	}
