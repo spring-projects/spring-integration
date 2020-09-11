@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.http.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willReturn;
 
@@ -55,6 +56,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.Validator;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.servlet.HandlerMapping;
 
 
@@ -193,13 +195,18 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 	}
 
 	@Test
-	public void getRequestNotAllowed() throws Exception {
+	public void getRequestNotAllowed() {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.setParameter("foo", "bar");
 		request.setRequestURI("/postOnly");
 
-		assertThat(this.integrationRequestMappingHandlerMapping.getHandler(request)).isNull();
+		assertThatExceptionOfType(HttpRequestMethodNotSupportedException.class)
+				.isThrownBy(() -> this.integrationRequestMappingHandlerMapping.getHandler(request))
+				.satisfies((ex) -> {
+					assertThat(ex.getMethod()).isEqualTo("GET");
+					assertThat(ex.getSupportedMethods()).containsExactly("POST");
+				});
 	}
 
 	@Test
