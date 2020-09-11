@@ -100,7 +100,7 @@ public final class IntegrationReactiveUtils {
 	 * - a {@link org.springframework.integration.channel.FluxMessageChannel}
 	 * is returned as is because it is already a {@link Publisher};
 	 * - a {@link SubscribableChannel} is subscribed with a {@link MessageHandler}
-	 * for the {@link Sinks.Many#emitNext(Object)} which is returned from this method;
+	 * for the {@link Sinks.Many#tryEmitNext(Object)} which is returned from this method;
 	 * - a {@link PollableChannel} is wrapped into a {@link MessageSource} lambda and reuses
 	 * {@link #messageSourceToFlux(MessageSource)}.
 	 * @param messageChannel the {@link MessageChannel} to adapt.

@@ -23,6 +23,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.util.Assert;
 
 import reactor.core.Disposable;
@@ -71,7 +72,8 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		long parkTimeout = 10; // NOSONAR
 		long parkTimeoutNs = TimeUnit.MILLISECONDS.toNanos(parkTimeout);
 		while (this.active && !tryEmitMessage(message)) {
-			if (timeout >= 0 && (remainingTime -= parkTimeout) <= 0) {
+			remainingTime -= parkTimeout;
+			if (timeout >= 0 && remainingTime <= 0) {
 				return false;
 			}
 			LockSupport.parkNanos(parkTimeoutNs);
@@ -95,9 +97,9 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.processor
-				.doFinally((s) -> this.subscribedSignal.emitNext(this.processor.hasDownstreams()))
+				.doFinally((s) -> this.subscribedSignal.tryEmitNext(this.processor.hasDownstreams()))
 				.subscribe(subscriber);
-		this.subscribedSignal.emitNext(this.processor.hasDownstreams());
+		this.subscribedSignal.tryEmitNext(this.processor.hasDownstreams());
 	}
 
 	@Override
@@ -108,7 +110,10 @@ public class FluxMessageChannel extends AbstractMessageChannel
 						.publishOn(Schedulers.boundedElastic())
 						.doOnNext((message) -> {
 							try {
-								send(message);
+								if (!send(message)) {
+									throw new MessageDeliveryException(message,
+											"Failed to send message to channel '" + this);
+								}
 							}
 							catch (Exception ex) {
 								logger.warn("Error during processing event: " + message, ex);
@@ -120,7 +125,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	@Override
 	public void destroy() {
 		this.active = false;
-		this.subscribedSignal.emitNext(false);
+		this.subscribedSignal.tryEmitNext(false);
 		this.upstreamSubscriptions.dispose();
 		this.processor.onComplete();
 		super.destroy();

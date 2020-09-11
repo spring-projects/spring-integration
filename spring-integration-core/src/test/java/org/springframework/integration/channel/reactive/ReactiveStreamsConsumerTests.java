@@ -301,7 +301,7 @@ public class ReactiveStreamsConsumerTests {
 
 		ReactiveMessageHandler messageHandler =
 				m -> {
-					sink.emitNext(m);
+					sink.tryEmitNext(m);
 					return Mono.empty();
 				};
 

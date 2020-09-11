@@ -544,7 +544,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		@MessageMapping("receive")
 		void receive(String payload) {
-			this.fireForgetPayloads.emitNext(payload);
+			this.fireForgetPayloads.tryEmitNext(payload);
 		}
 
 		@MessageMapping("echo")
