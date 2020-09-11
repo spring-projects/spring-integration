@@ -80,13 +80,13 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * {@link org.springframework.integration.dsl.context.IntegrationFlowContext}, and unregister
  * them during the {@link BaseHttpInboundEndpoint} destruction.
  *<p>
- * This class extends a standard Spring MVC {@link RequestMappingHandlerMapping} and inherits
+ * This class extends the Spring MVC {@link RequestMappingHandlerMapping} class, inheriting
  * most of its logic, especially {@link #handleNoMatch(Set, String, HttpServletRequest)},
- * which thrown a specific {@code 4xx} error to the HTTP response when mapping doesn't match
- * for some reason preventing tries for the rest mapping handlers in the application context.
- * This way it is not recommended to configure the same path for both Spring Integration and
- * Spring MVC request mappings since it is not going to be tried against different configuration
- * in other mapping handlers.
+ * which throws a specific {@code 4xx} error for the HTTP response, when mapping doesn't match
+ * for some reason, preventing calls to any remaining mapping handlers in the application context.
+ * For this reason, configuring the same path for both Spring Integration and
+ * Spring MVC request mappings (e.g. `POST` in one and `GET` in the other) is not supported;
+ * the MVC mapping will not be found.
  *
  * @author Artem Bilan
  * @author Gary Russell

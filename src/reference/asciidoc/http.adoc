@@ -349,8 +349,8 @@ The following example shows how to do so:
 
 For more information regarding handler mappings, see https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html[the Spring Framework Web Servlet documentation] or https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html[the Spring Framework Web Reactive documentation].
 
-IMPORTANT: The `IntegrationRequestMappingHandlerMapping` extends a standard Spring MVC `RequestMappingHandlerMapping` and inherits most of its logic, especially `handleNoMatch(Set, String, HttpServletRequest)`, which thrown a specific `4xx` error to the HTTP response when mapping doesn't match for some reason preventing tries for the rest mapping handlers in the application context.
-This way it is not recommended to configure the same path for both Spring Integration and Spring MVC request mappings since it is not going to be tried against different configuration in other mapping handlers.
+IMPORTANT: The `IntegrationRequestMappingHandlerMapping` extends the Spring MVC `RequestMappingHandlerMapping` class, inheriting most of its logic, especially `handleNoMatch(Set, String, HttpServletRequest)`, which throws a specific `4xx` error for the HTTP response, when mapping doesn't match for some reason, preventing calls to any remaining mapping handlers in the application context.
+For this reason, configuring the same path for both Spring Integration and Spring MVC request mappings (e.g. `POST` in one and `GET` in the other) is not supported; the MVC mapping will not be found..
 
 [[http-cors]]
 ==== Cross-origin Resource Sharing (CORS) Support
