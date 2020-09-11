@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.http.HttpServletRequest;
@@ -78,6 +79,14 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * register HTTP endpoints at runtime for dynamically declared beans, e.g. via
  * {@link org.springframework.integration.dsl.context.IntegrationFlowContext}, and unregister
  * them during the {@link BaseHttpInboundEndpoint} destruction.
+ *<p>
+ * This class extends the Spring MVC {@link RequestMappingHandlerMapping} class, inheriting
+ * most of its logic, especially {@link #handleNoMatch(Set, String, HttpServletRequest)},
+ * which throws a specific {@code 4xx} error for the HTTP response, when mapping doesn't match
+ * for some reason, preventing calls to any remaining mapping handlers in the application context.
+ * For this reason, configuring the same path for both Spring Integration and
+ * Spring MVC request mappings (e.g. `POST` in one and `GET` in the other) is not supported;
+ * the MVC mapping will not be found.
  *
  * @author Artem Bilan
  * @author Gary Russell
