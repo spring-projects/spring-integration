@@ -292,7 +292,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		}
 
 		@Bean
-		@Router(inputChannel = "routerChannel", channelMappings = {"true=odd", "false=filter"}, suffix = "Channel")
+		@Router(inputChannel = "routerChannel", channelMappings = { "true=odd", "false=filter" }, suffix = "Channel")
 		public MessageSelector router() {
 			return new ExpressionEvaluatingSelector("payload % 2 == 0");
 		}
@@ -440,7 +440,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@ServiceActivator(inputChannel = "reactiveMessageHandlerChannel")
 		public ReactiveMessageHandler reactiveMessageHandlerService() {
 			return (message) -> {
-				messageMono.emitValue(message);
+				messageMono.tryEmitValue(message);
 				return Mono.empty();
 			};
 		}

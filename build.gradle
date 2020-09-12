@@ -434,6 +434,7 @@ project('spring-integration-core') {
 		testImplementation ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testImplementation ('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
 		testRuntime 'com.fasterxml.jackson.module:jackson-module-kotlin'
+		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }
 

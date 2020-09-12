@@ -90,7 +90,7 @@ public class GatewayParserTests {
 
 		Sinks.One<Object> defaultMethodHandler = Sinks.one();
 
-		this.errorChannel.subscribe(message -> defaultMethodHandler.emitValue(message.getPayload()));
+		this.errorChannel.subscribe(message -> defaultMethodHandler.tryEmitValue(message.getPayload()));
 
 		String defaultMethodPayload = "defaultMethodPayload";
 		service.defaultMethodGateway(defaultMethodPayload);

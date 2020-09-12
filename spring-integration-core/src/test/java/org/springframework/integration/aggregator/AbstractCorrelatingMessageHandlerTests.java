@@ -17,6 +17,7 @@
 package org.springframework.integration.aggregator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -524,7 +525,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		handler.start();
 		Message<?> receive = discardChannel.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(groupStore.getMessageGroupCount()).isEqualTo(0);
+		await().until(groupStore::getMessageGroupCount, (count) -> count == 0);
 		verify(groupStore, atLeast(2)).expireMessageGroups(100);
 		taskScheduler.destroy();
 	}

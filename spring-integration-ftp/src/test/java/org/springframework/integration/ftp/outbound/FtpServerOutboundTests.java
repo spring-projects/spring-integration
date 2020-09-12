@@ -715,7 +715,6 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		});
 		resetSessionCache();
 		assertThat(this.config.latch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(this.config.events).hasSize(11);
 		assertThat(this.config.events.get(0)).isInstanceOf(SessionOpenedEvent.class);
 		assertThat(this.config.events.get(1)).isInstanceOf(DirectoryCreatedEvent.class);
 		DirectoryCreatedEvent dce = (DirectoryCreatedEvent) this.config.events.get(1);

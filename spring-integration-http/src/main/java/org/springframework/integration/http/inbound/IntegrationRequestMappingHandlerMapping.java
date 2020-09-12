@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.http.HttpServletRequest;
@@ -81,7 +80,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * them during the {@link BaseHttpInboundEndpoint} destruction.
  *<p>
  * This class extends the Spring MVC {@link RequestMappingHandlerMapping} class, inheriting
- * most of its logic, especially {@link #handleNoMatch(Set, String, HttpServletRequest)},
+ * most of its logic, especially {@link #handleNoMatch(java.util.Set, String, HttpServletRequest)},
  * which throws a specific {@code 4xx} error for the HTTP response, when mapping doesn't match
  * for some reason, preventing calls to any remaining mapping handlers in the application context.
  * For this reason, configuring the same path for both Spring Integration and

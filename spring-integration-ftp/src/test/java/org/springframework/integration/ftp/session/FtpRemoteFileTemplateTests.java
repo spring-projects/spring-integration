@@ -94,7 +94,7 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 		template.execute((SessionCallbackWithoutResult<FTPFile>) session -> {
 			assertThat(session.remove("foo/foobar.txt")).isTrue();
 			assertThat(session.rmdir("foo/bar/")).isTrue();
-			await().atMost(Duration.ofSeconds(10)).until(() -> session.list("foo/"), files -> files.length == 0);
+			await().atMost(Duration.ofSeconds(20)).until(() -> session.list("foo/"), files -> files.length == 0);
 			assertThat(session.rmdir("foo/")).isTrue();
 		});
 		assertThat(template.exists("foo")).isFalse();
