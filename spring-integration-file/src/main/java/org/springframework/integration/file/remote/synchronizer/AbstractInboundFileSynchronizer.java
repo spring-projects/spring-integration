@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -493,10 +493,13 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				if (this.preserveTimestamp && !localFile.setLastModified(modified)) {
 					throw new IllegalStateException("Could not sent last modified on file: " + localFile);
 				}
-				String[] hostPort = session.getHostPort().split(":");
+				String hostPort = session.getHostPort();
+				int colonIndex = hostPort.lastIndexOf(":");
+				String host = hostPort.substring(0, colonIndex);
+				String port = hostPort.substring(colonIndex + 1);
 				try {
 					String remoteFileMetadata =
-							new URI(protocol(), null, hostPort[0], Integer.parseInt(hostPort[1]),
+							new URI(protocol(), null, host, Integer.parseInt(port),
 									'/' + remoteDirectoryPath, null, remoteFileName)
 									.toString();
 					this.remoteFileMetadataStore.put(buildMetadataKey(localFile), remoteFileMetadata);

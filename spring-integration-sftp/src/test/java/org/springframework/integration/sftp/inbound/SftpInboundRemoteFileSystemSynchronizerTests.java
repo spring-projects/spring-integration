@@ -17,6 +17,7 @@
 package org.springframework.integration.sftp.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -25,10 +26,12 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.junit.jupiter.api.AfterEach;
@@ -65,11 +68,14 @@ import com.jcraft.jsch.SftpATTRS;
  */
 public class SftpInboundRemoteFileSystemSynchronizerTests {
 
-	private static com.jcraft.jsch.Session jschSession = mock(com.jcraft.jsch.Session.class);
+	private static final com.jcraft.jsch.Session jschSession = mock(com.jcraft.jsch.Session.class);
 
 	@BeforeEach
 	@AfterEach
 	public void cleanup() {
+		willReturn("::1")
+				.given(jschSession)
+				.getHost();
 		File file = new File("test");
 		if (file.exists()) {
 			String[] files = file.list();
@@ -103,7 +109,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		List<FileListFilter<LsEntry>> filters = new ArrayList<>();
 		filters.add(persistFilter);
 		filters.add(patternFilter);
-		CompositeFileListFilter<LsEntry> filter = new CompositeFileListFilter<LsEntry>(filters);
+		CompositeFileListFilter<LsEntry> filter = new CompositeFileListFilter<>(filters);
 		synchronizer.setFilter(filter);
 		synchronizer.setBeanFactory(mock(BeanFactory.class));
 		synchronizer.afterPropertiesSet();
@@ -128,6 +134,13 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 		assertThat(atestFile.getHeaders())
 				.containsKeys(FileHeaders.REMOTE_HOST_PORT, FileHeaders.REMOTE_DIRECTORY, FileHeaders.REMOTE_FILE);
+
+		@SuppressWarnings("unchecked")
+		Map<String, String> remoteFileMetadataStore =
+				TestUtils.getPropertyValue(synchronizer, "remoteFileMetadataStore.metadata", Map.class);
+
+		String next = remoteFileMetadataStore.values().iterator().next();
+		assertThat(URI.create(next).getHost()).isEqualTo("[::1]");
 
 		Message<File> btestFile = ms.receive();
 		assertThat(btestFile).isNotNull();
