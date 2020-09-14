@@ -17,6 +17,7 @@
 package org.springframework.integration.file.dsl;
 
 import java.io.File;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -279,6 +280,18 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 */
 	public S scanner(DirectoryScanner scanner) {
 		this.target.setScanner(scanner);
+		return _this();
+	}
+
+	/**
+	 * Set a comparator to sort the retrieved list of {@code F} (the Type that represents
+	 * the remote file) prior to applying filters and max fetch size.
+	 * @param remoteComparator the {@link Comparator} for remote files.
+	 * @return the spec.
+	 * @since 5.2.9
+	 */
+	public S remoteComparator(Comparator<F> remoteComparator) {
+		this.synchronizer.setComparator(remoteComparator);
 		return _this();
 	}
 
