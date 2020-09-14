@@ -150,13 +150,15 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 		indexOperations.ensureIndex(new Index(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC));
 
-		indexOperations.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
-				.on(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC)
-				.unique());
+		indexOperations.ensureIndex(
+				new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
+						.on(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC)
+						.unique());
 
-		indexOperations.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
-				.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.DESC)
-				.on(MessageDocumentFields.SEQUENCE, Sort.Direction.DESC));
+		indexOperations.ensureIndex(
+				new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
+						.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.DESC)
+						.on(MessageDocumentFields.SEQUENCE, Sort.Direction.DESC));
 	}
 
 	public Message<?> getMessage(UUID id) {
@@ -198,11 +200,11 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	 * The {@link #SEQUENCE_NAME} document is created on demand.
 	 * @return the next sequence value.
 	 */
-	protected int getNextId() {
+	protected long getNextId() {
 		Query query = Query.query(Criteria.where("_id").is(SEQUENCE_NAME));
 		query.fields().include(MessageDocumentFields.SEQUENCE);
-		return (Integer) this.mongoTemplate.findAndModify(query,
-				new Update().inc(MessageDocumentFields.SEQUENCE, 1),
+		return (Long) this.mongoTemplate.findAndModify(query,
+				new Update().inc(MessageDocumentFields.SEQUENCE, 1L),
 				FindAndModifyOptions.options().returnNew(true).upsert(true),
 				Map.class, this.collectionName)
 				.get(MessageDocumentFields.SEQUENCE); // NOSONAR - never returns null

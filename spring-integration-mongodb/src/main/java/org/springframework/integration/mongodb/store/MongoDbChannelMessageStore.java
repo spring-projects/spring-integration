@@ -49,6 +49,9 @@ import org.springframework.util.Assert;
 public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessageStore
 		implements PriorityCapableChannelMessageStore {
 
+	/**
+	 * The default conventional collection name.
+	 */
 	public static final String DEFAULT_COLLECTION_NAME = "channelMessages";
 
 	private boolean priorityEnabled;
@@ -65,7 +68,9 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 		this(mongoDbFactory, null, DEFAULT_COLLECTION_NAME);
 	}
 
-	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter) {
+	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory,
+			MappingMongoConverter mappingMongoConverter) {
+
 		this(mongoDbFactory, mappingMongoConverter, DEFAULT_COLLECTION_NAME);
 	}
 
@@ -75,6 +80,7 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 
 	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
 			String collectionName) {
+
 		super(mongoDbFactory, mappingMongoConverter, collectionName);
 	}
 
@@ -90,7 +96,8 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	@Override
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
-		getMongoTemplate().indexOps(this.collectionName)
+		getMongoTemplate()
+				.indexOps(this.collectionName)
 				.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
 						.on(MessageDocumentFields.PRIORITY, Sort.Direction.DESC)
 						.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.ASC)
@@ -109,10 +116,10 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 		if (this.priorityEnabled) {
 			document.setPriority(message.getHeaders().get(IntegrationMessageHeaderAccessor.PRIORITY, Integer.class));
 		}
-		document.setSequence(this.getNextId());
+		document.setSequence(getNextId());
 
-		this.addMessageDocument(document);
-		return this.getMessageGroup(groupId);
+		addMessageDocument(document);
+		return getMessageGroup(groupId);
 	}
 
 	/**
