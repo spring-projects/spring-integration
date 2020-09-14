@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 
@@ -76,7 +77,8 @@ public class SftpTests extends SftpTestSupport {
 								.remoteDirectory("sftpSource")
 								.regexFilter(".*\\.txt$")
 								.localFilenameExpression("#this.toUpperCase() + '.a'")
-								.localDirectory(getTargetLocalDirectory()),
+								.localDirectory(getTargetLocalDirectory())
+						.remoteComparator(Comparator.naturalOrder()),
 						e -> e.id("sftpInboundAdapter").poller(Pollers.fixedDelay(100)))
 				.channel(out)
 				.get();
@@ -86,13 +88,13 @@ public class SftpTests extends SftpTestSupport {
 		Object payload = message.getPayload();
 		assertThat(payload).isInstanceOf(File.class);
 		File file = (File) payload;
-		assertThat(file.getName()).isIn(" SFTPSOURCE1.TXT.a", "SFTPSOURCE2.TXT.a");
+		assertThat(file.getName()).isEqualTo(" SFTPSOURCE1.TXT.a");
 		assertThat(file.getAbsolutePath()).contains("localTarget");
 
 		message = out.receive(10_000);
 		assertThat(message).isNotNull();
 		file = (File) message.getPayload();
-		assertThat(file.getName()).isIn(" SFTPSOURCE1.TXT.a", "SFTPSOURCE2.TXT.a");
+		assertThat(file.getName()).isIn("SFTPSOURCE2.TXT.a");
 		assertThat(file.getAbsolutePath()).contains("localTarget");
 
 		registration.destroy();
