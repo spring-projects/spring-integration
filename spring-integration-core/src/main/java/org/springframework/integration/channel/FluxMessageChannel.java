@@ -88,6 +88,8 @@ public class FluxMessageChannel extends AbstractMessageChannel
 			case FAIL_NON_SERIALIZED:
 			case FAIL_OVERFLOW:
 				return false;
+			case FAIL_ZERO_SUBSCRIBER:
+				throw new IllegalStateException("The [" + this + "] doesn't have subscribers to accept messages");
 			case FAIL_TERMINATED:
 			case FAIL_CANCELLED:
 				throw new IllegalStateException("Cannot emit messages into the cancelled or terminated sink: "
@@ -101,6 +103,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.processor
 				.doFinally((s) -> this.subscribedSignal.tryEmitNext(this.processor.hasDownstreams()))
+				.share()
 				.subscribe(subscriber);
 		this.subscribedSignal.tryEmitNext(this.processor.hasDownstreams());
 	}

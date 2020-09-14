@@ -135,6 +135,9 @@ public final class IntegrationReactiveUtils {
 						case FAIL_OVERFLOW:
 							LockSupport.parkNanos(1000); // NOSONAR
 							break;
+						case FAIL_ZERO_SUBSCRIBER:
+							throw new IllegalStateException("The [" + sink +
+									"] doesn't have subscribers to accept messages");
 						case FAIL_TERMINATED:
 						case FAIL_CANCELLED:
 							throw new IllegalStateException("Cannot emit messages into the cancelled " +
