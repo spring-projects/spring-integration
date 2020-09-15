@@ -473,11 +473,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private long getNextId() {
 		Query query = Query.query(Criteria.where("_id").is(SEQUENCE_NAME));
 		query.fields().include(SEQUENCE);
-		return (Long) this.template.findAndModify(query,
+		return ((Number) this.template.findAndModify(query,
 				new Update().inc(SEQUENCE, 1L),
 				FindAndModifyOptions.options().returnNew(true).upsert(true),
-				Map.class,
-				this.collectionName).get(SEQUENCE); // NOSONAR - never returns null
+				Map.class, this.collectionName)
+				.get(SEQUENCE))  // NOSONAR - never returns null
+				.longValue();
 	}
 
 	@SuppressWarnings(UNCHECKED)

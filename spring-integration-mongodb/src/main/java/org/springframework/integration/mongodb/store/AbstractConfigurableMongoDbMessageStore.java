@@ -203,11 +203,12 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	protected long getNextId() {
 		Query query = Query.query(Criteria.where("_id").is(SEQUENCE_NAME));
 		query.fields().include(MessageDocumentFields.SEQUENCE);
-		return (Long) this.mongoTemplate.findAndModify(query,
+		return ((Number) this.mongoTemplate.findAndModify(query,
 				new Update().inc(MessageDocumentFields.SEQUENCE, 1L),
 				FindAndModifyOptions.options().returnNew(true).upsert(true),
 				Map.class, this.collectionName)
-				.get(MessageDocumentFields.SEQUENCE); // NOSONAR - never returns null
+				.get(MessageDocumentFields.SEQUENCE))  // NOSONAR - never returns null
+				.longValue();
 	}
 
 	protected void addMessageDocument(final MessageDocument document) {
