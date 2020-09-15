@@ -470,14 +470,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		this.template.findAndModify(query, update, FindAndModifyOptions.none(), Map.class, this.collectionName);
 	}
 
-	private int getNextId() {
+	private long getNextId() {
 		Query query = Query.query(Criteria.where("_id").is(SEQUENCE_NAME));
 		query.fields().include(SEQUENCE);
-		return (Integer) this.template.findAndModify(query,
-				new Update().inc(SEQUENCE, 1),
+		return ((Number) this.template.findAndModify(query,
+				new Update().inc(SEQUENCE, 1L),
 				FindAndModifyOptions.options().returnNew(true).upsert(true),
-				Map.class,
-				this.collectionName).get(SEQUENCE); // NOSONAR - never returns null
+				Map.class, this.collectionName)
+				.get(SEQUENCE))  // NOSONAR - never returns null
+				.longValue();
 	}
 
 	@SuppressWarnings(UNCHECKED)
@@ -848,7 +849,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		private volatile boolean _group_complete; // NOSONAR name
 
 		@SuppressWarnings(UNUSED)
-		private int sequence;
+		private long sequence;
 
 		MessageWrapper(Message<?> message) {
 			Assert.notNull(message, "'message' must not be null");
@@ -917,7 +918,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			this._group_complete = completedGroup;
 		}
 
-		public void set_Sequence(int sequence) { // NOSONAR name
+		public void set_Sequence(long sequence) { // NOSONAR name
 			this.sequence = sequence;
 		}
 
