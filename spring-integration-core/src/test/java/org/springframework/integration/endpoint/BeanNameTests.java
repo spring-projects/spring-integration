@@ -112,7 +112,7 @@ public class BeanNameTests {
 	public static class Config {
 
 		@Bean
-		public MeterRegistry meterRegistry() {
+		public static MeterRegistry meterRegistry() {
 			return new SimpleMeterRegistry();
 		}
 
@@ -142,7 +142,8 @@ public class BeanNameTests {
 		@EndpointId("eipBean2")
 		@ServiceActivator(inputChannel = "channel3")
 		public MessageHandler handler() {
-			return m -> { };
+			return m -> {
+			};
 		}
 
 		@EndpointId("eipMethodSource")

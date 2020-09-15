@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
@@ -34,11 +33,10 @@ import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
 import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
-import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptor;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 
 /**
@@ -107,15 +105,15 @@ public class IntegrationManagementConfigurer
 		this.defaultLoggingEnabled = defaultLoggingEnabled;
 	}
 
+	public void setMetricsCaptor(@Nullable MetricsCaptor metricsCaptor) {
+		this.metricsCaptor = metricsCaptor;
+	}
+
 	@Override
 	public void afterSingletonsInstantiated() {
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
-		if (ClassUtils.isPresent("io.micrometer.core.instrument.MeterRegistry",
-				this.applicationContext.getClassLoader())) {
-			this.metricsCaptor = MicrometerMetricsCaptor.loadCaptor(this.applicationContext);
-		}
 		if (this.metricsCaptor != null) {
 			injectCaptor();
 			registerComponentGauges();
@@ -152,23 +150,23 @@ public class IntegrationManagementConfigurer
 	}
 
 	private void registerComponentGauges() {
-		gauges.add(
+		this.gauges.add(
 				this.metricsCaptor.gaugeBuilder("spring.integration.channels", this,
 						(c) -> this.applicationContext.getBeansOfType(MessageChannel.class).size())
 						.description("The number of message channels")
 						.build());
 
-		gauges.add(
+		this.gauges.add(
 				this.metricsCaptor.gaugeBuilder("spring.integration.handlers", this,
-				(c) -> this.applicationContext.getBeansOfType(MessageHandler.class).size())
-				.description("The number of message handlers")
-				.build());
+						(c) -> this.applicationContext.getBeansOfType(MessageHandler.class).size())
+						.description("The number of message handlers")
+						.build());
 
-		gauges.add(
+		this.gauges.add(
 				this.metricsCaptor.gaugeBuilder("spring.integration.sources", this,
-				(c) -> this.applicationContext.getBeansOfType(MessageSource.class).size())
-				.description("The number of message sources")
-				.build());
+						(c) -> this.applicationContext.getBeansOfType(MessageSource.class).size())
+						.description("The number of message sources")
+						.build());
 	}
 
 	@Override
