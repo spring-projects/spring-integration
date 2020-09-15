@@ -86,7 +86,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 	 * there's already a {@link MetricsCaptor} bean, return that.
 	 * @param applicationContext the application context.
 	 * @return the instance.
-	 * @deprecated since 5.2.9 in favor of {@code @Import(MicrometerImportSelector.class)};
+	 * @deprecated since 5.2.9 in favor of {@code @Import(MicrometerMetricsCaptorRegistrar.class)};
 	 * will be removed in 6.0.
 	 */
 	@Deprecated

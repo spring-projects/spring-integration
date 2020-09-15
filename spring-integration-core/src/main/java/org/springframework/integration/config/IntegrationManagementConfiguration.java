@@ -23,14 +23,12 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportAware;
 import org.springframework.context.annotation.Role;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
-import org.springframework.integration.support.management.micrometer.MicrometerImportSelector;
 import org.springframework.util.Assert;
 
 /**
@@ -45,7 +43,6 @@ import org.springframework.util.Assert;
  * @since 4.2
  */
 @Configuration(proxyBeanMethods = false)
-@Import(MicrometerImportSelector.class)
 public class IntegrationManagementConfiguration implements ImportAware, EnvironmentAware {
 
 	private AnnotationAttributes attributes;
