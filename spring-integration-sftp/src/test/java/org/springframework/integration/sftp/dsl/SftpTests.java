@@ -69,6 +69,7 @@ public class SftpTests extends SftpTestSupport {
 	private IntegrationFlowContext flowContext;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testSftpInboundFlow() {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = IntegrationFlows

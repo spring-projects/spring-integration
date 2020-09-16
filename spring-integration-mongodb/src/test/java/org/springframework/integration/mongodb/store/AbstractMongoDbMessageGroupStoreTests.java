@@ -58,6 +58,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Before
 	public void setup() {
+		cleanupCollections(MONGO_DATABASE_FACTORY);
 		this.testApplicationContext.refresh();
 	}
 

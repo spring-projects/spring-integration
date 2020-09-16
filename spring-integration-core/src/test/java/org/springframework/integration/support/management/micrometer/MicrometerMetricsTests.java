@@ -226,7 +226,7 @@ public class MicrometerMetricsTests {
 	public static class Config {
 
 		@Bean
-		public MeterRegistry meterRegistry() {
+		public static MeterRegistry meterRegistry() {
 			return new SimpleMeterRegistry();
 		}
 

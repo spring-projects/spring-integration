@@ -18,14 +18,17 @@ package org.springframework.integration.config;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.context.ApplicationContext;
@@ -33,13 +36,13 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
+import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
-import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptor;
 import org.springframework.integration.support.utils.PatternMatchUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 
@@ -58,11 +61,13 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("deprecation")
 public class IntegrationManagementConfigurer
 		implements SmartInitializingSingleton, ApplicationContextAware, BeanNameAware,
-		DestructionAwareBeanPostProcessor {
+		DestructionAwareBeanPostProcessor, DisposableBean {
 
 	private static final Log LOGGER = LogFactory.getLog(IntegrationManagementConfigurer.class);
 
 	public static final String MANAGEMENT_CONFIGURER_NAME = "integrationManagementConfigurer";
+
+	private final Set<MeterFacade> gauges = new HashSet<>();
 
 	private final Map<String, org.springframework.integration.support.management.MessageChannelMetrics>
 			channelsByName = new HashMap<>();
@@ -241,15 +246,15 @@ public class IntegrationManagementConfigurer
 		this.defaultLoggingEnabled = defaultLoggingEnabled;
 	}
 
+	public void setMetricsCaptor(@Nullable MetricsCaptor metricsCaptor) {
+		this.metricsCaptor = metricsCaptor;
+	}
+
 	@Override
 	public void afterSingletonsInstantiated() {
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
-		if (ClassUtils.isPresent("io.micrometer.core.instrument.MeterRegistry",
-				this.applicationContext.getClassLoader())) {
-			this.metricsCaptor = MicrometerMetricsCaptor.loadCaptor(this.applicationContext);
-		}
 		if (this.metricsCaptor != null) {
 			injectCaptor();
 			registerComponentGauges();
@@ -386,7 +391,7 @@ public class IntegrationManagementConfigurer
 				&& !overrides.metricsConfigured) {
 			((org.springframework.integration.support.management.ConfigurableMetricsAware<
 					org.springframework.integration.support.management.AbstractMessageChannelMetrics>) bean)
-						.configureMetrics(metrics);
+					.configureMetrics(metrics);
 		}
 		this.channelsByName.put(name, bean);
 	}
@@ -422,7 +427,7 @@ public class IntegrationManagementConfigurer
 				&& !overrides.metricsConfigured) {
 			((org.springframework.integration.support.management.ConfigurableMetricsAware<
 					org.springframework.integration.support.management.AbstractMessageHandlerMetrics>) bean)
-						.configureMetrics(metrics);
+					.configureMetrics(metrics);
 		}
 
 		this.handlersByName.put(bean.getManagedName() != null ? bean.getManagedName() : name, bean);
@@ -444,20 +449,23 @@ public class IntegrationManagementConfigurer
 	}
 
 	private void registerComponentGauges() {
-		this.metricsCaptor.gaugeBuilder("spring.integration.channels", this,
-				(c) -> this.applicationContext.getBeansOfType(MessageChannel.class).size())
-				.description("The number of message channels")
-				.build();
+		this.gauges.add(
+				this.metricsCaptor.gaugeBuilder("spring.integration.channels", this,
+						(c) -> this.applicationContext.getBeansOfType(MessageChannel.class).size())
+						.description("The number of message channels")
+						.build());
 
-		this.metricsCaptor.gaugeBuilder("spring.integration.handlers", this,
-				(c) -> this.applicationContext.getBeansOfType(MessageHandler.class).size())
-				.description("The number of message handlers")
-				.build();
+		this.gauges.add(
+				this.metricsCaptor.gaugeBuilder("spring.integration.handlers", this,
+						(c) -> this.applicationContext.getBeansOfType(MessageHandler.class).size())
+						.description("The number of message handlers")
+						.build());
 
-		this.metricsCaptor.gaugeBuilder("spring.integration.sources", this,
-				(c) -> this.applicationContext.getBeansOfType(MessageSource.class).size())
-				.description("The number of message sources")
-				.build();
+		this.gauges.add(
+				this.metricsCaptor.gaugeBuilder("spring.integration.sources", this,
+						(c) -> this.applicationContext.getBeansOfType(MessageSource.class).size())
+						.description("The number of message sources")
+						.build());
 	}
 
 	public String[] getChannelNames() {
@@ -509,6 +517,13 @@ public class IntegrationManagementConfigurer
 		}
 		return null;
 	}
+
+	@Override
+	public void destroy() {
+		this.gauges.forEach(MeterFacade::remove);
+		this.gauges.clear();
+	}
+
 
 	private static ManagementOverrides getOverrides(IntegrationManagement bean) {
 		return bean.getOverrides() != null ? bean.getOverrides() : new ManagementOverrides();
