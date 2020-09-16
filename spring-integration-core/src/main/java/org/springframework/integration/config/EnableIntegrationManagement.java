@@ -24,6 +24,7 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptorRegistrar;
 
 /**
  * Enables default configuring of management in Spring Integration components in an existing application.
@@ -32,13 +33,14 @@ import org.springframework.core.annotation.AliasFor;
  * bean is defined under the name {@code integrationManagementConfigurer}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.2
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import(IntegrationManagementConfiguration.class)
+@Import({ MicrometerMetricsCaptorRegistrar.class, IntegrationManagementConfiguration.class })
 public @interface EnableIntegrationManagement {
 
 	/**

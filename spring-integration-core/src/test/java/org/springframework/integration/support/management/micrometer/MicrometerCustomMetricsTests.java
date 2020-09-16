@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@
 package org.springframework.integration.support.management.micrometer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -32,7 +31,7 @@ import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -46,7 +45,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
  * @since 5.1
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @TestExecutionListeners(DependencyInjectionTestExecutionListener.class)
 public class MicrometerCustomMetricsTests {
 
@@ -81,20 +80,18 @@ public class MicrometerCustomMetricsTests {
 
 		// Test meter removal
 		this.context.close();
-		try {
-			registry.get("myTimer").timers();
-			fail("Expected MeterNotFoundException");
-		}
-		catch (MeterNotFoundException e) {
-			assertThat(e).hasMessageContaining("No meter with name 'myTimer' was found");
-		}
-		try {
-			registry.get("myCounter").counters();
-			fail("Expected MeterNotFoundException");
-		}
-		catch (MeterNotFoundException e) {
-			assertThat(e).hasMessageContaining("No meter with name 'myCounter' was found");
-		}
+
+		assertThatExceptionOfType(MeterNotFoundException.class)
+				.isThrownBy(() -> registry.get("myTimer").timers())
+				.withMessageContaining("No meter with name 'myTimer' was found");
+
+		assertThatExceptionOfType(MeterNotFoundException.class)
+				.isThrownBy(() -> registry.get("myCounter").counters())
+				.withMessageContaining("No meter with name 'myCounter' was found");
+
+		assertThatExceptionOfType(MeterNotFoundException.class)
+				.isThrownBy(() -> registry.get("spring.integration.channels").gauge())
+				.withMessageContaining("No meter with name 'spring.integration.channels' was found");
 	}
 
 	@Configuration
