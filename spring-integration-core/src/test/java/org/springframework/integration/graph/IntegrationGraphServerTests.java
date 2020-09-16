@@ -258,6 +258,11 @@ public class IntegrationGraphServerTests {
 	public static class Config {
 
 		@Bean
+		public static MeterRegistry meterRegistry() {
+			return new SimpleMeterRegistry();
+		}
+
+		@Bean
 		public IntegrationGraphServer server() {
 			IntegrationGraphServer server = new IntegrationGraphServer();
 			server.setApplicationName("myAppName:1.0");
@@ -272,11 +277,6 @@ public class IntegrationGraphServerTests {
 				return properties;
 			});
 			return server;
-		}
-
-		@Bean
-		public MeterRegistry meterRegistry() {
-			return new SimpleMeterRegistry();
 		}
 
 		@Bean

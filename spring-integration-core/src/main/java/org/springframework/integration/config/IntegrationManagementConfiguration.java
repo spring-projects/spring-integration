@@ -18,6 +18,7 @@ package org.springframework.integration.config;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +28,7 @@ import org.springframework.context.annotation.Role;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.util.Assert;
 
 /**
@@ -62,11 +64,13 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 
 	@Bean(name = IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public IntegrationManagementConfigurer managementConfigurer() {
+	public IntegrationManagementConfigurer managementConfigurer(ObjectProvider<MetricsCaptor> metricsCaptorProvider) {
+
 		IntegrationManagementConfigurer configurer = new IntegrationManagementConfigurer();
 		configurer.setDefaultLoggingEnabled(
 				Boolean.parseBoolean(this.environment.resolvePlaceholders(
 						(String) this.attributes.get("defaultLoggingEnabled"))));
+		configurer.setMetricsCaptor(metricsCaptorProvider.getIfUnique());
 		return configurer;
 	}
 

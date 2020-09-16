@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,10 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 	 * there's already a {@link MetricsCaptor} bean, return that.
 	 * @param applicationContext the application context.
 	 * @return the instance.
+	 * @deprecated since 5.2.9 in favor of {@code @Import(MicrometerMetricsCaptorRegistrar.class)};
+	 * will be removed in 6.0.
 	 */
+	@Deprecated
 	public static MetricsCaptor loadCaptor(ApplicationContext applicationContext) {
 		try {
 			MeterRegistry registry = applicationContext.getBean(MeterRegistry.class);
