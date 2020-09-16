@@ -596,7 +596,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		@ConnectMapping("clientConnect")
 		void clientConnect(RSocketRequester requester) {
-			this.clientRequester.emitValue(requester);
+			this.clientRequester.tryEmitValue(requester);
 		}
 
 	}

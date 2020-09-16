@@ -16,15 +16,18 @@
 
 package org.springframework.integration.dsl.routers;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -609,10 +612,14 @@ public class RouterTests {
 		MessageHeaders headers1 = wiretapMessage1.getHeaders();
 		Message<?> wiretapMessage2 = scatterGatherWireTapChannel.receive(10000);
 		assertThat(wiretapMessage2).isNotNull()
-				.extracting(Message::getHeaders)
-				.isEqualToComparingOnlyGivenFields(headers1, IntegrationMessageHeaderAccessor.CORRELATION_ID,
-						"gatherResultChannel", IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
-						IntegrationMessageHeaderAccessor.SEQUENCE_SIZE);
+				.extracting(Message::getHeaders, as(InstanceOfAssertFactories.MAP))
+				.containsAllEntriesOf(
+						headers1.entrySet()
+								.stream()
+								.filter((entry) ->
+										!MessageHeaders.ID.equals(entry.getKey())
+												&& !MessageHeaders.TIMESTAMP.equals(entry.getKey()))
+								.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 		Message<?> receive = replyChannel.receive(10000);
 
 		assertThat(receive).isNotNull();
@@ -743,7 +750,7 @@ public class RouterTests {
 		public IntegrationFlow routeMultiMethodInvocationFlow() {
 			return IntegrationFlows.from("routerMultiInput")
 					.route(String.class, p -> p.equals("foo") || p.equals("bar")
-									? new String[] { "foo", "bar" }
+									? new String[]{ "foo", "bar" }
 									: null,
 							s -> s.suffix("-channel"))
 					.get();

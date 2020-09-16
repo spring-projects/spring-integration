@@ -203,7 +203,7 @@ public class RSocketInboundGatewayIntegrationTests {
 
 		@EventListener
 		public void onApplicationEvent(RSocketConnectedEvent event) {
-			this.clientRequester.emitValue(event.getRequester());
+			this.clientRequester.tryEmitValue(event.getRequester());
 		}
 
 	}

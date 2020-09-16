@@ -494,7 +494,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 					throw new IllegalStateException("Could not sent last modified on file: " + localFile);
 				}
 				String hostPort = session.getHostPort();
-				int colonIndex = hostPort.lastIndexOf(":");
+				int colonIndex = hostPort.lastIndexOf(':');
 				String host = hostPort.substring(0, colonIndex);
 				String port = hostPort.substring(colonIndex + 1);
 				try {

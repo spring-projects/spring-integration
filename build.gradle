@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.4.0'
+	ext.kotlinVersion = '1.4.10'
 	repositories {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
@@ -13,8 +13,8 @@ plugins {
 	id 'org.sonarqube' version '2.8'
 	id 'io.spring.nohttp' version '0.0.5.RELEASE' apply false
 	id 'org.ajoberstar.grgit' version '4.0.2'
-	id "io.spring.dependency-management" version '1.0.9.RELEASE'
-	id 'com.jfrog.artifactory' version '4.16.1' apply false
+	id "io.spring.dependency-management" version '1.0.10.RELEASE'
+	id 'com.jfrog.artifactory' version '4.17.2' apply false
 	id 'org.jetbrains.dokka' version '0.10.1'
 	id 'org.asciidoctor.jvm.pdf' version '3.2.0'
 	id 'org.asciidoctor.jvm.gems' version '3.2.0'
@@ -48,12 +48,12 @@ ext {
 	activeMqVersion = '5.16.0'
 	apacheSshdVersion = '2.5.1'
 	aspectjVersion = '1.9.6'
-	assertjVersion = '3.16.1'
+	assertjVersion = '3.17.2'
 	assertkVersion = '0.22'
 	avroVersion = '1.10.0'
 	awaitilityVersion = '4.0.3'
 	commonsDbcp2Version = '2.7.0'
-	commonsIoVersion = '2.7'
+	commonsIoVersion = '2.8.0'
 	commonsNetVersion = '3.7'
 	curatorVersion = '4.3.0'
 	derbyVersion = '10.14.2.0'
@@ -62,13 +62,12 @@ ext {
 	groovyVersion = '3.0.5'
 	hamcrestVersion = '2.2'
 	hazelcastVersion = '4.0.2'
-	hibernateVersion = '5.4.20.Final'
+	hibernateVersion = '5.4.21.Final'
 	hsqldbVersion = '2.5.1'
 	h2Version = '1.4.200'
 	jacksonVersion = '2.11.2'
 	javaxActivationVersion = '1.2.0'
 	javaxAnnotationVersion= '1.3.2'
-	javaxMailVersion = '1.6.2'
 	jaxbVersion = '2.3.3'
 	jeroMqVersion = '0.5.2'
 	jmsApiVersion = '2.0.1'
@@ -78,13 +77,14 @@ ext {
 	jschVersion = '0.1.55'
 	jsonpathVersion = '2.4.0'
 	junit4Version = '4.13'
-	junitJupiterVersion = '5.7.0-M1'
+	junitJupiterVersion = '5.7.0'
 	jythonVersion = '2.7.2'
 	kryoShadedVersion = '4.0.2'
-	lettuceVersion = '6.0.0.RC1'
+	lettuceVersion = '6.0.0.RC2'
 	log4jVersion = '2.13.3'
-	micrometerVersion = '1.5.3'
-	mockitoVersion = '3.4.6'
+	mailVersion = '1.6.5'
+	micrometerVersion = '1.5.4'
+	mockitoVersion = '3.5.10'
 	mongoDriverVersion = '4.1.0'
 	mysqlVersion = '8.0.21'
 	pahoMqttClientVersion = '1.2.4'
@@ -92,20 +92,20 @@ ext {
 	r2dbch2Version='0.8.4.RELEASE'
 	reactorVersion = '2020.0.0-RC1'
 	resilience4jVersion = '1.5.0'
-	romeToolsVersion = '1.12.2'
-	rsocketVersion = '1.1.0-SNAPSHOT'
+	romeToolsVersion = '1.15.0'
+	rsocketVersion = '1.1.0-M2'
 	saajVersion = '1.5.2'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
 	soapVersion = '1.4.0'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.0-SNAPSHOT'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.0-SNAPSHOT'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.0-M3'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.0-RC1'
 	springKafkaVersion = '2.6.0'
 	springRetryVersion = '1.3.0'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.4.0'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.0-SNAPSHOT'
-	springWsVersion = '3.0.9.RELEASE'
-	tomcatVersion = "9.0.37"
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.0-RC1'
+	springWsVersion = '3.0.10.RELEASE'
+	tomcatVersion = "9.0.38"
 	xstreamVersion = '1.4.13'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
@@ -214,7 +214,7 @@ configure(javaProjects) { subproject ->
 	}
 
 	jacoco {
-		toolVersion = '0.8.5'
+		toolVersion = '0.8.6'
 	}
 
 	// dependencies that are common across all java projects
@@ -325,7 +325,7 @@ configure(javaProjects) { subproject ->
 
 	checkstyle {
 		configDirectory.set(rootProject.file("src/checkstyle"))
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.35'
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.36.1'
 	}
 
 	jar {
@@ -618,9 +618,9 @@ project('spring-integration-mail') {
 		api project(':spring-integration-core')
 		api 'org.springframework:spring-context-support'
 
-		providedImplementation "javax.mail:javax.mail-api:$javaxMailVersion"
-		providedImplementation "com.sun.mail:imap:$javaxMailVersion"
-		providedImplementation "com.sun.mail:javax.mail:$javaxMailVersion"
+		providedImplementation "jakarta.mail:jakarta.mail-api:$mailVersion"
+		providedImplementation "com.sun.mail:imap:$mailVersion"
+		providedImplementation "com.sun.mail:jakarta.mail:$mailVersion"
 
 		optionalApi "javax.activation:javax.activation-api:$javaxActivationVersion"
 	}
@@ -828,10 +828,10 @@ project('spring-integration-ws') {
 		testImplementation "org.igniterealtime.smack:smack-tcp:$smackVersion"
 		testImplementation "org.igniterealtime.smack:smack-java7:$smackVersion"
 		testImplementation "org.igniterealtime.smack:smack-extensions:$smackVersion"
-		testImplementation "javax.mail:javax.mail-api:$javaxMailVersion"
+		testImplementation "jakarta.mail:jakarta.mail-api:$mailVersion"
 
-		testRuntimeOnly "com.sun.mail:mailapi:$javaxMailVersion"
-		testRuntimeOnly "com.sun.mail:javax.mail:$javaxMailVersion"
+		testRuntimeOnly "com.sun.mail:mailapi:$mailVersion"
+		testRuntimeOnly "com.sun.mail:jakarta.mail:$mailVersion"
 	}
 }
 
