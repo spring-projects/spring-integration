@@ -153,12 +153,19 @@ public class GatewayDslTests {
 	@Autowired
 	private RoutingGateway routingGateway;
 
+	@Autowired
+	@Qualifier("&routingGateway")
+	private GatewayProxyFactoryBean routingGatewayProxy;
+
 	@Test
 	void testRoutingGateway() {
 		String result = this.routingGateway.route1("test1");
 		assertThat(result).isEqualTo("route1");
 		result = this.routingGateway.route2("test2");
 		assertThat(result).isEqualTo("route2");
+		MessagingGatewaySupport gatewayMethod = this.routingGatewayProxy.getGateways().values().iterator().next();
+		assertThat(gatewayMethod.getComponentName())
+				.isEqualTo("routingGateway#route1(Object)");
 	}
 
 	@Configuration
@@ -211,9 +218,9 @@ public class GatewayDslTests {
 		}
 
 		@Bean
-		public IntegrationFlow routingGateway() {
+		public IntegrationFlow routingGatewayFlow() {
 			return IntegrationFlows.from(RoutingGateway.class,
-					(gateway) -> gateway.header("gatewayMethod", MethodArgsHolder::getMethod))
+					(gateway) -> gateway.beanName("routingGateway").header("gatewayMethod", MethodArgsHolder::getMethod))
 					.route(Message.class, (message) ->
 									message.getHeaders().get("gatewayMethod", Method.class).getName(),
 							(router) -> router

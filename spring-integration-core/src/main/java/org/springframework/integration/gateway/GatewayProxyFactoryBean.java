@@ -19,6 +19,7 @@ package org.springframework.integration.gateway;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -103,7 +105,7 @@ import reactor.core.publisher.Mono;
  */
 public class GatewayProxyFactoryBean extends AbstractEndpoint
 		implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware,
-			IntegrationManagement {
+		IntegrationManagement {
 
 	private final Object initializationMonitor = new Object();
 
@@ -864,7 +866,13 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 		timeouts(requestTimeout, replyTimeout, messageMapper, gateway);
 
-		gateway.setBeanName(getComponentName());
+		String gatewayMethodBeanName =
+				getComponentName() + '#' + method.getName() +
+				'(' + Arrays.stream(method.getParameterTypes())
+						.map(Class::getSimpleName)
+						.collect(Collectors.joining(", ")) + ')';
+
+		gateway.setBeanName(gatewayMethodBeanName);
 		gateway.setBeanFactory(getBeanFactory());
 		gateway.setShouldTrack(this.shouldTrack);
 		gateway.registerMetricsCaptor(this.metricsCaptor);
@@ -1059,8 +1067,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		public IntegrationPatternType getIntegrationPatternType() {
 			return this.pollable ? IntegrationPatternType.outbound_channel_adapter
 					: this.isVoidReturn
-							? IntegrationPatternType.inbound_channel_adapter
-							: IntegrationPatternType.inbound_gateway;
+					? IntegrationPatternType.inbound_channel_adapter
+					: IntegrationPatternType.inbound_gateway;
 		}
 
 		@Nullable

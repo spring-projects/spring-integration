@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,11 @@ package org.springframework.integration.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +42,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
 
@@ -57,7 +55,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  *
  * @since 2.0.1
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 public class ServiceActivatorDefaultFrameworkMethodTests {
 
 	@Autowired
@@ -106,7 +104,8 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		this.gatewayTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
 		assertThat(reply.getHeaders().get("history").toString())
-				.isEqualTo("gatewayTestInputChannel,gatewayTestService,gateway,requestChannel,replyChannel");
+				.isEqualTo("gatewayTestInputChannel,gatewayTestService," +
+						"gateway#exchange(Message),requestChannel,replyChannel");
 
 		Message<?> message2 = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
 
@@ -197,19 +196,11 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 
 	@Test
 	public void testFailOnDoubleReference() {
-		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-context.xml",
-					this.getClass()).close();
-			fail("Expected exception due to 2 endpoints referencing the same bean");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanCreationException.class);
-			assertThat(e.getCause()).isInstanceOf(BeanCreationException.class);
-			assertThat(e.getCause().getCause()).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getCause().getCause().getMessage())
-					.contains("An AbstractMessageProducingMessageHandler may only be referenced once");
-		}
-
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-fail-context.xml", getClass()))
+				.withMessageContaining("An AbstractMessageProducingMessageHandler may only be referenced once")
+				.withRootCauseExactlyInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
@@ -228,7 +219,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 	@Test
 	public void testAsyncWithDirectReply() {
 		DirectChannel replyChannel = new DirectChannel();
-		final AtomicReference<Message<?>> reply = new AtomicReference<Message<?>>();
+		final AtomicReference<Message<?>> reply = new AtomicReference<>();
 		replyChannel.subscribe(reply::set);
 
 		Message<?> message = MessageBuilder.withPayload("testing").setReplyChannel(replyChannel).build();
