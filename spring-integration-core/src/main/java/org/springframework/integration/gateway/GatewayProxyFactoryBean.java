@@ -869,7 +869,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		String gatewayMethodBeanName =
 				getComponentName() + '#' + method.getName() +
 				'(' + Arrays.stream(method.getParameterTypes())
-						.map(Class::getName)
+						.map(Class::getSimpleName)
 						.collect(Collectors.joining(", ")) + ')';
 
 		gateway.setBeanName(gatewayMethodBeanName);

@@ -85,7 +85,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> reply = replyChannel.receive(0);
 		assertThat(reply.getHeaders().get("history").toString())
 				.isEqualTo("gatewayTestInputChannel,gatewayTestService," +
-						"gateway#exchange(org.springframework.messaging.Message),requestChannel,bridge,replyChannel");
+						"gateway#exchange(Message),requestChannel,bridge,replyChannel");
 	}
 
 	@Test

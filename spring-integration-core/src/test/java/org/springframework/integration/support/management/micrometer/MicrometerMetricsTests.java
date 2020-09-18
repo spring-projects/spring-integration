@@ -221,21 +221,21 @@ public class MicrometerMetricsTests {
 		this.gates.oneWay("foo");
 		this.gates.twoWay("bar");
 		assertThat(registry.get("spring.integration.send")
-				.tag("name", "gates#oneWay(java.lang.String)")
+				.tag("name", "gates#oneWay(String)")
 				.tag("result", "success")
 				.timer().count()).isEqualTo(1);
 		assertThat(registry.get("spring.integration.send")
-				.tag("name", "gates#twoWay(java.lang.String)")
+				.tag("name", "gates#twoWay(String)")
 				.tag("result", "success")
 				.timer().count()).isEqualTo(1);
 		this.gatesFlow.oneWay("foo");
 		this.gatesFlow.twoWay("bar");
 		assertThat(registry.get("spring.integration.send")
-				.tag("name", "gatesFlow.gateway#oneWay(java.lang.String)")
+				.tag("name", "gatesFlow.gateway#oneWay(String)")
 				.tag("result", "success")
 				.timer().count()).isEqualTo(1);
 		assertThat(registry.get("spring.integration.send")
-				.tag("name", "gatesFlow.gateway#twoWay(java.lang.String)")
+				.tag("name", "gatesFlow.gateway#twoWay(String)")
 				.tag("result", "success")
 				.timer().count()).isEqualTo(1);
 		assertThat(registry.get("spring.integration.send")

@@ -45,7 +45,6 @@ import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.gateway.MethodArgsHolder;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -166,7 +165,7 @@ public class GatewayDslTests {
 		assertThat(result).isEqualTo("route2");
 		MessagingGatewaySupport gatewayMethod = this.routingGatewayProxy.getGateways().values().iterator().next();
 		assertThat(gatewayMethod.getComponentName())
-				.isEqualTo("routingGateway#route1(java.lang.Object)");
+				.isEqualTo("routingGateway#route1(Object)");
 	}
 
 	@Configuration

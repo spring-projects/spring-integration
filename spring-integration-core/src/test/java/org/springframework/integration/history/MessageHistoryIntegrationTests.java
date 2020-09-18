@@ -78,7 +78,7 @@ public class MessageHistoryIntegrationTests {
 						.get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 
 				Properties event = historyIterator.next();
-				assertThat(event.getProperty(MessageHistory.NAME_PROPERTY)).isEqualTo("sampleGateway#echo(java.lang.String)");
+				assertThat(event.getProperty(MessageHistory.NAME_PROPERTY)).isEqualTo("sampleGateway#echo(String)");
 				assertThat(event.getProperty(MessageHistory.TYPE_PROPERTY)).isEqualTo("gateway");
 
 				event = historyIterator.next();
@@ -209,7 +209,7 @@ public class MessageHistoryIntegrationTests {
 						.get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 				assertThat(historyIterator.hasNext()).isTrue();
 				Properties gatewayHistory = historyIterator.next();
-				assertThat(gatewayHistory.get("name")).isEqualTo("sampleGateway#echo(java.lang.String)");
+				assertThat(gatewayHistory.get("name")).isEqualTo("sampleGateway#echo(String)");
 				assertThat(historyIterator.hasNext()).isTrue();
 				Properties chainHistory = historyIterator.next();
 				assertThat(chainHistory.get("name")).isEqualTo("sampleChain");
