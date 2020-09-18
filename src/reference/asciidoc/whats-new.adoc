@@ -53,6 +53,10 @@ See <<./zeromq.adoc#zeromq,ZeroMQ Support>> for more information.
 The one-way messaging gateway (the `void` method return type) now sets a `nullChannel` explicitly into the `replyChannel` header to ignore any possible downstream replies.
 See <<./gateway.adoc#gateway-default-reply-channel,Setting the Default Reply Channel>> for more information.
 
+Also the gateway method invokers (`GatewayProxyFactoryBean.MethodInvocationGateway`) are now supplied with the managed bean name as a combination of gateway proxy bean name plus method signature.
+For example: `sampleGateway#echo(java.lang.String)`.
+This effects message history and metrics exposed for the gateway method calls and also give fine-grained logs during start and close of application context.
+
 The aggregator (and resequencer) can now expire orphaned groups (groups in a persistent store where no new messages arrive after an application restart).
 See <<./aggregator.adoc#aggregator-expiring-groups, Aggregator Expiring Groups>> for more information.
 
