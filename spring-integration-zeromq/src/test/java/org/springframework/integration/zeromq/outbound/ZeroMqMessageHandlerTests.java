@@ -66,6 +66,10 @@ public class ZeroMqMessageHandlerTests {
 
 		assertThat(socket.recvStr()).isEqualTo("test");
 
+		messageHandler.handleMessage(new GenericMessage<>(ZMsg.newStringMsg("test2"))).subscribe();
+
+		assertThat(socket.recvStr()).isEqualTo("test2");
+
 		messageHandler.destroy();
 		socket.close();
 	}
@@ -93,10 +97,11 @@ public class ZeroMqMessageHandlerTests {
 
 		ZMsg msg = ZMsg.recvMsg(subSocket);
 		assertThat(msg).isNotNull();
-		assertThat(msg.getFirst().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
-		Message<?> capturedMessage = new EmbeddedJsonHeadersMessageMapper().toMessage(msg.getLast().getData());
+		assertThat(msg.unwrap().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
+		Message<?> capturedMessage = new EmbeddedJsonHeadersMessageMapper().toMessage(msg.getFirst().getData());
 		assertThat(capturedMessage).isEqualTo(testMessage);
 
+		msg.destroy();
 		messageHandler.destroy();
 		subSocket.close();
 	}

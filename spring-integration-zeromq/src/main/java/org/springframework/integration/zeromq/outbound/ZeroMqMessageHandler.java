@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
+import org.zeromq.ZFrame;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
@@ -49,8 +50,11 @@ import zmq.socket.pubsub.Pub;
  * This component is only connecting (no Binding) to another side, e.g. ZeroMq proxy.
  * <p>
  * When the {@link SocketType#PUB} is used, the {@link #topicExpression} is evaluated against a
- * request message to inject a topic frame into a ZeroMq message, even if it is {@code null}.
+ * request message to inject a topic frame into a ZeroMq message if it is not {@code null}.
  * The subscriber side must receive the topic frame first before parsing the actual data.
+ * <p>
+ * When the payload of the request message is a {@link ZMsg}, no any conversion and topic extraction happen:
+ * the {@link ZMsg} is sent into a socket as is and it is not destroyed for possible further reusing.
  *
  * @author Artem Bilan
  *
@@ -108,6 +112,7 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler {
 	/**
 	 * Provide an {@link OutboundMessageMapper} to convert a request message into {@code byte[]}
 	 * for sending into ZeroMq socket.
+	 * Ignored when {@link Message#getPayload()} is an instance of {@link ZMsg}.
 	 * @param messageMapper the {@link OutboundMessageMapper} to use.
 	 */
 	public void setMessageMapper(OutboundMessageMapper<byte[]> messageMapper) {
@@ -118,6 +123,7 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler {
 	/**
 	 * Provide a {@link MessageConverter} (as an alternative to {@link #messageMapper})
 	 * for converting a request message into {@code byte[]} for sending into ZeroMq socket.
+	 * Ignored when {@link Message#getPayload()} is an instance of {@link ZMsg}.
 	 * @param messageConverter the {@link MessageConverter} to use.
 	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
@@ -178,16 +184,21 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler {
 		Assert.state(this.initialized, "the message handler is not initialized yet or already destroyed");
 		return this.socketMono
 				.doOnNext((socket) -> {
-					ZMsg msg = new ZMsg();
-					if (socket.base() instanceof Pub) {
-						String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
-						if (topic != null) {
-							msg.add(topic);
-
+					ZMsg msg;
+					if (message.getPayload() instanceof ZMsg) {
+						msg = (ZMsg) message.getPayload();
+					}
+					else {
+						msg = new ZMsg();
+						msg.add(this.messageMapper.fromMessage(message));
+						if (socket.base() instanceof Pub) {
+							String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
+							if (topic != null) {
+								msg.wrap(new ZFrame(topic));
+							}
 						}
 					}
-					msg.add(this.messageMapper.fromMessage(message));
-					msg.send(socket);
+					msg.send(socket, false);
 				})
 				.then();
 	}

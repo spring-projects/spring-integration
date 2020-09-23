@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
 
 /**
  * The {@link BytesMessageMapper} implementation to delegate to/from {@link Message}
- * con version into the provided {@link MessageConverter}.
+ * conversion into the provided {@link MessageConverter}.
  * <p>
  * The {@link MessageConverter} must not return {@code null} from its
  * {@link MessageConverter#fromMessage(Message, Class)} and {@link MessageConverter#toMessage(Object, MessageHeaders)}

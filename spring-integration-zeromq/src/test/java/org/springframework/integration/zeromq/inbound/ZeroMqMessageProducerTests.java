@@ -17,13 +17,19 @@
 package org.springframework.integration.zeromq.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
+
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
+import org.zeromq.ZFrame;
 import org.zeromq.ZMQ;
+import org.zeromq.ZMsg;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.FluxMessageChannel;
@@ -47,8 +53,6 @@ public class ZeroMqMessageProducerTests {
 
 	@Test
 	void testMessageProducerForPair() {
-		String socketAddress = "inproc://messageProducer.test";
-
 		FluxMessageChannel outputChannel = new FluxMessageChannel();
 
 		StepVerifier stepVerifier =
@@ -59,20 +63,78 @@ public class ZeroMqMessageProducerTests {
 						.verifyLater();
 
 		ZeroMqMessageProducer messageProducer = new ZeroMqMessageProducer(CONTEXT);
-		messageProducer.setBindUrl(socketAddress);
 		messageProducer.setOutputChannel(outputChannel);
 		messageProducer.setMessageMapper((object, headers) -> new GenericMessage<>(new String(object)));
+		messageProducer.setConsumeDelay(Duration.ofMillis(10));
 		messageProducer.setBeanFactory(mock(BeanFactory.class));
 		messageProducer.afterPropertiesSet();
 		messageProducer.start();
 
 		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.PAIR);
-		socket.connect(socketAddress);
+
+		await().until(() -> messageProducer.getBoundPort() > 0);
+
+		socket.connect("tcp://localhost:" + messageProducer.getBoundPort());
 
 		socket.send("test");
 		socket.send("test2");
 
 		stepVerifier.verify();
+
+		messageProducer.destroy();
+		socket.close();
+	}
+
+	@Test
+	void testMessageProducerForPubSubReceiveRaw() throws InterruptedException {
+		String socketAddress = "inproc://messageProducer.test";
+		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.PUB);
+		socket.bind(socketAddress);
+
+		FluxMessageChannel outputChannel = new FluxMessageChannel();
+
+		StepVerifier stepVerifier =
+				StepVerifier.create(outputChannel)
+						.assertNext((message) ->
+								assertThat(message.getPayload())
+										.asInstanceOf(InstanceOfAssertFactories.type(ZMsg.class))
+										.extracting(ZMsg::unwrap)
+										.isEqualTo(new ZFrame("testTopic")))
+						.assertNext((message) ->
+								assertThat(message.getPayload())
+										.asInstanceOf(InstanceOfAssertFactories.type(ZMsg.class))
+										.extracting(ZMsg::unwrap)
+										.isEqualTo(new ZFrame("otherTopic")))
+						.thenCancel()
+						.verifyLater();
+
+		ZeroMqMessageProducer messageProducer = new ZeroMqMessageProducer(CONTEXT, SocketType.SUB);
+		messageProducer.setOutputChannel(outputChannel);
+		messageProducer.setTopics("test");
+		messageProducer.setReceiveRaw(true);
+		messageProducer.setConnectUrl(socketAddress);
+		messageProducer.setConsumeDelay(Duration.ofMillis(10));
+		messageProducer.setBeanFactory(mock(BeanFactory.class));
+		messageProducer.afterPropertiesSet();
+		messageProducer.start();
+
+		// Give it some time to connect and subscribe
+		Thread.sleep(2000);
+
+		ZMsg msg = ZMsg.newStringMsg("test");
+		msg.wrap(new ZFrame("testTopic"));
+		msg.send(socket);
+
+		messageProducer.subscribeToTopics("other");
+
+		// Give it some time to connect and subscribe
+		Thread.sleep(2000);
+
+		msg = ZMsg.newStringMsg("test");
+		msg.wrap(new ZFrame("otherTopic"));
+		msg.send(socket);
+
+		stepVerifier.verify(Duration.ofSeconds(10));
 
 		messageProducer.destroy();
 		socket.close();

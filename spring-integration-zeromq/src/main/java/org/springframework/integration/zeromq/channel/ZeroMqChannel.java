@@ -213,7 +213,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 						})
 						.publishOn(Schedulers.parallel())
 						.map(this.messageMapper::toMessage)
-						.doOnError((error) -> logger.error("Error processing ZeroMQ message", error))
+						.doOnError((error) -> logger.error("Error processing ZeroMQ message in the " + this, error))
 						.repeatWhenEmpty((repeat) ->
 								this.initialized
 										? repeat.delayElements(this.consumeDelay)
