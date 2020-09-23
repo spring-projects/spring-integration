@@ -19,6 +19,8 @@ package org.springframework.integration.util;
 import java.time.Duration;
 import java.util.function.Function;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 
 import org.springframework.integration.StaticMessageHeaderAccessor;
@@ -44,6 +46,8 @@ import reactor.core.scheduler.Schedulers;
  * @since 5.3
  */
 public final class IntegrationReactiveUtils {
+
+	private static final Log logger = LogFactory.getLog(IntegrationReactiveUtils.class);
 
 	/**
 	 * The subscriber context entry for {@link Flux#delayElements}
@@ -75,16 +79,19 @@ public final class IntegrationReactiveUtils {
 	public static <T> Flux<Message<T>> messageSourceToFlux(MessageSource<T> messageSource) {
 		return Mono.
 				<Message<T>>create(monoSink ->
-						monoSink.onRequest(value ->
-								monoSink.success(messageSource.receive())))
-				.doOnSuccess((message) ->
-						AckUtils.autoAck(StaticMessageHeaderAccessor.getAcknowledgmentCallback(message)))
+						monoSink.onRequest(value -> monoSink.success(messageSource.receive())))
+				.doOnSuccess((message) -> {
+					if (message != null) {
+						AckUtils.autoAck(StaticMessageHeaderAccessor.getAcknowledgmentCallback(message));
+					}
+				})
 				.doOnError(MessagingException.class,
 						(ex) -> {
 							Message<?> failedMessage = ex.getFailedMessage();
 							if (failedMessage != null) {
 								AckUtils.autoNack(StaticMessageHeaderAccessor.getAcknowledgmentCallback(failedMessage));
 							}
+							logger.error("Error from Flux for : " + messageSource, ex);
 						})
 				.subscribeOn(Schedulers.boundedElastic())
 				.repeatWhenEmpty((repeat) ->
