@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.dsl;
 
-import java.util.Collections;
-import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
@@ -27,8 +25,8 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
+import org.springframework.integration.dsl.ReactiveMessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
-import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.mongodb.outbound.ReactiveMongoDbStoringMessageHandler;
 import org.springframework.messaging.Message;
 
@@ -41,22 +39,15 @@ import org.springframework.messaging.Message;
  * @since 5.3
  */
 public class ReactiveMongoDbMessageHandlerSpec
-		extends MessageHandlerSpec<ReactiveMongoDbMessageHandlerSpec, ReactiveMessageHandlerAdapter>
+		extends ReactiveMessageHandlerSpec<ReactiveMongoDbMessageHandlerSpec, ReactiveMongoDbStoringMessageHandler>
 		implements ComponentsRegistration {
 
-	protected final ReactiveMongoDbStoringMessageHandler messageHandler; // NOSONAR - final
-
 	protected ReactiveMongoDbMessageHandlerSpec(ReactiveMongoDatabaseFactory mongoDbFactory) {
-		this(new ReactiveMongoDbStoringMessageHandler(mongoDbFactory));
+		super(new ReactiveMongoDbStoringMessageHandler(mongoDbFactory));
 	}
 
 	protected ReactiveMongoDbMessageHandlerSpec(ReactiveMongoOperations reactiveMongoOperations) {
-		this(new ReactiveMongoDbStoringMessageHandler(reactiveMongoOperations));
-	}
-
-	private ReactiveMongoDbMessageHandlerSpec(ReactiveMongoDbStoringMessageHandler messageHandler) {
-		this.messageHandler = messageHandler;
-		this.target = new ReactiveMessageHandlerAdapter(this.messageHandler);
+		super(new ReactiveMongoDbStoringMessageHandler(reactiveMongoOperations));
 	}
 
 	/**
@@ -65,7 +56,7 @@ public class ReactiveMongoDbMessageHandlerSpec
 	 * @return the spec
 	 */
 	public ReactiveMongoDbMessageHandlerSpec mongoConverter(MongoConverter mongoConverter) {
-		this.messageHandler.setMongoConverter(mongoConverter);
+		this.reactiveMessageHandler.setMongoConverter(mongoConverter);
 		return this;
 	}
 
@@ -96,13 +87,8 @@ public class ReactiveMongoDbMessageHandlerSpec
 	 * @return the spec
 	 */
 	public ReactiveMongoDbMessageHandlerSpec collectionNameExpression(Expression collectionNameExpression) {
-		this.messageHandler.setCollectionNameExpression(collectionNameExpression);
+		this.reactiveMessageHandler.setCollectionNameExpression(collectionNameExpression);
 		return this;
-	}
-
-	@Override
-	public Map<Object, String> getComponentsToRegister() {
-		return Collections.singletonMap(this.messageHandler, null);
 	}
 
 }

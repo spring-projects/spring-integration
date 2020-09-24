@@ -224,16 +224,14 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 			message = decodeNativeFormat(bytes, headers);
 		}
 		catch (@SuppressWarnings("unused") Exception e) {
-			// empty
+			this.logger.debug("Failed to decode native format", e);
 		}
 		if (message == null) {
 			try {
 				message = (Message<?>) this.objectMapper.readValue(bytes, Object.class);
 			}
 			catch (Exception e) {
-				if (this.logger.isDebugEnabled()) {
-					this.logger.debug("Failed to decode JSON", e);
-				}
+				this.logger.debug("Failed to decode JSON", e);
 			}
 		}
 		if (message != null) {

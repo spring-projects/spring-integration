@@ -97,7 +97,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 
 	private String beanName;
 
-	private boolean autoStartup;
+	private boolean autoStartup = true;
 
 	private int phase;
 
