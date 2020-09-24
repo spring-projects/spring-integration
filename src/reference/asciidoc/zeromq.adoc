@@ -102,3 +102,79 @@ ZeroMqChannel zeroMqPubSubChannel(ZContext context) {
 }
 ----
 ====
+
+[[zeromq-inbound-channel-adapter]]
+=== ZeroMq Inbound Channel Adapter
+
+[[zeromq-outbound-channel-adapter]]
+=== ZeroMq Outbound Channel Adapter
+
+The `ZeroMqMessageHandler` is a `ReactiveMessageHandler` implementation to produce publish messages into a ZeroMq socket.
+Only `SocketType.PAIR`, `SocketType.PUSH` and `SocketType.PUB` are supported.
+The `ZeroMqMessageHandler` utilizes only connecting (no binding) ZeroMq socket.
+When the `SocketType.PUB` is used, the `topicExpression` is evaluated against a request message to inject a topic frame into a ZeroMq message if it is not null.
+The subscriber side (`SocketType.SUB`) must receive the topic frame first before parsing the actual data.
+When the payload of the request message is a `ZMsg`, no any conversion and topic extraction happen: the `ZMsg` is sent into a socket as is and it is not destroyed for possible further reusing.
+Otherwise an `OutboundMessageMapper<byte[]>` is used to convert a request message (or just its payload) into a ZeroMq frame to publish.
+By default a `ConvertingBytesMessageMapper` is used supplied with a `ConfigurableCompositeMessageConverter`.
+The socket options (e.g. security or write timeout) can be configured via `setSocketConfigurer(Consumer<ZMQ.Socket> socketConfigurer)` callback.
+
+Here is a sample of `ZeroMqMessageHandler` configuration:
+
+====
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "zeroMqPublisherChannel")
+ZeroMqMessageHandler zeroMqMessageHandler{
+    ZeroMqMessageHandler messageHandler =
+                  new ZeroMqMessageHandler(CONTEXT, "tcp://localhost:6060", SocketType.PUB);
+    messageHandler.setTopicExpression(
+                  new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
+    messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
+}
+----
+====
+
+[[zeromq-dsl]]
+=== ZeroMq Java DSL Support
+
+The `spring-integration-zeromq` provide a convenient Java DSL fluent API via `ZeroMq` factory and `IntegrationComponentSpec` implementations for the components mentioned above.
+
+This is a sample of Java DSL for `ZeroMqChannel`:
+
+====
+[source,java]
+----
+.channel(ZeroMq.zeroMqChannel(this.context)
+            .connectUrl("tcp://localhost:6001:6002")
+            .consumeDelay(Duration.ofMillis(100)))
+}
+----
+====
+
+The Inbound Channel Adapter for ZeroMq Java DSL is:
+
+====
+[source,java]
+----
+IntegrationFlows.from(
+            ZeroMq.inboundChannelAdapter(this.context, SocketType.SUB)
+                        .connectUrl("tcp://localhost:9000")
+                        .topics("someTopic")
+                        .receiveRaw(true)
+                        .consumeDelay(Duration.ofMillis(100)))
+}
+----
+====
+
+The Outbound Channel Adapter for ZeroMq Java DSL is:
+
+====
+[source,java]
+----
+.handle(ZeroMq.outboundChannelAdapter(this.context, "tcp://localhost:9001", SocketType.PUB)
+                  .topicFunction(message -> message.getHeaders().get("myTopic")))
+}
+----
+====

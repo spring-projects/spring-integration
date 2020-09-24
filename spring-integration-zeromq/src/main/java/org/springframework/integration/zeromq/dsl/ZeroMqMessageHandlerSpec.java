@@ -22,7 +22,6 @@ import java.util.function.Function;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
-import org.zeromq.ZMsg;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.MessageHandlerSpec;

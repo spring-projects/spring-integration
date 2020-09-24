@@ -24,7 +24,6 @@ import org.zeromq.ZMQ;
 
 import org.springframework.integration.dsl.MessageChannelSpec;
 import org.springframework.integration.mapping.BytesMessageMapper;
-import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
 import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.integration.zeromq.channel.ZeroMqChannel;
 
