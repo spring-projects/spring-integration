@@ -47,7 +47,7 @@ import reactor.core.scheduler.Schedulers;
  */
 public final class IntegrationReactiveUtils {
 
-	private static final Log logger = LogFactory.getLog(IntegrationReactiveUtils.class);
+	private static final Log LOGGER = LogFactory.getLog(IntegrationReactiveUtils.class);
 
 	/**
 	 * The subscriber context entry for {@link Flux#delayElements}
@@ -91,7 +91,7 @@ public final class IntegrationReactiveUtils {
 							if (failedMessage != null) {
 								AckUtils.autoNack(StaticMessageHeaderAccessor.getAcknowledgmentCallback(failedMessage));
 							}
-							logger.error("Error from Flux for : " + messageSource, ex);
+							LOGGER.error("Error from Flux for : " + messageSource, ex);
 						})
 				.subscribeOn(Schedulers.boundedElastic())
 				.repeatWhenEmpty((repeat) ->
