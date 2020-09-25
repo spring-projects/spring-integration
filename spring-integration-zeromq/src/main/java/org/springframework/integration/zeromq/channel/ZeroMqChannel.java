@@ -112,10 +112,21 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 	private volatile boolean initialized;
 
+	/**
+	 * Create a channel instance based on the provided {@link ZContext} with push/pull
+	 * communication model.
+	 * @param context the {@link ZContext} to use.
+	 */
 	public ZeroMqChannel(ZContext context) {
 		this(context, false);
 	}
 
+	/**
+	 * Create a channel instance based on the provided {@link ZContext} and provided
+	 * communication model.
+	 * @param context the {@link ZContext} to use.
+	 * @param pubSub the communication model: push/pull or pub/sub.
+	 */
 	public ZeroMqChannel(ZContext context, boolean pubSub) {
 		Assert.notNull(context, "'context' must not be null");
 		this.context = context;
@@ -130,20 +141,22 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 	}
 
 	private Mono<Integer> prepareProxyMono() {
-		if (this.zeroMqProxy != null) {
-			return Mono.fromCallable(() -> this.zeroMqProxy.getBackendPort())
-					.filter((proxyPort) -> proxyPort > 0)
-					.repeatWhenEmpty(100, (repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
-					.doOnNext((proxyPort) ->
-							setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
-									':' + this.zeroMqProxy.getBackendPort()))
-					.doOnError((error) ->
-							logger.error("The provided '" + this.zeroMqProxy + "' has not been started", error))
-					.cache();
-		}
-		else {
-			return Mono.empty();
-		}
+		return Mono.defer(() -> {
+			if (this.zeroMqProxy != null) {
+				return Mono.fromCallable(() -> this.zeroMqProxy.getBackendPort())
+						.filter((proxyPort) -> proxyPort > 0)
+						.repeatWhenEmpty(100, (repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
+						.doOnNext((proxyPort) ->
+								setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
+										':' + this.zeroMqProxy.getBackendPort()))
+						.doOnError((error) ->
+								logger.error("The provided '" + this.zeroMqProxy + "' has not been started", error));
+			}
+			else {
+				return Mono.empty();
+			}
+		})
+				.cache();
 	}
 
 	private Mono<ZMQ.Socket> prepareSendSocketMono(Supplier<String> localPairConnection, Mono<?> proxyMono) {
@@ -152,17 +165,13 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 						this.context.createSocket(
 								this.connectSendUrl == null
 										? SocketType.PAIR
-										: (this.pubSub ? SocketType.XPUB : SocketType.PUSH))
+										: (this.pubSub ? SocketType.PUB : SocketType.PUSH))
 				))
 				.doOnNext(this.sendSocketConfigurer)
 				.doOnNext((socket) ->
 						socket.connect(this.connectSendUrl != null
 								? this.connectSendUrl
 								: localPairConnection.get()))
-				.delayUntil((socket) ->
-						(this.pubSub && this.connectSendUrl != null)
-								? Mono.just(socket).map(ZMQ.Socket::recv)
-								: Mono.empty())
 				.cache()
 				.publishOn(this.publisherScheduler);
 	}
@@ -177,10 +186,10 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 				.doOnNext(this.subscribeSocketConfigurer)
 				.doOnNext((socket) -> {
 					if (this.connectSubscribeUrl != null) {
-						socket.connect(this.connectSubscribeUrl);
 						if (this.pubSub) {
 							socket.subscribe(ZMQ.SUBSCRIPTION_ALL);
 						}
+						socket.connect(this.connectSubscribeUrl);
 					}
 					else {
 						socket.bind(localPairConnection.get());
@@ -204,7 +213,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 						})
 						.publishOn(Schedulers.parallel())
 						.map(this.messageMapper::toMessage)
-						.doOnError((error) -> logger.error("Error processing ZeroMQ message", error))
+						.doOnError((error) -> logger.error("Error processing ZeroMQ message in the " + this, error))
 						.repeatWhenEmpty((repeat) ->
 								this.initialized
 										? repeat.delayElements(this.consumeDelay)
@@ -244,21 +253,40 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		this.zeroMqProxy = zeroMqProxy;
 	}
 
+	/**
+	 * Specify a {@link Duration} to delay consumption when no data received.
+	 * @param consumeDelay the {@link Duration} to delay consumption when empty;
+	 *                     defaults to {@link #DEFAULT_CONSUME_DELAY}.
+	 */
 	public void setConsumeDelay(Duration consumeDelay) {
 		Assert.notNull(consumeDelay, "'consumeDelay' must not be null");
 		this.consumeDelay = consumeDelay;
 	}
 
+	/**
+	 * Provide a {@link BytesMessageMapper} to convert to/from messages when send or receive happens
+	 * on the sockets.
+	 * @param messageMapper the {@link BytesMessageMapper} to use;
+	 *                      defaults to {@link EmbeddedJsonHeadersMessageMapper}.
+	 */
 	public void setMessageMapper(BytesMessageMapper messageMapper) {
 		Assert.notNull(messageMapper, "'messageMapper' must not be null");
 		this.messageMapper = messageMapper;
 	}
 
+	/**
+	 * The {@link Consumer} callback to configure a publishing socket.
+	 * @param sendSocketConfigurer the {@link Consumer} to use.
+	 */
 	public void setSendSocketConfigurer(Consumer<ZMQ.Socket> sendSocketConfigurer) {
 		Assert.notNull(sendSocketConfigurer, "'sendSocketConfigurer' must not be null");
 		this.sendSocketConfigurer = sendSocketConfigurer;
 	}
 
+	/**
+	 * The {@link Consumer} callback to configure a consuming socket.
+	 * @param subscribeSocketConfigurer the {@link Consumer} to use.
+	 */
 	public void setSubscribeSocketConfigurer(Consumer<ZMQ.Socket> subscribeSocketConfigurer) {
 		Assert.notNull(subscribeSocketConfigurer, "'subscribeSocketConfigurer' must not be null");
 		this.subscribeSocketConfigurer = subscribeSocketConfigurer;

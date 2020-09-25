@@ -67,7 +67,7 @@ public final class JacksonJsonUtils {
 		if (JacksonPresent.isJackson2Present()) {
 			ObjectMapper mapper = new Jackson2JsonObjectMapper().getObjectMapper();
 
-			mapper.setDefaultTyping(new AllowlistTypeResolverBuilder(trustedPackages));
+			mapper.setDefaultTyping(new AllowListTypeResolverBuilder(trustedPackages));
 
 			GenericMessageJacksonDeserializer genericMessageDeserializer = new GenericMessageJacksonDeserializer();
 			genericMessageDeserializer.setMapper(mapper);
@@ -83,6 +83,7 @@ public final class JacksonJsonUtils {
 
 			SimpleModule simpleModule = new SimpleModule()
 					.addSerializer(new MessageHeadersJacksonSerializer())
+					.addSerializer(new MimeTypeSerializer())
 					.addDeserializer(GenericMessage.class, genericMessageDeserializer)
 					.addDeserializer(ErrorMessage.class, errorMessageDeserializer)
 					.addDeserializer(AdviceMessage.class, adviceMessageDeserializer)
@@ -107,13 +108,13 @@ public final class JacksonJsonUtils {
 	 *
 	 * @since 4.3.11
 	 */
-	private static final class AllowlistTypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuilder {
+	private static final class AllowListTypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuilder {
 
 		private static final long serialVersionUID = 1L;
 
 		private final String[] trustedPackages;
 
-		AllowlistTypeResolverBuilder(String... trustedPackages) {
+		AllowListTypeResolverBuilder(String... trustedPackages) {
 			super(ObjectMapper.DefaultTyping.NON_FINAL,
 					//we do explicit validation in the TypeIdResolver
 					BasicPolymorphicTypeValidator.builder()

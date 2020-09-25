@@ -114,8 +114,8 @@ public class ZeroMqChannelTests {
 		await().until(() -> proxy.getBackendPort() > 0);
 
 		ZMQ.Socket captureSocket = CONTEXT.createSocket(SocketType.SUB);
-		captureSocket.connect(proxy.getCaptureAddress());
 		captureSocket.subscribe(ZMQ.SUBSCRIPTION_ALL);
+		captureSocket.connect(proxy.getCaptureAddress());
 
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT);
 		channel.setConnectUrl("tcp://localhost:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
@@ -170,10 +170,13 @@ public class ZeroMqChannelTests {
 		ZeroMqChannel channel2 = new ZeroMqChannel(CONTEXT, true);
 		channel2.setConnectUrl("tcp://localhost:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
 		channel2.setBeanName("testChannel5");
-		channel.setConsumeDelay(Duration.ofMillis(10));
+		channel2.setConsumeDelay(Duration.ofMillis(10));
 		channel2.afterPropertiesSet();
 
-		channel.subscribe(received::offer);
+		channel2.subscribe(received::offer);
+
+		// Give it some time to connect and subscribe
+		Thread.sleep(1000);
 
 		GenericMessage<String> testMessage = new GenericMessage<>("test1");
 		assertThat(channel.send(testMessage)).isTrue();
@@ -187,6 +190,7 @@ public class ZeroMqChannelTests {
 		assertThat(received.poll(100, TimeUnit.MILLISECONDS)).isNull();
 
 		channel.destroy();
+		channel2.destroy();
 		proxy.stop();
 	}
 

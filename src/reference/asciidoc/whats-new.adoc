@@ -44,7 +44,7 @@ See <<./jdbc.adoc#jdbc-lock-registry,JDBC implementation>> for more information.
 [[x5.4-zeromq]]
 ==== ZeroMQ Support
 
-A `ZeroMqChannel` has been introduced.
+`ZeroMqChannel`, `ZeroMqMessageHandler` and `ZeroMqMessageProducer` have been introduced.
 See <<./zeromq.adoc#zeromq,ZeroMQ Support>> for more information.
 
 [[x5.4-general]]
