@@ -183,7 +183,8 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Return the port a socket is bound or 0 if this message producer has not been started yet.
+	 * Return the port a socket is bound or 0 if this message producer has not been started yet
+	 * or the socket is connected - not bound.
 	 * @return the port for a socket or 0.
 	 */
 	public int getBoundPort() {

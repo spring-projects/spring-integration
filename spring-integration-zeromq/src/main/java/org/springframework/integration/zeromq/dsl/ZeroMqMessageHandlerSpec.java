@@ -111,7 +111,8 @@ public class ZeroMqMessageHandlerSpec
 	 * subscriptions.It is ignored for all other {@link SocketType}s supported.
 	 * @param topicFunction the {@link Function} to evaluate topic for publishing.
 	 * @return the spec
-	 */	public ZeroMqMessageHandlerSpec topicFunction(Function<Message<?>, String> topicFunction) {
+	 */
+	public ZeroMqMessageHandlerSpec topicFunction(Function<Message<?>, String> topicFunction) {
 		return topicExpression(new FunctionExpression<>(topicFunction));
 	}
 

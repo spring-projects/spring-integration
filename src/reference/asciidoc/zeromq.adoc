@@ -106,6 +106,40 @@ ZeroMqChannel zeroMqPubSubChannel(ZContext context) {
 [[zeromq-inbound-channel-adapter]]
 === ZeroMq Inbound Channel Adapter
 
+The `ZeroMqMessageProducer` is a `MessageProducerSupport` implementation with reactive semantics.
+It constantly reads the data from a ZeroMq socket in no-blocking manner and produces it as an infinite `Flux` which is subscribed by the `FluxMessageChannel` or explicitly in the `start()` if output channel is not reactive.
+When no data on the socket, a `consumeDelay` (defaults to 1 second) is applied before the next read attempt.
+
+Only `SocketType.PAIR`, `SocketType.PULL` and `SocketType.SUB` are supported by the `ZeroMqMessageProducer`.
+This component can connect to the remote socket or bind onto TCP protocol with the provided or random port.
+The actual port can be obtained via `getBoundPort()` after this component is started and ZeroMq socket is bound.
+The socket options (e.g. security or write timeout) can be configured via `setSocketConfigurer(Consumer<ZMQ.Socket> socketConfigurer)` callback.
+
+If `receiveRaw` option is set to `true`, a `ZMsg`, consumed from the socket, is sent as is in the payload of the produced `Message`: it's up to downstream flow to parse and convert `ZMsg` respectively.
+Otherwise an `InboundMessageMapper` is used to convert consumed data into a `Message`.
+If received `ZMsg` is multi-frame, the first one is treated as a `ZeroMqHeaders.TOPIC` header this ZeroMq message was published to.
+
+With the `SocketType.SUB` the `ZeroMqMessageProducer` uses provided `topics` option for subscriptions; defaults to subscribe to all.
+Subscriptions can be adjusted at runtime using `subscribeToTopics()` and `unsubscribeFromTopics()` `@ManagedOperation` s.
+
+Here is a sample of `ZeroMqMessageProducer` configuration:
+
+====
+[source,java]
+----
+@Bean
+ZeroMqMessageProducer zeroMqMessageProducer(ZContext context, MessageChannel outputChannel) {
+    ZeroMqMessageProducer messageProducer = new ZeroMqMessageProducer(context, SocketType.SUB);
+    messageProducer.setOutputChannel(outputChannel);
+    messageProducer.setTopics("some");
+    messageProducer.setReceiveRaw(true);
+    messageProducer.setBindPort(7070);
+    messageProducer.setConsumeDelay(Duration.ofMillis(100));
+    return messageProducer;
+}
+----
+====
+
 [[zeromq-outbound-channel-adapter]]
 === ZeroMq Outbound Channel Adapter
 
@@ -126,9 +160,9 @@ Here is a sample of `ZeroMqMessageHandler` configuration:
 ----
 @Bean
 @ServiceActivator(inputChannel = "zeroMqPublisherChannel")
-ZeroMqMessageHandler zeroMqMessageHandler{
+ZeroMqMessageHandler zeroMqMessageHandler(ZContext context) {
     ZeroMqMessageHandler messageHandler =
-                  new ZeroMqMessageHandler(CONTEXT, "tcp://localhost:6060", SocketType.PUB);
+                  new ZeroMqMessageHandler(context, "tcp://localhost:6060", SocketType.PUB);
     messageHandler.setTopicExpression(
                   new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
     messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
