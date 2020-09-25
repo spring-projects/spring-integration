@@ -107,19 +107,20 @@ ZeroMqChannel zeroMqPubSubChannel(ZContext context) {
 === ZeroMq Inbound Channel Adapter
 
 The `ZeroMqMessageProducer` is a `MessageProducerSupport` implementation with reactive semantics.
-It constantly reads the data from a ZeroMq socket in no-blocking manner and produces it as an infinite `Flux` which is subscribed by the `FluxMessageChannel` or explicitly in the `start()` if output channel is not reactive.
-When no data on the socket, a `consumeDelay` (defaults to 1 second) is applied before the next read attempt.
+It constantly reads the data from a ZeroMq socket in a non-blocking manner and publishes the messages to an infinite `Flux` which is subscribed to by a `FluxMessageChannel` or explicitly in the `start()` method, if the output channel is not reactive.
+When no data are received on the socket, a `consumeDelay` (defaults to 1 second) is applied before the next read attempt.
+
 
 Only `SocketType.PAIR`, `SocketType.PULL` and `SocketType.SUB` are supported by the `ZeroMqMessageProducer`.
 This component can connect to the remote socket or bind onto TCP protocol with the provided or random port.
 The actual port can be obtained via `getBoundPort()` after this component is started and ZeroMq socket is bound.
 The socket options (e.g. security or write timeout) can be configured via `setSocketConfigurer(Consumer<ZMQ.Socket> socketConfigurer)` callback.
 
-If `receiveRaw` option is set to `true`, a `ZMsg`, consumed from the socket, is sent as is in the payload of the produced `Message`: it's up to downstream flow to parse and convert `ZMsg` respectively.
-Otherwise an `InboundMessageMapper` is used to convert consumed data into a `Message`.
-If received `ZMsg` is multi-frame, the first one is treated as a `ZeroMqHeaders.TOPIC` header this ZeroMq message was published to.
+If the `receiveRaw` option is set to `true`, a `ZMsg`, consumed from the socket, is sent as is in the payload of the produced `Message`: it's up to the downstream flow to parse and convert  the `ZMsg`.
+Otherwise an `InboundMessageMapper` is used to convert the consumed data into a `Message`.
+If the received `ZMsg` is multi-frame, the first frame is treated as the `ZeroMqHeaders.TOPIC` header this ZeroMq message was published to.
 
-With the `SocketType.SUB` the `ZeroMqMessageProducer` uses provided `topics` option for subscriptions; defaults to subscribe to all.
+With `SocketType.SUB`, the `ZeroMqMessageProducer` uses the provided `topics` option for subscriptions; defaults to subscribe to all.
 Subscriptions can be adjusted at runtime using `subscribeToTopics()` and `unsubscribeFromTopics()` `@ManagedOperation` s.
 
 Here is a sample of `ZeroMqMessageProducer` configuration:
@@ -145,10 +146,10 @@ ZeroMqMessageProducer zeroMqMessageProducer(ZContext context, MessageChannel out
 
 The `ZeroMqMessageHandler` is a `ReactiveMessageHandler` implementation to produce publish messages into a ZeroMq socket.
 Only `SocketType.PAIR`, `SocketType.PUSH` and `SocketType.PUB` are supported.
-The `ZeroMqMessageHandler` utilizes only connecting (no binding) ZeroMq socket.
+The `ZeroMqMessageHandler` only supports connecting the ZeroMq socket; binding is not supported.
 When the `SocketType.PUB` is used, the `topicExpression` is evaluated against a request message to inject a topic frame into a ZeroMq message if it is not null.
 The subscriber side (`SocketType.SUB`) must receive the topic frame first before parsing the actual data.
-When the payload of the request message is a `ZMsg`, no any conversion and topic extraction happen: the `ZMsg` is sent into a socket as is and it is not destroyed for possible further reusing.
+When the payload of the request message is a `ZMsg`, no conversion or topic extraction is performed: the `ZMsg` is sent into a socket as is and it is not destroyed for possible further reuse.
 Otherwise an `OutboundMessageMapper<byte[]>` is used to convert a request message (or just its payload) into a ZeroMq frame to publish.
 By default a `ConvertingBytesMessageMapper` is used supplied with a `ConfigurableCompositeMessageConverter`.
 The socket options (e.g. security or write timeout) can be configured via `setSocketConfigurer(Consumer<ZMQ.Socket> socketConfigurer)` callback.
