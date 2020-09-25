@@ -47,6 +47,7 @@ import org.springframework.messaging.MessageChannel;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  *
  * @since 5.0
  *

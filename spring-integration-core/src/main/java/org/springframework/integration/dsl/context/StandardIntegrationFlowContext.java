@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Alexander Shaklein
+ * @author Artem Vozhdayenko
  *
  * @since 5.1
  *
