@@ -39,10 +39,12 @@ import org.springframework.util.ErrorHandler;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  *
  * @since 5.0
  */
-public class AmqpMessageChannelSpec<S extends AmqpMessageChannelSpec<S>> extends AmqpPollableMessageChannelSpec<S> {
+public class AmqpMessageChannelSpec<S extends AmqpMessageChannelSpec<S, T>, T extends AbstractAmqpChannel>
+		extends AmqpPollableMessageChannelSpec<S, T> {
 
 	protected final List<Advice> adviceChain = new LinkedList<>(); // NOSONAR
 
@@ -215,7 +217,7 @@ public class AmqpMessageChannelSpec<S extends AmqpMessageChannelSpec<S>> extends
 	}
 
 	@Override
-	protected AbstractAmqpChannel doGet() {
+	protected T doGet() {
 		this.amqpChannelFactoryBean.setAdviceChain(this.adviceChain.toArray(new Advice[0]));
 		return super.doGet();
 	}

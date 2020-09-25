@@ -83,6 +83,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Nasko Vasilev
+ * @author Artem Vozhdayenko
  *
  * @since 5.0
  */
@@ -371,8 +372,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public BroadcastCapableChannel jmsPublishSubscribeChannel() {
-			// TODO reconsider target generic type for channel implementation to return from this kind of specs
-			return (BroadcastCapableChannel) Jms.publishSubscribeChannel(jmsConnectionFactory())
+			return Jms.publishSubscribeChannel(jmsConnectionFactory())
 					.destination("pubsub")
 					.get();
 		}

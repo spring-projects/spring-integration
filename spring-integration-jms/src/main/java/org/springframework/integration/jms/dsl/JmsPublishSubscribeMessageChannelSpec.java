@@ -18,15 +18,19 @@ package org.springframework.integration.jms.dsl;
 
 import javax.jms.ConnectionFactory;
 
+import org.springframework.integration.jms.SubscribableJmsChannel;
+
 /**
  * A {@link JmsMessageChannelSpec} for a {@link org.springframework.integration.jms.SubscribableJmsChannel}
  * configured with a topic.
  *
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
+ *
  * @since 5.0
  */
 public class JmsPublishSubscribeMessageChannelSpec
-		extends JmsMessageChannelSpec<JmsPublishSubscribeMessageChannelSpec> {
+		extends JmsMessageChannelSpec<JmsPublishSubscribeMessageChannelSpec, SubscribableJmsChannel> {
 
 	protected JmsPublishSubscribeMessageChannelSpec(ConnectionFactory connectionFactory) {
 		super(connectionFactory);

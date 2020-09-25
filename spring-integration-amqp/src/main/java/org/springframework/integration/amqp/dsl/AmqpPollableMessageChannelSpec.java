@@ -36,11 +36,12 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  *
  * @since 5.0
  */
-public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannelSpec<S>>
-		extends MessageChannelSpec<S, AbstractAmqpChannel> {
+public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannelSpec<S, T>, T extends AbstractAmqpChannel>
+		extends MessageChannelSpec<S, T> {
 
 	protected final AmqpChannelFactoryBean amqpChannelFactoryBean; // NOSONAR final
 
@@ -206,10 +207,11 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 	}
 
 	@Override
-	protected AbstractAmqpChannel doGet() {
+	@SuppressWarnings("unchecked")
+	protected T doGet() {
 		Assert.notNull(getId(), "The 'id' or 'queueName' must be specified");
 		try {
-			this.channel = this.amqpChannelFactoryBean.getObject();
+			this.channel = (T) this.amqpChannelFactoryBean.getObject();
 		}
 		catch (Exception e) {
 			throw new BeanCreationException("Cannot create the AMQP MessageChannel", e);
