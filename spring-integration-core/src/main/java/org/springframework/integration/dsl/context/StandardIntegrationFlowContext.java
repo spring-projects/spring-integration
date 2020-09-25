@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,9 +90,9 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		return Boolean.TRUE.equals(this.useFlowIdAsPrefix.get(flowId));
 	}
 
-	private void register(StandardIntegrationFlowRegistrationBuilder builder) {
-		IntegrationFlow integrationFlow = builder.integrationFlowRegistration.getIntegrationFlow();
-		String flowId = builder.integrationFlowRegistration.getId();
+	private IntegrationFlowRegistration register(StandardIntegrationFlowRegistrationBuilder builder) {
+		IntegrationFlow integrationFlow = builder.integrationFlow;
+		String flowId = builder.id;
 		Lock registerBeanLock = null;
 		try {
 			if (flowId == null) {
@@ -115,15 +115,18 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 			}
 		}
 
-		builder.integrationFlowRegistration.setIntegrationFlow(integrationFlow);
+		builder.integrationFlow = integrationFlow;
 
 		final String theFlowId = flowId;
 		builder.additionalBeans.forEach((key, value) -> registerBean(key, value, theFlowId));
 
+		IntegrationFlowRegistration registration = new StandardIntegrationFlowRegistration(integrationFlow, this, flowId);
 		if (builder.autoStartup) {
-			builder.integrationFlowRegistration.start();
+			registration.start();
 		}
-		this.registry.put(flowId, builder.integrationFlowRegistration);
+		this.registry.put(flowId, registration);
+
+		return registration;
 	}
 
 	private IntegrationFlow registerFlowBean(IntegrationFlow flow, String flowId, @Nullable Object source) {
@@ -257,7 +260,9 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 		private final Map<Object, String> additionalBeans = new HashMap<>();
 
-		private final IntegrationFlowRegistration integrationFlowRegistration;
+		private IntegrationFlow integrationFlow;
+
+		private String id;
 
 		private boolean autoStartup = true;
 
@@ -267,9 +272,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		private Object source;
 
 		StandardIntegrationFlowRegistrationBuilder(IntegrationFlow integrationFlow) {
-			this.integrationFlowRegistration = new StandardIntegrationFlowRegistration(integrationFlow);
-			this.integrationFlowRegistration.setBeanFactory(StandardIntegrationFlowContext.this.beanFactory);
-			this.integrationFlowRegistration.setIntegrationFlowContext(StandardIntegrationFlowContext.this);
+			this.integrationFlow = integrationFlow;
 		}
 
 		/**
@@ -282,7 +285,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		 */
 		@Override
 		public StandardIntegrationFlowRegistrationBuilder id(String id) {
-			this.integrationFlowRegistration.setId(id);
+			this.id = id;
 			return this;
 		}
 
@@ -345,14 +348,14 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		 */
 		@Override
 		public IntegrationFlowRegistration register() {
-			String id = this.integrationFlowRegistration.getId();
-			Assert.state(!this.idAsPrefix || StringUtils.hasText(id),
+			Assert.state(!this.idAsPrefix || StringUtils.hasText(this.id),
 					"An 'id' must be present to use 'useFlowIdAsPrefix'");
 			if (this.idAsPrefix) {
-				StandardIntegrationFlowContext.this.useFlowIdAsPrefix.put(id, this.idAsPrefix);
+				StandardIntegrationFlowContext.this.useFlowIdAsPrefix.put(this.id, this.idAsPrefix);
 			}
-			StandardIntegrationFlowContext.this.register(this);
-			return this.integrationFlowRegistration;
+			IntegrationFlowRegistration registration = StandardIntegrationFlowContext.this.register(this);
+			registration.setBeanFactory(StandardIntegrationFlowContext.this.beanFactory);
+			return registration;
 		}
 
 	}
