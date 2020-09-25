@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.messaging.MessageChannel;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  *
  * @since 5.0
  *
@@ -119,34 +120,16 @@ public interface IntegrationFlowContext {
 		String getId();
 
 		/**
-		 * Set the flow id.
-		 * @param id the id.
-		 */
-		void setId(String id);
-
-		/**
 		 * Return the flow.
 		 * @return the flow.
 		 */
 		IntegrationFlow getIntegrationFlow();
 
 		/**
-		 * Set the integration flow.
-		 * @param integrationFlow the flow.
-		 */
-		void setIntegrationFlow(IntegrationFlow integrationFlow);
-
-		/**
 		 * Return the flow input channel.
 		 * @return the channel.
 		 */
 		MessageChannel getInputChannel();
-
-		/**
-		 * Set the flow context.
-		 * @param integrationFlowContext the context.
-		 */
-		void setIntegrationFlowContext(IntegrationFlowContext integrationFlowContext);
 
 		/**
 		 * Obtain a {@link MessagingTemplate} with its default destination set to the input channel
