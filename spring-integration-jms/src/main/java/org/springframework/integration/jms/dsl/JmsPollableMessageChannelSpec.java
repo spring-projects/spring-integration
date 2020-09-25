@@ -35,11 +35,12 @@ import org.springframework.lang.Nullable;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  *
  * @since 5.0
  */
-public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSpec<S>>
-		extends MessageChannelSpec<S, AbstractJmsChannel> {
+public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSpec<S, T>, T extends AbstractJmsChannel>
+		extends MessageChannelSpec<S, T> {
 
 	protected final JmsChannelFactoryBean jmsChannelFactoryBean; // NOSONAR - final
 
@@ -218,9 +219,10 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 	}
 
 	@Override
-	protected AbstractJmsChannel doGet() {
+	@SuppressWarnings("unchecked")
+	protected T doGet() {
 		try {
-			this.channel = this.jmsChannelFactoryBean.getObject();
+			this.channel = (T) this.jmsChannelFactoryBean.getObject();
 		}
 		catch (Exception e) {
 			throw new BeanCreationException("Cannot create the JMS MessageChannel", e);

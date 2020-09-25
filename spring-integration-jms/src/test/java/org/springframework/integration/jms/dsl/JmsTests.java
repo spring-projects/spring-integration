@@ -16,9 +16,6 @@
 
 package org.springframework.integration.jms.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -78,11 +75,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
  * @author Nasko Vasilev
+ * @author Artem Vozhdayenko
  *
  * @since 5.0
  */
@@ -371,8 +371,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public BroadcastCapableChannel jmsPublishSubscribeChannel() {
-			// TODO reconsider target generic type for channel implementation to return from this kind of specs
-			return (BroadcastCapableChannel) Jms.publishSubscribeChannel(jmsConnectionFactory())
+			return Jms.publishSubscribeChannel(jmsConnectionFactory())
 					.destination("pubsub")
 					.get();
 		}

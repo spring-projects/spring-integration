@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.jms.dsl;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
+import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -29,6 +30,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  *
  * @since 5.0
  */
@@ -39,7 +41,7 @@ public final class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsPollableMessageChannelSpec} instance
 	 */
-	public static JmsPollableMessageChannelSpec<?> pollableChannel(ConnectionFactory connectionFactory) {
+	public static JmsPollableMessageChannelSpec<?, PollableJmsChannel> pollableChannel(ConnectionFactory connectionFactory) {
 		return pollableChannel(null, connectionFactory);
 	}
 
@@ -49,10 +51,10 @@ public final class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsPollableMessageChannelSpec} instance
 	 */
-	public static JmsPollableMessageChannelSpec<?> pollableChannel(@Nullable String id,
+	public static JmsPollableMessageChannelSpec<?, PollableJmsChannel> pollableChannel(@Nullable String id,
 			ConnectionFactory connectionFactory) {
-
-		return new JmsPollableMessageChannelSpec<>(connectionFactory).id(id);
+		JmsPollableMessageChannelSpec<?, PollableJmsChannel> spec = new JmsPollableMessageChannelSpec<>(connectionFactory);
+		return spec.id(id);
 	}
 
 	/**
@@ -60,7 +62,7 @@ public final class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsMessageChannelSpec} instance
 	 */
-	public static JmsMessageChannelSpec<?> channel(ConnectionFactory connectionFactory) {
+	public static JmsMessageChannelSpec<?, ?> channel(ConnectionFactory connectionFactory) {
 		return channel(null, connectionFactory);
 	}
 
@@ -70,7 +72,7 @@ public final class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsMessageChannelSpec} instance
 	 */
-	public static JmsMessageChannelSpec<?> channel(@Nullable String id, ConnectionFactory connectionFactory) {
+	public static JmsMessageChannelSpec<?, ?> channel(@Nullable String id, ConnectionFactory connectionFactory) {
 		return new JmsMessageChannelSpec<>(connectionFactory)
 				.id(id);
 	}
@@ -180,7 +182,7 @@ public final class Jms {
 	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
 	 * @return the {@link JmsInboundGatewaySpec} instance
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public static <C extends AbstractMessageListenerContainer>
 	JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<?, C> inboundGateway(
 			ConnectionFactory connectionFactory, Class<C> containerClass) {
@@ -241,7 +243,7 @@ public final class Jms {
 	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public static <C extends AbstractMessageListenerContainer>
 	JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<?, C>
 	messageDrivenChannelAdapter(ConnectionFactory connectionFactory, Class<C> containerClass) {

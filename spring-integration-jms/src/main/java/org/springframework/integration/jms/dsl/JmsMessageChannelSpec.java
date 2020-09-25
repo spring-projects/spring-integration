@@ -20,6 +20,7 @@ import java.util.concurrent.Executor;
 
 import javax.jms.ConnectionFactory;
 
+import org.springframework.integration.jms.AbstractJmsChannel;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -33,9 +34,12 @@ import org.springframework.util.ErrorHandler;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
+ *
  * @since 5.0
  */
-public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends JmsPollableMessageChannelSpec<S> {
+public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S, T>, T
+		extends AbstractJmsChannel> extends JmsPollableMessageChannelSpec<S, T> {
 
 	protected JmsMessageChannelSpec(ConnectionFactory connectionFactory) {
 		super(new JmsChannelFactoryBean(true), connectionFactory);
