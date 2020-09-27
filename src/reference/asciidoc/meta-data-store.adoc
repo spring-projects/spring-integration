@@ -1,7 +1,7 @@
 [[metadata-store]]
 === Metadata Store
 
-Many external systems, services, or resources are not transactional (Twitter, RSS, file systems, and so on), and there is no any ability to mark the data as read.
+Many external systems, services, or resources are not transactional (Twitter, RSS, file systems, and so on), and there is not any ability to mark the data as read.
 Also, sometimes, you may need to implement the Enterprise Integration Pattern https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html[idempotent receiver] in some integration solutions.
 To achieve this goal and store some previous state of the endpoint before the next interaction with external system or to deal with the next message, Spring Integration provides the metadata store component as an an implementation of the `org.springframework.integration.metadata.MetadataStore` interface with a general key-value contract.
 
