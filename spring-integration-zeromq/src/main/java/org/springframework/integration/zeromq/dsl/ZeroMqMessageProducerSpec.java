@@ -22,13 +22,10 @@ import java.util.function.Consumer;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
-import org.zeromq.ZMsg;
 
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.mapping.InboundMessageMapper;
-import org.springframework.integration.zeromq.ZeroMqHeaders;
 import org.springframework.integration.zeromq.inbound.ZeroMqMessageProducer;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 
 /**
@@ -79,9 +76,10 @@ public class ZeroMqMessageProducerSpec
 	}
 
 	/**
-	 * Whether raw {@link ZMsg} is present as a payload of message to produce or
-	 * it is fully converted to a {@link Message} including {@link ZeroMqHeaders#TOPIC} header (if any).
-	 * @param receiveRaw to convert from {@link ZMsg} or not; defaults to convert.
+	 * Whether raw {@link org.zeromq.ZMsg} is present as a payload of message to produce or
+	 * it is fully converted to a {@link org.springframework.messaging.Message} including
+	 * {@link org.springframework.integration.zeromq.ZeroMqHeaders#TOPIC} header (if any).
+	 * @param receiveRaw to convert from {@link org.zeromq.ZMsg} or not; defaults to convert.
 	 * @return the spec
 	 */
 	public ZeroMqMessageProducerSpec receiveRaw(boolean receiveRaw) {

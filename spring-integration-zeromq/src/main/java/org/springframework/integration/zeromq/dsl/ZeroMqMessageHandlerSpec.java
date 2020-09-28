@@ -24,7 +24,6 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.dsl.ReactiveMessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.mapping.OutboundMessageMapper;
@@ -33,7 +32,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 
 /**
- * The {@link MessageHandlerSpec} extension for {@link ZeroMqMessageHandler}.
+ * The {@link ReactiveMessageHandlerSpec} extension for {@link ZeroMqMessageHandler}.
  *
  * @author Artem Bilan
  *

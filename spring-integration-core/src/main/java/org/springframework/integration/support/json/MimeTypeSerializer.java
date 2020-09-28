@@ -21,13 +21,12 @@ import java.io.IOException;
 import org.springframework.util.MimeType;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 /**
- * Simple {@link JsonSerializer} extension to represent a {@link MimeType} object in the
+ * Simple {@link StdSerializer} extension to represent a {@link MimeType} object in the
  * target JSON as a plain string.
  *
  * @author Artem Bilan

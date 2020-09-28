@@ -298,38 +298,39 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	}
 
 	private Mono<ClientResponse> exchangeForResponseMono(WebClient.RequestBodySpec requestSpec) {
-		return requestSpec.exchange()
-				.flatMap(response -> {
+		return requestSpec.retrieve()
+				.onStatus(HttpStatus::isError, response -> {
 					HttpStatus httpStatus = response.statusCode();
-					if (httpStatus.isError()) {
-						return response.body(BodyExtractors.toDataBuffers())
-								.reduce(DataBuffer::write)
-								.map(dataBuffer -> {
-									byte[] bytes = new byte[dataBuffer.readableByteCount()];
-									dataBuffer.read(bytes);
-									DataBufferUtils.release(dataBuffer);
-									return bytes;
-								})
-								.defaultIfEmpty(new byte[0])
-								.map(bodyBytes -> {
-											throw new WebClientResponseException(
-													"ClientResponse has erroneous status code: "
-															+ httpStatus.value() + " "
-															+ httpStatus.getReasonPhrase(),
-													httpStatus.value(),
-													httpStatus.getReasonPhrase(),
-													response.headers().asHttpHeaders(),
-													bodyBytes,
-													response.headers().contentType()
-															.map(MimeType::getCharset)
-															.orElse(StandardCharsets.ISO_8859_1));
-										}
-								);
-					}
-					else {
-						return Mono.just(response);
-					}
-				});
+					return response.body(BodyExtractors.toDataBuffers())
+							.reduce(DataBuffer::write)
+							.map(dataBuffer -> {
+								byte[] bytes = new byte[dataBuffer.readableByteCount()];
+								dataBuffer.read(bytes);
+								DataBufferUtils.release(dataBuffer);
+								return bytes;
+							})
+							.defaultIfEmpty(new byte[0])
+							.map(bodyBytes -> {
+										throw new WebClientResponseException(
+												"ClientResponse has erroneous status code: "
+														+ httpStatus.value() + " "
+														+ httpStatus.getReasonPhrase(),
+												httpStatus.value(),
+												httpStatus.getReasonPhrase(),
+												response.headers().asHttpHeaders(),
+												bodyBytes,
+												response.headers().contentType()
+														.map(MimeType::getCharset)
+														.orElse(StandardCharsets.ISO_8859_1));
+									}
+							);
+				})
+				.toEntityList(DataBuffer.class)
+				.map((entity) ->
+						ClientResponse.create(entity.getStatusCode())
+								.headers((headers) -> headers.addAll(entity.getHeaders()))
+								.body(Flux.fromIterable(entity.getBody())) // NOSONAR - not null according toEntityList()
+								.build());
 	}
 
 	@Nullable

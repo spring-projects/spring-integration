@@ -24,14 +24,13 @@ import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.ComponentsRegistration;
-import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.dsl.ReactiveMessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.mongodb.outbound.ReactiveMongoDbStoringMessageHandler;
 import org.springframework.messaging.Message;
 
 /**
- * A {@link MessageHandlerSpec} extension for the Reactive MongoDb Outbound endpoint
+ * A {@link ReactiveMessageHandlerSpec} extension for the Reactive MongoDb Outbound endpoint
  * {@link ReactiveMongoDbStoringMessageHandler}.
  *
  * @author Artem Bilan
