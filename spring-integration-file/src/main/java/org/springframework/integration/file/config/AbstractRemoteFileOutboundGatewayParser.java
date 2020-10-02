@@ -58,13 +58,7 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		}
 		else {
 			builder.addConstructorArgValue(element.getAttribute("command"));
-			if (element.hasAttribute(EXPRESSION_ATTRIBUTE)) {
-				String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
-				if ("++xsd.expression.default++".equals(expression)) {
-					expression = null;
-				}
-				builder.addConstructorArgValue(expression);
-			}
+			builder.addConstructorArgValue(element.getAttribute(EXPRESSION_ATTRIBUTE));
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "command-options", "options");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");

@@ -200,10 +200,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				|| Command.NLST.equals(this.command)
 				|| Command.PUT.equals(this.command)
 				|| Command.MPUT.equals(this.command));
-		if (expression == null && expressionNeeded) {
+		if (!StringUtils.hasText(expression) && expressionNeeded) {
 			expression = "payload";
 		}
-		if (expression == null) {
+		if (!StringUtils.hasText(expression)) {
 			this.fileNameProcessor = null;
 		}
 		else {
