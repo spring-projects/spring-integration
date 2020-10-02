@@ -196,18 +196,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		this.remoteFileTemplate = remoteFileTemplate;
 		this.command = command;
 		String expression = expressionArg;
-		boolean noExpressionNeeded = Command.LS.equals(this.command)
+		boolean expressionNeeded = !(Command.LS.equals(this.command)
 				|| Command.NLST.equals(this.command)
 				|| Command.PUT.equals(this.command)
-				|| Command.MPUT.equals(this.command);
-		if ("++xsd.expression.default++".equals(expression)) {
-			expression = noExpressionNeeded ? null : "payload";
+				|| Command.MPUT.equals(this.command));
+		if (expression == null && expressionNeeded) {
+			expression = "payload";
 		}
 		if (expression == null) {
-			Assert.state(noExpressionNeeded,
-					"Only LS, and NLST commands can rely on the working directory.\n" +
-							"PUT and MPUT commands always use the payload.\n" +
-							"All other commands must be supplied with a filename expression");
 			this.fileNameProcessor = null;
 		}
 		else {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,11 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		else {
 			builder.addConstructorArgValue(element.getAttribute("command"));
 			if (element.hasAttribute(EXPRESSION_ATTRIBUTE)) {
-				builder.addConstructorArgValue(element.getAttribute(EXPRESSION_ATTRIBUTE));
+				String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
+				if ("++xsd.expression.default++".equals(expression)) {
+					expression = null;
+				}
+				builder.addConstructorArgValue(expression);
 			}
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "command-options", "options");
