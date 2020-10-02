@@ -187,21 +187,23 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * 'get' etc), and an expression to determine the filename.
 	 * @param remoteFileTemplate the remote file template.
 	 * @param command the command.
-	 * @param expression the filename expression.
+	 * @param expressionArg the filename expression.
 	 */
 	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate, Command command,
-			@Nullable String expression) {
+			@Nullable String expressionArg) {
 
 		Assert.notNull(remoteFileTemplate, "'remoteFileTemplate' cannot be null");
 		this.remoteFileTemplate = remoteFileTemplate;
 		this.command = command;
-		if (expression == null) {
-			Assert.state(Command.LS.equals(this.command)
-							|| Command.NLST.equals(this.command)
-							|| Command.PUT.equals(this.command)
-							|| Command.MPUT.equals(this.command),
-					"Only LS, NLST, PUT and MPUT commands can rely on the working directory.\n" +
-							"All other commands must be supplied with the filename expression");
+		String expression = expressionArg;
+		boolean expressionNeeded = !(Command.LS.equals(this.command)
+				|| Command.NLST.equals(this.command)
+				|| Command.PUT.equals(this.command)
+				|| Command.MPUT.equals(this.command));
+		if (!StringUtils.hasText(expression) && expressionNeeded) {
+			expression = "payload";
+		}
+		if (!StringUtils.hasText(expression)) {
 			this.fileNameProcessor = null;
 		}
 		else {
