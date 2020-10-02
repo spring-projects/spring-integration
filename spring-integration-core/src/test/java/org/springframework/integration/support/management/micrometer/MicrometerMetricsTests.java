@@ -59,6 +59,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.search.MeterNotFoundException;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
@@ -91,6 +92,9 @@ public class MicrometerMetricsTests {
 
 	@Autowired
 	private QueueChannel queue;
+
+	@Autowired
+	private QueueChannel noMeters;
 
 	@Autowired
 	private PollableChannel badPoll;
@@ -131,7 +135,7 @@ public class MicrometerMetricsTests {
 
 		nullChannel.send(message);
 		MeterRegistry registry = this.meterRegistry;
-		assertThat(registry.get("spring.integration.channels").gauge().value()).isEqualTo(7);
+		assertThat(registry.get("spring.integration.channels").gauge().value()).isEqualTo(8);
 		assertThat(registry.get("spring.integration.handlers").gauge().value()).isEqualTo(4);
 		assertThat(registry.get("spring.integration.sources").gauge().value()).isEqualTo(1);
 
@@ -243,6 +247,13 @@ public class MicrometerMetricsTests {
 				.tag("result", "success")
 				.timer().count()).isEqualTo(2);
 
+		this.noMeters.send(message);
+		assertThatExceptionOfType(MeterNotFoundException.class).isThrownBy(() -> registry.get("spring.integration.send")
+				.tag("type", "channel")
+				.tag("name", "noMeters")
+				.tag("result", "success")
+				.timer().count());
+
 		this.context.close();
 
 		assertThatExceptionOfType(MeterNotFoundException.class)
@@ -264,7 +275,11 @@ public class MicrometerMetricsTests {
 
 		@Bean
 		public static MeterRegistry meterRegistry() {
-			return new SimpleMeterRegistry();
+			SimpleMeterRegistry registry = new SimpleMeterRegistry();
+			registry.config().meterFilter(MeterFilter.deny(id ->
+					"channel".equals(id.getTag("type")) &&
+					"noMeters".equals(id.getTag("name"))));
+			return registry;
 		}
 
 		@ServiceActivator(inputChannel = "channel")
@@ -307,6 +322,11 @@ public class MicrometerMetricsTests {
 
 		@Bean
 		public QueueChannel queue() {
+			return new QueueChannel(10);
+		}
+
+		@Bean
+		public QueueChannel noMeters() {
 			return new QueueChannel(10);
 		}
 
