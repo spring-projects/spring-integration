@@ -113,4 +113,26 @@
 
 	<int:channel id="outbound"/>
 
+	<int-sftp:outbound-gateway id="noExpressionLS"
+		request-channel="nullChannel"
+		reply-channel="nullChannel"
+		session-factory="sf"
+		remote-directory="."
+		command="ls" />
+
+	<int-sftp:outbound-gateway id="noExpressionPUT"
+		request-channel="nullChannel"
+		reply-channel="nullChannel"
+		session-factory="sf"
+		remote-directory="."
+		command="put" />
+
+	<int-sftp:outbound-gateway id="noExpressionGET"
+		request-channel="nullChannel"
+		reply-channel="nullChannel"
+		session-factory="sf"
+		remote-directory="."
+		local-directory="."
+		command="get" />
+
 </beans>
