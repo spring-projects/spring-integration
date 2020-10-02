@@ -70,6 +70,15 @@ public class SftpOutboundGatewayParserTests {
 	AbstractEndpoint advised;
 
 	@Autowired
+	AbstractEndpoint noExpressionLS;
+
+	@Autowired
+	AbstractEndpoint noExpressionPUT;
+
+	@Autowired
+	AbstractEndpoint noExpressionGET;
+
+	@Autowired
 	FileNameGenerator generator;
 
 	private static volatile int adviceCalled;
@@ -163,6 +172,14 @@ public class SftpOutboundGatewayParserTests {
 				"handler", SftpOutboundGateway.class);
 		gateway.handleMessage(new GenericMessage<String>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
+	}
+
+	@Test
+	void noExpression() {
+		assertThat(TestUtils.getPropertyValue(this.noExpressionLS, "handler.fileNameProcessor")).isNull();
+		assertThat(TestUtils.getPropertyValue(this.noExpressionPUT, "handler.fileNameProcessor")).isNull();
+		assertThat(TestUtils.getPropertyValue(this.noExpressionGET,
+				"handler.fileNameProcessor.expression.expression")).isEqualTo("payload");
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

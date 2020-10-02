@@ -290,7 +290,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="expression" type="xsd:string">
+					<xsd:attribute name="expression" type="xsd:string" default="++xsd.expression.default++">
 						<xsd:annotation>
 							<xsd:documentation>
 								SpEL expression representing the path in the

@@ -187,21 +187,27 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * 'get' etc), and an expression to determine the filename.
 	 * @param remoteFileTemplate the remote file template.
 	 * @param command the command.
-	 * @param expression the filename expression.
+	 * @param expressionArg the filename expression.
 	 */
 	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate, Command command,
-			@Nullable String expression) {
+			@Nullable String expressionArg) {
 
 		Assert.notNull(remoteFileTemplate, "'remoteFileTemplate' cannot be null");
 		this.remoteFileTemplate = remoteFileTemplate;
 		this.command = command;
+		String expression = expressionArg;
+		boolean noExpressionNeeded = Command.LS.equals(this.command)
+				|| Command.NLST.equals(this.command)
+				|| Command.PUT.equals(this.command)
+				|| Command.MPUT.equals(this.command);
+		if ("++xsd.expression.default++".equals(expression)) {
+			expression = noExpressionNeeded ? null : "payload";
+		}
 		if (expression == null) {
-			Assert.state(Command.LS.equals(this.command)
-							|| Command.NLST.equals(this.command)
-							|| Command.PUT.equals(this.command)
-							|| Command.MPUT.equals(this.command),
-					"Only LS, NLST, PUT and MPUT commands can rely on the working directory.\n" +
-							"All other commands must be supplied with the filename expression");
+			Assert.state(noExpressionNeeded,
+					"Only LS, and NLST commands can rely on the working directory.\n" +
+							"PUT and MPUT commands always use the payload.\n" +
+							"All other commands must be supplied with a filename expression");
 			this.fileNameProcessor = null;
 		}
 		else {
