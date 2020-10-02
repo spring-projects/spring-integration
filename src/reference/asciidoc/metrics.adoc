@@ -128,3 +128,26 @@ By default, all meters are registered when first used.
 Now, with Micrometer, you can add `MeterFilter` s to the `MeterRegistry` to prevent some or all from being registered.
 You can filter out (deny) meters by any of the properties provided, `name`, `tag`, etc.
 See https://micrometer.io/docs/concepts#_meter_filters[Meter Filters] in the Micrometer documentation for more information.
+
+For example, given:
+
+====
+[source, java]
+----
+@Bean
+public QueueChannel noMeters() {
+    return new QueueChannel(10);
+}
+----
+====
+
+You can suppress registration of meters for just this channel with:
+
+====
+[source, java]
+----
+registry.config().meterFilter(MeterFilter.deny(id ->
+        "channel".equals(id.getTag("type")) &&
+        "noMeters".equals(id.getTag("name"))));
+----
+====
