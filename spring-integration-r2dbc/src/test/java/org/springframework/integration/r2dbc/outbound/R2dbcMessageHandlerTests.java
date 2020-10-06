@@ -16,6 +16,7 @@
 
 package org.springframework.integration.r2dbc.outbound;
 
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -113,6 +114,11 @@ public class R2dbcMessageHandlerTests {
 				.expectNextCount(1)
 				.verifyComplete();
 
+	}
+
+	@Test
+	public void validateComponentType() {
+		assertThat(this.r2dbcMessageHandler.getComponentType()).isEqualTo("r2dbc:outbound-channel-adapter");
 	}
 
 	@Test

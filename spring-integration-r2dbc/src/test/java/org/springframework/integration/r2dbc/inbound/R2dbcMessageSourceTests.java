@@ -90,6 +90,12 @@ public class R2dbcMessageSourceTests {
 	}
 
 	@Test
+	public void validateComponentType() {
+		assertThat(this.defaultR2dbcMessageSource.getComponentType())
+												.isEqualTo("r2dbc:inbound-channel-adapter");
+	}
+
+	@Test
 	public void validateSuccessfulQueryWithoutSettingExpectedElement() {
 		this.entityTemplate.insert(new Person("Bob", 35))
 				.then()

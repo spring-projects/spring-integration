@@ -28,6 +28,7 @@ import org.springframework.data.redis.core.ReactiveStreamOperations;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.stream.StreamReceiver;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -48,6 +49,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Attoumane Ahamadi
  * @author Artem Bilan
+ * @author Rohan Mukesh
  *
  * @since 5.4
  */
@@ -217,10 +219,12 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 									.setHeader(RedisHeaders.STREAM_MESSAGE_ID, event.getId())
 									.setHeader(RedisHeaders.CONSUMER_GROUP, this.consumerGroup)
 									.setHeader(RedisHeaders.CONSUMER, this.consumerName);
-					if (!this.autoAck) {
+					if (!this.autoAck && this.consumerGroup != null) {
 						builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
-								this.reactiveStreamOperations.acknowledge(this.consumerGroup, event)
-										.subscribe());
+								(SimpleAcknowledgment) () ->
+										this.reactiveStreamOperations
+												.acknowledge(this.consumerGroup, event)
+												.subscribe());
 					}
 					return builder.build();
 				});

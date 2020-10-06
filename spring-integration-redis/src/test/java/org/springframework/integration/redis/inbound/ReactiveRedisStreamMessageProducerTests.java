@@ -19,6 +19,7 @@ package org.springframework.integration.redis.inbound;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
 import org.junit.Before;
@@ -28,10 +29,15 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.StreamInfo;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.stream.StreamReceiver;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
+import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.redis.outbound.ReactiveRedisStreamMessageHandler;
@@ -46,11 +52,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 /**
  * @author Attoumane Ahamadi
  * @author Artem Bilan
+ * @author Rohan Mukesh
  *
  * @since 5.4
  */
@@ -76,6 +84,16 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 
 	@Before
 	public void delKey() {
+		this.template.hasKey(STREAM_KEY)
+				.filter(Boolean::booleanValue)
+				.flatMapMany(b ->
+						this.template.opsForStream()
+								.groups(STREAM_KEY)
+								.map(StreamInfo.XInfoGroup::groupName)
+								.flatMap(groupName ->
+										this.template.opsForStream()
+												.destroyGroup(STREAM_KEY, groupName)))
+				.blockLast();
 		this.template.delete(STREAM_KEY).block();
 	}
 
@@ -90,9 +108,10 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 		this.redisStreamMessageProducer.setCreateConsumerGroup(true);
 		this.redisStreamMessageProducer.setConsumerName(CONSUMER);
 		this.redisStreamMessageProducer.afterPropertiesSet();
-		this.redisStreamMessageProducer.start();
 
 		Flux.from(this.fluxMessageChannel).subscribe();
+
+		this.redisStreamMessageProducer.start();
 
 		this.template.opsForStream()
 				.groups(STREAM_KEY)
@@ -147,19 +166,81 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 
 		this.redisStreamMessageProducer.setCreateConsumerGroup(false);
 		this.redisStreamMessageProducer.setConsumerName(CONSUMER);
+		this.redisStreamMessageProducer.setReadOffset(ReadOffset.latest());
 		this.redisStreamMessageProducer.afterPropertiesSet();
 		this.redisStreamMessageProducer.start();
 
+		StepVerifier stepVerifier =
+				Flux.from(this.fluxMessageChannel)
+						.as(StepVerifier::create)
+						.assertNext(message -> {
+							assertThat(message.getPayload()).isEqualTo(person);
+							assertThat(message.getHeaders()).containsKeys(RedisHeaders.CONSUMER_GROUP, RedisHeaders.CONSUMER);
+						})
+						.thenCancel()
+						.verifyLater();
+
 		this.messageHandler.handleMessage(new GenericMessage<>(person));
 
-		Flux.from(this.fluxMessageChannel)
+		stepVerifier.verify(Duration.ofSeconds(10));
+	}
+
+	@Test
+	@RedisAvailable
+	public void testReadingPendingMessageWithNoAutoACK() {
+		Address address = new Address("Winterfell, Westeros");
+		Person person = new Person(address, "John Snow");
+
+		this.template.opsForStream()
+				.createGroup(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
 				.as(StepVerifier::create)
-				.assertNext(message -> {
-					assertThat(message.getPayload()).isEqualTo(person);
-					assertThat(message.getHeaders()).containsKeys(RedisHeaders.CONSUMER_GROUP, RedisHeaders.CONSUMER);
-				})
+				.assertNext(message -> assertThat(message).isEqualTo("OK"))
 				.thenCancel()
 				.verify(Duration.ofSeconds(10));
+
+		this.redisStreamMessageProducer.setCreateConsumerGroup(false);
+		this.redisStreamMessageProducer.setAutoAck(false);
+		this.redisStreamMessageProducer.setConsumerName(CONSUMER);
+		this.redisStreamMessageProducer.setReadOffset(ReadOffset.latest());
+		this.redisStreamMessageProducer.afterPropertiesSet();
+		this.redisStreamMessageProducer.start();
+
+		AtomicReference<SimpleAcknowledgment> acknowledgmentReference = new AtomicReference<>();
+
+		StepVerifier stepVerifier =
+				Flux.from(this.fluxMessageChannel)
+						.as(StepVerifier::create)
+						.assertNext(message -> {
+							assertThat(message.getPayload()).isEqualTo(person);
+							assertThat(message.getHeaders())
+									.containsKeys(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK);
+							acknowledgmentReference.set(StaticMessageHeaderAccessor.getAcknowledgment(message));
+						})
+						.thenCancel()
+						.verifyLater();
+
+		this.messageHandler.handleMessage(new GenericMessage<>(person));
+
+		stepVerifier.verify(Duration.ofSeconds(10));
+
+		Mono<PendingMessagesSummary> pending =
+				template.opsForStream()
+						.pending(STREAM_KEY, this.redisStreamMessageProducer.getBeanName());
+
+		StepVerifier.create(pending)
+				.assertNext(pendingMessagesSummary ->
+						assertThat(pendingMessagesSummary.getTotalPendingMessages()).isEqualTo(1))
+				.verifyComplete();
+
+		acknowledgmentReference.get().acknowledge();
+
+		Mono<PendingMessagesSummary> pendingZeroMessage = template.opsForStream().pending(STREAM_KEY,
+				this.redisStreamMessageProducer.getBeanName());
+
+		StepVerifier.create(pendingZeroMessage)
+				.assertNext(pendingMessagesSummary ->
+						assertThat(pendingMessagesSummary.getTotalPendingMessages()).isEqualTo(0))
+				.verifyComplete();
 	}
 
 	@Configuration

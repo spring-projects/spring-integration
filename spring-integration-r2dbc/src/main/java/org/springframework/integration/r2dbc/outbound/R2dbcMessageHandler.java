@@ -112,7 +112,7 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 
 	@Override
 	public String getComponentType() {
-		return "r2dbc:reactive-outbound-channel-adapter";
+		return "r2dbc:outbound-channel-adapter";
 	}
 
 	@Override
