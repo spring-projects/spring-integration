@@ -494,8 +494,8 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 						connection.close();
 					}
 				}
-				catch (RuntimeException e) {
-					logger.error("Failed to eagerly establish the connection.", e);
+				catch (RuntimeException ex) {
+					logger.error(ex, "Failed to eagerly establish the connection.");
 				}
 			}
 			doStart();
@@ -659,9 +659,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	protected void handleConfirm(CorrelationData correlationData, boolean ack, String cause) {
 		CorrelationDataWrapper wrapper = (CorrelationDataWrapper) correlationData;
 		if (correlationData == null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("No correlation data provided for ack: " + ack + " cause:" + cause);
-			}
+			logger.debug(() -> "No correlation data provided for ack: " + ack + " cause:" + cause);
 			return;
 		}
 		Object userCorrelationData = wrapper.getUserData();
@@ -675,11 +673,8 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 				sendOutput(buildConfirmMessage(ack, cause, wrapper, userCorrelationData), nackChannel, true);
 			}
 			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Nowhere to send publisher confirm "
-							+ (ack ? "ack" : "nack") + " for "
-							+ userCorrelationData);
-				}
+				logger.debug(() -> "Nowhere to send publisher confirm " + (ack ? "ack" : "nack") + " for "
+						+ userCorrelationData);
 			}
 		}
 	}

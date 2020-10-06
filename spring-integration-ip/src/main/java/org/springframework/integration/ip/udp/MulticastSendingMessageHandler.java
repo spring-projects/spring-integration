@@ -152,9 +152,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 				if (soReceiveBufferSize > 0) {
 					socket.setReceiveBufferSize(soReceiveBufferSize);
 				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("Listening for acks on port: " + socket.getLocalPort());
-				}
+				logger.debug(() -> "Listening for acks on port: " + socket.getLocalPort());
 				setSocket(socket);
 				updateAckAddress();
 			}

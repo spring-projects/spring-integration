@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,9 +229,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 			this.applicationEventPublisher.publishEvent(new ImapIdleExceptionEvent(e));
 		}
 		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("No application event publisher for exception: " + e.getMessage());
-			}
+			logger.debug(() -> "No application event publisher for exception: " + e.getMessage());
 		}
 	}
 
@@ -248,13 +246,11 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 					ImapIdleChannelAdapter.this.idleTask.run();
 					logger.debug("Task completed successfully. Re-scheduling it again right away.");
 				}
-				catch (Exception e) { //run again after a delay
-					if (logger.isWarnEnabled()) {
-						logger.warn("Failed to execute IDLE task. Will attempt to resubmit in "
-								+ ImapIdleChannelAdapter.this.reconnectDelay + " milliseconds.", e);
-					}
+				catch (Exception ex) { //run again after a delay
+					logger.warn(ex, () -> "Failed to execute IDLE task. Will attempt to resubmit in "
+							+ ImapIdleChannelAdapter.this.reconnectDelay + " milliseconds.");
 					ImapIdleChannelAdapter.this.receivingTaskTrigger.delayNextExecution();
-					publishException(e);
+					publishException(ex);
 				}
 			}
 		}
@@ -276,9 +272,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 					Folder folder = ImapIdleChannelAdapter.this.mailReceiver.getFolder();
 					if (folder != null && folder.isOpen() && isRunning()) {
 						Object[] mailMessages = ImapIdleChannelAdapter.this.mailReceiver.receive();
-						if (logger.isDebugEnabled()) {
-							logger.debug("received " + mailMessages.length + " mail messages");
-						}
+						logger.debug(() -> "received " + mailMessages.length + " mail messages");
 						for (Object mailMessage : mailMessages) {
 							Runnable messageSendingTask = createMessageSendingTask(mailMessage);
 							if (isRunning()) {
@@ -287,14 +281,14 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 						}
 					}
 				}
-				catch (MessagingException e) {
-					logger.warn("error occurred in idle task", e);
+				catch (MessagingException ex) {
+					logger.warn(ex, "error occurred in idle task");
 					if (ImapIdleChannelAdapter.this.shouldReconnectAutomatically) {
-						throw new IllegalStateException("Failure in 'idle' task. Will resubmit.", e);
+						throw new IllegalStateException("Failure in 'idle' task. Will resubmit.", ex);
 					}
 					else {
 						throw new org.springframework.messaging.MessagingException(
-								"Failure in 'idle' task. Will NOT resubmit.", e);
+								"Failure in 'idle' task. Will NOT resubmit.", ex);
 					}
 				}
 			}

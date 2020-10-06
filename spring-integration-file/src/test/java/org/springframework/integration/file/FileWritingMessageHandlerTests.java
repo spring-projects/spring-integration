@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -56,6 +55,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -526,7 +526,7 @@ public class FileWritingMessageHandlerTests {
 		assertThat(called.get()).isTrue();
 
 		handler.stop();
-		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(handler, "logger", LogAccessor.class));
 		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
 		when(logger.isDebugEnabled()).thenReturn(true);
 		final AtomicInteger flushes = new AtomicInteger();

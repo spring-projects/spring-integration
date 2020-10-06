@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,14 +40,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
 
-import org.apache.commons.logging.Log;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.ip.IpHeaders;
@@ -74,7 +74,7 @@ public class ConnectionEventTests {
 	@Test
 	public void testConnectionEvents() throws Exception {
 		Socket socket = mock(Socket.class);
-		final List<TcpConnectionEvent> theEvent = new ArrayList<TcpConnectionEvent>();
+		final List<TcpConnectionEvent> theEvent = new ArrayList<>();
 		TcpNetConnection conn = new TcpNetConnection(socket, false, false, new ApplicationEventPublisher() {
 
 			@Override
@@ -99,7 +99,7 @@ public class ConnectionEventTests {
 		conn.setMapper(new TcpMessageMapper());
 		conn.setSerializer(serializer);
 		try {
-			conn.send(new GenericMessage<String>("bar"));
+			conn.send(new GenericMessage<>("bar"));
 			fail("Expected exception");
 		}
 		catch (Exception e) {
@@ -142,7 +142,7 @@ public class ConnectionEventTests {
 			}
 
 		};
-		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<ApplicationEvent>();
+		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<>();
 		scf.setApplicationEventPublisher(new ApplicationEventPublisher() {
 
 			@Override
@@ -182,7 +182,7 @@ public class ConnectionEventTests {
 			public void run() {
 			}
 		};
-		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<ApplicationEvent>();
+		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<>();
 		scf.setApplicationEventPublisher(new ApplicationEventPublisher() {
 
 			@Override
@@ -218,7 +218,7 @@ public class ConnectionEventTests {
 		AbstractClientConnectionFactory ccf = new AbstractClientConnectionFactory("localhost", 0) {
 
 		};
-		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<ApplicationEvent>();
+		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<>();
 		ccf.setApplicationEventPublisher(new ApplicationEventPublisher() {
 
 			@Override
@@ -246,7 +246,7 @@ public class ConnectionEventTests {
 		assertThat(messagingException.getFailedMessage()).isSameAs(message);
 		assertThat(messagingException.getMessage()).isEqualTo("Cannot correlate response - no pending reply for bar");
 
-		message = new GenericMessage<String>("foo");
+		message = new GenericMessage<>("foo");
 		gw.onMessage(message);
 		assertThat(theEvent.get()).isNotNull();
 		event = (TcpConnectionFailedCorrelationEvent) theEvent.get();
@@ -261,8 +261,7 @@ public class ConnectionEventTests {
 	private void testServerExceptionGuts(AbstractServerConnectionFactory factory) throws Exception {
 		ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(0);
 		factory.setPort(ss.getLocalPort());
-		final AtomicReference<TcpConnectionServerExceptionEvent> theEvent =
-				new AtomicReference<TcpConnectionServerExceptionEvent>();
+		final AtomicReference<TcpConnectionServerExceptionEvent> theEvent = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		factory.setApplicationEventPublisher(new ApplicationEventPublisher() {
 
@@ -280,8 +279,8 @@ public class ConnectionEventTests {
 		});
 		factory.setBeanName("sf");
 		factory.registerListener(message -> false);
-		Log logger = spy(TestUtils.getPropertyValue(factory, "logger", Log.class));
-		doNothing().when(logger).error(anyString(), any(Throwable.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(factory, "logger", LogAccessor.class));
+		doNothing().when(logger).error(any(Throwable.class), anyString());
 		new DirectFieldAccessor(factory).setPropertyValue("logger", logger);
 
 		factory.start();
@@ -293,7 +292,7 @@ public class ConnectionEventTests {
 
 		ArgumentCaptor<String> reasonCaptor = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
-		verify(logger).error(reasonCaptor.capture(), throwableCaptor.capture());
+		verify(logger).error(throwableCaptor.capture(), reasonCaptor.capture());
 		assertThat(reasonCaptor.getValue()).startsWith("Error on Server");
 		assertThat(reasonCaptor.getValue()).endsWith("; port = " + factory.getPort());
 		assertThat(throwableCaptor.getValue()).isInstanceOf(BindException.class);
@@ -316,7 +315,7 @@ public class ConnectionEventTests {
 
 		};
 
-		final AtomicReference<ApplicationEvent> failEvent = new AtomicReference<ApplicationEvent>();
+		final AtomicReference<ApplicationEvent> failEvent = new AtomicReference<>();
 		ccf.setApplicationEventPublisher(new ApplicationEventPublisher() {
 
 			@Override

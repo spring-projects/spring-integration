@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ package org.springframework.integration.config.xml;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,7 +30,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
@@ -40,7 +39,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  *
  * @since 2.1
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 public class LoggingChannelAdapterParserTests {
 
 	@Autowired
@@ -55,7 +54,7 @@ public class LoggingChannelAdapterParserTests {
 	@Test
 	public void verifyConfig() {
 		LoggingHandler loggingHandler = TestUtils.getPropertyValue(loggerConsumer, "handler", LoggingHandler.class);
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "messageLogger.logger.name"))
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "messageLogger.log.logger.name"))
 				.isEqualTo("org.springframework.integration.test.logger");
 		assertThat(TestUtils.getPropertyValue(loggingHandler, "order")).isEqualTo(1);
 		assertThat(TestUtils.getPropertyValue(loggingHandler, "level")).isEqualTo(LoggingHandler.Level.WARN);
@@ -66,7 +65,7 @@ public class LoggingChannelAdapterParserTests {
 	public void verifyExpressionAndOtherDefaultConfig() {
 		LoggingHandler loggingHandler =
 				TestUtils.getPropertyValue(loggerWithExpression, "handler", LoggingHandler.class);
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "messageLogger.logger.name"))
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "messageLogger.log.logger.name"))
 				.isEqualTo("org.springframework.integration.handler.LoggingHandler");
 		assertThat(TestUtils.getPropertyValue(loggingHandler, "order")).isEqualTo(Ordered.LOWEST_PRECEDENCE);
 		assertThat(TestUtils.getPropertyValue(loggingHandler, "level")).isEqualTo(LoggingHandler.Level.INFO);

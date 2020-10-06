@@ -369,8 +369,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @param listenerToRegister the TcpListener.
 	 */
 	public void registerListener(TcpListener listenerToRegister) {
-		Assert.isNull(this.listener, this.getClass().getName() +
-				" may only be used by one inbound adapter");
+		Assert.isNull(this.listener, () -> getClass().getName() + " may only be used by one inbound adapter");
 		this.listener = listenerToRegister;
 	}
 
@@ -535,9 +534,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	@Override
 	public void start() {
-		if (logger.isInfoEnabled()) {
-			logger.info("started " + this);
-		}
+		logger.info(() -> "started " + this);
 	}
 
 	/**
@@ -594,9 +591,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				}
 			}
 		}
-		if (logger.isInfoEnabled()) {
-			logger.info("stopped " + this);
-		}
+		logger.info(() -> "stopped " + this);
 	}
 
 	protected TcpConnectionSupport wrapConnection(TcpConnectionSupport connectionArg) {
@@ -666,15 +661,11 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						if (!connection.isServer() &&
 								now - connection.getLastSend() < this.soTimeout &&
 								now - connection.getLastRead() < this.soTimeout * 2) {
-							if (logger.isDebugEnabled()) {
-								logger.debug("Skipping a connection timeout because we have a recent send " +
-										connection.getConnectionId());
-							}
+							logger.debug(() -> "Skipping a connection timeout because we have a recent send " +
+									connection.getConnectionId());
 						}
 						else {
-							if (logger.isWarnEnabled()) {
-								logger.warn("Timing out TcpNioConnection " + connection.getConnectionId());
-							}
+							logger.warn(() -> "Timing out TcpNioConnection " + connection.getConnectionId());
 							Exception exception = new SocketTimeoutException("Timing out connection");
 							connection.publishConnectionExceptionEvent(exception);
 							connection.timeout();
@@ -685,14 +676,16 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 			}
 		}
 		harvestClosedConnections();
-		if (logger.isTraceEnabled()) {
+
+		logger.trace(() -> {
 			if (this.host == null) {
-				logger.trace("Port " + this.port + " SelectionCount: " + selectionCount);
+				return "Port " + this.port + " SelectionCount: " + selectionCount;
 			}
 			else {
-				logger.trace("Host " + this.host + " port " + this.port + " SelectionCount: " + selectionCount);
+				return "Host " + this.host + " port " + this.port + " SelectionCount: " + selectionCount;
 			}
-		}
+		});
+
 		if (selectionCount > 0) {
 			Set<SelectionKey> keys = selector.selectedKeys();
 			Iterator<SelectionKey> iterator = keys.iterator();
@@ -720,7 +713,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 								}
 								catch (Exception e2) {
 									if (connection.isOpen()) {
-										logger.error("Exception on read " +
+										logger.error(() -> "Exception on read " +
 												connection.getConnectionId() + " " +
 												e2.getMessage());
 										connection.close();
@@ -748,8 +741,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						try {
 							doAccept(selector, server, now);
 						}
-						catch (Exception e) {
-							logger.error("Exception accepting new connection(s)", e);
+						catch (Exception ex) {
+							logger.error(ex, "Exception accepting new connection(s)");
 						}
 					}
 					else {
@@ -757,12 +750,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 					}
 				}
 				catch (@SuppressWarnings(UNUSED) CancelledKeyException e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Selection key " + key + " cancelled");
-					}
+					logger.debug(() -> "Selection key " + key + " cancelled");
 				}
-				catch (Exception e) {
-					logger.error("Exception on selection key " + key, e);
+				catch (Exception ex) {
+					logger.error(ex, () -> "Exception on selection key " + key);
 				}
 			}
 		}
@@ -771,13 +762,11 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	protected void delayRead(Selector selector, long now, final SelectionKey key) {
 		TcpNioConnection connection = (TcpNioConnection) key.attachment();
 		if (!this.delayedReads.add(new PendingIO(now, key))) { // should never happen - unbounded queue
-			logger.error("Failed to delay read; closing " + connection.getConnectionId());
+			logger.error(() -> "Failed to delay read; closing " + connection.getConnectionId());
 			connection.close();
 		}
 		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("No threads available, delaying read for " + connection.getConnectionId());
-			}
+			logger.debug(() -> "No threads available, delaying read for " + connection.getConnectionId());
 			// wake the selector in case it is currently blocked, and waiting for longer than readDelay
 			selector.wakeup();
 		}
@@ -798,10 +787,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 					if (pendingRead.key.channel().isOpen()) {
 						pendingRead.key.interestOps(SelectionKey.OP_READ);
 						wakeSelector = true;
-						if (logger.isDebugEnabled()) {
-							logger.debug("Rescheduling delayed read for " +
-									((TcpNioConnection) pendingRead.key.attachment()).getConnectionId());
-						}
+						logger.debug(() -> "Rescheduling delayed read for " +
+								((TcpNioConnection) pendingRead.key.attachment()).getConnectionId());
 					}
 					else {
 						((TcpNioConnection) pendingRead.key.attachment())
@@ -840,9 +827,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				return;
 			}
 			this.connections.put(connection.getConnectionId(), connection);
-			if (logger.isDebugEnabled()) {
-				logger.debug(getComponentName() + ": Added new connection: " + connection.getConnectionId());
-			}
+			logger.debug(() -> getComponentName() + ": Added new connection: " + connection.getConnectionId());
 		}
 	}
 
@@ -859,16 +844,12 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				TcpConnectionSupport connection = entry.getValue();
 				if (!connection.isOpen()) {
 					iterator.remove();
-					if (logger.isDebugEnabled()) {
-						logger.debug(getComponentName() + ": Removed closed connection: " +
-								connection.getConnectionId());
-					}
+					logger.debug(() -> getComponentName() + ": Removed closed connection: " +
+							connection.getConnectionId());
 				}
 				else {
 					openConnectionIds.add(entry.getKey());
-					if (logger.isTraceEnabled()) {
-						logger.trace(getComponentName() + ": Connection is open: " + connection.getConnectionId());
-					}
+					logger.trace(() -> getComponentName() + ": Connection is open: " + connection.getConnectionId());
 				}
 			}
 			return openConnectionIds;
@@ -941,11 +922,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 					connection.close();
 					closed = true;
 				}
-				catch (Exception e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Failed to close connection " + connectionId, e);
-					}
-					connection.publishConnectionExceptionEvent(e);
+				catch (Exception ex) {
+					logger.debug(ex, () -> "Failed to close connection " + connectionId);
+					connection.publishConnectionExceptionEvent(ex);
 				}
 			}
 			return closed;

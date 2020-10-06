@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -56,7 +56,7 @@ class DirectChannelTests {
 	@Test
 	void testSend() {
 		DirectChannel channel = new DirectChannel();
-		Log logger = spy(TestUtils.getPropertyValue(channel, "logger", Log.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(channel, "logger", LogAccessor.class));
 		when(logger.isDebugEnabled()).thenReturn(true);
 		new DirectFieldAccessor(channel).setPropertyValue("logger", logger);
 		ThreadNameExtractingTestTarget target = new ThreadNameExtractingTestTarget();

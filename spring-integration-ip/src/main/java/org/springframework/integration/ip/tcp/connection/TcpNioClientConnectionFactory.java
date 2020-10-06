@@ -157,8 +157,8 @@ public class TcpNioClientConnectionFactory extends
 			try {
 				this.selector.close();
 			}
-			catch (Exception e) {
-				logger.error("Error closing selector", e);
+			catch (Exception ex) {
+				logger.error(ex, "Error closing selector");
 			}
 		}
 		super.stop();
@@ -177,9 +177,7 @@ public class TcpNioClientConnectionFactory extends
 
 	@Override
 	public void run() {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Read selector running for connections to " + getHost() + ":" + getPort());
-		}
+		logger.debug(() -> "Read selector running for connections to " + getHost() + ':' + getPort());
 		try {
 			this.selector = Selector.open();
 			while (isActive()) {
@@ -188,16 +186,14 @@ public class TcpNioClientConnectionFactory extends
 		}
 		catch (ClosedSelectorException cse) {
 			if (isActive()) {
-				logger.error("Selector closed", cse);
+				logger.error(cse, "Selector closed");
 			}
 		}
-		catch (Exception e) {
-			logger.error("Exception in read selector thread", e);
+		catch (Exception ex) {
+			logger.error(ex, "Exception in read selector thread");
 			setActive(false);
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Read selector exiting for connections to " + getHost() + ":" + getPort());
-		}
+		logger.debug(() -> "Read selector exiting for connections to " + getHost() + ':' + getPort());
 	}
 
 	private void processSelectorWhileActive() throws IOException {

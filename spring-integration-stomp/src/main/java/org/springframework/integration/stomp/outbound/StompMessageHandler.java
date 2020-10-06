@@ -170,7 +170,7 @@ public class StompMessageHandler extends AbstractMessageHandler
 					eventPublisher.publishEvent(event);
 				}
 				else {
-					logger.error("The receipt [" + receiptable.getReceiptId() + "] is lost for [" +
+					logger.error(() -> "The receipt [" + receiptable.getReceiptId() + "] is lost for [" +
 							message + "] on destination [" + destination + "]");
 				}
 			});
@@ -247,7 +247,7 @@ public class StompMessageHandler extends AbstractMessageHandler
 							new StompExceptionEvent(StompMessageHandler.this, exception));
 				}
 				else {
-					logger.error(exception);
+					logger.getLog().error(exception);
 				}
 			}
 		}
@@ -267,7 +267,8 @@ public class StompMessageHandler extends AbstractMessageHandler
 								.copyHeaders(headers)
 								.build();
 			}
-			logger.error("The exception for session [" + session + "] on message [" + failedMessage + "]", exception);
+			logger.error(exception,
+					() -> "The exception for session [" + session + "] on message [" + failedMessage + "]");
 		}
 
 		@Override

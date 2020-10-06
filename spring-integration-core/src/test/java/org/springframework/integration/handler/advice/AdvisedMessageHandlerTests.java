@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.handler.advice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -39,16 +40,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.apache.commons.logging.Log;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.filter.MessageFilter;
@@ -70,8 +69,7 @@ import org.springframework.retry.support.DefaultRetryState;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -79,8 +77,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @since 2.2
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class AdvisedMessageHandlerTests {
 
@@ -836,7 +833,7 @@ public class AdvisedMessageHandlerTests {
 		Method method = AbstractReplyProducingMessageHandler.class.getDeclaredMethod("handleRequestMessage",
 				Message.class);
 		when(methodInvocation.getMethod()).thenReturn(method);
-		when(methodInvocation.getArguments()).thenReturn(new Object[] { new GenericMessage<>("foo") });
+		when(methodInvocation.getArguments()).thenReturn(new Object[]{ new GenericMessage<>("foo") });
 		try {
 			doAnswer(invocation -> {
 				throw theThrowable;
@@ -903,14 +900,13 @@ public class AdvisedMessageHandlerTests {
 
 		Callable<?> pollingTask = TestUtils.getPropertyValue(consumer, "pollingTask", Callable.class);
 		assertThat(AopUtils.isAopProxy(pollingTask)).isTrue();
-		Log logger = TestUtils.getPropertyValue(advice, "logger", Log.class);
-		logger = spy(logger);
+		LogAccessor logger = spy(TestUtils.getPropertyValue(advice, "logger", LogAccessor.class));
 		when(logger.isWarnEnabled()).thenReturn(Boolean.TRUE);
 		final AtomicReference<String> logMessage = new AtomicReference<>();
 		doAnswer(invocation -> {
 			logMessage.set(invocation.getArgument(0));
 			return null;
-		}).when(logger).warn(Mockito.anyString());
+		}).when(logger).warn(anyString());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(advice);
 		accessor.setPropertyValue("logger", logger);
 

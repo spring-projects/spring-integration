@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,7 +134,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	 */
 	public void setPreserveWireFeed(boolean preserveWireFeed) {
 		Assert.isTrue(!this.syndFeedInputSet,
-				"'preserveWireFeed' must be configured on the provided [" + this.syndFeedInput + "]");
+				() -> "'preserveWireFeed' must be configured on the provided [" + this.syndFeedInput + "]");
 		this.syndFeedInput.setPreserveWireFeed(preserveWireFeed);
 	}
 
@@ -168,7 +168,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	protected SyndEntry doReceive() {
 		Assert.isTrue(this.initialized,
 				"'FeedEntryReaderMessageSource' must be initialized before it can produce Messages.");
-		SyndEntry nextEntry = null;
+		SyndEntry nextEntry;
 		synchronized (this.monitor) {
 			nextEntry = getNextEntry();
 			if (nextEntry == null) {
@@ -223,13 +223,9 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 						? new XmlReader(this.feedUrl)
 						: new XmlReader(this.feedResource.getInputStream());
 				SyndFeed feed = this.syndFeedInput.build(reader);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Retrieved feed for [" + this + "]");
-				}
+					logger.debug(() -> "Retrieved feed for [" + this + "]");
 				if (feed == null) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("No feeds updated for [" + this + "], returning null");
-					}
+					logger.debug(() -> "No feeds updated for [" + this + "], returning null");
 				}
 				return feed;
 			}

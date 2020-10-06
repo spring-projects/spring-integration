@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2019 the original author or authors.
+ * Copyright 2001-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,42 +68,42 @@ public class UnicastSendingMessageHandler extends
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
-	private final Expression destinationExpression;
+	private final Map<String, CountDownLatch> ackControl = Collections.synchronizedMap(new HashMap<>());
 
-	private volatile DatagramSocket socket;
+	private final Expression destinationExpression;
 
 	/**
 	 * If true adds headers to instruct receiving adapter to return an ack.
 	 */
-	private volatile boolean waitForAck = false;
+	private boolean waitForAck = false;
 
-	private volatile boolean acknowledge = false;
+	private boolean acknowledge = false;
 
-	private volatile String ackHost;
+	private String ackHost;
 
-	private volatile int ackPort;
+	private int ackPort;
 
-	private volatile int ackTimeout = DEFAULT_ACK_TIMEOUT;
+	private int ackTimeout = DEFAULT_ACK_TIMEOUT;
 
-	private volatile int ackCounter = 1;
+	private int ackCounter = 1;
 
-	private volatile Map<String, CountDownLatch> ackControl = Collections.synchronizedMap(new HashMap<>());
+	private int soReceiveBufferSize = -1;
 
-	private volatile int soReceiveBufferSize = -1;
+	private String localAddress;
 
-	private volatile String localAddress;
+	private DatagramSocket socket;
 
-	private volatile CountDownLatch ackLatch;
+	private Executor taskExecutor;
 
-	private volatile boolean ackThreadRunning;
-
-	private volatile Executor taskExecutor;
-
-	private volatile boolean taskExecutorSet;
+	private boolean taskExecutorSet;
 
 	private Expression socketExpression;
 
 	private EvaluationContext evaluationContext;
+
+	private volatile CountDownLatch ackLatch;
+
+	private volatile boolean ackThreadRunning;
 
 	/**
 	 * Basic constructor; no reliability; no acknowledgment.
@@ -175,6 +175,7 @@ public class UnicastSendingMessageHandler extends
 			String ackHost,
 			int ackPort,
 			int ackTimeout) {
+
 		super(host, port);
 		this.destinationExpression = null;
 		setReliabilityAttributes(false, acknowledge, ackHost, ackPort,
@@ -198,6 +199,7 @@ public class UnicastSendingMessageHandler extends
 			String ackHost,
 			int ackPort,
 			int ackTimeout) {
+
 		super(host, port);
 		this.destinationExpression = null;
 		setReliabilityAttributes(lengthCheck, acknowledge, ackHost, ackPort,
@@ -206,6 +208,7 @@ public class UnicastSendingMessageHandler extends
 
 	protected final void setReliabilityAttributes(boolean lengthCheck,
 			boolean acknowledge, String ackHost, int ackPort, int ackTimeout) {
+
 		this.mapper.setLengthCheck(lengthCheck);
 		this.waitForAck = acknowledge;
 		this.mapper.setAcknowledge(acknowledge);
@@ -246,7 +249,7 @@ public class UnicastSendingMessageHandler extends
 
 	@Override
 	protected void doStop() {
-		this.closeSocketIfNeeded();
+		closeSocketIfNeeded();
 		if (!this.taskExecutorSet && this.taskExecutor != null) {
 			((ExecutorService) this.taskExecutor).shutdown();
 			this.taskExecutor = null;
@@ -305,8 +308,8 @@ public class UnicastSendingMessageHandler extends
 					try {
 						getSocket();
 					}
-					catch (IOException e) {
-						logger.error("Error creating socket", e);
+					catch (IOException ex) {
+						logger.error(ex, "Error creating socket");
 					}
 					this.ackLatch = new CountDownLatch(1);
 					this.taskExecutor.execute(this);
@@ -354,14 +357,10 @@ public class UnicastSendingMessageHandler extends
 		if (packet != null) {
 			packet.setSocketAddress(destinationAddress);
 			datagramSocket.send(packet);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Sent packet for message " + message + " to " + packet.getSocketAddress());
-			}
+			logger.debug(() -> "Sent packet for message " + message + " to " + packet.getSocketAddress());
 		}
 		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Mapper created no packet for message " + message);
-			}
+			logger.debug(() -> "Mapper created no packet for message " + message);
 		}
 	}
 
@@ -387,9 +386,7 @@ public class UnicastSendingMessageHandler extends
 				if (this.soReceiveBufferSize > 0) {
 					this.socket.setReceiveBufferSize(this.soReceiveBufferSize);
 				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("Listening for acks on port: " + getAckPort());
-				}
+				logger.debug(() -> "Listening for acks on port: " + getAckPort());
 				updateAckAddress();
 			}
 			else {
@@ -401,7 +398,7 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	protected void updateAckAddress() {
-		this.mapper.setAckAddress(this.ackHost + ":" + getAckPort());
+		this.mapper.setAckAddress(this.ackHost + ':' + getAckPort());
 	}
 
 	/**
@@ -490,11 +487,13 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	protected void setSocketAttributes(DatagramSocket socket) throws SocketException {
-		if (this.getSoTimeout() >= 0) {
-			socket.setSoTimeout(this.getSoTimeout());
+		int soTimeout = getSoTimeout();
+		if (soTimeout >= 0) {
+			socket.setSoTimeout(soTimeout);
 		}
-		if (this.getSoSendBufferSize() > 0) {
-			socket.setSendBufferSize(this.getSoSendBufferSize());
+		int soSendBufferSize = getSoSendBufferSize();
+		if (soSendBufferSize > 0) {
+			socket.setSendBufferSize(soSendBufferSize);
 		}
 	}
 
@@ -508,20 +507,18 @@ public class UnicastSendingMessageHandler extends
 			this.ackLatch.countDown();
 			DatagramPacket ackPack = new DatagramPacket(new byte[100], 100);
 			while (true) {
-				this.getSocket().receive(ackPack);
+				getSocket().receive(ackPack);
 				String id = new String(ackPack.getData(), ackPack.getOffset(), ackPack.getLength());
-				if (logger.isDebugEnabled()) {
-					logger.debug("Received ack for " + id + " from " + ackPack.getAddress().getHostAddress());
-				}
+				logger.debug(() -> "Received ack for " + id + " from " + ackPack.getAddress().getHostAddress());
 				CountDownLatch latch = this.ackControl.get(id);
 				if (latch != null) {
 					latch.countDown();
 				}
 			}
 		}
-		catch (IOException e) {
+		catch (IOException ex) {
 			if (this.socket != null && !this.socket.isClosed()) {
-				logger.error("Error on UDP Acknowledge thread: " + e.getMessage());
+				logger.error(() -> "Error on UDP Acknowledge thread: " + ex.getMessage());
 			}
 		}
 		finally {

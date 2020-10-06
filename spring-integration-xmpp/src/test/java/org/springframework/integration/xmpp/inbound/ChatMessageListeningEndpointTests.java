@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.xmpp.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -31,7 +32,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
@@ -39,7 +39,7 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smack.util.PacketParserUtils;
 import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 import org.mockito.ArgumentCaptor;
@@ -49,6 +49,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
@@ -67,11 +68,10 @@ import org.springframework.messaging.support.ErrorMessage;
  */
 public class ChatMessageListeningEndpointTests {
 
-
-	@Test
 	/*
 	 * Should add/remove StanzaListener when endpoint started/stopped
 	 */
+	@Test
 	public void testLifecycle() {
 		final Set<StanzaListener> packetListSet = new HashSet<>();
 		XMPPConnection connection = mock(XMPPConnection.class);
@@ -99,10 +99,11 @@ public class ChatMessageListeningEndpointTests {
 		assertThat(packetListSet.size()).isEqualTo(0);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testNonInitializationFailure() {
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(mock(XMPPConnection.class));
-		endpoint.start();
+		assertThatIllegalArgumentException()
+				.isThrownBy(endpoint::start);
 	}
 
 	@Test
@@ -116,11 +117,12 @@ public class ChatMessageListeningEndpointTests {
 		assertThat(TestUtils.getPropertyValue(endpoint, "xmppConnection")).isNotNull();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testNoXmppConnection() {
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
 		endpoint.setBeanFactory(mock(BeanFactory.class));
-		endpoint.afterPropertiesSet();
+		assertThatIllegalArgumentException()
+				.isThrownBy(endpoint::afterPropertiesSet);
 	}
 
 	@Test
@@ -181,7 +183,7 @@ public class ChatMessageListeningEndpointTests {
 		assertThat(((Message) payload).getStanzaId()).isEqualTo(smackMessage.getStanzaId());
 		assertThat(((Message) payload).getBody()).isEqualTo(smackMessage.getBody());
 
-		Log logger = Mockito.spy(TestUtils.getPropertyValue(endpoint, "logger", Log.class));
+		LogAccessor logger = Mockito.spy(TestUtils.getPropertyValue(endpoint, "logger", LogAccessor.class));
 		given(logger.isInfoEnabled()).willReturn(true);
 		final CountDownLatch logLatch = new CountDownLatch(1);
 		willAnswer(invocation -> {

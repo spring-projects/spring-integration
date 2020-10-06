@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.springframework.core.log.LogAccessor;
 import org.springframework.http.MediaType;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.MessageHeaders;
@@ -47,14 +45,14 @@ import org.springframework.util.StringUtils;
  */
 public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 
-	private static final Log logger = LogFactory.getLog(StompHeaderMapper.class);
+	private static final LogAccessor LOGGER = new LogAccessor(StompHeaderMapper.class);
 
 	public static final String STOMP_INBOUND_HEADER_NAME_PATTERN = "STOMP_INBOUND_HEADERS";
 
 	public static final String STOMP_OUTBOUND_HEADER_NAME_PATTERN = "STOMP_OUTBOUND_HEADERS";
 
 	private static final String[] STOMP_INBOUND_HEADER_NAMES =
-			new String[] {
+			{
 					StompHeaders.CONTENT_LENGTH,
 					StompHeaders.CONTENT_TYPE,
 					StompHeaders.MESSAGE_ID,
@@ -65,7 +63,7 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 	private static final List<String> STOMP_INBOUND_HEADER_NAMES_LIST = Arrays.asList(STOMP_INBOUND_HEADER_NAMES);
 
 	private static final String[] STOMP_OUTBOUND_HEADER_NAMES =
-			new String[] {
+			{
 					StompHeaders.CONTENT_LENGTH,
 					StompHeaders.CONTENT_TYPE,
 					StompHeaders.DESTINATION,
@@ -217,34 +215,28 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 		if (patterns != null && patterns.length > 0) {
 			for (String pattern : patterns) {
 				if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
-					if (logger.isDebugEnabled()) {
-						logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
-								headerName, pattern));
-					}
+					LOGGER.debug(() -> MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
+							headerName, pattern));
 					return true;
 				}
 				else if (STOMP_INBOUND_HEADER_NAME_PATTERN.equals(pattern)
 						&& STOMP_INBOUND_HEADER_NAMES_LIST.contains(headerName)) {
-					if (logger.isDebugEnabled()) {
-						logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
-								headerName, pattern));
-					}
+
+					LOGGER.debug(() -> MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
+							headerName, pattern));
 					return true;
 				}
 				else if (STOMP_OUTBOUND_HEADER_NAME_PATTERN.equals(pattern)
 						&& (STOMP_OUTBOUND_HEADER_NAMES_LIST.contains(headerName)
 						|| MessageHeaders.CONTENT_TYPE.equals(headerName))) {
-					if (logger.isDebugEnabled()) {
-						logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
-								headerName, pattern));
-					}
+
+					LOGGER.debug(() -> MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
+							headerName, pattern));
 					return true;
 				}
 			}
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
-		}
+		LOGGER.debug(() -> MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
 		return false;
 	}
 

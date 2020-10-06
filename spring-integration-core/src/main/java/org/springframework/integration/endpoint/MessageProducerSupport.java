@@ -234,7 +234,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 							sendMessage(message);
 						}
 						catch (Exception ex) {
-							logger.error("Error sending a message: " + message, ex);
+							logger.error(ex, () -> "Error sending a message: " + message);
 						}
 					})
 					.subscribe();

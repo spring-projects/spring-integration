@@ -25,13 +25,11 @@ import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
@@ -66,7 +64,7 @@ public class ChannelPublishingJmsMessageListener
 		implements SessionAwareMessageListener<javax.jms.Message>, InitializingBean,
 		TrackableComponent, BeanFactoryAware {
 
-	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
+	protected final LogAccessor logger = new LogAccessor(getClass()); // NOSONAR final
 
 	private final GatewayDelegate gatewayDelegate = new GatewayDelegate();
 
@@ -315,13 +313,14 @@ public class ChannelPublishingJmsMessageListener
 	public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
 		Message<?> requestMessage;
 		try {
-			Object result = jmsMessage;
+			final Object result;
 			if (this.extractRequestPayload) {
 				result = this.messageConverter.fromMessage(jmsMessage);
-				if (this.logger.isDebugEnabled()) {
-					this.logger.debug("converted JMS Message [" + jmsMessage + "] to integration Message payload ["
-							+ result + "]");
-				}
+				this.logger.debug(() -> "converted JMS Message [" + jmsMessage + "] to integration Message payload ["
+						+ result + "]");
+			}
+			else {
+				result = jmsMessage;
 			}
 
 			Map<String, Object> headers = this.headerMapper.toHeaders(jmsMessage);
@@ -349,13 +348,14 @@ public class ChannelPublishingJmsMessageListener
 			Message<?> replyMessage = this.gatewayDelegate.sendAndReceiveMessage(requestMessage);
 			if (replyMessage != null) {
 				Destination destination = getReplyDestination(jmsMessage, session);
-				if (this.logger.isDebugEnabled()) {
-					this.logger.debug("Reply destination: " + destination);
-				}
+				this.logger.debug(() -> "Reply destination: " + destination);
 				// convert SI Message to JMS Message
-				Object replyResult = replyMessage;
+				final Object replyResult;
 				if (this.extractReplyPayload) {
 					replyResult = replyMessage.getPayload();
+				}
+				else {
+					replyResult = replyMessage;
 				}
 				try {
 					javax.jms.Message jmsReply = this.messageConverter.toMessage(replyResult, session);
@@ -364,9 +364,9 @@ public class ChannelPublishingJmsMessageListener
 					copyCorrelationIdFromRequestToReply(jmsMessage, jmsReply);
 					sendReply(jmsReply, destination, session);
 				}
-				catch (RuntimeException e) {
-					this.logger.error("Failed to generate JMS Reply Message from: " + replyResult, e);
-					throw e;
+				catch (RuntimeException ex) {
+					this.logger.error(ex, () -> "Failed to generate JMS Reply Message from: " + replyResult);
+					throw ex;
 				}
 			}
 			else {
@@ -404,8 +404,8 @@ public class ChannelPublishingJmsMessageListener
 				if (value != null) {
 					replyMessage.setStringProperty(this.correlationKey, value);
 				}
-				else if (this.logger.isWarnEnabled()) {
-					this.logger.warn("No property value available on request Message for correlationKey '"
+				else {
+					this.logger.warn(() -> "No property value available on request Message for correlationKey '"
 							+ this.correlationKey + "'");
 				}
 			}

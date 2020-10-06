@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -61,6 +60,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  *
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -113,7 +113,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @param remoteTimeout the remoteTimeout to set
 	 */
 	public void setRemoteTimeout(long remoteTimeout) {
-		this.remoteTimeoutExpression = new LiteralExpression("" + remoteTimeout);
+		this.remoteTimeoutExpression = new ValueExpression<>(remoteTimeout);
 	}
 
 	/**
@@ -207,8 +207,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Assert.notNull(this.connectionFactory, this.getClass().getName() +
-				" requires a client connection factory");
+		Assert.notNull(this.connectionFactory, () -> getClass().getName() + " requires a client connection factory");
 		boolean haveSemaphore = false;
 		TcpConnection connection = null;
 		String connectionId = null;
@@ -221,9 +220,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			AsyncReply reply = new AsyncReply(remoteTimeout, connection, haveSemaphore, requestMessage, async);
 			connectionId = connection.getConnectionId();
 			this.pendingReplies.put(connectionId, reply);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Added pending reply " + connectionId);
-			}
+			String connectionIdToLog = connectionId;
+			logger.debug(() -> "Added pending reply " + connectionIdToLog);
 			connection.send(requestMessage);
 			if (this.closeStreamAfterSend) {
 				connection.shutdownOutput();
@@ -235,16 +233,16 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				return getReply(requestMessage, connection, connectionId, reply);
 			}
 		}
-		catch (RuntimeException | IOException e) {
-			logger.error("Tcp Gateway exception", e);
-			if (e instanceof MessagingException) {
-				throw (MessagingException) e;
+		catch (RuntimeException | IOException ex) {
+			logger.error(ex, "Tcp Gateway exception");
+			if (ex instanceof MessagingException) {
+				throw (MessagingException) ex;
 			}
-			throw new MessagingException("Failed to send or receive", e);
+			throw new MessagingException("Failed to send or receive", ex);
 		}
-		catch (InterruptedException e) {
+		catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
-			throw new MessageHandlingException(requestMessage, "Interrupted in the [" + this + ']', e);
+			throw new MessageHandlingException(requestMessage, "Interrupted in the [" + this + ']', ex);
 		}
 		finally {
 			if (!async) {
@@ -266,9 +264,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			if (!this.semaphore.tryAcquire(this.requestTimeout, TimeUnit.MILLISECONDS)) {
 				throw new MessageTimeoutException(requestMessage, "Timed out waiting for connection");
 			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("got semaphore");
-			}
+			logger.debug("got semaphore");
 			return true;
 		}
 		return false;
@@ -279,10 +275,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				Long.class);
 		if (remoteTimeout == null) {
 			remoteTimeout = DEFAULT_REMOTE_TIMEOUT;
-			if (logger.isWarnEnabled()) {
-				logger.warn("remoteTimeoutExpression evaluated to null; falling back to default for message "
-						+ requestMessage);
-			}
+			logger.warn(() -> "remoteTimeoutExpression evaluated to null; falling back to default for message "
+					+ requestMessage);
 		}
 		return remoteTimeout;
 	}
@@ -292,25 +286,19 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		Message<?> replyMessage = reply.getReply();
 		if (replyMessage == null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Remote Timeout on " + connectionId);
-			}
+			logger.debug(() -> "Remote Timeout on " + connectionId);
 			// The connection is dirty - force it closed.
 			this.connectionFactory.forceClose(connection);
 			throw new MessageTimeoutException(requestMessage, "Timed out waiting for response");
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Response " + replyMessage);
-		}
+		logger.debug(() -> "Response " + replyMessage);
 		return replyMessage;
 	}
 
 	private void cleanUp(boolean haveSemaphore, TcpConnection connection, String connectionId) {
 		if (connectionId != null) {
 			this.pendingReplies.remove(connectionId);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Removed pending reply " + connectionId);
-			}
+			logger.debug(() -> "Removed pending reply " + connectionId);
 			if (this.isSingleUse) {
 				connection.close();
 			}
@@ -332,9 +320,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			publishNoConnectionEvent(message, null, "Cannot correlate response - no connection id");
 			return false;
 		}
-		if (logger.isTraceEnabled()) {
-			logger.trace("onMessage: " + connectionId + "(" + message + ")");
-		}
+		logger.trace(() -> "onMessage: " + connectionId + "(" + message + ")");
 		AsyncReply reply = this.pendingReplies.get(connectionId);
 		if (reply == null) {
 			if (message instanceof ErrorMessage) {
@@ -374,8 +360,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			try {
 				this.messagingTemplate.send(this.unsolicitedMessageChannel, message);
 			}
-			catch (Exception e) {
-				logger.error("Failed to send unsolicited message " + message, e);
+			catch (Exception ex) {
+				logger.error(ex, "Failed to send unsolicited message " + message);
 			}
 			return true;
 		}

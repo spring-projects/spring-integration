@@ -30,7 +30,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -40,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.QueueChannel;
@@ -274,7 +274,7 @@ public class GatewayParserTests {
 	@Test
 	public void testCustomCompletableNoAsyncAttemptAsync() throws Exception {
 		Object gateway = context.getBean("&customCompletableAttemptAsync");
-		Log logger = spy(TestUtils.getPropertyValue(gateway, "logger", Log.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(gateway, "logger", LogAccessor.class));
 		when(logger.isDebugEnabled()).thenReturn(true);
 		new DirectFieldAccessor(gateway).setPropertyValue("logger", logger);
 		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
@@ -423,7 +423,7 @@ public class GatewayParserTests {
 		}
 
 		@Override
-		@SuppressWarnings({"rawtypes", "unchecked"})
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public <T> Future<T> submit(Callable<T> task) {
 			try {
 				Future<?> result = super.submit(task);

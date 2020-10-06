@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -29,6 +28,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -55,19 +55,19 @@ public class AvroTests {
 	@LogLevels(classes = DirectChannel.class, categories = "bar", level = "DEBUG")
 	void testTransformers(@Autowired Config config) {
 		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
-		Log spied = spy(TestUtils.getPropertyValue(config.in1(), "logger", Log.class));
+		LogAccessor spied = spy(TestUtils.getPropertyValue(config.in1(), "logger", LogAccessor.class));
 		new DirectFieldAccessor(config.in1()).setPropertyValue("logger", spied);
 		config.in1().send(new GenericMessage<>(test));
 		assertThat(config.tapped().receive(0))
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isInstanceOf(byte[].class);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isInstanceOf(byte[].class);
 		Message<?> received = config.out().receive(0);
 		assertThat(received)
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isEqualTo(test)
-			.isNotSameAs(test);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isEqualTo(test)
+				.isNotSameAs(test);
 		assertThat(received.getHeaders().get("flow")).isEqualTo("flow1");
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 		verify(spied, atLeastOnce()).debug(captor.capture());
@@ -80,15 +80,15 @@ public class AvroTests {
 		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
 		config.in2().send(new GenericMessage<>(test));
 		assertThat(config.tapped().receive(0))
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isInstanceOf(byte[].class);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isInstanceOf(byte[].class);
 		Message<?> received = config.out().receive(0);
 		assertThat(received)
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isNotEqualTo(test)
-			.isInstanceOf(AvroTestClass2.class);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isNotEqualTo(test)
+				.isInstanceOf(AvroTestClass2.class);
 		assertThat(received.getHeaders().get("flow")).isEqualTo("flow2");
 	}
 
@@ -97,15 +97,15 @@ public class AvroTests {
 		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
 		config.in3().send(new GenericMessage<>(test));
 		assertThat(config.tapped().receive(0))
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isInstanceOf(byte[].class);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isInstanceOf(byte[].class);
 		Message<?> received = config.out().receive(0);
 		assertThat(received)
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isNotEqualTo(test)
-			.isInstanceOf(AvroTestClass2.class);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isNotEqualTo(test)
+				.isInstanceOf(AvroTestClass2.class);
 		assertThat(received.getHeaders().get("flow")).isEqualTo("flow3");
 	}
 
@@ -114,15 +114,15 @@ public class AvroTests {
 		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
 		config.in4().send(new GenericMessage<>(test));
 		assertThat(config.tapped().receive(0))
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isInstanceOf(byte[].class);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isInstanceOf(byte[].class);
 		Message<?> received = config.out().receive(0);
 		assertThat(received)
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isEqualTo(test)
-			.isNotSameAs(test);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isEqualTo(test)
+				.isNotSameAs(test);
 		assertThat(received.getHeaders().get("flow")).isEqualTo("flow4");
 	}
 
@@ -131,15 +131,15 @@ public class AvroTests {
 		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
 		config.in5().send(new GenericMessage<>(test));
 		assertThat(config.tapped().receive(0))
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isInstanceOf(byte[].class);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isInstanceOf(byte[].class);
 		Message<?> received = config.out().receive(0);
 		assertThat(received)
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isNotEqualTo(test)
-			.isInstanceOf(AvroTestClass2.class);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isNotEqualTo(test)
+				.isInstanceOf(AvroTestClass2.class);
 		assertThat(received.getHeaders().get("flow")).isEqualTo("flow5");
 	}
 
@@ -148,15 +148,15 @@ public class AvroTests {
 		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
 		config.in6().send(new GenericMessage<>(test));
 		assertThat(config.tapped().receive(0))
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isInstanceOf(byte[].class);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isInstanceOf(byte[].class);
 		Message<?> received = config.out().receive(0);
 		assertThat(received)
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isEqualTo(test)
-			.isNotSameAs(test);
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isEqualTo(test)
+				.isNotSameAs(test);
 		assertThat(received.getHeaders().get("flow")).isEqualTo("flow6");
 	}
 
@@ -219,7 +219,7 @@ public class AvroTests {
 					.wireTap(tapped())
 					.transform(new SimpleFromAvroTransformer(AvroTestClass1.class)
 							.typeExpression("'avroTest' == headers[avro_type] ? '"
-												+ AvroTestClass2.class.getName() + "' : null"))
+									+ AvroTestClass2.class.getName() + "' : null"))
 					.enrichHeaders(h -> h.header("flow", "flow5"))
 					.channel(out())
 					.get();
@@ -232,7 +232,7 @@ public class AvroTests {
 					.wireTap(tapped())
 					.transform(new SimpleFromAvroTransformer(AvroTestClass1.class)
 							.typeExpression("'avroTest' == headers[avro_type] ? '"
-												+ AvroTestClass2.class.getName() + "' : null"))
+									+ AvroTestClass2.class.getName() + "' : null"))
 					.enrichHeaders(h -> h.header("flow", "flow6"))
 					.channel(out())
 					.get();

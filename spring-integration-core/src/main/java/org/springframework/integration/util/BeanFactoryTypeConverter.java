@@ -96,7 +96,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		return canConvert(sourceType, targetType);
 	}
 
-	@Override
+	@Override // NOSONAR
 	public Object convertValue(Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
 		// Echoes org.springframework.expression.common.ExpressionUtils.convertTypedValue()
 		if ((targetType.getType() == Void.class || targetType.getType() == Void.TYPE) && value == null) {

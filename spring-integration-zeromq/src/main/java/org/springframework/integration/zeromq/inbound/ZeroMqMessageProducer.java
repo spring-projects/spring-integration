@@ -270,7 +270,8 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 						})
 						.publishOn(Schedulers.boundedElastic())
 						.transform((msgMono) -> this.receiveRaw ? mapRaw(msgMono) : convertMessage(msgMono))
-						.doOnError((error) -> logger.error("Error processing ZeroMQ message in the " + this, error))
+						.doOnError((error) ->
+								logger.error(error, () -> "Error processing ZeroMQ message in the " + this))
 						.repeatWhenEmpty((repeat) ->
 								this.active ? repeat.delayElements(this.consumeDelay) : repeat)
 						.repeat(() -> this.active)

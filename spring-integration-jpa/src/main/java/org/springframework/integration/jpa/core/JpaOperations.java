@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.jpa.core;
 import java.util.List;
 
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
+import org.springframework.lang.Nullable;
 
 /**
  * The Interface containing all the JpaOperations those will be executed by
@@ -27,6 +28,8 @@ import org.springframework.integration.jpa.support.parametersource.ParameterSour
  * @author Amol Nayak
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -47,7 +50,6 @@ public interface JpaOperations {
 	/**
 	 * Executes the given update statement and uses the given parameter source to
 	 * set the required query parameters.
-	 *
 	 * @param updateQuery Must Not be empty.
 	 * @param source Must Not be null.
 	 * @return The number of entities updated
@@ -74,7 +76,6 @@ public interface JpaOperations {
 
 	/**
 	 * Find an Entity of given type with the given primary key type.
-	 *
 	 * @param <T> The type to return.
 	 * @param entityType The type.
 	 * @param id The object identifier.
@@ -109,13 +110,14 @@ public interface JpaOperations {
 	 *
 	 * @param selectQuery The select query.
 	 * @param entityClass The entity class.
-	 * @param jpaQLParameterSource The paramter source.
+	 * @param jpaQLParameterSource The parameter source.
 	 * @param  firstResult The index of the first result to return.
 	 * @param maxNumberOfResults The number of objects to return.
 	 * @return The list of found entities.
 	 */
 	List<?> getResultListForNativeQuery(String selectQuery,
-			Class<?> entityClass,  ParameterSource jpaQLParameterSource,
+			@Nullable Class<?> entityClass,
+			ParameterSource jpaQLParameterSource,
 			int firstResult,
 			int maxNumberOfResults);
 
@@ -129,7 +131,6 @@ public interface JpaOperations {
 
 	/**
 	 * Executes the provided query to return a list of results.
-	 *
 	 * @param query Must not be null or empty
 	 * @param firstResult The first result.
 	 * @param maxNumberOfResults Must be a non-negative value, any negative or zero will be ignored.
@@ -140,7 +141,6 @@ public interface JpaOperations {
 
 	/**
 	 * Executes the provided query to return a single element
-	 *
 	 * @param query Must not be empty
 	 * @param source the Parameter source for this query to be executed, if none then set as null
 	 * @return Will always return a result. If no object was found in the database an exception is raised.
@@ -154,7 +154,6 @@ public interface JpaOperations {
 	 * is treated as an entity and merged with the
 	 * {@link javax.persistence.EntityManager}. {@code Null}
 	 * values returned while iterating over the {@link Iterable} are ignored.
-	 *
 	 * @param entity Must not be null.
 	 * @return The merged managed instance of the entity.
 	 */
@@ -171,7 +170,6 @@ public interface JpaOperations {
 	 * provided object is {@link Iterable}.
 	 * {@code clearOnFlush}parameter specifies, if the {@link javax.persistence.EntityManager#clear()}
 	 * should be called after each {@link javax.persistence.EntityManager#flush()}.
-	 *
 	 * @param entity The entity.
 	 * @param flushSize The flush size.
 	 * @param clearOnFlush true to clear after flushing.
@@ -186,9 +184,7 @@ public interface JpaOperations {
 	 * and persisted with the {@link javax.persistence.EntityManager}.
 	 * {@code Null} values returned
 	 * while iterating over the {@link Iterable} are ignored.
-	 *
 	 * @param entity Must not be null
-	 *
 	 */
 	void persist(Object entity);
 
@@ -203,7 +199,6 @@ public interface JpaOperations {
 	 * provided object is {@link Iterable}.
 	 * {@code clearOnFlush}parameter specifies, if the {@link javax.persistence.EntityManager#clear()}
 	 * should be called after each {@link javax.persistence.EntityManager#flush()}.
-	 *
 	 * @param entity The entity.
 	 * @param flushSize The flush size.
 	 * @param clearOnFlush true to clear after flushing.

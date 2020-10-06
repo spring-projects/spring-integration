@@ -20,14 +20,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Parameter;
 import javax.persistence.Query;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.jpa.support.JpaUtils;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 import org.springframework.integration.jpa.support.parametersource.PositionSupportingParameterSource;
@@ -37,7 +36,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Class similar to JPA template limited to the operations required for the JPA adapters/gateway
- * not using JpaTemplate as the class is deprecated since Spring 3.1
+ * not using JpaTemplate as the class is deprecated since Spring 3.1.
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
@@ -47,7 +46,7 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultJpaOperations extends AbstractJpaOperations {
 
-	private static final Log logger = LogFactory.getLog(DefaultJpaOperations.class);
+	private static final LogAccessor LOGGER = new LogAccessor(DefaultJpaOperations.class);
 
 	@Override
 	public void delete(Object entity) {
@@ -57,11 +56,8 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	@Override
 	public void deleteInBatch(Iterable<?> entities) {
-
 		Assert.notNull(entities, "entities must not be null.");
-
 		Iterator<?> iterator = entities.iterator();
-
 		if (!iterator.hasNext()) {
 			return;
 		}
@@ -80,7 +76,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		}
 
 		EntityManager entityManager = getEntityManager();
-		final String entityName  = JpaUtils.getEntityName(entityManager, entityClass);
+		final String entityName = JpaUtils.getEntityName(entityManager, entityClass);
 		final String queryString = JpaUtils.getQueryString(JpaUtils.DELETE_ALL_QUERY_STRING, entityName);
 
 		JpaUtils.applyAndBind(queryString, entities, entityManager)
@@ -89,7 +85,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	}
 
 	@Override
-	public int executeUpdate(String updateQuery,  ParameterSource source) {
+	public int executeUpdate(String updateQuery, ParameterSource source) {
 		Query query = getEntityManager().createQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
@@ -156,7 +152,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	}
 
 	@Override
-	public List<?> getResultListForNativeQuery(String selectQuery, Class<?> entityClass,
+	public List<?> getResultListForNativeQuery(String selectQuery, @Nullable Class<?> entityClass,
 			ParameterSource parameterSource, int firstResult, int maxNumberOfResults) {
 
 		final Query query;
@@ -182,7 +178,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	@Override
 	public List<?> getResultListForQuery(String query, ParameterSource source) {
-			return getResultListForQuery(query, source, 0, 0);
+		return getResultListForQuery(query, source, 0, 0);
 	}
 
 	@Override
@@ -265,15 +261,15 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		@SuppressWarnings("unchecked")
 		Iterable<Object> entities = (Iterable<Object>) entity;
 
-		int savedEntities = 0;
-		int nullEntities = 0;
+		AtomicInteger savedEntities = new AtomicInteger();
+		AtomicInteger nullEntities = new AtomicInteger();
 
-		List<Object> mergedEntities = new ArrayList<Object>();
+		List<Object> mergedEntities = new ArrayList<>();
 
 		EntityManager entityManager = getEntityManager();
 		for (Object iteratedEntity : entities) {
 			if (iteratedEntity == null) {
-				nullEntities++;
+				nullEntities.incrementAndGet();
 			}
 			else {
 				if (isMerge) {
@@ -282,8 +278,8 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 				else {
 					entityManager.persist(iteratedEntity);
 				}
-				savedEntities++;
-				if (flushSize > 0 && savedEntities % flushSize == 0) {
+				savedEntities.incrementAndGet();
+				if (flushSize > 0 && savedEntities.get() % flushSize == 0) {
 					entityManager.flush();
 					if (clearOnFlush) {
 						entityManager.clear();
@@ -292,10 +288,8 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 			}
 		}
 
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s %s entities. %s NULL entities were ignored.",
-				isMerge ? "Merged" : "Persisted", savedEntities, nullEntities));
-		}
+		LOGGER.debug(() -> String.format("%s %s entities. %s NULL entities were ignored.",
+				isMerge ? "Merged" : "Persisted", savedEntities.get(), nullEntities));
 
 		if (isMerge) {
 			result = mergedEntities;
@@ -308,13 +302,13 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	 * use the {@link ParameterSource} to find their values and set them.
 	 *
 	 */
-	private void setParametersIfRequired(String queryString, ParameterSource source, Query query) {
+	private void setParametersIfRequired(String queryString, @Nullable ParameterSource source, Query query) {
 		Set<Parameter<?>> parameters = query.getParameters();
 
 		if (parameters != null && !parameters.isEmpty()) {
 			if (source != null) {
-				for (Parameter<?> param:parameters) {
-					String  paramName = param.getName();
+				for (Parameter<?> param : parameters) {
+					String paramName = param.getName();
 					Integer position = param.getPosition();
 
 					final Object paramValue;
@@ -340,7 +334,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 						else {
 							throw new JpaOperationFailedException(
 									"This parameter does not contain a parameter name. " +
-									"Additionally it is not a positional parameter, neither.", queryString);
+											"Additionally it is not a positional parameter, neither.", queryString);
 						}
 					}
 
