@@ -28,6 +28,8 @@ import org.springframework.integration.mapping.MessageMappingException;
  * Writes a byte[] to an OutputStream prefixed by &lt;stx&gt; terminated by &lt;etx&gt;
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ByteArrayStxEtxSerializer extends AbstractPooledBufferByteArraySerializer {
@@ -63,20 +65,16 @@ public class ByteArrayStxEtxSerializer extends AbstractPooledBufferByteArraySeri
 			while ((bite = inputStream.read()) != ETX) {
 				checkClosure(bite);
 				buffer[n++] = (byte) bite;
-				if (n >= getMaxMessageSize()) {
-					throw new IOException("ETX not found before max message length: "
-							+ getMaxMessageSize());
+				int maxMessageSize = getMaxMessageSize();
+				if (n >= maxMessageSize) {
+					throw new IOException("ETX not found before max message length: " + maxMessageSize);
 				}
 			}
 			return copyToSizedArray(buffer, n);
 		}
-		catch (IOException e) {
-			publishEvent(e, buffer, n);
-			throw e;
-		}
-		catch (RuntimeException e) {
-			publishEvent(e, buffer, n);
-			throw e;
+		catch (IOException | RuntimeException ex) {
+			publishEvent(ex, buffer, n);
+			throw ex;
 		}
 	}
 

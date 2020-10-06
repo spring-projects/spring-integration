@@ -26,6 +26,8 @@ import java.io.OutputStream;
  * Writes a byte[] to an OutputStream and adds the terminator.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  */
 public class ByteArraySingleTerminatorSerializer extends AbstractPooledBufferByteArraySerializer {
@@ -46,9 +48,8 @@ public class ByteArraySingleTerminatorSerializer extends AbstractPooledBufferByt
 	protected byte[] doDeserialize(InputStream inputStream, byte[] buffer) throws IOException {
 		int n = 0;
 		int bite;
-		if (logger.isDebugEnabled()) {
-			logger.debug("Available to read:" + inputStream.available());
-		}
+		int available = inputStream.available();
+		logger.debug(() -> "Available to read: " + available);
 		try {
 			while (true) {
 				bite = inputStream.read();
@@ -60,10 +61,11 @@ public class ByteArraySingleTerminatorSerializer extends AbstractPooledBufferByt
 					break;
 				}
 				buffer[n++] = (byte) bite;
-				if (n >= getMaxMessageSize()) {
+				int maxMessageSize = getMaxMessageSize();
+				if (n >= maxMessageSize) {
 					throw new IOException("Terminator '0x" + Integer.toHexString(this.terminator & 0xff)
 							+ "' not found before max message length: "
-							+ getMaxMessageSize());
+							+ maxMessageSize);
 				}
 			}
 			return copyToSizedArray(buffer, n);
@@ -71,13 +73,9 @@ public class ByteArraySingleTerminatorSerializer extends AbstractPooledBufferByt
 		catch (SoftEndOfStreamException e) { // NOSONAR catch and throw
 			throw e; // it's an IO exception and we don't want an event for this
 		}
-		catch (IOException e) {
-			publishEvent(e, buffer, n);
-			throw e;
-		}
-		catch (RuntimeException e) {
-			publishEvent(e, buffer, n);
-			throw e;
+		catch (IOException | RuntimeException ex) {
+			publishEvent(ex, buffer, n);
+			throw ex;
 		}
 	}
 

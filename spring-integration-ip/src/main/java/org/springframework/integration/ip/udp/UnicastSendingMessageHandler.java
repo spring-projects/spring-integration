@@ -411,7 +411,7 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	@Override
-	public void setLocalAddress(String localAddress) {
+	public synchronized void setLocalAddress(String localAddress) {
 		this.localAddress = localAddress;
 	}
 

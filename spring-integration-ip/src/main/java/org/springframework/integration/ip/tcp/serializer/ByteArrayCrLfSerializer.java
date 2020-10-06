@@ -54,9 +54,8 @@ public class ByteArrayCrLfSerializer extends AbstractPooledBufferByteArraySerial
 	public int fillToCrLf(InputStream inputStream, byte[] buffer) throws IOException {
 		int n = 0;
 		int bite;
-		if (logger.isDebugEnabled()) {
-			logger.debug("Available to read: " + inputStream.available());
-		}
+		int available = inputStream.available();
+		logger.debug(() -> "Available to read: " + available);
 		try {
 			while (true) {
 				bite = inputStream.read();

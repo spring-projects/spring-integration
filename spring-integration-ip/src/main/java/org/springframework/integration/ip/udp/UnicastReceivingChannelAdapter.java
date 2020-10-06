@@ -136,7 +136,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 				stop();
 			}
 			catch (Exception ex) {
-				if (ex instanceof MessagingException) {
+				if (ex instanceof MessagingException) { // NOSONAR flow control via exceptions
 					throw (MessagingException) ex;
 				}
 				throw new MessagingException("failed to receive DatagramPacket", ex);

@@ -1311,7 +1311,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			}
 		}
 		catch (Exception ex) {
-			logger.warn(() -> "Failed to consume reply with correlationId " + correlationId);
+			logger.warn(ex, () -> "Failed to consume reply with correlationId " + correlationId);
 		}
 	}
 

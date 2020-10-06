@@ -18,11 +18,9 @@ package org.springframework.integration.ip.tcp.serializer;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 
@@ -47,7 +45,7 @@ public abstract class AbstractByteArraySerializer implements
 	 */
 	public static final int DEFAULT_MAX_MESSAGE_SIZE = 2048;
 
-	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
+	protected final LogAccessor logger = new LogAccessor(this.getClass()); // NOSONAR
 
 	private int maxMessageSize = DEFAULT_MAX_MESSAGE_SIZE;
 
@@ -88,8 +86,8 @@ public abstract class AbstractByteArraySerializer implements
 		if (this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(event);
 		}
-		else if (this.logger.isTraceEnabled()) {
-			this.logger.trace("No event publisher for " + event);
+		else {
+			this.logger.trace(() -> "No event publisher for " + event);
 		}
 	}
 

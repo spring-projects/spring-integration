@@ -183,31 +183,29 @@ public final class TestMailServer {
 					write("+OK POP3");
 					while (!socket.isClosed()) {
 						String line = reader.readLine();
-						if ("CAPA".equals(line)) {
-							write(PLUS_OK);
-							write("USER");
-							write(".");
-						}
-						else if ("USER user".equals(line)) {
-							write(PLUS_OK);
-						}
-						else if ("PASS pw".equals(line)) {
-							write(PLUS_OK);
-						}
-						else if ("STAT".equals(line)) {
-							write("+OK 1 3");
-						}
-						else if ("NOOP".equals(line)) {
-							write(PLUS_OK);
-						}
-						else if ("RETR 1".equals(line)) {
-							write(PLUS_OK);
-							write(MESSAGE);
-							write(".");
-						}
-						else if ("QUIT".equals(line)) {
-							write(PLUS_OK);
-							socket.close();
+						switch (line) {
+							case "CAPA":
+								write(PLUS_OK);
+								write("USER");
+								write(".");
+								break;
+							case "USER user":
+							case "PASS pw":
+							case "NOOP":
+								write(PLUS_OK);
+								break;
+							case "STAT":
+								write("+OK 1 3");
+								break;
+							case "RETR 1":
+								write(PLUS_OK);
+								write(MESSAGE);
+								write(".");
+								break;
+							case "QUIT":
+								write(PLUS_OK);
+								socket.close();
+								break;
 						}
 					}
 				}
@@ -257,7 +255,8 @@ public final class TestMailServer {
 				super(socket);
 			}
 
-			@Override // NOSONAR
+			@Override
+				// NOSONAR
 			void doRun() {
 				try {
 					write("* OK IMAP4rev1 Service Ready");
@@ -484,11 +483,11 @@ public final class TestMailServer {
 
 			public static final String MESSAGE =
 					"To: Foo <foo@bar>\r\n"
-					+ "cc: a@b, c@d\r\n"
-					+ "bcc: e@f, g@h\r\n"
-					+ "From: Bar <bar@baz>\r\n"
-					+ "Subject: Test Email\r\n"
-					+ "\r\n" + BODY;
+							+ "cc: a@b, c@d\r\n"
+							+ "bcc: e@f, g@h\r\n"
+							+ "From: Bar <bar@baz>\r\n"
+							+ "Subject: Test Email\r\n"
+							+ "\r\n" + BODY;
 
 			protected final Socket socket; // NOSONAR protected
 
@@ -533,6 +532,7 @@ public final class TestMailServer {
 					// NOSONAR
 				}
 			}
+
 		}
 
 	}

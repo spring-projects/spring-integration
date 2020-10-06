@@ -41,6 +41,7 @@ import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpNioConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.integration.support.management.ManageableLifecycle;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -235,10 +236,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 		catch (RuntimeException | IOException ex) {
 			logger.error(ex, "Tcp Gateway exception");
-			if (ex instanceof MessagingException) {
-				throw (MessagingException) ex;
-			}
-			throw new MessagingException("Failed to send or receive", ex);
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(requestMessage,
+					() -> "Failed to send or receive", ex);
 		}
 		catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
