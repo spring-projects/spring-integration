@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -87,6 +88,12 @@ public class R2dbcMessageSourceTests {
 				.as(StepVerifier::create)
 				.expectNextCount(1)
 				.verifyComplete());
+	}
+
+	@Test
+	public void validateComponentType() {
+		Assertions.assertThat(this.defaultR2dbcMessageSource.getComponentType()).isEqualTo("r2dbc:inbound-channel" +
+				"-adapter");
 	}
 
 	@Test

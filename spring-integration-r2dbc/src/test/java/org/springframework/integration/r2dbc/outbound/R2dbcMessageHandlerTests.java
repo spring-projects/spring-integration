@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -114,6 +115,11 @@ public class R2dbcMessageHandlerTests {
 				.verifyComplete();
 
 	}
+
+			@Test
+			public void validateComponentType() {
+				Assertions.assertThat(this.r2dbcMessageHandler.getComponentType()).isEqualTo("r2dbc:outbound-channel-adapter");
+			}
 
 	@Test
 	public void validateMessageHandlingWithDefaultUpdateCollection() {
