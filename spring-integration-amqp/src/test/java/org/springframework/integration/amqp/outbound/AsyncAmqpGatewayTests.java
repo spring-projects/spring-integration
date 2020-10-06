@@ -19,7 +19,6 @@ package org.springframework.integration.amqp.outbound;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willReturn;
@@ -29,9 +28,10 @@ import static org.mockito.Mockito.spy;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
-import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 
 import org.springframework.amqp.core.AmqpReplyTimeoutException;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
@@ -47,6 +47,7 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.amqp.support.NackedAmqpMessageException;
 import org.springframework.integration.amqp.support.ReturnedAmqpMessageException;
 import org.springframework.integration.channel.DirectChannel;
@@ -104,14 +105,16 @@ class AsyncAmqpGatewayTests {
 		receiver.start();
 
 		AsyncAmqpOutboundGateway gateway = new AsyncAmqpOutboundGateway(asyncTemplate);
-		Log logger = spy(TestUtils.getPropertyValue(gateway, "logger", Log.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(gateway, "logger", LogAccessor.class));
 		given(logger.isDebugEnabled()).willReturn(true);
 		final CountDownLatch replyTimeoutLatch = new CountDownLatch(1);
 		willAnswer(invocation -> {
 			invocation.callRealMethod();
 			replyTimeoutLatch.countDown();
 			return null;
-		}).given(logger).debug(startsWith("Reply not required and async timeout for"));
+		}).given(logger)
+				.debug(ArgumentMatchers.<Supplier<String>>argThat(logMessage ->
+						logMessage.get().startsWith("Reply not required and async timeout for")));
 		new DirectFieldAccessor(gateway).setPropertyValue("logger", logger);
 		QueueChannel outputChannel = new QueueChannel();
 		outputChannel.setBeanName("output");
