@@ -175,7 +175,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				}
 			}
 		}
-		catch (IOException ex) {
+		catch (IOException ex) { // NOSONAR flow control via exceptions
 			// don't log an error if we had a good socket once and now it's closed
 			if (ex instanceof SocketException && theServerSocket != null) { // NOSONAR flow control via exceptions
 				logger.info("Server Socket closed");

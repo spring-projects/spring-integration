@@ -177,12 +177,15 @@ public final class TestMailServer {
 				super(socket);
 			}
 
-			@Override
+			@Override // NOSONAR
 			void doRun() {
 				try {
 					write("+OK POP3");
 					while (!socket.isClosed()) {
 						String line = reader.readLine();
+						if (line == null) {
+							break;
+						}
 						switch (line) {
 							case "CAPA":
 								write(PLUS_OK);
@@ -206,6 +209,8 @@ public final class TestMailServer {
 								write(PLUS_OK);
 								socket.close();
 								break;
+							default:
+								throw new UnsupportedOperationException(line);
 						}
 					}
 				}
@@ -255,8 +260,7 @@ public final class TestMailServer {
 				super(socket);
 			}
 
-			@Override
-				// NOSONAR
+			@Override // NOSONAR
 			void doRun() {
 				try {
 					write("* OK IMAP4rev1 Service Ready");
