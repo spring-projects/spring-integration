@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,6 @@ package org.springframework.integration.context;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -34,6 +31,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -77,7 +75,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	/**
 	 * Logger that is available to subclasses
 	 */
-	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR protected
+	protected final LogAccessor logger = new LogAccessor(getClass()); // NOSONAR protected
 
 	private final ConversionService defaultConversionService = DefaultConversionService.getSharedInstance();
 
@@ -264,8 +262,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	public ConversionService getConversionService() {
 		if (this.conversionService == null && this.beanFactory != null) {
 			this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
-			if (this.conversionService == null && this.logger.isDebugEnabled()) {
-				this.logger.debug("Unable to attempt conversion of Message payload types. Component '" +
+			if (this.conversionService == null) {
+				this.logger.debug(() -> "Unable to attempt conversion of Message payload types. Component '" +
 						getComponentName() + "' has no explicit ConversionService reference, " +
 						"and there is no 'integrationConversionService' bean within the context.");
 			}

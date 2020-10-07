@@ -39,7 +39,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -64,6 +63,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.expression.EnvironmentAccessor;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.expression.EvaluationContext;
@@ -313,7 +313,7 @@ public class EnableIntegrationTests {
 		assertThat(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class)).isFalse();
 
 		assertThat(this.annotationTestService.isRunning()).isTrue();
-		Log logger = spy(TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "logger", Log.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "logger", LogAccessor.class));
 		when(logger.isDebugEnabled()).thenReturn(true);
 		final CountDownLatch pollerInterruptedLatch = new CountDownLatch(1);
 		doAnswer(invocation -> {

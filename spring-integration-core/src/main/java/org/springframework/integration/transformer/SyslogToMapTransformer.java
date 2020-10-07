@@ -86,9 +86,7 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 			parseMatcherToMap(payload, matcher, map);
 		}
 		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Could not decode: " + payload);
-			}
+			logger.debug(() -> "Could not decode: " + payload);
 			map.put(UNDECODED, payload);
 		}
 		return map;
@@ -111,10 +109,8 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 			}
 			map.put(MESSAGE, matcher.group(5)); // NOSONAR
 		}
-		catch (Exception e) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Could not decode: " + payload, e);
-			}
+		catch (Exception ex) {
+			logger.debug(ex, () -> "Could not decode: " + payload);
 			map.clear();
 			map.put(UNDECODED, payload);
 		}

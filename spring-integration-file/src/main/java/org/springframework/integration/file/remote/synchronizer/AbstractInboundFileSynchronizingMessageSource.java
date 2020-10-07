@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.integration.endpoint.AbstractFetchLimitingMessageSource;
 import org.springframework.integration.file.DefaultDirectoryScanner;
@@ -179,11 +180,9 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 		try {
 			if (!this.localDirectory.exists()) {
 				if (this.autoCreateLocalDirectory) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("The '" + this.localDirectory + "' directory doesn't exist; Will create.");
-					}
-					if (!this.localDirectory.mkdirs() && this.logger.isWarnEnabled()) {
-						this.logger.warn("Failed to create directories for " + this.localDirectory);
+					logger.debug(() -> "The '" + this.localDirectory + "' directory doesn't exist; Will create.");
+					if (!this.localDirectory.mkdirs()) {
+						this.logger.warn(() -> "Failed to create directories for " + this.localDirectory);
 					}
 				}
 				else {
@@ -192,8 +191,9 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 			}
 			this.fileSource.setDirectory(this.localDirectory);
 			initFiltersAndScanner();
-			if (this.getBeanFactory() != null) {
-				this.fileSource.setBeanFactory(getBeanFactory());
+			BeanFactory beanFactory = getBeanFactory();
+			if (beanFactory != null) {
+				this.fileSource.setBeanFactory(beanFactory);
 			}
 			this.fileSource.afterPropertiesSet();
 			this.synchronizer.afterPropertiesSet();
@@ -241,8 +241,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 			this.fileSource.stop();
 			this.synchronizer.close();
 		}
-		catch (IOException e) {
-			logger.error("Error closing synchronizer", e);
+		catch (IOException ex) {
+			logger.error(ex, "Error closing synchronizer");
 		}
 	}
 

@@ -184,11 +184,9 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 			if (interceptor instanceof ExecutorChannelInterceptor) {
 				ExecutorChannelInterceptor executorInterceptor = (ExecutorChannelInterceptor) interceptor;
 				theMessage = executorInterceptor.beforeHandle(theMessage, this.inputChannel, this.handler);
-				if (message == null) {
-					if (logger.isDebugEnabled()) {
-						logger.debug(executorInterceptor.getClass().getSimpleName()
-								+ " returned null from beforeHandle, i.e. precluding the send.");
-					}
+				if (theMessage == null) {
+					logger.debug(() -> executorInterceptor.getClass().getSimpleName()
+							+ " returned null from beforeHandle, i.e. precluding the send.");
 					triggerAfterMessageHandled(null, null, interceptorStack);
 					return null;
 				}
@@ -200,6 +198,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 
 	private void triggerAfterMessageHandled(Message<?> message, Exception ex,
 			Deque<ExecutorChannelInterceptor> interceptorStack) {
+
 		Iterator<ExecutorChannelInterceptor> iterator = interceptorStack.descendingIterator();
 		while (iterator.hasNext()) {
 			ExecutorChannelInterceptor interceptor = iterator.next();
@@ -207,7 +206,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 				interceptor.afterMessageHandled(message, this.inputChannel, this.handler, ex);
 			}
 			catch (Throwable ex2) { //NOSONAR
-				logger.error("Exception from afterMessageHandled in " + interceptor, ex2);
+				logger.error(ex2, () -> "Exception from afterMessageHandled in " + interceptor);
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Map;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 
 /**
@@ -45,6 +46,8 @@ import org.springframework.util.Assert;
  *
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class StoredProcMessageHandler extends AbstractMessageHandler {
@@ -52,11 +55,8 @@ public class StoredProcMessageHandler extends AbstractMessageHandler {
 	private final StoredProcExecutor executor;
 
 	/**
-	 *
 	 * Constructor passing in the {@link StoredProcExecutor}.
-	 *
 	 * @param storedProcExecutor Must not be null.
-	 *
 	 */
 	public StoredProcMessageHandler(StoredProcExecutor storedProcExecutor) {
 		Assert.notNull(storedProcExecutor, "storedProcExecutor must not be null.");
@@ -72,22 +72,15 @@ public class StoredProcMessageHandler extends AbstractMessageHandler {
 	/**
 	 * Executes the Stored procedure, delegates to executeStoredProcedure(...).
 	 * Any return values from the Stored procedure are ignored.
-	 *
 	 * Return values are logged at debug level, though.
 	 */
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-
 		Map<String, Object> resultMap = this.executor.executeStoredProcedure(message);
-
-		if (logger.isDebugEnabled()) {
-
-			if (resultMap != null && !resultMap.isEmpty()) {
-				logger.debug(String.format("The StoredProcMessageHandler ignores return "
-					+ "values, but the called Stored Procedure '%s' returned data: '%s'",
-						this.executor.getStoredProcedureName(), resultMap));
-			}
-
+		if (!CollectionUtils.isEmpty(resultMap)) {
+			logger.debug(() -> String.format("The StoredProcMessageHandler ignores return "
+							+ "values, but the called Stored Procedure '%s' returned data: '%s'",
+					this.executor.getStoredProcedureName(), resultMap));
 		}
 
 	}

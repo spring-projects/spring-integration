@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -25,32 +26,36 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.function.Supplier;
+
 import org.apache.commons.logging.Log;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.handler.LoggingHandler.Level;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.condition.LogLevels;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Andriy Kryvtsun
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@LogLevels(categories = "test.logging.handler")
 public class LoggingHandlerTests {
 
 	@Autowired
@@ -88,51 +93,49 @@ public class LoggingHandlerTests {
 	@Test
 	public void testDontEvaluateIfNotEnabled() {
 		LoggingHandler loggingHandler = new LoggingHandler("INFO");
+		loggingHandler.setLoggerName("test.logging.handler");
 		loggingHandler.setBeanFactory(mock(BeanFactory.class));
 		loggingHandler.afterPropertiesSet();
 
-		DirectFieldAccessor accessor = new DirectFieldAccessor(loggingHandler);
-		Log log = (Log) accessor.getPropertyValue("messageLogger");
-		log = spy(log);
-		accessor.setPropertyValue("messageLogger", log);
-		Expression expression = (Expression) accessor.getPropertyValue("expression");
-		expression = spy(expression);
-		accessor.setPropertyValue("expression", expression);
-		when(log.isInfoEnabled()).thenReturn(false);
+		LogAccessor logAccessor = TestUtils.getPropertyValue(loggingHandler, "messageLogger", LogAccessor.class);
+		Log log = spy(logAccessor.getLog());
+		when(log.isInfoEnabled()).thenReturn(false, true);
+		new DirectFieldAccessor(logAccessor).setPropertyValue("log", log);
+		Expression expression = spy(TestUtils.getPropertyValue(loggingHandler, "expression", Expression.class));
+		loggingHandler.setLogExpression(expression);
 		loggingHandler.handleMessage(new GenericMessage<>("foo"));
-		verify(expression, never()).getValue(Mockito.any(EvaluationContext.class), Mockito.any(Message.class));
-
-		when(log.isInfoEnabled()).thenReturn(true);
+		verify(expression, never()).getValue(any(EvaluationContext.class), any(Message.class));
 		loggingHandler.handleMessage(new GenericMessage<>("foo"));
-		verify(expression, times(1)).getValue(Mockito.any(EvaluationContext.class), Mockito.any(Message.class));
+		verify(expression, times(1)).getValue(any(EvaluationContext.class), any(Message.class));
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testChangeLevel() {
 		LoggingHandler loggingHandler = new LoggingHandler(Level.INFO);
 		loggingHandler.setBeanFactory(mock(BeanFactory.class));
 		loggingHandler.afterPropertiesSet();
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(loggingHandler);
-		Log log = (Log) accessor.getPropertyValue("messageLogger");
+		LogAccessor log = (LogAccessor) accessor.getPropertyValue("messageLogger");
 		log = spy(log);
 		accessor.setPropertyValue("messageLogger", log);
 		when(log.isInfoEnabled()).thenReturn(true);
 		loggingHandler.handleMessage(new GenericMessage<>("foo"));
-		verify(log, times(1)).info(Mockito.anyString());
-		verify(log, never()).warn(Mockito.anyString());
+		verify(log, times(1)).info(any(Supplier.class));
+		verify(log, never()).warn(any(Supplier.class));
 
 		loggingHandler.setLevel(Level.WARN);
 		loggingHandler.handleMessage(new GenericMessage<>("foo"));
-		verify(log, times(1)).info(Mockito.anyString());
-		verify(log, times(1)).warn(Mockito.anyString());
+		verify(log, times(1)).info(any(Supplier.class));
+		verify(log, times(1)).warn(any(Supplier.class));
 	}
 
 	@Test
 	public void testUsageWithoutSpringInitialization() {
 		LoggingHandler loggingHandler = new LoggingHandler("ERROR");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(loggingHandler);
-		Log log = (Log) accessor.getPropertyValue("messageLogger");
+		LogAccessor log = (LogAccessor) accessor.getPropertyValue("messageLogger");
 		log = spy(log);
 		accessor.setPropertyValue("messageLogger", log);
 
@@ -141,7 +144,9 @@ public class LoggingHandlerTests {
 
 		loggingHandler.handleMessage(message);
 
-		verify(log).error(testPayload);
+		verify(log)
+				.error(ArgumentMatchers.<Supplier<? extends CharSequence>>argThat(logMessage ->
+						logMessage.get().equals(testPayload)));
 	}
 
 	public static class TestBean {

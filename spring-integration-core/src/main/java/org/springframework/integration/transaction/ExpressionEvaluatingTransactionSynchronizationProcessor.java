@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,33 +136,27 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 		Message<?> message = holder.getMessage();
 		if (message != null) {
 			if (expression != null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Evaluating " + expressionType + " expression: '" + expression.getExpressionString()
-							+ "' on " + message);
-				}
+				logger.debug(() -> "Evaluating " + expressionType + " expression: '" + expression.getExpressionString()
+						+ "' on " + message);
 				EvaluationContext evaluationContextToUse = prepareEvaluationContextToUse(holder);
 				Object value = expression.getValue(evaluationContextToUse, message);
 				if (value != null && messageChannel != null) {
 					sendMessageForExpressionResult(value, message.getHeaders(), messageChannel, expressionType);
 				}
 				else {
-					if (logger.isTraceEnabled()) {
-						logger.trace("Expression evaluation returned null");
-					}
+					logger.trace("Expression evaluation returned null");
 				}
 			}
 			else if (messageChannel != null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Sending received message to " + messageChannel + " as part of '" +
-							expressionType + "' transaction synchronization");
-				}
+				logger.debug(() -> "Sending received message to " + messageChannel + " as part of '" +
+						expressionType + "' transaction synchronization");
 				try {
 					// rollback will be initiated if any of the previous sync operations fail (e.g., beforeCommit)
 					// this means that this method will be called without explicit configuration thus no channel
 					sendMessage(messageChannel, message);
 				}
-				catch (Exception e) {
-					logger.error("Failed to send " + message, e);
+				catch (Exception ex) {
+					logger.error(ex, () -> "Failed to send " + message);
 				}
 
 			}
@@ -172,12 +166,9 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	private void sendMessageForExpressionResult(Object value, Map<String, ?> headers,
 			MessageChannel messageChannel, String expressionType) {
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Sending expression result message to " + messageChannel + " " +
-					"as part of '" + expressionType + "' transaction synchronization");
-		}
-		Message<?> spelResultMessage = null;
-		try {
+		logger.debug(() -> "Sending expression result message to " + messageChannel + " " +
+				"as part of '" + expressionType + "' transaction synchronization");
+		Message<?> spelResultMessage;
 			if (value instanceof Message<?>) {
 				spelResultMessage = (Message<?>) value;
 			}
@@ -188,11 +179,11 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 								.copyHeaders(headers)
 								.build();
 			}
-
+		try {
 			sendMessage(messageChannel, spelResultMessage);
 		}
-		catch (Exception e) {
-			logger.error("Failed to send " + expressionType + " evaluation result " + spelResultMessage, e);
+		catch (Exception ex) {
+			logger.error(ex, () -> "Failed to send " + expressionType + " evaluation result " + spelResultMessage);
 		}
 	}
 

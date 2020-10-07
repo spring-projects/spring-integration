@@ -213,7 +213,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 							this.delegate.getMessageHandler(), ex);
 				}
 				catch (Throwable ex2) { //NOSONAR
-					logger.error("Exception from afterMessageHandled in " + interceptor, ex2);
+					logger.error(ex2, () -> "Exception from afterMessageHandled in " + interceptor);
 				}
 			}
 		}

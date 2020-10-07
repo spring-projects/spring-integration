@@ -48,6 +48,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.assertj.core.api.Assertions.*;
+
 /**
  * @author Rohan Mukesh
  * @author Artem Bilan
@@ -118,7 +120,7 @@ public class R2dbcMessageHandlerTests {
 
 			@Test
 			public void validateComponentType() {
-				Assertions.assertThat(this.r2dbcMessageHandler.getComponentType()).isEqualTo("r2dbc:outbound-channel-adapter");
+				assertThat(this.r2dbcMessageHandler.getComponentType()).isEqualTo("r2dbc:outbound-channel-adapter");
 			}
 
 	@Test

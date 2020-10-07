@@ -481,8 +481,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			result = new MessageHandlingException(requestMessage, ex);
 		}
 		if (errorChannel == null) {
-			logger.error("Async exception received and no 'errorChannel' header exists and no default "
-					+ "'errorChannel' found", result);
+			logger.error(result,
+					"Async exception received and no 'errorChannel' header exists and no default 'errorChannel' found");
 		}
 		else {
 			try {
@@ -492,7 +492,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				Exception exceptionToLog =
 						IntegrationUtils.wrapInHandlingExceptionIfNecessary(requestMessage,
 								() -> "failed to send error message in the [" + this + ']', e);
-				logger.error("Failed to send async reply", exceptionToLog);
+				logger.error(exceptionToLog, "Failed to send async reply");
 			}
 		}
 	}
@@ -538,7 +538,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 						exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
 					}
 				}
-				logger.error("Failed to send async reply: " + result.toString(), exceptionToLogAndSend);
+				logger.error(exceptionToLogAndSend, () -> "Failed to send async reply: " + result.toString());
 				onFailure(exceptionToLogAndSend);
 			}
 		}

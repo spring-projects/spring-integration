@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -200,8 +200,8 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 				subscription.unsubscribe();
 			}
 		}
-		catch (Exception e) {
-			logger.warn("The exception during unsubscribing.", e);
+		catch (Exception ex) {
+			logger.warn(ex, "The exception during unsubscribing.");
 		}
 		this.subscriptions.clear();
 	}
@@ -300,7 +300,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 						.send(errorChannel, new ErrorMessage(ex));
 			}
 			else {
-				logger.error(exceptionMessage, exception);
+				logger.error(exception, exceptionMessage);
 			}
 		}
 

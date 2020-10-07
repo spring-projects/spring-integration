@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,10 +113,11 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 		for (Map.Entry<String, String> entry : parameterExpressions.entrySet()) {
 			String key = entry.getKey();
 			String expression = entry.getValue();
-			Expression[] expressions = new Expression[] {
-					EXPRESSION_PARSER.parseExpression(expression),
-					EXPRESSION_PARSER.parseExpression("#root.![" + expression + "]")
-			};
+			Expression[] expressions =
+					{
+							EXPRESSION_PARSER.parseExpression(expression),
+							EXPRESSION_PARSER.parseExpression("#root.![" + expression + "]")
+					};
 			paramExpressions.put(key, expressions);
 		}
 		this.parameterExpressions.putAll(paramExpressions);
@@ -196,10 +197,11 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 			}
 
 			if (!this.parameterExpressions.containsKey(paramName)) {
-				Expression[] expressions = new Expression[] {
-						EXPRESSION_PARSER.parseExpression(paramName),
-						EXPRESSION_PARSER.parseExpression("#root.![" + paramName + "]")
-				};
+				Expression[] expressions =
+						{
+								EXPRESSION_PARSER.parseExpression(paramName),
+								EXPRESSION_PARSER.parseExpression("#root.![" + paramName + "]")
+						};
 				ExpressionEvaluatingSqlParameterSourceFactory.this.parameterExpressions.put(paramName, expressions);
 				this.parameterExpressions.put(paramName, expressions);
 			}
@@ -217,9 +219,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 			if (this.cache || calledFromHasValue) {
 				this.values.put(paramName, value);
 			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("Resolved expression " + expression + " to " + value);
-			}
+			logger.debug(() -> "Resolved expression " + expression + " to " + value);
 			return value;
 		}
 
@@ -231,10 +231,8 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 					return false;
 				}
 			}
-			catch (ExpressionException e) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Could not evaluate expression", e);
-				}
+			catch (ExpressionException ex) {
+				logger.debug(ex, "Could not evaluate expression");
 				if (this.cache) {
 					this.values.put(paramName, ERROR);
 				}

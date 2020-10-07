@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.logging.Log;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -56,6 +54,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
@@ -70,8 +69,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ReflectionUtils;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
@@ -83,10 +81,10 @@ import com.rabbitmq.client.Channel;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gunnar Hillert
+ *
  * @since 2.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class AmqpOutboundChannelAdapterParserTests {
 
@@ -326,19 +324,19 @@ public class AmqpOutboundChannelAdapterParserTests {
 		doThrow(toBeThrown).when(connectionFactory).createConnection();
 		when(amqpTemplate.getConnectionFactory()).thenReturn(connectionFactory);
 		AmqpOutboundEndpoint handler = new AmqpOutboundEndpoint(amqpTemplate);
-		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(handler, "logger", LogAccessor.class));
 		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
-		doNothing().when(logger).error("Failed to eagerly establish the connection.", toBeThrown);
+		doNothing().when(logger).error(toBeThrown, "Failed to eagerly establish the connection.");
 		ApplicationContext context = mock(ApplicationContext.class);
 		handler.setApplicationContext(context);
 		handler.setBeanFactory(context);
 		handler.afterPropertiesSet();
 		handler.start();
 		handler.stop();
-		verify(logger, never()).error(anyString(), any(RuntimeException.class));
+		verify(logger, never()).error(any(RuntimeException.class), anyString());
 		handler.setLazyConnect(false);
 		handler.start();
-		verify(logger).error("Failed to eagerly establish the connection.", toBeThrown);
+		verify(logger).error(toBeThrown, "Failed to eagerly establish the connection.");
 		handler.stop();
 	}
 

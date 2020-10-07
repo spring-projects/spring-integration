@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,64 +24,64 @@ package org.springframework.integration.jms;
  */
 abstract class DynamicJmsTemplateProperties {
 
-	private static final ThreadLocal<Integer> priorityHolder = new ThreadLocal<>();
+	private static final ThreadLocal<Integer> PRIORITY_HOLDER = new ThreadLocal<>();
 
-	private static final ThreadLocal<Long> receiveTimeoutHolder = new ThreadLocal<>();
+	private static final ThreadLocal<Long> RECEIVE_TIMEOUT_HOLDER = new ThreadLocal<>();
 
-	private static final ThreadLocal<Integer> deliverModeHolder = new ThreadLocal<>();
+	private static final ThreadLocal<Integer> DELIVER_MODE_HOLDER = new ThreadLocal<>();
 
-	private static final ThreadLocal<Long> timeToLiveHolder = new ThreadLocal<>();
+	private static final ThreadLocal<Long> TIME_TO_LIVE_HOLDER = new ThreadLocal<>();
 
 
 	private DynamicJmsTemplateProperties() {
 	}
 
 	public static Integer getPriority() {
-		return priorityHolder.get();
+		return PRIORITY_HOLDER.get();
 	}
 
 	public static void setPriority(Integer priority) {
-		priorityHolder.set(priority);
+		PRIORITY_HOLDER.set(priority);
 	}
 
 	public static void clearPriority() {
-		priorityHolder.remove();
+		PRIORITY_HOLDER.remove();
 	}
 
 	public static Long getReceiveTimeout() {
-		return receiveTimeoutHolder.get();
+		return RECEIVE_TIMEOUT_HOLDER.get();
 	}
 
 	public static void setReceiveTimeout(Long receiveTimeout) {
-		receiveTimeoutHolder.set(receiveTimeout);
+		RECEIVE_TIMEOUT_HOLDER.set(receiveTimeout);
 	}
 
 	public static void clearReceiveTimeout() {
-		receiveTimeoutHolder.remove();
+		RECEIVE_TIMEOUT_HOLDER.remove();
 	}
 
 	public static Integer getDeliveryMode() {
-		return deliverModeHolder.get();
+		return DELIVER_MODE_HOLDER.get();
 	}
 
 	public static void setDeliveryMode(Integer deliveryMode) {
-		deliverModeHolder.set(deliveryMode);
+		DELIVER_MODE_HOLDER.set(deliveryMode);
 	}
 
 	public static void clearDeliveryMode() {
-		deliverModeHolder.remove();
+		DELIVER_MODE_HOLDER.remove();
 	}
 
 	public static Long getTimeToLive() {
-		return timeToLiveHolder.get();
+		return TIME_TO_LIVE_HOLDER.get();
 	}
 
 	public static void setTimeToLive(Long timeToLive) {
-		timeToLiveHolder.set(timeToLive);
+		TIME_TO_LIVE_HOLDER.set(timeToLive);
 	}
 
 	public static void clearTimeToLive() {
-		timeToLiveHolder.remove();
+		TIME_TO_LIVE_HOLDER.remove();
 	}
 
 }

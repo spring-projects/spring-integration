@@ -348,11 +348,9 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				throw new IllegalArgumentException("Custom consumer factory is not configured with '"
 						+ ConsumerConfig.MAX_POLL_RECORDS_CONFIG + " = 1'");
 			}
-			if (this.logger.isWarnEnabled()) {
-				this.logger.warn("'" + ConsumerConfig.MAX_POLL_RECORDS_CONFIG
-						+ "' has been forced from " + (maxPoll == null ? "unspecified" : maxPoll)
-						+ " to 1, to avoid having to seek after each record");
-			}
+			this.logger.warn(() -> ConsumerConfig.MAX_POLL_RECORDS_CONFIG
+					+ "' has been forced from " + (maxPoll == null ? "unspecified" : maxPoll)
+					+ " to 1, to avoid having to seek after each record");
 			Map<String, Object> configs = new HashMap<>(suppliedConsumerFactory.getConfigurationProperties());
 			configs.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1);
 			DefaultKafkaConsumerFactory<K, V> fixedConsumerFactory = new DefaultKafkaConsumerFactory<>(configs);
@@ -450,7 +448,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				this.consumer.subscribe(topicPattern, rebalanceCallback);
 			}
 			else if (partitions != null) {
-				assignAndSeekPartitionts(partitions);
+				assignAndSeekPartitions(partitions);
 			}
 			else {
 				this.consumer.subscribe(Arrays.asList(this.consumerProperties.getTopics()), // NOSONAR
@@ -459,7 +457,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 	}
 
-	private void assignAndSeekPartitionts(TopicPartitionOffset[] partitions) {
+	private void assignAndSeekPartitions(TopicPartitionOffset[] partitions) {
 		List<TopicPartition> topicPartitionsToAssign =
 				Arrays.stream(partitions)
 						.map(TopicPartitionOffset::getTopicPartition)
@@ -478,7 +476,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				TopicPartition topicPartition = partition.getTopicPartition();
 				Long offset = partition.getOffset();
 				if (offset != null) {
-					long newOffset = offset;
+					long newOffset;
 
 					if (offset < 0) {
 						if (!partition.isRelativeToCurrent()) {
@@ -490,14 +488,17 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 					else if (partition.isRelativeToCurrent()) {
 						newOffset = this.consumer.position(topicPartition) + offset;
 					}
+					else {
+						newOffset = offset;
+					}
 
 					try {
 						this.consumer.seek(topicPartition, newOffset);
 					}
-					catch (Exception e) {
-						this.logger.error("Failed to set initial offset for " + topicPartition
+					catch (Exception ex) {
+						this.logger.error(ex, () -> "Failed to set initial offset for " + topicPartition
 								+ " at " + newOffset + ". Position is " + this.consumer
-								.position(topicPartition), e);
+								.position(topicPartition));
 					}
 				}
 			}
@@ -759,8 +760,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 										return i.getRecord().offset();
 									})
 									.collect(Collectors.toList());
-					if (rewound.size() > 0 && this.logger.isWarnEnabled()) {
-						this.logger.warn("Rolled back " + ListenerUtils.recordToString(record, this.logOnlyMetadata)
+					if (rewound.size() > 0) {
+						this.logger.warn(() -> "Rolled back " + ListenerUtils.recordToString(record, this.logOnlyMetadata)
 								+ " later in-flight offsets "
 								+ rewound + " will also be re-fetched");
 					}
@@ -770,11 +771,9 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 		private void commitIfPossible(ConsumerRecord<K, V> record) { // NOSONAR
 			if (this.ackInfo.isRolledBack()) {
-				if (this.logger.isWarnEnabled()) {
-					this.logger.warn("Cannot commit offset for "
-							+ ListenerUtils.recordToString(record, this.logOnlyMetadata)
-							+ "; an earlier offset was rolled back");
-				}
+				this.logger.warn(() -> "Cannot commit offset for "
+						+ ListenerUtils.recordToString(record, this.logOnlyMetadata)
+						+ "; an earlier offset was rolled back");
 			}
 			else {
 				Set<KafkaAckInfo<K, V>> candidates = this.ackInfo.getOffsets().get(this.ackInfo.getTopicPartition());

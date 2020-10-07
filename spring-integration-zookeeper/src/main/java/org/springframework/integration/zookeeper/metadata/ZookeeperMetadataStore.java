@@ -210,11 +210,11 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				}
 			}
 			else {
-				if (this.updateMap.containsKey(key)) {
-					// our version is more recent than the cache
-					if (this.updateMap.get(key).getVersion() >= currentData.getStat().getVersion()) {
-						return this.updateMap.get(key).getValue();
-					}
+				// our version is more recent than the cache
+				if (this.updateMap.containsKey(key) &&
+						this.updateMap.get(key).getVersion() >= currentData.getStat().getVersion()) {
+
+					return this.updateMap.get(key).getValue();
 				}
 				return IntegrationUtils.bytesToString(currentData.getData(), this.encoding);
 			}
@@ -352,20 +352,20 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 						IntegrationUtils.bytesToString(event.getData().getData(), ZookeeperMetadataStore.this.encoding);
 				switch (event.getType()) {
 					case CHILD_ADDED:
-						if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey)) {
-							if (event.getData().getStat().getVersion() >=
-									ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
-								ZookeeperMetadataStore.this.updateMap.remove(eventPath);
-							}
+						if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey) &&
+								event.getData().getStat().getVersion() >=
+										ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
+
+							ZookeeperMetadataStore.this.updateMap.remove(eventPath);
 						}
 						ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onAdd(eventKey, value));
 						break;
 					case CHILD_UPDATED:
-						if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey)) {
-							if (event.getData().getStat().getVersion() >=
-									ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
-								ZookeeperMetadataStore.this.updateMap.remove(eventPath);
-							}
+						if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey) &&
+								event.getData().getStat().getVersion() >=
+										ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
+
+							ZookeeperMetadataStore.this.updateMap.remove(eventPath);
 						}
 						ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onUpdate(eventKey, value));
 						break;

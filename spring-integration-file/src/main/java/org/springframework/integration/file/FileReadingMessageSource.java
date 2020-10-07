@@ -145,8 +145,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 	 */
 	public FileReadingMessageSource(int internalQueueCapacity) {
 		this(null);
-		Assert.isTrue(internalQueueCapacity > 0,
-				"Cannot create a queue with non positive capacity");
+		Assert.isTrue(internalQueueCapacity > 0, "Cannot create a queue with non positive capacity");
 		this.scanner = new HeadDirectoryScanner(internalQueueCapacity);
 	}
 
@@ -383,9 +382,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 		Set<File> freshFiles = new LinkedHashSet<>(filteredFiles);
 		if (!freshFiles.isEmpty()) {
 			this.toBeReceived.addAll(freshFiles);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Added to queue: " + freshFiles);
-			}
+			logger.debug(() -> "Added to queue: " + freshFiles);
 		}
 	}
 
@@ -394,9 +391,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 	 * @param failedMessage the {@link Message} that failed
 	 */
 	public void onFailure(Message<File> failedMessage) {
-		if (logger.isWarnEnabled()) {
-			logger.warn("Failed to send: " + failedMessage);
-		}
+		logger.warn(() -> "Failed to send: " + failedMessage);
 		this.toBeReceived.offer(failedMessage.getPayload());
 	}
 
@@ -440,8 +435,8 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 			try {
 				this.watcher = FileSystems.getDefault().newWatchService();
 			}
-			catch (IOException e) {
-				logger.error("Failed to create watcher for " + FileReadingMessageSource.this.directory, e);
+			catch (IOException ex) {
+				logger.error(ex, () -> "Failed to create watcher for " + FileReadingMessageSource.this.directory);
 			}
 
 			this.kinds = new WatchEvent.Kind<?>[FileReadingMessageSource.this.watchEvents.length];
@@ -462,8 +457,8 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 				this.watcher = null;
 				this.pathKeys.clear();
 			}
-			catch (IOException e) {
-				logger.error("Failed to close watcher for " + FileReadingMessageSource.this.directory, e);
+			catch (IOException ex) {
+				logger.error(ex, () -> "Failed to close watcher for " + FileReadingMessageSource.this.directory);
 			}
 		}
 
@@ -474,7 +469,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 
 		@Override
 		protected File[] listEligibleFiles(File directory) {
-			Assert.state(this.watcher != null, "The WatchService has'nt been started");
+			Assert.state(this.watcher != null, "The WatchService hasn't been started");
 
 			Set<File> files = new LinkedHashSet<>();
 
@@ -513,17 +508,15 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 		private void processFilesFromNormalEvent(Set<File> files, File parentDir, WatchEvent<?> event) {
 			Path item = (Path) event.context();
 			File file = new File(parentDir, item.toFile().getName());
-			if (logger.isDebugEnabled()) {
-				logger.debug("Watch event [" + event.kind() + "] for file [" + file + "]");
-			}
+			logger.debug(() -> "Watch event [" + event.kind() + "] for file [" + file + "]");
 
 			if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
 				if (getFilter() instanceof ResettableFileListFilter) {
 					((ResettableFileListFilter<File>) getFilter()).remove(file);
 				}
 				boolean fileRemoved = files.remove(file);
-				if (fileRemoved && logger.isDebugEnabled()) {
-					logger.debug("The file [" + file +
+				if (fileRemoved) {
+					logger.debug(() -> "The file [" + file +
 							"] has been removed from the queue because of DELETE event.");
 				}
 			}
@@ -538,19 +531,15 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 					}
 				}
 				else {
-					if (logger.isDebugEnabled()) {
-						logger.debug("A file [" + file + "] for the event [" + event.kind() +
-								"] doesn't exist. Ignored.");
-					}
+					logger.debug(() -> "A file [" + file + "] for the event [" + event.kind() +
+							"] doesn't exist. Ignored.");
 				}
 			}
 		}
 
 		private void processFilesFromOverflowEvent(Set<File> files, WatchEvent<?> event) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Watch event [" + StandardWatchEventKinds.OVERFLOW +
-						"] with context [" + event.context() + "]");
-			}
+			logger.debug(() -> "Watch event [" + StandardWatchEventKinds.OVERFLOW +
+					"] with context [" + event.context() + "]");
 
 			for (WatchKey watchKey : this.pathKeys.values()) {
 				watchKey.cancel();
@@ -589,17 +578,15 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 
 				});
 			}
-			catch (IOException e) {
-				logger.error("Failed to walk directory: " + directory.toString(), e);
+			catch (IOException ex) {
+				logger.error(ex, () -> "Failed to walk directory: " + directory.toString());
 			}
 			return walkedFiles;
 		}
 
 		private void registerWatch(Path dir) throws IOException {
 			if (!this.pathKeys.containsKey(dir)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("registering: " + dir + " for file events");
-				}
+				logger.debug(() -> "registering: " + dir + " for file events");
 				WatchKey watchKey = dir.register(this.watcher, this.kinds);
 				this.pathKeys.putIfAbsent(dir, watchKey);
 			}

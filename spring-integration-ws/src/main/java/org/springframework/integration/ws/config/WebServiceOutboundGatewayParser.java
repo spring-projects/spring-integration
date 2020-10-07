@@ -96,7 +96,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		return builder;
 	}
 
-	@Override
+	@Override // NOSONAR
 	protected void postProcessGateway(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		parseMarshallerAttribute(builder, element, parserContext);
 

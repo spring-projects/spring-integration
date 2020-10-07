@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-import org.apache.commons.logging.Log;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import org.springframework.core.log.LogAccessor;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class P2pChannelTests {
@@ -53,7 +54,7 @@ public class P2pChannelTests {
 	 * @param channel
 	 */
 	private void verifySubscriptions(final AbstractSubscribableChannel channel) {
-		final Log logger = mock(Log.class);
+		final LogAccessor logger = mock(LogAccessor.class);
 		when(logger.isInfoEnabled()).thenReturn(true);
 		final List<String> logs = new ArrayList<>();
 		doAnswer(invocation -> {
@@ -96,7 +97,7 @@ public class P2pChannelTests {
 		final ExecutorChannel channel = new ExecutorChannel(mock(Executor.class));
 		channel.setBeanName("executorChannel");
 
-		final Log logger = mock(Log.class);
+		final LogAccessor logger = mock(LogAccessor.class);
 		when(logger.isInfoEnabled()).thenReturn(true);
 		ReflectionUtils.doWithFields(AbstractMessageChannel.class, field -> {
 			if ("logger".equals(field.getName())) {
@@ -114,7 +115,7 @@ public class P2pChannelTests {
 		final PublishSubscribeChannel channel = new PublishSubscribeChannel();
 		channel.setBeanName("pubSubChannel");
 
-		final Log logger = mock(Log.class);
+		final LogAccessor logger = mock(LogAccessor.class);
 		when(logger.isInfoEnabled()).thenReturn(true);
 		ReflectionUtils.doWithFields(AbstractMessageChannel.class, field -> {
 			if ("logger".equals(field.getName())) {

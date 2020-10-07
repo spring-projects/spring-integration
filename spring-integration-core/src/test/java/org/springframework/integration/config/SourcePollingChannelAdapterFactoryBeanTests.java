@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,12 @@ import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -172,7 +173,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		pollingChannelAdapter.setBeanFactory(mock(BeanFactory.class));
 		pollingChannelAdapter.afterPropertiesSet();
 
-		Log adapterLogger = TestUtils.getPropertyValue(pollingChannelAdapter, "logger", Log.class);
+		LogAccessor adapterLogger = TestUtils.getPropertyValue(pollingChannelAdapter, "logger", LogAccessor.class);
 		adapterLogger = spy(adapterLogger);
 		when(adapterLogger.isDebugEnabled()).thenReturn(true);
 

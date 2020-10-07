@@ -19,11 +19,11 @@ package org.springframework.integration.handler;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.dispatcher.AggregateMessageDeliveryException;
@@ -65,7 +65,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	private boolean shouldLogFullMessageSet;
 
-	private Log messageLogger = this.logger;
+	private LogAccessor messageLogger = this.logger;
 
 	/**
 	 * Create a LoggingHandler with the given log level (case-insensitive).
@@ -146,7 +146,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	public void setLoggerName(String loggerName) {
 		Assert.hasText(loggerName, "loggerName must not be empty");
-		this.messageLogger = LogFactory.getLog(loggerName);
+		this.messageLogger = new LogAccessor(loggerName);
 	}
 
 	/**
@@ -174,38 +174,27 @@ public class LoggingHandler extends AbstractMessageHandler {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
-	@Override // NOSONAR
+	@Override
 	protected void handleMessageInternal(Message<?> message) {
+		Supplier<CharSequence> logMessage = () -> createLogMessage(message);
 		switch (this.level) {
 			case FATAL:
-				if (this.messageLogger.isFatalEnabled()) {
-					this.messageLogger.fatal(createLogMessage(message));
-				}
+				this.messageLogger.fatal(logMessage);
 				break;
 			case ERROR:
-				if (this.messageLogger.isErrorEnabled()) {
-					this.messageLogger.error(createLogMessage(message));
-				}
+				this.messageLogger.error(logMessage);
 				break;
 			case WARN:
-				if (this.messageLogger.isWarnEnabled()) {
-					this.messageLogger.warn(createLogMessage(message));
-				}
+				this.messageLogger.warn(logMessage);
 				break;
 			case INFO:
-				if (this.messageLogger.isInfoEnabled()) {
-					this.messageLogger.info(createLogMessage(message));
-				}
+				this.messageLogger.info(logMessage);
 				break;
 			case DEBUG:
-				if (this.messageLogger.isDebugEnabled()) {
-					this.messageLogger.debug(createLogMessage(message));
-				}
+				this.messageLogger.debug(logMessage);
 				break;
 			case TRACE:
-				if (this.messageLogger.isTraceEnabled()) {
-					this.messageLogger.trace(createLogMessage(message));
-				}
+				this.messageLogger.trace(logMessage);
 				break;
 			default:
 				throw new IllegalStateException("Level '" + this.level + "' is not supported");
@@ -213,11 +202,11 @@ public class LoggingHandler extends AbstractMessageHandler {
 	}
 
 	@Nullable
-	private Object createLogMessage(Message<?> message) {
+	private String createLogMessage(Message<?> message) {
 		Object logMessage = this.expression.getValue(this.evaluationContext, message);
 		return logMessage instanceof Throwable
 				? createLogMessage((Throwable) logMessage)
-				: logMessage;
+				: Objects.toString(logMessage);
 	}
 
 	private String createLogMessage(Throwable throwable) {

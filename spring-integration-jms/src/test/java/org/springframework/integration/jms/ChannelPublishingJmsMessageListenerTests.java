@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jms;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -27,11 +28,11 @@ import javax.jms.InvalidDestinationException;
 import javax.jms.JMSException;
 import javax.jms.Session;
 
-import org.apache.commons.logging.Log;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
@@ -46,13 +47,14 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ChannelPublishingJmsMessageListenerTests {
 
 	private final Session session = new StubSession("test");
 
 
-	@Test(expected = InvalidDestinationException.class)
+	@Test
 	public void noReplyToAndNoDefault() throws JMSException {
 		final QueueChannel requestChannel = new QueueChannel();
 		startBackgroundReplier(requestChannel);
@@ -63,15 +65,16 @@ public class ChannelPublishingJmsMessageListenerTests {
 		javax.jms.Message jmsMessage = session.createTextMessage("test");
 		listener.setBeanFactory(mock(BeanFactory.class));
 		listener.afterPropertiesSet();
-		listener.onMessage(jmsMessage, session);
+		assertThatExceptionOfType(InvalidDestinationException.class)
+				.isThrownBy(() -> listener.onMessage(jmsMessage, session));
 	}
 
 	@Test
 	public void testBadConversion() throws Exception {
 		final QueueChannel requestChannel = new QueueChannel();
 		ChannelPublishingJmsMessageListener listener = new ChannelPublishingJmsMessageListener();
-		Log logger = spy(TestUtils.getPropertyValue(listener, "logger", Log.class));
-		doNothing().when(logger).error(anyString(), any(Throwable.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(listener, "logger", LogAccessor.class));
+		doNothing().when(logger).error(any(Throwable.class), anyString());
 		new DirectFieldAccessor(listener).setPropertyValue("logger", logger);
 		listener.setRequestChannel(requestChannel);
 		QueueChannel errorChannel = new QueueChannel();
@@ -80,7 +83,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 		listener.setMessageConverter(new TestMessageConverter() {
 
 			@Override
-			public Object fromMessage(javax.jms.Message message) throws JMSException, MessageConversionException {
+			public Object fromMessage(javax.jms.Message message) throws MessageConversionException {
 				return null;
 			}
 
@@ -97,7 +100,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 	private void startBackgroundReplier(final PollableChannel channel) {
 		new SimpleAsyncTaskExecutor().execute(() -> {
 			Message<?> request = channel.receive(50000);
-			Message<?> reply = new GenericMessage<String>(((String) request.getPayload()).toUpperCase());
+			Message<?> reply = new GenericMessage<>(((String) request.getPayload()).toUpperCase());
 			((MessageChannel) request.getHeaders().getReplyChannel()).send(reply, 5000);
 		});
 	}
@@ -105,13 +108,12 @@ public class ChannelPublishingJmsMessageListenerTests {
 	private static class TestMessageConverter implements MessageConverter {
 
 		@Override
-		public Object fromMessage(javax.jms.Message message) throws JMSException, MessageConversionException {
+		public Object fromMessage(javax.jms.Message message) throws MessageConversionException {
 			return "test-from";
 		}
 
 		@Override
-		public javax.jms.Message toMessage(Object object, Session session)
-				throws JMSException, MessageConversionException {
+		public javax.jms.Message toMessage(Object object, Session session) throws MessageConversionException {
 			return new StubTextMessage("test-to");
 		}
 

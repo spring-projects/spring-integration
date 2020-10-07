@@ -26,10 +26,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.commons.logging.Log;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.OrderComparator;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -68,7 +67,7 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, InterceptableChannel, IntegrationManagement, IntegrationPattern {
 
-	protected final ChannelInterceptorList interceptors = new ChannelInterceptorList(logger); // NOSONAR
+	protected final ChannelInterceptorList interceptors = new ChannelInterceptorList(this.logger); // NOSONAR
 
 	private final Comparator<Object> orderComparator = new OrderComparator();
 
@@ -152,7 +151,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 */
 	@Override
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
-		Collections.sort(interceptors, this.orderComparator);
+		interceptors.sort(this.orderComparator);
 		this.interceptors.set(interceptors);
 	}
 
@@ -270,7 +269,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 */
 	@Override
 	public boolean send(Message<?> message) {
-		return this.send(message, -1);
+		return send(message, -1);
 	}
 
 	/**
@@ -301,7 +300,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		SampleFacade sample = null;
 		try {
 			message = convertPayloadIfNecessary(message);
-			boolean debugEnabled = this.loggingEnabled && logger.isDebugEnabled();
+			boolean debugEnabled = this.loggingEnabled && this.logger.isDebugEnabled();
 			if (debugEnabled) {
 				logger.debug("preSend on channel '" + this + "', message: " + message);
 			}
@@ -338,7 +337,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				interceptorList.afterSendCompletion(message, this, sent, ex, interceptorStack);
 			}
 			throw IntegrationUtils.wrapInDeliveryExceptionIfNecessary(message,
-					() -> "failed to send Message to channel '" + this.getComponentName() + "'", ex);
+					() -> "failed to send Message to channel '" + getComponentName() + "'", ex);
 		}
 	}
 
@@ -394,7 +393,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 					}
 				}
 			}
-			throw new MessageDeliveryException(message, "Channel '" + this.getComponentName() +
+			throw new MessageDeliveryException(message, "Channel '" + getComponentName() +
 					"' expected one of the following data types [" +
 					StringUtils.arrayToCommaDelimitedString(this.datatypes) +
 					"], but received [" + message.getPayload().getClass() + "]");
@@ -429,11 +428,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		protected final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<>(); // NOSONAR
 
-		private final Log logger;
+		private final LogAccessor logger;
 
 		private int size;
 
-		public ChannelInterceptorList(Log logger) {
+		public ChannelInterceptorList(LogAccessor logger) {
 			this.logger = logger;
 		}
 
@@ -469,10 +468,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 					Message<?> previous = message;
 					message = interceptor.preSend(message, channel);
 					if (message == null) {
-						if (this.logger.isDebugEnabled()) {
-							this.logger.debug(interceptor.getClass().getSimpleName()
-									+ " returned null from preSend, i.e. precluding the send.");
-						}
+						this.logger.debug(() -> interceptor.getClass().getSimpleName()
+								+ " returned null from preSend, i.e. precluding the send.");
 						afterSendCompletion(previous, channel, false, null, interceptorStack);
 						return null;
 					}
@@ -499,7 +496,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 					interceptor.afterSendCompletion(message, channel, sent, ex);
 				}
 				catch (Exception ex2) {
-					this.logger.error("Exception from afterSendCompletion in " + interceptor, ex2);
+					this.logger.error(ex2, () -> "Exception from afterSendCompletion in " + interceptor);
 				}
 			}
 		}
@@ -535,14 +532,13 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				@Nullable Exception ex, @Nullable Deque<ChannelInterceptor> interceptorStack) {
 
 			if (interceptorStack != null) {
-				for (Iterator<ChannelInterceptor> iterator = interceptorStack.descendingIterator(); iterator
-						.hasNext(); ) {
-					ChannelInterceptor interceptor = iterator.next();
+				for (Iterator<ChannelInterceptor> iter = interceptorStack.descendingIterator(); iter.hasNext(); ) {
+					ChannelInterceptor interceptor = iter.next();
 					try {
 						interceptor.afterReceiveCompletion(message, channel, ex);
 					}
 					catch (Exception ex2) {
-						this.logger.error("Exception from afterReceiveCompletion in " + interceptor, ex2);
+						this.logger.error(ex2, () -> "Exception from afterReceiveCompletion in " + interceptor);
 					}
 				}
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.springframework.integration.jpa.config.xml;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -27,6 +25,7 @@ import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.JpaParameter;
@@ -35,28 +34,23 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
- * Contains various utility methods for parsing JPA Adapter specific namesspace
+ * Contains various utility methods for parsing JPA Adapter specific namespace
  * elements and generation the respective {@link BeanDefinition}s.
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  * @since 2.2
  *
  */
 public final class JpaParserUtils {
 
-	private static final Log logger = LogFactory.getLog(JpaParserUtils.class);
-
-	/** Prevent instantiation. */
-	private JpaParserUtils() {
-		throw new AssertionError();
-	}
+	private static final LogAccessor LOGGER = new LogAccessor(JpaParserUtils.class);
 
 	/**
 	 * Create a new {@link BeanDefinitionBuilder} for the class {@link JpaExecutor}.
 	 * Initialize the wrapped {@link JpaExecutor} with common properties.
-	 *
 	 * @param element Must not be null
 	 * @param parserContext Must not be null
 	 * @return The BeanDefinitionBuilder for the JpaExecutor
@@ -109,7 +103,7 @@ public final class JpaParserUtils {
 					"'entity-manager-factory' or 'jpa-operations' must be be set.", source);
 		}
 
-		final ManagedList<BeanDefinition> jpaParameterList = JpaParserUtils.getJpaParameterBeanDefinitions(element, parserContext);
+		final ManagedList<BeanDefinition> jpaParameterList = getJpaParameterBeanDefinitions(element, parserContext);
 
 		if (!jpaParameterList.isEmpty()) {
 			jpaExecutorBuilder.addPropertyValue("jpaParameters", jpaParameterList);
@@ -127,22 +121,21 @@ public final class JpaParserUtils {
 	/**
 	 * Create a new {@link BeanDefinitionBuilder} for the class {@link JpaExecutor}
 	 * that is specific for JPA Outbound Gateways.
-	 *
 	 * Initializes the wrapped {@link JpaExecutor} with common properties.
 	 * Delegates to {@link JpaParserUtils#getJpaExecutorBuilder(Element, ParserContext)}
-	 *
 	 * @param gatewayElement Must not be null
 	 * @param parserContext Must not be null
-	 *
 	 * @return The BeanDefinitionBuilder for the JpaExecutor
 	 */
 	public static BeanDefinitionBuilder getOutboundGatewayJpaExecutorBuilder(final Element gatewayElement,
 			final ParserContext parserContext) {
 
-		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(gatewayElement, parserContext);
+		final BeanDefinitionBuilder jpaExecutorBuilder = getJpaExecutorBuilder(gatewayElement, parserContext);
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "parameter-source-factory");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "use-payload-as-parameter-source");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement,
+				"parameter-source-factory");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement,
+				"use-payload-as-parameter-source");
 
 		return jpaExecutorBuilder;
 
@@ -151,10 +144,8 @@ public final class JpaParserUtils {
 	/**
 	 * Create a {@link ManagedList} of {@link BeanDefinition}s containing parsed
 	 * JPA Parameters.
-	 *
 	 * @param jpaComponent Must not be null
 	 * @param parserContext Must not be null
-	 *
 	 * @return {@link ManagedList} of {@link BeanDefinition}s
 	 */
 	public static ManagedList<BeanDefinition> getJpaParameterBeanDefinitions(
@@ -163,14 +154,13 @@ public final class JpaParserUtils {
 		Assert.notNull(jpaComponent, "The provided element must not be null.");
 		Assert.notNull(parserContext, "The provided parserContext must not be null.");
 
-		final ManagedList<BeanDefinition> parameterList = new ManagedList<BeanDefinition>();
+		final ManagedList<BeanDefinition> parameterList = new ManagedList<>();
 
 		final List<Element> parameterChildElements = DomUtils
 				.getChildElementsByTagName(jpaComponent, "parameter");
 
 		for (Element childElement : parameterChildElements) {
-
-			final BeanDefinitionBuilder parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(JpaParameter.class);
+			BeanDefinitionBuilder parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(JpaParameter.class);
 
 			String name = childElement.getAttribute("name");
 			String expression = childElement.getAttribute("expression");
@@ -186,24 +176,14 @@ public final class JpaParserUtils {
 			}
 
 			if (StringUtils.hasText(value)) {
-
 				if (!StringUtils.hasText(type)) {
-
-					if (logger.isInfoEnabled()) {
-						logger.info(String
-								.format("Type attribute not set for parameter '%s'. Defaulting to "
-										+ "'java.lang.String'.", value));
-					}
-
-					parameterBuilder.addPropertyValue("value",
-							new TypedStringValue(value, String.class));
-
+					LOGGER.info(() -> String.format("Type attribute not set for parameter '%s'. Defaulting to "
+							+ "'java.lang.String'.", value));
+					parameterBuilder.addPropertyValue("value", new TypedStringValue(value, String.class));
 				}
 				else {
-					parameterBuilder.addPropertyValue("value",
-							new TypedStringValue(value, type));
+					parameterBuilder.addPropertyValue("value", new TypedStringValue(value, type));
 				}
-
 			}
 
 			parameterList.add(parameterBuilder.getBeanDefinition());
@@ -211,6 +191,9 @@ public final class JpaParserUtils {
 
 		return parameterList;
 
+	}
+
+	private JpaParserUtils() {
 	}
 
 }

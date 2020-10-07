@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ public class JmsChannelParser extends AbstractChannelParser {
 				if (!("auto".equals(cache) || "consumer".equals(cache))) {
 					parserContext.getReaderContext().warning(
 							"'cache' attribute not actively supported for listener container of type \"simple\". " +
-							"Effective runtime behavior will be equivalent to \"consumer\" / \"auto\".", element);
+									"Effective runtime behavior will be equivalent to \"consumer\" / \"auto\".", element);
 				}
 			}
 			else {
@@ -123,10 +123,8 @@ public class JmsChannelParser extends AbstractChannelParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrency");
 
 		String prefetch = element.getAttribute("prefetch");
-		if (StringUtils.hasText(prefetch)) {
-			if (containerType.startsWith("default")) {
-				builder.addPropertyValue("maxMessagesPerTask", Integer.valueOf(prefetch));
-			}
+		if (StringUtils.hasText(prefetch) && containerType.startsWith("default")) {
+			builder.addPropertyValue("maxMessagesPerTask", Integer.valueOf(prefetch));
 		}
 		return builder;
 	}
