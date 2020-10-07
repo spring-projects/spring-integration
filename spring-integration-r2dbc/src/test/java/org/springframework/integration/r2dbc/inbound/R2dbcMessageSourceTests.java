@@ -17,6 +17,7 @@
 package org.springframework.integration.r2dbc.inbound;
 
 
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
@@ -92,7 +93,7 @@ public class R2dbcMessageSourceTests {
 
 	@Test
 	public void validateComponentType() {
-		Assertions.assertThat(this.defaultR2dbcMessageSource.getComponentType()).isEqualTo("r2dbc:inbound-channel" +
+		assertThat(this.defaultR2dbcMessageSource.getComponentType()).isEqualTo("r2dbc:inbound-channel" +
 				"-adapter");
 	}
 
