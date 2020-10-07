@@ -17,7 +17,6 @@
 package org.springframework.integration.r2dbc.inbound;
 
 
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;

@@ -48,8 +48,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.assertj.core.api.Assertions.*;
-
 /**
  * @author Rohan Mukesh
  * @author Artem Bilan
