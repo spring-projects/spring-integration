@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -25,12 +26,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
-import org.apache.commons.logging.Log;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
@@ -38,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
@@ -60,8 +60,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.StringUtils;
 
 /**
@@ -72,8 +71,7 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Gary Russell
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class ChainParserTests {
 
 	@Autowired
@@ -296,13 +294,13 @@ public class ChainParserTests {
 
 	@Test //INT-2275, INT-2958
 	public void chainWithLoggingChannelAdapter() {
-		Log logger = mock(Log.class);
-		final AtomicReference<String> log = new AtomicReference<>();
+		LogAccessor logger = mock(LogAccessor.class);
+		final AtomicReference<Supplier<? extends CharSequence>> log = new AtomicReference<>();
 		when(logger.isWarnEnabled()).thenReturn(true);
 		doAnswer(invocation -> {
 			log.set(invocation.getArgument(0));
 			return null;
-		}).when(logger).warn(any());
+		}).when(logger).warn(any(Supplier.class));
 
 		@SuppressWarnings("unchecked")
 		List<MessageHandler> handlers = TestUtils.getPropertyValue(this.logChain, "handlers", List.class);
@@ -311,24 +309,20 @@ public class ChainParserTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(handler);
 		dfa.setPropertyValue("messageLogger", logger);
 
-		this.loggingChannelAdapterChannel.send(MessageBuilder.withPayload(new byte[] { 116, 101, 115, 116 }).build());
+		this.loggingChannelAdapterChannel.send(MessageBuilder.withPayload(new byte[]{ 116, 101, 115, 116 }).build());
 		assertThat(log.get()).isNotNull();
-		assertThat(log.get()).isEqualTo("TEST");
+		assertThat(log.get().get()).isEqualTo("TEST");
 	}
 
-	@Test(expected = BeanCreationException.class) //INT-2275
+	@Test
 	public void invalidNestedChainWithLoggingChannelAdapter() {
-		try {
-			new ClassPathXmlApplicationContext("invalidNestedChainWithOutboundChannelAdapter-context.xml",
-					this.getClass()).close();
-			fail("BeanCreationException is expected!");
-		}
-		catch (BeansException e) {
-			assertThat(e.getCause().getClass()).isEqualTo(IllegalArgumentException.class);
-			assertThat(e.getMessage()).contains("output channel was provided");
-			assertThat(e.getMessage()).contains("does not implement the MessageProducer");
-			throw e;
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("invalidNestedChainWithOutboundChannelAdapter-context.xml",
+								getClass()))
+				.withCauseInstanceOf(IllegalArgumentException.class)
+				.withMessageContaining("output channel was provided")
+				.withMessageContaining("does not implement the MessageProducer");
 	}
 
 	@Test //INT-2605

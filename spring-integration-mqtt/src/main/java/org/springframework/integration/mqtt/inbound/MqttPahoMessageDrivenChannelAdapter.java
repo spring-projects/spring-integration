@@ -121,6 +121,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 */
 	public MqttPahoMessageDrivenChannelAdapter(String clientId, MqttPahoClientFactory clientFactory,
 			String... topic) {
+
 		super(null, clientId, topic);
 		this.clientFactory = clientFactory;
 	}
@@ -190,7 +191,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			String url = getUrl();
 			if (url != null) {
 				options = MqttUtils.cloneConnectOptions(options);
-				options.setServerURIs(new String[] { url });
+				options.setServerURIs(new String[]{ url });
 			}
 		}
 		return options;
@@ -203,8 +204,8 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		try {
 			connectAndSubscribe();
 		}
-		catch (Exception e) {
-			logger.error("Exception while connecting and subscribing, retrying", e);
+		catch (Exception ex) {
+			logger.error(ex, "Exception while connecting and subscribing, retrying");
 			this.scheduleReconnect();
 		}
 	}
@@ -222,14 +223,14 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 					this.client.unsubscribe(getTopic());
 				}
 			}
-			catch (MqttException e) {
-				logger.error("Exception while unsubscribing", e);
+			catch (MqttException ex) {
+				logger.error(ex, "Exception while unsubscribing");
 			}
 			try {
 				this.client.disconnectForcibly(this.disconnectCompletionTimeout);
 			}
-			catch (MqttException e) {
-				logger.error("Exception while disconnecting", e);
+			catch (MqttException ex) {
+				logger.error(ex, "Exception while disconnecting");
 			}
 
 			this.client.setCallback(null);
@@ -237,8 +238,8 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			try {
 				this.client.close();
 			}
-			catch (MqttException e) {
-				logger.error("Exception while closing", e);
+			catch (MqttException ex) {
+				logger.error(ex, "Exception while closing");
 			}
 			this.connected = false;
 			this.client = null;
@@ -305,20 +306,18 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			this.client.subscribe(topics, grantedQos);
 			for (int i = 0; i < requestedQos.length; i++) {
 				if (grantedQos[i] != requestedQos[i]) {
-					if (logger.isWarnEnabled()) {
-						logger.warn("Granted QOS different to Requested QOS; topics: " + Arrays.toString(topics)
-								+ " requested: " + Arrays.toString(requestedQos)
-								+ " granted: " + Arrays.toString(grantedQos));
-					}
+					logger.warn(() -> "Granted QOS different to Requested QOS; topics: " + Arrays.toString(topics)
+							+ " requested: " + Arrays.toString(requestedQos)
+							+ " granted: " + Arrays.toString(grantedQos));
 					break;
 				}
 			}
 		}
-		catch (MqttException e) {
+		catch (MqttException ex) {
 			if (this.applicationEventPublisher != null) {
-				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
+				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 			}
-			logger.error("Error connecting or subscribing to " + Arrays.toString(topics), e);
+			logger.error(ex, () -> "Error connecting or subscribing to " + Arrays.toString(topics));
 			this.client.disconnectForcibly(this.disconnectCompletionTimeout);
 			try {
 				this.client.setCallback(null);
@@ -328,7 +327,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 				// NOSONAR
 			}
 			this.client = null;
-			throw e;
+			throw ex;
 		}
 		finally {
 			this.topicLock.unlock();
@@ -336,9 +335,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		if (this.client.isConnected()) {
 			this.connected = true;
 			String message = "Connected and subscribed to " + Arrays.toString(topics);
-			if (logger.isDebugEnabled()) {
-				logger.debug(message);
-			}
+			logger.debug(message);
 			if (this.applicationEventPublisher != null) {
 				this.applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
 			}
@@ -357,9 +354,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		try {
 			this.reconnectFuture = getTaskScheduler().schedule(() -> {
 				try {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Attempting reconnect");
-					}
+					logger.debug("Attempting reconnect");
 					synchronized (MqttPahoMessageDrivenChannelAdapter.this) {
 						if (!MqttPahoMessageDrivenChannelAdapter.this.connected) {
 							connectAndSubscribe();
@@ -367,21 +362,21 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 						}
 					}
 				}
-				catch (MqttException e) {
-					logger.error("Exception while connecting and subscribing", e);
+				catch (MqttException ex) {
+					logger.error(ex, "Exception while connecting and subscribing");
 					scheduleReconnect();
 				}
 			}, new Date(System.currentTimeMillis() + this.recoveryInterval));
 		}
-		catch (Exception e) {
-			logger.error("Failed to schedule reconnect", e);
+		catch (Exception ex) {
+			logger.error(ex, "Failed to schedule reconnect");
 		}
 	}
 
 	@Override
 	public synchronized void connectionLost(Throwable cause) {
 		if (isRunning()) {
-			this.logger.error("Lost connection: " + cause.getMessage() + "; retrying...");
+			this.logger.error(() -> "Lost connection: " + cause.getMessage() + "; retrying...");
 			this.connected = false;
 			if (this.client != null) {
 				try {
@@ -411,9 +406,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		try {
 			sendMessage(message);
 		}
-		catch (RuntimeException e) {
-			logger.error("Unhandled exception for " + message.toString(), e);
-			throw e;
+		catch (RuntimeException ex) {
+			logger.error(ex, () -> "Unhandled exception for " + message.toString());
+			throw ex;
 		}
 	}
 

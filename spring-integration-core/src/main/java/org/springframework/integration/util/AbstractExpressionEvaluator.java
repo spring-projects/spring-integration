@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 package org.springframework.integration.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -47,7 +45,7 @@ import org.springframework.messaging.Message;
  */
 public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, InitializingBean {
 
-	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR final
+	protected final LogAccessor logger = new LogAccessor(this.getClass()); // NOSONAR final
 
 	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
@@ -129,7 +127,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 			return evaluateExpression(expression, (Object) message, expectedType);
 		}
 		catch (Exception ex) {
-			this.logger.debug("SpEL Expression evaluation failed with Exception.", ex);
+			this.logger.debug(ex, "SpEL Expression evaluation failed with Exception.");
 			Throwable cause = null;
 			if (ex instanceof EvaluationException) { // NOSONAR
 				cause = ex.getCause();

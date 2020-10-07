@@ -31,6 +31,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.integration.handler.AbstractReactiveMessageHandler;
 import org.springframework.integration.mapping.ConvertingBytesMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
@@ -73,7 +74,7 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler {
 
 	private Consumer<ZMQ.Socket> socketConfigurer = (socket) -> { };
 
-	private Expression topicExpression = new LiteralExpression(null);
+	private Expression topicExpression = new SupplierExpression<>(() -> null);
 
 	private EvaluationContext evaluationContext;
 

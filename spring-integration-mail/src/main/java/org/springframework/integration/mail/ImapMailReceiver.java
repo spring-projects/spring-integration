@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,7 +141,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			this.isInternalScheduler = true;
 		}
 		Properties javaMailProperties = getJavaMailProperties();
-		for (String name : new String[] { PROTOCOL, "imaps" }) {
+		for (String name : new String[]{ PROTOCOL, "imaps" }) {
 			String peek = "mail." + name + ".peek";
 			if (javaMailProperties.getProperty(peek) == null) {
 				javaMailProperties.setProperty(peek, "true");
@@ -270,7 +270,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 				}
 			}
 			catch (Exception ex) {
-				logger.error("Error during resetting idle state.", ex);
+				logger.error(ex, "Error during resetting idle state.");
 			}
 		}
 
@@ -345,13 +345,11 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		}
 
 		private SearchTerm applyTermsWhenNoRecentFlag(Folder folder, SearchTerm searchTerm) {
-			NotTerm notFlagged = null;
+			NotTerm notFlagged;
 			if (folder.getPermanentFlags().contains(Flag.USER)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("This email server does not support RECENT flag, but it does support " +
-							"USER flags which will be used to prevent duplicates during email fetch." +
-							" This receiver instance uses flag: " + getUserFlag());
-				}
+				logger.debug(() -> "This email server does not support RECENT flag, but it does support " +
+						"USER flags which will be used to prevent duplicates during email fetch." +
+						" This receiver instance uses flag: " + getUserFlag());
 				Flags siFlags = new Flags();
 				siFlags.add(getUserFlag());
 				notFlagged = new NotTerm(new FlagTerm(siFlags, true));

@@ -167,7 +167,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 			String url = getUrl();
 			if (url != null) {
 				options = MqttUtils.cloneConnectOptions(options);
-				options.setServerURIs(new String[] { url });
+				options.setServerURIs(new String[]{ url });
 			}
 		}
 		return options;
@@ -194,8 +194,8 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 				this.client = null;
 			}
 		}
-		catch (MqttException e) {
-			logger.error("Failed to disconnect", e);
+		catch (MqttException ex) {
+			logger.error(ex, "Failed to disconnect");
 		}
 	}
 

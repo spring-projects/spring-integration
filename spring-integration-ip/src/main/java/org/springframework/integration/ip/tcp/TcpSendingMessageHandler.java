@@ -85,9 +85,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		try {
 			connection = this.clientConnectionFactory.getConnection();
 		}
-		catch (Exception e) {
-			logger.error("Error creating connection", e);
-			throw new MessageHandlingException(message, "Failed to obtain a connection in the [" + this + ']', e);
+		catch (Exception ex) {
+			logger.error(ex, "Error creating connection");
+			throw new MessageHandlingException(message, "Failed to obtain a connection in the [" + this + ']', ex);
 		}
 		return connection;
 	}
@@ -119,7 +119,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 				connection.send(message);
 			}
 			catch (Exception ex) {
-				logger.error("Error sending message", ex);
+				logger.error(ex, "Error sending message");
 				connection.close();
 				throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
 						() -> "Error sending message in the [" + this + ']', ex);
@@ -131,7 +131,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			}
 		}
 		else {
-			logger.error("Unable to find outbound socket for " + message);
+			logger.error(() -> "Unable to find outbound socket for " + message);
 			MessageHandlingException messageHandlingException =
 					new MessageHandlingException(message, "Unable to find outbound socket in the [" + this + ']');
 			publishNoConnectionEvent(messageHandlingException, connectionId);
@@ -145,16 +145,14 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		try {
 			connection = doWrite(message);
 		}
-		catch (MessageHandlingException e) {
+		catch (MessageHandlingException ex) {
 			// retry - socket may have closed
-			if (e.getCause() instanceof IOException) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Fail on first write attempt", e);
-				}
+			if (ex.getCause() instanceof IOException) {
+				logger.debug(ex, "Fail on first write attempt");
 				connection = doWrite(message);
 			}
 			else {
-				throw e;
+				throw ex;
 			}
 		}
 		finally {
@@ -176,9 +174,8 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		TcpConnection connection = null;
 		try {
 			connection = obtainConnection(message);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Got Connection " + connection.getConnectionId());
-			}
+			TcpConnection connectionToLog = connection;
+			logger.debug(() -> "Got Connection " + connectionToLog.getConnectionId());
 			connection.send(message);
 		}
 		catch (Exception ex) {
@@ -197,8 +194,10 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	private void publishNoConnectionEvent(MessageHandlingException messageHandlingException, String connectionId) {
-		AbstractConnectionFactory cf = this.serverConnectionFactory != null ? this.serverConnectionFactory
-				: this.clientConnectionFactory;
+		AbstractConnectionFactory cf =
+				this.serverConnectionFactory != null
+						? this.serverConnectionFactory
+						: this.clientConnectionFactory;
 		ApplicationEventPublisher applicationEventPublisher = cf.getApplicationEventPublisher();
 		if (applicationEventPublisher != null) {
 			applicationEventPublisher.publishEvent(

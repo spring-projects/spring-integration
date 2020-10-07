@@ -150,7 +150,8 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 								setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
 										':' + this.zeroMqProxy.getBackendPort()))
 						.doOnError((error) ->
-								logger.error("The provided '" + this.zeroMqProxy + "' has not been started", error));
+								logger.error(error,
+										() -> "The provided '" + this.zeroMqProxy + "' has not been started"));
 			}
 			else {
 				return Mono.empty();
@@ -213,7 +214,8 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 						})
 						.publishOn(Schedulers.parallel())
 						.map(this.messageMapper::toMessage)
-						.doOnError((error) -> logger.error("Error processing ZeroMQ message in the " + this, error))
+						.doOnError((error) -> logger.error(error,
+								() -> "Error processing ZeroMQ message in the " + this))
 						.repeatWhenEmpty((repeat) ->
 								this.initialized
 										? repeat.delayElements(this.consumeDelay)

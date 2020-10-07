@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.function.Supplier;
 
-import org.apache.commons.logging.Log;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -42,6 +41,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.FunctionExpression;
@@ -53,14 +53,14 @@ import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
  *
  * @since 4.3.8
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 public class CustomMessagingAnnotationTests {
 
 	@Autowired(required = false)
@@ -74,7 +74,7 @@ public class CustomMessagingAnnotationTests {
 	public void testLogAnnotation() {
 		assertThat(this.loggingHandler).isNotNull();
 
-		Log log = spy(TestUtils.getPropertyValue(this.loggingHandler, "messageLogger", Log.class));
+		LogAccessor log = spy(TestUtils.getPropertyValue(this.loggingHandler, "messageLogger", LogAccessor.class));
 
 		given(log.isWarnEnabled())
 				.willReturn(true);
@@ -86,12 +86,13 @@ public class CustomMessagingAnnotationTests {
 				.setHeader("bar", "baz")
 				.build());
 
-		ArgumentCaptor<Object> argumentCaptor = ArgumentCaptor.forClass(Object.class);
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Supplier<? extends CharSequence>> argumentCaptor = ArgumentCaptor.forClass(Supplier.class);
 
 		verify(log)
 				.warn(argumentCaptor.capture());
 
-		assertThat(argumentCaptor.getValue()).isEqualTo("foo for baz");
+		assertThat(argumentCaptor.getValue().get()).isEqualTo("foo for baz");
 	}
 
 	@Configuration

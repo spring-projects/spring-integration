@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,13 @@ import org.springframework.messaging.Message;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T>
 		implements BeanFactoryAware {
 
-	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(
+	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser(new SpelParserConfiguration(
 			true, true));
 
 	private final ExpressionEvaluatingMessageProcessor<T> targetProcessor;
@@ -42,7 +43,6 @@ public class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends Abstract
 	 * Create a header value processor for the given Expression and the
 	 * expected type of the expression evaluation result. The expectedType
 	 * may be null if unknown.
-	 *
 	 * @param expression the {@link Expression} to evaluate.
 	 * @param expectedType the type for return value of {@code expression} evaluation result.
 	 */
@@ -54,12 +54,11 @@ public class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends Abstract
 	 * Create a header value processor for the given expression string and
 	 * the expected type of the expression evaluation result. The
 	 * expectedType may be null if unknown.
-	 *
 	 * @param expressionString the {@link java.lang.String} expression presentation to evaluate.
 	 * @param expectedType the type for return value of {@code expression} evaluation result.
 	 */
 	public ExpressionEvaluatingHeaderValueMessageProcessor(String expressionString, Class<T> expectedType) {
-		Expression expression = expressionParser.parseExpression(expressionString);
+		Expression expression = EXPRESSION_PARSER.parseExpression(expressionString);
 		this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expression, expectedType);
 	}
 

@@ -43,21 +43,26 @@ import org.springframework.util.Assert;
 public abstract class FileTailingMessageProducerSupport extends MessageProducerSupport
 		implements ApplicationEventPublisherAware {
 
-	private volatile File file;
-
-	private volatile ApplicationEventPublisher eventPublisher;
-
-	private volatile TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
-
-	private volatile long tailAttemptsDelay = 5000;
+	/**
+	 * The default delay between tail attempts in milliseconds.
+	 */
+	public static final long DEFAULT_TAIL_ATTEMPTS_DELAY = 5000L;
 
 	private final AtomicLong lastNoMessageAlert = new AtomicLong();
+
+	private File file;
+
+	private ApplicationEventPublisher eventPublisher;
+
+	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+
+	private long tailAttemptsDelay = DEFAULT_TAIL_ATTEMPTS_DELAY;
 
 	private long idleEventInterval = 0;
 
 	private volatile long lastProduce = System.currentTimeMillis();
 
-	private ScheduledFuture<?> idleEventScheduledFuture;
+	private volatile ScheduledFuture<?> idleEventScheduledFuture;
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {

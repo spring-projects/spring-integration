@@ -19,6 +19,8 @@ package org.springframework.integration.redis.inbound;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import org.jetbrains.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -172,13 +174,14 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	private void handlePopException(Exception e) {
 		this.listening = false;
 		if (this.active) {
-			logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
-					+ " milliseconds.", e);
+			logger.error(e, () ->
+					"Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
+							+ " milliseconds.");
 			publishException(e);
 			sleepBeforeRecoveryAttempt();
 		}
 		else {
-			logger.debug("Failed to execute listening task. " + e.getClass() + ": " + e.getMessage());
+			logger.debug(() -> "Failed to execute listening task. " + e.getClass() + ": " + e.getMessage());
 		}
 	}
 
@@ -216,7 +219,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 
 	@SuppressWarnings("unchecked")
 	private void getRequestSendAndProduceReply(byte[] value, String uuid) {
-		Message<Object> requestMessage;
 		if (!this.active) {
 			this.template.boundListOps(uuid).rightPush(value);
 			byte[] serialized = StringRedisSerializer.UTF_8.serialize(uuid);
@@ -225,12 +227,38 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 			}
 			return;
 		}
+
+		Message<Object> requestMessage = prepareRequestMessage(value);
+
+		if (requestMessage != null) {
+			Message<?> replyMessage = sendAndReceiveMessage(requestMessage);
+			if (replyMessage != null) {
+				byte[] replyPayload = null;
+				if (this.extractPayload) {
+					replyPayload = extractReplyPayload(replyMessage);
+				}
+				else {
+					if (this.serializer != null) {
+						replyPayload = ((RedisSerializer<Object>) this.serializer).serialize(replyMessage);
+					}
+				}
+				if (replyPayload != null) {
+					this.template.boundListOps(uuid + QUEUE_NAME_SUFFIX).leftPush(replyPayload);
+				}
+			}
+		}
+	}
+
+	@Nullable
+	@SuppressWarnings("unchecked")
+	private Message<Object> prepareRequestMessage(byte[] value) {
+		Message<Object> requestMessage;
 		if (this.extractPayload) {
 			Object payload = value;
 			if (this.serializer != null) {
 				payload = this.serializer.deserialize(value);
 				if (payload == null) {
-					return;
+					return null;
 				}
 			}
 			requestMessage = getMessageBuilderFactory().withPayload(payload).build();
@@ -239,28 +267,14 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 			try {
 				requestMessage = (Message<Object>) this.serializer.deserialize(value);
 				if (requestMessage == null) {
-					return;
+					return null;
 				}
 			}
 			catch (Exception e) {
 				throw new MessagingException("Deserialization of Message failed.", e);
 			}
 		}
-		Message<?> replyMessage = sendAndReceiveMessage(requestMessage);
-		if (replyMessage != null) {
-			byte[] replyPayload = null;
-			if (this.extractPayload) {
-				replyPayload = extractReplyPayload(replyMessage);
-			}
-			else {
-				if (this.serializer != null) {
-					replyPayload = ((RedisSerializer<Object>) this.serializer).serialize(replyMessage);
-				}
-			}
-			if (replyPayload != null) {
-				this.template.boundListOps(uuid + QUEUE_NAME_SUFFIX).leftPush(replyPayload);
-			}
-		}
+		return requestMessage;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -310,9 +324,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 			this.applicationEventPublisher.publishEvent(new RedisExceptionEvent(this, e));
 		}
 		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("No application event publisher for exception: " + e.getMessage());
-			}
+			logger.debug(() -> "No application event publisher for exception: " + e.getMessage());
 		}
 	}
 

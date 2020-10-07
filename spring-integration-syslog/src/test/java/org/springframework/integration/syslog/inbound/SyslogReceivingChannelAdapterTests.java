@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,19 +28,20 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.SocketFactory;
 
-import org.apache.commons.logging.Log;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
@@ -57,6 +58,8 @@ import org.springframework.messaging.PollableChannel;
 /**
  * @author Gary Russell
  * @author David Liu
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -76,7 +79,7 @@ public class SyslogReceivingChannelAdapterTests {
 				UnicastReceivingChannelAdapter.class);
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
-		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes("UTF-8");
+		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes(StandardCharsets.UTF_8);
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost",
 				server.getPort()));
 		DatagramSocket socket = new DatagramSocket();
@@ -110,7 +113,7 @@ public class SyslogReceivingChannelAdapterTests {
 				AbstractServerConnectionFactory.class);
 		TestingUtilities.waitListening(server, null);
 		TcpSyslogReceivingChannelAdapter adapter = (TcpSyslogReceivingChannelAdapter) factory.getObject();
-		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
 		doReturn(true).when(logger).isDebugEnabled();
 		final CountDownLatch sawLog = new CountDownLatch(1);
 		doAnswer(invocation -> {
@@ -121,8 +124,7 @@ public class SyslogReceivingChannelAdapterTests {
 			return null;
 		}).when(logger).debug(anyString());
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
-		Thread.sleep(1000);
-		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE\n".getBytes("UTF-8");
+		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE\n".getBytes(StandardCharsets.UTF_8);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", server.getPort());
 		socket.getOutputStream().write(buf);
 		socket.close();
@@ -152,8 +154,7 @@ public class SyslogReceivingChannelAdapterTests {
 		DefaultMessageConverter defaultMessageConverter = new DefaultMessageConverter();
 		defaultMessageConverter.setAsMap(false);
 		adapter.setConverter(defaultMessageConverter);
-		Thread.sleep(1000);
-		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes("UTF-8");
+		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes(StandardCharsets.UTF_8);
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost",
 				adapter.getPort()));
 		DatagramSocket socket = new DatagramSocket();
@@ -162,7 +163,7 @@ public class SyslogReceivingChannelAdapterTests {
 		Message<?> message = outputChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(message.getHeaders().get("syslog_HOST")).isEqualTo("WEBERN");
-		assertThat(new String((byte[]) message.getPayload(), "UTF-8"))
+		assertThat(new String((byte[]) message.getPayload(), StandardCharsets.UTF_8))
 				.isEqualTo("<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE");
 		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isNotNull();
 		adapter.stop();
@@ -190,7 +191,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.start();
 		TestingUtilities.waitListening(connectionFactory, null);
 		TcpSyslogReceivingChannelAdapter adapter = (TcpSyslogReceivingChannelAdapter) factory.getObject();
-		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
 		doReturn(true).when(logger).isDebugEnabled();
 		final CountDownLatch sawLog = new CountDownLatch(1);
 		doAnswer(invocation -> {
@@ -201,11 +202,10 @@ public class SyslogReceivingChannelAdapterTests {
 			return null;
 		}).when(logger).debug(anyString());
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
-		Thread.sleep(1000);
 		byte[] buf = ("253 <14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +
 				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"]" +
 				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"] Removing instance")
-				.getBytes("UTF-8");
+				.getBytes(StandardCharsets.UTF_8);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", connectionFactory.getPort());
 		socket.getOutputStream().write(buf);
 		socket.close();
@@ -234,11 +234,10 @@ public class SyslogReceivingChannelAdapterTests {
 				UnicastReceivingChannelAdapter.class);
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
-		Thread.sleep(1000);
 		byte[] buf = ("<14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +
 				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"]" +
 				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"] Removing instance")
-				.getBytes("UTF-8");
+				.getBytes(StandardCharsets.UTF_8);
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost",
 				adapter.getPort()));
 		DatagramSocket socket = new DatagramSocket();

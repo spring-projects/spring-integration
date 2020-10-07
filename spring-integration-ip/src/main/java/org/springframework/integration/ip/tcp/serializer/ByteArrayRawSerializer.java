@@ -75,9 +75,8 @@ public class ByteArrayRawSerializer extends AbstractPooledBufferByteArraySeriali
 	protected byte[] doDeserialize(InputStream inputStream, byte[] buffer) throws IOException {
 		int n = 0;
 		int bite;
-		if (logger.isDebugEnabled()) {
-			logger.debug("Available to read: " + inputStream.available());
-		}
+		int available = inputStream.available();
+		logger.debug(() -> "Available to read: " + available);
 		try {
 			while (true) {
 				try {
@@ -95,8 +94,9 @@ public class ByteArrayRawSerializer extends AbstractPooledBufferByteArraySeriali
 					}
 					break;
 				}
-				if (n >= getMaxMessageSize()) {
-					throw new IOException("Socket was not closed before max message length: " + getMaxMessageSize());
+				int maxMessageSize = getMaxMessageSize();
+				if (n >= maxMessageSize) {
+					throw new IOException("Socket was not closed before max message length: " + maxMessageSize);
 				}
 				buffer[n++] = (byte) bite;
 			}

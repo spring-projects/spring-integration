@@ -69,6 +69,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback;
@@ -581,15 +582,15 @@ class MessageSourceTests {
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).seek(topicPartition, 0L); // rollback
 		inOrder.verify(log1).isWarnEnabled();
-		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<LogMessage> captor = ArgumentCaptor.forClass(LogMessage.class);
 		inOrder.verify(log1).warn(captor.capture());
-		assertThat(captor.getValue())
+		assertThat(captor.getValue().toString())
 				.contains("Rolled back")
 				.contains("later in-flight offsets [1] will also be re-fetched");
 		inOrder.verify(log2).isWarnEnabled();
-		captor = ArgumentCaptor.forClass(String.class);
+		captor = ArgumentCaptor.forClass(LogMessage.class);
 		inOrder.verify(log2).warn(captor.capture());
-		assertThat(captor.getValue())
+		assertThat(captor.getValue().toString())
 				.contains("Cannot commit offset for ConsumerRecord")
 				.contains("; an earlier offset was rolled back");
 		inOrder.verify(consumer).poll(any(Duration.class));

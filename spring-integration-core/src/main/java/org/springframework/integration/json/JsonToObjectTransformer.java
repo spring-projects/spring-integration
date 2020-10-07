@@ -172,7 +172,6 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		Object result;
 		try {
 			result = this.jsonObjectMapper.fromJson(message.getPayload(), valueType);
-
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -197,8 +196,8 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		}
 		catch (Exception ex) {
 			if (ex.getCause() instanceof ClassNotFoundException) {
-				logger.debug("Cannot build a ResolvableType from the request message '" + message +
-						"' evaluating expression '" + this.valueTypeExpression.getExpressionString() + "'", ex);
+				logger.debug(ex, () -> "Cannot build a ResolvableType from the request message '" + message +
+						"' evaluating expression '" + this.valueTypeExpression.getExpressionString() + "'");
 				return null;
 			}
 			else {

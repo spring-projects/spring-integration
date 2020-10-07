@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -29,12 +28,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -73,7 +73,7 @@ public class AsyncHandlerTests {
 
 	private ExecutorService executor;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		this.executor = Executors.newSingleThreadExecutor();
 		this.handler = new AbstractReplyProducingMessageHandler() {
@@ -107,17 +107,18 @@ public class AsyncHandlerTests {
 		this.handler.setOutputChannel(this.output);
 		this.handler.setBeanFactory(mock(BeanFactory.class));
 		this.latch = new CountDownLatch(1);
-		Log logger = spy(TestUtils.getPropertyValue(this.handler, "logger", Log.class));
-		new DirectFieldAccessor(this.handler).setPropertyValue("logger", logger);
+		LogAccessor logAccessor = TestUtils.getPropertyValue(this.handler, "logger", LogAccessor.class);
+		Log log = spy(logAccessor.getLog());
+		new DirectFieldAccessor(logAccessor).setPropertyValue("log", log);
 		doAnswer(invocation -> {
-			failedCallbackMessage = invocation.getArgument(0);
+			failedCallbackMessage = invocation.getArgument(0).toString();
 			failedCallbackException = invocation.getArgument(1);
 			exceptionLatch.countDown();
 			return null;
-		}).when(logger).error(anyString(), any(Throwable.class));
+		}).when(log).error(any(), any(Throwable.class));
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.executor.shutdownNow();
 	}

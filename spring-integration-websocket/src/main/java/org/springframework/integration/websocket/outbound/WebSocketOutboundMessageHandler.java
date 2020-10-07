@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,12 +138,15 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		String sessionId = null;
+		String sessionId;
 		if (!this.client) {
 			sessionId = this.subProtocolHandlerRegistry.resolveSessionId(message);
 			if (sessionId == null) {
 				throw new IllegalArgumentException("The WebSocket 'sessionId' is required in the MessageHeaders");
 			}
+		}
+		else {
+			sessionId = null;
 		}
 		WebSocketSession session = this.webSocketContainer.getSession(sessionId);
 		try {
@@ -160,11 +163,11 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 		}
 		catch (SessionLimitExceededException ex) {
 			try {
-				logger.error("Terminating session id '" + sessionId + "'", ex);
+				logger.error(ex, () -> "Terminating session id '" + sessionId + "'");
 				this.webSocketContainer.closeSession(session, ex.getStatus());
 			}
 			catch (Exception secondException) {
-				logger.error("Exception terminating session id '" + sessionId + "'", secondException);
+				logger.error(secondException, () -> "Exception terminating session id '" + sessionId + "'");
 			}
 		}
 		catch (Exception e) {

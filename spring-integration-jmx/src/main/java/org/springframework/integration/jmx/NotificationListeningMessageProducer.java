@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,9 +110,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 */
 	@Override
 	public void handleNotification(Notification notification, Object handback) {
-		if (this.logger.isInfoEnabled()) {
-			this.logger.info("received notification: " + notification + ", and handback: " + handback);
-		}
+		this.logger.info(() -> "received notification: " + notification + ", and handback: " + handback);
 		AbstractIntegrationMessageBuilder<?> builder = getMessageBuilderFactory().withPayload(notification);
 		if (handback != null) {
 			builder.setHeader(JmxHeaders.NOTIFICATION_HANDBACK, handback);
@@ -152,7 +150,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 		try {
 			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
 			if (objectNames.size() < 1) {
-				this.logger.error("No MBeans found matching ObjectName pattern(s): " +
+				this.logger.error(() -> "No MBeans found matching ObjectName pattern(s): " +
 						Arrays.toString(this.mBeanObjectNames));
 			}
 			for (ObjectName objectName : objectNames) {
@@ -179,14 +177,14 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 				try {
 					this.server.removeNotificationListener(objectName, this, this.filter, this.handback);
 				}
-				catch (InstanceNotFoundException e) {
-					this.logger.error("Failed to find MBean instance.", e);
+				catch (InstanceNotFoundException ex) {
+					this.logger.error(ex, "Failed to find MBean instance.");
 				}
-				catch (ListenerNotFoundException e) {
-					this.logger.error("Failed to find NotificationListener.", e);
+				catch (ListenerNotFoundException ex) {
+					this.logger.error(ex, "Failed to find NotificationListener.");
 				}
-				catch (IOException e) {
-					this.logger.error("IOException on MBeanServerConnection.", e);
+				catch (IOException ex) {
+					this.logger.error(ex, "IOException on MBeanServerConnection.");
 				}
 			}
 		}
@@ -202,13 +200,11 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 			catch (IOException e) {
 				throw new IllegalStateException("IOException on MBeanServerConnection.", e);
 			}
-			if (mBeanInfos.size() == 0 && this.logger.isDebugEnabled()) {
-				this.logger.debug("No MBeans found matching pattern: " + pattern);
+			if (mBeanInfos.size() == 0) {
+				this.logger.debug(() -> "No MBeans found matching pattern: " + pattern);
 			}
 			for (ObjectInstance instance : mBeanInfos) {
-				if (this.logger.isDebugEnabled()) {
-					this.logger.debug("Found MBean: " + instance.getObjectName().toString());
-				}
+				this.logger.debug(() -> "Found MBean: " + instance.getObjectName().toString());
 				objectNames.add(instance.getObjectName());
 			}
 		}

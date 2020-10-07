@@ -38,6 +38,8 @@ import java.nio.ByteBuffer;
  * {@link #writeHeader(OutputStream, int)}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer {
@@ -66,14 +68,14 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	private int headerAdjust;
 
 	/**
-	 * Constructs the serializer using {@link #HEADER_SIZE_INT}
+	 * Construct the serializer using {@link #HEADER_SIZE_INT}
 	 */
 	public ByteArrayLengthHeaderSerializer() {
 		this(HEADER_SIZE_INT);
 	}
 
 	/**
-	 * Constructs the serializer using the supplied header size.
+	 * Construct the serializer using the supplied header size.
 	 * Valid header sizes are {@link #HEADER_SIZE_INT} (default),
 	 * {@link #HEADER_SIZE_UNSIGNED_BYTE} and {@link #HEADER_SIZE_UNSIGNED_SHORT}
 	 * @param headerSize The header size.
@@ -82,13 +84,13 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 		if (headerSize != HEADER_SIZE_INT &&
 				headerSize != HEADER_SIZE_UNSIGNED_BYTE &&
 				headerSize != HEADER_SIZE_UNSIGNED_SHORT) {
-			throw new IllegalArgumentException("Illegal header size:" + headerSize);
+			throw new IllegalArgumentException("Illegal header size: " + headerSize);
 		}
 		this.headerSize = headerSize;
 	}
 
 	/**
-	 * Return true if the lenght header value includes its own length.
+	 * Return true if the length header value includes its own length.
 	 * @return true if the length includes the header length.
 	 * @since 5.2
 	 */
@@ -124,45 +126,38 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	}
 
 	/**
-	 * Reads the header from the stream and then reads the provided length
+	 * Read the header from the stream and then reads the provided length
 	 * from the stream and returns the data in a byte[]. Throws an
 	 * IOException if the length field exceeds the maxMessageSize.
 	 * Throws a {@link SoftEndOfStreamException} if the stream
 	 * is closed between messages.
-	 *
 	 * @param inputStream The input stream.
 	 * @throws IOException Any IOException.
 	 */
 	@Override
 	public byte[] deserialize(InputStream inputStream) throws IOException {
 		int messageLength = this.readHeader(inputStream) - this.headerAdjust;
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("Message length is " + messageLength);
-		}
+		this.logger.debug(() -> "Message length is " + messageLength);
 		byte[] messagePart = null;
 		try {
-			if (messageLength > getMaxMessageSize()) {
+			int maxMessageSize = getMaxMessageSize();
+			if (messageLength > maxMessageSize) {
 				throw new IOException("Message length " + messageLength +
-						" exceeds max message length: " + getMaxMessageSize());
+						" exceeds max message length: " + maxMessageSize);
 			}
 			messagePart = new byte[messageLength];
 			read(inputStream, messagePart, false);
 			return messagePart;
 		}
-		catch (IOException e) {
-			publishEvent(e, messagePart, -1);
-			throw e;
-		}
-		catch (RuntimeException e) {
-			publishEvent(e, messagePart, -1);
-			throw e;
+		catch (IOException | RuntimeException ex) {
+			publishEvent(ex, messagePart, -1);
+			throw ex;
 		}
 	}
 
 	/**
-	 * Writes the byte[] to the output stream, preceded by a 4 byte
+	 * Write the byte[] to the output stream, preceded by a 4 byte
 	 * length in network byte order (big endian).
-	 *
 	 * @param bytes The bytes.
 	 * @param outputStream The output stream.
 	 */
@@ -173,9 +168,8 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	}
 
 	/**
-	 * Reads data from the socket and puts the data in buffer. Blocks until
+	 * Read data from the socket and puts the data in buffer. Blocks until
 	 * buffer is full or a socket timeout occurs.
-	 *
 	 * @param inputStream The input stream.
 	 * @param buffer the buffer into which the data should be read
 	 * @param header true if we are reading the header
@@ -197,17 +191,15 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 				throw new IOException("Stream closed after " + lengthRead + " of " + needed);
 			}
 			lengthRead += len;
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Read " + len + " bytes, buffer is now at " +
-						lengthRead + " of " +
-						needed);
-			}
+			int lengthReadToLog = lengthRead;
+			this.logger.debug(() -> "Read " + len + " bytes, buffer is now at " +
+					lengthReadToLog + " of " + needed);
 		}
 		return 0;
 	}
 
 	/**
-	 * Writes the header, according to the header format.
+	 * Write the header, according to the header format.
 	 * @param outputStream The output stream.
 	 * @param length The length.
 	 * @throws IOException Any IOException.
@@ -220,29 +212,28 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 				break;
 			case HEADER_SIZE_UNSIGNED_BYTE:
 				if (length > MAX_UNSIGNED_BYTE) {
-					throw new IllegalArgumentException("Length header:"
+					throw new IllegalArgumentException("Length header: "
 							+ this.headerSize
-							+ " too short to accommodate message length:" + length);
+							+ " too short to accommodate message length: " + length);
 				}
 				lengthPart.put((byte) length);
 				break;
 			case HEADER_SIZE_UNSIGNED_SHORT:
 				if (length > MAX_UNSIGNED_SHORT) {
-					throw new IllegalArgumentException("Length header:"
+					throw new IllegalArgumentException("Length header: "
 							+ this.headerSize
-							+ " too short to accommodate message length:" + length);
+							+ " too short to accommodate message length: " + length);
 				}
 				lengthPart.putShort((short) length);
 				break;
 			default:
-				throw new IllegalArgumentException("Bad header size:" + this.headerSize);
+				throw new IllegalArgumentException("Bad header size: " + this.headerSize);
 		}
 		outputStream.write(lengthPart.array());
 	}
 
 	/**
-	 * Reads the header and returns the length of the data part.
-	 *
+	 * Read the header and returns the length of the data part.
 	 * @param inputStream The input stream.
 	 * @return The length of the data part.
 	 * @throws IOException Any IOException.
@@ -261,7 +252,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 				case HEADER_SIZE_INT:
 					messageLength = ByteBuffer.wrap(lengthPart).getInt();
 					if (messageLength < 0) {
-						throw new IllegalArgumentException("Length header:"
+						throw new IllegalArgumentException("Length header: "
 								+ messageLength
 								+ " is negative");
 					}
@@ -273,20 +264,16 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 					messageLength = ByteBuffer.wrap(lengthPart).getShort() & MAX_UNSIGNED_SHORT;
 					break;
 				default:
-					throw new IllegalArgumentException("Bad header size:" + this.headerSize);
+					throw new IllegalArgumentException("Bad header size: " + this.headerSize);
 			}
 			return messageLength;
 		}
 		catch (SoftEndOfStreamException e) { // NOSONAR catch and throw
 			throw e; // it's an IO exception and we don't want an event for this
 		}
-		catch (IOException e) {
-			publishEvent(e, lengthPart, -1);
-			throw e;
-		}
-		catch (RuntimeException e) {
-			publishEvent(e, lengthPart, -1);
-			throw e;
+		catch (IOException | RuntimeException ex) {
+			publishEvent(ex, lengthPart, -1);
+			throw ex;
 		}
 	}
 

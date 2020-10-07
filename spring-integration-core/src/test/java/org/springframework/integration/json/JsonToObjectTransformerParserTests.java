@@ -21,7 +21,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import org.apache.commons.logging.Log;
+import java.util.function.Supplier;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -29,6 +30,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
@@ -66,6 +68,7 @@ public class JsonToObjectTransformerParserTests {
 	private JsonObjectMapper<?, ?> jsonObjectMapper;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testDefaultObjectMapper() {
 		Object jsonToObjectTransformer =
 				TestUtils.getPropertyValue(this.defaultJacksonMapperTransformer, "transformer");
@@ -73,7 +76,7 @@ public class JsonToObjectTransformerParserTests {
 				.isEqualTo(Jackson2JsonObjectMapper.class);
 
 		DirectFieldAccessor dfa = new DirectFieldAccessor(jsonToObjectTransformer);
-		Log logger = (Log) spy(dfa.getPropertyValue("logger"));
+		LogAccessor logger = (LogAccessor) spy(dfa.getPropertyValue("logger"));
 		dfa.setPropertyValue("logger", logger);
 
 		String jsonString =
@@ -92,9 +95,9 @@ public class JsonToObjectTransformerParserTests {
 		assertThat(person.getAge()).isEqualTo(42);
 		assertThat(person.getAddress().toString()).isEqualTo("123 Main Street");
 
-		ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
-		verify(logger).debug(stringArgumentCaptor.capture(), any(Exception.class));
-		String logMessage = stringArgumentCaptor.getValue();
+		ArgumentCaptor<Supplier<String>> argumentCaptor = ArgumentCaptor.forClass(Supplier.class);
+		verify(logger).debug(any(Exception.class), argumentCaptor.capture());
+		String logMessage = argumentCaptor.getValue().get();
 
 		assertThat(logMessage).startsWith("Cannot build a ResolvableType from the request message");
 	}

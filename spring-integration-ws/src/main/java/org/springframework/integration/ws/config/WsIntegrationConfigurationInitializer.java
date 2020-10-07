@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,9 @@ import org.springframework.ws.server.endpoint.adapter.MessageEndpointAdapter;
  *
  *
  * @author Artem Bilan
+ *
  * @since 4.3
+ *
  * @see org.springframework.ws.config.annotation.EnableWs
  * @see org.springframework.ws.server.MessageDispatcher
  */
@@ -47,7 +49,7 @@ public class WsIntegrationConfigurationInitializer implements IntegrationConfigu
 
 	private static final String MESSAGE_ENDPOINT_ADAPTER_BEAN_NAME = "integrationWsMessageEndpointAdapter";
 
-	private static final Log logger = LogFactory.getLog(WsIntegrationConfigurationInitializer.class);
+	private static final Log LOGGER = LogFactory.getLog(WsIntegrationConfigurationInitializer.class);
 
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -61,7 +63,7 @@ public class WsIntegrationConfigurationInitializer implements IntegrationConfigu
 			}
 		}
 		else {
-			logger.warn("'IntegrationRequestMappingHandlerMapping' isn't registered because 'beanFactory'" +
+			LOGGER.warn("'IntegrationRequestMappingHandlerMapping' isn't registered because 'beanFactory'" +
 					" isn't an instance of `BeanDefinitionRegistry`.");
 		}
 	}

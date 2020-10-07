@@ -49,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.IpHeaders;
@@ -725,7 +727,7 @@ public class CachingClientConnectionFactoryTests {
 		gate.setOutputChannel(outputChannel);
 		gate.setBeanFactory(mock(BeanFactory.class));
 		gate.afterPropertiesSet();
-		Log logger = spy(TestUtils.getPropertyValue(gate, "logger", Log.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(gate, "logger", LogAccessor.class));
 		new DirectFieldAccessor(gate).setPropertyValue("logger", logger);
 		when(logger.isDebugEnabled()).thenReturn(true);
 		doAnswer(new Answer<Void>() {
@@ -735,7 +737,7 @@ public class CachingClientConnectionFactoryTests {
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
 				invocation.callRealMethod();
-				String log = invocation.getArgument(0);
+				String log = ((Supplier<String>) invocation.getArgument(0)).get();
 				if (log.startsWith("Response")) {
 					new SimpleAsyncTaskExecutor()
 							.execute(() -> gate.handleMessage(new GenericMessage<>("bar")));
@@ -747,7 +749,7 @@ public class CachingClientConnectionFactoryTests {
 				}
 				return null;
 			}
-		}).when(logger).debug(anyString());
+		}).when(logger).debug(any(Supplier.class));
 		gate.start();
 		gate.handleMessage(new GenericMessage<>("foo"));
 		Message<byte[]> result = (Message<byte[]>) outputChannel.receive(10000);

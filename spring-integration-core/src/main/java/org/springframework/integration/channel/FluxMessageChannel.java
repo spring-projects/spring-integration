@@ -122,7 +122,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 								}
 							}
 							catch (Exception ex) {
-								logger.warn("Error during processing event: " + message, ex);
+								logger.warn(ex, () -> "Error during processing event: " + message);
 							}
 						})
 						.subscribe());

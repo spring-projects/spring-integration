@@ -52,6 +52,7 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.MimeTypeUtils;
 
 /**
  * Base class for {@link MailReceiver} implementations.
@@ -326,9 +327,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			}
 		}
 		if (!this.store.isConnected()) {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("connecting to store [" + this.store.getURLName() + "]");
-			}
+			this.logger.debug(() -> "connecting to store [" + this.store.getURLName() + "]");
 			this.store.connect();
 		}
 	}
@@ -348,9 +347,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		if (this.folder.isOpen()) {
 			return;
 		}
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("opening folder [" + this.folder.getURLName() + "]");
-		}
+		URLName urlName = this.folder.getURLName();
+		this.logger.debug(() -> "opening folder [" + urlName + "]");
 		this.folder.open(this.folderOpenMode);
 	}
 
@@ -401,27 +399,25 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private MimeMessage[] searchAndFilterMessages() throws MessagingException {
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("attempting to receive mail from folder [" + this.folder.getFullName() + "]");
-		}
+		this.logger.debug(() -> "attempting to receive mail from folder [" + this.folder.getFullName() + "]");
+		Message[] messagesToProcess;
 		Message[] messages = searchForNewMessages();
 		if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
 			Message[] reducedMessages = new Message[this.maxFetchSize];
 			System.arraycopy(messages, 0, reducedMessages, 0, this.maxFetchSize);
-			messages = reducedMessages;
+			messagesToProcess = reducedMessages;
 		}
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("found " + messages.length + " new messages");
+		else {
+			messagesToProcess = messages;
 		}
-		if (messages.length > 0) {
+		this.logger.debug(() -> "found " + messagesToProcess.length + " new messages");
+		if (messagesToProcess.length > 0) {
 			fetchMessages(messages);
 		}
 
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("Received " + messages.length + " messages");
-		}
+		this.logger.debug(() -> "Received " + messagesToProcess.length + " messages");
 
-		MimeMessage[] filteredMessages = filterMessagesThruSelector(messages);
+		MimeMessage[] filteredMessages = filterMessagesThruSelector(messagesToProcess);
 
 		postProcessFilteredMessages(filteredMessages);
 		return filteredMessages;
@@ -465,10 +461,12 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			}
 			content = theMessage.getContent();
 			if (content instanceof String) {
-				headers.put(MessageHeaders.CONTENT_TYPE, "text/plain");
 				String mailContentType = (String) headers.get(MailHeaders.CONTENT_TYPE);
-				if (mailContentType != null && mailContentType.toLowerCase().startsWith("text")) {
+				if (MimeTypeUtils.TEXT_PLAIN.getType().equals(mailContentType)) {
 					headers.put(MessageHeaders.CONTENT_TYPE, mailContentType);
+				}
+				else {
+					headers.put(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.TEXT_PLAIN_VALUE);
 				}
 			}
 			else if (content instanceof InputStream) {
@@ -494,7 +492,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private Object byteArrayToContent(Map<String, Object> headers, ByteArrayOutputStream baos) {
-		headers.put(MessageHeaders.CONTENT_TYPE, "application/octet-stream");
+		headers.put(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE);
 		return baos.toByteArray();
 	}
 
@@ -524,10 +522,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		for (Message message : filteredMessages) {
 			if (!recentFlagSupported) {
 				if (flags != null && flags.contains(Flags.Flag.USER)) {
-					if (this.logger.isDebugEnabled()) {
-						this.logger.debug("USER flags are supported by this mail server. Flagging message with '"
-								+ this.userFlag + "' user flag");
-					}
+					this.logger.debug(() -> "USER flags are supported by this mail server. Flagging message with '"
+							+ this.userFlag + "' user flag");
 					Flags siFlags = new Flags();
 					siFlags.add(this.userFlag);
 					message.setFlags(siFlags, true);
@@ -556,10 +552,10 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					filteredMessages.add(message);
 				}
 				else {
-					if (this.logger.isDebugEnabled()) {
-						this.logger.debug("Fetched email with subject '" + message.getSubject()
-								+ "' will be discarded by the matching filter and will not be flagged as SEEN.");
-					}
+					String subject = message.getSubject();
+					this.logger.debug(() ->
+							"Fetched email with subject '" + subject
+									+ "' will be discarded by the matching filter and will not be flagged as SEEN.");
 				}
 			}
 			else {
@@ -660,9 +656,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				try {
 					complexContent = source.getContent();
 				}
-				catch (IOException e) {
-					complexContent = "Unable to extract content; see logs: " + e.getMessage();
-					AbstractMailReceiver.this.logger.error("Failed to extract content from " + source, e);
+				catch (IOException ex) {
+					complexContent = "Unable to extract content; see logs: " + ex.getMessage();
+					AbstractMailReceiver.this.logger.error(ex, () -> "Failed to extract content from " + source);
 				}
 				this.content = complexContent;
 			}

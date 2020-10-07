@@ -125,7 +125,7 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 								new MessagingException(replyMessageBuilder.build(), exceptionToLogAndSend);
 					}
 				}
-				logger.error("Failed to send async reply: " + result.toString(), exceptionToLogAndSend);
+				logger.error(exceptionToLogAndSend, () -> "Failed to send async reply: " + result.toString());
 				sendErrorMessage(this.requestMessage, exceptionToLogAndSend);
 			}
 		}
@@ -139,9 +139,7 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 							new ReplyRequiredException(this.requestMessage, "Timeout on async request/reply", ex);
 				}
 				else {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Reply not required and async timeout for " + this.requestMessage);
-					}
+					logger.debug(() -> "Reply not required and async timeout for " + this.requestMessage);
 					return;
 				}
 			}

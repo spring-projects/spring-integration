@@ -18,8 +18,6 @@ package org.springframework.integration.mqtt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -28,15 +26,17 @@ import static org.mockito.Mockito.verify;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
-import org.apache.commons.logging.Log;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
@@ -47,6 +47,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -72,27 +74,29 @@ public class DownstreamExceptionTests {
 	@Test
 	public void testNoErrorChannel() throws Exception {
 		service.n = 0;
-		Log logger = spy(TestUtils.getPropertyValue(noErrorChannel, "logger", Log.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(noErrorChannel, "logger", LogAccessor.class));
 		final CountDownLatch latch = new CountDownLatch(1);
 		doAnswer(invocation -> {
-			if (((String) invocation.getArgument(0)).contains("Unhandled")) {
+			if (((Supplier<String>) invocation.getArgument(1)).get().contains("Unhandled")) {
 				latch.countDown();
 			}
 			return null;
-		}).when(logger).error(anyString(), any(Throwable.class));
+		}).when(logger).error(any(Throwable.class), any(Supplier.class));
 		new DirectFieldAccessor(noErrorChannel).setPropertyValue("logger", logger);
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
 		adapter.setDefaultTopic("mqtt-fooEx1");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
-		adapter.handleMessage(new GenericMessage<String>("foo"));
+		adapter.handleMessage(new GenericMessage<>("foo"));
 		service.barrier.await(10, TimeUnit.SECONDS);
 		service.barrier.reset();
-		adapter.handleMessage(new GenericMessage<String>("foo"));
+		adapter.handleMessage(new GenericMessage<>("foo"));
 		service.barrier.await(10, TimeUnit.SECONDS);
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-		verify(logger).error(contains("Unhandled exception for"), any(Throwable.class));
+		verify(logger).error(any(Throwable.class),
+				ArgumentMatchers.<Supplier<String>>argThat(logMessage ->
+						logMessage.get().startsWith("Unhandled exception for")));
 		service.barrier.reset();
 		adapter.stop();
 	}
@@ -106,10 +110,10 @@ public class DownstreamExceptionTests {
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
-		adapter.handleMessage(new GenericMessage<String>("foo"));
+		adapter.handleMessage(new GenericMessage<>("foo"));
 		service.barrier.await(10, TimeUnit.SECONDS);
 		service.barrier.reset();
-		adapter.handleMessage(new GenericMessage<String>("foo"));
+		adapter.handleMessage(new GenericMessage<>("foo"));
 		service.barrier.await(10, TimeUnit.SECONDS);
 		assertThat(errors.receive(10000)).isNotNull();
 		service.barrier.reset();

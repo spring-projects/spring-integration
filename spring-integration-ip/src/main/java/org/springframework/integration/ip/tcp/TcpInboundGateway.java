@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,9 +88,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		boolean isErrorMessage = message instanceof ErrorMessage;
 		try {
 			if (this.shuttingDown) {
-				if (logger.isInfoEnabled()) {
-					logger.info("Inbound message ignored; shutting down; " + message.toString());
-				}
+				logger.info(() -> "Inbound message ignored; shutting down; " + message.toString());
 			}
 			else {
 				if (isErrorMessage) {
@@ -126,9 +124,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	private boolean doOnMessage(Message<?> message) {
 		Message<?> reply = sendAndReceiveMessage(message);
 		if (reply == null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("null reply received for " + message + " nothing to send");
-			}
+			logger.debug(() -> "null reply received for " + message + " nothing to send");
 			return false;
 		}
 		String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
@@ -138,14 +134,14 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		}
 		if (connection == null) {
 			publishNoConnectionEvent(message, connectionId);
-			logger.error("Connection not found when processing reply " + reply + " for " + message);
+			logger.error(() -> "Connection not found when processing reply " + reply + " for " + message);
 			return false;
 		}
 		try {
 			connection.send(reply);
 		}
-		catch (Exception e) {
-			logger.error("Failed to send reply", e);
+		catch (Exception ex) {
+			logger.error(ex, "Failed to send reply");
 		}
 		return false;
 	}

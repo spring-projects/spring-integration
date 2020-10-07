@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,13 @@ import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import org.apache.commons.logging.Log;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jmx.JmxHeaders;
 import org.springframework.integration.jmx.OperationInvokingMessageHandler;
@@ -38,7 +37,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
@@ -48,7 +47,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  *
  * @since 2.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class OperationInvokingChannelAdapterParserTests {
 
@@ -80,7 +79,7 @@ public class OperationInvokingChannelAdapterParserTests {
 
 	private static int adviceCalled;
 
-	@After
+	@AfterEach
 	public void resetLists() {
 		testBean.messages.clear();
 	}
@@ -98,7 +97,9 @@ public class OperationInvokingChannelAdapterParserTests {
 
 	@Test
 	public void testOutboundAdapterWithNonNullReturn() {
-		Log logger = spy(TestUtils.getPropertyValue(this.operationWithNonNullReturnHandler, "logger", Log.class));
+		LogAccessor logger = spy(TestUtils.getPropertyValue(this.operationWithNonNullReturnHandler, "logger",
+
+				LogAccessor.class));
 
 		willReturn(true)
 				.given(logger)
@@ -132,9 +133,9 @@ public class OperationInvokingChannelAdapterParserTests {
 
 	@Test
 	public void testOperationWithinChainWithNonNullReturn() {
-		Log logger =
+		LogAccessor logger =
 				spy(TestUtils.getPropertyValue(this.operationWithinChainWithNonNullReturnHandler, "logger",
-						Log.class));
+						LogAccessor.class));
 
 		willReturn(true)
 				.given(logger)

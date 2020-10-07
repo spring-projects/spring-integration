@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,9 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private static final int TIMEOUT = 1000;
 
-	private static final IdGenerator defaultIdGenerator = new AlternativeJdkIdGenerator();
+	private static final IdGenerator DEFAULT_ID_GENERATOR = new AlternativeJdkIdGenerator();
 
-	private static final RedisSerializer<String> stringSerializer = new StringRedisSerializer();
+	private static final RedisSerializer<String> STRING_SERIALIZER = new StringRedisSerializer();
 
 	private final RedisTemplate<String, Object> template = new RedisTemplate<>();
 
@@ -109,19 +109,17 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		Object beforeSerialization = value;
 		if (!(value instanceof byte[])) {
 			if (value instanceof String && !this.serializerExplicitlySet) {
-				value = stringSerializer.serialize((String) value);
+				value = STRING_SERIALIZER.serialize((String) value);
 			}
 			else {
 				value = ((RedisSerializer<Object>) this.serializer).serialize(value);
 			}
 		}
 		if (value == null) {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Serializer produced null for " + beforeSerialization);
-			}
+			this.logger.debug(() -> "Serializer produced null for " + beforeSerialization);
 			return null;
 		}
-		String uuid = defaultIdGenerator.generateId().toString();
+		String uuid = DEFAULT_ID_GENERATOR.generateId().toString();
 
 		byte[] uuidByte = uuid.getBytes();
 		this.boundListOps.leftPush(uuidByte);
