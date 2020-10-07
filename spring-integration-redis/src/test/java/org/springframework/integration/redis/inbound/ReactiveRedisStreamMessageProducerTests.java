@@ -19,23 +19,24 @@ package org.springframework.integration.redis.inbound;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
-import com.sun.org.apache.regexp.internal.recompile;
-import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.stream.*;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.stream.StreamReceiver;
-import org.springframework.integration.StaticMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.redis.outbound.ReactiveRedisStreamMessageHandler;
@@ -45,9 +46,7 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.redis.util.Address;
 import org.springframework.integration.redis.util.Person;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -177,11 +176,11 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 		Person person = new Person(address, "John Snow");
 
 		this.template.opsForStream()
-					 .createGroup(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
-					 .as(StepVerifier::create)
-					 .assertNext(message -> assertThat(message).isEqualTo("OK"))
-					 .thenCancel()
-					 .verify(Duration.ofSeconds(10));
+				.createGroup(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
+				.as(StepVerifier::create)
+				.assertNext(message -> assertThat(message).isEqualTo("OK"))
+				.thenCancel()
+				.verify(Duration.ofSeconds(10));
 
 		this.redisStreamMessageProducer.setCreateConsumerGroup(false);
 		this.redisStreamMessageProducer.setAutoAck(false);
@@ -191,12 +190,74 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 
 		this.messageHandler.handleMessage(new GenericMessage<>(person));
 
-		Mono<PendingMessagesSummary> pending = template.opsForStream().pending(STREAM_KEY, this.redisStreamMessageProducer.getBeanName());
+		Flux.from(this.fluxMessageChannel)
+			.as(StepVerifier::create)
+			.assertNext(message -> {
+				assertThat(message.getPayload()).isEqualTo(person);
+				assertThat(message.getHeaders()).containsKeys(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK);
+			})
+			.thenCancel()
+			.verify(Duration.ofSeconds(10));
+	}
+
+	@Test
+	@RedisAvailable
+	@Ignore
+	public void testManuallyAckMessage() {
+		Address address = new Address("Winterfell, Westeros");
+		Person person = new Person(address, "Steel Snow");
+
+		this.template.opsForStream()
+				.createGroup(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
+				.as(StepVerifier::create)
+				.assertNext(message -> assertThat(message).isEqualTo("OK"))
+				.thenCancel()
+				.verify(Duration.ofSeconds(10));
+
+		this.redisStreamMessageProducer.setCreateConsumerGroup(false);
+		this.redisStreamMessageProducer.setAutoAck(false);
+		this.redisStreamMessageProducer.setConsumerName(CONSUMER);
+		this.redisStreamMessageProducer.afterPropertiesSet();
+		this.redisStreamMessageProducer.start();
+
+		this.messageHandler.handleMessage(new GenericMessage<>(person));
+
+		Flux.from(this.fluxMessageChannel)
+			.as(StepVerifier::create)
+			.assertNext(message -> {
+				assertThat(message.getPayload()).isEqualTo(person);
+				assertThat(message.getHeaders()).containsKeys(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK);
+			})
+			.thenCancel()
+			.verify(Duration.ofSeconds(10));
+
+		AtomicReference<RecordId> recordId = new AtomicReference<>();
+		Mono<PendingMessagesSummary> pending = template.opsForStream().pending(STREAM_KEY,
+												this.redisStreamMessageProducer.getBeanName());
 		StepVerifier.create(pending)
 					.expectSubscription()
+					.consumeNextWith(pendingMessagesSummary -> {
+						recordId.set(pendingMessagesSummary.maxRecordId());
+					})
+					.thenCancel()
+					.verify(Duration.ofSeconds(10));
+
+		Mono<Long> acknowledge = template.opsForStream().acknowledge(STREAM_KEY,
+				this.redisStreamMessageProducer.getBeanName(), recordId.get());
+		StepVerifier.create(acknowledge)
 					.expectNextCount(1)
 					.verifyComplete();
+
+		Mono<PendingMessagesSummary> pendingZeroMessage = template.opsForStream().pending(STREAM_KEY,
+				this.redisStreamMessageProducer.getBeanName());
+		StepVerifier.create(pendingZeroMessage)
+					.expectSubscription()
+					.assertNext(pendingMessagesSummary -> {
+							assertThat(pendingMessagesSummary.getTotalPendingMessages()).isEqualTo(0);
+					})
+					.verifyComplete();
 	}
+
 
 	@Configuration
 	static class ContextConfig {

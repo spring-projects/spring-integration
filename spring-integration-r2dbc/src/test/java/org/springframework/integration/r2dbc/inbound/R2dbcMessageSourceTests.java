@@ -91,8 +91,8 @@ public class R2dbcMessageSourceTests {
 
 	@Test
 	public void validateComponentType() {
-		assertThat(this.defaultR2dbcMessageSource.getComponentType()).isEqualTo("r2dbc:inbound-channel" +
-				"-adapter");
+		assertThat(this.defaultR2dbcMessageSource.getComponentType())
+												.isEqualTo("r2dbc:inbound-channel-adapter");
 	}
 
 	@Test

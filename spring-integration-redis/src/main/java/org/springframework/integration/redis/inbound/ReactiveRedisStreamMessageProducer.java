@@ -221,9 +221,9 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 									.setHeader(RedisHeaders.CONSUMER, this.consumerName);
 					if (!this.autoAck) {
 						builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
-								(SimpleAcknowledgment) () ->
-										this.reactiveStreamOperations.acknowledge(this.consumerGroup, event)
-																	 .subscribe());
+								(SimpleAcknowledgment) () -> this.reactiveStreamOperations
+															.acknowledge(this.consumerGroup, event)
+															.subscribe());
 					}
 					return builder.build();
 				});

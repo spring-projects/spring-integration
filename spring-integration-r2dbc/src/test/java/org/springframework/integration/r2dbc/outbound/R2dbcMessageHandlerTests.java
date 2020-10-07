@@ -116,10 +116,10 @@ public class R2dbcMessageHandlerTests {
 
 	}
 
-			@Test
-			public void validateComponentType() {
-				assertThat(this.r2dbcMessageHandler.getComponentType()).isEqualTo("r2dbc:outbound-channel-adapter");
-			}
+	@Test
+	public void validateComponentType() {
+		assertThat(this.r2dbcMessageHandler.getComponentType()).isEqualTo("r2dbc:outbound-channel-adapter");
+	}
 
 	@Test
 	public void validateMessageHandlingWithDefaultUpdateCollection() {
