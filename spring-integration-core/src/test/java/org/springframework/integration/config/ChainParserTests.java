@@ -292,7 +292,8 @@ public class ChainParserTests {
 		assertThat(testConsumer.getLastMessage()).isSameAs(successMessage);
 	}
 
-	@Test //INT-2275, INT-2958
+	@Test
+	@SuppressWarnings("unchecked")
 	public void chainWithLoggingChannelAdapter() {
 		LogAccessor logger = mock(LogAccessor.class);
 		final AtomicReference<Supplier<? extends CharSequence>> log = new AtomicReference<>();

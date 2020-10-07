@@ -72,6 +72,7 @@ public class DownstreamExceptionTests {
 	private PollableChannel errors;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testNoErrorChannel() throws Exception {
 		service.n = 0;
 		LogAccessor logger = spy(TestUtils.getPropertyValue(noErrorChannel, "logger", LogAccessor.class));
