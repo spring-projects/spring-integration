@@ -22,7 +22,6 @@ import static org.awaitility.Awaitility.await;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +63,7 @@ import reactor.test.StepVerifier;
  * @since 5.4
  */
 @RunWith(SpringRunner.class)
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests {
 
 	private static final String STREAM_KEY = "myStream";
@@ -96,11 +95,6 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 												.destroyGroup(STREAM_KEY, groupName)))
 				.blockLast();
 		this.template.delete(STREAM_KEY).block();
-	}
-
-	@After
-	public void tearDown() {
-		this.redisStreamMessageProducer.stop();
 	}
 
 	@Test
