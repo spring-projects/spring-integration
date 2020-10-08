@@ -186,6 +186,13 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 		Address address = new Address("Winterfell, Westeros");
 		Person person = new Person(address, "John Snow");
 
+		this.template.opsForStream()
+				.createGroup(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
+				.as(StepVerifier::create)
+				.assertNext(message -> assertThat(message).isEqualTo("OK"))
+				.thenCancel()
+				.verify(Duration.ofSeconds(10));
+
 		this.redisStreamMessageProducer.setCreateConsumerGroup(true);
 		this.redisStreamMessageProducer.setAutoAck(false);
 		this.redisStreamMessageProducer.setConsumerName(CONSUMER);
@@ -209,7 +216,7 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 
 		this.messageHandler.handleMessage(new GenericMessage<>(person));
 
-		stepVerifier.verify(Duration.ofSeconds(20));
+		stepVerifier.verify(Duration.ofSeconds(10));
 
 		await().until(() ->
 				template.opsForStream()
