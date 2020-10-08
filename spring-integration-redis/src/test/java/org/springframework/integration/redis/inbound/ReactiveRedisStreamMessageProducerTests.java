@@ -209,7 +209,7 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 
 		this.messageHandler.handleMessage(new GenericMessage<>(person));
 
-		stepVerifier.verify(Duration.ofSeconds(10));
+		stepVerifier.verify(Duration.ofSeconds(20));
 
 		await().until(() ->
 				template.opsForStream()
