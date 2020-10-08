@@ -193,16 +193,13 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 		Address address = new Address("Winterfell, Westeros");
 		Person person = new Person(address, "John Snow");
 
-		this.template.opsForStream()
-				.createGroup(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
-				.as(StepVerifier::create)
-				.assertNext(message -> assertThat(message).isEqualTo("OK"))
-				.thenCancel()
-				.verify(Duration.ofSeconds(10));
+		String consumerGroup = "testGroup";
+		String consumerName = "testConsumer";
 
 		this.redisStreamMessageProducer.setCreateConsumerGroup(true);
 		this.redisStreamMessageProducer.setAutoAck(false);
-		this.redisStreamMessageProducer.setConsumerName(CONSUMER);
+		this.redisStreamMessageProducer.setConsumerGroup(consumerGroup);
+		this.redisStreamMessageProducer.setConsumerName(consumerName);
 		this.redisStreamMessageProducer.setReadOffset(ReadOffset.latest());
 		this.redisStreamMessageProducer.afterPropertiesSet();
 		this.redisStreamMessageProducer.start();
@@ -227,14 +224,14 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 
 		await().until(() ->
 				template.opsForStream()
-						.pending(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
+						.pending(STREAM_KEY, consumerGroup)
 						.block(Duration.ofMillis(100))
 						.getTotalPendingMessages() == 1);
 
 		acknowledgmentReference.get().acknowledge();
 
-		Mono<PendingMessagesSummary> pendingZeroMessage = template.opsForStream().pending(STREAM_KEY,
-				this.redisStreamMessageProducer.getBeanName());
+		Mono<PendingMessagesSummary> pendingZeroMessage =
+				template.opsForStream().pending(STREAM_KEY, consumerGroup);
 
 		StepVerifier.create(pendingZeroMessage)
 				.assertNext(pendingMessagesSummary ->
