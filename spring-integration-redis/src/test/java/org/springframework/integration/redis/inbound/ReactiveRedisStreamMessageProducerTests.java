@@ -132,7 +132,7 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 
 		this.redisStreamMessageProducer.setCreateConsumerGroup(false);
 		this.redisStreamMessageProducer.setConsumerName(null);
-		this.redisStreamMessageProducer.setReadOffset(ReadOffset.from("0"));
+		this.redisStreamMessageProducer.setReadOffset(ReadOffset.from("0-0"));
 		this.redisStreamMessageProducer.afterPropertiesSet();
 
 		StepVerifier stepVerifier =
@@ -191,14 +191,7 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 		Address address = new Address("Winterfell, Westeros");
 		Person person = new Person(address, "John Snow");
 
-		this.template.opsForStream()
-				.createGroup(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
-				.as(StepVerifier::create)
-				.assertNext(message -> assertThat(message).isEqualTo("OK"))
-				.thenCancel()
-				.verify(Duration.ofSeconds(10));
-
-		this.redisStreamMessageProducer.setCreateConsumerGroup(false);
+		this.redisStreamMessageProducer.setCreateConsumerGroup(true);
 		this.redisStreamMessageProducer.setAutoAck(false);
 		this.redisStreamMessageProducer.setConsumerName(CONSUMER);
 		this.redisStreamMessageProducer.setReadOffset(ReadOffset.latest());
