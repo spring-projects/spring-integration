@@ -147,12 +147,12 @@ public class TcpOutboundGatewayTests {
 		gateway.setRemoteTimeout(60000);
 		gateway.setSendTimeout(61000);
 		// ensure this did NOT change the remote timeout
-		assertThat(TestUtils.getPropertyValue(gateway, "remoteTimeoutExpression.literalValue")).isEqualTo("60000");
+		assertThat(TestUtils.getPropertyValue(gateway, "remoteTimeoutExpression.value")).isEqualTo(60000L);
 		gateway.setRequestTimeout(60000);
 		for (int i = 100; i < 200; i++) {
 			gateway.handleMessage(MessageBuilder.withPayload("Test" + i).build());
 		}
-		Set<String> replies = new HashSet<String>();
+		Set<String> replies = new HashSet<>();
 		for (int i = 100; i < 200; i++) {
 			Message<?> m = replyChannel.receive(10000);
 			assertThat(m).isNotNull();
@@ -207,7 +207,7 @@ public class TcpOutboundGatewayTests {
 		for (int i = 100; i < 110; i++) {
 			gateway.handleMessage(MessageBuilder.withPayload("Test" + i).build());
 		}
-		Set<String> replies = new HashSet<String>();
+		Set<String> replies = new HashSet<>();
 		for (int i = 100; i < 110; i++) {
 			Message<?> m = replyChannel.receive(10000);
 			assertThat(m).isNotNull();
@@ -348,7 +348,7 @@ public class TcpOutboundGatewayTests {
 		 * The payload of the last message received by the remote side;
 		 * used to verify the correct response is received.
 		 */
-		final AtomicReference<String> lastReceived = new AtomicReference<String>();
+		final AtomicReference<String> lastReceived = new AtomicReference<>();
 		final CountDownLatch serverLatch = new CountDownLatch(2);
 
 		this.executor.execute(() -> {
@@ -447,7 +447,7 @@ public class TcpOutboundGatewayTests {
 
 	@Test
 	void testCachingFailover() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final CountDownLatch serverLatch = new CountDownLatch(1);
@@ -489,7 +489,7 @@ public class TcpOutboundGatewayTests {
 		TcpConnectionSupport mockConn1 = makeMockConnection();
 		when(factory1.getConnection()).thenReturn(mockConn1);
 		doThrow(new UncheckedIOException(new IOException("fail")))
-			.when(mockConn1).send(Mockito.any(Message.class));
+				.when(mockConn1).send(Mockito.any(Message.class));
 
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
@@ -498,7 +498,7 @@ public class TcpOutboundGatewayTests {
 		factory2.setSoTimeout(10000);
 		factory2.setSingleUse(false);
 
-		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
+		List<AbstractClientConnectionFactory> factories = new ArrayList<>();
 		factories.add(factory1);
 		factories.add(factory2);
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
@@ -515,7 +515,7 @@ public class TcpOutboundGatewayTests {
 		gateway.afterPropertiesSet();
 		gateway.start();
 
-		GenericMessage<String> message = new GenericMessage<String>("foo");
+		GenericMessage<String> message = new GenericMessage<>("foo");
 		gateway.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);
 		assertThat(reply).isNotNull();
@@ -572,7 +572,7 @@ public class TcpOutboundGatewayTests {
 		when(factory1.getConnection()).thenReturn(mockConn1);
 		when(factory1.isSingleUse()).thenReturn(true);
 		doThrow(new UncheckedIOException(new IOException("fail")))
-			.when(mockConn1).send(Mockito.any(Message.class));
+				.when(mockConn1).send(Mockito.any(Message.class));
 		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 1);
 
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost",
@@ -584,7 +584,7 @@ public class TcpOutboundGatewayTests {
 		CachingClientConnectionFactory cachingFactory2 = new CachingClientConnectionFactory(factory2, 1);
 
 		// Failover
-		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
+		List<AbstractClientConnectionFactory> factories = new ArrayList<>();
 		factories.add(cachingFactory1);
 		factories.add(cachingFactory2);
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
@@ -600,7 +600,7 @@ public class TcpOutboundGatewayTests {
 		gateway.afterPropertiesSet();
 		gateway.start();
 
-		GenericMessage<String> message = new GenericMessage<String>("foo");
+		GenericMessage<String> message = new GenericMessage<>("foo");
 		gateway.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);
 		assertThat(reply).isNotNull();
