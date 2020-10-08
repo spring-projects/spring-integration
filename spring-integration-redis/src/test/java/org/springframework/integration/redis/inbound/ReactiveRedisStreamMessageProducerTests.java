@@ -22,6 +22,7 @@ import static org.awaitility.Awaitility.await;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -95,6 +96,12 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 												.destroyGroup(STREAM_KEY, groupName)))
 				.blockLast();
 		this.template.delete(STREAM_KEY).block();
+	}
+
+	@After
+	public void tearDown() {
+		this.redisStreamMessageProducer.stop();
+		RedisAvailableRule.connectionFactory.resetConnection();
 	}
 
 	@Test
