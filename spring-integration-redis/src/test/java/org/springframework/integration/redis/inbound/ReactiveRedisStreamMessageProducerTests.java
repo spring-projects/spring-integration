@@ -17,6 +17,7 @@
 package org.springframework.integration.redis.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
@@ -216,14 +217,11 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 
 		stepVerifier.verify(Duration.ofSeconds(10));
 
-		Mono<PendingMessagesSummary> pending =
+		await().until(() ->
 				template.opsForStream()
-						.pending(STREAM_KEY, this.redisStreamMessageProducer.getBeanName());
-
-		StepVerifier.create(pending)
-				.assertNext(pendingMessagesSummary ->
-						assertThat(pendingMessagesSummary.getTotalPendingMessages()).isEqualTo(1))
-				.verifyComplete();
+						.pending(STREAM_KEY, this.redisStreamMessageProducer.getBeanName())
+						.block(Duration.ofMillis(100))
+						.getTotalPendingMessages() == 1);
 
 		acknowledgmentReference.get().acknowledge();
 

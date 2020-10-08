@@ -669,6 +669,7 @@ project('spring-integration-redis') {
 		}
 
 		testImplementation "io.lettuce:lettuce-core:$lettuceVersion"
+		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }
 
