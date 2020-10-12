@@ -17,6 +17,7 @@
 package org.springframework.integration.rsocket.inbound;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.reactivestreams.Publisher;
 
@@ -37,16 +38,13 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.invocation.reactive.HandlerMethodReturnValueHandler;
-import org.springframework.messaging.rsocket.PayloadUtils;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.messaging.rsocket.annotation.support.RSocketPayloadReturnValueHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 
-import io.rsocket.Payload;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
 
 /**
  * The {@link MessagingGatewaySupport} implementation for the {@link IntegrationRSocketEndpoint}.
@@ -203,13 +201,15 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 		}
 
 		Mono<Message<?>> requestMono = decodeRequestMessage(requestMessage);
-		MonoProcessor<Flux<Payload>> replyMono = getReplyMono(requestMessage);
-		if (replyMono != null) {
+		AtomicReference<Object> replyTo = getReplyToHeader(requestMessage);
+		if (replyTo != null) {
 			return requestMono
 					.flatMap(this::sendAndReceiveMessageReactive)
-					.flatMap((replyMessage) ->
-							new ChannelSendOperator<>(createReply(replyMessage.getPayload(), requestMessage),
-									(publisher) -> sendReply(publisher, replyMono)));
+					.flatMap((replyMessage) -> {
+						Flux<DataBuffer> reply = createReply(replyMessage.getPayload(), requestMessage);
+						replyTo.set(reply);
+						return Mono.empty();
+					});
 		}
 		else {
 			return requestMono
@@ -308,18 +308,12 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 		return encoder.encodeValue(element, bufferFactory, elementType, mimeType, null);
 	}
 
-	private Mono<Void> sendReply(Publisher<DataBuffer> reply, MonoProcessor<Flux<Payload>> replyMono) {
-		replyMono.onNext(Flux.from(reply).map(PayloadUtils::createPayload));
-		replyMono.onComplete();
-		return Mono.empty();
-	}
-
 	@Nullable
 	@SuppressWarnings("unchecked")
-	private static MonoProcessor<Flux<Payload>> getReplyMono(Message<?> message) {
+	private static AtomicReference<Object> getReplyToHeader(Message<?> message) {
 		Object headerValue = message.getHeaders().get(RSocketPayloadReturnValueHandler.RESPONSE_HEADER);
-		Assert.state(headerValue == null || headerValue instanceof MonoProcessor, "Expected MonoProcessor");
-		return (MonoProcessor<Flux<Payload>>) headerValue;
+		Assert.state(headerValue == null || headerValue instanceof AtomicReference, "Expected AtomicReference");
+		return (AtomicReference<Object>) headerValue;
 	}
 
 }

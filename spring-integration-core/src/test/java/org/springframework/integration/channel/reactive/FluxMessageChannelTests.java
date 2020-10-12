@@ -51,7 +51,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxProcessor;
 
 /**
  * @author Artem Bilan
@@ -141,7 +140,7 @@ public class FluxMessageChannelTests {
 
 		flowRegistration.destroy();
 
-		assertThat(TestUtils.getPropertyValue(flux, "processor", FluxProcessor.class).isTerminated()).isTrue();
+		assertThat(TestUtils.getPropertyValue(flux, "sink.sink.done", Boolean.class)).isTrue();
 	}
 
 	@Configuration

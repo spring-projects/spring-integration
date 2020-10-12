@@ -29,7 +29,6 @@ import org.springframework.util.Assert;
 import reactor.core.Disposable;
 import reactor.core.Disposables;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxProcessor;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
@@ -46,9 +45,7 @@ import reactor.core.scheduler.Schedulers;
 public class FluxMessageChannel extends AbstractMessageChannel
 		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel {
 
-	private final Sinks.Many<Message<?>> sink;
-
-	private final FluxProcessor<Message<?>, Message<?>> processor;
+	private final Sinks.Many<Message<?>> sink = Sinks.many().multicast().onBackpressureBuffer(1, false);
 
 	private final Sinks.Many<Boolean> subscribedSignal = Sinks.many().replay().limit(1);
 
@@ -56,14 +53,9 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private volatile boolean active = true;
 
-	public FluxMessageChannel() {
-		this.sink = Sinks.many().multicast().onBackpressureBuffer(1, false);
-		this.processor = FluxProcessor.fromSink(this.sink);
-	}
-
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		Assert.state(this.active && this.processor.hasDownstreams(),
+		Assert.state(this.active && this.sink.currentSubscriberCount() > 0,
 				() -> "The [" + this + "] doesn't have subscribers to accept messages");
 		long remainingTime = 0;
 		if (timeout > 0) {
@@ -101,11 +93,12 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
-		this.processor
-				.doFinally((s) -> this.subscribedSignal.tryEmitNext(this.processor.hasDownstreams()))
+		this.sink.asFlux()
+				.doFinally((s) -> this.subscribedSignal.tryEmitNext(this.sink.currentSubscriberCount() > 0))
 				.share()
 				.subscribe(subscriber);
-		this.subscribedSignal.tryEmitNext(this.processor.hasDownstreams());
+
+		this.subscribedSignal.tryEmitNext(this.sink.currentSubscriberCount() > 0);
 	}
 
 	@Override
@@ -131,9 +124,9 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	@Override
 	public void destroy() {
 		this.active = false;
-		this.subscribedSignal.tryEmitNext(false);
 		this.upstreamSubscriptions.dispose();
-		this.processor.onComplete();
+		this.subscribedSignal.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
+		this.sink.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
 		super.destroy();
 	}
 

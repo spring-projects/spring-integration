@@ -67,7 +67,6 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
 import reactor.core.publisher.Sinks;
 
 /**
@@ -899,7 +898,10 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 		@Override
 		public void subscribeTo(Publisher<? extends Message<?>> publisher) {
-			publisher.subscribe(MonoProcessor.fromSink(this.replyMono));
+			Mono.from(publisher)
+					.subscribe(
+							(value) -> this.replyMono.emitValue(value, Sinks.EmitFailureHandler.FAIL_FAST),
+							this.replyMono::tryEmitError, this.replyMono::tryEmitEmpty);
 		}
 
 	}
