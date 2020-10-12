@@ -128,12 +128,16 @@ Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(m
 if (closeableResource != null) {
     closeableResource.close();
 }
-
 ----
 ====
 
 Keeping the folder open is useful in cases where communication with the server is needed during parsing multipart content of the email with attachments.
 The `close()` on the `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header delegates to the `AbstractMailReceiver` to close the folder with `expunge` option if `shouldDeleteMessages` is configured respectively on the `AbstractMailReceiver`.
+
+Starting with version 5.4, it is possible now to return a `MimeMessage` as is without any conversion or eager content loading.
+These functionality is possible with these options combination: no `headerMapper` provided, the `simpleContent` is disabled and the `autoCloseFolder` is turned off.
+The whole `MimeMessage` is present as a payload of the Spring message to produce.
+Only a header presented is the mentioned above `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` for the folder to close when done with the `MimeMessage` processing.
 
 [[mail-mapping]]
 === Inbound Mail Message Mapping
@@ -209,6 +213,10 @@ The following example does the same thing with the Java DSL:
 Starting with version 4.3, the transformer handles embedded `Part` instances (as well as `Multipart` instances, which were handled previously).
 The transformer is a subclass of `AbstractMailTransformer` that maps the address and subject headers from the preceding list.
 If you wish to perform some other transformation on the message, consider subclassing `AbstractMailTransformer`.
+
+Starting with version 5.4, when no `headerMapper`, no `autoCloseFolder` and no `simpleContent`, the `MimeMessage` is returned as is in the payload of produced Spring message.
+This way a content of the `MimeMessage` is loaded on demand.
+All the mentioned above transformations are still valid.
 
 [[mail-namespace]]
 === Mail Namespace Support

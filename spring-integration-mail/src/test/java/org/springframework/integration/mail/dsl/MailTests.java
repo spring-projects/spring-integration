@@ -33,9 +33,8 @@ import javax.mail.search.FlagTerm;
 import javax.mail.search.FromTerm;
 import javax.mail.search.SearchTerm;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,13 +62,13 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class MailTests {
 
@@ -82,7 +81,7 @@ public class MailTests {
 	private static final ImapServer imapIdleServer = TestMailServer.imap(0);
 
 
-	@BeforeClass
+	@BeforeAll
 	public static void setup() throws InterruptedException {
 		int n = 0;
 		while (n++ < 100 && (!smtpServer.isListening() || !pop3Server.isListening()
@@ -216,7 +215,7 @@ public class MailTests {
 					.enrichHeaders(Mail.headers()
 							.subjectFunction(m -> "foo")
 							.from("foo@bar")
-							.toFunction(m -> new String[] { "bar@baz" }))
+							.toFunction(m -> new String[]{ "bar@baz" }))
 					.handle(Mail.outboundAdapter("localhost")
 									.port(smtpServer.getPort())
 									.credentials("user", "pw")

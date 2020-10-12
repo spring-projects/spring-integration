@@ -502,8 +502,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		if (shouldDeleteMessages()) {
 			deleteMessages(filteredMessages);
 		}
-		if (this.headerMapper == null) {
-			// Copy messages to cause an eager fetch
+		// Copy messages to cause an eager fetch
+		if (this.headerMapper == null && (this.autoCloseFolder || this.simpleContent)) {
 			for (int i = 0; i < filteredMessages.length; i++) {
 				MimeMessage mimeMessage = new IntegrationMimeMessage((MimeMessage) filteredMessages[i]);
 				filteredMessages[i] = mimeMessage;
