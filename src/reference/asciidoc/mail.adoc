@@ -135,9 +135,9 @@ Keeping the folder open is useful in cases where communication with the server i
 The `close()` on the `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header delegates to the `AbstractMailReceiver` to close the folder with `expunge` option if `shouldDeleteMessages` is configured respectively on the `AbstractMailReceiver`.
 
 Starting with version 5.4, it is possible now to return a `MimeMessage` as is without any conversion or eager content loading.
-These functionality is possible with these options combination: no `headerMapper` provided, the `simpleContent` is disabled and the `autoCloseFolder` is turned off.
-The whole `MimeMessage` is present as a payload of the Spring message to produce.
-Only a header presented is the mentioned above `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` for the folder to close when done with the `MimeMessage` processing.
+This functionality is enabled with this combination of options: no `headerMapper` provided, the `simpleContent` property is `false` and the `autoCloseFolder` property is `false`.
+The `MimeMessage` is present as the payload of the Spring message produced.
+In this case, the only header populated is the above mentioned `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` for the folder which must be closed when processing of the the `MimeMessage` is complete.
 
 [[mail-mapping]]
 === Inbound Mail Message Mapping
@@ -214,9 +214,9 @@ Starting with version 4.3, the transformer handles embedded `Part` instances (as
 The transformer is a subclass of `AbstractMailTransformer` that maps the address and subject headers from the preceding list.
 If you wish to perform some other transformation on the message, consider subclassing `AbstractMailTransformer`.
 
-Starting with version 5.4, when no `headerMapper`, no `autoCloseFolder` and no `simpleContent`, the `MimeMessage` is returned as is in the payload of produced Spring message.
-This way a content of the `MimeMessage` is loaded on demand.
-All the mentioned above transformations are still valid.
+Starting with version 5.4, when no `headerMapper` is provided, `autoCloseFolder` is `false` and `simpleContent` is `false`, the `MimeMessage` is returned as-is in the payload of the Spring message produced.
+This way, the content of the `MimeMessage` is loaded on demand when referenced, later in the flow.
+All of the mentioned above transformations are still valid.
 
 [[mail-namespace]]
 === Mail Namespace Support

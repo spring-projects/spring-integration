@@ -91,5 +91,5 @@ See <<./amqp.adoc#amqp-inbound-channel-adapter,Inbound Channel Adapter>> for mor
 [[x5.4-mail]]
 === Mail Changes
 
-The `AbstractMailReceiver` now can produce `MimeMessage` as is without eager fetching for its content.
+The `AbstractMailReceiver` can now produce the `MimeMessage` as-is without eager fetching its content.
 See <<./mail.adoc#mail-inbound, Mail-receiving Channel Adapter>> for more information.
