@@ -78,6 +78,7 @@ See <<./ip.adoc#ip-collaborating-adapters,Collaborating Channel Adapters>> and <
 The `spring-integration-rmi` module is deprecated with no replacement and is going to be removed in the next major version.
 See <<./rmi.adoc#rmi, RMI Support>> for more information.
 
+
 [[x5.4-amqp]]
 === AMQP Changes
 
@@ -86,3 +87,9 @@ See <<./amqp.adoc#alternative-confirms-returns,Alternative Mechanism for Publish
 
 A new `BatchMode.EXTRACT_PAYLOAD_WITH_HEADERS` is supported by the `AmqpInboundChannelAdapter`.
 See <<./amqp.adoc#amqp-inbound-channel-adapter,Inbound Channel Adapter>> for more information.
+
+[[x5.4-mail]]
+=== Mail Changes
+
+The `AbstractMailReceiver` can now produce the `MimeMessage` as-is without eager fetching its content.
+See <<./mail.adoc#mail-inbound, Mail-receiving Channel Adapter>> for more information.

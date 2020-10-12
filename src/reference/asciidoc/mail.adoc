@@ -128,12 +128,16 @@ Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(m
 if (closeableResource != null) {
     closeableResource.close();
 }
-
 ----
 ====
 
 Keeping the folder open is useful in cases where communication with the server is needed during parsing multipart content of the email with attachments.
 The `close()` on the `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header delegates to the `AbstractMailReceiver` to close the folder with `expunge` option if `shouldDeleteMessages` is configured respectively on the `AbstractMailReceiver`.
+
+Starting with version 5.4, it is possible now to return a `MimeMessage` as is without any conversion or eager content loading.
+This functionality is enabled with this combination of options: no `headerMapper` provided, the `simpleContent` property is `false` and the `autoCloseFolder` property is `false`.
+The `MimeMessage` is present as the payload of the Spring message produced.
+In this case, the only header populated is the above mentioned `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` for the folder which must be closed when processing of the the `MimeMessage` is complete.
 
 [[mail-mapping]]
 === Inbound Mail Message Mapping
@@ -209,6 +213,10 @@ The following example does the same thing with the Java DSL:
 Starting with version 4.3, the transformer handles embedded `Part` instances (as well as `Multipart` instances, which were handled previously).
 The transformer is a subclass of `AbstractMailTransformer` that maps the address and subject headers from the preceding list.
 If you wish to perform some other transformation on the message, consider subclassing `AbstractMailTransformer`.
+
+Starting with version 5.4, when no `headerMapper` is provided, `autoCloseFolder` is `false` and `simpleContent` is `false`, the `MimeMessage` is returned as-is in the payload of the Spring message produced.
+This way, the content of the `MimeMessage` is loaded on demand when referenced, later in the flow.
+All of the mentioned above transformations are still valid.
 
 [[mail-namespace]]
 === Mail Namespace Support
