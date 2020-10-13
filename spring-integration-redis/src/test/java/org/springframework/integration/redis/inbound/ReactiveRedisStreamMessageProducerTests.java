@@ -64,12 +64,12 @@ import reactor.test.StepVerifier;
  * @since 5.4
  */
 @RunWith(SpringRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext
 public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests {
 
-	private static final String STREAM_KEY = "myStream";
+	private static final String STREAM_KEY = ReactiveRedisStreamMessageProducerTests.class.getSimpleName() + ".stream";
 
-	private static final String CONSUMER = "consumer";
+	private static final String CONSUMER = ReactiveRedisStreamMessageProducerTests.class.getSimpleName() + ".consumer";
 
 	@Autowired
 	FluxMessageChannel fluxMessageChannel;

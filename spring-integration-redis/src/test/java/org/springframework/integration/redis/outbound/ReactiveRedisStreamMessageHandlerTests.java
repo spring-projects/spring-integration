@@ -56,7 +56,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @DirtiesContext
 public class ReactiveRedisStreamMessageHandlerTests extends RedisAvailableTests {
 
-	private static final String STREAM_KEY = "myStream";
+	private static final String STREAM_KEY = ReactiveRedisStreamMessageHandlerTests.class.getSimpleName() + ".stream";
 
 	@Autowired
 	@Qualifier("streamChannel")
