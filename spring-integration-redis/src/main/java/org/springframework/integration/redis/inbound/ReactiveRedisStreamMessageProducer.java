@@ -34,6 +34,8 @@ import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -211,25 +213,38 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 		}
 
 		Flux<? extends Message<?>> messageFlux =
-				events.map((event) -> {
-					AbstractIntegrationMessageBuilder<?> builder =
-							getMessageBuilderFactory()
-									.withPayload(this.extractPayload ? event.getValue() : event)
-									.setHeader(RedisHeaders.STREAM_KEY, event.getStream())
-									.setHeader(RedisHeaders.STREAM_MESSAGE_ID, event.getId())
-									.setHeader(RedisHeaders.CONSUMER_GROUP, this.consumerGroup)
-									.setHeader(RedisHeaders.CONSUMER, this.consumerName);
-					if (!this.autoAck && this.consumerGroup != null) {
-						builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
-								(SimpleAcknowledgment) () ->
-										this.reactiveStreamOperations
-												.acknowledge(this.consumerGroup, event)
-												.subscribe());
-					}
-					return builder.build();
-				});
-
+				events.map((record) -> buildMessageFromRecord(record, this.extractPayload))
+						.onErrorContinue((ex, record) -> {
+							@SuppressWarnings("unchecked")
+							Message<?> failedMessage = buildMessageFromRecord((Record<String, ?>) record, false);
+							MessagingException conversionException =
+									new MessageConversionException(failedMessage,
+											"Cannot deserialize Redis Stream Record", ex);
+							if (!sendErrorMessageIfNecessary(null, conversionException)) {
+								logger.getLog().error(conversionException);
+							}
+						});
 		subscribeToPublisher(messageFlux);
+	}
+
+	private Message<?> buildMessageFromRecord(Record<String, ?> record, boolean extractPayload) {
+		AbstractIntegrationMessageBuilder<?> builder =
+				getMessageBuilderFactory()
+						.withPayload(extractPayload ? record.getValue() : record)
+						.setHeader(RedisHeaders.STREAM_KEY, record.getStream())
+						.setHeader(RedisHeaders.STREAM_MESSAGE_ID, record.getId())
+						.setHeader(RedisHeaders.CONSUMER_GROUP, this.consumerGroup)
+						.setHeader(RedisHeaders.CONSUMER, this.consumerName);
+
+		if (!this.autoAck && this.consumerGroup != null) {
+			builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
+					(SimpleAcknowledgment) () ->
+							this.reactiveStreamOperations
+									.acknowledge(this.consumerGroup, record)
+									.subscribe());
+		}
+
+		return builder.build();
 	}
 
 }
