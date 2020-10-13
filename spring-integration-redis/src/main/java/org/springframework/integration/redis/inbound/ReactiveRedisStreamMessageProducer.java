@@ -34,6 +34,8 @@ import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -227,8 +229,13 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 												.subscribe());
 					}
 					return builder.build();
+				}).onErrorContinue((ex, event) -> {
+					MessagingException messagingException =
+							new MessagingException("Cannot deserialize Redis Stream Record", ex);
+					if (!sendErrorMessageIfNecessary(new GenericMessage<>(event), messagingException)) {
+						logger.getLog().error(messagingException);
+					}
 				});
-
 		subscribeToPublisher(messageFlux);
 	}
 
