@@ -12,7 +12,7 @@ buildscript {
 plugins {
 	id 'org.sonarqube' version '2.8'
 	id 'io.spring.nohttp' version '0.0.5.RELEASE' apply false
-	id 'org.ajoberstar.grgit' version '4.0.2'
+	id 'org.ajoberstar.grgit' version '4.1.0'
 	id "io.spring.dependency-management" version '1.0.10.RELEASE'
 	id 'com.jfrog.artifactory' version '4.17.2' apply false
 	id 'org.jetbrains.dokka' version '0.10.1'
@@ -98,9 +98,9 @@ ext {
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.0-SNAPSHOT'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.0-SNAPSHOT'
-	springKafkaVersion = '2.6.2-SNAPSHOT'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.0-RC1'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.0-RC2'
+	springKafkaVersion = '2.6.2'
 	springRetryVersion = '1.3.0'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.4.1'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.0-RC2'
@@ -325,7 +325,7 @@ configure(javaProjects) { subproject ->
 
 	checkstyle {
 		configDirectory.set(rootProject.file("src/checkstyle"))
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.36.1'
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.36.2'
 	}
 
 	jar {
