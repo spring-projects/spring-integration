@@ -51,19 +51,16 @@ public class MicrometerMetricsCaptorRegistrar implements ImportBeanDefinitionReg
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+		ListableBeanFactory beanFactory = (ListableBeanFactory) registry;
 		if (METER_REGISTRY_CLASS != null
-				&& !registry.containsBeanDefinition(MicrometerMetricsCaptor.MICROMETER_CAPTOR_NAME)) {
-			String[] beanNamesForType =
-					((ListableBeanFactory) registry).getBeanNamesForType(METER_REGISTRY_CLASS, false, false);
-			for (String beanName : beanNamesForType) {
-				registry.registerBeanDefinition(MicrometerMetricsCaptor.MICROMETER_CAPTOR_NAME,
-						BeanDefinitionBuilder.genericBeanDefinition(MicrometerMetricsCaptor.class)
-								.addConstructorArgReference(beanName)
-								.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
-								.getBeanDefinition());
-				return;
-			}
+				&& !registry.containsBeanDefinition(MicrometerMetricsCaptor.MICROMETER_CAPTOR_NAME)
+				&& beanFactory.getBeanNamesForType(METER_REGISTRY_CLASS, false, false).length > 0) {
 
+			registry.registerBeanDefinition(MicrometerMetricsCaptor.MICROMETER_CAPTOR_NAME,
+					BeanDefinitionBuilder.genericBeanDefinition(MicrometerMetricsCaptor.class)
+							.addConstructorArgValue(beanFactory.getBeanProvider(METER_REGISTRY_CLASS))
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+							.getBeanDefinition());
 		}
 	}
 
