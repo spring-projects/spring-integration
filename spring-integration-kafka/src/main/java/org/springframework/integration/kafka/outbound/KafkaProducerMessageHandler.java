@@ -150,6 +150,10 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private String sendSuccessChannelName;
 
+	private MessageChannel futuresChannel;
+
+	private String futuresChannelName;
+
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
 	private Type replyPayloadType = Object.class;
@@ -339,6 +343,24 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	}
 
 	/**
+	 * Set the futures channel.
+	 * @param futuresChannel the futures channel.
+	 * @since 5.4
+	 */
+	public void setFuturesChannel(MessageChannel futuresChannel) {
+		this.futuresChannel = futuresChannel;
+	}
+
+	/**
+	 * Set the futures channel name.
+	 * @param futuresChannelName the futures channel name.
+	 * @since 5.4
+	 */
+	public void setFuturesChannelName(String futuresChannelName) {
+		this.futuresChannelName = futuresChannelName;
+	}
+
+	/**
 	 * Set the error message strategy implementation to use when sending error messages after
 	 * send failures. Cannot be null.
 	 * @param errorMessageStrategy the implementation.
@@ -409,6 +431,17 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		return null;
 	}
 
+	protected MessageChannel getFuturesChannel() {
+		if (this.futuresChannel != null) {
+			return this.futuresChannel;
+		}
+		else if (this.futuresChannelName != null) {
+			this.futuresChannel = getChannelResolver().resolveDestination(this.futuresChannelName);
+			return this.futuresChannel;
+		}
+		return null;
+	}
+
 	@Override
 	protected void doInit() {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
@@ -447,6 +480,10 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 				producerRecord.headers().remove(KafkaIntegrationHeaders.FLUSH);
 			}
 		}
+		Object futureToken = message.getHeaders().get(KafkaIntegrationHeaders.FUTURE_TOKEN);
+		if (futureToken != null) {
+			producerRecord.headers().remove(KafkaIntegrationHeaders.FUTURE_TOKEN);
+		}
 		ListenableFuture<SendResult<K, V>> sendFuture;
 		RequestReplyFuture<K, V, Object> gatewayFuture = null;
 		if (this.isGateway && (!preBuilt || producerRecord.headers().lastHeader(KafkaHeaders.REPLY_TOPIC) == null)) {
@@ -464,6 +501,10 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 				sendFuture = this.kafkaTemplate.send(producerRecord);
 			}
 		}
+		sendFutureIfRequested(message, sendFuture, futureToken);
+		if (flush) {
+			this.kafkaTemplate.flush();
+		}
 		try {
 			processSendResult(message, producerRecord, sendFuture, getSendSuccessChannel());
 		}
@@ -474,10 +515,26 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		catch (ExecutionException e) {
 			throw new MessageHandlingException(message, e.getCause()); // NOSONAR
 		}
-		if (flush) {
-			this.kafkaTemplate.flush();
-		}
 		return processReplyFuture(gatewayFuture);
+	}
+
+	private void sendFutureIfRequested(final Message<?> message, ListenableFuture<SendResult<K, V>> sendFuture,
+			Object futureToken) {
+
+		if (futureToken != null) {
+			MessageChannel futures = getFuturesChannel();
+			if (futures != null) {
+				try {
+					futures.send(getMessageBuilderFactory()
+							.withPayload(sendFuture)
+							.setHeader(KafkaIntegrationHeaders.FUTURE_TOKEN, futureToken)
+							.build());
+				}
+				catch (Exception e) {
+					this.logger.error(e, "Failed to send sendFuture");
+				}
+			}
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -540,7 +597,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 				replyTopic = getSingleReplyTopic();
 			}
 			else {
-				throw new IllegalStateException("No reply topic header and no default reply topic is can be determined");
+				throw new IllegalStateException("No reply topic header and no default reply topic can be determined");
 			}
 		}
 		else {

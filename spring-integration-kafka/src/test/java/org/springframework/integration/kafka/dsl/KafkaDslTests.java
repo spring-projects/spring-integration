@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -49,6 +50,7 @@ import org.springframework.integration.kafka.channel.PollableKafkaChannel;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
+import org.springframework.integration.kafka.support.KafkaIntegrationHeaders;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -137,6 +139,9 @@ public class KafkaDslTests {
 	@Autowired
 	private PollableChannel errorChannel;
 
+	@Autowired
+	private PollableChannel futuresChannel;
+
 	@Autowired(required = false)
 	@Qualifier("topic1ListenerContainer")
 	private MessageListenerContainer messageListenerContainer;
@@ -163,6 +168,12 @@ public class KafkaDslTests {
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo", Collections.singletonMap("foo", "bar")));
 
 		assertThat(TestUtils.getPropertyValue(this.kafkaProducer1, "headerMapper")).isSameAs(this.mapper);
+
+		for (int i = 0; i < 200; i++) {
+			Message<?> future = this.futuresChannel.receive(10000);
+			assertThat(future).isNotNull();
+			((Future<?>) future.getPayload()).get(10, TimeUnit.SECONDS);
+		}
 
 		for (int i = 0; i < 100; i++) {
 			Message<?> receive = this.listeningFromKafkaResults1.receive(20000);
@@ -328,9 +339,15 @@ public class KafkaDslTests {
 		}
 
 		@Bean
+		public PollableChannel futuresChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		public IntegrationFlow sendToKafkaFlow() {
 			return f -> f
 					.<String>split(p -> Stream.generate(() -> p).limit(101).iterator(), null)
+					.enrichHeaders(h -> h.header(KafkaIntegrationHeaders.FUTURE_TOKEN, "foo"))
 					.publishSubscribeChannel(c -> c
 							.subscribe(sf -> sf.handle(
 									kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
@@ -354,6 +371,7 @@ public class KafkaDslTests {
 
 			return Kafka
 					.outboundChannelAdapter(producerFactory)
+					.futuresChannel("futuresChannel")
 					.sync(true)
 					.messageKey(m -> m
 							.getHeaders()

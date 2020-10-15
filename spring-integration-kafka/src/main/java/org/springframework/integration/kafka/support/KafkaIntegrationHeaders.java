@@ -36,4 +36,9 @@ public final class KafkaIntegrationHeaders {
 	 */
 	public static final String FLUSH = KafkaHeaders.PREFIX + "flush";
 
+	/**
+	 * Set to a token to correlate a send Future.
+	 */
+	public static final String FUTURE_TOKEN = KafkaHeaders.PREFIX + "futureToken";
+
 }
