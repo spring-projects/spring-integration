@@ -23,6 +23,9 @@ See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
 The `KafkaProducerMessageHandler` `sendTimeoutExpression` default has changed.
 See <<./kafka.adoc#kafka-outbound,Kafka Outbound Channel Adapter>> for more information.
 
+You can now access the `Future<?>` for underlying `send()` operations.
+See <<./kafka.adoc#read-process-write>> for more information.
+
 [[x5.4-r2dbc]]
 ==== R2DBC Channel Adapters
 

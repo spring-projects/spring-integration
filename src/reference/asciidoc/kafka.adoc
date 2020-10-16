@@ -847,3 +847,81 @@ public IntegrationFlow flow() {
 ====
 
 When an integration flow starts with an interface, the proxy that is created has the name of the flow bean, appended with ".gateway" so this bean name can be used a a `@Qualifier` if needed.
+
+[[read-process-write]]
+=== Performance Considerations for read/process/write Scenarios
+
+Many applications consume from a topic, perform some processing and write to another topic.
+In most, cases, if the write fails, the application would want to throw an exception so the incoming request can be retried and/or sent to a dead letter topic.
+This functionality is supported by the underlying message listener container, together with a suitably configured error handler.
+However, in order to support this, we need to block the listener thread until the success (or failure) of the write operation so that any exceptions can be thrown to the container.
+When consuming single records, this is achieved by setting the `sync` property on the outbound adapter.
+However, when consuming batches, using `sync` causes a significant performance degradation because the application would wait for the result of each send before sending the next message.
+Starting with version 5.4, you can now perform multiple sends and then wait for the results of those sends afterwards.
+This is achieved by adding a `futuresChannel` to the message handler.
+To enable the feature add `KafkaIntegrationHeaders.FUTURE_TOKEN` to the outbound messages; this can then be used to correlate a `Future` to a particular sent message.
+Here is an example of how you might use this feature:
+
+====
+[source, java]
+----
+@SpringBootApplication
+public class FuturesChannelApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(FuturesChannelApplication.class, args);
+    }
+
+    @Bean
+    IntegrationFlow inbound(ConsumerFactory<String, String> consumerFactory, Handler handler) {
+        return IntegrationFlows.from(Kafka.messageDrivenChannelAdapter(consumerFactory, ListenerMode.batch, "inTopic"))
+                .handle(handler)
+                .get();
+    }
+
+    @Bean
+    IntegrationFlow outbound(KafkaTemplate<String, String> kafkaTemplate) {
+        return IntegrationFlows.from(Gate.class)
+                .enrichHeaders(h -> h
+                        .header(KafkaHeaders.TOPIC, "outTopic")
+                        .headerExpression(KafkaIntegrationHeaders.FUTURE_TOKEN, "headers[id]"))
+                .handle(Kafka.outboundChannelAdapter(kafkaTemplate)
+                        .futuresChannel("futures"))
+                .get();
+    }
+
+    @Bean
+    PollableChannel futures() {
+        return new QueueChannel();
+    }
+
+}
+
+@Component
+@DependsOn("outbound")
+class Handler {
+
+    @Autowired
+    Gate gate;
+
+    @Autowired
+    PollableChannel futures;
+
+    public void handle(List<String> input) throws Exception {
+        System.out.println(input);
+        input.forEach(str -> this.gate.send(str.toUpperCase()));
+        for (int i = 0; i < input.size(); i++) {
+            Message<?> future = this.futures.receive(10000);
+            ((Future<?>) future.getPayload()).get(10, TimeUnit.SECONDS);
+        }
+    }
+
+}
+
+interface Gate {
+
+    void send(String out);
+
+}
+----
+====
