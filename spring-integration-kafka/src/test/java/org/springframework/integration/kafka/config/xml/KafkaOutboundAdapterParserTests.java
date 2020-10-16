@@ -122,6 +122,7 @@ class KafkaOutboundAdapterParserTests {
 
 		handler.setSync(true);
 		handler.setSendTimeout(10);
+		handler.setTimeoutBuffer(200);
 		handler.setTopicExpression(new LiteralExpression("foo"));
 
 		Executors.newSingleThreadExecutor()
