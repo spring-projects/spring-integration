@@ -354,6 +354,28 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	}
 
 	/**
+	 * Set the channel to which send futures are sent.
+	 * @param futuresChannel the channel.
+	 * @return the spec.
+	 * @since 5.4
+	 */
+	public S futuresChannel(MessageChannel futuresChannel) {
+		this.target.setFuturesChannel(futuresChannel);
+		return _this();
+	}
+
+	/**
+	 * Set the channel to which send futures are sent.
+	 * @param futuresChannel the channel name.
+	 * @return the spec.
+	 * @since 5.4
+	 */
+	public S futuresChannel(String futuresChannel) {
+		this.target.setFuturesChannelName(futuresChannel);
+		return _this();
+	}
+
+	/**
 	 * A {@link KafkaTemplate}-based {@link KafkaProducerMessageHandlerSpec} extension.
 	 *
 	 * @param <K> the key type.

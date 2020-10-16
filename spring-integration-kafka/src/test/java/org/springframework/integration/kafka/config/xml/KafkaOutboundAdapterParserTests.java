@@ -22,10 +22,13 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.kafka.clients.producer.MockProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.Test;
@@ -109,12 +112,16 @@ class KafkaOutboundAdapterParserTests {
 		@SuppressWarnings("unchecked")
 		ProducerFactory<Integer, String> pf = mock(ProducerFactory.class);
 		given(pf.createProducer()).willReturn(mockProducer);
+		Map<String, Object> props = new HashMap<>();
+		props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 10);
+		given(pf.getConfigurationProperties()).willReturn(props);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		handler.setSync(true);
+		handler.setSendTimeout(10);
 		handler.setTopicExpression(new LiteralExpression("foo"));
 
 		Executors.newSingleThreadExecutor()
