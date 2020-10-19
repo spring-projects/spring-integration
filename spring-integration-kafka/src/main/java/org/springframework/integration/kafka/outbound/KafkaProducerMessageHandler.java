@@ -517,7 +517,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 				sendFuture = this.kafkaTemplate.send(producerRecord);
 			}
 		}
-		sendFutureIfRequested(message, sendFuture, futureToken);
+		sendFutureIfRequested(sendFuture, futureToken);
 		if (flush) {
 			this.kafkaTemplate.flush();
 		}
