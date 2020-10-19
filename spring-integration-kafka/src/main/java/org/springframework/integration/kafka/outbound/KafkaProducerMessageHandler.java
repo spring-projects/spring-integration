@@ -534,8 +534,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		return processReplyFuture(gatewayFuture);
 	}
 
-	private void sendFutureIfRequested(final Message<?> message, ListenableFuture<SendResult<K, V>> sendFuture,
-			Object futureToken) {
+	private void sendFutureIfRequested(ListenableFuture<SendResult<K, V>> sendFuture, Object futureToken) {
 
 		if (futureToken != null) {
 			MessageChannel futures = getFuturesChannel();

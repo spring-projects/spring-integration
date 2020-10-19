@@ -874,7 +874,8 @@ public class FuturesChannelApplication {
 
     @Bean
     IntegrationFlow inbound(ConsumerFactory<String, String> consumerFactory, Handler handler) {
-        return IntegrationFlows.from(Kafka.messageDrivenChannelAdapter(consumerFactory, ListenerMode.batch, "inTopic"))
+        return IntegrationFlows.from(Kafka.messageDrivenChannelAdapter(consumerFactory,
+                    ListenerMode.batch, "inTopic"))
                 .handle(handler)
                 .get();
     }
