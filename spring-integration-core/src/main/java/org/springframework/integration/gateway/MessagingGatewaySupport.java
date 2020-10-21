@@ -528,7 +528,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				sample.stop(sendTimer());
 			}
 		}
-		catch (Throwable ex) {
+		catch (Throwable ex) { // NOSONAR (catch throwable)
 			if (logger.isDebugEnabled()) {
 				logger.debug("failure occurred in gateway sendAndReceive: " + ex.getMessage());
 			}
@@ -543,14 +543,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 					reply instanceof ErrorMessage
 							? ((ErrorMessage) reply).getPayload()
 							: (Throwable) reply;
-			try {
-				return handleSendAndReceiveError(object, requestMessage, error, shouldConvert);
-			}
-			catch (MessagingException me) {
-				if (me.getCause() instanceof Error) { // NOSONAR
-					throw (Error) me.getCause();
-				}
-			}
+			return handleSendAndReceiveError(object, requestMessage, error, shouldConvert);
 		}
 		return reply;
 	}
@@ -572,6 +565,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 						? errorFlowReply.getPayload()
 						: errorFlowReply;
 			}
+		}
+		else if (error instanceof Error) {
+			throw (Error) error;
 		}
 		else {
 			Throwable errorToReThrow = error;
