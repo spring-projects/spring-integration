@@ -85,10 +85,11 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 		return adapter;
 	}
 
-	private MessageSource<?> createMessageSource(Object beanArg, String beanName, Method methodArg) {
+	private MessageSource<?> createMessageSource(Object beanArg, String beanNameArg, Method methodArg) {
 		MessageSource<?> messageSource = null;
 		Object bean = beanArg;
 		Method method = methodArg;
+		String beanName = beanNameArg;
 		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
 			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
 			Class<?> targetClass = target.getClass();
@@ -106,10 +107,12 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 			else if (target instanceof Supplier<?>) {
 				method = ClassUtils.SUPPLIER_GET_METHOD;
 				bean = target;
+				beanName += '.' + methodArg.getName();
 			}
 			else if (ClassUtils.KOTLIN_FUNCTION_0_INVOKE_METHOD != null) {
 				method = ClassUtils.KOTLIN_FUNCTION_0_INVOKE_METHOD;
 				bean = target;
+				beanName += '.' + methodArg.getName();
 			}
 		}
 		if (messageSource == null) {

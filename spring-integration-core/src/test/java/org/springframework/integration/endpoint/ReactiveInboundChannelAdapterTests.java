@@ -16,7 +16,12 @@
 
 package org.springframework.integration.endpoint;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -31,6 +36,7 @@ import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -46,15 +52,16 @@ import reactor.test.StepVerifier;
  */
 @SpringJUnitConfig
 @DirtiesContext
+@LongRunningTest
 public class ReactiveInboundChannelAdapterTests {
 
 	@Autowired
-	private FluxMessageChannel fluxMessageChannel;
+	private FluxMessageChannel fluxChannel;
 
 	@Test
 	public void testReactiveInboundChannelAdapter() {
 		Flux<Integer> testFlux =
-				Flux.from(this.fluxMessageChannel)
+				Flux.from(this.fluxChannel)
 						.map(Message::getPayload)
 						.cast(Integer.class);
 
@@ -62,6 +69,30 @@ public class ReactiveInboundChannelAdapterTests {
 				.expectNext(2, 4, 6, 8, 10, 12, 14, 16)
 				.thenCancel()
 				.verify(Duration.ofSeconds(10));
+	}
+
+	@Autowired
+	private FluxMessageChannel fluxChannel2;
+
+	@Test
+	public void testTimeSupplierConsistency() {
+		Flux<Long> testFlux =
+				Flux.from(this.fluxChannel2)
+						.map(Message::getPayload)
+						.cast(Date.class)
+				.map(Date::getTime);
+
+		List<Long> dates = new ArrayList<>();
+
+		StepVerifier.create(testFlux)
+				.consumeNextWith(dates::add)
+				.consumeNextWith(dates::add)
+				.consumeNextWith(dates::add)
+				.thenCancel()
+				.verify(Duration.ofSeconds(10));
+
+		assertThat(dates.get(1) - dates.get(0)).isGreaterThanOrEqualTo(1000);
+		assertThat(dates.get(2) - dates.get(1)).isGreaterThanOrEqualTo(1000);
 	}
 
 	@Configuration
@@ -90,6 +121,17 @@ public class ReactiveInboundChannelAdapterTests {
 
 		@Bean
 		public MessageChannel fluxChannel() {
+			return new FluxMessageChannel();
+		}
+
+		@Bean
+		@InboundChannelAdapter(value = "fluxChannel2", poller = @Poller(fixedDelay = "1000"))
+		public Supplier<Date> timeSupplier() {
+			return Date::new;
+		}
+
+		@Bean
+		public MessageChannel fluxChannel2() {
 			return new FluxMessageChannel();
 		}
 

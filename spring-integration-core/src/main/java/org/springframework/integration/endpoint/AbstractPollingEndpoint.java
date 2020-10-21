@@ -366,7 +366,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 																.update(triggerContext.lastScheduledExecutionTime(),
 																		triggerContext.lastActualExecutionTime(),
 																		new Date())
-												)), 1)
+												)), 0)
 				.repeat(this::isRunning)
 				.doOnSubscribe(subs -> this.subscription = subs);
 	}
