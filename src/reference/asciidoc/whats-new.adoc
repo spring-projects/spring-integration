@@ -126,7 +126,7 @@ The `encodeUri` property on the `AbstractWebServiceOutboundGateway` has been dep
 See <<./ws.adoc#ws,Web Services Support>> for more information.
 
 [[x5.3-tcp]]
-=== TCP Changes
+=== TCP/UDP Changes
 
 The `FailoverClientConnectionFactory` no longer fails back, by default, until the current connection fails.
 See <<./ip.adoc#failover-cf,TCP Failover Client Connection Factory>> for more information.

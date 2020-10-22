@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
  */
 public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
+	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = parseUdp(element, parserContext);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
@@ -84,6 +85,8 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 				IpAdapterParserUtils.TASK_EXECUTOR);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				"socket-expression", "socketExpressionString");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.UDP_SOCKET_CUSTOMIZER);
 		return builder;
 	}
 

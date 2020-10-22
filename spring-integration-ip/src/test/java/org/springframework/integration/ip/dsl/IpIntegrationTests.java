@@ -18,6 +18,7 @@ package org.springframework.integration.ip.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.DatagramSocket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -54,6 +55,7 @@ import org.springframework.integration.ip.tcp.serializer.TcpCodecs;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.udp.UdpServerListeningEvent;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -97,6 +99,9 @@ public class IpIntegrationTests {
 
 	@Autowired
 	private UnicastReceivingChannelAdapter udpInbound;
+
+	@Autowired
+	private UnicastSendingMessageHandler udpOutbound;
 
 	@Autowired
 	private QueueChannel udpIn;
@@ -162,6 +167,8 @@ public class IpIntegrationTests {
 		Message<?> received = this.udpIn.receive(10000);
 		assertThat(received).isNotNull();
 		assertThat(Transformers.objectToString().transform(received).getPayload()).isEqualTo("foo");
+		assertThat(TestUtils.getPropertyValue(this.udpOutbound, "socket", DatagramSocket.class).getTrafficClass())
+				.isEqualTo(0x10);
 	}
 
 	@Test
@@ -276,7 +283,8 @@ public class IpIntegrationTests {
 
 		@Bean
 		public IntegrationFlow outUdpAdapter() {
-			return f -> f.handle(Udp.outboundAdapter(m -> m.getHeaders().get("udp_dest")));
+			return f -> f.handle(Udp.outboundAdapter(m -> m.getHeaders().get("udp_dest"))
+					.configureSocket(socket -> socket.setTrafficClass(0x10)));
 		}
 
 		@Bean

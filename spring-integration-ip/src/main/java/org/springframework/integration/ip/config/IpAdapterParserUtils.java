@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,6 +132,8 @@ public abstract class IpAdapterParserUtils {
 	public static final String SSL_HANDSHAKE_TIMEOUT = "ssl-handshake-timeout";
 
 	public static final String CONNECT_TIMEOUT = "connect-timeout";
+
+	public static final String UDP_SOCKET_CUSTOMIZER = "socket-customizer";
 
 	private IpAdapterParserUtils() {
 	}

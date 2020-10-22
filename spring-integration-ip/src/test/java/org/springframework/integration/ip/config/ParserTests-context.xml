@@ -19,6 +19,8 @@
 
 	<task:executor id="externalTE" pool-size="10"/>
 
+	<bean id="udpCust" class = "org.springframework.integration.ip.config.ParserUnitTests$SocketCust"/>
+
 	<ip:udp-inbound-channel-adapter id="testInUdp"
 		channel="udpChannel"
 		check-length="true"
@@ -35,6 +37,7 @@
 		lookup-host="false"
 		auto-startup="false"
 		phase="1234"
+		socket-customizer="udpCust"
 	/>
 
 	<ip:udp-inbound-channel-adapter id="testInUdpMulticast"
@@ -141,6 +144,7 @@
 		local-address="127.0.0.1"
 		task-executor="externalTE"
 		order="23"
+		socket-customizer="udpCust"
 	/>
 
 	<ip:udp-outbound-channel-adapter id="testOutUdpiMulticast"
