@@ -21,6 +21,7 @@ import java.util.concurrent.Executor;
 
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.SocketCustomizer;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.scheduling.TaskScheduler;
 
@@ -50,7 +51,7 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec soTimeout(int soTimeout) {
 		this.target.setSoTimeout(soTimeout);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -60,7 +61,7 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec taskScheduler(TaskScheduler taskScheduler) {
 		this.target.setTaskScheduler(taskScheduler);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -70,7 +71,7 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec soReceiveBufferSize(int soReceiveBufferSize) {
 		this.target.setSoReceiveBufferSize(soReceiveBufferSize);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -80,7 +81,7 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec receiveBufferSize(int receiveBufferSize) {
 		this.target.setReceiveBufferSize(receiveBufferSize);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -90,7 +91,7 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec lengthCheck(boolean lengthCheck) {
 		this.target.setLengthCheck(lengthCheck);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -100,7 +101,7 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec localAddress(String localAddress) {
 		this.target.setLocalAddress(localAddress);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -110,7 +111,7 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec poolSize(int poolSize) {
 		this.target.setPoolSize(poolSize);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -120,7 +121,7 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec taskExecutor(Executor taskExecutor) {
 		this.target.setTaskExecutor(taskExecutor);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -130,7 +131,7 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec socket(DatagramSocket socket) {
 		this.target.setSocket(socket);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -140,7 +141,7 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec soSendBufferSize(int soSendBufferSize) {
 		this.target.setSoSendBufferSize(soSendBufferSize);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -150,7 +151,18 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec lookupHost(boolean lookupHost) {
 		this.target.setLookupHost(lookupHost);
-		return _this();
+		return this;
+	}
+
+	/**
+	 * Configure the socket.
+	 * @param customizer the customizer.
+	 * @return the spec.
+	 * @since 5.3.3
+	 */
+	public UdpInboundChannelAdapterSpec configureSocket(SocketCustomizer customizer) {
+		this.target.setSocketCustomizer(customizer);
+		return this;
 	}
 
 }

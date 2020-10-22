@@ -873,6 +873,18 @@
 			<xsd:extension base="common-attributes">
 				<xsd:attribute name="check-length" type="xsd:string"/>
 				<xsd:attribute name="multicast" type="xsd:string"/>
+				<xsd:attribute name="socket-customizer" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							A SocketCustomizer bean.
+						</xsd:documentation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.ip.udp.SocketCustomizer"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

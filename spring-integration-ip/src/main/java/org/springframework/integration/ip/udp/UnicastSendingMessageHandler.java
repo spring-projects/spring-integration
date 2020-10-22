@@ -101,6 +101,8 @@ public class UnicastSendingMessageHandler extends
 
 	private EvaluationContext evaluationContext;
 
+	private SocketCustomizer socketCustomizer = socket -> { };
+
 	private volatile CountDownLatch ackLatch;
 
 	private volatile boolean ackThreadRunning;
@@ -206,6 +208,25 @@ public class UnicastSendingMessageHandler extends
 				ackTimeout);
 	}
 
+	/**
+	 * @param lengthCheck if true, a four byte binary length header is added to the
+	 * packet, allowing the receiver to check for data truncation.
+	 * @since 5.0
+	 */
+	public void setLengthCheck(boolean lengthCheck) {
+		this.mapper.setLengthCheck(lengthCheck);
+	}
+
+	/**
+	 * Set a customizer to further configure the socket after creation.
+	 * @param socketCustomizer the customizer.
+	 * @since 5.3.3
+	 */
+	public void setSocketCustomizer(SocketCustomizer socketCustomizer) {
+		Assert.notNull(socketCustomizer, "'socketCustomizer' cannot be null");
+		this.socketCustomizer = socketCustomizer;
+	}
+
 	protected final void setReliabilityAttributes(boolean lengthCheck,
 			boolean acknowledge, String ackHost, int ackPort, int ackTimeout) {
 
@@ -222,15 +243,6 @@ public class UnicastSendingMessageHandler extends
 		if (this.acknowledge) {
 			Assert.state(StringUtils.hasText(ackHost), "'ackHost' must not be empty");
 		}
-	}
-
-	/**
-	 * @param lengthCheck if true, a four byte binary length header is added to the
-	 * packet, allowing the receiver to check for data truncation.
-	 * @since 5.0
-	 */
-	public void setLengthCheck(boolean lengthCheck) {
-		this.mapper.setLengthCheck(lengthCheck);
 	}
 
 	@Override
@@ -495,6 +507,7 @@ public class UnicastSendingMessageHandler extends
 		if (soSendBufferSize > 0) {
 			socket.setSendBufferSize(soSendBufferSize);
 		}
+		this.socketCustomizer.configure(socket);
 	}
 
 	/**

@@ -67,12 +67,15 @@ The legacy metrics that were replaced by Micrometer meters have been removed.
 The <<./barrier.adoc#barrier,Thread Barrier>> has now two separate timeout options: `requestTimeout` and `triggerTimeout`.
 
 [[x5.4-tcp]]
-=== TCP Changes
+=== TCP/UDP Changes
 
 Connection factories now support multiple sending components (`TcpSender`); they remain limited to one receiving component (`TcpListener`).
 This allows, for example, an inbound gateway and outbound channel adapter to share the same factory, supporting both request/reply and arbitrary messaging from the server to the client.
 Shared factories should not be used with outbound gateways, unless single-use connections or the `ThreadAffinityClientConnectionFactory` are being used.
 See <<./ip.adoc#ip-collaborating-adapters,Collaborating Channel Adapters>> and <<./ip.adoc#tcp-gateways, TCP Gateways>> for more information.
+
+The UDP channel adapters can now be configured with a `SocketCustomizer` which allows the setting of socket properties that are not directly supported by the adapters.
+See <<./ip.adoc#udp-adapters,UDP Adapters>> for more information.
 
 [[x5.4-rmi]]
 === RMI Changes

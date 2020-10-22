@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
+import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.Set;
@@ -66,6 +68,7 @@ import org.springframework.integration.ip.tcp.connection.TcpSocketSupport;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
 import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
+import org.springframework.integration.ip.udp.SocketCustomizer;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
@@ -273,6 +276,9 @@ public class ParserUnitTests {
 	@Autowired
 	TcpMessageMapper mapper;
 
+	@Autowired
+	SocketCust socketCustomizer;
+
 	private static CountDownLatch adviceCalled = new CountDownLatch(1);
 
 	@Test
@@ -293,6 +299,7 @@ public class ParserUnitTests {
 		assertThat((Boolean) mapperAccessor.getPropertyValue("lookupHost")).isFalse();
 		assertThat(TestUtils.getPropertyValue(udpIn, "autoStartup", Boolean.class)).isFalse();
 		assertThat(dfa.getPropertyValue("phase")).isEqualTo(1234);
+		assertThat(dfa.getPropertyValue("socketCustomizer")).isSameAs(this.socketCustomizer);
 	}
 
 	@Test
@@ -365,6 +372,7 @@ public class ParserUnitTests {
 		assertThat(dfa.getPropertyValue("order")).isEqualTo(23);
 		assertThat(udpOut.getComponentName()).isEqualTo("testOutUdp");
 		assertThat(udpOut.getComponentType()).isEqualTo("ip:udp-outbound-channel-adapter");
+		assertThat(dfa.getPropertyValue("socketCustomizer")).isSameAs(this.socketCustomizer);
 	}
 
 	@Test
@@ -693,6 +701,14 @@ public class ParserUnitTests {
 			AbstractClientConnectionFactory mock = mock(AbstractClientConnectionFactory.class);
 			given(mock.isSingleUse()).willReturn(true);
 			return mock;
+		}
+
+	}
+
+	public static class SocketCust implements SocketCustomizer {
+
+		@Override
+		public void configure(DatagramSocket socket) throws SocketException {
 		}
 
 	}
