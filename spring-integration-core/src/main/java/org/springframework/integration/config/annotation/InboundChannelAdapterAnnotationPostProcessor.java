@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 				MessagingAnnotationUtils.resolveAttribute(annotations, AnnotationUtils.VALUE, String.class);
 		Assert.hasText(channelName, "The channel ('value' attribute of @InboundChannelAdapter) can't be empty.");
 
-		MessageSource<?> messageSource;
+		MessageSource<?> messageSource = null;
 		try {
 			messageSource = createMessageSource(bean, beanName, method);
 		}
@@ -85,11 +85,10 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 		return adapter;
 	}
 
-	private MessageSource<?> createMessageSource(Object beanArg, String beanNameArg, Method methodArg) {
+	private MessageSource<?> createMessageSource(Object beanArg, String beanName, Method methodArg) {
 		MessageSource<?> messageSource = null;
 		Object bean = beanArg;
 		Method method = methodArg;
-		String beanName = beanNameArg;
 		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
 			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
 			Class<?> targetClass = target.getClass();
@@ -107,12 +106,10 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 			else if (target instanceof Supplier<?>) {
 				method = ClassUtils.SUPPLIER_GET_METHOD;
 				bean = target;
-				beanName += '.' + methodArg.getName();
 			}
 			else if (ClassUtils.KOTLIN_FUNCTION_0_INVOKE_METHOD != null) {
 				method = ClassUtils.KOTLIN_FUNCTION_0_INVOKE_METHOD;
 				bean = target;
-				beanName += '.' + methodArg.getName();
 			}
 		}
 		if (messageSource == null) {
@@ -133,7 +130,7 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 	@Override
 	protected String generateHandlerBeanName(String originalBeanName, Method method) {
 		return super.generateHandlerBeanName(originalBeanName, method)
-				.replaceFirst(IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX + '$', ".source");
+				.replaceFirst(IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX + "$", ".source");
 	}
 
 	@Override
