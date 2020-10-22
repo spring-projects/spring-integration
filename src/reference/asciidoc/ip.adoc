@@ -205,7 +205,8 @@ By default, reverse DNS lookups are done on inbound packets to convert IP addres
 In environments where DNS is not configured, this can cause delays.
 You can override this default behavior by setting the `lookup-host` attribute to `false`.
 
-Starting with version 5.3.3, you can add a `SocketCustomizer` bean to modify the `DatagramSocket` after it is created. It is called for the receiving socket and any sockets created for sending acks.
+Starting with version 5.3.3, you can add a `SocketCustomizer` bean to modify the `DatagramSocket` after it is created.
+It is called for the receiving socket and any sockets created for sending acks.
 
 ==== Inbound UDP Adapters (Java Configuration)
 
