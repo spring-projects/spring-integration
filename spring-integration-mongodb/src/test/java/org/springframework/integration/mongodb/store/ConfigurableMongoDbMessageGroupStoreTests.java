@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Test
 	@MongoDbAvailable
 	public void testWithCustomConverter() throws Exception {
-		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
+		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"), "channelMessages");
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
 		context.refresh();
@@ -131,7 +131,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Test
 	@MongoDbAvailable
 	public void testPriorityChannel() throws Exception {
-		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
+		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"), "channelMessages");
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
 		context.refresh();
