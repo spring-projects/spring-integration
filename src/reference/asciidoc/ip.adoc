@@ -72,6 +72,7 @@ The following example configures a UDP outbound channel adapter:
     host="somehost"
     port="11111"
     multicast="false"
+    socket-customizer="udpCustomizer"
     channel="exampleChannel"/>
 ----
 ====
@@ -88,7 +89,9 @@ The `length` header provides a mechanism to detect this.
 Starting with version 4.3, you can set the `port` to `0`, in which case the operating system chooses the port.
 The chosen port can be discovered by invoking `getPort()` after the adapter is started and `isListening()` returns `true`.
 
-The preceding example shows an outbound channel adapter that adds length checking to the datagram packets:
+Starting with version 5.3.3, you can add a `SocketCustomizer` bean to modify the `DatagramSocket` after it is created (for example, call `setTrafficClass(0x10)`).
+
+The following example shows an outbound channel adapter that adds length checking to the datagram packets:
 
 ====
 [source,xml]
@@ -143,7 +146,7 @@ The following example shows how to configure an outbound UDP adapter with Java:
 @Bean
 @ServiceActivator(inputChannel = "udpOut")
 public UnicastSendingMessageHandler handler() {
-	return new UnicastSendingMessageHandler("localhost", 11111);
+    return new UnicastSendingMessageHandler("localhost", 11111);
 }
 ----
 ====
@@ -159,9 +162,9 @@ The following example shows how to configure an outbound UDP adapter with the Ja
 ----
 @Bean
 public IntegrationFlow udpOutFlow() {
-	return IntegrationFlows.from("udpOut")
-			.handle(Udp.outboundAdapter("localhost", 1234))
-			.get();
+    return f -> f.handle(Udp.outboundAdapter("localhost", 1234)
+                    .configureSocket(socket -> socket.setTrafficClass(0x10)))
+                .get();
 }
 ----
 ====
@@ -178,6 +181,7 @@ The following example shows how to configure a basic unicast inbound udp channel
     port="11111"
     receive-buffer-size="500"
     multicast="false"
+    socket-customizer="udpCustomizer"
     check-length="true"/>
 ----
 ====
@@ -201,6 +205,8 @@ By default, reverse DNS lookups are done on inbound packets to convert IP addres
 In environments where DNS is not configured, this can cause delays.
 You can override this default behavior by setting the `lookup-host` attribute to `false`.
 
+Starting with version 5.3.3, you can add a `SocketCustomizer` bean to modify the `DatagramSocket` after it is created. It is called for the receiving socket and any sockets created for sending acks.
+
 ==== Inbound UDP Adapters (Java Configuration)
 
 The following example shows how to configure an inbound UDP adapter with Java:
@@ -209,9 +215,9 @@ The following example shows how to configure an inbound UDP adapter with Java:
 ----
 @Bean
 public UnicastReceivingChannelAdapter udpIn() {
-	UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(11111);
-	adapter.setOutputChannelName("udpChannel");
-	return adapter;
+    UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(11111);
+    adapter.setOutputChannelName("udpChannel");
+    return adapter;
 }
 ----
 
@@ -223,9 +229,9 @@ The following example shows how to configure an inbound UDP adapter with the Jav
 ----
 @Bean
 public IntegrationFlow udpIn() {
-	return IntegrationFlows.from(Udp.inboundAdapter(11111))
-			.channel("udpChannel")
-			.get();
+    return IntegrationFlows.from(Udp.inboundAdapter(11111))
+            .channel("udpChannel")
+            .get();
 }
 ----
 
@@ -278,11 +284,11 @@ The following example shows the equivalent configuration with the Java DSL:
 ----
 @Bean
 public IntegrationFlow udpEchoUpcaseServer() {
-	return IntegrationFlows.from(Udp.inboundAdapter(11111).id("udpIn"))
-			.<byte[], String>transform(p -> new String(p).toUpperCase())
-			.handle(Udp.outboundAdapter("headers['ip_packetAddress']")
-					.socketExpression("@udpIn.socket"))
-			.get();
+    return IntegrationFlows.from(Udp.inboundAdapter(11111).id("udpIn"))
+            .<byte[], String>transform(p -> new String(p).toUpperCase())
+            .handle(Udp.outboundAdapter("headers['ip_packetAddress']")
+                    .socketExpression("@udpIn.socket"))
+            .get();
 }
 ----
 ====
@@ -1396,10 +1402,10 @@ The following listing shows the definition of the `TcpNetConnectionSupport` stra
 ----
 public interface TcpNetConnectionSupport {
 
-	TcpNetConnection createNewConnection(Socket socket,
-			boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher,
-			String connectionFactoryName) throws Exception;
+    TcpNetConnection createNewConnection(Socket socket,
+            boolean server, boolean lookupHost,
+            ApplicationEventPublisher applicationEventPublisher,
+            String connectionFactoryName) throws Exception;
 
 }
 ----

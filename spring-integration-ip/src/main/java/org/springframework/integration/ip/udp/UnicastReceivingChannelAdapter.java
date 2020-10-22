@@ -35,6 +35,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
+import org.springframework.util.Assert;
 
 /**
  * A channel adapter to receive incoming UDP packets. Packets can optionally be preceded by a
@@ -58,6 +59,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	private int soSendBufferSize = -1;
 
+	private SocketCustomizer socketCustomizer = socket -> { };
 
 	/**
 	 * Constructs a UnicastReceivingChannelAdapter that listens on the specified port.
@@ -87,6 +89,16 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	 */
 	public void setLengthCheck(boolean lengthCheck) {
 		this.mapper.setLengthCheck(lengthCheck);
+	}
+
+	/**
+	 * Set a customizer to further configure the socket after creation.
+	 * @param socketCustomizer the customizer.
+	 * @since 5.3.3
+	 */
+	public void setSocketCustomizer(SocketCustomizer socketCustomizer) {
+		Assert.notNull(socketCustomizer, "'socketCustomizer' cannot be null");
+		this.socketCustomizer = socketCustomizer;
 	}
 
 	@Override
@@ -169,6 +181,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 			if (this.soSendBufferSize > 0) {
 				out.setSendBufferSize(this.soSendBufferSize);
 			}
+			this.socketCustomizer.configure(out);
 			out.send(ackPack);
 			out.close();
 		}
@@ -258,7 +271,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	}
 
 	/**
-	 * Sets timeout and receive buffer size
+	 * Sets timeout and receive buffer size; calls the socket customizer.
 	 *
 	 * @param socket The socket.
 	 * @throws SocketException Any socket exception.
@@ -269,6 +282,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		if (soReceiveBufferSize > 0) {
 			socket.setReceiveBufferSize(soReceiveBufferSize);
 		}
+		this.socketCustomizer.configure(socket);
 	}
 
 	@Override

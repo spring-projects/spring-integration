@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.ip.udp.SocketCustomizer;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.messaging.Message;
 
@@ -130,6 +131,17 @@ public abstract class AbstractUdpOutboundChannelAdapterSpec<S extends AbstractUd
 	 */
 	public S socketExpression(String socketExpression) {
 		this.target.setSocketExpressionString(socketExpression);
+		return _this();
+	}
+
+	/**
+	 * Configure the socket.
+	 * @param customizer the customizer.
+	 * @return the spec.
+	 * @since 5.3.3
+	 */
+	public S configureSocket(SocketCustomizer customizer) {
+		this.target.setSocketCustomizer(customizer);
 		return _this();
 	}
 
