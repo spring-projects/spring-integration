@@ -88,6 +88,12 @@ public class ReactiveInboundChannelAdapterTests {
 		}
 
 		@Bean
+		@InboundChannelAdapter(value = "fluxChannel", autoStartup = "false", poller = @Poller(fixedDelay = "100000"))
+		public Supplier<String> anotherSupplier() {
+			return () -> "void";
+		}
+
+		@Bean
 		public MessageChannel fluxChannel() {
 			return new FluxMessageChannel();
 		}
