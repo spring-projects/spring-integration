@@ -17,7 +17,7 @@
 package org.springframework.integration.gateway;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.time.Duration;
@@ -27,7 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.annotation.Gateway;
@@ -88,13 +88,10 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<Message<?>> f = service.returnMessage("foo");
-		try {
-			f.get(10000, TimeUnit.MILLISECONDS);
-			fail("Expected Exception");
-		}
-		catch (ExecutionException e) {
-			assertThat(e.getCause()).isEqualTo(error);
-		}
+
+		assertThatExceptionOfType(ExecutionException.class)
+				.isThrownBy(() -> f.get(10000, TimeUnit.MILLISECONDS))
+				.withCause(error);
 	}
 
 	@Test
@@ -134,7 +131,7 @@ public class AsyncGatewayTests {
 	}
 
 	@Test
-	public void customFutureReturned() throws Exception {
+	public void customFutureReturned() {
 		QueueChannel requestChannel = new QueueChannel();
 		addThreadEnricher(requestChannel);
 		startResponder(requestChannel);

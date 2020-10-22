@@ -519,7 +519,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				throwMessageTimeoutException(object, "No reply received within timeout");
 			}
 		}
-		catch (Exception ex) {
+		catch (Throwable ex) { // NOSONAR (catch throwable)
 			if (logger.isDebugEnabled()) {
 				logger.debug("failure occurred in gateway sendAndReceive: " + ex.getMessage());
 			}
@@ -553,6 +553,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 						? errorFlowReply.getPayload()
 						: errorFlowReply;
 			}
+		}
+		else if (error instanceof Error) {
+			throw (Error) error;
 		}
 		else {
 			Throwable errorToReThrow = error;
