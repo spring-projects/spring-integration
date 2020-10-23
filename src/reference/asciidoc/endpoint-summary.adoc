@@ -138,9 +138,15 @@ The following table summarizes the various endpoints with quick links to the app
 | N
 | N
 
+| *R2DBC*
+| <<./r2dbc.adoc#r2dbc-inbound-channel-adapter,R2DBC Inbound Channel Adapter>>
+| <<./r2dbc.adoc#r2dbc-outbound-channel-adapter,R2DBC Outbound Channel Adapter>>
+| N
+| N
+
 | *Redis*
-| <<./redis.adoc#redis-inbound-channel-adapter,Redis Inbound Channel Adapter>> and <<./redis.adoc#redis-queue-inbound-channel-adapter,Redis Queue Inbound Channel Adapter>> and <<./redis.adoc#redis-store-inbound-channel-adapter,Redis Store Inbound Channel Adapter>>
-| <<./redis.adoc#redis-outbound-channel-adapter,Redis Outbound Channel Adapter>> and <<./redis.adoc#redis-queue-outbound-channel-adapter,Redis Queue Outbound Channel Adapter>> and <<./redis.adoc#redis-store-outbound-channel-adapter,RedisStore Outbound Channel Adapter>>
+| <<./redis.adoc#redis-inbound-channel-adapter,Redis Inbound Channel Adapter>>, <<./redis.adoc#redis-queue-inbound-channel-adapter,Redis Queue Inbound Channel Adapter>>, <<./redis.adoc#redis-store-inbound-channel-adapter,Redis Store Inbound Channel Adapter>>, <<./redis.adoc#redis-stream-inbound,Redis Stream Inbound Channel Adapter>>
+| <<./redis.adoc#redis-outbound-channel-adapter,Redis Outbound Channel Adapter>>, <<./redis.adoc#redis-queue-outbound-channel-adapter,Redis Queue Outbound Channel Adapter>>, <<./redis.adoc#redis-store-outbound-channel-adapter,RedisStore Outbound Channel Adapter>>, <<./redis.adoc#redis-stream-outbound,Redis Stream Outbound Channel Adapter>>
 | <<./redis.adoc#redis-queue-inbound-gateway,Redis Queue Inbound Gateway>>
 | <<./redis.adoc#redis-outbound-gateway,Redis Outbound Command Gateway>> and <<./redis.adoc#redis-queue-outbound-gateway,Redis Queue Outbound Gateway>>
 
@@ -219,6 +225,11 @@ The following table summarizes the various endpoints with quick links to the app
 | *XMPP*
 | <<./xmpp.adoc#xmpp-messages,XMPP Messages>> and <<./xmpp.adoc#xmpp-presence,XMPP Presence>>
 | <<./xmpp.adoc#xmpp-messages,XMPP Messages>> and <<./xmpp.adoc#xmpp-presence,XMPP Presence>>
+| N
+| N
+| *ZeroMQ*
+| <<./zeromq.adoc#zeromq-inbound-channel-adapter,ZeroMQ Inbound Channel Adapter>>
+| <<./zeromq.adoc#zeromq-outbound-channel-adapter,ZeroMQ outbound Channel Adapter>>
 | N
 | N
 |===

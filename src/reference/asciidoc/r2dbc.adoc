@@ -24,11 +24,11 @@ compile "org.springframework.integration:spring-integration-r2dbc:{project-versi
 ====
 
 [[r2dbc-inbound-channel-adapter]]
-=== Inbound Channel Adapter
+=== R2DBC Inbound Channel Adapter
 
 TBD
 
 [[r2dbc-outbound-channel-adapter]]
-=== Outbound Channel Adapter
+=== R2DBC Outbound Channel Adapter
 
 TBD
