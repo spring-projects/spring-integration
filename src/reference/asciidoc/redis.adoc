@@ -654,7 +654,7 @@ If you provide neither attribute, the `payload` is used as the command arguments
 ====
 
 You can use the `<int-redis:outbound-gateway>` as a common component to perform any desired Redis operation.
-For example, the following examlpe shows how to get incremented values from Redis atomic number:
+The following example shows how to get incremented values from Redis atomic number:
 
 ====
 [source,xml]
@@ -739,9 +739,10 @@ The following listing shows the available attributes for a Redis queue inbound g
         recovery-interval=""/>  <11>
 ----
 
-<1> The `MessageChannel` from which this endpoint receives `Message` instances.
-<2> The `MessageChannel` where this endpoint sends reply `Message` instances.
-<3> A reference to a Spring `TaskExecutor` (or a standard JDK 1.5+ `Executor`) bean.
+<1> The `MessageChannel` where this endpoint sends `Message` instances created from the Redis data.
+<2> The `MessageChannel` from where this endpoint waits for reply `Message` instances.
+Optional - the `replyChannel` header is still in use.
+<3> A reference to a Spring `TaskExecutor` (or a standard JDK `Executor`) bean.
 It is used for the underlying listening task.
 It defaults to a `SimpleAsyncTaskExecutor`.
 <4> The timeout (in milliseconds) to wait until the reply message is sent.
@@ -789,12 +790,13 @@ You should set the expiry at a large enough value to prevent this condition, but
 
 Starting with version 5.0, the `RedisLockRegistry` implements `ExpirableLockRegistry`, which removes locks last acquired more than `age` ago and that are not currently locked.
 
-[[redis-stream-outbound]]
-=== Redis Stream Outbound Channel Adapter
-
-TBD
 
 [[redis-stream-inbound]]
 === Redis Stream Inbound Channel Adapter
+
+TBD
+
+[[redis-stream-outbound]]
+=== Redis Stream Outbound Channel Adapter
 
 TBD

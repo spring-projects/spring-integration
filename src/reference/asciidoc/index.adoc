@@ -34,6 +34,7 @@ This documentation is also available as single searchable link:index-single.html
 <<./jdbc.adoc#jdbc,JDBC Support>> ::
 <<./jpa.adoc#jpa,JPA Support>> ::
 <<./jms.adoc#jms,JMS Support>> ::
+<<./jmx.adoc#jmx,JMX Support>> ::
 <<./kafka.adoc#kafka,Apache Kafka Support>> ::
 <<./mail.adoc#mail,Mail Support>> ::
 <<./mongodb.adoc#mongodb,MongoDb Support>> ::
