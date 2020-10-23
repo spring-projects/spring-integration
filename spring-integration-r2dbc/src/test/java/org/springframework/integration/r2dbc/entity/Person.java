@@ -16,11 +16,14 @@
 
 package org.springframework.integration.r2dbc.entity;
 
+import java.util.Objects;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 /**
  *  @author Rohan Mukesh
+ *  @author Artem Bilan
  *
  *  @since 5.4
  */
@@ -61,6 +64,31 @@ public class Person {
 
 	public Integer getAge() {
 		return this.age;
+	}
+
+	@Override public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		Person person = (Person) o;
+		return Objects.equals(this.id, person.id) &&
+				Objects.equals(this.name, person.name) &&
+				Objects.equals(this.age, person.age);
+	}
+
+	@Override public int hashCode() {
+		return Objects.hash(this.id, this.name, this.age);
+	}
+
+	@Override public String toString() {
+		return "Person{" +
+				"id=" + this.id +
+				", name='" + this.name + '\'' +
+				", age=" + this.age +
+				'}';
 	}
 
 }
