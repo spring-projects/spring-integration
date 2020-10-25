@@ -105,7 +105,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Configure this channel adapter to extract or not the message payload.
+	 * Configure this channel adapter to extract or not value from the {@link Record}.
 	 * @param extractPayload default true
 	 */
 	public void setExtractPayload(boolean extractPayload) {
