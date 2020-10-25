@@ -791,12 +791,104 @@ You should set the expiry at a large enough value to prevent this condition, but
 Starting with version 5.0, the `RedisLockRegistry` implements `ExpirableLockRegistry`, which removes locks last acquired more than `age` ago and that are not currently locked.
 
 
-[[redis-stream-inbound]]
-=== Redis Stream Inbound Channel Adapter
-
-TBD
-
 [[redis-stream-outbound]]
 === Redis Stream Outbound Channel Adapter
 
-TBD
+Spring Integration 5.4 introduced Reactive Redis Stream outbound channel adapter to write Message payload into Redis stream.
+Outbound Channel adapter uses `ReactiveStreamOperations.add(...)` to send `Message` to stream.
+The following example shows how to use Java Configuration and Service class for Redis Stream Outbound Channel Adapter.
+
+====
+[source,java]
+----
+@Service
+public class MyService {
+
+    @Autowired
+    private FluxMessageChannel messageChannel;
+
+    public void sendMessage(Flux<Object> myFlux) {
+        messageChannel.subscribeTo(myFlux.map(myObj -> new GenericMessage<>(myObj)));
+    }
+}
+
+@Configuration
+@EnableIntegration
+public class MyConfiguration {
+
+    @Bean
+    FluxMessageChannel messageChannel() {
+        return new FluxMessageChannel();
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "messageChannel")
+    public ReactiveRedisStreamMessageHandler reactiveValidatorMessageHandler(ReactiveRedisConnectionFactory reactiveRedisConnectionFactory) {
+        return new ReactiveRedisStreamMessageHandler(reactiveRedisConnectionFactory, "myStreamKey");
+    }
+}
+----
+====
+
+[[redis-stream-inbound]]
+=== Redis Stream Inbound Channel Adapter
+
+Spring Integration 5.4 introduced the Reactive Stream inbound channel adapter for reading messages from a Redis Stream.
+Inbound channel adapter uses `StreamReceiver.receive(...)` or `StreamReceiver.receiveAutoAck` based on
+auto acknowledgement flag to read `Message` from redis stream.
+The following example shows how to use JavaConfiguration for Redis Stream Inbound Channel Adapter.
+
+====
+[source,java]
+----
+@Configuration
+@EnableIntegration
+public class MyConfiguration {
+
+    @Bean
+    FluxMessageChannel fluxMessageChannel() {
+        return new FluxMessageChannel();
+    }
+
+    @Bean
+    public IntegrationFlow myFlow() {
+        return IntegrationFlows
+                    .from(fluxMessageChannel())
+                    .get();
+    }
+
+    @Bean
+    ReactiveRedisStreamMessageProducer reactiveRedisStreamProducer(ReactiveRedisConnectionFactory reactiveRedisConnectionFactory) {
+    	ReactiveRedisStreamMessageProducer messageProducer =
+                new ReactiveRedisStreamMessageProducer(reactiveRedisConnectionFactory, "myStreamKey");
+        messageProducer.setStreamReceiverOptions( <1>
+                StreamReceiver.StreamReceiverOptions.builder()
+                        .pollTimeout("")
+                        .build());
+        messageProducer.setAutoStartup(""); <2>
+        messageProducer.setAutoAck(""); <3>
+        messageProducer.setCreateConsumerGroup(""); <4>
+        messageProducer.setConsumerGroup(""); <5>
+        messageProducer.setConsumerName(""); <6>
+        messageProducer.setOutputChannel(fluxMessageChannel()); <7>
+        messageProducer.setReadOffset(""); <8>
+        messageProducer.extractPayload(""); <9>
+        return messageProducer;
+    }
+}
+----
+<1> `StreamReceiver.StreamReceiverOptions` Options to consume redis stream using reactive infrastructure.
+<2> A `SmartLifecycle` attribute to specify whether this endpoint should start automatically after the application context start or not.
+It defaults to `true`. if `false`, RedisStreamMessageProducer should be started manually `messageProducer.start()`.
+<3> if `false`, Received messages are not auto acknowledged. The acknowledgement of the message will be deferred to the client consuming message.
+It defaults to `true`. If there is `SerializationException` message will be sent to `error-channel` and auto-acknowledged.
+<4> if `true`, Consumer Group will be created. During creation of consumer group stream will be created too.
+It defaults to `false`.
+<5> Set Consumer Group name.
+<6> Set Consumer name.
+<7> The message channel to which to send `Message` instances from this endpoint. The channel should be `FluxMessageChannel`. See <<./channel.adoc#flux-message-channel,`FluxMessageChannel`>> for more information.
+<8> Define the offset to read message.
+It defaults to `ReadOffset.latest()`.
+<9> If 'true', channel adapter will extract payload.
+It defaults to `true`.
+====
