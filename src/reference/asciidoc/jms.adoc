@@ -87,6 +87,17 @@ If you prefer to have the raw JMS message as the Spring Integration message's pa
 ====
 
 Starting with version 5.0.8, a default value of the `receive-timeout` is `-1` (no wait) for the `org.springframework.jms.connection.CachingConnectionFactory` and `cacheConsumers`, otherwise it is 1 second.
+The JMS Inbound Channel Adapter crates a `DynamicJmsTemplate` based on the provided `ConnectionFactory` and options.
+If an external `JmsTemplate` is required (e.g. in Spring Boot environment), or `ConnectionFactory` is not caching, or no `cacheConsumers`, it is recommended to set `jmsTemplate.receiveTimeout(-1)` if a non-blocking consumption is expected:
+
+====
+[source,java]
+----
+Jms.inboundAdapter(connectionFactory)
+        .destination(queueName)
+        .configureJmsTemplate(template -> template.receiveTimeout(-1))
+----
+====
 
 [[jms-ib-transactions]]
 ==== Transactions
