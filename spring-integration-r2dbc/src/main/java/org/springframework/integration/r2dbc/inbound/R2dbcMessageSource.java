@@ -25,6 +25,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.r2dbc.convert.EntityRowMapper;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.data.r2dbc.core.StatementMapper;
+import org.springframework.data.relational.core.sql.SqlIdentifier;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -65,6 +66,8 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 
 	private final StatementMapper statementMapper;
 
+	private final SelectCreator selectCreator = new SelectCreator();
+
 	private final Expression queryExpression;
 
 	private Class<?> payloadType = Map.class;
@@ -95,12 +98,12 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 
 	/**
 	 * Create an instance with the provided {@link R2dbcEntityOperations} and SpEL expression
-	 * which should resolve to a Relational 'query' string.
+	 * which should resolve to a query string or {@link StatementMapper.SelectSpec} instance.
 	 * It assumes that the {@link R2dbcEntityOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 * @param r2dbcEntityOperations  The reactive for performing database calls.
-	 * @param queryExpression The query expression. The root object for evaluation context is a {@link StatementMapper}
-	 * for its {@link StatementMapper#createSelect} fluent API.
+	 * @param queryExpression The query expression. The root object for evaluation context is a {@link SelectCreator}
+	 * for delegation int the {@link StatementMapper#createSelect} fluent API.
 	 */
 	@SuppressWarnings("deprecation")
 	public R2dbcMessageSource(R2dbcEntityOperations r2dbcEntityOperations, Expression queryExpression) {
@@ -113,9 +116,8 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	}
 
 	/**
-	 * Provide a way to set the type of the entityClass that will be passed to the
-	 * {@link DatabaseClient#sql(String)} method.
-	 * @param payloadType The t class.
+	 * Set the type of the entityClass which is used for the {@link EntityRowMapper}.
+	 * @param payloadType The class to use.
 	 */
 	public void setPayloadType(Class<?> payloadType) {
 		Assert.notNull(payloadType, "'payloadType' must not be null");
@@ -123,18 +125,16 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	}
 
 	/**
-	 * Provide a way to set update query that will be passed to the
-	 * {@link DatabaseClient#sql(String)} method.
-	 * @param updateSql Update query string.
+	 * Set an update query that will be passed to the {@link DatabaseClient#sql(String)} method.
+	 * @param updateSql the update query string.
 	 */
 	public void setUpdateSql(String updateSql) {
 		this.updateSql = updateSql;
 	}
 
 	/**
-	 * Provide a way to set BindFunction which will be used to bind parameters
-	 * in the update query.
-	 * @param bindFunction The bindFunction.
+	 * Set a {@link BiFunction} which is used to bind parameters into the update query.
+	 * @param bindFunction the {@link BiFunction} to use.
 	 */
 	@SuppressWarnings("unchecked")
 	public void setBindFunction(
@@ -145,7 +145,7 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	}
 
 	/**
-	 * Provide a way to manage which find* method to invoke on {@link R2dbcEntityOperations}.
+	 * The flag to manage which find* method to invoke on {@link R2dbcEntityOperations}.
 	 * Default is 'false', which means the {@link #receive()} method will use
 	 * the {@link DatabaseClient#sql(String)} method and will fetch all. If set
 	 * to 'true'{@link #receive()} will use {@link DatabaseClient#sql(String)}
@@ -179,14 +179,14 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 	 * or a single element of type identified by {@link #payloadType}
 	 * based on the value of {@link #expectSingleResult} attribute which defaults to 'false' resulting
 	 * {@link org.springframework.messaging.Message} with payload of type
-	 * {@link reactor.core.publisher.Flux}. The collection name used in the
+	 * {@link reactor.core.publisher.Flux}.
 	 */
 	@Override
 	protected Object doReceive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		Mono<RowsFetchSpec<?>> queryMono =
 				Mono.fromSupplier(() ->
-						this.queryExpression.getValue(this.evaluationContext, this.statementMapper))
+						this.queryExpression.getValue(this.evaluationContext, this.selectCreator))
 						.map(this::prepareFetch);
 		if (this.expectSingleResult) {
 			return queryMono.flatMap(RowsFetchSpec::one)
@@ -224,6 +224,25 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 		}
 		throw new IllegalStateException("'queryExpression' must evaluate to String " +
 				"or org.springframework.data.r2dbc.core.StatementMapper.SelectSpec, but not: " + queryObject);
+	}
+
+	/**
+	 * An instance of this class is used as a root object for query expression
+	 * to give a limited access only to the {@link StatementMapper#createSelect} fluent API.
+	 */
+	public class SelectCreator {
+
+		SelectCreator() {
+		}
+
+		public StatementMapper.SelectSpec createSelect(String table) {
+			return R2dbcMessageSource.this.statementMapper.createSelect(table);
+		}
+
+		public StatementMapper.SelectSpec createSelect(SqlIdentifier table) {
+			return R2dbcMessageSource.this.statementMapper.createSelect(table);
+		}
+
 	}
 
 }
