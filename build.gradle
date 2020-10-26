@@ -647,6 +647,7 @@ project('spring-integration-r2dbc') {
 		}
 		api 'org.springframework:spring-r2dbc'
 		testImplementation "io.r2dbc:r2dbc-h2:$r2dbch2Version"
+		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }
 
