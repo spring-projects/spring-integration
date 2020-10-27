@@ -826,7 +826,7 @@ public class MyClass {
         messageProducer.setCreateConsumerGroup(true); <5>
         messageProducer.setConsumerGroup("my-group"); <6>
         messageProducer.setConsumerName("my-consumer"); <7>
-        messageProducer.setOutputChannel(messageChannel()); <8>
+        messageProducer.setOutputChannel(""); <8>
         messageProducer.setReadOffset(ReadOffset.latest()); <9>
         messageProducer.extractPayload(true); <10>
         return messageProducer;
