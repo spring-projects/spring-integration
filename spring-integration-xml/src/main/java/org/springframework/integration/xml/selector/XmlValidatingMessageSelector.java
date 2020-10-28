@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,10 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.xml.sax.SAXParseException;
 
 import org.springframework.core.io.Resource;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.xml.AggregatedXmlMessageValidationException;
@@ -65,7 +64,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 
 	}
 
-	private static final Log LOGGER = LogFactory.getLog(XmlValidatingMessageSelector.class);
+	private static final LogAccessor LOGGER = new LogAccessor(XmlValidatingMessageSelector.class);
 
 	private final XmlValidator xmlValidator;
 
@@ -98,9 +97,9 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 
 	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws IOException {
 		this(schema,
-				StringUtils.isEmpty(schemaType)
-						? null
-						: SchemaType.valueOf(schemaType.toUpperCase().replaceFirst("-", "_")));
+				StringUtils.hasText(schemaType)
+						? SchemaType.valueOf(schemaType.toUpperCase().replaceFirst("-", "_"))
+						: null);
 	}
 
 
@@ -133,9 +132,9 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 				throw new MessageRejectedException(message, exceptionMessage,
 						new AggregatedXmlMessageValidationException(Arrays.asList(validationExceptions)));
 			}
-			else if (LOGGER.isInfoEnabled()) {
-				LOGGER.info(exceptionMessage,
-						new AggregatedXmlMessageValidationException(Arrays.asList(validationExceptions)));
+			else {
+				LOGGER.info(new AggregatedXmlMessageValidationException(Arrays.asList(validationExceptions)),
+						exceptionMessage);
 			}
 		}
 		return validationSuccess;

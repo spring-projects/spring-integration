@@ -169,7 +169,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	protected void onInit() {
 		super.onInit();
 		this.streamReceiver = StreamReceiver.create(this.reactiveConnectionFactory, this.streamReceiverOptions);
-		if (StringUtils.hasText(this.consumerName) && StringUtils.isEmpty(this.consumerGroup)) {
+		if (StringUtils.hasText(this.consumerName) && !StringUtils.hasText(this.consumerGroup)) {
 			this.consumerGroup = getBeanName();
 		}
 		ReactiveRedisTemplate<String, ?> reactiveRedisTemplate =
@@ -185,7 +185,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 		Flux<? extends Record<String, ?>> events;
 
-		if (StringUtils.isEmpty(this.consumerName)) {
+		if (!StringUtils.hasText(this.consumerName)) {
 			events = this.streamReceiver.receive(offset);
 		}
 		else {
