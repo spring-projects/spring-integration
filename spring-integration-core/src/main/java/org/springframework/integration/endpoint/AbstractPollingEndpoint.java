@@ -53,6 +53,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.ReflectionUtils;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -354,7 +355,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private Message<?> doPoll() {
 		IntegrationResourceHolder holder = bindResourceHolderIfNecessary(getResourceKey(), getResourceToBind());
-		Message<?> message;
+		Message<?> message = null;
 		try {
 			message = receiveMessage();
 		}
@@ -366,7 +367,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				return null;
 			}
 			else {
-				throw (RuntimeException) e;
+				ReflectionUtils.rethrowRuntimeException(e);
 			}
 		}
 
