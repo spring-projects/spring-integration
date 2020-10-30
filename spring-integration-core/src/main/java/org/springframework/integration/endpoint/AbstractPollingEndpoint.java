@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Mark Fisher
@@ -252,7 +253,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				return false;
 			}
 			else {
-				throw (RuntimeException) e;
+				ReflectionUtils.rethrowRuntimeException(e);
 			}
 		}
 		boolean result;
