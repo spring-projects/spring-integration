@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,8 +108,6 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	private AbstractBrokerMessageHandler brokerHandler;
 
-	private volatile boolean active;
-
 	public WebSocketInboundChannelAdapter(IntegrationWebSocketContainer webSocketContainer) {
 		this(webSocketContainer, new SubProtocolHandlerRegistry(new PassThruSubProtocolHandler()));
 	}
@@ -127,10 +125,10 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 					try {
 						handleMessageAndSend(message);
 					}
-					catch (Exception e) {
+					catch (Exception ex) {
 						throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
 								() -> "Failed to handle and process message in the ["
-										+ WebSocketInboundChannelAdapter.this + ']', e);
+										+ WebSocketInboundChannelAdapter.this + ']', ex);
 					}
 				});
 	}
@@ -267,7 +265,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	@Override
 	protected void doStart() {
-		this.active = true;
+		super.doStart();
 		if (this.webSocketContainer instanceof Lifecycle) {
 			((Lifecycle) this.webSocketContainer).start();
 		}
@@ -275,17 +273,18 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	@Override
 	protected void doStop() {
-		this.active = false;
+		super.doStop();
 		if (this.webSocketContainer instanceof Lifecycle) {
 			((Lifecycle) this.webSocketContainer).stop();
 		}
 	}
 
-	private boolean isActive() {
-		if (!this.active) {
+	public boolean isActive() {
+		boolean active = super.isActive();
+		if (!active) {
 			logger.warn("MessageProducer '" + this + "' isn't started to accept WebSocket events.");
 		}
-		return this.active;
+		return active;
 	}
 
 	@SuppressWarnings("unchecked")
