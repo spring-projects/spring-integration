@@ -66,6 +66,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	private boolean shouldTrack = false;
 
+	private volatile boolean active;
+
 	protected MessageProducerSupport() {
 		this.setPhase(Integer.MAX_VALUE / 2);
 	}
@@ -159,6 +161,14 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		return this.messagingTemplate;
 	}
 
+	protected void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public boolean isActive() {
+		return this.active;
+	}
+
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
 		return IntegrationPatternType.inbound_channel_adapter;
@@ -187,6 +197,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 */
 	@Override
 	protected void doStart() {
+		setActive(true);
 	}
 
 	/**
@@ -196,6 +207,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 */
 	@Override
 	protected void doStop() {
+		setActive(false);
 	}
 
 	protected void sendMessage(Message<?> messageArg) {
@@ -222,7 +234,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 						.map(this::trackMessageIfAny)
 						.doOnComplete(this::stop)
 						.doOnCancel(this::stop)
-						.takeWhile((message) -> isRunning());
+						.takeWhile((message) -> isActive());
 
 		if (channelForSubscription instanceof ReactiveStreamsSubscribableChannel) {
 			((ReactiveStreamsSubscribableChannel) channelForSubscription).subscribeTo(messageFlux);

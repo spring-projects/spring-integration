@@ -94,11 +94,12 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.sink.asFlux()
-				.doFinally((s) -> this.subscribedSignal.tryEmitNext(this.sink.currentSubscriberCount() > 0))
+				.doFinally((sub) ->
+						this.subscribedSignal.emitNext(this.sink.currentSubscriberCount() > 0,
+								Sinks.EmitFailureHandler.FAIL_FAST))
+				.doOnSubscribe((sub) -> this.subscribedSignal.emitNext(true, Sinks.EmitFailureHandler.FAIL_FAST))
 				.share()
 				.subscribe(subscriber);
-
-		this.subscribedSignal.tryEmitNext(this.sink.currentSubscriberCount() > 0);
 	}
 
 	@Override
@@ -125,6 +126,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	public void destroy() {
 		this.active = false;
 		this.upstreamSubscriptions.dispose();
+		this.subscribedSignal.emitNext(false, Sinks.EmitFailureHandler.FAIL_FAST);
 		this.subscribedSignal.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
 		this.sink.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
 		super.destroy();
