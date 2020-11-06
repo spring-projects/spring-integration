@@ -82,8 +82,6 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 
 	private boolean rightPop = true;
 
-	private volatile boolean active;
-
 	private volatile boolean listening;
 
 	private volatile Runnable stopCallback;
@@ -243,7 +241,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		}
 		catch (Exception e) {
 			this.listening = false;
-			if (this.active) {
+			if (isActive()) {
 				logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
 						+ " milliseconds.", e);
 				publishException(e);
@@ -258,10 +256,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 
 	@Override
 	protected void doStart() {
-		if (!this.active) {
-			this.active = true;
-			this.restart();
-		}
+		restart();
 	}
 
 	/**
@@ -304,7 +299,6 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 	@Override
 	protected void doStop() {
 		super.doStop();
-		this.active = false;
 		this.listening = false;
 	}
 
@@ -346,14 +340,14 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		@Override
 		public void run() {
 			try {
-				while (RedisQueueMessageDrivenEndpoint.this.active) {
+				while (isActive()) {
 					RedisQueueMessageDrivenEndpoint.this.listening = true;
-					RedisQueueMessageDrivenEndpoint.this.popMessageAndSend();
+					popMessageAndSend();
 				}
 			}
 			finally {
-				if (RedisQueueMessageDrivenEndpoint.this.active) {
-					RedisQueueMessageDrivenEndpoint.this.restart();
+				if (isActive()) {
+					restart();
 				}
 				else if (RedisQueueMessageDrivenEndpoint.this.stopCallback != null) {
 					RedisQueueMessageDrivenEndpoint.this.stopCallback.run();

@@ -81,8 +81,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 
 	private boolean extractPayload = true;
 
-	private volatile boolean active;
-
 	private volatile boolean listening;
 
 	private volatile Runnable stopCallback;
@@ -173,7 +171,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 
 	private void handlePopException(Exception e) {
 		this.listening = false;
-		if (this.active) {
+		if (isActive()) {
 			logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
 					+ " milliseconds.", e);
 			publishException(e);
@@ -196,7 +194,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		}
 		String uuid = null;
 		if (value != null) {
-			if (!this.active) {
+			if (!isActive()) {
 				this.boundListOperations.rightPush(value);
 				return;
 			}
@@ -213,7 +211,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 			}
 			Message<Object> requestMessage = null;
 			if (value != null) {
-				if (!this.active) {
+				if (!isActive()) {
 					this.template.boundListOps(uuid).rightPush(value);
 					byte[] serialized = stringSerializer.serialize(uuid);
 					if (serialized != null) {
@@ -281,10 +279,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	@Override
 	protected void doStart() {
 		super.doStart();
-		if (!this.active) {
-			this.active = true;
-			this.restart();
-		}
+		restart();
 	}
 
 	/**
@@ -327,7 +322,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	@Override
 	protected void doStop() {
 		super.doStop();
-		this.active = false;
 		this.listening = false;
 	}
 
@@ -369,13 +363,13 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		@Override
 		public void run() {
 			try {
-				while (RedisQueueInboundGateway.this.active) {
+				while (isActive()) {
 					RedisQueueInboundGateway.this.listening = true;
 					receiveAndReply();
 				}
 			}
 			finally {
-				if (RedisQueueInboundGateway.this.active) {
+				if (isActive()) {
 					restart();
 				}
 				else if (RedisQueueInboundGateway.this.stopCallback != null) {

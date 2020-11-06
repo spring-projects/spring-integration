@@ -16,7 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
@@ -50,17 +50,18 @@ public class ReactiveMessageProducerTests {
 
 	@Test
 	public void test() {
-		assertThat(this.producer.isRunning()).isTrue();
+		StepVerifier stepVerifier =
+				StepVerifier.create(
+						Flux.from(this.fluxMessageChannel)
+								.map(Message::getPayload)
+								.cast(String.class))
+						.expectNext("test1", "test2")
+						.thenCancel()
+						.verifyLater();
 
-		StepVerifier.create(
-				Flux.from(this.fluxMessageChannel)
-						.map(Message::getPayload)
-						.cast(String.class))
-				.expectNext("test1", "test2")
-				.thenCancel()
-				.verify();
+		this.producer.start();
 
-		assertThat(this.producer.isRunning()).isFalse();
+		stepVerifier.verify(Duration.ofSeconds(10));
 	}
 
 	@Configuration
@@ -79,10 +80,12 @@ public class ReactiveMessageProducerTests {
 
 						@Override
 						protected void doStart() {
+							super.doStart();
 							subscribeToPublisher(Flux.just("test1", "test2").map(GenericMessage::new));
 						}
 
 					};
+			producer.setAutoStartup(false);
 			producer.setOutputChannel(fluxMessageChannel());
 			return producer;
 		}

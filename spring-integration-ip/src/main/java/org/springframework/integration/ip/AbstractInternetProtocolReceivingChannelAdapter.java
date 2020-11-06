@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.ip;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -32,6 +31,8 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public abstract class AbstractInternetProtocolReceivingChannelAdapter
@@ -55,8 +56,6 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	private boolean taskExecutorSet;
 
 	private int poolSize = 5;
-
-	private volatile boolean active;
 
 	private volatile boolean listening;
 
@@ -108,48 +107,6 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		return this.receiveBufferSize;
 	}
 
-	/**
-	 * Protected by lifecycleLock
-	 */
-	@Override
-	protected void doStart() {
-		if (!this.active) {
-			this.active = true;
-			String beanName = this.getComponentName();
-			checkTaskExecutor((beanName == null ? "" : beanName + "-") + this.getComponentType());
-			this.taskExecutor.execute(this);
-		}
-	}
-
-	/**
-	 * Creates a default task executor if none was supplied.
-	 *
-	 * @param threadName The thread name.
-	 */
-	protected void checkTaskExecutor(final String threadName) {
-		if (this.active && this.taskExecutor == null) {
-			Executor executor = Executors.newFixedThreadPool(this.poolSize, new ThreadFactory() {
-				@Override
-				public Thread newThread(Runnable runner) {
-					Thread thread = new Thread(runner);
-					thread.setName(threadName);
-					thread.setDaemon(true);
-					return thread;
-				}
-			});
-			this.taskExecutor = executor;
-		}
-	}
-
-	@Override
-	protected void doStop() {
-		this.active = false;
-		if (!this.taskExecutorSet && this.taskExecutor != null) {
-			((ExecutorService) this.taskExecutor).shutdown();
-			this.taskExecutor = null;
-		}
-	}
-
 	public boolean isListening() {
 		return this.listening;
 	}
@@ -197,10 +154,39 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	}
 
 	/**
-	 * @return the active
+	 * Protected by lifecycleLock
 	 */
-	public boolean isActive() {
-		return this.active;
+	@Override
+	protected void doStart() {
+		String beanName = getComponentName();
+		checkTaskExecutor((beanName == null ? "" : beanName + "-") + getComponentType());
+		this.taskExecutor.execute(this);
+	}
+
+	/**
+	 * Creates a default task executor if none was supplied.
+	 *
+	 * @param threadName The thread name.
+	 */
+	protected void checkTaskExecutor(final String threadName) {
+		if (isActive() && this.taskExecutor == null) {
+			this.taskExecutor =
+					Executors.newFixedThreadPool(this.poolSize,
+							(runner) -> {
+						Thread thread = new Thread(runner);
+						thread.setName(threadName);
+						thread.setDaemon(true);
+						return thread;
+					});
+		}
+	}
+
+	@Override
+	protected void doStop() {
+		if (!this.taskExecutorSet && this.taskExecutor != null) {
+			((ExecutorService) this.taskExecutor).shutdown();
+			this.taskExecutor = null;
+		}
 	}
 
 }
