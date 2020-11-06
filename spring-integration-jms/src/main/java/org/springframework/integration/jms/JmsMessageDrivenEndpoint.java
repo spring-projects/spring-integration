@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 	 */
 	public JmsMessageDrivenEndpoint(AbstractMessageListenerContainer listenerContainer,
 			ChannelPublishingJmsMessageListener listener) {
+
 		this(listenerContainer, listener, true);
 	}
 
@@ -65,11 +66,12 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 	 * 'transacted'.
 	 * @param listenerContainer the container.
 	 * @param listener the listener.
-	 * @param externalContainer true if the container is externally configured and should not have its ackmode
+	 * @param externalContainer true if the container is externally configured and should not have its ack mode
 	 * coerced when no sessionAcknowledgeMode was supplied.
 	 */
 	private JmsMessageDrivenEndpoint(AbstractMessageListenerContainer listenerContainer,
 			ChannelPublishingJmsMessageListener listener, boolean externalContainer) {
+
 		Assert.notNull(listenerContainer, "listener container must not be null");
 		Assert.notNull(listener, "listener must not be null");
 		if (listenerContainer.getMessageListener() != null) {
@@ -171,12 +173,12 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 		if (!this.listenerContainer.isActive()) {
 			this.listenerContainer.afterPropertiesSet();
 		}
-		String sessionAckeMode = this.sessionAcknowledgeMode;
-		if (sessionAckeMode == null && !this.externalContainer
+		String sessionAckMode = this.sessionAcknowledgeMode;
+		if (sessionAckMode == null && !this.externalContainer
 				&& DefaultMessageListenerContainer.class.isAssignableFrom(this.listenerContainer.getClass())) {
-			sessionAckeMode = JmsAdapterUtils.SESSION_TRANSACTED_STRING;
+			sessionAckMode = JmsAdapterUtils.SESSION_TRANSACTED_STRING;
 		}
-		Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(sessionAckeMode);
+		Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(sessionAckMode);
 		if (acknowledgeMode != null) {
 			if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
 				this.listenerContainer.setSessionTransacted(true);
@@ -185,7 +187,7 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 				this.listenerContainer.setSessionAcknowledgeMode(acknowledgeMode);
 			}
 		}
-		this.listener.setComponentName(this.getComponentName());
+		this.listener.setComponentName(getComponentName());
 	}
 
 	@Override
@@ -212,21 +214,13 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 
 	@Override
 	public void destroy() {
-		if (this.isRunning()) {
-			this.stop();
-		}
+		super.destroy();
 		this.listenerContainer.destroy();
-		try {
-			super.destroy();
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
 	}
 
 	@Override
 	public int beforeShutdown() {
-		this.stop();
+		stop();
 		return 0;
 	}
 

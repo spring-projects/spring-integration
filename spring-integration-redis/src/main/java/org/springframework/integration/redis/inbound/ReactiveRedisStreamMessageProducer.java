@@ -179,8 +179,6 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	@Override
 	protected void doStart() {
-		super.doStart();
-
 		StreamOffset<String> offset = StreamOffset.create(this.streamKey, this.readOffset);
 
 		Flux<? extends Record<String, ?>> events;

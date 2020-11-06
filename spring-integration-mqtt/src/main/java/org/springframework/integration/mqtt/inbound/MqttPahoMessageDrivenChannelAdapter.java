@@ -200,7 +200,6 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	@Override
 	protected void doStart() {
 		Assert.state(getTaskScheduler() != null, "A 'taskScheduler' is required");
-		super.doStart();
 		try {
 			connectAndSubscribe();
 		}
@@ -213,7 +212,6 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	@Override
 	protected synchronized void doStop() {
 		cancelReconnect();
-		super.doStop();
 		if (this.client != null) {
 			try {
 				if (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_ALWAYS)

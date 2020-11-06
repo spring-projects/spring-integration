@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -33,8 +34,8 @@ public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 
 	private volatile boolean udpAdapterSet;
 
-	public void setUdpAdapter(UnicastReceivingChannelAdapter udpAdpter) {
-		this.udpAdapter = udpAdpter;
+	public void setUdpAdapter(UnicastReceivingChannelAdapter udpAdapter) {
+		this.udpAdapter = udpAdapter;
 		this.udpAdapterSet = true;
 	}
 
@@ -65,7 +66,7 @@ public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 					"of the provided 'UnicastReceivingChannelAdapter' to support Syslog conversion " +
 					"for the incoming UDP packets");
 		}
-		this.udpAdapter.setOutputChannel(new FixedSubscriberChannel(message -> convertAndSend(message)));
+		this.udpAdapter.setOutputChannel(new FixedSubscriberChannel(this::convertAndSend));
 		if (!this.udpAdapterSet) {
 			this.udpAdapter.afterPropertiesSet();
 		}
@@ -73,13 +74,11 @@ public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 
 	@Override
 	protected void doStart() {
-		super.doStart();
 		this.udpAdapter.start();
 	}
 
 	@Override
 	protected void doStop() {
-		super.doStop();
 		this.udpAdapter.stop();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @see ApplicationEventMulticaster
  * @see ExpressionMessageProducerSupport
  */
@@ -50,8 +51,6 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	private volatile Set<ResolvableType> eventTypes;
 
 	private ApplicationEventMulticaster applicationEventMulticaster;
-
-	private volatile boolean active;
 
 	private volatile long stoppedAt;
 
@@ -66,14 +65,13 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * In addition, this method re-registers the current instance as a {@link GenericApplicationListener}
 	 * with the {@link ApplicationEventMulticaster} which clears the listener cache. The cache will be
 	 * refreshed on the next appropriate {@link ApplicationEvent}.
-	 *
 	 * @param eventTypes The event types.
 	 * @see ApplicationEventMulticaster#addApplicationListener
 	 * @see #supportsEventType
 	 */
 	public final void setEventTypes(Class<?>... eventTypes) {
 		Assert.notNull(eventTypes, "'eventTypes' must not be null");
-		Set<ResolvableType> eventSet = new HashSet<ResolvableType>(eventTypes.length);
+		Set<ResolvableType> eventSet = new HashSet<>(eventTypes.length);
 		for (Class<?> eventType : eventTypes) {
 			if (eventType != null) {
 				eventSet.add(ResolvableType.forClass(eventType));
@@ -94,7 +92,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	@Override
 	protected void onInit() {
 		super.onInit();
-		this.applicationEventMulticaster = this.getBeanFactory()
+		this.applicationEventMulticaster = getBeanFactory()
 				.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
 						ApplicationEventMulticaster.class);
 		Assert.notNull(this.applicationEventMulticaster,
@@ -104,21 +102,23 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
-		if (this.active || ((event instanceof ContextStoppedEvent || event instanceof ContextClosedEvent)
-				&& this.stoppedRecently())) {
-			if (event.getSource() instanceof Message<?>) {
-				this.sendMessage((Message<?>) event.getSource());
+		if (isActive() || ((event instanceof ContextStoppedEvent || event instanceof ContextClosedEvent)
+				&& stoppedRecently())) {
+
+			Object source = event.getSource();
+			if (source instanceof Message<?>) {
+				sendMessage((Message<?>) source);
 			}
 			else {
-				Message<?> message = null;
+				Message<?> message;
 				Object result = extractObjectToSend(event);
 				if (result instanceof Message) {
 					message = (Message<?>) result;
 				}
 				else {
-					message = this.getMessageBuilderFactory().withPayload(result).build();
+					message = getMessageBuilderFactory().withPayload(result).build();
 				}
-				this.sendMessage(message);
+				sendMessage(message);
 			}
 		}
 	}
@@ -176,14 +176,9 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	}
 
 	@Override
-	protected void doStart() {
-		this.active = true;
-	}
-
-	@Override
 	protected void doStop() {
 		this.stoppedAt = System.currentTimeMillis();
-		this.active = false;
+		super.doStop();
 	}
 
 }

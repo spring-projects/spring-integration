@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -40,11 +41,13 @@ import org.springframework.util.Assert;
  * a client factory, the sender owns the connection.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
 public class TcpReceivingChannelAdapter
-	extends MessageProducerSupport implements TcpListener, ClientModeCapable, OrderlyShutdownCapable {
+		extends MessageProducerSupport implements TcpListener, ClientModeCapable, OrderlyShutdownCapable {
 
 	private AbstractConnectionFactory clientConnectionFactory;
 
@@ -60,8 +63,6 @@ public class TcpReceivingChannelAdapter
 
 	private volatile ClientModeConnectionManager clientModeConnectionManager;
 
-	private volatile boolean active;
-
 	private volatile boolean shuttingDown;
 
 	private final AtomicInteger activeCount = new AtomicInteger();
@@ -71,9 +72,7 @@ public class TcpReceivingChannelAdapter
 		boolean isErrorMessage = message instanceof ErrorMessage;
 		try {
 			if (this.shuttingDown) {
-				if (logger.isInfoEnabled()) {
-					logger.info("Inbound message ignored; shutting down; " + message.toString());
-				}
+				logger.info(() -> "Inbound message ignored; shutting down; " + message.toString());
 			}
 			else {
 				if (isErrorMessage) {
@@ -123,41 +122,33 @@ public class TcpReceivingChannelAdapter
 
 	@Override // protected by super#lifecycleLock
 	protected void doStart() {
-		super.doStart();
-		if (!this.active) {
-			this.active = true;
-			this.shuttingDown = false;
-			if (this.serverConnectionFactory != null) {
-				this.serverConnectionFactory.start();
-			}
-			if (this.clientConnectionFactory != null) {
-				this.clientConnectionFactory.start();
-			}
-			if (this.isClientMode) {
-				ClientModeConnectionManager manager = new ClientModeConnectionManager(
-						this.clientConnectionFactory);
-				this.clientModeConnectionManager = manager;
-				Assert.state(this.getTaskScheduler() != null, "Client mode requires a task scheduler");
-				this.scheduledFuture = this.getTaskScheduler().scheduleAtFixedRate(manager, this.retryInterval);
-			}
+		this.shuttingDown = false;
+		if (this.serverConnectionFactory != null) {
+			this.serverConnectionFactory.start();
+		}
+		if (this.clientConnectionFactory != null) {
+			this.clientConnectionFactory.start();
+		}
+		if (this.isClientMode) {
+			ClientModeConnectionManager manager = new ClientModeConnectionManager(this.clientConnectionFactory);
+			this.clientModeConnectionManager = manager;
+			TaskScheduler taskScheduler = getTaskScheduler();
+			Assert.state(taskScheduler != null, "Client mode requires a task scheduler");
+			this.scheduledFuture = taskScheduler.scheduleAtFixedRate(manager, this.retryInterval);
 		}
 	}
 
 	@Override // protected by super#lifecycleLock
 	protected void doStop() {
-		super.doStop();
-		if (this.active) {
-			this.active = false;
-			if (this.scheduledFuture != null) {
-				this.scheduledFuture.cancel(true);
-			}
-			this.clientModeConnectionManager = null;
-			if (this.clientConnectionFactory != null) {
-				this.clientConnectionFactory.stop();
-			}
-			if (this.serverConnectionFactory != null) {
-				this.serverConnectionFactory.stop();
-			}
+		if (this.scheduledFuture != null) {
+			this.scheduledFuture.cancel(true);
+		}
+		this.clientModeConnectionManager = null;
+		if (this.clientConnectionFactory != null) {
+			this.clientConnectionFactory.stop();
+		}
+		if (this.serverConnectionFactory != null) {
+			this.serverConnectionFactory.stop();
 		}
 	}
 
@@ -165,7 +156,6 @@ public class TcpReceivingChannelAdapter
 	 * Sets the client or server connection factory; for this (an inbound adapter), if
 	 * the factory is a client connection factory, the sockets are owned by a sending
 	 * channel adapter and this adapter is used to receive replies.
-	 *
 	 * @param connectionFactory the connectionFactory to set
 	 */
 	public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {
@@ -217,8 +207,7 @@ public class TcpReceivingChannelAdapter
 	}
 
 	/**
-	 * @param isClientMode
-	 *            the isClientMode to set
+	 * @param isClientMode the isClientMode to set
 	 */
 	public void setClientMode(boolean isClientMode) {
 		this.isClientMode = isClientMode;
@@ -232,8 +221,7 @@ public class TcpReceivingChannelAdapter
 	}
 
 	/**
-	 * @param retryInterval
-	 *            the retryInterval to set
+	 * @param retryInterval the retryInterval to set
 	 */
 	public void setRetryInterval(long retryInterval) {
 		this.retryInterval = retryInterval;
@@ -251,7 +239,7 @@ public class TcpReceivingChannelAdapter
 
 	@Override
 	public void retryConnection() {
-		if (this.active && this.isClientMode && this.clientModeConnectionManager != null) {
+		if (isActive() && this.isClientMode && this.clientModeConnectionManager != null) {
 			this.clientModeConnectionManager.run();
 		}
 	}
@@ -264,7 +252,8 @@ public class TcpReceivingChannelAdapter
 
 	@Override
 	public int afterShutdown() {
-		this.stop();
+		stop();
 		return this.activeCount.get();
 	}
+
 }
