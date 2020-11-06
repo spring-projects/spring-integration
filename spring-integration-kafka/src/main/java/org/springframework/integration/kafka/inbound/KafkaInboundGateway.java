@@ -187,11 +187,13 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 
 	@Override
 	protected void doStart() {
+		super.doStart();
 		this.messageListenerContainer.start();
 	}
 
 	@Override
 	protected void doStop() {
+		super.doStop();
 		this.messageListenerContainer.stop();
 	}
 

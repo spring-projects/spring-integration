@@ -257,8 +257,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 
 	@Override
 	protected void doStart() {
-		super.doStart();
-		this.restart();
+		restart();
 	}
 
 	/**

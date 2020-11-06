@@ -122,7 +122,6 @@ public class TcpReceivingChannelAdapter
 
 	@Override // protected by super#lifecycleLock
 	protected void doStart() {
-		super.doStart();
 		this.shuttingDown = false;
 		if (this.serverConnectionFactory != null) {
 			this.serverConnectionFactory.start();
@@ -141,7 +140,6 @@ public class TcpReceivingChannelAdapter
 
 	@Override // protected by super#lifecycleLock
 	protected void doStop() {
-		super.doStop();
 		if (this.scheduledFuture != null) {
 			this.scheduledFuture.cancel(true);
 		}

@@ -1042,6 +1042,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	@Override
 	public void destroy() {
+		super.destroy();
 		this.gatewayMap.values().forEach(MethodInvocationGateway::destroy);
 	}
 

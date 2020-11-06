@@ -110,7 +110,6 @@ public class MongoDbChangeStreamMessageProducer extends MessageProducerSupport {
 
 	@Override
 	protected void doStart() {
-		super.doStart();
 		Flux<Message<?>> changeStreamFlux =
 				this.mongoOperations.changeStream(this.collection, this.options, this.domainType)
 						.map(event ->

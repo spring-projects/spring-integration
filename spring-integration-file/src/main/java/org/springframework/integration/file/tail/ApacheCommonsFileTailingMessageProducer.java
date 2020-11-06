@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,19 +23,21 @@ import org.apache.commons.io.input.TailerListener;
  * File tailer that delegates to the Apache Commons Tailer.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
 public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageProducerSupport
 		implements TailerListener {
 
+	private long pollingDelay = 1000;
+
+	private boolean end = true;
+
+	private boolean reopen = false;
+
 	private volatile Tailer tailer;
-
-	private volatile long pollingDelay = 1000;
-
-	private volatile boolean end = true;
-
-	private volatile boolean reopen = false;
 
 	/**
 	 * The delay between checks of the file for new content in milliseconds.
@@ -71,8 +73,8 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	@Override
 	protected void doStart() {
 		super.doStart();
-		Tailer theTailer = new Tailer(this.getFile(), this, this.pollingDelay, this.end, this.reopen);
-		this.getTaskExecutor().execute(theTailer);
+		Tailer theTailer = new Tailer(getFile(), this, this.pollingDelay, this.end, this.reopen);
+		getTaskExecutor().execute(theTailer);
 		this.tailer = theTailer;
 	}
 
@@ -88,9 +90,9 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 
 	@Override
 	public void fileNotFound() {
-		this.publish("File not found: " + this.getFile().getAbsolutePath());
+		publish("File not found: " + getFile().getAbsolutePath());
 		try {
-			Thread.sleep(this.getMissingFileDelay());
+			Thread.sleep(getMissingFileDelay());
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
@@ -99,7 +101,7 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 
 	@Override
 	public void fileRotated() {
-		this.publish("File rotated: " + this.getFile().getAbsolutePath());
+		publish("File rotated: " + getFile().getAbsolutePath());
 	}
 
 	@Override
@@ -109,7 +111,7 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 
 	@Override
 	public void handle(Exception ex) {
-		this.publish(ex.getMessage());
+		publish(ex.getMessage());
 	}
 
 }

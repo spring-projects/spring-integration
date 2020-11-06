@@ -158,7 +158,6 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	 */
 	@Override
 	protected void doStart() {
-		super.doStart();
 		String beanName = getComponentName();
 		checkTaskExecutor((beanName == null ? "" : beanName + "-") + getComponentType());
 		this.taskExecutor.execute(this);
@@ -184,7 +183,6 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	@Override
 	protected void doStop() {
-		super.doStop();
 		if (!this.taskExecutorSet && this.taskExecutor != null) {
 			((ExecutorService) this.taskExecutor).shutdown();
 			this.taskExecutor = null;

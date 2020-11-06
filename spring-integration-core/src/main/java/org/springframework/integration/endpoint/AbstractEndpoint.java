@@ -49,14 +49,6 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		implements ManageableSmartLifecycle, DisposableBean {
 
-	private boolean autoStartupSetExplicitly;
-
-	private volatile boolean autoStartup = true;
-
-	private volatile int phase = 0;
-
-	private volatile boolean running;
-
 	protected final ReentrantLock lifecycleLock = new ReentrantLock(); // NOSONAR
 
 	protected final Condition lifecycleCondition = this.lifecycleLock.newCondition(); // NOSONAR
@@ -64,6 +56,16 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 	private String role;
 
 	private SmartLifecycleRoleController roleController;
+
+	private boolean autoStartup = true;
+
+	private boolean autoStartupSetExplicitly;
+
+	private int phase = 0;
+
+	private volatile boolean running;
+
+	private volatile boolean active;
 
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
@@ -122,6 +124,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 
 	@Override
 	public void destroy() {
+		stop();
 		if (this.roleController != null) {
 			this.roleController.removeLifecycle(this);
 		}
@@ -155,6 +158,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		this.lifecycleLock.lock();
 		try {
 			if (!this.running) {
+				this.active = true;
 				doStart();
 				this.running = true;
 				if (logger.isInfoEnabled()) {
@@ -172,6 +176,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		this.lifecycleLock.lock();
 		try {
 			if (this.running) {
+				this.active = false;
 				doStop();
 				this.running = false;
 				if (logger.isInfoEnabled()) {
@@ -189,6 +194,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		this.lifecycleLock.lock();
 		try {
 			if (this.running) {
+				this.active = false;
 				doStop(callback);
 				this.running = false;
 				if (logger.isInfoEnabled()) {
@@ -211,6 +217,10 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 	protected void doStop(Runnable callback) {
 		doStop();
 		callback.run();
+	}
+
+	public boolean isActive() {
+		return this.active;
 	}
 
 	/**

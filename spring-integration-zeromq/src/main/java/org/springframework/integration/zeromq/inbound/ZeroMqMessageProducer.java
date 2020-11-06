@@ -231,7 +231,6 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 
 	@Override
 	protected void doStart() {
-		super.doStart();
 		this.socketMono =
 				Mono.just(this.context.createSocket(this.socketType))
 						.publishOn(this.consumerScheduler)
@@ -293,7 +292,6 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 
 	@Override
 	protected void doStop() {
-		super.doStop();
 		this.socketMono.doOnNext(ZMQ.Socket::close).subscribe();
 	}
 

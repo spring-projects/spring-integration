@@ -63,7 +63,6 @@ public class ReactiveMessageSourceProducer extends MessageProducerSupport {
 
 	@Override
 	protected void doStart() {
-		super.doStart();
 		subscribeToPublisher(this.messageFlux);
 	}
 

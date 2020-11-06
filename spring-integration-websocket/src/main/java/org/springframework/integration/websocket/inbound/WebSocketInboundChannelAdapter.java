@@ -265,7 +265,6 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	@Override
 	protected void doStart() {
-		super.doStart();
 		if (this.webSocketContainer instanceof Lifecycle) {
 			((Lifecycle) this.webSocketContainer).start();
 		}
@@ -273,7 +272,6 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	@Override
 	protected void doStop() {
-		super.doStop();
 		if (this.webSocketContainer instanceof Lifecycle) {
 			((Lifecycle) this.webSocketContainer).stop();
 		}

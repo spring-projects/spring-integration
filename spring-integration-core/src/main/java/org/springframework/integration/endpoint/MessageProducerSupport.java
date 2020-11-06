@@ -66,8 +66,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	private boolean shouldTrack = false;
 
-	private volatile boolean active;
-
 	protected MessageProducerSupport() {
 		this.setPhase(Integer.MAX_VALUE / 2);
 	}
@@ -161,10 +159,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		return this.messagingTemplate;
 	}
 
-	public boolean isActive() {
-		return this.active;
-	}
-
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
 		return IntegrationPatternType.inbound_channel_adapter;
@@ -193,7 +187,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 */
 	@Override
 	protected void doStart() {
-		this.active = true;
 	}
 
 	/**
@@ -203,7 +196,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 */
 	@Override
 	protected void doStop() {
-		this.active = false;
 	}
 
 	protected void sendMessage(Message<?> messageArg) {
@@ -302,12 +294,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		else {
 			return message;
 		}
-	}
-
-	@Override
-	public void destroy() {
-		this.active = false;
-		super.destroy();
 	}
 
 }

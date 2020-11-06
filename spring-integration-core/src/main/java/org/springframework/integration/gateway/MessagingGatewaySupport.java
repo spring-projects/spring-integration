@@ -861,9 +861,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	@Override
 	public void destroy() {
+		super.destroy();
 		this.timers.forEach(MeterFacade::remove);
 		this.timers.clear();
-		super.destroy();
 	}
 
 	private static class DefaultRequestMapper implements InboundMessageMapper<Object> {
