@@ -72,7 +72,9 @@ public class TcpReceivingChannelAdapter
 		boolean isErrorMessage = message instanceof ErrorMessage;
 		try {
 			if (this.shuttingDown) {
-				logger.info(() -> "Inbound message ignored; shutting down; " + message.toString());
+				if (logger.isInfoEnabled()) {
+					logger.info("Inbound message ignored; shutting down; " + message.toString());
+				}
 			}
 			else {
 				if (isErrorMessage) {
