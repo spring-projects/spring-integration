@@ -299,7 +299,6 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 
 	@Override
 	public void destroy() {
-		setActive(false);
 		super.destroy();
 		this.socketMono.doOnNext(ZMQ.Socket::close).block();
 	}

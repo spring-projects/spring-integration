@@ -161,10 +161,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		return this.messagingTemplate;
 	}
 
-	protected void setActive(boolean active) {
-		this.active = active;
-	}
-
 	public boolean isActive() {
 		return this.active;
 	}
@@ -197,7 +193,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 */
 	@Override
 	protected void doStart() {
-		setActive(true);
+		this.active = true;
 	}
 
 	/**
@@ -207,7 +203,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 */
 	@Override
 	protected void doStop() {
-		setActive(false);
+		this.active = false;
 	}
 
 	protected void sendMessage(Message<?> messageArg) {
@@ -306,6 +302,12 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		else {
 			return message;
 		}
+	}
+
+	@Override
+	public void destroy() {
+		this.active = false;
+		super.destroy();
 	}
 
 }
