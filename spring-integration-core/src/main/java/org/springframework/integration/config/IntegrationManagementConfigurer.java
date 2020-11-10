@@ -28,11 +28,12 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
@@ -64,7 +65,7 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("deprecation")
 public class IntegrationManagementConfigurer
 		implements SmartInitializingSingleton, ApplicationContextAware, BeanNameAware,
-		DestructionAwareBeanPostProcessor, DisposableBean {
+		DestructionAwareBeanPostProcessor, ApplicationListener<ContextClosedEvent> {
 
 	private static final Log LOGGER = LogFactory.getLog(IntegrationManagementConfigurer.class);
 
@@ -464,6 +465,13 @@ public class IntegrationManagementConfigurer
 						.build());
 	}
 
+	@Override public void onApplicationEvent(ContextClosedEvent event) {
+		if (event.getApplicationContext().equals(this.applicationContext)) {
+			this.gauges.forEach(MeterFacade::remove);
+			this.gauges.clear();
+		}
+	}
+
 	public String[] getChannelNames() {
 		return this.channelsByName.keySet().toArray(new String[0]);
 	}
@@ -512,12 +520,6 @@ public class IntegrationManagementConfigurer
 			LOGGER.debug("No source found for (" + name + ")");
 		}
 		return null;
-	}
-
-	@Override
-	public void destroy() {
-		this.gauges.forEach(MeterFacade::remove);
-		this.gauges.clear();
 	}
 
 }
