@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,14 +70,13 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 	@Bean(name = IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public IntegrationManagementConfigurer managementConfigurer(ObjectProvider<MetricsCaptor> metricsCaptorProvider) {
-
 		IntegrationManagementConfigurer configurer = new IntegrationManagementConfigurer();
 		setupCountsEnabledNamePatterns(configurer);
 		setupStatsEnabledNamePatterns(configurer);
 		configurer.setDefaultLoggingEnabled(
 				Boolean.parseBoolean(this.environment.resolvePlaceholders(
 						(String) this.attributes.get("defaultLoggingEnabled"))));
-		configurer.setMetricsCaptor(metricsCaptorProvider.getIfUnique());
+		configurer.setMetricsCaptorProvider(metricsCaptorProvider);
 		configurer.setDefaultCountsEnabled(
 				Boolean.parseBoolean(this.environment.resolvePlaceholders(
 						(String) this.attributes.get("defaultCountsEnabled"))));
