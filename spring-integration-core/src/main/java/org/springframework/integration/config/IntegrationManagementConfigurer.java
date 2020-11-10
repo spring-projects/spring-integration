@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
@@ -73,6 +74,8 @@ public class IntegrationManagementConfigurer
 
 	private MetricsCaptor metricsCaptor;
 
+	private ObjectProvider<MetricsCaptor> metricsCaptorProvider;
+
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
@@ -110,12 +113,24 @@ public class IntegrationManagementConfigurer
 		this.metricsCaptor = metricsCaptor;
 	}
 
+	void setMetricsCaptorProvider(ObjectProvider<MetricsCaptor> metricsCaptorProvider) {
+		this.metricsCaptorProvider = metricsCaptorProvider;
+	}
+
+	@Nullable
+	MetricsCaptor obtainMetricsCaptor() {
+		if (this.metricsCaptor == null && this.metricsCaptorProvider != null) {
+			this.metricsCaptor = this.metricsCaptorProvider.getIfUnique();
+		}
+		return this.metricsCaptor;
+	}
+
 	@Override
 	public void afterSingletonsInstantiated() {
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
-		if (this.metricsCaptor != null) {
+		if (obtainMetricsCaptor() != null) {
 			injectCaptor();
 			registerComponentGauges();
 		}
@@ -144,7 +159,7 @@ public class IntegrationManagementConfigurer
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String name) throws BeansException {
-		if (this.singletonsInstantiated && this.metricsCaptor != null && bean instanceof IntegrationManagement) {
+		if (this.singletonsInstantiated && obtainMetricsCaptor() != null && bean instanceof IntegrationManagement) {
 			((IntegrationManagement) bean).registerMetricsCaptor(this.metricsCaptor);
 		}
 		return bean;
