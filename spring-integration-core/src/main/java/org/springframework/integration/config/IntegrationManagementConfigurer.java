@@ -23,11 +23,12 @@ import java.util.Set;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
@@ -53,7 +54,7 @@ import org.springframework.util.Assert;
  */
 public class IntegrationManagementConfigurer
 		implements SmartInitializingSingleton, ApplicationContextAware, BeanNameAware, BeanPostProcessor,
-		DisposableBean {
+		ApplicationListener<ContextClosedEvent> {
 
 	/**
 	 * Bean name of the configurer.
@@ -169,10 +170,11 @@ public class IntegrationManagementConfigurer
 						.build());
 	}
 
-	@Override
-	public void destroy() {
-		this.gauges.forEach(MeterFacade::remove);
-		this.gauges.clear();
+	@Override public void onApplicationEvent(ContextClosedEvent event) {
+		if (event.getApplicationContext().equals(this.applicationContext)) {
+			this.gauges.forEach(MeterFacade::remove);
+			this.gauges.clear();
+		}
 	}
 
 	private static ManagementOverrides getOverrides(IntegrationManagement bean) {
