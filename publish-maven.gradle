@@ -30,19 +30,19 @@ publishing {
 					developer {
 						id = 'abilan'
 						name = 'Artem Bilan'
-						email = 'abilan@pivotal.io'
+						email = 'abilan@vmware.com'
 						roles = ["project lead"]
 					}
 					developer {
 						id = 'garyrussell'
 						name = 'Gary Russell'
-						email = 'grussell@pivotal.io'
+						email = 'grussell@vmware.com'
 						roles = ["project lead emeritus"]
 					}
 					developer {
 						id = 'markfisher'
 						name = 'Mark Fisher'
-						email = 'mfisher@pivotal.io'
+						email = 'markfisher@vmware.com'
 						roles = ["project founder and lead emeritus"]
 					}
 				}

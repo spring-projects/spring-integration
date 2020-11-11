@@ -603,8 +603,6 @@ project('spring-integration-kafka') {
 
 		testImplementation "org.springframework.kafka:spring-kafka-test:$springKafkaVersion"
 		testImplementation "com.willowtreeapps.assertk:assertk-jvm:$assertkVersion"
-		testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
-		testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 
 		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-core'
