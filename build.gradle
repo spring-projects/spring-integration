@@ -115,14 +115,14 @@ allprojects {
 	group = 'org.springframework.integration'
 
 	repositories {
-		maven { url 'https://repo.spring.io/libs-milestone' }
 		if (project.hasProperty('mavenLocal')) {
 			mavenLocal()
 		}
+		mavenCentral()
+		maven { url 'https://repo.spring.io/libs-milestone' }
 		if (version.endsWith('SNAPSHOT')) {
 			maven { url 'https://repo.spring.io/libs-snapshot' }
 		}
-		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 //		maven { url 'https://repo.spring.io/libs-staging-local' }
 	}
 
