@@ -1035,24 +1035,24 @@ This section wraps up our coverage of Spring Integration's HTTP support with a f
 
 This example shows how simple it is to send a multipart HTTP request with Spring's `RestTemplate` and receive it with a Spring Integration HTTP inbound adapter.
 We create a `MultiValueMap` and populate it with multipart data.
-The `RestTemplate` takes care of the rest (no pun intended) by converting it to a `MultipartHttpServletRequest`. 
+The `RestTemplate` takes care of the rest (no pun intended) by converting it to a `MultipartHttpServletRequest`.
 This particular client sends a multipart HTTP Request that contains the name of the company and an image file (the company logo).
 The following listing shows the example:
 
 ====
 [source,java]
 ----
-RestTemplate template = new RestTemplate();
-String uri = "http://localhost:8080/multipart-http/inboundAdapter.htm";
-Resource s2logo = 
-   new ClassPathResource("org/springframework/samples/multipart/spring09_logo.png");
-MultiValueMap map = new LinkedMultiValueMap();
-map.add("company", "SpringSource");
+RestTemplate template = new RestTemplate();
+String uri = "http://localhost:8080/multipart-http/inboundAdapter.htm";
+Resource s2logo =
+   new ClassPathResource("org/springframework/samples/multipart/spring09_logo.png");
+MultiValueMap map = new LinkedMultiValueMap();
+map.add("company", "SpringSource");
 map.add("company-logo", s2logo);
-HttpHeaders headers = new HttpHeaders();
-headers.setContentType(new MediaType("multipart", "form-data"));
-HttpEntity request = new HttpEntity(map, headers);
-ResponseEntity<?> httpResponse = template.exchange(uri, HttpMethod.POST, request, null);
+HttpHeaders headers = new HttpHeaders();
+headers.setContentType(new MediaType("multipart", "form-data"));
+HttpEntity request = new HttpEntity(map, headers);
+ResponseEntity<?> httpResponse = template.exchange(uri, HttpMethod.POST, request, null);
 ----
 ====
 
@@ -1079,7 +1079,7 @@ On the server side, we have the following configuration:
 ----
 ====
 
-The 'httpInboundAdapter' receives the request and converts it to a `Message` with a payload that is a `LinkedMultiValueMap`.
+The 'httpInboundAdapter' receives the request and converts it to a `Message` with a payload that is a `LinkedMultiValueMap`.
 We then parse that in the 'multipartReceiver' service-activator, as the following example shows:
 
 ====

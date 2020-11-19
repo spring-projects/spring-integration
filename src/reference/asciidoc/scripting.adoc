@@ -56,8 +56,8 @@ However, this section is relevant as well.
 [[scripting-config]]
 ==== Script Configuration
 
-Depending on the complexity of your integration requirements, scripts may be provided inline as CDATA in XML configuration or as a reference to a Spring resource that contains the script.
-To enable scripting support, Spring Integration defines a `ScriptExecutingMessageProcessor`, which binds the message payload to a variable named `payload` and the message headers to a `headers` variable, both accessible within the script execution context.
+Depending on the complexity of your integration requirements, scripts may be provided inline as CDATA in XML configuration or as a reference to a Spring resource that contains the script.
+To enable scripting support, Spring Integration defines a `ScriptExecutingMessageProcessor`, which binds the message payload to a variable named `payload` and the message headers to a `headers` variable, both accessible within the script execution context.
 All you need to do is write a script that uses these variables.
 The following pair of examples show sample configurations that create filters:
 
@@ -91,7 +91,7 @@ To do so, specify the `refresh-check-delay` attribute on the `script` element, a
 ====
 [source,xml]
 ----
-<int-script:script location="..." refresh-check-delay="5000"/>
+<int-script:script location="..." refresh-check-delay="5000"/>
 ----
 ====
 
@@ -103,7 +103,7 @@ Consider the following example:
 ====
 [source,xml]
 ----
-<int-script:script location="..." refresh-check-delay="0"/>
+<int-script:script location="..." refresh-check-delay="0"/>
 ----
 ====
 
@@ -115,7 +115,7 @@ The following example shows a script that never updates:
 ====
 [source,xml]
 ----
-<int-script:script location="..." refresh-check-delay="-1"/>
+<int-script:script location="..." refresh-check-delay="-1"/>
 ----
 ====
 

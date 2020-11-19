@@ -28,7 +28,7 @@ publishing {
 				}
 				developers {
 					developer {
-						id = 'abilan'
+						id = 'artembilan'
 						name = 'Artem Bilan'
 						email = 'abilan@vmware.com'
 						roles = ["project lead"]

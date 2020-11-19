@@ -40,7 +40,7 @@ ext {
 	linkScmUrl = 'https://github.com/spring-projects/spring-integration'
 	linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
 	linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
-	docResourcesVersion = '0.2.3'
+	docResourcesVersion = '0.2.4'
 
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }

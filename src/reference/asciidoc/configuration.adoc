@@ -710,11 +710,11 @@ public String doSomething(Object o);
 ----
 ====
 
-The input parameter is a message payload.
-If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
+The input parameter is a message payload.
+If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
 The return value is incorporated as a payload of the returned message.
 
-The following example shows a single un-annotated parameter (object or primitive)that is not a `Map` or a `Properties` with a `Message` return type:
+The following example shows a single un-annotated parameter (object or primitive)that is not a `Map` or a `Properties` with a `Message` return type:
 
 ====
 [source,java]
@@ -723,8 +723,8 @@ public Message doSomething(Object o);
 ----
 ====
 
-The input parameter is a message payload.
-If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
+The input parameter is a message payload.
+If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
 The return value is a newly constructed message that is sent to the next destination.
 
 The followig example shows a single parameter that is a message (or one of its subclasses) with an arbitrary object or primitive return type:
@@ -732,11 +732,11 @@ The followig example shows a single parameter that is a message (or one of its s
 ====
 [source,java]
 ----
-public int doSomething(Message  msg);
+public int doSomething(Message  msg);
 ----
 ====
 
-The input parameter is itself a `Message`. 
+The input parameter is itself a `Message`.
 The return value becomes a payload of the `Message` that is sent to the next destination.
 
 The following example shows a single parameter that is a `Message` (or one of its subclasses) with a `Message` (or one of its subclasses) as the return type:
@@ -744,11 +744,11 @@ The following example shows a single parameter that is a `Message` (or one of it
 ====
 [source,java]
 ----
-public Message doSomething(Message msg);
+public Message doSomething(Message msg);
 ----
 ====
 
-The input parameter is itself a `Message`. 
+The input parameter is itself a `Message`.
 The return value is a newly constructed `Message` that is sent to the next destination.
 
 The following example shows a single parameter of type `Map` or `Properties` with a `Message` as the return type:
@@ -775,7 +775,7 @@ public Message doSomething(Map h, <T> t);
 ====
 
 This combination contains two input parameters where one of them is of type `Map`.
-The non-`Map` parameters (regardless of the order) are mapped to a `Message` payload and the `Map` or `Properties` (regardless of the order) is mapped to message headers, giving you a nice POJO way of interacting with `Message` structure.
+The non-`Map` parameters (regardless of the order) are mapped to a `Message` payload and the `Map` or `Properties` (regardless of the order) is mapped to message headers, giving you a nice POJO way of interacting with `Message` structure.
 
 The following example shows no parameters (regardless of the return):
 
@@ -808,7 +808,7 @@ The following example shows how to explicitly map a method to a header:
 
 [source,java]
 ----
-public String doSomething(@Payload String s, @Header("someheader") String b) 
+public String doSomething(@Payload String s, @Header("someheader") String b)
 ----
 
 As you can see later on, without an annotation this signature would result in an ambiguous condition.
@@ -819,11 +819,11 @@ The following example is nearly identical to the preceding example:
 ====
 [source,java]
 ----
-public String doSomething(@Payload String s, @RequestParam("something") String b) 
+public String doSomething(@Payload String s, @RequestParam("something") String b)
 ----
 ====
 
-`@RequestMapping` or any other non-Spring Integration mapping annotation is irrelevant and is therefore ignored, leaving the second parameter unmapped.
+`@RequestMapping` or any other non-Spring Integration mapping annotation is irrelevant and is therefore ignored, leaving the second parameter unmapped.
 Although the second parameter could easily be mapped to a payload, there can only be one payload.
 Therefore, the annotations keep this method from being ambiguous.
 
@@ -832,7 +832,7 @@ The following example shows another similar method that would be ambiguous were 
 ====
 [source,java]
 ----
-public String foo(String s, @Header("foo") String b) 
+public String foo(String s, @Header("foo") String b)
 ----
 ====
 
@@ -916,7 +916,7 @@ public class Something {
 
 (Whether the methods have the same name or different names makes no difference).
 The `Message` could be mapped to either method.
-The first method would be invoked when the message payload could be mapped to `str` and the message headers could be mapped to `m`.
+The first method would be invoked when the message payload could be mapped to `str` and the message headers could be mapped to `m`.
 The second method could also be a candidate by mapping only the message headers to `m`.
 To make matters worse, both methods have the same name.
 At first, that might look ambiguous because of the following configuration:
@@ -924,8 +924,8 @@ At first, that might look ambiguous because of the following configuration:
 ====
 [source,xml]
 ----
-<int:service-activator input-channel="input" output-channel="output" method="doSomething">
-    <bean class="org.things.Something"/>
+<int:service-activator input-channel="input" output-channel="output" method="doSomething">
+    <bean class="org.things.Something"/>
 </int:service-activator>
 ----
 ====
@@ -967,8 +967,8 @@ The following example shows how to use the `method` attribute to dictate the map
 
 [source,xml]
 ----
-<int:service-activator input-channel="input" output-channel="output" method="doSomethingElse">
-    <bean class="org.bar.Foo"/>
+<int:service-activator input-channel="input" output-channel="output" method="doSomethingElse">
+    <bean class="org.bar.Foo"/>
 </int:service-activator>
 ----
 Because the configuration explicitly maps the `doSomethingElse` method, we have eliminated the ambiguity.

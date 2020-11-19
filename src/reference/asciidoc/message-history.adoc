@@ -30,13 +30,13 @@ Consider the following configuration example:
 ====
 [source,xml]
 ----
-<int:gateway id="sampleGateway" 
+<int:gateway id="sampleGateway"
     service-interface="org.springframework.integration.history.sample.SampleGateway"
     default-request-channel="bridgeInChannel"/>
 
-<int:chain id="sampleChain" input-channel="chainChannel" output-channel="filterChannel">
+<int:chain id="sampleChain" input-channel="chainChannel" output-channel="filterChannel">
   <int:header-enricher>
-    <int:header name="baz" value="baz"/>
+    <int:header name="baz" value="baz"/>
   </int:header-enricher>
 </int:chain>
 ----
@@ -50,7 +50,7 @@ The preceding configuration produces a simple message history structure, with ou
 ----
 
 To get access to message history, you need only access the `MessageHistory` header.
-The folloiwng example shows how to do so:
+The following example shows how to do so:
 
 ====
 [source,java]

@@ -156,7 +156,7 @@ Later, we show how each of these channels can be configured.
 The `DirectChannel` internally delegates to a message dispatcher to invoke its subscribed message handlers, and that dispatcher can have a load-balancing strategy exposed by `load-balancer` or `load-balancer-ref` attributes (mutually exclusive).
 The load balancing strategy is used by the message dispatcher to help determine how messages are distributed amongst message handlers when multiple message handlers subscribe to the same channel.
 As a convenience, the `load-balancer` attribute exposes an enumeration of values pointing to pre-existing implementations of `LoadBalancingStrategy`.
-`round-robin` (load-balances across the handlers in rotation) and `none` (for the cases where one wants to explicitly disable load balancing) are the only available values.
+A `round-robin` (load-balances across the handlers in rotation) and `none` (for the cases where one wants to explicitly disable load balancing) are the only available values.
 Other strategy implementations may be added in future versions.
 However, since version 3.0, you can provide your own implementation of the `LoadBalancingStrategy` and inject it by using the `load-balancer-ref` attribute, which should point to a bean that implements `LoadBalancingStrategy`, as the following example shows:
 
@@ -999,9 +999,9 @@ For example, channel 'inputChannel' could have individual interceptors configure
 ====
 [source,xml]
 ----
-<int:channel id="inputChannel"> 
+<int:channel id="inputChannel">
   <int:interceptors>
-    <int:wire-tap channel="logger"/> 
+    <int:wire-tap channel="logger"/>
   </int:interceptors>
 </int:channel>
 ----

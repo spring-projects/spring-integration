@@ -38,7 +38,7 @@ If the event's source is not a `Message` instance and no `payloadExpression` has
 Starting with version 4.2, the `ApplicationEventListeningMessageProducer` implements `GenericApplicationListener` and can be configured to accept not only `ApplicationEvent` types but any type for treating payload events (which are also supported since Spring Framework 4.2).
 When the accepted event is an instance of `PayloadApplicationEvent`, its `payload` is used for the message to send.
 
-For convenience, namespace support is provided to configure an `ApplicationEventListeningMessageProducer` with the `inbound-channel-adapter` element, as the following example shows:
+For convenience, namespace support is provided to configure an `ApplicationEventListeningMessageProducer` with the `inbound-channel-adapter` element, as the following example shows:
 
 ====
 [source,xml]
@@ -106,7 +106,7 @@ public IntegrationFlow eventFlow(ApplicationEventListeningMessageProducer events
 To send Spring `ApplicationEvents`, create an instance of the `ApplicationEventPublishingMessageHandler` and register it within an endpoint.
 This implementation of the `MessageHandler` interface also implements Spring's `ApplicationEventPublisherAware` interface and consequently acts as a bridge between Spring Integration messages and `ApplicationEvents`.
 
-For convenience, namespace support is provided to configure an `ApplicationEventPublishingMessageHandler` with the `outbound-channel-adapter` element, as the following example shows:
+For convenience, namespace support is provided to configure an `ApplicationEventPublishingMessageHandler` with the `outbound-channel-adapter` element, as the following example shows:
 
 ====
 [source,xml]

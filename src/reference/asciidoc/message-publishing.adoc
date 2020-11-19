@@ -169,13 +169,13 @@ Now you can annotate any method with the `@Audit` annotation, as the following e
 ----
 @Audit
 public String test() {
-    return "Hello";
+    return "Hello";
 }
 ----
 ====
 
 In the preceding example, every invocation of the `test()` method results in a message with a payload created from its return value.
-Each message is sent to the channel named `auditChannel`.
+Each message is sent to the channel named `auditChannel`.
 One of the benefits of this technique is that you can avoid the duplication of the same channel name across multiple annotations.
 You also can provide a level of indirection between your own, potentially domain-specific, annotations and those provided by the framework.
 
@@ -185,16 +185,16 @@ You can also annotate the class, which lets you apply the properties of this ann
 [source,java]
 ----
 @Audit
-static class BankingOperationsImpl implements BankingOperations {
+static class BankingOperationsImpl implements BankingOperations {
 
-  public String debit(String amount) {
-     . . .
+  public String debit(String amount) {
+     . . .
 
-  }
+  }
 
-  public String credit(String amount) {
-     . . .
-  }
+  public String credit(String amount) {
+     . . .
+  }
 
 }
 ----
@@ -267,12 +267,12 @@ If you do not specify the `defaultChannel` (as the preceding example does not do
 
 Publishing occurs in the same thread as your component's execution.
 So, by default, it is synchronous.
-This means that the entire message flow has to wait until the publisher's flow completes. 
+This means that the entire message flow has to wait until the publisher's flow completes.
 However, developers often want the complete opposite: to use this message-publishing feature to initiate asynchronous flows.
 For example, you might host a service (HTTP, WS, and so on) which receives a remote request.
 You may want to send this request internally into a process that might take a while.
 However you may also want to reply to the user right away.
-So, instead of sending inbound requests for processing to the output channel (the conventional way), you can use 'output-channel' or a 'replyChannel' header to send a simple acknowledgment-like reply back to the caller while using the message-publisher feature to initiate a complex flow.
+So, instead of sending inbound requests for processing to the output channel (the conventional way), you can use 'output-channel' or a 'replyChannel' header to send a simple acknowledgment-like reply back to the caller while using the message-publisher feature to initiate a complex flow.
 
 The service in the following example receives a complex payload (which needs to be sent further for processing), but it also needs to reply to the caller with a simple acknowledgment:
 
@@ -280,7 +280,7 @@ The service in the following example receives a complex payload (which needs to 
 [source,java]
 ----
 public String echo(Object complexPayload) {
-     return "ACK"; 
+     return "ACK";
 }
 ----
 ====
@@ -293,7 +293,7 @@ The following example shows how to an asynchronous `publishing-interceptor`:
 ====
 [source,xml]
 ----
-<int:service-activator  input-channel="inputChannel" output-channel="outputChannel" ref="sampleservice"/>
+<int:service-activator  input-channel="inputChannel" output-channel="outputChannel" ref="sampleservice"/>
 
 <bean id="sampleservice" class="test.SampleService"/>
 
@@ -341,7 +341,7 @@ Consider the following example:
 ----
 ====
 
-The preceding example creates an inbound channel adapter that constructs a `Message`, with its payload being the result of the expression  defined in the `expression` attribute.
+The preceding example creates an inbound channel adapter that constructs a `Message`, with its payload being the result of the expression  defined in the `expression` attribute.
 Such messages are created and sent every time the delay specified by the `fixed-delay` attribute occurs.
 
 The following example is similar to the preceding example, except that it uses the `fixed-rate` attribute:
@@ -388,7 +388,7 @@ The following example shows how to insert additional headers into the message:
 
 The additional message headers can take scalar values or the results of evaluating Spring expressions.
 
-If you need to implement your own custom trigger, you can use the `trigger` attribute to provide a reference to any spring configured bean that implements the `org.springframework.scheduling.Trigger` interface.
+If you need to implement your own custom trigger, you can use the `trigger` attribute to provide a reference to any spring configured bean that implements the `org.springframework.scheduling.Trigger` interface.
 The following example shows how to do so:
 
 ====

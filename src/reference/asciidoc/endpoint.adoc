@@ -355,7 +355,7 @@ For more information, see <<./transactions.adoc#transaction-poller,Poller Transa
 ===== AOP Advice chains
 
 Since Spring transaction support depends on the proxy mechanism with `TransactionInterceptor` (AOP Advice) handling transactional behavior of the message flow initiated by the poller, you must sometimes provide extra advices to handle other cross cutting behavior associated with the poller.
-For that, the `poller` defines an `advice-chain` element that lets you add more advices in a class that implements the `MethodInterceptor` interface.
+For that, the `poller` defines an `advice-chain` element that lets you add more advices in a class that implements the `MethodInterceptor` interface.
 The following example shows how to define an `advice-chain` for a `poller`:
 
 ====
@@ -413,7 +413,7 @@ As mentioned earlier in the <<endpoint-pollingconsumer,background section for po
 With a long `receive-timeout` and a short `interval-trigger`, you can ensure a very timely reaction to arriving messages even on a polled message source.
 Note that this applies only  to sources that have a blocking wait call with a timeout.
 For example, the file poller does not block.
-Each receive() call returns immediately and either contains new files or not.
+Each `receive()` call returns immediately and either contains new files or not.
 Therefore, even if a poller contains a long `receive-timeout`, that value would never be used in such a scenario.
 On the other hand, when using Spring Integration's own queue-based channels, the timeout value does have a chance to participate.
 The following example shows how a polling consumer can receive messages nearly instantaneously:
@@ -459,8 +459,8 @@ It is not possible to force a trigger to fire before its currently configured ne
 [[payload-type-conversion]]
 ==== Payload Type Conversion
 
-Throughout this reference manual, you can also see specific configuration and implementation examples of various endpoints that accept a message or any arbitrary `Object` as an input parameter.
-In the case of an `Object`, such a parameter is mapped to a message payload or part of the payload or header (when using the Spring Expression Language).
+Throughout this reference manual, you can also see specific configuration and implementation examples of various endpoints that accept a message or any arbitrary `Object` as an input parameter.
+In the case of an `Object`, such a parameter is mapped to a message payload or part of the payload or header (when using the Spring Expression Language).
 However, the type of input parameter of the endpoint method sometimes does not match the type of the payload or its part.
 In this scenario, we need to perform type conversion.
 Spring Integration provides a convenient way for registering type converters (by using the Spring `ConversionService`) within its own instance of a conversion service bean named `integrationConversionService`.
@@ -595,10 +595,10 @@ In this case, only the regular class-to-class conversion mentioned above in the 
 ==== Asynchronous Polling
 
 If you want the polling to be asynchronous, a poller can optionally specify a `task-executor` attribute that points to an existing instance of any `TaskExecutor` bean (Spring 3.0 provides a convenient namespace configuration through the `task` namespace).
-However, there are certain things you must understand when configuring a poller with a `TaskExecutor`. 
+However, there are certain things you must understand when configuring a poller with a `TaskExecutor`.
 
 The problem is that there are two configurations in place, the poller and the `TaskExecutor`.
-They must be in tune with each other.
+They must be in tune with each other.
 Otherwise, you might end up creating an artificial memory leak.
 
 Consider the following configuration:
@@ -611,7 +611,7 @@ Consider the following configuration:
 </int:channel>
 
 <int:service-activator input-channel="publishChannel" ref="myService">
-	<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50" />
+	<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50" />
 </int:service-activator>
 
 <task:executor id="taskExecutor" pool-size="20" />

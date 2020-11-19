@@ -1,25 +1,21 @@
 [[samples]]
 == Spring Integration Samples
 
-As of Spring Integration 2.0, the Spring Integration distribution no longer includes the samples.
+As of Spring Integration 2.0, the Spring Integration distribution no longer includes the samples.
 Instead, we have switched to a much simpler collaborative model that should promote better community participation and, ideally, more contributions.
-Samples now have a dedicated Git repository and a dedicated JIRA Issue Tracking system.
+Samples now have a dedicated GitHub repository.
 Sample development also has its own lifecycle, which is not dependent on the lifecycle of the framework releases, although the repository is still tagged with each major release for compatibility reasons.
 
 The great benefit to the community is that we can now add more samples and make them available to you right away without waiting for the next release.
-Having its own JIRA that is not tied to the the actual framework is also a great benefit.
+Having its own GitHub repository that is not tied to the the actual framework is also a great benefit.
 You now have a dedicated place to suggest samples as well as report issues with existing samples.
-You can also submit a sample to us as an attachment through JIRA or, better, through the collaborative model that Git promotes.
+You can also submit a sample to us as a Pull Request.
 If we believe your sample adds value, we would be more then glad to add it to the 'samples' repository, properly crediting you as the author.
 
 [[samples-get]]
 === Where to Get Samples
 
-The Spring Integration Samples project is hosted on https://github.com/SpringSource/spring-integration-samples/[GitHub].
-You can find the repository at:
-
-https://github.com/SpringSource/spring-integration-samples[https://github.com/SpringSource/spring-integration-samples]
-
+The Spring Integration Samples project is hosted on https://github.com/spring-projects/spring-integration-samples/[GitHub].
 In order to check out or clone the samples, you must have a Git client installed on your system.
 There are several GUI-based products available for many platforms (such as https://eclipse.org/egit/[EGit] for the Eclipse IDE).
 A simple Google search can help you find them.
@@ -32,7 +28,7 @@ To clone (check out) the Spring Integration samples repository by using the Git 
 ====
 [source,xml]
 ----
-$ git clone https://github.com/SpringSource/spring-integration-samples.git
+$ git clone https://github.com/spring-projects/spring-integration-samples.git
 ----
 ====
 
@@ -56,7 +52,7 @@ We greatly appreciate any effort toward improving the samples, including the sha
 ==== How Can I Contribute My Own Samples?
 
 Github is for social coding: if you want to submit your own code examples to the Spring Integration Samples project, we encourage contributions through https://help.github.com/en/articles/creating-a-pull-request/[pull requests] from https://help.github.com/en/articles/fork-a-repo[forks] of this repository.
-If you want to contribute code this way, please reference, if possible, a https://jira.springframework.org/browse/INTSAMPLES[JIRA ticket] that provides some details regarding your sample.
+If you want to contribute code this way, please reference, if possible, a https://github.com/spring-projects/spring-integration-samples/issues[GutHub issue] that provides some details regarding your sample.
 
 [IMPORTANT]
 .Sign the contributor license agreement
@@ -69,7 +65,7 @@ In order to read and sign the CLA, go to:
 https://support.springsource.com/spring_committer_signup
 
 From the *Project* drop down, select *Spring Integration*.
-The Project Lead is Gary Russell.
+The Project Lead is Artem Bilan.
 =====
 
 ==== Code Contribution Process
@@ -84,8 +80,8 @@ We gratefully look forward to your Spring Integration samples!
 
 ==== Sample Requests
 
-As <<samples-how-can-i-contribute,mentioned earlier>>, the Spring Integration Samples project has a dedicated JIRA issue tracking system.
-To submit new sample requests, visit the JIRA Issue Tracking system at https://jira.springframework.org/browse/INTSAMPLES.
+As <<samples-how-can-i-contribute,mentioned earlier>>, the Spring Integration Samples project uses GitHub issue as bug tracking system.
+To submit new sample requests, visit https://github.com/spring-projects/spring-integration-samples/issues.
 
 [[samples-structure]]
 === Samples Structure
@@ -108,12 +104,12 @@ For example, if you are looking for an answer on how to implement and wire a ser
 The bottom line is `samples/basic` is a good place to get started.
 
 Intermediate (`samples/intermediate`)::
-This category targets developers who are already familiar with the Spring Integration framework (beyond getting started) but need some more guidance while resolving the more advanced technical problems they might encounter after switching to a messaging architecture.
+This category targets developers who are already familiar with the Spring Integration framework (beyond getting started) but need some more guidance while resolving the more advanced technical problems they might encounter after switching to a messaging architecture.
 For example, if you are looking for an answer on how to handle errors in various message exchange scenarios or how to properly configure the aggregator for a situation where some messages do not ever arrive for aggregation, or any other issue that goes beyond a basic implementation and configuration of a particular component and exposes "`what else`" types of problems, this is the right place to find these type of samples.
 
 Advanced (`samples/advanced`)::
 This category targets developers who are very familiar with the Spring Integration framework but are looking to extend it to address a specific custom need by using Spring Integration's public API.
-For example, if you are looking for samples showing you how to implement a custom channel or consumer (event-based or polling-based) or you are trying to figure out the most appropriate way to implement a custom bean parser on top of the Spring Integration bean parser hierarchy (perhaps when implementing your own namespace and schema for a custom component), this is the right place to look.
+For example, if you are looking for samples showing you how to implement a custom channel or consumer (event-based or polling-based) or you are trying to figure out the most appropriate way to implement a custom bean parser on top of the Spring Integration bean parser hierarchy (perhaps when implementing your own namespace and schema for a custom component), this is the right place to look.
 Here you can also find samples that will help you with adapter development.
 Spring Integration comes with an extensive library of adapters to let you connect remote systems with the Spring Integration messaging framework.
 However, you might need to integrate with a system for which the core framework does not provide an adapter.
@@ -141,8 +137,8 @@ In this section, you can find details on samples that we believe require special
 [[samples-loan-broker]]
 ==== Loan Broker
 
-This section covers the loan broker sample application that is included in the Spring Integration samples. 
-This sample is inspired by one of the samples featured in Gregor Hohpe and Bobby Woolf's book, https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_].
+This section covers the loan broker sample application that is included in the Spring Integration samples.
+This sample is inspired by one of the samples featured in Gregor Hohpe and Bobby Woolf's book, https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_].
 
 The following diagram shows the entire process:
 
@@ -313,8 +309,8 @@ Our goal is to make is so that integrating applications does not require changes
 [[samples-cafe]]
 ==== The Cafe Sample
 
-This section covers the cafe sample application that is included in the Spring Integration samples. 
-This sample is inspired by another sample featured in Gregor Hohpe's https://www.enterpriseintegrationpatterns.com/ramblings.html[Ramblings].
+This section covers the cafe sample application that is included in the Spring Integration samples.
+This sample is inspired by another sample featured in Gregor Hohpe's https://www.enterpriseintegrationpatterns.com/ramblings.html[Ramblings].
 
 The domain is that of a cafe, and  the following diagram depicts the basic flow:
 
