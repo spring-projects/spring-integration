@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
@@ -29,6 +30,7 @@ import org.springframework.util.Assert;
 import reactor.core.Disposable;
 import reactor.core.Disposables;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
@@ -94,10 +96,17 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.sink.asFlux()
-				.doOnRequest((r) -> this.subscribedSignal.tryEmitNext(true))
 				.doFinally((s) -> this.subscribedSignal.tryEmitNext(this.sink.currentSubscriberCount() > 0))
 				.share()
 				.subscribe(subscriber);
+
+		this.upstreamSubscriptions.add(
+				Mono.fromCallable(() -> this.sink.currentSubscriberCount() > 0)
+						.filter(Boolean::booleanValue)
+						.doOnNext(this.subscribedSignal::tryEmitNext)
+						.repeatWhenEmpty((repeat) ->
+								this.active ? repeat.delayElements(Duration.ofMillis(100)) : repeat)
+						.subscribe());
 	}
 
 	@Override
