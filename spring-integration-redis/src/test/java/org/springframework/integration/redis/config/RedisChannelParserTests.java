@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,10 +73,12 @@ public class RedisChannelParserTests extends RedisAvailableTests {
 	}
 
 	@Test
+	@RedisAvailable
 	public void testPubSubChannelConfig() {
 		RedisConnectionFactory connectionFactory =
 				TestUtils.getPropertyValue(this.redisChannel, "connectionFactory", RedisConnectionFactory.class);
-		RedisSerializer<?> redisSerializer = TestUtils.getPropertyValue(redisChannel, "serializer", RedisSerializer.class);
+		RedisSerializer<?> redisSerializer = TestUtils.getPropertyValue(redisChannel, "serializer",
+				RedisSerializer.class);
 		assertThat(this.context.getBean("redisConnectionFactory")).isEqualTo(connectionFactory);
 		assertThat(this.context.getBean("redisSerializer")).isEqualTo(redisSerializer);
 		assertThat(TestUtils.getPropertyValue(redisChannel, "topicName")).isEqualTo("si.test.topic.parser");

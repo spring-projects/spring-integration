@@ -42,6 +42,8 @@ public final class RedisAvailableRule implements MethodRule {
 
 	public static LettuceConnectionFactory connectionFactory;
 
+	private static volatile boolean initialized;
+
 	protected static void setupConnectionFactory() {
 		RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
 		redisStandaloneConfiguration.setPort(REDIS_PORT);
@@ -59,29 +61,34 @@ public final class RedisAvailableRule implements MethodRule {
 				.build();
 
 		connectionFactory = new LettuceConnectionFactory(redisStandaloneConfiguration, clientConfiguration);
-		connectionFactory.afterPropertiesSet();
+		connectionFactory.setEagerInitialization(true);
 	}
 
 
 	public static void cleanUpConnectionFactoryIfAny() {
-		if (connectionFactory != null) {
+		if (initialized) {
 			connectionFactory.destroy();
+			initialized = false;
 		}
 	}
 
 
 	public Statement apply(final Statement base, final FrameworkMethod method, Object target) {
 		return new Statement() {
+
 			@Override
 			public void evaluate() throws Throwable {
 				RedisAvailable redisAvailable = method.getAnnotation(RedisAvailable.class);
 				if (redisAvailable != null) {
 					if (connectionFactory != null) {
 						try {
-							connectionFactory.getConnection();
+							connectionFactory.afterPropertiesSet();
+							initialized = true;
 						}
 						catch (Exception e) {
-							Assume.assumeTrue("Skipping test due to Redis not being available on port: " + REDIS_PORT + ": " + e, false);
+							Assume.assumeTrue(
+									"Skipping test due to Redis not being available on port: " + REDIS_PORT + ": " + e,
+									false);
 						}
 						base.evaluate();
 					}

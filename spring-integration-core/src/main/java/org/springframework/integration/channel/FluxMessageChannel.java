@@ -94,11 +94,10 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.sink.asFlux()
+				.doOnRequest((r) -> this.subscribedSignal.tryEmitNext(true))
 				.doFinally((s) -> this.subscribedSignal.tryEmitNext(this.sink.currentSubscriberCount() > 0))
 				.share()
 				.subscribe(subscriber);
-
-		this.subscribedSignal.tryEmitNext(this.sink.currentSubscriberCount() > 0);
 	}
 
 	@Override
