@@ -391,7 +391,7 @@ public final class TestMailServer {
 						LOGGER.error(IO_EXCEPTION, e);
 					}
 				}
-			}
+			} // NOSONAR
 
 			void searchReply(String tag) throws IOException {
 				if (seen) {

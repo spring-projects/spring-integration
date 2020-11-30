@@ -302,14 +302,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			int[] requestedQos = getQos();
 			int[] grantedQos = Arrays.copyOf(requestedQos, requestedQos.length);
 			this.client.subscribe(topics, grantedQos);
-			for (int i = 0; i < requestedQos.length; i++) {
-				if (grantedQos[i] != requestedQos[i]) {
-					logger.warn(() -> "Granted QOS different to Requested QOS; topics: " + Arrays.toString(topics)
-							+ " requested: " + Arrays.toString(requestedQos)
-							+ " granted: " + Arrays.toString(grantedQos));
-					break;
-				}
-			}
+			warnInvalidQosForSubscription(topics, requestedQos, grantedQos);
 		}
 		catch (MqttException ex) {
 			if (this.applicationEventPublisher != null) {
@@ -336,6 +329,17 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			logger.debug(message);
 			if (this.applicationEventPublisher != null) {
 				this.applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
+			}
+		}
+	}
+
+	private void warnInvalidQosForSubscription(String[] topics, int[] requestedQos, int[] grantedQos) {
+		for (int i = 0; i < requestedQos.length; i++) {
+			if (grantedQos[i] != requestedQos[i]) {
+				logger.warn(() -> "Granted QOS different to Requested QOS; topics: " + Arrays.toString(topics)
+						+ " requested: " + Arrays.toString(requestedQos)
+						+ " granted: " + Arrays.toString(grantedQos));
+				break;
 			}
 		}
 	}

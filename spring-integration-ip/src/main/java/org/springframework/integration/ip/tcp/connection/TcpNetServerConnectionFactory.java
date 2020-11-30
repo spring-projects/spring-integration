@@ -105,24 +105,12 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	 */
 	@Override
 	public void run() {
-		ServerSocket theServerSocket = null;
 		if (getListener() == null) {
 			logger.info(() -> this + " No listener bound to server connection factory; will not read; exiting...");
 			return;
 		}
 		try {
-			if (getLocalAddress() == null) {
-				theServerSocket = createServerSocket(super.getPort(), getBacklog(), null);
-			}
-			else {
-				InetAddress whichNic = InetAddress.getByName(getLocalAddress());
-				theServerSocket = createServerSocket(super.getPort(), getBacklog(), whichNic);
-			}
-			getTcpSocketSupport().postProcessServerSocket(theServerSocket);
-			this.serverSocket = theServerSocket;
-			setListening(true);
-			logger.info(() -> this + " Listening");
-			publishServerListeningEvent(getPort());
+			setupServerSocket();
 			while (true) {
 				final Socket socket;
 				/*
@@ -177,7 +165,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 		catch (IOException ex) { // NOSONAR flow control via exceptions
 			// don't log an error if we had a good socket once and now it's closed
-			if (ex instanceof SocketException && theServerSocket != null) { // NOSONAR flow control via exceptions
+			if (ex instanceof SocketException && this.serverSocket != null) { // NOSONAR flow control via exceptions
 				logger.info("Server Socket closed");
 			}
 			else if (isActive()) {
@@ -190,6 +178,22 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 			setListening(false);
 			setActive(false);
 		}
+	}
+
+	private void setupServerSocket() throws IOException {
+		ServerSocket theServerSocket;
+		if (getLocalAddress() == null) {
+			theServerSocket = createServerSocket(super.getPort(), getBacklog(), null);
+		}
+		else {
+			InetAddress whichNic = InetAddress.getByName(getLocalAddress());
+			theServerSocket = createServerSocket(super.getPort(), getBacklog(), whichNic);
+		}
+		getTcpSocketSupport().postProcessServerSocket(theServerSocket);
+		this.serverSocket = theServerSocket;
+		setListening(true);
+		logger.info(() -> this + " Listening");
+		publishServerListeningEvent(getPort());
 	}
 
 	/**

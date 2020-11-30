@@ -105,7 +105,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 						.filter(Boolean::booleanValue)
 						.doOnNext(this.subscribedSignal::tryEmitNext)
 						.repeatWhenEmpty((repeat) ->
-								this.active ? repeat.delayElements(Duration.ofMillis(100)) : repeat)
+								this.active ? repeat.delayElements(Duration.ofMillis(100)) : repeat) // NOSONAR
 						.subscribe());
 	}
 
