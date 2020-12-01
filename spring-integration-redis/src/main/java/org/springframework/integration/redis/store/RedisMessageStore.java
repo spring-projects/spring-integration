@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2019 the original author or authors.
+ * Copyright 2007-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,9 +139,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 					this.redisTemplate.unlink(id);
 				}
 				catch (Exception ex) {
-					logger.warn("The UNLINK command has failed (not supported on the Redis server?); " +
-							"falling back to the regular DELETE command", ex);
-					this.unlinkAvailable = false;
+					unlinkUnavailable(ex);
 					this.redisTemplate.delete(id);
 				}
 			}
@@ -152,6 +150,18 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 		return removedObject;
 	}
 
+	private void unlinkUnavailable(Exception ex) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("The UNLINK command has failed (not supported on the Redis server?); " +
+					"falling back to the regular DELETE command", ex);
+		}
+		else {
+			logger.warn("The UNLINK command has failed (not supported on the Redis server?); " +
+					"falling back to the regular DELETE command: " + ex.getMessage());
+		}
+		this.unlinkAvailable = false;
+	}
+
 	@Override
 	protected void doRemoveAll(Collection<Object> ids) {
 		if (this.unlinkAvailable) {
@@ -159,9 +169,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 				this.redisTemplate.unlink(ids);
 			}
 			catch (Exception ex) {
-				logger.warn("The UNLINK command has failed (not supported on the Redis server?); " +
-						"falling back to the regular DELETE command", ex);
-				this.unlinkAvailable = false;
+				unlinkUnavailable(ex);
 				this.redisTemplate.delete(ids);
 			}
 		}
