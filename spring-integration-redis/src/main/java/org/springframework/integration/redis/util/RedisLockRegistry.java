@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.redis.util;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -116,6 +115,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	 */
 	private boolean executorExplicitlySet;
 
+	private volatile boolean unlinkAvailable = true;
+
 	/**
 	 * Constructs a lock registry with the default (60 second) lock expiration.
 	 * @param connectionFactory The connection factory.
@@ -160,15 +161,12 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	@Override
 	public void expireUnusedOlderThan(long age) {
-		Iterator<Map.Entry<String, RedisLock>> iterator = this.locks.entrySet().iterator();
 		long now = System.currentTimeMillis();
-		while (iterator.hasNext()) {
-			Map.Entry<String, RedisLock> entry = iterator.next();
-			RedisLock lock = entry.getValue();
-			if (now - lock.getLockedAt() > age && !lock.isAcquiredInThisProcess()) {
-				iterator.remove();
-			}
-		}
+		this.locks.entrySet()
+				.removeIf((entry) -> {
+					RedisLock lock = entry.getValue();
+					return now - lock.getLockedAt() > age && !lock.isAcquiredInThisProcess();
+				});
 	}
 
 	@Override
@@ -184,8 +182,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 		private final ReentrantLock localLock = new ReentrantLock();
 
-		private volatile boolean unlinkAvailable = true;
-
 		private volatile long lockedAt;
 
 		private RedisLock(String path) {
@@ -193,7 +189,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		private String constructLockKey(String path) {
-			return RedisLockRegistry.this.registryKey + ":" + path;
+			return RedisLockRegistry.this.registryKey + ':' + path;
 		}
 
 		public long getLockedAt() {
@@ -331,14 +327,20 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		private void removeLockKey() {
-			if (this.unlinkAvailable) {
+			if (RedisLockRegistry.this.unlinkAvailable) {
 				try {
 					RedisLockRegistry.this.redisTemplate.unlink(this.lockKey);
 				}
 				catch (Exception ex) {
-					LOGGER.warn("The UNLINK command has failed (not supported on the Redis server?); " +
-							"falling back to the regular DELETE command", ex);
-					this.unlinkAvailable = false;
+					RedisLockRegistry.this.unlinkAvailable = false;
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("The UNLINK command has failed (not supported on the Redis server?); " +
+								"falling back to the regular DELETE command", ex);
+					}
+					else {
+						LOGGER.warn("The UNLINK command has failed (not supported on the Redis server?); " +
+								"falling back to the regular DELETE command: " + ex.getMessage());
+					}
 					RedisLockRegistry.this.redisTemplate.delete(this.lockKey);
 				}
 			}
@@ -359,7 +361,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 		@Override
 		public String toString() {
-			SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd@HH:mm:ss.SSS");
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd@HH:mm:ss.SSS");
 			return "RedisLock [lockKey=" + this.lockKey
 					+ ",lockedAt=" + dateFormat.format(new Date(this.lockedAt))
 					+ ", clientId=" + RedisLockRegistry.this.clientId
