@@ -230,25 +230,11 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	}
 
 	/**
-	 * Set whether the container should ack messages that throw exceptions or not.
-	 * @param ackOnError whether the container should acknowledge messages that throw
-	 * exceptions.
-	 * @return the spec.
-	 * @deprecated in favor of {@code GenericErrorHandler.isAckAfterHandle()}.
-	 * @see ContainerProperties#setAckOnError(boolean)
-	 */
-	@Deprecated
-	public KafkaMessageListenerContainerSpec<K, V> ackOnError(boolean ackOnError) {
-		this.target.getContainerProperties().setAckOnError(ackOnError);
-		return this;
-	}
-
-	/**
 	 * Set the group id for this container. Overrides any {@code group.id} property
 	 * provided by the consumer factory configuration.
 	 * @param groupId the group id.
 	 * @return the spec.
-	 * @see ContainerProperties#setAckOnError(boolean)
+	 * @see ContainerProperties#setGroupId(String)
 	 */
 	public KafkaMessageListenerContainerSpec<K, V> groupId(String groupId) {
 		this.target.getContainerProperties().setGroupId(groupId);

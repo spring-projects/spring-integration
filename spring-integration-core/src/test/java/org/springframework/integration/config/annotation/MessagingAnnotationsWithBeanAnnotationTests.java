@@ -27,8 +27,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javax.annotation.Resource;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +103,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	@Autowired
 	private PollableChannel discardChannel;
 
-	@Resource(name = "collector")
+	@Autowired
 	private List<Message<?>> collector;
 
 	@Autowired(required = false)

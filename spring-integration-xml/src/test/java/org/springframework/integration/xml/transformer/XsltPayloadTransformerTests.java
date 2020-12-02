@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.xmlunit.assertj3.XmlAssert.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,10 +29,9 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mockito;
 import org.w3c.dom.Document;
 
@@ -67,10 +66,10 @@ public class XsltPayloadTransformerTests {
 
 	private final String outputAsString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><bob>test</bob>";
 
-	@Rule
-	public TemporaryFolder temporaryFolder = new TemporaryFolder();
+	@TempDir
+	public File temporaryFolder;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		this.testTransformer = new XsltPayloadTransformer(getXslTemplates());
 		this.testTransformer.setBeanFactory(Mockito.mock(BeanFactory.class));
@@ -85,8 +84,7 @@ public class XsltPayloadTransformerTests {
 		assertThat(transformed)
 				.as("Wrong return type for document payload")
 				.isInstanceOf(Document.class);
-		Document transformedDocument = (Document) transformed;
-		assertThat(XmlTestUtil.docToString(transformedDocument)).isXmlEqualTo(this.outputAsString);
+		assertThat(transformed).and(this.outputAsString).areSimilar();
 	}
 
 	@Test
@@ -99,9 +97,10 @@ public class XsltPayloadTransformerTests {
 				.isInstanceOf(DOMResult.class);
 
 		DOMResult result = (DOMResult) transformed;
-		assertThat(XmlTestUtil.docToString((Document) result.getNode()))
+		assertThat(result.getNode())
 				.as("Document incorrect after transformation")
-				.isXmlEqualTo(this.outputAsString);
+				.and(this.outputAsString)
+				.areSimilar();
 	}
 
 	@Test
@@ -112,10 +111,10 @@ public class XsltPayloadTransformerTests {
 				.as("Wrong return type for document payload")
 				.isInstanceOf(String.class);
 
-		String transformedString = (String) transformed;
-		assertThat(transformedString)
+		assertThat(transformed)
 				.as("String incorrect after transform")
-				.isXmlEqualTo(this.outputAsString);
+				.and(this.outputAsString)
+				.areIdentical();
 	}
 
 	@Test
@@ -128,9 +127,10 @@ public class XsltPayloadTransformerTests {
 				.isInstanceOf(DOMResult.class);
 
 		DOMResult result = (DOMResult) transformed;
-		assertThat(XmlTestUtil.docToString((Document) result.getNode()))
+		assertThat(result.getNode())
 				.as("Document incorrect after transformation")
-				.isXmlEqualTo(this.outputAsString);
+				.and(this.outputAsString)
+				.areSimilar();
 	}
 
 	@Test
@@ -259,7 +259,8 @@ public class XsltPayloadTransformerTests {
 				"   <xsl:template match=\"order\">hello world</xsl:template>" +
 				"</xsl:stylesheet>";
 
-		File xsltFile = this.temporaryFolder.newFile();
+		this.temporaryFolder.mkdir();
+		File xsltFile = File.createTempFile("test", null, this.temporaryFolder);
 		FileCopyUtils.copy(xsl.getBytes(), xsltFile);
 		return new FileSystemResource(xsltFile);
 	}

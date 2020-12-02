@@ -25,8 +25,6 @@ import java.security.Principal;
 import java.time.Duration;
 import java.util.Collections;
 
-import javax.annotation.Resource;
-
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -120,7 +118,8 @@ public class WebFluxDslTests {
 	@Qualifier("webFluxWithReplyPayloadToFlux.handler")
 	private WebFluxRequestExecutingMessageHandler webFluxWithReplyPayloadToFlux;
 
-	@Resource(name = "httpReactiveProxyFlow.webflux:outbound-gateway#0")
+	@Autowired
+	@Qualifier("httpReactiveProxyFlow.webflux:outbound-gateway#0")
 	private WebFluxRequestExecutingMessageHandler httpReactiveProxyFlow;
 
 	@Autowired

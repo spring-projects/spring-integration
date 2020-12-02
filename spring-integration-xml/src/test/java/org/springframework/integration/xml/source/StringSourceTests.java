@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package org.springframework.integration.xml.source;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.xmlunit.assertj3.XmlAssert.assertThat;
 
 import java.io.BufferedReader;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 
 import org.springframework.integration.xml.util.XmlTestUtil;
@@ -46,7 +46,7 @@ public class StringSourceTests {
 		BufferedReader reader = new BufferedReader(source.getReader());
 		String docAsString = reader.readLine();
 
-		assertThat(docAsString).isXmlEqualTo(docString);
+		assertThat(docAsString).and(docString).areIdentical();
 	}
 
 
@@ -57,7 +57,7 @@ public class StringSourceTests {
 		BufferedReader reader = new BufferedReader(source.getReader());
 		String docAsString = reader.readLine();
 
-		assertThat(docAsString).isXmlEqualTo(docString);
+		assertThat(docAsString).and(docString).areIdentical();
 	}
 
 

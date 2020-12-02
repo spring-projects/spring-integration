@@ -78,6 +78,7 @@
 		<module name="AvoidStaticImport">
 			<property name="excludes"
 					  value="org.assertj.core.api.Assertions.*,
+					  org.xmlunit.assertj3.XmlAssert.*,
 				org.assertj.core.api.Assumptions.*,
 				org.awaitility.Awaitility.*,
 				org.mockito.Mockito.*,
