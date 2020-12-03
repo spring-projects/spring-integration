@@ -1085,7 +1085,7 @@ dokka {
 		moduleName = 'spring-integration'
 		externalDocumentationLink {
 			url = new URL("https://docs.spring.io/spring-integration/docs/$version/api/")
-			packageListUrl = new File(buildDir, "api/package-list").toURI().toURL()
+			packageListUrl = new File(buildDir, "api/element-list").toURI().toURL()
 		}
 		externalDocumentationLink {
 			url = new URL('https://docs.spring.io/spring-framework/docs/current/javadoc-api/')
