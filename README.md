@@ -18,11 +18,7 @@ To check out the project and build from the source, do the following:
     cd spring-integration
     ./gradlew build
 
-**NOTE:** While Spring Integration runs with Java SE 6 or higher, a Java 8 compiler is required to build the project.
-
-If you encounter out of memory errors during the build, increase an available heap and permgen for Gradle:
-
-    GRADLE_OPTS='-XX:MaxPermSize=1024m -Xmx1024m'
+**NOTE:** While Spring Integration runs with Java SE 8 or higher, a Java 11 compiler is required to build the project.
 
 To build and install jars into your local Maven cache:
 
@@ -58,6 +54,8 @@ free of errors.
 To generate IDEA metadata (.iml and .ipr files), do the following:
 
     ./gradlew idea
+
+See also [Contributor Guidelines](https://github.com/spring-projects/spring-integration/blob/master/CONTRIBUTING.adoc).
 
 # Resources
 

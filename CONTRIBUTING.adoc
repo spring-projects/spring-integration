@@ -51,6 +51,69 @@ _you should now see 'upstream' in addition to 'origin' where 'upstream' is the S
 7. `git branch -a`
 _you should see branches on origin as well as upstream, including 'master'_
 
+== Build from Source
+
+The build system for the project is https://gradle.org/[Gradle].
+It is recommended to rely on the `wrapper` provided in the project code based and use a `gradlew` script from command line for the target operation system.
+The current Gradle version in use you can obtain from the `/gradle/gradle-wrapper.properties` file in the source tree.
+It is also recommended to use a Gradle import feature of your IDE for the best contribution experience.
+
+The minimum JDK version at the moment is `11` (mostly for tests - production code is still `1.8`).
+You always can find the currently required Java version in the `build.gradle`.
+For example, for the current project version:
+
+----
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+compileTestJava {
+    sourceCompatibility = 11
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+}
+----
+
+To build and install jars into your local Maven cache:
+
+----
+./gradlew publishToMavenLocal
+----
+
+To build api Javadoc (results will be in `build/api`):
+
+----
+./gradlew api
+----
+
+To build reference documentation (results will be in `build/reference`):
+
+----
+./gradlew reference
+----
+
+To build complete distribution including `-dist`, `-docs`, and `-schema` zip files (results will be in `build/distributions`)
+
+----
+./gradlew dist
+----
+
+You can build and test only specific module if your contribution is only over there
+
+----
+./gradlew :spring-integration-webflux:test
+----
+
 == A Day in the Life of a Contributor
 
 * _Always_ work on topic branches (Typically use the GitHub issue ID as the branch name).
@@ -134,7 +197,9 @@ Use `@since` tags for newly-added public API types and methods e.g.
  * ...
  *
  * @author First Last
+ *
  * @since 3.0
+ *
  * @see ...
  */
 ----
@@ -162,6 +227,8 @@ It is also acceptable to submit test cases on a per GH issue basis.
 
 Use `git rebase --interactive`, `git add --patch` and other tools to "squash" multiple commits into atomic changes.
 In addition to the man pages for git, there are many resources online to help you understand how these tools work.
+However we do recommend to do this only for the first commit in the PR.
+All the subsequent commits added after review should preserve the history for better context of the previous and current changes.
 
 == Use your real name in git commits
 
