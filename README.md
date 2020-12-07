@@ -28,11 +28,11 @@ To build api Javadoc (results will be in `build/api`):
 
     ./gradlew api
 
-To build reference documentation (results will be in `build/reference`):
+To build the reference documentation (results will be in `build/docs/asciidoc` and `build/docs/asciidocPdf`):
 
     ./gradlew reference
 
-To build complete distribution including `-dist`, `-docs`, and `-schema` zip files (results will be in `build/distributions`)
+To build complete distribution including `-dist`, `-docs`, and `-schema` zip files (results will be in `build/distributions`):
 
     ./gradlew dist
 
