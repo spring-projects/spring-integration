@@ -22,7 +22,7 @@ plugins {
 	id 'org.asciidoctor.jvm.convert' version '3.3.0'
 }
 
-if (System.getenv('TRAVIS') || System.getenv('bamboo_buildKey')) {
+if (System.getenv('GITHUB_ACTION') || System.getenv('bamboo_buildKey')) {
 	apply plugin: 'io.spring.nohttp'
 
 	nohttp {
@@ -259,7 +259,7 @@ configure(javaProjects) { subproject ->
 	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
 
 	task updateCopyrights {
-		onlyIf { !System.getenv('TRAVIS') && !System.getenv('bamboo_buildKey') }
+		onlyIf { !System.getenv('GITHUB_ACTION') && !System.getenv('bamboo_buildKey') }
 		inputs.files(modifiedFiles.filter { f -> f.path.contains(subproject.name) })
 		outputs.dir('build/classes')
 
