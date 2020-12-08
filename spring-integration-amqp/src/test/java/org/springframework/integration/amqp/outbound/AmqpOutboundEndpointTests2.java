@@ -46,7 +46,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit.jupiter.DisabledIf;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
@@ -90,8 +89,6 @@ public class AmqpOutboundEndpointTests2 {
 	}
 
 	@Test
-	@DisabledIf("#{systemEnvironment['TRAVIS'] ?: false}")
-		// needs RabbitMQ 3.7
 	void testWithReject(@Autowired IntegrationFlow flow, @Autowired RabbitAdmin admin,
 			@Autowired RabbitTemplate template) {
 

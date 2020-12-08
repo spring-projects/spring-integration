@@ -816,7 +816,7 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
-	@Disabled("Timing is too short for CI/Travis")
+	@Disabled("Timing is too short for CI")
 	public void testNoDelayOnClose() throws Exception {
 		TcpNioServerConnectionFactory cf = new TcpNioServerConnectionFactory(0);
 		final CountDownLatch reading = new CountDownLatch(1);
