@@ -28,6 +28,12 @@ jobs:
 
     steps:
 
+      - name: Enable MQTT Plugin
+        uses: addnab/docker-run-action@v1
+        with:
+          image: rabbitmq
+          run: rabbitmq-plugins enable rabbitmq_mqtt
+
       - uses: actions/checkout@v2
 
       - name: Set up JDK 11
@@ -38,7 +44,6 @@ jobs:
       - name: Run Gradle
         uses: burrunan/gradle-cache-action@v1
         env:
-          TERM: dumb
           SI_FATAL_WHEN_NO_BEANFACTORY: true
           NO_REFERENCE_TASK: true
         with:
