@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -30,7 +29,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.net.ftp.FTPFile;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -74,8 +72,8 @@ public class RotatingServersTests extends FtpTestSupport {
 
 	private static String tmpDir = getLocalTempFolder().getAbsolutePath() + File.separator + "multiSF";
 
-	@BeforeAll
-	public static void setup() {
+	@BeforeEach
+	public void setup() {
 		FtpRemoteFileTemplate rft = new FtpRemoteFileTemplate(sessionFactory());
 		rft.execute(s -> {
 			s.mkdir("foo");
@@ -84,7 +82,6 @@ public class RotatingServersTests extends FtpTestSupport {
 			s.mkdir("qux");
 			s.mkdir("fiz");
 			s.mkdir("buz");
-			System .out .println("Files from home: " + Arrays.toString(s.listNames(null)));
 			ByteArrayInputStream bais = new ByteArrayInputStream("foo".getBytes());
 			s.write(bais, "foo/f1");
 			s.write(bais, "baz/f2");
@@ -119,15 +116,18 @@ public class RotatingServersTests extends FtpTestSupport {
 
 	@AfterEach
 	public void extraCleanUp(TestInfo info) {
-		if (info.getTestMethod().get().getName().equals("testFairStreaming")) {
-			FtpRemoteFileTemplate rft = new FtpRemoteFileTemplate(sessionFactory());
-			rft.execute(s -> {
+		FtpRemoteFileTemplate rft = new FtpRemoteFileTemplate(sessionFactory());
+		rft.execute(s -> {
+			if (info.getTestMethod().get().getName().equals("testFairStreaming")) {
 				s.remove("foo/f4");
 				s.remove("baz/f5");
 				s.remove("fiz/f6");
-				return null;
-			});
-		}
+			}
+			s.remove("foo/f1");
+			s.remove("baz/f2");
+			s.remove("fiz/f3");
+			return null;
+		});
 	}
 
 	@Test
@@ -328,7 +328,7 @@ public class RotatingServersTests extends FtpTestSupport {
 							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
 							.localDirectory(localDir())
 							.remoteDirectory("."),
-						e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
+					e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
 					.channel(MessageChannels.queue("files"))
 					.get();
 		}
@@ -351,6 +351,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		protected File localDir() {
 			return new File(tmpDir, "fair");
 		}
+
 	}
 
 	@Configuration
@@ -364,7 +365,7 @@ public class RotatingServersTests extends FtpTestSupport {
 							.localDirectory(new File(tmpDir, "variable"))
 							.localFilenameExpression("#remoteDirectory + T(java.io.File).separator + #root")
 							.remoteDirectory("."),
-						e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
+					e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
 					.channel(MessageChannels.queue("files"))
 					.get();
 		}
@@ -380,7 +381,7 @@ public class RotatingServersTests extends FtpTestSupport {
 			return IntegrationFlows.from(Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sf()))
 							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
 							.remoteDirectory("."),
-						e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
+					e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
 					.channel(MessageChannels.queue("files"))
 					.get();
 		}
@@ -407,7 +408,7 @@ public class RotatingServersTests extends FtpTestSupport {
 							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
 							.remoteDirectory(".")
 							.maxFetchSize(1),
-						e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
+					e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
 					.channel(MessageChannels.queue("files"))
 					.get();
 		}
