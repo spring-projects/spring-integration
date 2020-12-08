@@ -38,7 +38,8 @@ jobs:
       - name: Run Gradle
         uses: burrunan/gradle-cache-action@v1
         env:
+          TERM: dumb
           SI_FATAL_WHEN_NO_BEANFACTORY: true
           NO_REFERENCE_TASK: true
         with:
-          arguments: checkAsciidocLinks check
+          arguments: checkAsciidocLinks check -S
