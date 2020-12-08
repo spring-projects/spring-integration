@@ -668,10 +668,10 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		assertThat(files.size()).isEqualTo(3);
 		assertThat(files).contains("subFtpSource", " ftpSource1.txt", "ftpSource2.txt");
 
-		FTPFile[] ftpFiles = ftpSessionFactory.getSession().list(null);
+		FTPFile[] ftpFiles = ftpSessionFactory.getSession().list("ftpSource");
 		for (FTPFile ftpFile : ftpFiles) {
 			if (!ftpFile.isDirectory()) {
-				assertThat(files.contains(ftpFile.getName())).isTrue();
+				assertThat(files).contains(ftpFile.getName());
 			}
 		}
 	}

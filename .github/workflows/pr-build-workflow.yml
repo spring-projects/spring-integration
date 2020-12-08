@@ -26,13 +26,12 @@ jobs:
         ports:
           - 6379:6379
 
-    steps:
+      mqtt:
+        image: eclipse-mosquitto
+        ports:
+          - 1883:1883
 
-      - name: Enable MQTT Plugin
-        uses: addnab/docker-run-action@v1
-        with:
-          image: rabbitmq
-          run: rabbitmq-plugins enable rabbitmq_mqtt
+    steps:
 
       - uses: actions/checkout@v2
 

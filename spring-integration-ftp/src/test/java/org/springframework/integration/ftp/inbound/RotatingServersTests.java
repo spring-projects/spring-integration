@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -83,6 +84,7 @@ public class RotatingServersTests extends FtpTestSupport {
 			s.mkdir("qux");
 			s.mkdir("fiz");
 			s.mkdir("buz");
+			System .out. println("Files from home: " + Arrays.toString(s.listNames(null)));
 			ByteArrayInputStream bais = new ByteArrayInputStream("foo".getBytes());
 			s.write(bais, "foo/f1");
 			s.write(bais, "baz/f2");
