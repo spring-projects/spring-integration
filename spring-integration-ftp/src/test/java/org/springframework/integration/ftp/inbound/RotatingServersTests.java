@@ -84,7 +84,7 @@ public class RotatingServersTests extends FtpTestSupport {
 			s.mkdir("qux");
 			s.mkdir("fiz");
 			s.mkdir("buz");
-			System .out. println("Files from home: " + Arrays.toString(s.listNames(null)));
+			System .out .println("Files from home: " + Arrays.toString(s.listNames(null)));
 			ByteArrayInputStream bais = new ByteArrayInputStream("foo".getBytes());
 			s.write(bais, "foo/f1");
 			s.write(bais, "baz/f2");
