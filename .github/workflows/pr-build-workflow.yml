@@ -46,4 +46,4 @@ jobs:
           SI_FATAL_WHEN_NO_BEANFACTORY: true
           NO_REFERENCE_TASK: true
         with:
-          arguments: checkAsciidocLinks check -i
+          arguments: checkAsciidocLinks check

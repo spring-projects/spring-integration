@@ -21,7 +21,7 @@
 	</beans:bean>
 
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
-		<beans:property name="host" value="loclahost"/>
+		<beans:property name="host" value="localhost"/>
 		<beans:property name="knownHostsResource"
 						value="#{ new org.springframework.core.io.ByteArrayResource('local, foo.com, bar.foo'.bytes)}"/>
 		<beans:property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftp_rsa"/>
@@ -76,6 +76,7 @@
 								  session-factory="sftpSessionFactory"
 								  filter="filter"
 								  remote-directory="/foo"
+								  auto-startup="false"
 								  local-directory="file:local-test-dir"
 								  auto-create-local-directory="true"
 								  delete-remote-files="false">
@@ -87,6 +88,7 @@
 								  channel="requestChannel"
 								  filename-pattern="pattern"
 								  remote-directory="/foo"
+								  auto-startup="false"
 								  local-directory="file:local-test-dir"
 								  auto-create-local-directory="false"
 								  delete-remote-files="false">
@@ -99,6 +101,7 @@
 								  filename-pattern="pattern"
 								  remote-directory="/foo"
 								  local-directory="file:foo"
+								  auto-startup="false"
 								  auto-create-local-directory="true"
 								  delete-remote-files="false">
 		<poller fixed-rate="1000"/>
@@ -113,6 +116,7 @@
 								  filter="filter"
 								  remote-directory="/foo"
 								  local-directory="file:foo"
+								  auto-startup="false"
 								  auto-create-local-directory="false"
 								  delete-remote-files="false">
 		<poller fixed-rate="1000"/>
