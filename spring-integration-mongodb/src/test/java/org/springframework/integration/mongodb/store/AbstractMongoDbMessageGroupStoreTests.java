@@ -61,7 +61,7 @@ import com.mongodb.MongoClient;
 public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 
 	@After
-	public void tearDown() {
+	public void tearDown() throws Exception {
 		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 	}
 
