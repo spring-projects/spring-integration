@@ -42,6 +42,7 @@ public abstract class ActiveMQMultiContextTests {
 
 	@BeforeClass
 	public static void startUp() throws Exception {
+		amqFactory.setTrustAllPackages(true);
 		connectionFactory.setCacheConsumers(false);
 		connectionFactory.createConnection().close();
 	}

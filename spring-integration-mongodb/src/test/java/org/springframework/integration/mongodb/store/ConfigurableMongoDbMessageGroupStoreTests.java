@@ -79,8 +79,6 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Ignore("The performance test. Enough slow. Also needs the release strategy changed to size() == 1000")
 	@MongoDbAvailable
 	public void messageGroupStoreLazyLoadPerformance() throws Exception {
-		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
-
 		StopWatch watch = new StopWatch("Lazy-Load Performance");
 
 		int sequenceSize = 1000;
@@ -120,7 +118,6 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Test
 	@MongoDbAvailable
 	public void testWithCustomConverter() throws Exception {
-		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
 		context.refresh();
@@ -134,7 +131,6 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Test
 	@MongoDbAvailable
 	public void testPriorityChannel() throws Exception {
-		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
 		context.refresh();
