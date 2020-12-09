@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -97,6 +98,7 @@ public class InboundChannelAdapterParserTests {
 		assertThat(remoteFileSeparator).isNotNull();
 		assertThat(remoteFileSeparator).isEqualTo(".");
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
+		((Lifecycle) adapter).start();
 		assertThat(requestChannel.receive(10000)).isNotNull();
 		FileListFilter<?> acceptAllFilter = context.getBean("acceptAllFilter", FileListFilter.class);
 		@SuppressWarnings("unchecked")

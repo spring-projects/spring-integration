@@ -15,7 +15,7 @@
 	</channel>
 
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
-		<beans:property name="host" value="loclahost"/>
+		<beans:property name="host" value="localhost"/>
 		<beans:property name="knownHostsResource" value="#{ new org.springframework.core.io.ByteArrayResource('local, foo.com, bar.foo'.bytes)}"/>
 		<beans:property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftp_rsa"/>
 		<beans:property name="privateKeyPassphrase" value="ghj"/>

@@ -10,12 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
+
       rabbitmq:
-        image: rabbitmq
+        image: cyrilix/rabbitmq-mqtt
         ports:
           - 5672:5672
+          - 15672:15672
+          - 1883:1883
+
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
 
     steps:
+
       - uses: actions/checkout@v2
 
       - name: Set up JDK 11
