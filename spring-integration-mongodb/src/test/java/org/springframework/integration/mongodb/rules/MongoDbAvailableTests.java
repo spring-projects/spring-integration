@@ -50,6 +50,7 @@ public abstract class MongoDbAvailableTests {
 	protected void cleanupCollections(MongoDbFactory mongoDbFactory, String... additionalCollectionsToDrop) {
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.dropCollection("messages");
+		template.dropCollection("channelMessages");
 		template.dropCollection("configurableStoreMessages");
 		template.dropCollection("data");
 		for (String additionalCollection : additionalCollectionsToDrop) {
