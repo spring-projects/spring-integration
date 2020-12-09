@@ -12,9 +12,11 @@ jobs:
     services:
 
       rabbitmq:
-        image: rabbitmq
+        image: cyrilix/rabbitmq-mqtt
         ports:
           - 5672:5672
+          - 15672:15672
+          - 1883:1883
 
       mongodb:
         image: mongo
@@ -25,11 +27,6 @@ jobs:
         image: redis
         ports:
           - 6379:6379
-
-#      mqtt:
-#        image: eclipse-mosquitto
-#        ports:
-#          - 1883:1883
 
     steps:
 
