@@ -26,10 +26,10 @@ jobs:
         ports:
           - 6379:6379
 
-      mqtt:
-        image: eclipse-mosquitto
-        ports:
-          - 1883:1883
+#      mqtt:
+#        image: eclipse-mosquitto
+#        ports:
+#          - 1883:1883
 
     steps:
 
@@ -46,4 +46,4 @@ jobs:
           SI_FATAL_WHEN_NO_BEANFACTORY: true
           NO_REFERENCE_TASK: true
         with:
-          arguments: checkAsciidocLinks check --no-parallel
+          arguments: checkAsciidocLinks check
