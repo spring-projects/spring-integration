@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -49,6 +50,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
+@Ignore
 public class AggregatorIntegrationTests {
 
 	@Autowired
