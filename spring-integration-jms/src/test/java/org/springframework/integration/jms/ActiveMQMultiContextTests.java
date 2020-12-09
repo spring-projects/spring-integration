@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jms;
 
-import javax.jms.ConnectionFactory;
-
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.transport.vm.VMTransport;
 import org.junit.AfterClass;
