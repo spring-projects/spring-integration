@@ -35,13 +35,15 @@ import org.springframework.jms.connection.CachingConnectionFactory;
  */
 public abstract class ActiveMQMultiContextTests {
 
-	protected static final ConnectionFactory amqFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
+	protected static final ActiveMQConnectionFactory amqFactory =
+			new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
 
 	protected static final CachingConnectionFactory connectionFactory = new CachingConnectionFactory(
 			amqFactory);
 
 	@BeforeClass
 	public static void startUp() throws Exception {
+		amqFactory.setTrustAllPackages(true);
 		connectionFactory.setCacheConsumers(false);
 		connectionFactory.createConnection().close();
 	}
