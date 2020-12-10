@@ -43,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -79,6 +80,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext // close at the end after class
 @Transactional
+@Ignore
 public class JdbcMessageStoreTests {
 
 	@Autowired
