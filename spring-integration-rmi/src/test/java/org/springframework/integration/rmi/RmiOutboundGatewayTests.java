@@ -25,6 +25,7 @@ import static org.junit.Assert.fail;
 import java.rmi.RemoteException;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.messaging.Message;
@@ -43,6 +44,7 @@ import org.springframework.remoting.rmi.RmiServiceExporter;
  * @author Mark Fisher
  * @author Gary Russell
  */
+@Ignore
 public class RmiOutboundGatewayTests {
 
 	private final static int port = SocketUtils.findAvailableServerSocket(11099);
