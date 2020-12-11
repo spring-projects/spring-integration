@@ -39,6 +39,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -61,6 +62,7 @@ import org.springframework.util.StopWatch;
 @ContextConfiguration("JdbcLockRegistryTests-context.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
+@Ignore
 public class JdbcLockRegistryDifferentClientTests {
 
 	private static Log logger = LogFactory.getLog(JdbcLockRegistryDifferentClientTests.class);

@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -52,6 +53,7 @@ import org.springframework.util.StopWatch;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext // close at the end after class
+@Ignore
 public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 
 	@Autowired
