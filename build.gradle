@@ -210,7 +210,7 @@ configure(javaProjects) { subproject ->
 	}
 	compileTestKotlin {
 		kotlinOptions {
-			jvmTarget = '11'
+			jvmTarget = '1.8'
 		}
 	}
 
