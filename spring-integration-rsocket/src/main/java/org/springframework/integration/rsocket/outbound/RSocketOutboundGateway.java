@@ -22,6 +22,7 @@ import java.util.Map;
 import org.reactivestreams.Publisher;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -38,6 +39,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeType;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -298,12 +300,17 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 				}
 			case requestStream:
 			case requestChannel:
+				Flux<?> result;
+				ResolvableType expectedType;
 				if (expectedResponseType instanceof Class<?>) {
-					return Mono.just(retrieveSpec.retrieveFlux((Class<?>) expectedResponseType));
+					expectedType = ResolvableType.forClass((Class<?>) expectedResponseType);
+					result = retrieveSpec.retrieveFlux((Class<?>) expectedResponseType);
 				}
 				else {
-					return Mono.just(retrieveSpec.retrieveFlux((ParameterizedTypeReference<?>) expectedResponseType));
+					expectedType = ResolvableType.forType((ParameterizedTypeReference<?>) expectedResponseType);
+					result = retrieveSpec.retrieveFlux((ParameterizedTypeReference<?>) expectedResponseType);
 				}
+				return isVoid(expectedType) ? result.then() : Mono.just(result);
 			default:
 				throw new UnsupportedOperationException("Unsupported interaction model: " + interactionModel);
 		}
@@ -344,6 +351,10 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		else {
 			return type;
 		}
+	}
+
+	private static boolean isVoid(ResolvableType type) {
+		return (Void.class.equals(type.resolve()) || void.class.equals(type.resolve()));
 	}
 
 }
