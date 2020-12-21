@@ -591,7 +591,7 @@ class MessageSourceTests {
 		captor = ArgumentCaptor.forClass(LogMessage.class);
 		inOrder.verify(log2).warn(captor.capture());
 		assertThat(captor.getValue().toString())
-				.contains("Cannot commit offset for ConsumerRecord")
+				.contains("Cannot commit offset for")
 				.contains("; an earlier offset was rolled back");
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
