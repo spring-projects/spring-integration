@@ -51,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Alexandre Strubel
  * @author Stefan Vassilev
+ * @author Olivier Hubaut
  *
  * @since 4.3
  */
@@ -253,20 +254,22 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 				this.delegate.unlock();
 				return;
 			}
-			while (true) {
-				try {
-					this.mutex.delete(this.path);
-					return;
+			try {
+				while (true) {
+					try {
+						this.mutex.delete(this.path);
+						return;
+					}
+					catch (TransientDataAccessException | TransactionTimedOutException e) {
+						// try again
+					}
+					catch (Exception e) {
+						throw new DataAccessResourceFailureException("Failed to release mutex at " + this.path, e);
+					}
 				}
-				catch (TransientDataAccessException | TransactionTimedOutException e) {
-					// try again
-				}
-				catch (Exception e) {
-					throw new DataAccessResourceFailureException("Failed to release mutex at " + this.path, e);
-				}
-				finally {
-					this.delegate.unlock();
-				}
+			}
+			finally {
+				this.delegate.unlock();
 			}
 		}
 
