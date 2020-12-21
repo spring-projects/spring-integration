@@ -188,6 +188,9 @@ public Flux<?> flattenRSocketResponse(Flux<?> payload) {
 
 Or subscribed explicitly in the target application logic.
 
+The expected response type can also be configured (or evaluated via expression) to `void` treating this gateway as an outbound channel adapter.
+However the `outputChannel` still has to be configured (even if it just a `NullChannel`) to initiate a subscription to the returned `Mono`.
+
 See <<rsocket-java-config>> for samples how to configure an `RSocketOutboundGateway` endpoint a deal with payloads downstream.
 
 [[rsocket-namespace]]

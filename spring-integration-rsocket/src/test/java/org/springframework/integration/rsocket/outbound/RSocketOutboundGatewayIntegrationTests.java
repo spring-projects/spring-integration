@@ -106,6 +106,9 @@ public class RSocketOutboundGatewayIntegrationTests {
 	@Autowired
 	private TestController clientController;
 
+	@Autowired
+	RSocketOutboundGateway clientRsocketOutboundGateway;
+
 	private RSocketRequester serverRsocketRequester;
 
 	@BeforeAll
@@ -433,6 +436,27 @@ public class RSocketOutboundGatewayIntegrationTests {
 		noMatchingRoute(serverInputChannel, serverResultChannel, serverErrorChannel, this.serverRsocketRequester);
 	}
 
+	@Test
+	void voidRequestChannel() {
+		Disposable disposable = Flux.from(resultChannel).subscribe();
+		this.clientRsocketOutboundGateway.setExpectedResponseType(void.class);
+		Flux<String> testData = Flux.range(1, 10).map(i -> "Hello " + i);
+		this.inputChannel.send(
+				MessageBuilder.withPayload(testData)
+						.setHeader(ROUTE_HEADER, "void-channel")
+						.setHeader(INTERACTION_MODEL_HEADER, RSocketInteractionModel.requestChannel)
+						.build());
+
+		StepVerifier.create(serverController.voidChannelPayloads.asFlux())
+				.expectNext(testData.toStream().toArray(String[]::new))
+				.thenCancel()
+				.verify(Duration.ofSeconds(10));
+
+
+		disposable.dispose();
+		this.clientRsocketOutboundGateway.setExpectedResponseType(String.class);
+	}
+
 	private void noMatchingRoute(MessageChannel inputChannel, FluxMessageChannel resultChannel,
 			PollableChannel errorChannel, RSocketRequester rsocketRequester) {
 
@@ -540,6 +564,8 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		final Sinks.Many<String> fireForgetPayloads = Sinks.many().replay().all();
 
+		final Sinks.Many<String> voidChannelPayloads = Sinks.many().replay().all();
+
 		final Sinks.One<RSocketRequester> clientRequester = Sinks.one();
 
 		@MessageMapping("receive")
@@ -565,6 +591,11 @@ public class RSocketOutboundGatewayIntegrationTests {
 		@MessageMapping("echo-channel")
 		Flux<String> echoChannel(Flux<String> payloads) {
 			return payloads.delayElements(Duration.ofMillis(10)).map(payload -> payload + " async");
+		}
+
+		@MessageMapping("void-channel")
+		Mono<Void> voidChannel(Flux<String> payloads) {
+			return payloads.map(voidChannelPayloads::tryEmitNext).then();
 		}
 
 		@MessageMapping("thrown-exception")
