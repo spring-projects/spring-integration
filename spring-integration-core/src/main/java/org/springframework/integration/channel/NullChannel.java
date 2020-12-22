@@ -20,6 +20,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.IntegrationPattern;
@@ -35,13 +38,16 @@ import org.springframework.messaging.PollableChannel;
 
 /**
  * A channel implementation that essentially behaves like "/dev/null".
- * All receive() calls will return <em>null</em>, and all send() calls
- * will return <em>true</em> although no action is performed.
+ * All {@link #receive()} calls will return {@code null},
+ * and all {@link #send} calls will return {@code true} although no action is performed.
+ * Unless the payload of a sent message is a {@link Publisher} implementation, in
+ * which case the {@link Publisher#subscribe(Subscriber)} is called to initiate
+ * the reactive stream, although the data is discarded by this channel.
  * Note however that the invocations are logged at debug-level.
  *
  * @author Mark Fisher
  * @author Gary Russell
- * @author Artyem Bilan
+ * @author Artem Bilan
  */
 @IntegrationManagedResource
 public class NullChannel implements PollableChannel,
@@ -119,6 +125,31 @@ public class NullChannel implements PollableChannel,
 		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
 			this.logger.debug("message sent to null channel: " + message);
 		}
+
+		Object payload = message.getPayload();
+		if (payload instanceof Publisher<?>) {
+			((Publisher<?>) payload).subscribe(
+					new Subscriber<Object>() {
+
+						@Override public void onSubscribe(Subscription subscription) {
+							subscription.request(Long.MAX_VALUE);
+						}
+
+						@Override public void onNext(Object o) {
+
+						}
+
+						@Override public void onError(Throwable t) {
+
+						}
+
+						@Override public void onComplete() {
+
+						}
+
+					});
+		}
+
 		if (this.metricsCaptor != null) {
 			sendTimer().record(0, TimeUnit.MILLISECONDS);
 		}

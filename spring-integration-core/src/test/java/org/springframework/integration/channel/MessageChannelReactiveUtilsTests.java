@@ -19,6 +19,8 @@ package org.springframework.integration.channel;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 import reactor.core.Disposable;
 import reactor.core.Disposables;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 import reactor.util.concurrent.Queues;
@@ -102,6 +105,15 @@ class MessageChannelReactiveUtilsTests {
 		assertThat(sendCount.get())
 				.as("produced")
 				.isLessThanOrEqualTo(Queues.SMALL_BUFFER_SIZE);
+	}
+
+	@Test
+	void testPublisherPayloadWithNullChannel() throws InterruptedException {
+		NullChannel nullChannel = new NullChannel();
+		CountDownLatch publisherSubscribed = new CountDownLatch(1);
+		Mono<Object> mono = Mono.empty().doOnSubscribe((s) -> publisherSubscribed.countDown());
+		nullChannel.send(new GenericMessage<>(mono));
+		assertThat(publisherSubscribed.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 }
