@@ -40,9 +40,9 @@ import org.springframework.messaging.PollableChannel;
  * A channel implementation that essentially behaves like "/dev/null".
  * All {@link #receive()} calls will return {@code null},
  * and all {@link #send} calls will return {@code true} although no action is performed.
- * Unless the payload of a sent is a {@link Publisher} implementation.
- * In this case the {@link Publisher#subscribe(Subscriber)} is called to initiate
- * the reactive stream, although data is ignored in this channel.
+ * Unless the payload of a sent message is a {@link Publisher} implementation, in
+ * which case the {@link Publisher#subscribe(Subscriber)} is called to initiate
+ * the reactive stream, although the data is discarded by this channel.
  * Note however that the invocations are logged at debug-level.
  *
  * @author Mark Fisher
