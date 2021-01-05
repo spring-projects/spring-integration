@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -97,14 +98,16 @@ public class PseudoTransactionalMessageSourceTests {
 
 		MessageChannel afterCommitChannel = new NullChannel();
 		syncProcessor.setAfterCommitChannel(afterCommitChannel);
-		Log logger = TestUtils.getPropertyValue(afterCommitChannel, "logger", Log.class);
+		LogAccessor logAccessor = TestUtils.getPropertyValue(afterCommitChannel, "LOG", LogAccessor.class);
+
+		Log logger = logAccessor.getLog();
 
 		logger = Mockito.spy(logger);
 
 		Mockito.when(logger.isDebugEnabled()).thenReturn(true);
 
-		DirectFieldAccessor dfa = new DirectFieldAccessor(afterCommitChannel);
-		dfa.setPropertyValue("logger", logger);
+		DirectFieldAccessor dfa = new DirectFieldAccessor(logAccessor);
+		dfa.setPropertyValue("log", logger);
 
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
@@ -115,7 +118,7 @@ public class PseudoTransactionalMessageSourceTests {
 		assertThat(beforeCommitMessage).isNotNull();
 		assertThat(beforeCommitMessage.getPayload()).isEqualTo("qox");
 
-		Mockito.verify(logger).debug(Mockito.anyString());
+		Mockito.verify(logger).debug(Mockito.any(CharSequence.class));
 
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
