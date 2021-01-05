@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -43,6 +44,8 @@ import org.springframework.messaging.PollableChannel;
  * Unless the payload of a sent message is a {@link Publisher} implementation, in
  * which case the {@link Publisher#subscribe(Subscriber)} is called to initiate
  * the reactive stream, although the data is discarded by this channel.
+ * An error thrown from a reactive stream processing (see {@link Subscriber#onError(Throwable)})
+ * is logged under the {@code warn} level.
  * Note however that the invocations are logged at debug-level.
  *
  * @author Mark Fisher
@@ -53,7 +56,7 @@ import org.springframework.messaging.PollableChannel;
 public class NullChannel implements PollableChannel,
 		BeanNameAware, IntegrationManagement, IntegrationPattern {
 
-	private final Log logger = LogFactory.getLog(getClass());
+	private static final LogAccessor LOG = new LogAccessor(NullChannel.class);
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
 
@@ -122,8 +125,8 @@ public class NullChannel implements PollableChannel,
 
 	@Override
 	public boolean send(Message<?> message) {
-		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
-			this.logger.debug("message sent to null channel: " + message);
+		if (this.loggingEnabled) {
+			LOG.debug(() -> "message sent to null channel: " + message);
 		}
 
 		Object payload = message.getPayload();
@@ -135,12 +138,12 @@ public class NullChannel implements PollableChannel,
 							subscription.request(Long.MAX_VALUE);
 						}
 
-						@Override public void onNext(Object o) {
+						@Override public void onNext(Object value) {
 
 						}
 
-						@Override public void onError(Throwable t) {
-
+						@Override public void onError(Throwable ex) {
+							LOG.warn(ex, "An error happened in a reactive stream processing");
 						}
 
 						@Override public void onComplete() {
@@ -173,7 +176,7 @@ public class NullChannel implements PollableChannel,
 	@Override
 	public Message<?> receive() {
 		if (this.loggingEnabled) {
-			this.logger.debug("receive called on null channel");
+			LOG.debug("receive called on null channel");
 		}
 		incrementReceiveCounter();
 		return null;
