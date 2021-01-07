@@ -154,7 +154,7 @@ Starting with version 5.3, you can set the `manualAcks` property to true.
 Often used to asynchronously acknowledge delivery.
 When set to `true`, header (`IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK`) is added to the message with the value being a `SimpleAcknowledgment`.
 You must invoke the `acknowledge()` method to complete the delivery.
-See the Javadocs for `IMqppClient` `setManualAcks()` and `messageArrivedComplete()` for more information.
+See the Javadocs for `IMqttClient` `setManualAcks()` and `messageArrivedComplete()` for more information.
 For convenience a header accessor is provided:
 
 ====
@@ -163,6 +163,9 @@ For convenience a header accessor is provided:
 StaticMessageHeaderAccessor.acknowledgment(someMessage).acknowledge();
 ----
 ====
+
+Starting with version `5.2.11`, when message converter throws an exception or returns `null` from the `MqttMessage` conversion, the `MqttPahoMessageDrivenChannelAdapter` sends an `ErrorMessage` into the provided `errorChannel`.
+Re-throws this conversion error otherwise into an MQTT client callback.
 
 ==== Configuring with Java Configuration
 

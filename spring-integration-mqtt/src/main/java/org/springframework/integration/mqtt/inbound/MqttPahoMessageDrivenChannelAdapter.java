@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ import org.springframework.integration.mqtt.support.MqttUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -205,7 +207,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 		catch (Exception ex) {
 			logger.error(ex, "Exception while connecting and subscribing, retrying");
-			this.scheduleReconnect();
+			scheduleReconnect();
 		}
 	}
 
@@ -272,7 +274,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			super.removeTopic(topic);
 		}
 		catch (MqttException e) {
-			throw new MessagingException("Failed to unsubscribe from topic " + Arrays.asList(topic), e);
+			throw new MessagingException("Failed to unsubscribe from topic(s) " + Arrays.toString(topic), e);
 		}
 		finally {
 			this.topicLock.unlock();
@@ -399,19 +401,52 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	@Override
 	public void messageArrived(String topic, MqttMessage mqttMessage) {
-		AbstractIntegrationMessageBuilder<?> builder = getConverter().toMessageBuilder(topic, mqttMessage);
-		if (this.manualAcks) {
-			builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
-					new AcknowledgmentImpl(mqttMessage.getId(), mqttMessage.getQos(), this.client));
+		AbstractIntegrationMessageBuilder<?> builder = toMessageBuilder(topic, mqttMessage);
+		if (builder != null) {
+			if (this.manualAcks) {
+				builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
+						new AcknowledgmentImpl(mqttMessage.getId(), mqttMessage.getQos(), this.client));
+			}
+			Message<?> message = builder.build();
+			try {
+				sendMessage(message);
+			}
+			catch (RuntimeException ex) {
+				logger.error(ex, () -> "Unhandled exception for " + message.toString());
+				throw ex;
+			}
 		}
-		Message<?> message = builder.build();
+	}
+
+	private AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage) {
+		AbstractIntegrationMessageBuilder<?> builder = null;
+		Exception conversionError = null;
 		try {
-			sendMessage(message);
+			builder = getConverter().toMessageBuilder(topic, mqttMessage);
 		}
-		catch (RuntimeException ex) {
-			logger.error(ex, () -> "Unhandled exception for " + message.toString());
-			throw ex;
+		catch (Exception ex) {
+			conversionError = ex;
 		}
+
+		if (builder == null && conversionError == null) {
+			conversionError = new IllegalStateException("'MqttMessageConverter' produced a null for message");
+		}
+
+		if (conversionError != null) {
+			GenericMessage<MqttMessage> message = new GenericMessage<>(mqttMessage);
+			if (!sendErrorMessageIfNecessary(message, conversionError)) {
+				MessageConversionException conversionException;
+				if (conversionError instanceof MessageConversionException) {
+					conversionException = (MessageConversionException) conversionError;
+				}
+				else {
+					conversionException = new MessageConversionException(message, "Failed to convert from MQTT Message",
+							conversionError);
+				}
+				throw conversionException;
+			}
+		}
+		return builder;
 	}
 
 	@Override
