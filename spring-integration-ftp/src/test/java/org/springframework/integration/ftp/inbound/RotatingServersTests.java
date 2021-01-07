@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -168,9 +169,7 @@ public class RotatingServersTests extends FtpTestSupport {
 
 	@Test
 	public void testVariableLocalDir() throws Exception {
-		try (AnnotationConfigApplicationContext ctx =
-				     new AnnotationConfigApplicationContext(VariableLocalConfig.class)) {
-
+		try (ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(VariableLocalConfig.class)) {
 			StandardConfig config = ctx.getBean(StandardConfig.class);
 			assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 			ctx.getBean(SourcePollingChannelAdapter.class).stop();
@@ -211,9 +210,7 @@ public class RotatingServersTests extends FtpTestSupport {
 
 	@Test
 	public void testFairStreaming() throws Exception {
-		try (AnnotationConfigApplicationContext ctx =
-				     new AnnotationConfigApplicationContext(FairStreamingConfig.class)) {
-
+		try (ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(FairStreamingConfig.class)) {
 			StandardConfig config = ctx.getBean(StandardConfig.class);
 			assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 			ctx.getBean(SourcePollingChannelAdapter.class).stop();
