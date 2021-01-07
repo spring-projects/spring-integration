@@ -340,7 +340,7 @@ public class MqttAdapterTests {
 				.extracting(Message::getPayload)
 				.isInstanceOf(IllegalStateException.class);
 		IllegalStateException exception = (IllegalStateException) errorMessage.getPayload();
-		assertThat(exception).hasMessage("'MqttMessageConverter' produced a null for message");
+		assertThat(exception).hasMessage("'MqttMessageConverter' returned 'null'");
 		assertThat(errorMessage.getOriginalMessage().getPayload()).isSameAs(message);
 
 		// lose connection and make first reconnect fail

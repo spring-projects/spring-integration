@@ -429,7 +429,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 
 		if (builder == null && conversionError == null) {
-			conversionError = new IllegalStateException("'MqttMessageConverter' produced a null for message");
+			conversionError = new IllegalStateException("'MqttMessageConverter' returned 'null'");
 		}
 
 		if (conversionError != null) {

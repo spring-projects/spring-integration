@@ -164,7 +164,7 @@ StaticMessageHeaderAccessor.acknowledgment(someMessage).acknowledge();
 ----
 ====
 
-Starting with version `5.2.11`, when message converter throws an exception or returns `null` from the `MqttMessage` conversion, the `MqttPahoMessageDrivenChannelAdapter` sends an `ErrorMessage` into the provided `errorChannel`.
+Starting with version `5.2.11`, when the message converter throws an exception or returns `null` from the `MqttMessage` conversion, the `MqttPahoMessageDrivenChannelAdapter` sends an `ErrorMessage` into the `errorChannel`, if provided.
 Re-throws this conversion error otherwise into an MQTT client callback.
 
 ==== Configuring with Java Configuration
