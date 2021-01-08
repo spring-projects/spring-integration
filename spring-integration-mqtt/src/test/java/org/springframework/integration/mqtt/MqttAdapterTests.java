@@ -88,7 +88,6 @@ import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaderAccessor;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -310,24 +309,20 @@ public class MqttAdapterTests {
 
 		adapter.setConverter(new MqttMessageConverter() {
 
-			@Override public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
+			@Override
+			public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
 				return null;
 			}
 
-			@Override public AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic,
-					MqttMessage mqttMessage) {
-
+			@Override
+			public Object fromMessage(Message<?> message, Class<?> targetClass) {
 				return null;
 			}
 
-			@Override public Object fromMessage(Message<?> message, Class<?> targetClass) {
+			@Override
+			public Message<?> toMessage(Object payload, MessageHeaders headers) {
 				return null;
 			}
-
-			@Override public Message<?> toMessage(Object payload, MessageHeaders headers) {
-				return null;
-			}
-
 
 		});
 
