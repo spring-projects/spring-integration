@@ -312,24 +312,20 @@ public class MqttAdapterTests {
 
 		adapter.setConverter(new MqttMessageConverter() {
 
-			@Override public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
+			@Override
+			public AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage) {
 				return null;
 			}
 
-			@Override public AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic,
-					MqttMessage mqttMessage) {
-
+			@Override
+			public Object fromMessage(Message<?> message, Class<?> targetClass) {
 				return null;
 			}
 
-			@Override public Object fromMessage(Message<?> message, Class<?> targetClass) {
+			@Override
+			public Message<?> toMessage(Object payload, MessageHeaders headers) {
 				return null;
 			}
-
-			@Override public Message<?> toMessage(Object payload, MessageHeaders headers) {
-				return null;
-			}
-
 
 		});
 
