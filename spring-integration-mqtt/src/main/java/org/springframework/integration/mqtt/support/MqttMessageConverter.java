@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import org.springframework.messaging.converter.MessageConverter;
  * a header.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -35,12 +37,20 @@ public interface MqttMessageConverter extends MessageConverter {
 
 	/**
 	 * Convert to a Message.
-	 *
+	 * The default implementation calls {@link #toMessageBuilder(String, MqttMessage)}.
 	 * @param topic the topic.
 	 * @param mqttMessage the MQTT message.
 	 * @return the Message.
 	 */
-	Message<?> toMessage(String topic, MqttMessage mqttMessage);
+	default Message<?> toMessage(String topic, MqttMessage mqttMessage) {
+		AbstractIntegrationMessageBuilder<?> builder = toMessageBuilder(topic, mqttMessage);
+		if (builder != null) {
+			return builder.build();
+		}
+		else {
+			return null;
+		}
+	}
 
 	/**
 	 * Convert to a message builder.
