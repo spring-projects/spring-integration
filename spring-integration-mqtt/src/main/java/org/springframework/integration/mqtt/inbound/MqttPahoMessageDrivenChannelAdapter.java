@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,8 @@ import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -169,7 +171,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 		catch (Exception e) {
 			logger.error("Exception while connecting and subscribing, retrying", e);
-			this.scheduleReconnect();
+			scheduleReconnect();
 		}
 	}
 
@@ -181,7 +183,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			try {
 				if (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
 						|| (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_CLEAN)
-								&& this.cleanSession)) {
+						&& this.cleanSession)) {
 
 					this.client.unsubscribe(getTopic());
 				}
@@ -237,7 +239,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			super.removeTopic(topic);
 		}
 		catch (MqttException e) {
-			throw new MessagingException("Failed to unsubscribe from topic " + Arrays.asList(topic), e);
+			throw new MessagingException("Failed to unsubscribe from topic(s) " + Arrays.toString(topic), e);
 		}
 		finally {
 			this.topicLock.unlock();
@@ -365,14 +367,47 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	@Override
 	public void messageArrived(String topic, MqttMessage mqttMessage) {
-		Message<?> message = this.getConverter().toMessage(topic, mqttMessage);
+		Message<?> message = toMessage(topic, mqttMessage);
+		if (message != null) {
+			try {
+				sendMessage(message);
+			}
+			catch (RuntimeException e) {
+				logger.error("Unhandled exception for " + message.toString(), e);
+				throw e;
+			}
+		}
+	}
+
+	private Message<?> toMessage(String topic, MqttMessage mqttMessage) {
+		Message<?> message = null;
+		RuntimeException conversionError = null;
 		try {
-			sendMessage(message);
+			message = getConverter().toMessage(topic, mqttMessage);
 		}
-		catch (RuntimeException e) {
-			logger.error("Unhandled exception for " + message.toString(), e);
-			throw e;
+		catch (RuntimeException ex) {
+			conversionError = ex;
 		}
+
+		if (message == null && conversionError == null) {
+			conversionError = new IllegalStateException("'MqttMessageConverter' returned 'null'");
+		}
+
+		if (conversionError != null) {
+			GenericMessage<MqttMessage> failedMessage = new GenericMessage<>(mqttMessage);
+			if (!sendErrorMessageIfNecessary(failedMessage, conversionError)) {
+				MessageConversionException conversionException;
+				if (conversionError instanceof MessageConversionException) {
+					conversionException = (MessageConversionException) conversionError;
+				}
+				else {
+					conversionException = new MessageConversionException(failedMessage,
+							"Failed to convert from MQTT Message", conversionError);
+				}
+				throw conversionException;
+			}
+		}
+		return message;
 	}
 
 	@Override

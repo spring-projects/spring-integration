@@ -145,6 +145,9 @@ A new application context reverts to the configured settings.
 
 Changing the topics while the adapter is stopped (or disconnected from the broker) takes effect the next time a connection is established.
 
+Starting with version `5.2.11`, when the message converter throws an exception or returns `null` from the `MqttMessage` conversion, the `MqttPahoMessageDrivenChannelAdapter` sends an `ErrorMessage` into the `errorChannel`, if provided.
+Re-throws this conversion error otherwise into an MQTT client callback.
+
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
