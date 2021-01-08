@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,9 +87,13 @@ import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannel
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaderAccessor;
+import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -104,7 +108,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class MqttAdapterTests {
 
-	private IMqttToken alwaysComplete;
+	private final IMqttToken alwaysComplete;
 
 	{
 		ProxyFactoryBean pfb = new ProxyFactoryBean();
@@ -196,12 +200,12 @@ public class MqttAdapterTests {
 			return deliveryToken;
 		}).given(client).publish(anyString(), any(MqttMessage.class));
 
-		handler.handleMessage(new GenericMessage<String>("Hello, world!"));
+		handler.handleMessage(new GenericMessage<>("Hello, world!"));
 
 		verify(client, times(1)).connect(any(MqttConnectOptions.class));
 		assertThat(connectCalled.get()).isTrue();
 		AtomicReference<Object> failed = new AtomicReference<>();
-		handler.setApplicationEventPublisher(event -> failed.set(event));
+		handler.setApplicationEventPublisher(failed::set);
 		handler.connectionLost(new IllegalStateException());
 		assertThat(failed.get()).isInstanceOf(MqttConnectionFailedEvent.class);
 		handler.stop();
@@ -256,7 +260,7 @@ public class MqttAdapterTests {
 			return null;
 		}).given(client).connect(any(MqttConnectOptions.class));
 
-		final AtomicReference<MqttCallback> callback = new AtomicReference<MqttCallback>();
+		final AtomicReference<MqttCallback> callback = new AtomicReference<>();
 		willAnswer(invocation -> {
 			callback.set(invocation.getArgument(0));
 			return null;
@@ -269,12 +273,14 @@ public class MqttAdapterTests {
 		adapter.setManualAcks(true);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
-		final BlockingQueue<MqttIntegrationEvent> events = new LinkedBlockingQueue<MqttIntegrationEvent>();
+		final BlockingQueue<MqttIntegrationEvent> events = new LinkedBlockingQueue<>();
 		willAnswer(invocation -> {
 			events.add(invocation.getArgument(0));
 			return null;
@@ -301,6 +307,39 @@ public class MqttAdapterTests {
 		MqttIntegrationEvent event = events.poll(10, TimeUnit.SECONDS);
 		assertThat(event).isInstanceOf(MqttSubscribedEvent.class);
 		assertThat(((MqttSubscribedEvent) event).getMessage()).isEqualTo("Connected and subscribed to [baz, fix]");
+
+		adapter.setConverter(new MqttMessageConverter() {
+
+			@Override public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
+				return null;
+			}
+
+			@Override public AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic,
+					MqttMessage mqttMessage) {
+
+				return null;
+			}
+
+			@Override public Object fromMessage(Message<?> message, Class<?> targetClass) {
+				return null;
+			}
+
+			@Override public Message<?> toMessage(Object payload, MessageHeaders headers) {
+				return null;
+			}
+
+
+		});
+
+		callback.get().messageArrived("baz", message);
+
+		ErrorMessage errorMessage = (ErrorMessage) errorChannel.receive(0);
+		assertThat(errorMessage).isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(IllegalStateException.class);
+		IllegalStateException exception = (IllegalStateException) errorMessage.getPayload();
+		assertThat(exception).hasMessage("'MqttMessageConverter' returned 'null'");
+		assertThat(errorMessage.getOriginalMessage().getPayload()).isSameAs(message);
 
 		// lose connection and make first reconnect fail
 		failConnection.set(true);
@@ -424,7 +463,7 @@ public class MqttAdapterTests {
 		// the following assertion should be equalTo, but leq to protect against a slow CI server
 		assertThat(attemptingReconnectCount.get()).isLessThanOrEqualTo(2);
 		AtomicReference<Object> failed = new AtomicReference<>();
-		adapter.setApplicationEventPublisher(event -> failed.set(event));
+		adapter.setApplicationEventPublisher(failed::set);
 		adapter.connectionLost(new IllegalStateException());
 		assertThat(failed.get()).isInstanceOf(MqttConnectionFailedEvent.class);
 		adapter.stop();
@@ -456,8 +495,7 @@ public class MqttAdapterTests {
 		new DirectFieldAccessor(client).setPropertyValue("aClient", aClient);
 		willAnswer(new CallsRealMethods()).given(client).connect(any(MqttConnectOptions.class));
 		willAnswer(new CallsRealMethods()).given(client).subscribe(any(String[].class), any(int[].class));
-		willAnswer(new CallsRealMethods()).given(client).subscribe(any(String[].class), any(int[].class),
-				(IMqttMessageListener[]) isNull());
+		willAnswer(new CallsRealMethods()).given(client).subscribe(any(String[].class), any(int[].class), isNull());
 		willReturn(alwaysComplete).given(aClient).connect(any(MqttConnectOptions.class), any(), any());
 
 		IMqttToken token = mock(IMqttToken.class);
@@ -562,7 +600,7 @@ public class MqttAdapterTests {
 		return adapter;
 	}
 
-	private MqttPahoMessageHandler buildAdapterOut(final IMqttAsyncClient client) throws MqttException {
+	private MqttPahoMessageHandler buildAdapterOut(final IMqttAsyncClient client) {
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory() {
 
 			@Override
