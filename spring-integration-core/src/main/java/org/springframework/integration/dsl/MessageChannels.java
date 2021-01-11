@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,19 +108,37 @@ public final class MessageChannels {
 	}
 
 	public static PublishSubscribeChannelSpec<?> publishSubscribe() {
-		return new PublishSubscribeChannelSpec<>();
+		return publishSubscribe(false);
+	}
+
+	public static PublishSubscribeChannelSpec<?> publishSubscribe(boolean requireSubscribers) {
+		return new PublishSubscribeChannelSpec<>(requireSubscribers);
 	}
 
 	public static PublishSubscribeChannelSpec<?> publishSubscribe(String id) {
-		return MessageChannels.publishSubscribe().id(id);
+		return publishSubscribe(id, false);
+	}
+
+	public static PublishSubscribeChannelSpec<?> publishSubscribe(String id, boolean requireSubscribers) {
+		return publishSubscribe(requireSubscribers).id(id);
 	}
 
 	public static PublishSubscribeChannelSpec<?> publishSubscribe(Executor executor) {
-		return new PublishSubscribeChannelSpec<>(executor);
+		return publishSubscribe(executor, false);
+	}
+
+	public static PublishSubscribeChannelSpec<?> publishSubscribe(Executor executor, boolean requireSubscribers) {
+		return new PublishSubscribeChannelSpec<>(executor, requireSubscribers);
 	}
 
 	public static PublishSubscribeChannelSpec<?> publishSubscribe(String id, Executor executor) {
-		return MessageChannels.publishSubscribe(executor).id(id);
+		return publishSubscribe(id, executor, false);
+	}
+
+	public static PublishSubscribeChannelSpec<?> publishSubscribe(String id, Executor executor,
+			boolean requireSubscribers) {
+
+		return publishSubscribe(executor, requireSubscribers).id(id);
 	}
 
 	public static FluxMessageChannelSpec flux() {
@@ -128,8 +146,7 @@ public final class MessageChannels {
 	}
 
 	public static FluxMessageChannelSpec flux(String id) {
-		return flux()
-				.id(id);
+		return flux().id(id);
 	}
 
 	private MessageChannels() {
