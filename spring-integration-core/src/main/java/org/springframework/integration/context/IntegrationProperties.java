@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,14 +47,24 @@ public final class IntegrationProperties {
 	 * in case of point-to-point channels (e.g. {@link org.springframework.integration.channel.ExecutorChannel}),
 	 * if the attribute {@code max-subscribers} isn't configured on the channel component.
 	 */
-	public static final String CHANNELS_MAX_UNICAST_SUBSCRIBERS = INTEGRATION_PROPERTIES_PREFIX + "channels.maxUnicastSubscribers";
+	public static final String CHANNELS_MAX_UNICAST_SUBSCRIBERS =
+			INTEGRATION_PROPERTIES_PREFIX + "channels.maxUnicastSubscribers";
 
 	/**
 	 * Specifies the value for {@link org.springframework.integration.dispatcher.BroadcastingDispatcher#maxSubscribers}
 	 * in case of point-to-point channels (e.g. {@link org.springframework.integration.channel.PublishSubscribeChannel}),
 	 * if the attribute {@code max-subscribers} isn't configured on the channel component.
 	 */
-	public static final String CHANNELS_MAX_BROADCAST_SUBSCRIBERS = INTEGRATION_PROPERTIES_PREFIX + "channels.maxBroadcastSubscribers";
+	public static final String CHANNELS_MAX_BROADCAST_SUBSCRIBERS =
+			INTEGRATION_PROPERTIES_PREFIX + "channels.maxBroadcastSubscribers";
+
+
+	/**
+	 * Specifies the value for {@link org.springframework.integration.channel.PublishSubscribeChannel#requireSubscribers}
+	 * on a global default {@link IntegrationContextUtils#ERROR_CHANNEL_BEAN_NAME}.
+	 */
+	public static final String ERROR_CHANNEL_REQUIRE_SUBSCRIBERS =
+			INTEGRATION_PROPERTIES_PREFIX + "channels.error.requireSubscribers";
 
 	/**
 	 * Specifies the value of {@link org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler#poolSize}
@@ -65,7 +75,8 @@ public final class IntegrationProperties {
 	/**
 	 * Specifies the value of {@link org.springframework.messaging.core.GenericMessagingTemplate#throwExceptionOnLateReply}.
 	 */
-	public static final String THROW_EXCEPTION_ON_LATE_REPLY = INTEGRATION_PROPERTIES_PREFIX + "messagingTemplate.throwExceptionOnLateReply";
+	public static final String THROW_EXCEPTION_ON_LATE_REPLY =
+			INTEGRATION_PROPERTIES_PREFIX + "messagingTemplate.throwExceptionOnLateReply";
 
 	/**
 	 * Specifies the value of {@link org.springframework.integration.support.DefaultMessageBuilderFactory#readOnlyHeaders}.
@@ -77,18 +88,19 @@ public final class IntegrationProperties {
 	 */
 	public static final String ENDPOINTS_NO_AUTO_STARTUP = INTEGRATION_PROPERTIES_PREFIX + "endpoints.noAutoStartup";
 
-	private static Properties defaults;
+	private static final Properties DEFAULTS;
 
 	static {
 		String resourcePattern = "classpath*:META-INF/spring.integration.default.properties";
 		try {
-			ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver(IntegrationProperties.class.getClassLoader());
+			ResourcePatternResolver resourceResolver =
+					new PathMatchingResourcePatternResolver(IntegrationProperties.class.getClassLoader());
 			Resource[] defaultResources = resourceResolver.getResources(resourcePattern);
 
 			PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
 			propertiesFactoryBean.setLocations(defaultResources);
 			propertiesFactoryBean.afterPropertiesSet();
-			defaults = propertiesFactoryBean.getObject();
+			DEFAULTS = propertiesFactoryBean.getObject();
 		}
 		catch (IOException e) {
 			throw new IllegalStateException("Can't load '" + resourcePattern + "' resources.", e);
@@ -100,7 +112,7 @@ public final class IntegrationProperties {
 	 *         from resources 'META-INF/spring.integration.default.properties'.
 	 */
 	public static Properties defaults() {
-		return defaults;
+		return DEFAULTS;
 	}
 
 	/**
@@ -112,11 +124,13 @@ public final class IntegrationProperties {
 	 * @throws IllegalArgumentException if provided {@code key} isn't an Integration property.
 	 */
 	public static String getExpressionFor(String key) {
-		if (defaults.containsKey(key)) {
-			return "#{T(org.springframework.integration.context.IntegrationContextUtils).getIntegrationProperties(beanFactory).getProperty('" + key + "')}";
+		if (DEFAULTS.containsKey(key)) {
+			return "#{T(org.springframework.integration.context.IntegrationContextUtils)" +
+					".getIntegrationProperties(beanFactory).getProperty('" + key + "')}";
 		}
 		else {
-			throw new IllegalArgumentException("The provided key [" + key + "] isn't the one of Integration properties: " + defaults.keySet());
+			throw new IllegalArgumentException("The provided key [" + key +
+					"] isn't the one of Integration properties: " + DEFAULTS.keySet());
 		}
 	}
 

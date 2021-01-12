@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,11 +34,19 @@ public class PublishSubscribeChannelSpec<S extends PublishSubscribeChannelSpec<S
 		extends MessageChannelSpec<S, PublishSubscribeChannel> {
 
 	protected PublishSubscribeChannelSpec() {
-		this(null);
+		this(false);
+	}
+
+	protected PublishSubscribeChannelSpec(boolean requireSubscribers) {
+		this(null, requireSubscribers);
 	}
 
 	protected PublishSubscribeChannelSpec(@Nullable Executor executor) {
-		this.channel = new PublishSubscribeChannel(executor);
+		this(executor, false);
+	}
+
+	protected PublishSubscribeChannelSpec(@Nullable Executor executor, boolean requireSubscribers) {
+		this.channel = new PublishSubscribeChannel(executor, requireSubscribers);
 	}
 
 	public S errorHandler(ErrorHandler errorHandler) {

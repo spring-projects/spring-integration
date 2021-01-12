@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,8 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 
 	private ErrorHandler errorHandler;
 
+	private final boolean requireSubscribers;
+
 	private boolean ignoreFailures;
 
 	private boolean applySequence;
@@ -50,7 +52,18 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 	 * message sender's thread.
 	 */
 	public PublishSubscribeChannel() {
-		this(null);
+		this(false);
+	}
+
+	/**
+	 * Create a PublishSubscribeChannel that will invoke the handlers in the
+	 * message sender's thread considering the provided {@code requireSubscribers} flag.
+	 * @param requireSubscribers if set to true, the sent message is considered as non-dispatched
+	 * and rejected to the caller with the {@code "Dispatcher has no subscribers"}.
+	 * @since 5.4.3
+	 */
+	public PublishSubscribeChannel(boolean requireSubscribers) {
+		this(null, requireSubscribers);
 	}
 
 	/**
@@ -60,8 +73,22 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 	 * @param executor The executor.
 	 */
 	public PublishSubscribeChannel(@Nullable Executor executor) {
+		this(executor, false);
+	}
+
+	/**
+	 * Create a PublishSubscribeChannel that will use an {@link Executor}
+	 * to invoke the handlers. If this is null, each invocation will occur in
+	 * the message sender's thread.
+	 * @param executor The executor.
+	 * @param requireSubscribers if set to true, the sent message is considered as non-dispatched
+	 * and rejected to the caller with the {@code "Dispatcher has no subscribers"}.
+	 * @since 5.4.3
+	 */
+	public PublishSubscribeChannel(@Nullable Executor executor, boolean requireSubscribers) {
 		super(executor);
-		this.dispatcher = new BroadcastingDispatcher(executor);
+		this.requireSubscribers = requireSubscribers;
+		this.dispatcher = new BroadcastingDispatcher(executor, requireSubscribers);
 	}
 
 
@@ -77,7 +104,7 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 
 	/**
 	 * Provide an {@link ErrorHandler} strategy for handling Exceptions that
-	 * occur downstream from this channel. This will <i>only</i> be applied if
+	 * occur downstream from this channel. This will only be applied if
 	 * an Executor has been configured to dispatch the Messages for this
 	 * channel. Otherwise, Exceptions will be thrown directly within the
 	 * sending Thread. If no ErrorHandler is provided, and this channel does
@@ -94,9 +121,9 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 
 	/**
 	 * Specify whether failures for one or more of the handlers should be
-	 * ignored. By default this is <code>false</code> meaning that an Exception
+	 * ignored. By default this is false meaning that an Exception
 	 * will be thrown whenever a handler fails. To override this and suppress
-	 * Exceptions, set the value to <code>true</code>.
+	 * Exceptions, set the value to true.
 	 * @param ignoreFailures true if failures should be ignored.
 	 */
 	public void setIgnoreFailures(boolean ignoreFailures) {
@@ -107,10 +134,10 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 	/**
 	 * Specify whether to apply the sequence number and size headers to the
 	 * messages prior to invoking the subscribed handlers. By default, this
-	 * value is <code>false</code> meaning that sequence headers will
-	 * <em>not</em> be applied. If planning to use an Aggregator downstream
+	 * value is false meaning that sequence headers will
+	 * not be applied. If planning to use an Aggregator downstream
 	 * with the default correlation and completion strategies, you should set
-	 * this flag to <code>true</code>.
+	 * this flag to true.
 	 * @param applySequence true if the sequence information should be applied.
 	 */
 	public void setApplySequence(boolean applySequence) {
@@ -147,7 +174,7 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 				}
 				this.executor = new ErrorHandlingTaskExecutor(this.executor, this.errorHandler);
 			}
-			dispatcherToUse = new BroadcastingDispatcher(this.executor);
+			dispatcherToUse = new BroadcastingDispatcher(this.executor, this.requireSubscribers);
 			dispatcherToUse.setIgnoreFailures(this.ignoreFailures);
 			dispatcherToUse.setApplySequence(this.applySequence);
 			dispatcherToUse.setMinSubscribers(this.minSubscribers);

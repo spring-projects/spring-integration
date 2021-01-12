@@ -537,12 +537,22 @@
 					</xsd:attribute>
 					<xsd:attribute name="min-subscribers" type="xsd:string">
 						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+							<xsd:documentation>
 								Specifies the minimum subscribers required to be subscribed to this channel; if the minimum number
 								of subscribers receive the message, the send is deemed to be successful (returns true).
 								Defaults to 0.
-							]]></xsd:documentation>
+							</xsd:documentation>
 						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="require-subscribers" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								Indicates if this channel may ignore or not a message when there are no subscribers.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType>
 					</xsd:attribute>
 					<xsd:attributeGroup ref="subscribersAttributeGroup"/>
 				</xsd:extension>
