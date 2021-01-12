@@ -198,6 +198,7 @@ Since version 4.3.12.
 
 <8> A boolean flag to indicate that default global `errorChannel` must be configured with the `requireSubscribers` option.
 Since version 5.4.3.
+See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 ====
 
 These properties can be overridden by adding a `/META-INF/spring.integration.properties` file to the classpath.
