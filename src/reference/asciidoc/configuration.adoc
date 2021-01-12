@@ -168,7 +168,7 @@ spring.integration.taskScheduler.poolSize=10 <4>
 spring.integration.messagingTemplate.throwExceptionOnLateReply=false <5>
 spring.integration.readOnly.headers= <6>
 spring.integration.endpoints.noAutoStartup= <7>
-spring.integration.postProcessDynamicBeans=false <8>
+spring.integration.channels.error.requireSubscribers=true <8>
 ----
 
 <1> When true, `input-channel` instances are automatically declared as `DirectChannel` instances when not explicitly found in the application context.
@@ -196,8 +196,9 @@ You can manually start these endpoints later by their bean name through a `Contr
 You can explicitly override the effect of this global property by specifying `auto-startup` XML annotation or the `autoStartup` annotation attribute or by calling `AbstractEndpoint.setAutoStartup()` in the bean definition.
 Since version 4.3.12.
 
-<8> A boolean flag to indicate that `BeanPostProcessor` instances should post-process beans registered at runtime (for example, message channels created by `IntegrationFlowContext` can be supplied with global channel interceptors).
-Since version 4.3.15.
+<8> A boolean flag to indicate that default global `errorChannel` must be configured with the `requireSubscribers` option.
+Since version 5.4.3.
+See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 ====
 
 These properties can be overridden by adding a `/META-INF/spring.integration.properties` file to the classpath.

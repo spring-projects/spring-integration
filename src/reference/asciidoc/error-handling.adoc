@@ -70,3 +70,8 @@ With Java & Annotation configuration, a resource is a `@Configuration` class and
 In most case the target integration flow solution is based on the out-of-the-box components and their configuration options.
 When an exception happens at runtime, there is no any end-user code involved in stack trace because an execution is against beans, not their configuration.
 Including a resource and source of the bean definition helps to determine possible configuration mistakes and provides better developer experience.
+
+Starting with version 5.4.3, the default error channel is configured with the property `requireSubscribers = true` to not silently ignore messages when there are no subscribers on this channel (e.g. when application context is stopped).
+In this case a `MessageDispatchingException` is thrown which may lend on the client callback of the inbound channel adapter to negatively acknowledge (or roll back) an original message in the source system for redelivery or other future consideration.
+To restore the previous behavior (ignore non dispatched error messages), the global integration property `spring.integration.channels.error.requireSubscribers` must be set to `false`.
+See <<./configuration.adoc#global-properties,Global Properties>> and <<./channel.adoc#channel-configuration-pubsubchannel,`PublishSubscribeChannel` Configuration>> (if you configure a global `errorChannel` manually) for more information.
