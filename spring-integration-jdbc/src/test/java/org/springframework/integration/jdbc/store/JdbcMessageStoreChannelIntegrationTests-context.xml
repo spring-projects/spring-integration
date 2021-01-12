@@ -14,10 +14,10 @@
 		http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd
 		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
 
-	<jdbc:embedded-database id="dataSource" type="DERBY"/>
+	<jdbc:embedded-database id="dataSource" type="H2"/>
 
 	<jdbc:initialize-database data-source="dataSource">
-		<jdbc:script location="${int.schema.script}"/>
+		<jdbc:script location="classpath:/org/springframework/integration/jdbc/schema-h2.sql"/>
 	</jdbc:initialize-database>
 
 	<int-jdbc:message-store id="messageStore" data-source="dataSource"/>
@@ -55,11 +55,6 @@
 			<tx:method name="*"/>
 		</tx:attributes>
 	</tx:advice>
-
-	<context:property-placeholder location="int-${ENVIRONMENT:derby}.properties"
-								  system-properties-mode="OVERRIDE"
-								  ignore-unresolvable="true"
-								  order="1"/>
 
 	<bean id="transactionManager"
 		  class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
