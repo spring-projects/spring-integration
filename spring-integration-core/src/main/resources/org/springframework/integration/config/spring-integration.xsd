@@ -547,7 +547,7 @@
 					<xsd:attribute name="require-subscribers" default="false">
 						<xsd:annotation>
 							<xsd:documentation>
-								Indicates if this channel may ignore or not a message when there is no subscribers at all.
+								Indicates if this channel may ignore or not a message when there are no subscribers.
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>

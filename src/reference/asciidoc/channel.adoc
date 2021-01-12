@@ -794,8 +794,8 @@ public MessageChannel pubsubChannel() {
 NOTE: The `apply-sequence` value is `false` by default so that a publish-subscribe channel can send the exact same message instances to multiple outbound channels.
 Since Spring Integration enforces immutability of the payload and header references, when the flag is set to `true`, the channel creates new `Message` instances with the same payload reference but different header values.
 
-Starting with version 5.4.3, the `PublishSubscribeChannel` can also be configured with the `requireSubscribers` option of its `BroadcastingDispatcher` to indicate that this channel is not going to ignore a message silently when there is no any subscribers to it.
-A `MessageDispatchingException` with a `Dispatcher has no subscribers` message is thrown when no subscribers and this option is set to `true`.
+Starting with version 5.4.3, the `PublishSubscribeChannel` can also be configured with the `requireSubscribers` option of its `BroadcastingDispatcher` to indicate that this channel will not ignore a message silently when it has no subscribers.
+A `MessageDispatchingException` with a `Dispatcher has no subscribers` message is thrown when there are no subscribers and this option is set to `true`.
 
 [[channel-configuration-executorchannel]]
 ===== `ExecutorChannel`
