@@ -47,7 +47,7 @@ ext {
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.15.13'
+	activeMqVersion = '5.15.14'
 	apacheSshdVersion = '2.4.0'
 	avroVersion = '1.9.2'
 	aspectjVersion = '1.9.6'
@@ -63,11 +63,11 @@ ext {
 	googleJsr305Version = '3.0.2'
 	groovyVersion = '2.5.13'
 	hamcrestVersion = '2.2'
-	hazelcastVersion = '3.12.10'
-	hibernateVersion = '5.4.23.Final'
+	hazelcastVersion = '3.12.11'
+	hibernateVersion = '5.4.25.Final'
 	hsqldbVersion = '2.5.1'
 	h2Version = '1.4.200'
-	jacksonVersion = '2.11.3'
+	jacksonVersion = '2.11.4'
 	javaxActivationVersion = '1.2.0'
 	javaxMailVersion = '1.6.2'
 	jmsApiVersion = '2.0.1'
@@ -82,26 +82,26 @@ ext {
 	kryoShadedVersion = '4.0.2'
 	lettuceVersion = '5.3.5.RELEASE'
 	log4jVersion = '2.13.3'
-	micrometerVersion = '1.5.6'
+	micrometerVersion = '1.5.9'
 	mockitoVersion = '3.3.3'
 	mongoDriverVersion = '4.0.4'
 	mysqlVersion = '8.0.20'
 	pahoMqttClientVersion = '1.2.4'
 	postgresVersion = '42.2.12'
-	reactorVersion = 'Dysprosium-SR14'
+	reactorVersion = 'Dysprosium-SR16'
 	resilience4jVersion = '1.4.0'
 	romeToolsVersion = '1.12.2'
 	rsocketVersion = '1.0.3'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.12.RELEASE'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-SR5'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.3.5.RELEASE'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.14.RELEASE'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-SR6'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.3.6.RELEASE'
 	springRetryVersion = '1.2.5.RELEASE'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.11.RELEASE'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.12.RELEASE'
 	springWsVersion = '3.0.10.RELEASE'
-	tomcatVersion = "9.0.39"
-	xstreamVersion = '1.4.13'
+	tomcatVersion = "9.0.41"
+	xstreamVersion = '1.4.15'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
 }
