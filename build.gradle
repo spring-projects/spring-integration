@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.4.10'
+	ext.kotlinVersion = '1.4.21'
 	repositories {
 		mavenCentral()
 		maven { url 'https://plugins.gradle.org/m2' }
@@ -52,7 +52,7 @@ ext {
 	aspectjVersion = '1.9.6'
 	assertjVersion = '3.17.2'
 	assertkVersion = '0.23'
-	avroVersion = '1.10.0'
+	avroVersion = '1.10.1'
 	awaitilityVersion = '4.0.3'
 	commonsDbcp2Version = '2.8.0'
 	commonsIoVersion = '2.8.0'
@@ -67,7 +67,7 @@ ext {
 	hibernateVersion = '5.4.25.Final'
 	hsqldbVersion = '2.5.1'
 	h2Version = '1.4.200'
-	jacksonVersion = '2.11.3'
+	jacksonVersion = '2.11.4'
 	javaxActivationVersion = '1.2.0'
 	javaxAnnotationVersion= '1.3.2'
 	jaxbVersion = '2.3.3'
@@ -85,14 +85,14 @@ ext {
 	lettuceVersion = '6.0.1.RELEASE'
 	log4jVersion = '2.13.3'
 	mailVersion = '1.6.5'
-	micrometerVersion = '1.5.7'
-	mockitoVersion = '3.6.0'
+	micrometerVersion = '1.5.9'
+	mockitoVersion = '3.6.28'
 	mongoDriverVersion = '4.1.1'
 	mysqlVersion = '8.0.22'
 	pahoMqttClientVersion = '1.2.5'
 	postgresVersion = '42.2.18'
 	r2dbch2Version='0.8.4.RELEASE'
-	reactorVersion = '2020.0.2'
+	reactorVersion = '2020.0.3'
 	resilience4jVersion = '1.6.1'
 	romeToolsVersion = '1.15.0'
 	rsocketVersion = '1.1.0'
@@ -101,14 +101,14 @@ ext {
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.2'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.2'
-	springKafkaVersion = '2.6.4'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.3'
+	springKafkaVersion = '2.6.5'
 	springRetryVersion = '1.3.0'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.4.2'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.2'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.3'
 	springWsVersion = '3.0.10.RELEASE'
-	tomcatVersion = "9.0.40"
-	xstreamVersion = '1.4.13'
+	tomcatVersion = "9.0.41"
+	xstreamVersion = '1.4.15'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
 }
