@@ -332,7 +332,7 @@ public class MqttAdapterTests {
 
 		ErrorMessage errorMessage = (ErrorMessage) errorChannel.receive(0);
 		assertThat(errorMessage).isNotNull()
-				.extracting(Message::getPayload)
+				.extracting(ErrorMessage::getPayload)
 				.isInstanceOf(IllegalStateException.class);
 		IllegalStateException exception = (IllegalStateException) errorMessage.getPayload();
 		assertThat(exception).hasMessage("'MqttMessageConverter' returned 'null'");
