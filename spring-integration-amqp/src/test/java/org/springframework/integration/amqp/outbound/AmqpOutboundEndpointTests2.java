@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public class AmqpOutboundEndpointTests2 {
 				.setHeader(AmqpHeaders.PUBLISH_CONFIRM_CORRELATION, corr)
 				.build());
 		assertThat(corr.getFuture().get(10, TimeUnit.SECONDS).isAck()).isTrue();
-		assertThat(corr.getReturnedMessage()).isNotNull();
+		assertThat(corr.getReturned()).isNotNull();
 	}
 
 	@Test
