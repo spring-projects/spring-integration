@@ -1017,9 +1017,6 @@ To inject a global interceptor before the existing interceptors, use a negative 
 NOTE: Note that both the `order` and `pattern` attributes are optional.
 The default value for `order` will be 0 and for `pattern`, the default is '*' (to match all channels).
 
-Starting with version 4.3.15, you can configure the `spring.integration.postProcessDynamicBeans = true` property to apply any global interceptors to dynamically created `MessageChannel` beans.
-See <<./configuration.adoc#global-properties,Global Properties>> for more information.
-
 [[channel-wiretap]]
 ===== Wire Tap
 

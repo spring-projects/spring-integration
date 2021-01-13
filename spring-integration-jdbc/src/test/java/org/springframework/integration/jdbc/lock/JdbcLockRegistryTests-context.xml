@@ -2,23 +2,17 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:tx="http://www.springframework.org/schema/tx"
 	xsi:schemaLocation="http://www.springframework.org/schema/jdbc https://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
 		http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<jdbc:embedded-database id="dataSource" type="DERBY"/>
+	<jdbc:embedded-database id="dataSource" type="H2"/>
 
-	<jdbc:initialize-database data-source="dataSource">
-		<jdbc:script location="${int.schema.script}"/>
+	<jdbc:initialize-database ignore-failures="DROPS">
+		<jdbc:script location="org/springframework/integration/jdbc/schema-drop-h2.sql"/>
+		<jdbc:script location="org/springframework/integration/jdbc/schema-h2.sql" />
 	</jdbc:initialize-database>
-
-	<context:property-placeholder location="int-${ENVIRONMENT:derby}.properties"
-								  system-properties-mode="OVERRIDE"
-								  ignore-unresolvable="true"
-								  order="1"/>
 
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource"/>
