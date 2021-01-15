@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.4.20'
+	ext.kotlinVersion = '1.4.21'
 	repositories {
 		mavenCentral()
 		maven { url 'https://plugins.gradle.org/m2' }
@@ -15,8 +15,8 @@ plugins {
 	id 'org.sonarqube' version '2.8'
 	id 'io.spring.nohttp' version '0.0.5.RELEASE' apply false
 	id 'org.ajoberstar.grgit' version '4.1.0'
-	id "io.spring.dependency-management" version '1.0.10.RELEASE'
-	id 'com.jfrog.artifactory' version '4.18.2' apply false
+	id "io.spring.dependency-management" version '1.0.11.RELEASE'
+	id 'com.jfrog.artifactory' version '4.18.3' apply false
 	id 'org.jetbrains.dokka' version '0.10.1'
 	id 'org.asciidoctor.jvm.pdf' version '3.3.0'
 	id 'org.asciidoctor.jvm.gems' version '3.3.0'
@@ -42,17 +42,17 @@ ext {
 	linkScmUrl = 'https://github.com/spring-projects/spring-integration'
 	linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
 	linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
-	docResourcesVersion = '0.2.4'
+	docResourcesVersion = '0.2.5'
 
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
 	activeMqVersion = '5.16.0'
-	apacheSshdVersion = '2.5.1'
+	apacheSshdVersion = '2.6.0'
 	aspectjVersion = '1.9.6'
 	assertjVersion = '3.18.1'
 	assertkVersion = '0.23'
-	avroVersion = '1.10.0'
+	avroVersion = '1.10.1'
 	awaitilityVersion = '4.0.3'
 	commonsDbcp2Version = '2.8.0'
 	commonsIoVersion = '2.8.0'
@@ -61,37 +61,37 @@ ext {
 	derbyVersion = '10.14.2.0'
 	ftpServerVersion = '1.1.1'
 	googleJsr305Version = '3.0.2'
-	groovyVersion = '3.0.6'
+	groovyVersion = '3.0.7'
 	hamcrestVersion = '2.2'
-	hazelcastVersion = '4.1'
-	hibernateVersion = '5.4.25.Final'
+	hazelcastVersion = '4.1.1'
+	hibernateVersion = '5.4.27.Final'
 	hsqldbVersion = '2.5.1'
 	h2Version = '1.4.200'
-	jacksonVersion = '2.12.0'
+	jacksonVersion = '2.12.1'
 	javaxActivationVersion = '1.2.0'
 	jaxbVersion = '2.3.3'
 	jeroMqVersion = '0.5.2'
 	jmsApiVersion = '2.0.1'
 	jpa21ApiVersion = '1.0.2.Final'
 	jpaApiVersion = '2.7.7'
-	jrubyVersion = '9.2.13.0'
+	jrubyVersion = '9.2.14.0'
 	jschVersion = '0.1.55'
 	jsonpathVersion = '2.4.0'
 	junit4Version = '4.13.1'
 	junitJupiterVersion = '5.7.0'
 	jythonVersion = '2.7.2'
 	kryoShadedVersion = '4.0.2'
-	lettuceVersion = '6.0.1.RELEASE'
+    lettuceVersion = '6.0.2.RELEASE'
 	log4jVersion = '2.14.0'
 	mailVersion = '1.6.5'
-	micrometerVersion = '1.6.1'
-	mockitoVersion = '3.6.28'
+	micrometerVersion = '1.6.3'
+	mockitoVersion = '3.7.0'
 	mongoDriverVersion = '4.2.0-beta1'
 	mysqlVersion = '8.0.22'
 	pahoMqttClientVersion = '1.2.5'
 	postgresVersion = '42.2.18'
 	r2dbch2Version='0.8.4.RELEASE'
-	reactorVersion = '2020.0.1'
+	reactorVersion = '2020.0.3'
 	resilience4jVersion = '1.6.1'
 	romeToolsVersion = '1.15.0'
 	rsocketVersion = '1.1.0'
@@ -99,16 +99,16 @@ ext {
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.4'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.5-SNAPSHOT'
 	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.0-SNAPSHOT'
 	springKafkaVersion = '2.7.0-SNAPSHOT'
-	springRetryVersion = '1.3.0'
+	springRetryVersion = '1.3.1'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.0-SNAPSHOT'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.1'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.4-SNAPSHOT'
 	springWsVersion = '3.1.0-SNAPSHOT'
-	tomcatVersion = "9.0.40"
-	xmlUnitVersion = '2.8.1'
-	xstreamVersion = '1.4.14'
+	tomcatVersion = '9.0.41'
+	xmlUnitVersion = '2.8.2'
+	xstreamVersion = '1.4.15'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
 }
@@ -239,7 +239,10 @@ configure(javaProjects) { subproject ->
 			exclude group: 'org.hamcrest'
 		}
 		testImplementation 'org.junit.jupiter:junit-jupiter-api'
-		testImplementation "com.willowtreeapps.assertk:assertk-jvm:$assertkVersion"
+		testImplementation ("com.willowtreeapps.assertk:assertk-jvm:$assertkVersion") {
+            exclude group: 'org.jetbrains.kotlin'
+        }
+		testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
 		testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 		testImplementation 'io.projectreactor:reactor-test'
 		testImplementation "com.jayway.jsonpath:json-path:$jsonpathVersion"
@@ -328,7 +331,7 @@ configure(javaProjects) { subproject ->
 
 	checkstyle {
 		configDirectory.set(rootProject.file("src/checkstyle"))
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.38'
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.39'
 	}
 
 	jar {
@@ -436,7 +439,9 @@ project('spring-integration-core') {
 
 		testImplementation ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testImplementation ('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-		testRuntime 'com.fasterxml.jackson.module:jackson-module-kotlin'
+		testRuntime ('com.fasterxml.jackson.module:jackson-module-kotlin') {
+            exclude group: 'org.jetbrains.kotlin'
+        }
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }
@@ -605,7 +610,6 @@ project('spring-integration-kafka') {
 		}
 
 		testImplementation "org.springframework.kafka:spring-kafka-test:$springKafkaVersion"
-		testImplementation "com.willowtreeapps.assertk:assertk-jvm:$assertkVersion"
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 
 		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-core'
@@ -829,7 +833,6 @@ project('spring-integration-ws') {
 		testImplementation ('org.springframework:spring-jms')
 		testImplementation "javax.jms:javax.jms-api:$jmsApiVersion"
 		testImplementation "org.igniterealtime.smack:smack-tcp:$smackVersion"
-		testImplementation "org.igniterealtime.smack:smack-java7:$smackVersion"
 		testImplementation "org.igniterealtime.smack:smack-extensions:$smackVersion"
 		testImplementation "jakarta.mail:jakarta.mail-api:$mailVersion"
 

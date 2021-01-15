@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 
 package org.springframework.integration.sftp.server;
 
-import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
 
 import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.subsystem.sftp.FileHandle;
-import org.apache.sshd.server.subsystem.sftp.SftpEventListener;
+import org.apache.sshd.sftp.server.FileHandle;
+import org.apache.sshd.sftp.server.SftpEventListener;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -38,10 +37,13 @@ import org.springframework.util.Assert;
  * which are subclasses of {@link ApacheMinaSftpEvent}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  *
  */
-public class ApacheMinaSftpEventListener implements SftpEventListener, ApplicationEventPublisherAware, BeanNameAware, InitializingBean {
+public class ApacheMinaSftpEventListener
+		implements SftpEventListener, ApplicationEventPublisherAware, BeanNameAware, InitializingBean {
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
@@ -76,7 +78,7 @@ public class ApacheMinaSftpEventListener implements SftpEventListener, Applicati
 	}
 
 	@Override
-	public void destroying(ServerSession session) throws IOException {
+	public void destroying(ServerSession session) {
 		this.applicationEventPublisher.publishEvent(new SessionClosedEvent(session));
 	}
 

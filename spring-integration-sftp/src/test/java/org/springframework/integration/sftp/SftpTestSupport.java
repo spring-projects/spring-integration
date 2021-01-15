@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.Collections;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
+import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -47,7 +47,8 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 
 	private static SshServer server;
 
-	private static ApacheMinaSftpEventListener eventListener = new ApacheMinaSftpEventListener();
+	private static final ApacheMinaSftpEventListener EVENT_LISTENER
+			= new ApacheMinaSftpEventListener();
 
 	@Override
 	public String getTargetLocalDirectoryName() {
@@ -66,10 +67,10 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		server.setPort(0);
 		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
 		SftpSubsystemFactory sftpFactory = new SftpSubsystemFactory();
-		eventListener.setApplicationEventPublisher((ev) -> {
+		EVENT_LISTENER.setApplicationEventPublisher((ev) -> {
 			// no-op
 		});
-		sftpFactory.addSftpEventListener(eventListener);
+		sftpFactory.addSftpEventListener(EVENT_LISTENER);
 		server.setSubsystemFactories(Collections.singletonList(sftpFactory));
 		server.setFileSystemFactory(new VirtualFileSystemFactory(getRemoteTempFolder().toPath()));
 		server.start();
@@ -87,7 +88,7 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 	}
 
 	public static ApacheMinaSftpEventListener eventListener() {
-		return eventListener;
+		return EVENT_LISTENER;
 	}
 
 	@AfterAll
