@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
@@ -152,7 +153,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		LIST_GROUP_KEYS("SELECT distinct GROUP_KEY as CREATED from %PREFIX%MESSAGE_GROUP where REGION=?");
 
-		private String sql;
+		private final String sql;
 
 		Query(String sql) {
 			this.sql = sql;
@@ -202,7 +203,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	/**
 	 * Public setter for the table prefix property. This will be prefixed to all the table names before queries are
 	 * executed. Defaults to {@link #DEFAULT_TABLE_PREFIX}.
-	 *
 	 * @param tablePrefix the tablePrefix to set
 	 */
 	public void setTablePrefix(String tablePrefix) {
@@ -212,7 +212,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	/**
 	 * A unique grouping identifier for all messages persisted with this store. Using multiple regions allows the store
 	 * to be partitioned (if necessary) for different purposes. Defaults to <code>DEFAULT</code>.
-	 *
 	 * @param region the region name to set
 	 */
 	public void setRegion(String region) {
@@ -223,7 +222,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	/**
 	 * Override the {@link LobHandler} that is used to create and unpack large objects in SQL queries. The default is
 	 * fine for almost all platforms, but some Oracle drivers require a native implementation.
-	 *
 	 * @param lobHandler a {@link LobHandler}
 	 */
 	public void setLobHandler(LobHandler lobHandler) {
@@ -232,7 +230,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	/**
 	 * A converter for serializing messages to byte arrays for storage.
-	 *
 	 * @param serializer the serializer to set
 	 */
 	@SuppressWarnings("unchecked")
@@ -242,7 +239,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	/**
 	 * A converter for deserializing byte arrays to messages.
-	 *
 	 * @param deserializer the deserializer to set
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes"})
@@ -410,10 +406,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
 		String key = getKey(groupId);
-		final AtomicReference<Date> createDate = new AtomicReference<Date>();
-		final AtomicReference<Date> updateDate = new AtomicReference<Date>();
-		final AtomicReference<Boolean> completeFlag = new AtomicReference<Boolean>();
-		final AtomicReference<Integer> lastReleasedSequenceRef = new AtomicReference<Integer>();
+		final AtomicReference<Date> createDate = new AtomicReference<>();
+		final AtomicReference<Date> updateDate = new AtomicReference<>();
+		final AtomicReference<Boolean> completeFlag = new AtomicReference<>();
+		final AtomicReference<Integer> lastReleasedSequenceRef = new AtomicReference<>();
 
 		this.jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), rs -> {
 			updateDate.set(rs.getTimestamp("UPDATED_DATE"));
@@ -548,6 +544,12 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@Override
+	public Stream<Message<?>> streamMessagesForGroup(Object groupId) {
+		return this.jdbcTemplate.queryForStream(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY), this.mapper,
+				getKey(groupId), this.region, this.region);
+	}
+
+	@Override
 	public Iterator<MessageGroup> iterator() {
 
 		final Iterator<String> iterator = this.jdbcTemplate.query(getQuery(Query.LIST_GROUP_KEYS),
@@ -570,6 +572,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			public void remove() {
 				throw new UnsupportedOperationException("Cannot remove MessageGroup from this iterator.");
 			}
+
 		};
 	}
 
@@ -577,7 +580,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * Replace patterns in the input to produce a valid SQL query. This implementation lazily initializes a
 	 * simple map-based cache, only replacing the table prefix on the first access to a named query. Further
 	 * accesses will be resolved from the cache.
-	 *
 	 * @param base the SQL query to be transformed
 	 * @return a transformed query with replacements
 	 */

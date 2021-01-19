@@ -18,6 +18,9 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 [[x5.5-general]]
 === General Changes
 
+
+All the persistent `MessageGroupStore` implementation provide a `streamMessagesForGroup(Object groupId)` contract based on the target database streaming API.
+See <<./message-store.adoc#message-store,Message Store>> for more information.
 [[x5.5-amqp]]
 ==== AMQP Changes
 

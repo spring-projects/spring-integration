@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -424,6 +425,17 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		return messageWrappers.stream()
 				.map(MessageWrapper::getMessage)
 				.collect(Collectors.toList());
+	}
+
+	@Override
+	public Stream<Message<?>> streamMessagesForGroup(Object groupId) {
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
+		Query query = whereGroupIdOrder(groupId);
+		Stream<MessageWrapper> messageWrappers =
+				this.template.stream(query, MessageWrapper.class, this.collectionName)
+						.stream();
+
+		return messageWrappers.map(MessageWrapper::getMessage);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.springframework.data.domain.Sort;
@@ -74,7 +75,9 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		this(mongoDbFactory, null, DEFAULT_COLLECTION_NAME);
 	}
 
-	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter) {
+	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory,
+			MappingMongoConverter mappingMongoConverter) {
+
 		this(mongoDbFactory, mappingMongoConverter, DEFAULT_COLLECTION_NAME);
 	}
 
@@ -82,8 +85,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
-			String collectionName) {
+	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory,
+			MappingMongoConverter mappingMongoConverter, String collectionName) {
 
 		super(mongoDbFactory, mappingMongoConverter, collectionName);
 	}
@@ -276,6 +279,18 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		return documents.stream()
 				.map(MessageDocument::getMessage)
 				.collect(Collectors.toList());
+	}
+
+	@Override
+	public Stream<Message<?>> streamMessagesForGroup(Object groupId) {
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
+		Query query = groupOrderQuery(groupId);
+		Stream<MessageDocument> documents =
+				getMongoTemplate()
+						.stream(query, MessageDocument.class, this.collectionName)
+						.stream();
+
+		return documents.map(MessageDocument::getMessage);
 	}
 
 	private void updateGroup(Object groupId, Update update) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.store;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.stream.Stream;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -141,6 +142,16 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 * @since 4.3
 	 */
 	Collection<Message<?>> getMessagesForGroup(Object groupId);
+
+	/**
+	 * Return a stream for messages stored in the provided group.
+	 * @param groupId the group id to retrieve messages.
+	 * @return the {@link Stream} for messages in this group.
+	 * @since 5.5
+	 */
+	default Stream<Message<?>> streamMessagesForGroup(Object groupId) {
+		return getMessagesForGroup(groupId).stream();
+	}
 
 	/**
 	 * Invoked when a MessageGroupStore expires a group.

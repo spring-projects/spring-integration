@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
@@ -160,7 +161,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
-		Collection<?> messageIds = doListKeys(this.messagePrefix + "*");
+		Collection<?> messageIds = doListKeys(this.messagePrefix + '*');
 		return (messageIds != null) ? messageIds.size() : 0;
 	}
 
@@ -347,10 +348,18 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
+	public Stream<Message<?>> streamMessagesForGroup(Object groupId) {
+		return getGroupMetadata(groupId)
+				.getMessageIds()
+				.stream()
+				.map(this::getMessage);
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public Iterator<MessageGroup> iterator() {
 		final Iterator<?> idIterator = normalizeKeys(
-				(Collection<String>) doListKeys(this.groupPrefix + "*"))
+				(Collection<String>) doListKeys(this.groupPrefix + '*'))
 				.iterator();
 		return new MessageGroupIterator(idIterator);
 	}
