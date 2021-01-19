@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import org.aopalliance.aop.Advice;
 
@@ -321,7 +322,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Checks if 'requestMessage' wasn't delayed before ({@link #releaseMessageAfterDelay}
+	 * Check if 'requestMessage' wasn't delayed before ({@link #releaseMessageAfterDelay}
 	 * and {@link DelayHandler.DelayedMessageWrapper}). Than determine 'delay' for
 	 * 'requestMessage' ({@link #determineDelayForMessage}) and if {@code delay > 0}
 	 * schedules 'releaseMessage' task after 'delay'.
@@ -562,9 +563,10 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	@Override
 	public synchronized void reschedulePersistedMessages() {
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
-		for (final Message<?> message : messageGroup.getMessages()) {
-			getTaskScheduler()
-					.schedule(() -> {
+		try (Stream<Message<?>> messageStream = messageGroup.streamMessages()) {
+			TaskScheduler taskScheduler = getTaskScheduler();
+			messageStream.forEach((message) ->
+					taskScheduler.schedule(() -> {
 						// This is fine to keep the reference to the message,
 						// because the scheduled task is performed immediately.
 						long delay = determineDelayForMessage(message);
@@ -574,12 +576,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 						else {
 							releaseMessage(message);
 						}
-					}, new Date());
+					}, new Date()));
 		}
 	}
 
 	/**
-	 * Handles {@link ContextRefreshedEvent} to invoke
+	 * Handle {@link ContextRefreshedEvent} to invoke
 	 * {@link #reschedulePersistedMessages} as late as possible after application context
 	 * startup. Also it checks {@link #initialized} to ignore other
 	 * {@link ContextRefreshedEvent}s which may be published in the 'parent-child'
