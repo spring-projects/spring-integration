@@ -21,6 +21,5 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 [[x5.5-amqp]]
 ==== AMQP Changes
 
-The `AmqpInboundChannelAdapter` and `AmqpInboundGateway` (and respective Java DSL builders) now support an `org.springframework.amqp.rabbit.retry.MessageRecoverer` as an AMQP-specific alternative to a general purpose `RecoveryCallback`.
+The `AmqpInboundChannelAdapter` and `AmqpInboundGateway` (and the respective Java DSL builders) now support an `org.springframework.amqp.rabbit.retry.MessageRecoverer` as an AMQP-specific alternative to the general purpose `RecoveryCallback`.
 See <<./amqp.adoc#amqp,AMQP Support>> for more information.
-

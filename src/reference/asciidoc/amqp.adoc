@@ -199,7 +199,7 @@ The JMS inbound channel adapter is using a `JmsDestinationPollingSource` under t
 The AMQP inbound channel adapter uses an `AbstractMessageListenerContainer` and is message driven.
 In that regard, it is more similar to the JMS message-driven channel adapter.
 
-Starting with version 5.5, the `AmqpInboundChannelAdapter` can configured with a `org.springframework.amqp.rabbit.retry.MessageRecoverer` strategy which is used in the `RecoveryCallback` when retry operation is called internally.
+Starting with version 5.5, the `AmqpInboundChannelAdapter` can be configured with an `org.springframework.amqp.rabbit.retry.MessageRecoverer` strategy which is used in the `RecoveryCallback` when the retry operation is called internally.
 See `setMessageRecoverer()` JavaDocs for more information.
 
 ==== Configuring with Java Configuration
@@ -400,7 +400,7 @@ if you anticipate cases when no `replyTo` property exists in the request message
 
 See the note in <<amqp-inbound-channel-adapter>> about configuring the `listener-container` attribute.
 
-Starting with version 5.5, the `AmqpInboundChannelAdapter` can configured with an `org.springframework.amqp.rabbit.retry.MessageRecoverer` strategy which is used in the `RecoveryCallback` when retry operation is called internally.
+Starting with version 5.5, the `AmqpInboundChannelAdapter` can be configured with an `org.springframework.amqp.rabbit.retry.MessageRecoverer` strategy which is used in the `RecoveryCallback` when the retry operation is called internally.
 See `setMessageRecoverer()` JavaDocs for more information.
 
 ==== Configuring with Java Configuration
