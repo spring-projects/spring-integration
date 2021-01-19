@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.dsl;
 
+import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
@@ -99,6 +100,18 @@ public class AmqpBaseInboundChannelAdapterSpec<S extends AmqpBaseInboundChannelA
 	 */
 	public S recoveryCallback(RecoveryCallback<?> recoveryCallback) {
 		this.target.setRecoveryCallback(recoveryCallback);
+		return _this();
+	}
+
+	/**
+	 * Set a {@link MessageRecoverer} when using retry within the adapter.
+	 * @param messageRecoverer the callback.
+	 * @return the spec.
+	 * @since 5.5
+	 * @see AmqpInboundChannelAdapter#setMessageRecoverer(MessageRecoverer)
+	 */
+	public S messageRecoverer(MessageRecoverer messageRecoverer) {
+		this.target.setMessageRecoverer(messageRecoverer);
 		return _this();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareBatchMessageListener;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
+import org.springframework.amqp.rabbit.retry.MessageBatchRecoverer;
+import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -110,6 +112,8 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	private RecoveryCallback<?> recoveryCallback;
 
+	private MessageRecoverer messageRecoverer;
+
 	private BatchingStrategy batchingStrategy = new SimpleBatchingStrategy(0, 0, 0L);
 
 	private boolean bindSourceMessage;
@@ -154,12 +158,23 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	/**
 	 * Set a {@link RecoveryCallback} when using retry within the adapter.
+	 * Mutually exclusive with {@link #setMessageRecoverer(MessageRecoverer)}.
 	 * @param recoveryCallback the callback.
 	 * @since 4.3.10
 	 * @see #setRetryTemplate(RetryTemplate)
 	 */
 	public void setRecoveryCallback(RecoveryCallback<?> recoveryCallback) {
 		this.recoveryCallback = recoveryCallback;
+	}
+
+	/**
+	 * Configure a {@link MessageRecoverer} for retry operations.
+	 * A more AMQP-specific convenience instead of {@link #setRecoveryCallback(RecoveryCallback)}.
+	 * @param messageRecoverer the {@link MessageRecoverer} to use.
+	 * @since 5.5
+	 */
+	public void setMessageRecoverer(MessageRecoverer messageRecoverer) {
+		this.messageRecoverer = messageRecoverer;
 	}
 
 	/**
@@ -206,6 +221,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			Assert.state(getErrorChannel() == null, "Cannot have an 'errorChannel' property when a 'RetryTemplate' is "
 					+ "provided; use an 'ErrorMessageSendingRecoverer' in the 'recoveryCallback' property to "
 					+ "send an error message when retries are exhausted");
+			setupRecoveryCallbackIfAny();
 		}
 		Listener messageListener;
 		if (this.messageListenerContainer.isConsumerBatchEnabled()) {
@@ -217,6 +233,38 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		this.messageListenerContainer.setMessageListener(messageListener);
 		this.messageListenerContainer.afterPropertiesSet();
 		super.onInit();
+	}
+
+	private void setupRecoveryCallbackIfAny() {
+		Assert.state(this.recoveryCallback == null || this.messageRecoverer == null,
+				"Only one of 'recoveryCallback' or 'messageRecoverer' may be provided, but not both");
+		if (this.messageRecoverer != null) {
+			if (this.messageListenerContainer.isConsumerBatchEnabled()) {
+				Assert.isInstanceOf(MessageBatchRecoverer.class, this.messageRecoverer,
+						"The 'messageRecoverer' must be an instance of MessageBatchRecoverer " +
+								"when consumer configured for batch mode");
+				this.recoveryCallback =
+						context -> {
+							@SuppressWarnings("unchecked")
+							List<Message> messagesToRecover =
+									(List<Message>) RetrySynchronizationManager.getContext()
+											.getAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
+							((MessageBatchRecoverer) this.messageRecoverer).recover(messagesToRecover,
+									context.getLastThrowable());
+							return null;
+						};
+			}
+			else {
+				this.recoveryCallback =
+						context -> {
+							Message messageToRecover =
+									(Message) RetrySynchronizationManager.getContext()
+											.getAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
+							this.messageRecoverer.recover(messageToRecover, context.getLastThrowable());
+							return null;
+						};
+			}
+		}
 	}
 
 	@Override

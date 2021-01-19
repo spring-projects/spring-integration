@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
+import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
@@ -83,7 +84,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private RetryTemplate retryTemplate;
 
-	private RecoveryCallback<? extends Object> recoveryCallback;
+	private RecoveryCallback<?> recoveryCallback;
+
+	private MessageRecoverer messageRecoverer;
 
 	private BatchingStrategy batchingStrategy = new SimpleBatchingStrategy(0, 0, 0L);
 
@@ -181,12 +184,23 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	/**
 	 * Set a {@link RecoveryCallback} when using retry within the gateway.
+	 * Mutually exclusive with {@link #setMessageRecoverer(MessageRecoverer)}.
 	 * @param recoveryCallback the callback.
 	 * @since 4.3.10
 	 * @see #setRetryTemplate(RetryTemplate)
 	 */
 	public void setRecoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
 		this.recoveryCallback = recoveryCallback;
+	}
+
+	/**
+	 * Configure a {@link MessageRecoverer} for retry operations.
+	 * A more AMQP-specific convenience instead of {@link #setRecoveryCallback(RecoveryCallback)}.
+	 * @param messageRecoverer the {@link MessageRecoverer} to use.
+	 * @since 5.5
+	 */
+	public void setMessageRecoverer(MessageRecoverer messageRecoverer) {
+		this.messageRecoverer = messageRecoverer;
 	}
 
 	/**
@@ -239,6 +253,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			Assert.state(getErrorChannel() == null, "Cannot have an 'errorChannel' property when a 'RetryTemplate' is "
 					+ "provided; use an 'ErrorMessageSendingRecoverer' in the 'recoveryCallback' property to "
 					+ "send an error message when retries are exhausted");
+			setupRecoveryCallbackIfAny();
 		}
 		Listener messageListener = new Listener();
 		this.messageListenerContainer.setMessageListener(messageListener);
@@ -251,6 +266,21 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			logger.warn("Usually, when using a RetryTemplate you should use an ErrorMessageSendingRecoverer and not "
 					+ "provide an errorChannel. Using an errorChannel could defeat retry and will receive an error "
 					+ "message for each delivery attempt.");
+		}
+	}
+
+	private void setupRecoveryCallbackIfAny() {
+		Assert.state(this.recoveryCallback == null || this.messageRecoverer == null,
+				"Only one of 'recoveryCallback' or 'messageRecoverer' may be provided, but not both");
+		if (this.messageRecoverer != null) {
+				this.recoveryCallback =
+						context -> {
+							Message messageToRecover =
+									(Message) RetrySynchronizationManager.getContext()
+											.getAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
+							this.messageRecoverer.recover(messageToRecover, context.getLastThrowable());
+							return null;
+						};
 		}
 	}
 

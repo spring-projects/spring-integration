@@ -199,6 +199,9 @@ The JMS inbound channel adapter is using a `JmsDestinationPollingSource` under t
 The AMQP inbound channel adapter uses an `AbstractMessageListenerContainer` and is message driven.
 In that regard, it is more similar to the JMS message-driven channel adapter.
 
+Starting with version 5.5, the `AmqpInboundChannelAdapter` can be configured with an `org.springframework.amqp.rabbit.retry.MessageRecoverer` strategy which is used in the `RecoveryCallback` when the retry operation is called internally.
+See `setMessageRecoverer()` JavaDocs for more information.
+
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of configuring the inbound adapter with Java configuration:
@@ -293,6 +296,8 @@ When receiving batched messages, by default, the listener containers extract eac
 Starting with version 5.2, if the container's `deBatchingEnabled` property is set to `false`, the de-batching is performed by the adapter instead, and a single `Message<List<?>>` is produced with the payload being a list of the fragment payloads (after conversion if appropriate).
 
 The default `BatchingStrategy` is the `SimpleBatchingStrategy`, but this can be overridden on the adapter.
+
+NOTE: The `org.springframework.amqp.rabbit.retry.MessageBatchRecoverer` must be used with batches when recovery is required for retry operations.
 
 === Polled Inbound Channel Adapter
 
@@ -394,6 +399,9 @@ You must either specify this option or configure a default `exchange` and `routi
 if you anticipate cases when no `replyTo` property exists in the request message.
 
 See the note in <<amqp-inbound-channel-adapter>> about configuring the `listener-container` attribute.
+
+Starting with version 5.5, the `AmqpInboundChannelAdapter` can be configured with an `org.springframework.amqp.rabbit.retry.MessageRecoverer` strategy which is used in the `RecoveryCallback` when the retry operation is called internally.
+See `setMessageRecoverer()` JavaDocs for more information.
 
 ==== Configuring with Java Configuration
 
