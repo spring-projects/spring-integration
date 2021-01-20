@@ -859,6 +859,10 @@ Similar logic is required even when an exception happens during deserialization 
 So, target error handler must decided to ack or nack such a failed message.
 Alongside with `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK`, the `ReactiveRedisStreamMessageProducer` also populates these headers into the message to produce: `RedisHeaders.STREAM_KEY`, `RedisHeaders.STREAM_MESSAGE_ID`, `RedisHeaders.CONSUMER_GROUP` and `RedisHeaders.CONSUMER`.
 
+Starting with version 5.5, you can configure `StreamReceiver.StreamReceiverOptionsBuilder` options explicitly on the `ReactiveRedisStreamMessageProducer`, including newly introduced `onErrorResume` function, which is required if Redis Stream consumer should continue polling in case of deserialization error.
+The default function sends a message to the error channel (if provided) with possible acknowledgement for the failed message as it is described above.
+All these `StreamReceiver.StreamReceiverOptionsBuilder` are mutually exclusive with an externally provided `StreamReceiver.StreamReceiverOptions`.
+
 [[redis-lock-registry]]
 === Redis Lock Registry
 
