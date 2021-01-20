@@ -1,4 +1,4 @@
-[[redis]]
+``[[redis]]
 == Redis Support
 
 Spring Integration 2.1 introduced support for https://redis.io/[Redis]: "`an open source advanced key-value store`".
@@ -858,6 +858,10 @@ It is a target integration flow responsibility to call its `acknowledge()` callb
 Similar logic is required even when an exception happens during deserialization and `errorChannel` is configured.
 So, target error handler must decided to ack or nack such a failed message.
 Alongside with `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK`, the `ReactiveRedisStreamMessageProducer` also populates these headers into the message to produce: `RedisHeaders.STREAM_KEY`, `RedisHeaders.STREAM_MESSAGE_ID`, `RedisHeaders.CONSUMER_GROUP` and `RedisHeaders.CONSUMER`.
+
+Starting with version 5.5, you can configure `StreamReceiver.StreamReceiverOptionsBuilder` options explicitly on the `ReactiveRedisStreamMessageProducer`, including the newly introduced `onErrorResume` function, which is required if the Redis Stream consumer should continue polling when deserialization errors occur.
+The default function sends a message to the error channel (if provided) with possible acknowledgement for the failed message as it is described above.
+All these `StreamReceiver.StreamReceiverOptionsBuilder` are mutually exclusive with an externally provided `StreamReceiver.StreamReceiverOptions`.
 
 [[redis-lock-registry]]
 === Redis Lock Registry
