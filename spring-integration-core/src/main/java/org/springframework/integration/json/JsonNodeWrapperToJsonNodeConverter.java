@@ -20,15 +20,16 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.integration.json.JsonPropertyAccessor.JsonNodeWrapper;
+import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * The {@link Converter} implementation for the conversion of {@link JsonPropertyAccessor.JsonNodeWrapper} to
- * {@link JsonNode}, when the {@link JsonPropertyAccessor.JsonNodeWrapper} can be a result of the expression
+ * The {@link org.springframework.core.convert.converter.Converter} implementation for the conversion
+ * of {@link JsonPropertyAccessor.JsonNodeWrapper} to {@link JsonNode},
+ * when the {@link JsonPropertyAccessor.JsonNodeWrapper} can be a result of the expression
  * for JSON in case of the {@link JsonPropertyAccessor} usage.
  *
  * @author Pierre Lakreb
@@ -44,8 +45,12 @@ class JsonNodeWrapperToJsonNodeConverter implements GenericConverter {
 	}
 
 	@Override
-	public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
-		return targetType.getObjectType().cast(((JsonNodeWrapper<?>) source).getRealNode());
+	@Nullable
+	public Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		if (source != null) {
+			return targetType.getObjectType().cast(((JsonNodeWrapper<?>) source).getRealNode());
+		}
+		return null;
 	}
 
 }

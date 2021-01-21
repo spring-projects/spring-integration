@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,7 +153,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				if (this.bufferedOutputStream == null) {
 					int writeBufferSize = this.socketChannel.socket().getSendBufferSize();
 					this.bufferedOutputStream = new BufferedOutputStream(getChannelOutputStream(),
-							writeBufferSize > 0 ? writeBufferSize : 8192);
+							writeBufferSize > 0 ? writeBufferSize : 8192); // NOSONAR
 				}
 				Object object = getMapper().fromMessage(message);
 				Assert.state(object != null, "Mapper mapped the message to 'null'.");
@@ -393,18 +393,16 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			}
 			listener.onMessage(message);
 		}
-		catch (Exception e) {
-			if (e instanceof NoListenerException) { // could also be thrown by an interceptor
-				if (logger.isWarnEnabled()) {
-					logger.warn("Unexpected message - no endpoint registered with connection: "
-							+ getConnectionId()
-							+ " - "
-							+ message);
-				}
+		catch (NoListenerException ex) { // could also be thrown by an interceptor
+			if (logger.isWarnEnabled()) {
+				logger.warn("Unexpected message - no endpoint registered with connection: "
+						+ getConnectionId()
+						+ " - "
+						+ message);
 			}
-			else {
-				logger.error("Exception sending message: " + message, e);
-			}
+		}
+		catch (Exception ex) {
+			logger.error("Exception sending message: " + message, ex);
 		}
 	}
 
@@ -424,7 +422,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			checkForAssembler();
 
 			if (logger.isTraceEnabled()) {
-				logger.trace("Before read: " + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+				logger.trace("Before read: " + this.rawBuffer.position() + '/' + this.rawBuffer.limit());
 			}
 			int len = this.socketChannel.read(this.rawBuffer);
 			if (len < 0) {
@@ -432,11 +430,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				closeConnection(true);
 			}
 			if (logger.isTraceEnabled()) {
-				logger.trace("After read: " + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+				logger.trace("After read: " + this.rawBuffer.position() + '/' + this.rawBuffer.limit());
 			}
 			this.rawBuffer.flip();
 			if (logger.isTraceEnabled()) {
-				logger.trace("After flip: " + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+				logger.trace("After flip: " + this.rawBuffer.position() + '/' + this.rawBuffer.limit());
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Read " + this.rawBuffer.limit() + " into raw buffer");
@@ -475,10 +473,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				}
 				catch (RejectedExecutionException e) {
 					this.executionControl.decrementAndGet();
-					if (logger.isInfoEnabled()) {
-						logger.info("Insufficient threads in the assembler fixed thread pool; consider increasing " +
+					logger.info("Insufficient threads in the assembler fixed thread pool; consider increasing " +
 								"this task executor pool size");
-					}
 					throw e;
 				}
 			}

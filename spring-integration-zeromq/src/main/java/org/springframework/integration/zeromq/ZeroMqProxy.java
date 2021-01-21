@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -273,9 +273,9 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 								this.backendSocketConfigurer.accept(backendSocket);
 							}
 
-							this.frontendPort.set(bindSocket(frontendSocket, this.frontendPort.get()));
-							this.backendPort.set(bindSocket(backendSocket, this.backendPort.get()));
-							boolean bound = controlSocket.bind(this.controlAddress);
+							this.frontendPort.set(bindSocket(frontendSocket, this.frontendPort.get())); // NOSONAR
+							this.backendPort.set(bindSocket(backendSocket, this.backendPort.get())); // NOSONAR
+							boolean bound = controlSocket.bind(this.controlAddress); // NOSONAR
 							if (!bound) {
 								throw new IllegalArgumentException("Cannot bind ZeroMQ socket to address: "
 										+ this.controlAddress);
@@ -306,7 +306,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	public synchronized void stop() {
 		if (this.running.getAndSet(false)) {
 			try (ZMQ.Socket commandSocket = this.context.createSocket(SocketType.PAIR)) {
-				commandSocket.connect(this.controlAddress);
+				commandSocket.connect(this.controlAddress); // NOSONAR
 				commandSocket.send(zmq.ZMQ.PROXY_TERMINATE);
 			}
 		}

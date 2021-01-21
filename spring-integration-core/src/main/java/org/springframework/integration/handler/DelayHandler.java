@@ -565,7 +565,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
 		try (Stream<Message<?>> messageStream = messageGroup.streamMessages()) {
 			TaskScheduler taskScheduler = getTaskScheduler();
-			messageStream.forEach((message) ->
+			messageStream.forEach((message) -> // NOSONAR
 					taskScheduler.schedule(() -> {
 						// This is fine to keep the reference to the message,
 						// because the scheduled task is performed immediately.

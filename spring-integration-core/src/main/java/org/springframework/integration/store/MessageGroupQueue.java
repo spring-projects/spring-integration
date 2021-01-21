@@ -169,7 +169,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		try {
 			this.storeLock.lockInterruptibly();
 			try (Stream<Message<?>> messageStream = stream()) {
-				return messageStream.findFirst().orElse(null);
+				return messageStream.findFirst().orElse(null); // NOSONAR
 			}
 			finally {
 				this.storeLock.unlock();

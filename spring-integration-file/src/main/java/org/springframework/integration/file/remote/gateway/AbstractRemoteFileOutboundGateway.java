@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.PartialSuccessException;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -586,38 +587,36 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	private Object doLs(Message<?> requestMessage) {
-		String dir = this.fileNameProcessor != null
-				? this.fileNameProcessor.processMessage(requestMessage)
-				: null;
-		if (dir != null && !dir.endsWith(this.remoteFileTemplate.getRemoteFileSeparator())) {
-			dir += this.remoteFileTemplate.getRemoteFileSeparator();
-		}
-		final String fullDir = dir;
+		String dir = obtainRemoteDir(requestMessage);
 		return this.remoteFileTemplate.execute(session -> {
-			List<?> payload = ls(requestMessage, session, fullDir);
+			List<?> payload = ls(requestMessage, session, dir);
 			return getMessageBuilderFactory()
 					.withPayload(payload)
-					.setHeader(FileHeaders.REMOTE_DIRECTORY, fullDir)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
 					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
 		});
 
 	}
 
 	private Object doNlst(Message<?> requestMessage) {
+		String dir = obtainRemoteDir(requestMessage);
+		return this.remoteFileTemplate.execute(session -> {
+			List<?> payload = nlst(requestMessage, session, dir);
+			return getMessageBuilderFactory()
+					.withPayload(payload)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
+					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
+		});
+	}
+
+	private String obtainRemoteDir(Message<?> requestMessage) {
 		String dir = this.fileNameProcessor != null
 				? this.fileNameProcessor.processMessage(requestMessage)
 				: null;
 		if (dir != null && !dir.endsWith(this.remoteFileTemplate.getRemoteFileSeparator())) {
 			dir += this.remoteFileTemplate.getRemoteFileSeparator();
 		}
-		final String fullDir = dir;
-		return this.remoteFileTemplate.execute(session -> {
-			List<?> payload = nlst(requestMessage, session, fullDir);
-			return getMessageBuilderFactory()
-					.withPayload(payload)
-					.setHeader(FileHeaders.REMOTE_DIRECTORY, fullDir)
-					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
-		});
+		return dir;
 	}
 
 	/**
@@ -963,7 +962,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			remotePath = (parent + child);
 		}
 		else if (StringUtils.hasText(child)) {
-			remotePath = "." + this.remoteFileTemplate.getRemoteFileSeparator() + child;
+			remotePath = '.' + this.remoteFileTemplate.getRemoteFileSeparator() + child;
 		}
 		return remotePath;
 	}
@@ -1055,7 +1054,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			try {
 				session.read(remoteFilePath, outputStream);
 			}
-			catch (Exception e) {
+			catch (Exception ex) {
 				/* Some operation systems acquire exclusive file-lock during file processing
 				   and the file can't be deleted without closing streams before.
 				*/
@@ -1064,12 +1063,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					this.logger.warn(() -> "Failed to delete tempFile " + tempFile);
 				}
 
-				if (e instanceof RuntimeException) {
-					throw (RuntimeException) e;
-				}
-				else {
-					throw new MessagingException("Failure occurred while copying from remote to local directory", e);
-				}
+				throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+						() -> "Failure occurred while copying from remote to local directory", ex);
 			}
 			finally {
 				try {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,8 +54,7 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer, 
 
 	/**
 	 * Specify whether to delete the File after transformation.
-	 * Default is <em>false</em>.
-	 *
+	 * Default is {@code false}.
 	 * @param deleteFiles true to delete the file.
 	 */
 	public void setDeleteFiles(boolean deleteFiles) {
@@ -85,27 +84,26 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer, 
 			Assert.notNull(payload, "Message payload must not be null");
 			Assert.isInstanceOf(File.class, payload, "Message payload must be of type [java.io.File]");
 			File file = (File) payload;
-			T result = this.transformFile(file);
-			Message<?> transformedMessage = getMessageBuilderFactory().withPayload(result)
-					.copyHeaders(message.getHeaders())
-					.setHeaderIfAbsent(FileHeaders.ORIGINAL_FILE, file)
-					.setHeaderIfAbsent(FileHeaders.FILENAME, file.getName())
-					.build();
-			if (this.deleteFiles) {
-				if (!file.delete() && this.logger.isWarnEnabled()) {
-					this.logger.warn("failed to delete File '" + file + "'");
-				}
+			T result = transformFile(file);
+			Message<?> transformedMessage =
+					getMessageBuilderFactory()
+							.withPayload(result)
+							.copyHeaders(message.getHeaders())
+							.setHeaderIfAbsent(FileHeaders.ORIGINAL_FILE, file)
+							.setHeaderIfAbsent(FileHeaders.FILENAME, file.getName())
+							.build();
+			if (this.deleteFiles && !file.delete() && this.logger.isWarnEnabled()) {
+				this.logger.warn("failed to delete File '" + file + "'");
 			}
 			return transformedMessage;
 		}
-		catch (Exception e) {
-			throw new MessagingException(message, "failed to transform File Message", e);
+		catch (Exception ex) {
+			throw new MessagingException(message, "failed to transform File Message", ex);
 		}
 	}
 
 	/**
 	 * Subclasses must implement this method to transform the File contents.
-	 *
 	 * @param file The file.
 	 * @return The result of the transformation.
 	 * @throws IOException Any IOException.

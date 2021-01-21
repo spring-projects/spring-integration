@@ -161,7 +161,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 			}
 			catch (IOException e) {
 				throw new AccessException(
-						"Can not get content of binary value : " + json);
+						"Can not get content of binary value: " + json, e);
 			}
 		}
 		throw new IllegalArgumentException("Json is not ValueNode.");
@@ -210,7 +210,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 		@Override
 		public int compareTo(ComparableJsonNode o) {
-			return this.delegate.equals(o.delegate) ? 0 : 1;
+			return this.delegate.equals(o.delegate) ? 0 : 1; // NOSONAR
 		}
 
 	}
@@ -239,15 +239,13 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 		@Override
 		public Object get(int index) {
-			if (index < 0) {
-				// negative index can be handled with that conversion
-				index = this.delegate.size() + index;
-			}
+			// negative index - get from the end of list
+			int i = index < 0 ? this.delegate.size() + index : index;
 			try {
-				return wrap(this.delegate.get(index));
+				return wrap(this.delegate.get(i));
 			}
-			catch (AccessException e) {
-				throw new IllegalArgumentException(e);
+			catch (AccessException ex) {
+				throw new IllegalArgumentException(ex);
 			}
 		}
 

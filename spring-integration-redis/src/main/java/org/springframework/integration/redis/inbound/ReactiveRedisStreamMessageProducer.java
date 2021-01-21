@@ -39,7 +39,6 @@ import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.Assert;
@@ -209,7 +208,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	 * Configure a resume Function to resume the main sequence when polling the stream fails.
 	 * Mutually exclusive with {@link #setStreamReceiverOptions(StreamReceiver.StreamReceiverOptions)}.
 	 * By default this function extract the failed {@link Record} and sends an
-	 * {@link org.springframework.messaging.support.ErrorMessage} to the provided {@link #setErrorChannel(MessageChannel)}.
+	 * {@link org.springframework.messaging.support.ErrorMessage} to the provided {@link #setErrorChannel}.
 	 * The failed message for this record may have a {@link IntegrationMessageHeaderAccessor#ACKNOWLEDGMENT_CALLBACK}
 	 * header when manual acknowledgment is configured for this message producer.
 	 * @param resumeFunction must not be null.

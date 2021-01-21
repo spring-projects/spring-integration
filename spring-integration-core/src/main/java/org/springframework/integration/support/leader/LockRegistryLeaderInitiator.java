@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,17 +121,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 */
 	private long heartBeatMillis = DEFAULT_HEART_BEAT_TIME;
 
-	/**
-	 * Time in milliseconds to wait in between attempts to acquire the lock, if it is not
-	 * held. The longer this is, the longer the system can be leaderless, if the leader
-	 * dies. If a leader dies without releasing its lock, the system might still have to
-	 * wait for the old lock to expire, but after that it should not have to wait longer
-	 * than the busy wait time to get a new leader. If the remote lock does not expire, or
-	 * if you know it interrupts the current thread when it expires or is broken, then you
-	 * can reduce the busy wait to zero.
-	 */
-	private long busyWaitMillis = DEFAULT_BUSY_WAIT_TIME;
-
 	private boolean publishFailedEvents = false;
 
 	private LeaderSelector leaderSelector;
@@ -152,6 +141,17 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * @see SmartLifecycle which is an extension of org.springframework.context.Phased
 	 */
 	private int phase = Integer.MAX_VALUE - 1000;
+
+	/**
+	 * Time in milliseconds to wait in between attempts to acquire the lock, if it is not
+	 * held. The longer this is, the longer the system can be leaderless, if the leader
+	 * dies. If a leader dies without releasing its lock, the system might still have to
+	 * wait for the old lock to expire, but after that it should not have to wait longer
+	 * than the busy wait time to get a new leader. If the remote lock does not expire, or
+	 * if you know it interrupts the current thread when it expires or is broken, then you
+	 * can reduce the busy wait to zero.
+	 */
+	private volatile long busyWaitMillis = DEFAULT_BUSY_WAIT_TIME;
 
 	/**
 	 * Flag that indicates whether the leadership election for this {@link #candidate} is
