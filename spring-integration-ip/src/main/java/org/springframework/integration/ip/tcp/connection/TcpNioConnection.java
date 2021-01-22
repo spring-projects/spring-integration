@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
@@ -432,7 +433,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			if (logger.isTraceEnabled()) {
 				logger.trace("After read: " + this.rawBuffer.position() + '/' + this.rawBuffer.limit());
 			}
-			this.rawBuffer.flip();
+			((Buffer) this.rawBuffer).flip();
 			if (logger.isTraceEnabled()) {
 				logger.trace("After flip: " + this.rawBuffer.position() + '/' + this.rawBuffer.limit());
 			}
@@ -572,6 +573,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @since 5.2
 	 * @see SocketChannel#shutdownInput()
 	 */
+	@Override
 	public void shutdownInput() throws IOException {
 		this.socketChannel.shutdownInput();
 	}
@@ -582,6 +584,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @since 5.2
 	 * @see SocketChannel#shutdownOutput()
 	 */
+	@Override
 	public void shutdownOutput() throws IOException {
 		this.socketChannel.shutdownOutput();
 	}
