@@ -458,7 +458,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			logger.trace(getConnectionId() + " Sending " + rawBufferToSend.limit() + " to pipe");
 		}
 		this.channelInputStream.write(rawBufferToSend);
-		rawBufferToSend.clear();
+		((Buffer) rawBufferToSend).clear();
 	}
 
 	private void checkForAssembler() {
