@@ -67,13 +67,15 @@ free of errors.
 
 # Using IntelliJ IDEA
 
-To generate IDEA metadata (.iml and .ipr files), do the following:
+To import the project into IntelliJ IDEA:
 
-    ./gradlew idea
+File -> Open... -> and select build.gradle from spring-integration project root directory
+
+# Guidelines
 
 See also [Contributor Guidelines](https://github.com/spring-projects/spring-integration/blob/master/CONTRIBUTING.adoc).
 
 # Resources
 
 For more information, please visit the Spring Integration website at:
-[https://projects.spring.io/spring-integration](https://projects.spring.io/spring-integration/)
+[https://spring.io/projects/spring-integration](https://spring.io/projects/spring-integration/)
