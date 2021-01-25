@@ -261,7 +261,7 @@ public abstract class TestUtils {
 					// message will be logged only
 					logger.warn("Error message was not delivered.", errorDeliveryError);
 					if (errorDeliveryError instanceof Error) {  // NOSONAR
-						throw ((Error) errorDeliveryError);
+						throw (Error) errorDeliveryError;
 					}
 				}
 			}
