@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.springframework.integration.dsl.manualflow;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -220,14 +221,9 @@ public class ManualFlowTests {
 
 		assertThat(messagingTemplate.convertSendAndReceive("bar", String.class)).isEqualTo("Hello, BAR");
 
-		try {
-			messagingTemplate.receive();
-			fail("UnsupportedOperationException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(UnsupportedOperationException.class);
-			assertThat(e.getMessage()).contains("The 'receive()/receiveAndConvert()' isn't supported");
-		}
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(messagingTemplate::receive)
+				.withMessageContaining("The 'receive()/receiveAndConvert()' isn't supported");
 
 		assertThat(this.beanFactory.getBeanNamesForType(MessageTransformingHandler.class)[0]).startsWith(flowId + ".");
 
@@ -251,15 +247,9 @@ public class ManualFlowTests {
 
 	@Test
 	public void testWrongLifecycle() {
-		try {
-			this.integrationFlowContext.remove("foo");
-			fail("IllegalStateException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalStateException.class);
-			assertThat(e.getMessage())
-					.contains("An IntegrationFlow with the id [" + "foo" + "] doesn't exist in the registry.");
-		}
+		assertThatIllegalStateException()
+				.isThrownBy(() -> this.integrationFlowContext.remove("foo"))
+				.withMessageContaining("An IntegrationFlow with the id [" + "foo" + "] doesn't exist in the registry.");
 	}
 
 	@Test
@@ -305,14 +295,10 @@ public class ManualFlowTests {
 
 	@Test
 	public void testWrongIntegrationFlowScope() {
-		try {
-			new AnnotationConfigApplicationContext(InvalidIntegrationFlowScopeConfiguration.class).close();
-			fail("BeanCreationNotAllowedException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanCreationNotAllowedException.class);
-			assertThat(e.getMessage()).contains("IntegrationFlows can not be scoped beans.");
-		}
+		assertThatExceptionOfType(BeanCreationNotAllowedException.class)
+				.isThrownBy(() ->
+						new AnnotationConfigApplicationContext(InvalidIntegrationFlowScopeConfiguration.class))
+				.withMessageContaining("IntegrationFlows can not be scoped beans.");
 	}
 
 	@Test
@@ -382,13 +368,9 @@ public class ManualFlowTests {
 
 		this.roleController.stopLifecyclesInRole(testRole);
 
-		try {
-			messagingTemplate.send(new GenericMessage<>("test2"));
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageDeliveryException.class);
-			assertThat(e.getMessage()).contains("Dispatcher has no subscribers for channel");
-		}
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> messagingTemplate.send(new GenericMessage<>("test2")))
+				.withMessageContaining("Dispatcher has no subscribers for channel");
 
 		this.roleController.startLifecyclesInRole(testRole);
 
@@ -453,16 +435,13 @@ public class ManualFlowTests {
 						.id(testId)
 						.register();
 
-		try {
-			this.integrationFlowContext
-					.registration(testFlow)
-					.id(testId)
-					.register();
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getMessage()).contains("with flowId '" + testId + "' is already registered.");
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(() ->
+						this.integrationFlowContext
+								.registration(testFlow)
+								.id(testId)
+								.register())
+				.withMessageContaining("with flowId '" + testId + "' is already registered.");
 
 		flowRegistration.destroy();
 	}
@@ -527,8 +506,7 @@ public class ManualFlowTests {
 						.register();
 		assertThatExceptionOfType(MessageTransformationException.class)
 				.isThrownBy(() -> flowRegistration.getInputChannel().send(new GenericMessage<>(new Date())))
-				.withCauseExactlyInstanceOf(IllegalStateException.class)
-				.withRootCauseInstanceOf(ClassCastException.class)
+				.withCauseExactlyInstanceOf(ClassCastException.class)
 				.withMessageContaining("from source: '" + source + "'")
 				.withStackTraceContaining("java.util.Date cannot be cast to");
 
