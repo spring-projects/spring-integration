@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,15 +97,19 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 			return this.method.invoke(this.target, args);
 		}
 		catch (InvocationTargetException e) {
+			final Throwable cause = e.getCause();
 			if (e.getTargetException() instanceof ClassCastException) {
 				LOGGER.error("Could not invoke the method '" + this.method + "' due to a class cast exception, " +
 						"if using a lambda in the DSL, consider using an overloaded EIP method " +
 						"that takes a Class<?> argument to explicitly  specify the type. " +
 						"An example of when this often occurs is if the lambda is configured to " +
-						"receive a Message<?> argument.", e.getCause());
+						"receive a Message<?> argument.", cause);
+			}
+			if (cause instanceof RuntimeException) { // NOSONAR
+				throw (RuntimeException) cause;
 			}
 			throw new IllegalStateException(// NOSONAR lost stack trace
-					"Could not invoke the method '" + this.method + "'", e.getCause());
+					"Could not invoke the method '" + this.method + "'", cause);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(
