@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,7 +162,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 
 		if (headerPatterns.contains("*")) {
-			this.notPropagatedHeaders = new String[] { "*" };
+			this.notPropagatedHeaders = new String[]{ "*" };
 			this.noHeadersPropagation = true;
 		}
 
@@ -411,15 +411,19 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			if (this.noHeadersPropagation || !shouldCopyRequestHeaders()) {
 				return (Message<?>) output;
 			}
-			builder = this.getMessageBuilderFactory().fromMessage((Message<?>) output);
+			builder = getMessageBuilderFactory().fromMessage((Message<?>) output);
 		}
 		else if (output instanceof AbstractIntegrationMessageBuilder) {
 			builder = (AbstractIntegrationMessageBuilder<?>) output;
 		}
 		else {
-			builder = this.getMessageBuilderFactory().withPayload(output);
+			builder = getMessageBuilderFactory().withPayload(output);
 		}
-		if (!this.noHeadersPropagation && shouldCopyRequestHeaders()) {
+		if (!this.noHeadersPropagation &&
+				(shouldCopyRequestHeaders() ||
+						(!(output instanceof Message<?>) &&
+								!(output instanceof AbstractIntegrationMessageBuilder<?>)))) {
+
 			builder.filterAndCopyHeadersIfAbsent(requestHeaders,
 					this.selectiveHeaderPropagation ? this.notPropagatedHeaders : null);
 		}
