@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.dsl.transformers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
@@ -460,7 +459,10 @@ public class TransformerTests {
 		@Bean
 		public IntegrationFlow transformFlowWithError() {
 			return f -> f
-					.transform(p -> { throw new RuntimeException("intentional"); }, e -> e.advice(expressionAdvice()))
+					.transform(p -> {
+								throw new RuntimeException("intentional");
+							},
+							e -> e.advice(expressionAdvice()))
 					.logAndReply();
 		}
 
@@ -506,7 +508,7 @@ public class TransformerTests {
 		}
 
 		@Override
-		public byte[] encode(Object object) throws IOException {
+		public byte[] encode(Object object) {
 			return "foo".getBytes();
 		}
 
@@ -516,9 +518,10 @@ public class TransformerTests {
 		}
 
 		@Override
+		@SuppressWarnings("unchecked")
 		public <T> T decode(byte[] bytes, Class<T> type) {
-			return (T) (type.equals(String.class) ? new String(bytes) :
-					type.equals(Integer.class) ? Integer.valueOf(42) : Integer.valueOf(43));
+			return (T) (String.class.isAssignableFrom(type) ? new String(bytes) :
+					Integer.class.isAssignableFrom(type) ? Integer.valueOf(42) : Integer.valueOf(43));
 		}
 
 	}
