@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,8 +117,8 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 				this.roleController.addLifecycleToRole(this.role, this);
 			}
 			catch (@SuppressWarnings("unused") NoSuchBeanDefinitionException e) {
-					this.logger.trace("No LifecycleRoleController in the context");
-				}
+				this.logger.trace("No LifecycleRoleController in the context");
+			}
 		}
 	}
 
@@ -144,13 +144,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 
 	@Override
 	public final boolean isRunning() {
-		this.lifecycleLock.lock();
-		try {
-			return this.running;
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
+		return this.running;
 	}
 
 	@Override
