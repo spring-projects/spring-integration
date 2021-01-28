@@ -169,6 +169,7 @@ spring.integration.messagingTemplate.throwExceptionOnLateReply=false <5>
 spring.integration.readOnly.headers= <6>
 spring.integration.endpoints.noAutoStartup= <7>
 spring.integration.channels.error.requireSubscribers=true <8>
+spring.integration.channels.error.ignoreFailures=true <9>
 ----
 
 <1> When true, `input-channel` instances are automatically declared as `DirectChannel` instances when not explicitly found in the application context.
@@ -199,6 +200,9 @@ Since version 4.3.12.
 <8> A boolean flag to indicate that default global `errorChannel` must be configured with the `requireSubscribers` option.
 Since version 5.4.3.
 See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
+
+<9> A boolean flag to indicate that default global `errorChannel` must ignore dispatching errors and pass the message to the next handler.
+Since version 5.5.
 ====
 
 These properties can be overridden by adding a `/META-INF/spring.integration.properties` file to the classpath.

@@ -18,9 +18,13 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 [[x5.5-general]]
 === General Changes
 
-
 All the persistent `MessageGroupStore` implementation provide a `streamMessagesForGroup(Object groupId)` contract based on the target database streaming API.
 See <<./message-store.adoc#message-store,Message Store>> for more information.
+
+A `spring.integration.channels.error.requireSubscribers=true` global property is added to indicate that global default `errorChannel` must be configured with the `requireSubscribers` option (or not).
+A `spring.integration.channels.error.ignoreFailures=true` global property is added to indicate that global default `errorChannel` must ignore (or not) dispatching errors and pass the message to the next handler.
+See <<./configuration.adoc#global-properties,Global Properties>> for more information.
+
 [[x5.5-amqp]]
 ==== AMQP Changes
 

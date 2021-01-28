@@ -219,6 +219,9 @@ class DefaultConfiguringBeanFactoryPostProcessor
 					BeanDefinitionBuilder.rootBeanDefinition(PublishSubscribeChannel.class)
 							.addConstructorArgValue(IntegrationProperties.getExpressionFor(
 									IntegrationProperties.ERROR_CHANNEL_REQUIRE_SUBSCRIBERS))
+							.addPropertyValue("ignoreFailures",
+									IntegrationProperties.getExpressionFor(
+											IntegrationProperties.ERROR_CHANNEL_IGNORE_FAILURES))
 							.getBeanDefinition());
 
 			BeanDefinition loggingHandler =
