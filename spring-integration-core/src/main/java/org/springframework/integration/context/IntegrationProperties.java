@@ -67,6 +67,14 @@ public final class IntegrationProperties {
 			INTEGRATION_PROPERTIES_PREFIX + "channels.error.requireSubscribers";
 
 	/**
+	 * Specifies the value for {@link org.springframework.integration.channel.PublishSubscribeChannel#ignoreFailures}
+	 * on a global default {@link IntegrationContextUtils#ERROR_CHANNEL_BEAN_NAME}.
+	 */
+	public static final String ERROR_CHANNEL_IGNORE_FAILURES =
+			INTEGRATION_PROPERTIES_PREFIX + "channels.error.ignoreFailures";
+
+
+	/**
 	 * Specifies the value of {@link org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler#poolSize}
 	 * for the {@code taskScheduler} bean initialized by the Integration infrastructure.
 	 */

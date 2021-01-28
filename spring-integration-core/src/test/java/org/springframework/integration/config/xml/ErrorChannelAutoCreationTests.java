@@ -41,6 +41,8 @@ public class ErrorChannelAutoCreationTests {
 		assertThat(this.errorChannel).isInstanceOf(PublishSubscribeChannel.class);
 		assertThat(TestUtils.getPropertyValue(this.errorChannel, "dispatcher.requireSubscribers", Boolean.class))
 				.isTrue();
+		assertThat(TestUtils.getPropertyValue(this.errorChannel, "dispatcher.ignoreFailures", Boolean.class))
+				.isTrue();
 	}
 
 }
