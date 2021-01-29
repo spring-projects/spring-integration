@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class ZeroMqMessageHandlerTests {
 	@Test
 	void testMessageHandlerForPubSub() throws InterruptedException {
 		ZMQ.Socket subSocket = CONTEXT.createSocket(SocketType.SUB);
-		subSocket.setReceiveTimeOut(10_000);
+		subSocket.setReceiveTimeOut(20_000);
 		int port = subSocket.bindToRandomPort("tcp://*");
 		subSocket.subscribe("test");
 
@@ -116,7 +116,7 @@ public class ZeroMqMessageHandlerTests {
 		await().until(() -> proxy.getBackendPort() > 0);
 
 		ZMQ.Socket pullSocket = CONTEXT.createSocket(SocketType.PULL);
-		pullSocket.setReceiveTimeOut(10_000);
+		pullSocket.setReceiveTimeOut(20_000);
 		pullSocket.connect("tcp://localhost:" + proxy.getBackendPort());
 
 		ZeroMqMessageHandler messageHandler =
