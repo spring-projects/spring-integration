@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,8 +190,8 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 					theMessage = executorInterceptor.beforeHandle(theMessage, AbstractExecutorChannel.this,
 							this.delegate.getMessageHandler());
 					if (theMessage == null) {
-						if (isLoggingEnabled() && logger.isDebugEnabled()) {
-							logger.debug(executorInterceptor.getClass().getSimpleName()
+						if (isLoggingEnabled()) {
+							logger.debug(() -> executorInterceptor.getClass().getSimpleName()
 									+ " returned null from beforeHandle, i.e. precluding the send.");
 						}
 						triggerAfterMessageHandled(null, null, interceptorStack);
@@ -203,13 +203,13 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 			return theMessage;
 		}
 
-		private void triggerAfterMessageHandled(Message<?> message, Exception ex,
-												Deque<ExecutorChannelInterceptor> interceptorStack) {
+		private void triggerAfterMessageHandled(@Nullable Message<?> message, @Nullable Exception ex,
+				Deque<ExecutorChannelInterceptor> interceptorStack) {
 			Iterator<ExecutorChannelInterceptor> iterator = interceptorStack.descendingIterator();
 			while (iterator.hasNext()) {
 				ExecutorChannelInterceptor interceptor = iterator.next();
 				try {
-					interceptor.afterMessageHandled(message, AbstractExecutorChannel.this,
+					interceptor.afterMessageHandled(message, AbstractExecutorChannel.this, //NOSONAR
 							this.delegate.getMessageHandler(), ex);
 				}
 				catch (Throwable ex2) { //NOSONAR

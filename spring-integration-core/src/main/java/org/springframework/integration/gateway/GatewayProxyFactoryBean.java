@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -510,10 +510,13 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	@Override
 	@Nullable
 	public Object invoke(final MethodInvocation invocation) throws Throwable { // NOSONAR
-		Class<?> returnType = invocation.getMethod().getReturnType();
+		final Class<?> returnType;
 		MethodInvocationGateway gateway = this.gatewayMap.get(invocation.getMethod());
 		if (gateway != null) {
 			returnType = gateway.returnType;
+		}
+		else {
+			returnType = invocation.getMethod().getReturnType();
 		}
 		if (this.asyncExecutor != null && !Object.class.equals(returnType)) {
 			Invoker invoker = new Invoker(invocation);
@@ -526,8 +529,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			else if (CompletableFuture.class.equals(returnType)) { // exact
 				return CompletableFuture.supplyAsync(invoker, this.asyncExecutor);
 			}
-			else if (Future.class.isAssignableFrom(returnType) && logger.isDebugEnabled()) {
-				logger.debug("AsyncTaskExecutor submit*() return types are incompatible with the method return " +
+			else if (Future.class.isAssignableFrom(returnType)) {
+				logger.debug(() -> "AsyncTaskExecutor submit*() return types are incompatible with the method return " +
 						"type; running on calling thread; the downstream flow must return the required Future: "
 						+ returnType.getSimpleName());
 			}
@@ -997,7 +1000,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 	}
 
-	private void setChannel(String channelName1, String channelName2, Consumer<String> channelNameMethod,
+	private void setChannel(@Nullable String channelName1, String channelName2, Consumer<String> channelNameMethod,
 			MessageChannel channel, Consumer<MessageChannel> channelMethod) {
 
 		if (StringUtils.hasText(channelName1)) {
