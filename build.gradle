@@ -294,16 +294,23 @@ configure(javaProjects) { subproject ->
 	compileKotlin.dependsOn updateCopyrights
 
 	jacocoTestReport {
-		dependsOn test
 		reports {
-			xml.enabled false
+			xml.enabled true
 			csv.enabled false
-			html.destination file("$buildDir/reports/jacoco/html")
+			html.enabled false
+			xml.destination file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
 		}
 	}
 
 	test {
 		maxHeapSize = '1536m'
+		jacoco {
+			destinationFile = file("$buildDir/jacoco.exec")
+		}
+
+		if (System.properties['sonar.host.url']) {
+			finalizedBy jacocoTestReport
+		}
 	}
 
 	task testAll(type: Test, dependsOn: [':checkAsciidocLinks', 'check'])
@@ -359,7 +366,6 @@ configure(javaProjects) { subproject ->
 	}
 
 	check.dependsOn javadoc
-	build.dependsOn jacocoTestReport
 
 	publishing {
 		publications {
@@ -1047,7 +1053,6 @@ sonarqube {
 		property 'sonar.links.issue', linkIssue
 		property 'sonar.links.scm', linkScmUrl
 		property 'sonar.links.scm_dev', linkScmDevConnection
-		property 'sonar.java.coveragePlugin', 'jacoco'
 	}
 }
 
