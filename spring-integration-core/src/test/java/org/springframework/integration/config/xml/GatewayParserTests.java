@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanNameAware;
@@ -296,9 +298,12 @@ public class GatewayParserTests {
 		assertThat(reply).isEqualTo("SYNC_CUSTOM_COMPLETABLE");
 		assertThat(thread.get()).isEqualTo(Thread.currentThread());
 		assertThat(TestUtils.getPropertyValue(gateway, "asyncExecutor")).isNotNull();
-		verify(logger).debug("AsyncTaskExecutor submit*() return types are incompatible with the method return type; "
-				+ "running on calling thread; the downstream flow must return the required Future: "
-				+ "MyCompletableFuture");
+		verify(logger).debug(ArgumentMatchers.<Supplier<String>>argThat(logMessage ->
+				logMessage.get()
+						.equals("AsyncTaskExecutor submit*() return types are incompatible "
+								+ "with the method return type; "
+								+ "running on calling thread; the downstream flow must return the required Future: "
+								+ "MyCompletableFuture")));
 	}
 
 	@Test
