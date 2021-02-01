@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -52,7 +51,6 @@ import reactor.test.StepVerifier;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@LongRunningTest
 public class ReactiveInboundChannelAdapterTests {
 
 	@Autowired
@@ -111,7 +109,7 @@ public class ReactiveInboundChannelAdapterTests {
 
 		@Bean
 		@InboundChannelAdapter(value = "fluxChannel",
-				poller = @Poller(fixedDelay = "100", maxMessagesPerPoll = "3", taskExecutor = "taskExecutor"))
+				poller = @Poller(fixedDelay = "100", maxMessagesPerPoll = "-1", taskExecutor = "taskExecutor"))
 		public Supplier<Integer> counterMessageSupplier() {
 			return () -> {
 				int i = counter().incrementAndGet();

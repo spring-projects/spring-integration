@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -32,12 +31,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -188,7 +189,9 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		taskScheduler.shutdown();
 
 		verifyNoInteractions(errorHandlerLogger);
-		verify(adapterLogger).debug(contains("Poll interrupted - during stop()?"));
+		verify(adapterLogger)
+				.debug(ArgumentMatchers.<Supplier<String>>argThat(logMessage ->
+						logMessage.get().contains("Poll interrupted - during stop()?")));
 	}
 
 	@Test
