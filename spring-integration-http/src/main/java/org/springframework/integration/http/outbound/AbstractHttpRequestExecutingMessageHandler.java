@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.xml.transform.Source;
-
-import org.reactivestreams.Publisher;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -117,10 +115,9 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	}
 
 	/**
-	 * Specify whether the real URI should be encoded after <code>uriVariables</code>
-	 * expanding and before send request via
-	 * {@link org.springframework.web.client.RestTemplate}. The default value is
-	 * <code>true</code>.
+	 * Specify whether the real URI should be encoded after {@code uriVariables}
+	 * expanding and before send request via {@link org.springframework.web.client.RestTemplate}.
+	 * The default value is {@code true}.
 	 * @param encodeUri true if the URI should be encoded.
 	 * @see org.springframework.web.util.UriComponentsBuilder
 	 * @deprecated since 5.3 in favor of {@link #setEncodingMode}
@@ -297,10 +294,9 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	@Nullable
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		HttpMethod httpMethod = determineHttpMethod(requestMessage);
-		if (this.extractPayloadExplicitlySet && logger.isWarnEnabled() && !shouldIncludeRequestBody(httpMethod)) {
-			logger.warn("The 'extractPayload' attribute has no relevance for the current request " +
-					"since the HTTP Method is '" + httpMethod +
-					"', and no request body will be sent for that method.");
+		if (this.extractPayloadExplicitlySet && !shouldIncludeRequestBody(httpMethod)) {
+			logger.warn(() -> "The 'extractPayload' attribute has no relevance for the current request " +
+					"since the HTTP Method is '" + httpMethod + "', and no request body will be sent for that method.");
 		}
 
 		Object expectedResponseType = determineExpectedResponseType(requestMessage);
@@ -338,7 +334,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			replyBuilder = (responseBody instanceof Message<?>)
 					? messageBuilderFactory.fromMessage((Message<?>) responseBody)
 					: messageBuilderFactory.withPayload(responseBody); // NOSONAR - hasBody()
-
 		}
 		else {
 			replyBuilder = messageBuilderFactory.withPayload(httpResponse);
@@ -362,9 +357,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		if (keyName != null) {
 			Object cookies = headers.remove(keyName);
 			headers.put(HttpHeaders.COOKIE, cookies);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Converted Set-Cookie header to Cookie for: " + cookies);
-			}
+			logger.debug(() -> "Converted Set-Cookie header to Cookie for: " + cookies);
 		}
 	}
 
@@ -389,7 +382,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		if (httpHeaders.getContentType() == null) {
 			MediaType contentType =
 					payload instanceof String
-							? new MediaType("text", "plain", this.charset)
+							? new MediaType(MediaType.TEXT_PLAIN, this.charset)
 							: resolveContentType(payload);
 			httpHeaders.setContentType(contentType);
 		}
@@ -408,7 +401,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	private HttpEntity<?> createHttpEntityFromMessage(Message<?> message, HttpMethod httpMethod) {
 		HttpHeaders httpHeaders = mapHeaders(message);
 		if (shouldIncludeRequestBody(httpMethod)) {
-			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
 			return new HttpEntity<Object>(message, httpHeaders);
 		}
 		return new HttpEntity<>(httpHeaders);
@@ -421,6 +413,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	}
 
 	@SuppressWarnings("unchecked")
+	@Nullable
 	private MediaType resolveContentType(Object content) {
 		MediaType contentType = null;
 		if (content instanceof byte[]) {
@@ -438,9 +431,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			else {
 				contentType = MediaType.APPLICATION_FORM_URLENCODED;
 			}
-		}
-		if (contentType == null && !(content instanceof Publisher<?>)) {
-			contentType = new MediaType("application", "x-java-serialized-object");
 		}
 		return contentType;
 	}

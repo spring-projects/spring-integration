@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -70,6 +71,9 @@ import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+
+import reactor.core.publisher.Sinks;
+import reactor.test.StepVerifier;
 
 /**
  * @author Mark Fisher
@@ -178,8 +182,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertThat(map.get(1).toString()).isEqualTo("Philadelphia");
 		assertThat(map.get(2).toString()).isEqualTo("Ambler");
 		assertThat(map.get(3).toString()).isEqualTo("Mohnton");
-		assertThat(request.getHeaders().getContentType().getType()).isEqualTo("application");
-		assertThat(request.getHeaders().getContentType().getSubtype()).isEqualTo("x-java-serialized-object");
+		assertThat(request.getHeaders().getContentType()).isNull();
 	}
 
 	@Test
@@ -817,6 +820,43 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertThat(accept.get(0).getSubtype()).isEqualTo("x-java-serialized-object");
 	}
 
+	@Test
+	public void testNoContentTypeAndSmartConverter() throws IOException {
+		Sinks.One<HttpHeaders> httpHeadersSink = Sinks.one();
+		RestTemplate testRestTemplate = new RestTemplate() {
+			@Nullable
+			protected <T> T doExecute(URI url, @Nullable HttpMethod method, @Nullable RequestCallback requestCallback,
+					@Nullable ResponseExtractor<T> responseExtractor) throws RestClientException {
+
+				try {
+					ClientHttpRequest request = createRequest(url, method);
+					requestCallback.doWithRequest(request);
+					httpHeadersSink.tryEmitValue(request.getHeaders());
+				}
+				catch (IOException e) {
+					throw new RestClientException("Not possible", e);
+				}
+				throw new RuntimeException("intentional");
+			}
+		};
+
+		HttpRequestExecutingMessageHandler handler =
+				new HttpRequestExecutingMessageHandler("https://www.springsource.org/spring-integration",
+				testRestTemplate);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>(new City("London"))));
+
+		StepVerifier.create(httpHeadersSink.asMono())
+				.assertNext(headers ->
+						assertThat(headers)
+								.containsEntry(HttpHeaders.CONTENT_TYPE,
+										Arrays.asList(MediaType.APPLICATION_JSON_VALUE)))
+				.verifyComplete();
+	}
+
 	private void setBeanFactory(HttpRequestExecutingMessageHandler handler) {
 		handler.setBeanFactory(mock(BeanFactory.class));
 	}
@@ -852,6 +892,10 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		public City(String name) {
 			this.name = name;
+		}
+
+		public String getName() {
+			return this.name;
 		}
 
 		@Override
