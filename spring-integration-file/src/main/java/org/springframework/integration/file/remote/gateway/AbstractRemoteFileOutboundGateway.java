@@ -984,7 +984,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			if (recursion && StringUtils.hasText(subDirectory) && (!isDots || this.options.contains(Option.ALL))) {
 				lsFiles.add(enhanceNameWithSubDirectory(file, subDirectory));
 			}
-			else if (this.options.contains(Option.ALL) || !isDots){
+			else if (this.options.contains(Option.ALL) || !isDots) {
 				lsFiles.add(file);
 			}
 		}
