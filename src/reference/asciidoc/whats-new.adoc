@@ -40,6 +40,6 @@ See <<./redis.adoc#redis,Redis Support>> for more information.
 [[x5.5-http]]
 ==== HTTP Changes
 
-The `HttpRequestExecutingMessageHandler` doesn't fallback to the `application/x-java-serialized-object` content type any more and lets the `RestTemplate` to make a final decision for the request body conversion based on the `HttpMessageConverter` provided.
+The `HttpRequestExecutingMessageHandler` doesn't fallback to the `application/x-java-serialized-object` content type any more and lets the `RestTemplate` make the final decision for the request body conversion based on the `HttpMessageConverter` provided.
 
 See <<./http.adoc#http,HTTP Support>> for more information.
