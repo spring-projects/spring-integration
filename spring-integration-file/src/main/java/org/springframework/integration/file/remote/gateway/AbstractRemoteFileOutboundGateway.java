@@ -975,18 +975,23 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private void processFile(Session<F> session, String directory, String subDirectory, List<F> lsFiles,
 			boolean recursion, F file) throws IOException {
 
+		String fileName = getFilename(file);
+		String fileSep = this.remoteFileTemplate.getRemoteFileSeparator();
+		boolean isDots = ".".equals(fileName)
+				|| "..".equals(fileName)
+				|| fileName.endsWith(fileSep + ".")
+				|| fileName.endsWith(fileSep + "..");
 		if (this.options.contains(Option.SUBDIRS) || !isDirectory(file)) {
-			if (recursion && StringUtils.hasText(subDirectory)) {
+			if (recursion && StringUtils.hasText(subDirectory) && (!isDots || this.options.contains(Option.ALL))) {
 				lsFiles.add(enhanceNameWithSubDirectory(file, subDirectory));
 			}
-			else {
+			else if (this.options.contains(Option.ALL) || !isDots) {
 				lsFiles.add(file);
 			}
 		}
-		String fileName = getFilename(file);
-		if (recursion && isDirectory(file) && !(".".equals(fileName)) && !("..".equals(fileName))) {
+		if (recursion && isDirectory(file) && !isDots) {
 			lsFiles.addAll(listFilesInRemoteDir(session, directory,
-					subDirectory + fileName + this.remoteFileTemplate.getRemoteFileSeparator()));
+					subDirectory + fileName + fileSep));
 		}
 	}
 
