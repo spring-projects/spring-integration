@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.aopalliance.aop.Advice;
@@ -48,6 +49,7 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
@@ -65,6 +67,13 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 /**
+ * An {@link AbstractEndpoint} extension for Polling Consumer pattern basics.
+ * The standard polling logic is based on a periodic task scheduling according the provided
+ * {@link Trigger}.
+ * When this endpoint is treated as {@link #isReactive()}, a polling logic is turned into a
+ * {@link Flux#generate(Consumer)} and {@link Mono#delay(Duration)} combination based on the
+ * {@link SimpleTriggerContext} state.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -90,8 +99,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private Trigger trigger = new PeriodicTrigger(DEFAULT_POLLING_PERIOD);
 
-	private long maxMessagesPerPoll = -1;
-
 	private ErrorHandler errorHandler;
 
 	private boolean errorHandlerIsDefault;
@@ -99,6 +106,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private List<Advice> adviceChain;
 
 	private TransactionSynchronizationFactory transactionSynchronizationFactory;
+
+	private volatile long maxMessagesPerPoll = -1;
 
 	private volatile Callable<Message<?>> pollingTask;
 
@@ -204,8 +213,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				}
 				this.appliedAdvices.clear();
 				this.appliedAdvices.addAll(chain);
-				if (!(isSyncExecutor()) && logger.isWarnEnabled()) {
-					logger.warn(getComponentName() + ": A task executor is supplied and " + chain.size()
+				if (!(isSyncExecutor())) {
+					logger.warn(() -> getComponentName() + ": A task executor is supplied and " + chain.size()
 							+ "ReceiveMessageAdvice(s) is/are provided. If an advice mutates the source, such "
 							+ "mutations are not thread safe and could cause unexpected results, especially with "
 							+ "high frequency pollers. Consider using a downstream ExecutorChannel instead of "
@@ -261,8 +270,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		try {
 			super.onInit();
 		}
-		catch (Exception e) {
-			throw new BeanInitializationException("Cannot initialize: " + this, e);
+		catch (Exception ex) {
+			throw new BeanInitializationException("Cannot initialize: " + this, ex);
 		}
 	}
 
@@ -280,11 +289,9 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			this.pollingFlux = createFluxGenerator();
 		}
 		else {
-			Assert.state(getTaskScheduler() != null, "unable to start polling, no taskScheduler available");
-
-			this.runningTask =
-					getTaskScheduler()
-							.schedule(createPoller(), this.trigger);
+			TaskScheduler taskScheduler = getTaskScheduler();
+			Assert.state(taskScheduler != null, "unable to start polling, no taskScheduler available");
+			this.runningTask = taskScheduler.schedule(createPoller(), this.trigger);
 		}
 	}
 
@@ -360,7 +367,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 														fluxSink.complete();
 													}
 												})
-												.take(this.maxMessagesPerPoll)
+												.limitRequest(
+														this.maxMessagesPerPoll < 0
+																? Long.MAX_VALUE
+																: this.maxMessagesPerPoll)
 												.subscribeOn(Schedulers.fromExecutor(this.taskExecutor))
 												.doOnComplete(() ->
 														triggerContext
@@ -407,22 +417,18 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		try {
 			message = receiveMessage();
 		}
-		catch (Exception e) {
+		catch (Exception ex) {
 			if (Thread.interrupted()) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Poll interrupted - during stop()? : " + e.getMessage());
-				}
+				logger.debug(() -> "Poll interrupted - during stop()? : " + ex.getMessage());
 				return null;
 			}
 			else {
-				ReflectionUtils.rethrowRuntimeException(e);
+				ReflectionUtils.rethrowRuntimeException(ex);
 			}
 		}
 
 		if (message == null) {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Received no Message during the poll, returning 'false'");
-			}
+			this.logger.debug("Received no Message during the poll, returning 'false'");
 			return null;
 		}
 		else {
@@ -433,9 +439,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	private void messageReceived(IntegrationResourceHolder holder, Message<?> message) {
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("Poll resulted in Message: " + message);
-		}
+		this.logger.debug(() -> "Poll resulted in Message: " + message);
 		if (holder != null) {
 			holder.setMessage(message);
 		}
