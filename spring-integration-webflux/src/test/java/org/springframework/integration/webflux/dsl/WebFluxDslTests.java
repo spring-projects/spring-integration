@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import java.util.Collections;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 
@@ -105,7 +104,6 @@ import reactor.test.StepVerifier;
  */
 @SpringJUnitWebConfig
 @DirtiesContext
-@Disabled
 public class WebFluxDslTests {
 
 	@Autowired
@@ -480,7 +478,7 @@ public class WebFluxDslTests {
 					.from(WebFlux.inboundGateway("/sse")
 							.requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE))
 							.mappedResponseHeaders("*"))
-					.enrichHeaders(Collections.singletonMap("aHeader", new String[]{"foo", "bar", "baz"}))
+					.enrichHeaders(Collections.singletonMap("aHeader", new String[]{ "foo", "bar", "baz" }))
 					.handle((p, h) -> Flux.fromArray(h.get("aHeader", String[].class)))
 					.get();
 		}
