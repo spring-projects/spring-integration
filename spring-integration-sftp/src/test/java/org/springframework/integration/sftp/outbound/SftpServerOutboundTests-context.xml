@@ -59,6 +59,39 @@
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
+							  request-channel="inboundLSRecursive"
+							  command="ls"
+							  expression="payload"
+							  command-options="-R -dirs"
+							  mode="REPLACE_IF_MODIFIED"
+							  filter="dotStarDotTxtFilter"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
+							  reply-channel="output"/>
+
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
+							  request-channel="inboundLSRecursiveALL"
+							  command="ls"
+							  expression="payload"
+							  command-options="-a -R -dirs"
+							  mode="REPLACE_IF_MODIFIED"
+							  filter="dotStarDotTxtFilter"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
+							  reply-channel="output"/>
+
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
+							  request-channel="inboundLSRecursiveNoDirs"
+							  command="ls"
+							  expression="payload"
+							  command-options="-R"
+							  mode="REPLACE_IF_MODIFIED"
+							  filter="dotStarDotTxtFilter"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
+							  reply-channel="output"/>
+
 	<bean id="dotStarDotTxtFilter"
 				class="org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter">
 		<constructor-arg value="^.*\.txt$" />
