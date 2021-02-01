@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +61,7 @@ import org.springframework.integration.sftp.server.PathRemovedEvent;
 import org.springframework.integration.sftp.server.SessionClosedEvent;
 import org.springframework.integration.sftp.server.SessionOpenedEvent;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.integration.sftp.session.SftpFileInfo;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -99,6 +101,15 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 	@Autowired
 	private DirectChannel inboundMGetRecursive;
+
+	@Autowired
+	private DirectChannel inboundLSRecursive;
+
+	@Autowired
+	private DirectChannel inboundLSRecursiveALL;
+
+	@Autowired
+	private DirectChannel inboundLSRecursiveNoDirs;
 
 	@Autowired
 	private DirectChannel inboundMGetRecursiveFiltered;
@@ -252,6 +263,63 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		assertThat(new String(localContents.toByteArray())).isEqualTo("junk");
 		// restore the remote file contents
 		FileUtils.copyInputStreamToFile(new ByteArrayInputStream(localAsString.getBytes()), secondRemote);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void testLSRecursive() throws IOException {
+		String dir = "sftpSource/";
+		this.inboundLSRecursive.send(new GenericMessage<Object>(dir));
+		Message<?> result = this.output.receive(1000);
+		assertThat(result).isNotNull();
+		List<SftpFileInfo> files = (List<SftpFileInfo>) result.getPayload();
+		assertThat(files).hasSize(4);
+		assertThat(files.stream()
+				.map(fi -> fi.getFilename())
+				.collect(Collectors.toList())).contains(
+						" sftpSource1.txt",
+						"sftpSource2.txt",
+						"subSftpSource",
+						"subSftpSource/subSftpSource1.txt");
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void testLSRecursiveALL() throws IOException {
+		String dir = "sftpSource/";
+		this.inboundLSRecursiveALL.send(new GenericMessage<Object>(dir));
+		Message<?> result = this.output.receive(1000);
+		assertThat(result).isNotNull();
+		List<SftpFileInfo> files = (List<SftpFileInfo>) result.getPayload();
+		assertThat(files).hasSize(8);
+		assertThat(files.stream()
+				.map(fi -> fi.getFilename())
+				.collect(Collectors.toList())).contains(
+						" sftpSource1.txt",
+						"sftpSource2.txt",
+						"subSftpSource",
+						"subSftpSource/subSftpSource1.txt",
+						".",
+						"..",
+						"subSftpSource/.",
+						"subSftpSource/..");
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void testLSRecursiveNoDirs() throws IOException {
+		String dir = "sftpSource/";
+		this.inboundLSRecursiveNoDirs.send(new GenericMessage<Object>(dir));
+		Message<?> result = this.output.receive(1000);
+		assertThat(result).isNotNull();
+		List<SftpFileInfo> files = (List<SftpFileInfo>) result.getPayload();
+		assertThat(files).hasSize(3);
+		assertThat(files.stream()
+				.map(fi -> fi.getFilename())
+				.collect(Collectors.toList())).contains(
+						" sftpSource1.txt",
+						"sftpSource2.txt",
+						"subSftpSource/subSftpSource1.txt");
 	}
 
 	private long setModifiedOnSource1() {

@@ -406,12 +406,13 @@ public class RemoteFileOutboundGatewayTests {
 		MessageBuilder<List<TestLsEntry>> out = (MessageBuilder<List<TestLsEntry>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote/x"));
 		assertThat(out).isNotNull();
-		assertThat(out.getPayload()).hasSize(5);
+		assertThat(out.getPayload()).hasSize(6);
 		assertThat(out.getPayload().get(0).getFilename()).isEqualTo("f1");
 		assertThat(out.getPayload().get(1).getFilename()).isEqualTo("d1");
 		assertThat(out.getPayload().get(2).getFilename()).isEqualTo("d1/d2");
-		assertThat(out.getPayload().get(3).getFilename()).isEqualTo("d1/f3");
-		assertThat(out.getPayload().get(4).getFilename()).isEqualTo("f2");
+		assertThat(out.getPayload().get(3).getFilename()).isEqualTo("d1/d2/f4");
+		assertThat(out.getPayload().get(4).getFilename()).isEqualTo("d1/f3");
+		assertThat(out.getPayload().get(5).getFilename()).isEqualTo("f2");
 		assertThat(out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("testremote/x/");
 	}
 
