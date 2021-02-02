@@ -45,6 +45,7 @@ import org.springframework.integration.transaction.IntegrationResourceHolderSync
 import org.springframework.integration.transaction.PassThroughTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -145,8 +146,21 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.adviceChain = adviceChain;
 	}
 
+	/**
+	 * Configure a cap for messages to poll from the source per scheduling cycle.
+	 * The negative number means unlimited amount of messages.
+	 * Zero means no polling at the moment at all -
+	 * can be treated as pausing if 'maxMessagesPerPoll' is changed eventually.
+	 * The polling cycle may exit earlier if the source returns null for the current receive call.
+	 * @param maxMessagesPerPoll the number of message to poll per schedule.
+	 */
+	@ManagedAttribute
 	public void setMaxMessagesPerPoll(long maxMessagesPerPoll) {
 		this.maxMessagesPerPoll = maxMessagesPerPoll;
+	}
+
+	public long getMaxMessagesPerPoll() {
+		return this.maxMessagesPerPoll;
 	}
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
@@ -327,6 +341,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				this.taskExecutor.execute(() -> {
 					int count = 0;
 					while (this.initialized && (this.maxMessagesPerPoll <= 0 || count < this.maxMessagesPerPoll)) {
+						if (this.maxMessagesPerPoll == 0) {
+							logger.info("No poll for 'maxMessagesPerPoll == 0'");
+							break;
+						}
 						if (pollForMessage() == null) {
 							break;
 						}
@@ -357,19 +375,28 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 												new Date(), null))
 								.flatMapMany(l ->
 										Flux
-												.<Message<?>>generate(fluxSink -> {
-													Message<?> message = pollForMessage();
-													if (message != null) {
-														fluxSink.next(message);
+												.defer(() -> {
+													if (this.maxMessagesPerPoll == 0) {
+														logger.info("No poll for 'maxMessagesPerPoll == 0'");
+														return Mono.empty();
 													}
 													else {
-														fluxSink.complete();
+														return Flux
+																.<Message<?>>generate(fluxSink -> {
+																	Message<?> message = pollForMessage();
+																	if (message != null) {
+																		fluxSink.next(message);
+																	}
+																	else {
+																		fluxSink.complete();
+																	}
+																})
+																.limitRequest(
+																		this.maxMessagesPerPoll < 0
+																				? Long.MAX_VALUE
+																				: this.maxMessagesPerPoll);
 													}
 												})
-												.limitRequest(
-														this.maxMessagesPerPoll < 0
-																? Long.MAX_VALUE
-																: this.maxMessagesPerPoll)
 												.subscribeOn(Schedulers.fromExecutor(this.taskExecutor))
 												.doOnComplete(() ->
 														triggerContext

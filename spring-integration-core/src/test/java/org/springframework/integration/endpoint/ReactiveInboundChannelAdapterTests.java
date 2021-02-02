@@ -17,25 +17,37 @@
 package org.springframework.integration.endpoint;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -56,6 +68,10 @@ public class ReactiveInboundChannelAdapterTests {
 	@Autowired
 	private FluxMessageChannel fluxChannel;
 
+	@Autowired
+	@Qualifier("counterEndpoint")
+	private AbstractPollingEndpoint abstractPollingEndpoint;
+
 	@Test
 	public void testReactiveInboundChannelAdapter() {
 		Flux<Integer> testFlux =
@@ -64,6 +80,9 @@ public class ReactiveInboundChannelAdapterTests {
 						.cast(Integer.class);
 
 		StepVerifier.create(testFlux)
+				.expectSubscription()
+				.expectNoEvent(Duration.ofSeconds(1))
+				.then(() -> abstractPollingEndpoint.setMaxMessagesPerPoll(-1))
 				.expectNext(2, 4, 6, 8, 10, 12, 14, 16)
 				.thenCancel()
 				.verify(Duration.ofSeconds(10));
@@ -109,7 +128,8 @@ public class ReactiveInboundChannelAdapterTests {
 
 		@Bean
 		@InboundChannelAdapter(value = "fluxChannel",
-				poller = @Poller(fixedDelay = "100", maxMessagesPerPoll = "-1", taskExecutor = "taskExecutor"))
+				poller = @Poller(fixedDelay = "100", maxMessagesPerPoll = "0", taskExecutor = "taskExecutor"))
+		@EndpointId("counterEndpoint")
 		public Supplier<Integer> counterMessageSupplier() {
 			return () -> {
 				int i = counter().incrementAndGet();
