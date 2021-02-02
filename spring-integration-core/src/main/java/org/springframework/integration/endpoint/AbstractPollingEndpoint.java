@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.aopalliance.aop.Advice;
@@ -71,7 +70,7 @@ import reactor.core.scheduler.Schedulers;
  * The standard polling logic is based on a periodic task scheduling according the provided
  * {@link Trigger}.
  * When this endpoint is treated as {@link #isReactive()}, a polling logic is turned into a
- * {@link Flux#generate(Consumer)} and {@link Mono#delay(Duration)} combination based on the
+ * {@link Flux#generate(java.util.function.Consumer)} and {@link Mono#delay(Duration)} combination based on the
  * {@link SimpleTriggerContext} state.
  *
  * @author Mark Fisher

@@ -487,7 +487,7 @@ public class AmqpJavaApplication {
 ----
 ====
 
-[[amqp-gatewway-debatching]]
+[[amqp-gateway-debatching]]
 ==== Batched Messages
 
 See <<amqp-debatching>>.
@@ -531,7 +531,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 ====
 
 [[amqp-outbound-endpoints]]
-=== Outbound Channel Adapter
+=== Outbound Endpoints
 
 The following outbound endpoints have many similar configuration options.
 Starting with version 5.2, the `confirm-timeout` has been added.
@@ -1183,7 +1183,7 @@ try {
     Confirm Confirm = corr.getFuture().get(10, TimeUnit.SECONDS);
     Message returned = corr.getReturnedMessage();
     if (returned !- null) {
-        // meessage could not be routed
+        // message could not be routed
     }
 }
 catch { ... }
@@ -1424,7 +1424,7 @@ public IntegrationFlow messageDrivenInFow(ConnectionFactory connectionFactory) {
 public IntegrationFlow pubSubInFlow(ConnectionFactory connectionFactory) {
     return IntegrationFlows.from(...)
             ...
-            .channel(Amqp.publisSubscribeChannel(connectionFactory)
+            .channel(Amqp.publishSubscribeChannel(connectionFactory)
                     .queueName("baz"))
             ...
             .get();
@@ -1516,7 +1516,7 @@ Inbound properties will be mapped to the `amqp_*` headers as before.
 It is useful to populate the `messageId` property when message consumers are using stateful retry.
 
 [[amqp-content-type]]
-==== contentType Header
+==== The `contentType` Header
 
 Unlike other headers, the `AmqpHeaders.CONTENT_TYPE` is not prefixed with `amqp_`; this allows transparent passing of the contentType header across different technologies.
 For example an inbound HTTP message sent to a RabbitMQ queue.

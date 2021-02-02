@@ -975,22 +975,25 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			boolean recursion, F file) throws IOException {
 
 		String fileName = getFilename(file);
-		String fileSep = this.remoteFileTemplate.getRemoteFileSeparator();
-		boolean isDots = ".".equals(fileName)
+		String fileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
+		final boolean isDirectory = isDirectory(file);
+		boolean isDots =
+				".".equals(fileName)
 				|| "..".equals(fileName)
-				|| fileName.endsWith(fileSep + ".")
-				|| fileName.endsWith(fileSep + "..");
-		if (this.options.contains(Option.SUBDIRS) || !isDirectory(file)) {
-			if (recursion && StringUtils.hasText(subDirectory) && (!isDots || this.options.contains(Option.ALL))) {
-				lsFiles.add(enhanceNameWithSubDirectory(file, subDirectory));
+				|| fileName.endsWith(fileSeparator + ".")
+				|| fileName.endsWith(fileSeparator + "..");
+		if ((this.options.contains(Option.SUBDIRS) || !isDirectory)
+				&& (!isDots || this.options.contains(Option.ALL))) {
+
+			F fileToAdd = file;
+			if (recursion && StringUtils.hasText(subDirectory)) {
+				fileToAdd = enhanceNameWithSubDirectory(file, subDirectory);
 			}
-			else if (this.options.contains(Option.ALL) || !isDots) {
-				lsFiles.add(file);
-			}
+			lsFiles.add(fileToAdd);
 		}
-		if (recursion && isDirectory(file) && !isDots) {
-			lsFiles.addAll(listFilesInRemoteDir(session, directory,
-					subDirectory + fileName + fileSep));
+
+		if (recursion && isDirectory && !isDots) {
+			lsFiles.addAll(listFilesInRemoteDir(session, directory, subDirectory + fileName + fileSeparator));
 		}
 	}
 
@@ -1085,6 +1088,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			if ((this.options.contains(Option.PRESERVE_TIMESTAMP)
 					|| FileExistsMode.REPLACE_IF_MODIFIED.equals(existsMode))
 					&& (!localFile.setLastModified(getModified(fileInfo)))) {
+
 				logger.warn(() -> "Failed to set lastModified on " + localFile);
 			}
 			if (this.options.contains(Option.DELETE)) {
@@ -1092,8 +1096,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				if (!result) {
 					logger.error("Failed to delete: " + remoteFilePath);
 				}
-				else if (logger.isDebugEnabled()) {
-					logger.debug(remoteFilePath + " deleted");
+				else {
+					logger.debug(() -> remoteFilePath + " deleted");
 				}
 			}
 		}
