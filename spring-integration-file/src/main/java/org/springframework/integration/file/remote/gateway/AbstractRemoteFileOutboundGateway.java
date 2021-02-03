@@ -975,13 +975,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			boolean recursion, F file) throws IOException {
 
 		String fileName = getFilename(file);
-		String fileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
 		final boolean isDirectory = isDirectory(file);
-		boolean isDots =
-				".".equals(fileName)
-				|| "..".equals(fileName)
-				|| fileName.endsWith(fileSeparator + ".")
-				|| fileName.endsWith(fileSeparator + "..");
+		boolean isDots = hasDots(fileName);
 		if ((this.options.contains(Option.SUBDIRS) || !isDirectory)
 				&& (!isDots || this.options.contains(Option.ALL))) {
 
@@ -993,8 +988,17 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 
 		if (recursion && isDirectory && !isDots) {
-			lsFiles.addAll(listFilesInRemoteDir(session, directory, subDirectory + fileName + fileSeparator));
+			lsFiles.addAll(listFilesInRemoteDir(session, directory, subDirectory + fileName +
+					this.remoteFileTemplate.getRemoteFileSeparator()));
 		}
+	}
+
+	private boolean hasDots(String fileName) {
+		String fileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
+		return ".".equals(fileName)
+				|| "..".equals(fileName)
+				|| fileName.endsWith(fileSeparator + ".")
+				|| fileName.endsWith(fileSeparator + "..");
 	}
 
 	protected final List<File> filterMputFiles(File[] files) {

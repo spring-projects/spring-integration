@@ -16,6 +16,9 @@
 
 package org.springframework.integration.jpa.config.xml;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -87,21 +90,18 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 			String[] otherAttributes = { "jpa-query", "native-query", "named-query", "first-result",
 					"first-result-expression", "max-results", "max-results-expression", "delete-in-batch",
 					"expect-single-result", "parameter-source-factory", "use-payload-as-parameter-source" };
-			StringBuilder others = new StringBuilder();
-			for (String otherAttribute : otherAttributes) {
-				if (gatewayElement.hasAttribute(otherAttribute) &&
-						StringUtils.hasText(gatewayElement.getAttribute(otherAttribute))) {
-					if (others.length() > 0) {
-						others.append(", ");
-					}
-					others.append(otherAttribute);
-				}
-			}
+
+			String others =
+					Arrays.stream(otherAttributes)
+							.filter((attr) -> gatewayElement.hasAttribute(attr) &&
+									StringUtils.hasText(gatewayElement.getAttribute(attr)))
+							.collect(Collectors.joining(","));
+
 			boolean childElementsExist = !CollectionUtils.isEmpty(DomUtils.getChildElementsByTagName(gatewayElement,
 					"parameter"));
 			if (others.length() > 0 || childElementsExist) {
 				parserContext.getReaderContext().error(
-						(others.length() == 0 ? "" : "'" + others.toString() + "' "
+						(others.length() == 0 ? "" : "'" + others + "' "
 								+ (childElementsExist ? "and " : ""))
 								+ (childElementsExist ? "child elements " : "")
 								+ "not allowed with an 'id-expression' attribute.",
