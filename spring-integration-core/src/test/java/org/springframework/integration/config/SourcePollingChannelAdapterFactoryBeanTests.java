@@ -18,7 +18,9 @@ package org.springframework.integration.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -221,6 +223,47 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		assertThat(receive.getPayload()).isEqualTo(true);
 		pollingChannelAdapter.stop();
 	}
+
+	@Test
+	public void testZeroForMaxMessagesPerPoll() throws InterruptedException {
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+
+		SourcePollingChannelAdapter pollingChannelAdapter = new SourcePollingChannelAdapter();
+		pollingChannelAdapter.setTaskScheduler(taskScheduler);
+		pollingChannelAdapter.setSource(() -> new GenericMessage<>("test"));
+		pollingChannelAdapter.setTrigger(new PeriodicTrigger(1));
+		pollingChannelAdapter.setMaxMessagesPerPoll(0);
+		QueueChannel outputChannel = new QueueChannel();
+		pollingChannelAdapter.setOutputChannel(outputChannel);
+		pollingChannelAdapter.setBeanFactory(mock(BeanFactory.class));
+
+		LogAccessor logger = spy(TestUtils.getPropertyValue(pollingChannelAdapter, "logger", LogAccessor.class));
+		new DirectFieldAccessor(pollingChannelAdapter).setPropertyValue("logger", logger);
+
+		CountDownLatch logCalledLatch = new CountDownLatch(1);
+
+		willAnswer(invocation -> {
+			logCalledLatch.countDown();
+			return invocation.callRealMethod();
+		})
+				.given(logger)
+				.info(anyString());
+
+		pollingChannelAdapter.afterPropertiesSet();
+		pollingChannelAdapter.start();
+
+		assertThat(logCalledLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		verify(logger, atLeastOnce()).info("Polling disabled while 'maxMessagesPerPoll == 0'");
+
+		pollingChannelAdapter.setMaxMessagesPerPoll(1);
+
+		Message<?> receive = outputChannel.receive(10_000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("test");
+		pollingChannelAdapter.stop();
+	}
+
 
 	private static class LifecycleMessageSource implements MessageSource<Boolean>, Lifecycle {
 

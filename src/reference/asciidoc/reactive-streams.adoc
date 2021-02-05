@@ -73,6 +73,7 @@ A polling trigger is built from the provided options and used for periodic sched
 When an `outputChannel` is a `ReactiveStreamsSubscribableChannel`, the same `Trigger` is used to determine the next time for execution, but instead of scheduling tasks, the `SourcePollingChannelAdapter` creates a `Flux<Message<?>>` based on the `Flux.generate()` for the `nextExecutionTime` values and `Mono.delay()` for a duration from the previous step.
 A `Flux.flatMapMany()` is used then to poll `maxMessagesPerPoll` and sink them into an output `Flux`.
 This generator `Flux` is subscribed by the provided `ReactiveStreamsSubscribableChannel` honoring a back-pressure downstream.
+Starting with version 5.5, when `maxMessagesPerPoll == 0`, the source is not called at all, and `flatMapMany()` is completed immediately via a `Mono.empty()` result until the `maxMessagesPerPoll` is changed to non-zero value at a later time, e.g. via a Control Bus.
 This way, any `MessageSource` implementation can be turned into a reactive hot source.
 
 See <<./polling-consumer.adoc#polling-consumer,Polling Consumer>> for more information.
