@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1017,9 +1017,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		if ((this.options.contains(Option.SUBDIRS) || !isDirectory)
 				&& (!isDots || this.options.contains(Option.ALL))) {
 
-			else if (this.options.contains(Option.ALL) || !isDots) {
-				lsFiles.add(file);
-			}
+			lsFiles.add(fileToAdd);
 		}
 
 		if (recursion && isDirectory && !isDots) {
@@ -1035,6 +1033,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				|| fileName.endsWith(fileSeparator + ".")
 				|| fileName.endsWith(fileSeparator + "..");
 	}
+
 	protected final List<File> filterMputFiles(File[] files) {
 		if (files == null) {
 			return Collections.emptyList();
