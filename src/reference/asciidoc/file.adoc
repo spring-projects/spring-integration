@@ -78,6 +78,13 @@ When used with a shared data store (such as `Redis` with the `RedisMetadataStore
 Since version 4.1.5, this filter has a new property (`flushOnUpdate`), which causes it to flush the metadata store on every update (if the store implements `Flushable`).
 ====
 
+The persistent file list filters now have a boolean property `forRecursion`.
+Setting this property to `true`, also sets `alwaysAcceptDirectories`, which means that the recursive operation on the outbound gateways (`ls` and `mget`) will now always traverse the full directory tree each time.
+This is to solve a problem where changes deep in the directory tree were not detected.
+In addition, `forRecursion=true` causes the full path to files to be used as the metadata store keys; this solves a problem where the filter did not work properly if a file with the same name appears multiple times in different directories.
+IMPORTANT: This means that existing keys in a persistent metadata store will not be found for files beneath the top level directory.
+For this reason, the property is `false` by default; this may change in a future release.
+
 The following example configures a `FileReadingMessageSource` with a filter:
 
 ====
@@ -1189,3 +1196,10 @@ If a filter returns `true` in `supportsSingleFileFiltering`, it **must** impleme
 If a remote filter does not support single file filtering (such as the `AbstractMarkerFilePresentFileListFilter`), the adapters revert to the previous behavior.
 
 If multiple filters are in used (using a `CompositeFileListFilter` or `ChainFileListFilter`), then **all** of the delegate filters must support single file filtering in order for the composite filter to support it.
+
+The persistent file list filters now have a boolean property `forRecursion`.
+Setting this property to `true`, also sets `alwaysAcceptDirectories`, which means that the recursive operation on the outbound gateways (`ls` and `mget`) will now always traverse the full directory tree each time.
+This is to solve a problem where changes deep in the directory tree were not detected.
+In addition, `forRecursion=true` causes the full path to files to be used as the metadata store keys; this solves a problem where the filter did not work properly if a file with the same name appears multiple times in different directories.
+IMPORTANT: This means that existing keys in a persistent metadata store will not be found for files beneath the top level directory.
+For this reason, the property is `false` by default; this may change in a future release.

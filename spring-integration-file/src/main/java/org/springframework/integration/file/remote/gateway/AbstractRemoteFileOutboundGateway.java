@@ -97,6 +97,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	private FileListFilter<F> filter;
 
+	private boolean filterAfterEnhancement;
+
 	/**
 	 * A {@link FileListFilter} that runs against the <em>local</em> file system view when
 	 * using MPUT.
@@ -402,6 +404,15 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	public void setFilter(FileListFilter<F> filter) {
 		this.filter = filter;
+		this.filterAfterEnhancement = filter != null
+				&& filter.isForRecursion()
+				&& filter.supportsSingleFileFiltering()
+				&& this.options.contains(Option.RECURSIVE);
+		if (filter != null && !filter.isForRecursion()) {
+			this.logger.warn("When using recursion, you will normally want to set the filter's "
+					+ "'forRecursion' property; otherwise files added deep into the "
+					+ "directory tree may not be detected");
+		}
 	}
 
 	/**
@@ -945,12 +956,19 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		List<F> lsFiles = new ArrayList<>();
 		String remoteDirectory = buildRemotePath(directory, subDirectory);
 
-		F[] files = session.list(remoteDirectory);
-		boolean recursion = this.options.contains(Option.RECURSIVE);
+		F[] list = session.list(remoteDirectory);
+		List<F> files;
+		if (!this.filterAfterEnhancement) {
+			files = filterFiles(list);
+		}
+		else {
+			files = Arrays.asList(list);
+		}
 		if (!ObjectUtils.isEmpty(files)) {
-			for (F file : filterFiles(files)) {
+			for (F file : files) {
 				if (file != null) {
-					processFile(session, directory, subDirectory, lsFiles, recursion, file);
+					processFile(session, directory, subDirectory, lsFiles, this.options.contains(Option.RECURSIVE),
+							file);
 				}
 			}
 		}
@@ -972,29 +990,51 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
 	}
 
+	protected final F filterFile(F file) {
+		if (this.filter.accept(file)) {
+			return file;
+		}
+		else {
+			return null;
+		}
+	}
+
 	private void processFile(Session<F> session, String directory, String subDirectory, List<F> lsFiles,
 			boolean recursion, F file) throws IOException {
 
-		String fileName = getFilename(file);
-		String fileSep = this.remoteFileTemplate.getRemoteFileSeparator();
-		boolean isDots = ".".equals(fileName)
-				|| "..".equals(fileName)
-				|| fileName.endsWith(fileSep + ".")
-				|| fileName.endsWith(fileSep + "..");
-		if (this.options.contains(Option.SUBDIRS) || !isDirectory(file)) {
-			if (recursion && StringUtils.hasText(subDirectory) && (!isDots || this.options.contains(Option.ALL))) {
-				lsFiles.add(enhanceNameWithSubDirectory(file, subDirectory));
+		F fileToAdd = file;
+		if (recursion && StringUtils.hasText(subDirectory)) {
+			fileToAdd = enhanceNameWithSubDirectory(file, subDirectory);
+		}
+		if (this.filterAfterEnhancement) {
+			if (!this.filter.accept(fileToAdd)) {
+				return;
 			}
+		}
+		String fileName = getFilename(fileToAdd);
+		final boolean isDirectory = isDirectory(file);
+		boolean isDots = hasDots(fileName);
+		if ((this.options.contains(Option.SUBDIRS) || !isDirectory)
+				&& (!isDots || this.options.contains(Option.ALL))) {
+
 			else if (this.options.contains(Option.ALL) || !isDots) {
 				lsFiles.add(file);
 			}
 		}
-		if (recursion && isDirectory(file) && !isDots) {
-			lsFiles.addAll(listFilesInRemoteDir(session, directory,
-					subDirectory + fileName + fileSep));
+
+		if (recursion && isDirectory && !isDots) {
+			lsFiles.addAll(listFilesInRemoteDir(session, directory, fileName +
+					this.remoteFileTemplate.getRemoteFileSeparator()));
 		}
 	}
 
+	private boolean hasDots(String fileName) {
+		String fileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
+		return ".".equals(fileName)
+				|| "..".equals(fileName)
+				|| fileName.endsWith(fileSeparator + ".")
+				|| fileName.endsWith(fileSeparator + "..");
+	}
 	protected final List<File> filterMputFiles(File[] files) {
 		if (files == null) {
 			return Collections.emptyList();

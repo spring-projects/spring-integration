@@ -25,7 +25,9 @@ import static org.mockito.Mockito.verify;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.UncheckedIOException;
@@ -52,6 +54,7 @@ import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.integration.sftp.server.ApacheMinaSftpEvent;
 import org.springframework.integration.sftp.server.DirectoryCreatedEvent;
@@ -146,6 +149,9 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 	@Autowired
 	private SftpRemoteFileTemplate template;
+
+	@Autowired
+	private PropertiesPersistingMetadataStore store;
 
 	@BeforeEach
 	public void setup() {
@@ -320,6 +326,17 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 						" sftpSource1.txt",
 						"sftpSource2.txt",
 						"subSftpSource/subSftpSource1.txt");
+		File newDeepFile = new File(this.sourceRemoteDirectory + "/subSftpSource/subSftpSource2.txt");
+		OutputStream fos = new FileOutputStream(newDeepFile);
+		fos.write("test".getBytes());
+		fos.close();
+		this.inboundLSRecursiveNoDirs.send(new GenericMessage<Object>(dir));
+		result = this.output.receive(1000);
+		assertThat(result).isNotNull();
+		files = (List<SftpFileInfo>) result.getPayload();
+		assertThat(files).hasSize(1);
+		assertThat(files.get(0).getFilename()).isEqualTo("subSftpSource/subSftpSource2.txt");
+		assertThat(this.store.get("testsubSftpSource/subSftpSource2.txt")).isNotNull();
 	}
 
 	private long setModifiedOnSource1() {

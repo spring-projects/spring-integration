@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,18 @@ package org.springframework.integration.file.filters;
  * This permits, for example, pattern matching on just files when using recursion
  * to examine a directory tree.
  *
+ * @param <F> the file type.
+ *
  * @author Gary Russell
+ *
  * @since 5.0
  *
  */
 public abstract class AbstractDirectoryAwareFileListFilter<F> extends AbstractFileListFilter<F> {
 
 	private boolean alwaysAcceptDirectories;
+
+	private boolean forRecursion;
 
 	/**
 	 * Set to true so that filters that support this feature can unconditionally pass
@@ -36,6 +41,22 @@ public abstract class AbstractDirectoryAwareFileListFilter<F> extends AbstractFi
 	 */
 	public void setAlwaysAcceptDirectories(boolean alwaysAcceptDirectories) {
 		this.alwaysAcceptDirectories = alwaysAcceptDirectories;
+	}
+
+	@Override
+	public boolean isForRecursion() {
+		return this.forRecursion;
+	}
+
+	/**
+	 * Set to true to inform a recursive gateway operation to use the full file path as
+	 * the metadata key. Also sets {@link #alwaysAcceptDirectories}.
+	 * @param forRecursion true to use the full path.
+	 * @since 5.3.6
+	 */
+	public void setForRecursion(boolean forRecursion) {
+		this.forRecursion = forRecursion;
+		this.alwaysAcceptDirectories = forRecursion;
 	}
 
 	protected boolean alwaysAccept(F file) {

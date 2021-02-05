@@ -1125,6 +1125,13 @@ The `-dirs` option is not allowed (the recursive `mget` uses the recursive `ls` 
 Typically, you would use the `#remoteDirectory` variable in the `local-directory-expression` so that the remote directory structure is retained locally.
 =====
 
+The persistent file list filters now have a boolean property `forRecursion`.
+Setting this property to `true`, also sets `alwaysAcceptDirectories`, which means that the recursive operation on the outbound gateways (`ls` and `mget`) will now always traverse the full directory tree each time.
+This is to solve a problem where changes deep in the directory tree were not detected.
+In addition, `forRecursion=true` causes the full path to files to be used as the metadata store keys; this solves a problem where the filter did not work properly if a file with the same name appears multiple times in different directories.
+IMPORTANT: This means that existing keys in a persistent metadata store will not be found for files beneath the top level directory.
+For this reason, the property is `false` by default; this may change in a future release.
+
 Starting with version 5.0, you can configure the `SftpSimplePatternFileListFilter` and `SftpRegexPatternFileListFilter` to always pass directories by setting the `alwaysAcceptDirectorties` to `true`.
 Doing so allows recursion for a simple pattern, as the following examples show:
 
