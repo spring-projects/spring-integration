@@ -254,7 +254,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		pollingChannelAdapter.start();
 
 		assertThat(logCalledLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		verify(logger, atLeastOnce()).info("No poll for 'maxMessagesPerPoll == 0'");
+		verify(logger, atLeastOnce()).info("Polling disabled while 'maxMessagesPerPoll == 0'");
 
 		pollingChannelAdapter.setMaxMessagesPerPoll(1);
 

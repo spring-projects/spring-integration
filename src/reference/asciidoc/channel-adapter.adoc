@@ -77,8 +77,7 @@ However, if you are sure that your method can return null and you need to poll f
 ----
 ====
 
-Starting with version 5.5, a `0` value for `max-messages-per-poll` has a special meaning - skip `receive()` call altogether, which may be treated as a pausing for this inbound channel adapter.
-The `maxMessagesPerPoll` can be changed to a different value later on, e.g. via Control Bus.
+Starting with version 5.5, a `0` value for `max-messages-per-poll` has a special meaning - skip the `MessageSource.receive()` call altogether, which may be considered as pausing for this inbound channel adapter until the `maxMessagesPerPoll` is changed to a non-zero value at a later time, e.g. via a Control Bus.
 =====
 
 [[channel-adapter-namespace-outbound]]

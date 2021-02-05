@@ -148,9 +148,9 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	/**
 	 * Configure a cap for messages to poll from the source per scheduling cycle.
-	 * The negative number means unlimited amount of messages.
-	 * Zero means no polling at the moment at all -
-	 * can be treated as pausing if 'maxMessagesPerPoll' is changed eventually.
+* A negative number means retrieve unlimited messages until the {@code MessageSource} returns {@code null}.
+	 * Zero means do not poll for any records - it
+	 * can be considered as pausing if 'maxMessagesPerPoll' is later changed to a non-zero value.
 	 * The polling cycle may exit earlier if the source returns null for the current receive call.
 	 * @param maxMessagesPerPoll the number of message to poll per schedule.
 	 */
@@ -342,7 +342,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 					int count = 0;
 					while (this.initialized && (this.maxMessagesPerPoll <= 0 || count < this.maxMessagesPerPoll)) {
 						if (this.maxMessagesPerPoll == 0) {
-							logger.info("No poll for 'maxMessagesPerPoll == 0'");
+							logger.info("Polling disabled while 'maxMessagesPerPoll == 0'");
 							break;
 						}
 						if (pollForMessage() == null) {
@@ -377,7 +377,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 										Flux
 												.defer(() -> {
 													if (this.maxMessagesPerPoll == 0) {
-														logger.info("No poll for 'maxMessagesPerPoll == 0'");
+														logger.info("Polling disabled while 'maxMessagesPerPoll == 0'");
 														return Mono.empty();
 													}
 													else {
