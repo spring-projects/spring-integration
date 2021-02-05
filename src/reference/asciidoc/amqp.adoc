@@ -6,8 +6,8 @@ Spring Integration provides channel adapters for receiving and sending messages 
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,9 +15,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-amqp:{project-version}"
 ----
@@ -48,7 +47,57 @@ It provides much more in-depth information about Spring's integration with AMQP 
 The following listing shows the possible configuration options for an AMQP Inbound Channel Adapter:
 
 ====
-[source, xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow amqpInbound(ConnectionFactory connectionFactory) {
+    return IntegrationFlows.from(Amqp.inboundAdapter(connectionFactory, "aName"))
+            .handle(m -> System.out.println(m.getPayload()))
+            .get();
+}
+----
+[source, java, role="secondary"]
+.Java
+----
+@Bean
+public MessageChannel amqpInputChannel() {
+    return new DirectChannel();
+}
+
+@Bean
+public AmqpInboundChannelAdapter inbound(SimpleMessageListenerContainer listenerContainer,
+        @Qualifier("amqpInputChannel") MessageChannel channel) {
+    AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
+    adapter.setOutputChannel(channel);
+    return adapter;
+}
+
+@Bean
+public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory) {
+    SimpleMessageListenerContainer container =
+                               new SimpleMessageListenerContainer(connectionFactory);
+    container.setQueueNames("aName");
+    container.setConcurrentConsumers(2);
+    // ...
+    return container;
+}
+
+@Bean
+@ServiceActivator(inputChannel = "amqpInputChannel")
+public MessageHandler handler() {
+    return new MessageHandler() {
+
+        @Override
+        public void handleMessage(Message<?> message) throws MessagingException {
+            System.out.println(message.getPayload());
+        }
+
+    };
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int-amqp:inbound-channel-adapter
                                   id="inboundAmqp"                <1>
@@ -172,12 +221,13 @@ See the https://docs.spring.io/spring-amqp/reference/html/[Spring AMQP Reference
 When set to `MESSAGES` (default), the payload is a `List<Message<?>>` where each message has headers mapped from the incoming AMQP `Message` and the payload is the converted `body`.
 When set to `EXTRACT_PAYLOADS`, the payload is a `List<?>` where the elements are converted from the AMQP `Message` body.
 `EXTRACT_PAYLOADS_WITH_HEADERS` is similar to `EXTRACT_PAYLOADS` but, in addition, the headers from each message are mapped from the `MessageProperties` into a `List<Map<String, Object>` at the corresponding index; the header name is `AmqpInboundChannelAdapter.CONSOLIDATED_HEADERS`.
+
 ====
 
 [NOTE]
 .container
 ====
-Note that when configuring an external container, you cannot use the Spring AMQP namespace to define the container.
+Note that when configuring an external container with XML, you cannot use the Spring AMQP namespace to define the container.
 This is because the namespace requires at least one `<listener/>` element.
 In this environment, the listener is internal to the adapter.
 For this reason, you must define the container by using a normal Spring `<bean/>` definition, as the following example shows:
@@ -202,89 +252,6 @@ In that regard, it is more similar to the JMS message-driven channel adapter.
 Starting with version 5.5, the `AmqpInboundChannelAdapter` can be configured with an `org.springframework.amqp.rabbit.retry.MessageRecoverer` strategy which is used in the `RecoveryCallback` when the retry operation is called internally.
 See `setMessageRecoverer()` JavaDocs for more information.
 
-==== Configuring with Java Configuration
-
-The following Spring Boot application shows an example of configuring the inbound adapter with Java configuration:
-
-====
-[source, java]
-----
-@SpringBootApplication
-public class AmqpJavaApplication {
-
-    public static void main(String[] args) {
-        new SpringApplicationBuilder(AmqpJavaApplication.class)
-            .web(false)
-            .run(args);
-    }
-
-    @Bean
-    public MessageChannel amqpInputChannel() {
-        return new DirectChannel();
-    }
-
-    @Bean
-    public AmqpInboundChannelAdapter inbound(SimpleMessageListenerContainer listenerContainer,
-            @Qualifier("amqpInputChannel") MessageChannel channel) {
-        AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
-        adapter.setOutputChannel(channel);
-        return adapter;
-    }
-
-    @Bean
-    public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory) {
-        SimpleMessageListenerContainer container =
-                                   new SimpleMessageListenerContainer(connectionFactory);
-        container.setQueueNames("aName");
-        container.setConcurrentConsumers(2);
-        // ...
-        return container;
-    }
-
-    @Bean
-    @ServiceActivator(inputChannel = "amqpInputChannel")
-    public MessageHandler handler() {
-        return new MessageHandler() {
-
-            @Override
-            public void handleMessage(Message<?> message) throws MessagingException {
-                System.out.println(message.getPayload());
-            }
-
-        };
-    }
-
-}
-----
-====
-
-==== Configuring with the Java DSL
-
-The following Spring Boot application provides an example of configuring the inbound adapter with the Java DSL:
-
-====
-[source, java]
-----
-@SpringBootApplication
-public class AmqpJavaApplication {
-
-    public static void main(String[] args) {
-        new SpringApplicationBuilder(AmqpJavaApplication.class)
-            .web(false)
-            .run(args);
-    }
-
-    @Bean
-    public IntegrationFlow amqpInbound(ConnectionFactory connectionFactory) {
-        return IntegrationFlows.from(Amqp.inboundAdapter(connectionFactory, "aName"))
-                .handle(m -> System.out.println(m.getPayload()))
-                .get();
-    }
-
-}
-----
-====
-
 [[amqp-debatching]]
 ==== Batched Messages
 
@@ -308,24 +275,11 @@ See <<./polling-consumer.adoc#deferred-acks-message-source,Deferred Acknowledgme
 
 It does not currently support XML configuration.
 
-The following example shows how to configure an `AmqpMessageSource` with Java configuration:
+The following example shows how to configure an `AmqpMessageSource`:
 
 ====
-[source, java]
-----
-@Bean
-public AmqpMessageSource source(ConnectionFactory connectionFactory) {
-    return new AmqpMessageSource(connectionFactory, "someQueue");
-}
-----
-====
-
-See the https://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/inbound/AmqpMessageSource.html[Javadoc] for configuration properties.
-
-The following example shows how to configure an `inboundPolledAdapter` with the Java DSL:
-
-====
-[source, java]
+[source, java, role="primary"]
+.Java DSL
 ----
 @Bean
 public IntegrationFlow flow() {
@@ -336,6 +290,22 @@ public IntegrationFlow flow() {
             })
             .get();
 }
+----
+[source, java, role="secondary"]
+.Java
+----
+@Bean
+public AmqpMessageSource source(ConnectionFactory connectionFactory) {
+    return new AmqpMessageSource(connectionFactory, "someQueue");
+}
+----
+
+See the https://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/inbound/AmqpMessageSource.html[Javadoc] for configuration properties.
+
+[source, xml, role="secondary"]
+.XML
+----
+This adapter currently does not have XML configuration support.
 ----
 ====
 
@@ -352,7 +322,59 @@ For the polled adapter, there is no listener container, batched messages are alw
 The inbound gateway supports all the attributes on the inbound channel adapter (except that 'channel' is replaced by 'request-channel'), plus some additional attributes.
 The following listing shows the available attributes:
 
-[source, xml]
+====
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean // return the upper cased payload
+public IntegrationFlow amqpInboundGateway(ConnectionFactory connectionFactory) {
+    return IntegrationFlows.from(Amqp.inboundGateway(connectionFactory, "foo"))
+            .transform(String.class, String::toUpperCase)
+            .get();
+}
+----
+[source, java, role="secondary"]
+.Java
+----
+@Bean
+public MessageChannel amqpInputChannel() {
+    return new DirectChannel();
+}
+
+@Bean
+public AmqpInboundGateway inbound(SimpleMessageListenerContainer listenerContainer,
+        @Qualifier("amqpInputChannel") MessageChannel channel) {
+    AmqpInboundGateway gateway = new AmqpInboundGateway(listenerContainer);
+    gateway.setRequestChannel(channel);
+    gateway.setDefaultReplyTo("bar");
+    return gateway;
+}
+
+@Bean
+public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory) {
+    SimpleMessageListenerContainer container =
+                    new SimpleMessageListenerContainer(connectionFactory);
+    container.setQueueNames("foo");
+    container.setConcurrentConsumers(2);
+    // ...
+    return container;
+}
+
+@Bean
+@ServiceActivator(inputChannel = "amqpInputChannel")
+public MessageHandler handler() {
+    return new AbstractReplyProducingMessageHandler() {
+
+        @Override
+        protected Object handleRequestMessage(Message<?> requestMessage) {
+            return "reply to " + requestMessage.getPayload();
+        }
+
+    };
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int-amqp:inbound-gateway
                           id="inboundGateway"                <1>
@@ -399,93 +421,10 @@ You must either specify this option or configure a default `exchange` and `routi
 if you anticipate cases when no `replyTo` property exists in the request message.
 
 See the note in <<amqp-inbound-channel-adapter>> about configuring the `listener-container` attribute.
+====
 
 Starting with version 5.5, the `AmqpInboundChannelAdapter` can be configured with an `org.springframework.amqp.rabbit.retry.MessageRecoverer` strategy which is used in the `RecoveryCallback` when the retry operation is called internally.
 See `setMessageRecoverer()` JavaDocs for more information.
-
-==== Configuring with Java Configuration
-
-The following Spring Boot application shows an example of how to configure the inbound gateway with Java configuration:
-
-====
-[source, java]
-----
-@SpringBootApplication
-public class AmqpJavaApplication {
-
-    public static void main(String[] args) {
-        new SpringApplicationBuilder(AmqpJavaApplication.class)
-            .web(false)
-            .run(args);
-    }
-
-    @Bean
-    public MessageChannel amqpInputChannel() {
-        return new DirectChannel();
-    }
-
-    @Bean
-    public AmqpInboundGateway inbound(SimpleMessageListenerContainer listenerContainer,
-            @Qualifier("amqpInputChannel") MessageChannel channel) {
-        AmqpInboundGateway gateway = new AmqpInboundGateway(listenerContainer);
-        gateway.setRequestChannel(channel);
-        gateway.setDefaultReplyTo("bar");
-        return gateway;
-    }
-
-    @Bean
-    public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory) {
-        SimpleMessageListenerContainer container =
-                        new SimpleMessageListenerContainer(connectionFactory);
-        container.setQueueNames("foo");
-        container.setConcurrentConsumers(2);
-        // ...
-        return container;
-    }
-
-    @Bean
-    @ServiceActivator(inputChannel = "amqpInputChannel")
-    public MessageHandler handler() {
-        return new AbstractReplyProducingMessageHandler() {
-
-            @Override
-            protected Object handleRequestMessage(Message<?> requestMessage) {
-                return "reply to " + requestMessage.getPayload();
-            }
-
-        };
-    }
-
-}
-----
-====
-
-==== Configuring with the Java DSL
-
-The following Spring Boot application shows an example of how to configure the inbound gateway with the Java DSL:
-
-====
-[source, java]
-----
-@SpringBootApplication
-public class AmqpJavaApplication {
-
-    public static void main(String[] args) {
-        new SpringApplicationBuilder(AmqpJavaApplication.class)
-            .web(false)
-            .run(args);
-    }
-
-    @Bean // return the upper cased payload
-    public IntegrationFlow amqpInboundGateway(ConnectionFactory connectionFactory) {
-        return IntegrationFlows.from(Amqp.inboundGateway(connectionFactory, "foo"))
-                .transform(String.class, String::toUpperCase)
-                .get();
-    }
-
-}
-----
-====
 
 [[amqp-gateway-debatching]]
 ==== Batched Messages
@@ -545,7 +484,36 @@ If a channel is closed before the confirm is received, the Spring AMQP framework
 The following example shows the available properties for an AMQP outbound channel adapter:
 
 ====
-[source,xml]
+[source,java,role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate,
+        MessageChannel amqpOutboundChannel) {
+    return IntegrationFlows.from(amqpOutboundChannel)
+            .handle(Amqp.outboundAdapter(amqpTemplate)
+                        .routingKey("queue1")) // default exchange - route to queue 'queue1'
+            .get();
+}
+----
+[source,java,role="secondary"]
+.Java
+----
+@Bean
+@ServiceActivator(inputChannel = "amqpOutboundChannel")
+public AmqpOutboundEndpoint amqpOutbound(AmqpTemplate amqpTemplate) {
+    AmqpOutboundEndpoint outbound = new AmqpOutboundEndpoint(amqpTemplate);
+    outbound.setRoutingKey("queue1"); // default exchange - route to queue 'queue1'
+    return outbound;
+}
+
+@Bean
+public MessageChannel amqpOutboundChannel() {
+    return new DirectChannel();
+}
+----
+[source,xml,role="secondary"]
+.XML
 ----
 <int-amqp:outbound-channel-adapter id="outboundAmqp"             <1>
                                channel="outboundChannel"         <2>
@@ -663,100 +631,55 @@ Using a `return-channel` requires a `RabbitTemplate` with the `mandatory` proper
 When using multiple outbound endpoints with returns, a separate `RabbitTemplate` is needed for each endpoint.
 =====
 
-==== Configuring with Java Configuration
-
-The following Spring Boot application shows an example of how to configure the outbound adapter with Java configuration:
-
-====
-[source, java]
-----
-@SpringBootApplication
-@IntegrationComponentScan
-public class AmqpJavaApplication {
-
-    public static void main(String[] args) {
-         ConfigurableApplicationContext context =
-              new SpringApplicationBuilder(AmqpJavaApplication.class)
-                       .web(false)
-                       .run(args);
-         MyGateway gateway = context.getBean(MyGateway.class);
-         gateway.sendToRabbit("foo");
-    }
-
-    @Bean
-    @ServiceActivator(inputChannel = "amqpOutboundChannel")
-    public AmqpOutboundEndpoint amqpOutbound(AmqpTemplate amqpTemplate) {
-        AmqpOutboundEndpoint outbound = new AmqpOutboundEndpoint(amqpTemplate);
-        outbound.setRoutingKey("foo"); // default exchange - route to queue 'foo'
-        return outbound;
-    }
-
-    @Bean
-    public MessageChannel amqpOutboundChannel() {
-        return new DirectChannel();
-    }
-
-    @MessagingGateway(defaultRequestChannel = "amqpOutboundChannel")
-    public interface MyGateway {
-
-        void sendToRabbit(String data);
-
-    }
-
-}
-----
-====
-
-==== Configuring with the Java DSL
-
-The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
-
-====
-[source, java]
-----
-@SpringBootApplication
-@IntegrationComponentScan
-public class AmqpJavaApplication {
-
-    public static void main(String[] args) {
-         ConfigurableApplicationContext context =
-                  new SpringApplicationBuilder(AmqpJavaApplication.class)
-                          .web(false)
-                          .run(args);
-         MyGateway gateway = context.getBean(MyGateway.class);
-         gateway.sendToRabbit("foo");
-    }
-
-    @Bean
-    public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate) {
-        return IntegrationFlows.from(amqpOutboundChannel())
-                .handle(Amqp.outboundAdapter(amqpTemplate)
-                            .routingKey("foo")) // default exchange - route to queue 'foo'
-                .get();
-    }
-
-    @Bean
-    public MessageChannel amqpOutboundChannel() {
-        return new DirectChannel();
-    }
-
-    @MessagingGateway(defaultRequestChannel = "amqpOutboundChannel")
-    public interface MyGateway {
-
-        void sendToRabbit(String data);
-
-    }
-}
-----
-====
-
 [[amqp-outbound-gateway]]
 === Outbound Gateway
 
 The following listing shows the possible properties for an AMQP Outbound Gateway:
 
 ====
-[source,xml]
+[source,java,role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate) {
+    return f -> f.handle(Amqp.outboundGateway(amqpTemplate)
+                    .routingKey("foo")) // default exchange - route to queue 'foo'
+            .get();
+}
+
+@MessagingGateway(defaultRequestChannel = "amqpOutbound.input")
+public interface MyGateway {
+
+    String sendToRabbit(String data);
+
+}
+----
+[source,java,role="secondary"]
+.Java
+----
+@Bean
+@ServiceActivator(inputChannel = "amqpOutboundChannel")
+public AmqpOutboundEndpoint amqpOutbound(AmqpTemplate amqpTemplate) {
+    AmqpOutboundEndpoint outbound = new AmqpOutboundEndpoint(amqpTemplate);
+    outbound.setExpectReply(true);
+    outbound.setRoutingKey("foo"); // default exchange - route to queue 'foo'
+    return outbound;
+}
+
+@Bean
+public MessageChannel amqpOutboundChannel() {
+    return new DirectChannel();
+}
+
+@MessagingGateway(defaultRequestChannel = "amqpOutboundChannel")
+public interface MyGateway {
+
+    String sendToRabbit(String data);
+
+}
+----
+[source,xml,role="secondary"]
+.XML
 ----
 <int-amqp:outbound-gateway id="outboundGateway"               <1>
                            request-channel="myRequestChannel" <2>
@@ -867,99 +790,8 @@ When using multiple outbound endpoints with returns, a separate `RabbitTemplate`
 IMPORTANT: The underlying `AmqpTemplate` has a default `replyTimeout` of five seconds.
 If you require a longer timeout, you must configure it on the `template`.
 
-==== Configuring with Java Configuration
-
-The following Spring Boot application shows an example of how to configure the outbound gateway with Java configuration:
-
-====
-[source, java]
-----
-@SpringBootApplication
-@IntegrationComponentScan
-public class AmqpJavaApplication {
-
-    public static void main(String[] args) {
-         ConfigurableApplicationContext context =
-                new SpringApplicationBuilder(AmqpJavaApplication.class)
-                       .web(false)
-                       .run(args);
-         MyGateway gateway = context.getBean(MyGateway.class);
-         String reply = gateway.sendToRabbit("foo");
-         System.out.println(reply);
-    }
-
-    @Bean
-    @ServiceActivator(inputChannel = "amqpOutboundChannel")
-    public AmqpOutboundEndpoint amqpOutbound(AmqpTemplate amqpTemplate) {
-        AmqpOutboundEndpoint outbound = new AmqpOutboundEndpoint(amqpTemplate);
-        outbound.setExpectReply(true);
-        outbound.setRoutingKey("foo"); // default exchange - route to queue 'foo'
-        return outbound;
-    }
-
-    @Bean
-    public MessageChannel amqpOutboundChannel() {
-        return new DirectChannel();
-    }
-
-    @MessagingGateway(defaultRequestChannel = "amqpOutboundChannel")
-    public interface MyGateway {
-
-        String sendToRabbit(String data);
-
-    }
-
-}
-----
-====
-
 Note that the only difference between the outbound adapter and outbound gateway configuration is the setting of the
 `expectReply` property.
-
-==== Configuring with the Java DSL
-
-The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
-
-====
-[source, java]
-----
-@SpringBootApplication
-@IntegrationComponentScan
-public class AmqpJavaApplication {
-
-    public static void main(String[] args) {
-         ConfigurableApplicationContext context =
-                 new SpringApplicationBuilder(AmqpJavaApplication.class)
-                      .web(false)
-                      .run(args);
-         RabbitTemplate template = context.getBean(RabbitTemplate.class);
-         MyGateway gateway = context.getBean(MyGateway.class);
-         String reply = gateway.sendToRabbit("foo");
-         System.out.println(reply);
-    }
-
-    @Bean
-    public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate) {
-        return IntegrationFlows.from(amqpOutboundChannel())
-                .handle(Amqp.outboundGateway(amqpTemplate)
-                        .routingKey("foo")) // default exchange - route to queue 'foo'
-                .get();
-    }
-
-    @Bean
-    public MessageChannel amqpOutboundChannel() {
-        return new DirectChannel();
-    }
-
-    @MessagingGateway(defaultRequestChannel = "amqpOutboundChannel")
-    public interface MyGateway {
-
-        String sendToRabbit(String data);
-
-    }
-}
-----
-====
 
 [[amqp-async-outbound-gateway]]
 === Asynchronous Outbound Gateway
@@ -974,7 +806,65 @@ The thread is released and is available for other tasks in the framework.
 The following listing shows the possible configuration options for an AMQP asynchronous outbound gateway:
 
 ====
-[source,xml]
+[source,java,role="primary"]
+.Java DSL
+----
+@Configuration
+public class AmqpAsyncApplication {
+
+    @Bean
+    public IntegrationFlow asyncAmqpOutbound(AsyncRabbitTemplate asyncRabbitTemplate) {
+        return f -> f
+                .handle(Amqp.asyncOutboundGateway(asyncRabbitTemplate)
+                        .routingKey("queue1")); // default exchange - route to queue 'queue1'
+    }
+
+    @MessagingGateway(defaultRequestChannel = "asyncAmqpOutbound.input")
+    public interface MyGateway {
+
+        String sendToRabbit(String data);
+
+    }
+
+}
+----
+[source,java,role="secondary"]
+.Java
+----
+@Configuration
+public class AmqpAsyncConfig {
+
+    @Bean
+    @ServiceActivator(inputChannel = "amqpOutboundChannel")
+    public AsyncAmqpOutboundGateway amqpOutbound(AsyncRabbitTemplate asyncTemplate) {
+        AsyncAmqpOutboundGateway outbound = new AsyncAmqpOutboundGateway(asyncTemplate);
+        outbound.setRoutingKey("foo"); // default exchange - route to queue 'foo'
+        return outbound;
+    }
+
+    @Bean
+    public AsyncRabbitTemplate asyncTemplate(RabbitTemplate rabbitTemplate,
+                     SimpleMessageListenerContainer replyContainer) {
+
+        return new AsyncRabbitTemplate(rabbitTemplate, replyContainer);
+    }
+
+    @Bean
+    public SimpleMessageListenerContainer replyContainer() {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(ccf);
+        container.setQueueNames("asyncRQ1");
+        return container;
+    }
+
+    @Bean
+    public MessageChannel amqpOutboundChannel() {
+        return new DirectChannel();
+    }
+
+}
+----
+[source,xml,role="secondary"]
+.XML
 ----
 <int-amqp:outbound-async-gateway id="asyncOutboundGateway"    <1>
                            request-channel="myRequestChannel" <2>
@@ -1077,87 +967,9 @@ See also <<./service-activator.adoc#async-service-activator,Asynchronous Service
 
 [IMPORTANT]
 .RabbitTemplate
-=====
+====
 When you use confirmations and returns, we recommend that the `RabbitTemplate` wired into the `AsyncRabbitTemplate` be dedicated.
 Otherwise, unexpected side-effects may be encountered.
-=====
-
-==== Configuring with Java Configuration
-
-The following configuration shows an example of how to configure the outbound gateway with Java configuration:
-
-====
-[source, java]
-----
-@Configuration
-public class AmqpAsyncConfig {
-
-    @Bean
-    @ServiceActivator(inputChannel = "amqpOutboundChannel")
-    public AsyncAmqpOutboundGateway amqpOutbound(AmqpTemplate asyncTemplate) {
-        AsyncAmqpOutboundGateway outbound = new AsyncAmqpOutboundGateway(asyncTemplate);
-        outbound.setRoutingKey("foo"); // default exchange - route to queue 'foo'
-        return outbound;
-    }
-
-    @Bean
-    public AsyncRabbitTemplate asyncTemplate(RabbitTemplate rabbitTemplate,
-                     SimpleMessageListenerContainer replyContainer) {
-        return new AsyncRabbitTemplate(rabbitTemplate, replyContainer);
-    }
-
-    @Bean
-    public SimpleMessageListenerContainer replyContainer() {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(ccf);
-        container.setQueueNames("asyncRQ1");
-        return container;
-    }
-
-    @Bean
-    public MessageChannel amqpOutboundChannel() {
-        return new DirectChannel();
-    }
-
-}
-----
-====
-
-==== Configuring with the Java DSL
-
-The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
-
-====
-[source, java]
-----
-@SpringBootApplication
-public class AmqpAsyncApplication {
-
-    public static void main(String[] args) {
-         ConfigurableApplicationContext context =
-                 new SpringApplicationBuilder(AmqpAsyncApplication.class)
-                      .web(false)
-                      .run(args);
-         MyGateway gateway = context.getBean(MyGateway.class);
-         String reply = gateway.sendToRabbit("foo");
-         System.out.println(reply);
-    }
-
-    @Bean
-    public IntegrationFlow asyncAmqpOutbound(AsyncRabbitTemplate asyncRabbitTemplate) {
-        return f -> f
-                .handle(Amqp.asyncOutboundGateway(asyncRabbitTemplate)
-                        .routingKey("foo")); // default exchange - route to queue 'foo'
-    }
-
-    @MessagingGateway(defaultRequestChannel = "asyncAmqpOutbound.input")
-    public interface MyGateway {
-
-        String sendToRabbit(String data);
-
-    }
-
-}
-----
 ====
 
 [[alternative-confirms-returns]]

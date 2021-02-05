@@ -4,8 +4,6 @@
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
 include::./metrics.adoc[]
 
-include::./jmx.adoc[]
-
 include::./message-history.adoc[]
 
 include::./message-store.adoc[]
