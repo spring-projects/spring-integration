@@ -99,7 +99,7 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 	@Test
 	public void testRollback() {
 		AbstractPersistentAcceptOnceFileListFilter<String> filter =
-				new AbstractPersistentAcceptOnceFileListFilter<>(new SimpleMetadataStore(), "rollback:") {
+				new AbstractPersistentAcceptOnceFileListFilter<String>(new SimpleMetadataStore(), "rollback:") {
 
 					@Override
 					protected long modified(String file) {

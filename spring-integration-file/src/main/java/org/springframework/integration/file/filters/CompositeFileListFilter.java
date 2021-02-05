@@ -65,8 +65,8 @@ public class CompositeFileListFilter<F>
 
 	public CompositeFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
 		this.fileFilters = new LinkedHashSet<>(fileFilters);
-		this.allSupportAccept = fileFilters.stream().allMatch(FileListFilter::supportsSingleFileFiltering);
-		this.oneIsForRecursion = fileFilters.stream().anyMatch(FileListFilter::isForRecursion);
+		this.allSupportAccept = fileFilters.stream().allMatch(FileListFilter<F>::supportsSingleFileFiltering);
+		this.oneIsForRecursion = fileFilters.stream().anyMatch(FileListFilter<F>::isForRecursion);
 	}
 
 	@Override
