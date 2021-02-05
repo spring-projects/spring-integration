@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.junit.jupiter.api.io.TempDir;
  * Abstract base class for tests requiring remote file servers, e.g. (S)FTP.
  *
  * @author Gary Russell
+ *
  * @since 4.3
  *
  */
@@ -47,6 +48,8 @@ public abstract class RemoteFileTestSupport {
 	protected static File remoteTemporaryFolder;
 
 	protected static File localTemporaryFolder;
+
+	protected static File scratchTemporaryFolder;
 
 	protected volatile File sourceRemoteDirectory;
 
@@ -167,6 +170,14 @@ public abstract class RemoteFileTestSupport {
 		fos = new FileOutputStream(file);
 		fos.write("subLocal1".getBytes());
 		fos.close();
+	}
+
+	public static File getScratchTempFolder() {
+		if (scratchTemporaryFolder == null) {
+			scratchTemporaryFolder = new File(temporaryFolder.toFile().getAbsolutePath() + File.separator + "scratch");
+			scratchTemporaryFolder.mkdirs();
+		}
+		return scratchTemporaryFolder;
 	}
 
 	protected static File getRemoteTempFolder() {
