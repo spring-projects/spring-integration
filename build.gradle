@@ -201,6 +201,7 @@ configure(javaProjects) { subproject ->
 
 	compileTestJava {
 		sourceCompatibility = 11
+		options.encoding = 'UTF-8'
 	}
 
 	compileKotlin {
@@ -988,6 +989,7 @@ task checkAsciidocLinks {
 asciidoctorPdf {
 	dependsOn checkAsciidocLinks
 	baseDirFollowsSourceFile()
+	configurations 'asciidoctorExt'
 
 	asciidoctorj {
 		sourceDir "$buildDir/asciidoc"
@@ -1006,11 +1008,33 @@ asciidoctorPdf {
 	}
 }
 
+asciidoctorj {
+	version = '2.4.1'
+	// fatalWarnings ".*"
+	options doctype: 'book', eruby: 'erubis'
+	attributes 'docinfo': 'shared',
+			stylesdir: 'css/',
+			stylesheet: 'spring.css',
+			'linkcss': true,
+			'icons': 'font',
+			'sectanchors': '',
+			'source-highlighter': 'highlight.js',
+			'highlightjsdir': 'js/highlight',
+			'highlightjs-theme': 'github',
+			'idprefix': '',
+			'idseparator': '-',
+			'spring-version': project.version,
+			'allow-uri-read': '',
+			'toc': 'left',
+			'toclevels': '4',
+			revnumber: project.version,
+			'project-version': project.version
+}
+
 asciidoctor {
 	dependsOn asciidoctorPdf
-
 	baseDirFollowsSourceFile()
-
+	configurations 'asciidoctorExt'
 	sourceDir "$buildDir/asciidoc"
 	inputs.dir(sourceDir)
 	resources {
@@ -1018,25 +1042,7 @@ asciidoctor {
 			include 'images/*', 'css/**', 'js/**'
 		}
 	}
-	options doctype: 'book'
 
-	attributes 'docinfo': 'shared',
-		stylesdir: 'css/',
-		stylesheet: 'spring.css',
-		'linkcss': true,
-		'icons': 'font',
-		'sectanchors': '',
-		'source-highlighter': 'highlight.js',
-		'highlightjsdir': 'js/highlight',
-		'highlightjs-theme': 'github',
-		'idprefix': '',
-		'idseparator': '-',
-		'spring-version': project.version,
-		'allow-uri-read': '',
-		'toc': 'left',
-		'toclevels': '4',
-		revnumber: project.version,
-		'project-version': project.version
 }
 
 task reference(dependsOn: asciidoctor) {
@@ -1224,3 +1230,5 @@ publishing {
 		}
 	}
 }
+
+apply from: "${rootDir}/gradle/docs.gradle"

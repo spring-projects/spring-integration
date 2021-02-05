@@ -151,3 +151,7 @@ registry.config().meterFilter(MeterFilter.deny(id ->
         "noMeters".equals(id.getTag("name"))));
 ----
 ====
+
+==== Spring Integration JMX Support
+
+Also see <<./jmx.adoc,JMX Support>>.
