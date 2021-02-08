@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -336,8 +336,21 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * @return the endpoint spec.
 	 * @since 5.4
 	 * @see AbstractCorrelatingMessageHandler#setExpireTimeout(long)
+	 * @deprecated since 5.5 in favor of {@link #expireTimeout(long)}
 	 */
+	@Deprecated
 	public S setExpireTimeout(long expireTimeout) {
+		return expireTimeout(expireTimeout);
+	}
+
+	/**
+	 * Configure a timeout for old groups in the store to purge.
+	 * @param expireTimeout the timeout in milliseconds to use.
+	 * @return the endpoint spec.
+	 * @since 5.5
+	 * @see AbstractCorrelatingMessageHandler#setExpireTimeout(long)
+	 */
+	public S expireTimeout(long expireTimeout) {
 		this.handler.setExpireTimeout(expireTimeout);
 		return _this();
 	}
@@ -348,9 +361,36 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * @return the endpoint spec.
 	 * @since 5.4
 	 * @see AbstractCorrelatingMessageHandler#setExpireDuration(Duration)
+	 * @deprecated since 5.5 in favor of {@link #expireDuration(Duration)}
 	 */
+	@Deprecated
 	public S setExpireDuration(Duration expireDuration) {
+		return expireDuration(expireDuration);
+	}
+
+	/**
+	 * Configure a {@link Duration} how often to run a scheduled purge task.
+	 * @param expireDuration the duration for scheduled purge task.
+	 * @return the endpoint spec.
+	 * @since 5.5
+	 * @see AbstractCorrelatingMessageHandler#setExpireDuration(Duration)
+	 */
+	public S expireDuration(Duration expireDuration) {
 		this.handler.setExpireDuration(expireDuration);
+		return _this();
+	}
+
+	/**
+	 * Set to true to release the message group lock before sending any output. See
+	 * "Avoiding Deadlocks" in the Aggregator section of the reference manual for more
+	 * information as to why this might be needed.
+	 * @param releaseLockBeforeSend true to release the lock.
+	 * @return the endpoint spec.
+	 * @since 5.5
+	 * @see AbstractCorrelatingMessageHandler#setReleaseLockBeforeSend(boolean)
+	 */
+	public S releaseLockBeforeSend(boolean releaseLockBeforeSend) {
+		this.handler.setReleaseLockBeforeSend(releaseLockBeforeSend);
 		return _this();
 	}
 

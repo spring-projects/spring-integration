@@ -100,14 +100,11 @@ public class CompositeFileListFilter<F>
 	}
 
 	/**
-	 * Not thread safe. Only a single thread may add filters at a time.
-	 * <p>
 	 * Add the new filters to this CompositeFileListFilter while maintaining the existing filters.
-	 *
 	 * @param filtersToAdd a list of filters to add
 	 * @return this CompositeFileListFilter instance with the added filters
 	 */
-	public CompositeFileListFilter<F> addFilters(Collection<? extends FileListFilter<F>> filtersToAdd) {
+	public synchronized CompositeFileListFilter<F> addFilters(Collection<? extends FileListFilter<F>> filtersToAdd) {
 		for (FileListFilter<F> elf : filtersToAdd) {
 			if (elf instanceof DiscardAwareFileListFilter) {
 				((DiscardAwareFileListFilter<F>) elf).addDiscardCallback(this.discardCallback);
@@ -120,7 +117,7 @@ public class CompositeFileListFilter<F>
 					throw new IllegalStateException(e);
 				}
 			}
-			this.allSupportAccept &= elf.supportsSingleFileFiltering();
+			this.allSupportAccept = this.allSupportAccept && elf.supportsSingleFileFiltering();
 			this.oneIsForRecursion |= elf.isForRecursion();
 		}
 		this.fileFilters.addAll(filtersToAdd);

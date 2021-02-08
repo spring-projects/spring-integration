@@ -1005,10 +1005,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		if (recursion && StringUtils.hasText(subDirectory)) {
 			fileToAdd = enhanceNameWithSubDirectory(file, subDirectory);
 		}
-		if (this.filterAfterEnhancement) {
-			if (!this.filter.accept(fileToAdd)) {
-				return;
-			}
+		if (this.filterAfterEnhancement && !this.filter.accept(fileToAdd)) {
+			return;
 		}
 		String fileName = getFilename(fileToAdd);
 		final boolean isDirectory = isDirectory(file);
@@ -1020,8 +1018,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 
 		if (recursion && isDirectory && !isDots) {
-			lsFiles.addAll(listFilesInRemoteDir(session, directory, fileName +
-					this.remoteFileTemplate.getRemoteFileSeparator()));
+			lsFiles.addAll(listFilesInRemoteDir(session, directory,
+					fileName + this.remoteFileTemplate.getRemoteFileSeparator()));
 		}
 	}
 
