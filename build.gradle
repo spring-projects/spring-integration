@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.4.21'
+	ext.kotlinVersion = '1.4.30'
 	repositories {
 		mavenCentral()
 		maven { url 'https://plugins.gradle.org/m2' }
@@ -42,7 +42,6 @@ ext {
 	linkScmUrl = 'https://github.com/spring-projects/spring-integration'
 	linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
 	linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
-	docResourcesVersion = '0.2.5'
 
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
@@ -126,8 +125,6 @@ allprojects {
 			maven { url 'https://repo.spring.io/libs-snapshot' }
 		}
 //		maven { url 'https://repo.spring.io/libs-staging-local' }
-
-		maven { url 'https://repository.apache.org/content/groups/staging/' } // Kafka Client
 	}
 
 	ext.javadocLinks = [
@@ -173,7 +170,7 @@ configure(javaProjects) { subproject ->
 	apply plugin: 'kotlin'
 	apply plugin: 'kotlin-spring'
 
-	apply from: "${rootProject.projectDir}/publish-maven.gradle"
+	apply from: "${rootDir}/gradle/publish-maven.gradle"
 
 	sourceSets {
 		test {
@@ -904,7 +901,7 @@ project('spring-integration-bom') {
 	description = "Spring Integration (Bill of Materials)"
 
 	apply plugin: 'java-platform'
-	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
+	apply from:   "${rootDir}/gradle/publish-maven.gradle"
 
 	dependencies {
 		constraints {
@@ -926,129 +923,6 @@ project('spring-integration-bom') {
 		skipProject = true
 	}
 }
-
-configurations {
-	docs
-}
-
-dependencies {
-	docs "io.spring.docresources:spring-doc-resources:${docResourcesVersion}@zip"
-}
-
-task prepareAsciidocBuild(type: Sync) {
-	dependsOn configurations.docs
-	from {
-		configurations.docs.collect { zipTree(it) }
-	}
-	from 'src/reference/asciidoc/'
-	into "$buildDir/asciidoc"
-}
-
-task checkAsciidocLinks {
-	dependsOn prepareAsciidocBuild
-	inputs.dir("$buildDir/asciidoc")
-	doLast {
-		def errors = new ArrayList<>();
-		errors.add('*** Anchor reference errors found:')
-		inputs.files.filter{ f -> f.path.endsWith('.adoc') }.each { file ->
-			def doc = file.text
-			def anchors = new HashSet<>()
-			def matcher = (doc =~ /\[\[([^]]+)]]/)
-			while (matcher.find()) {
-				anchors.add(matcher.group(1))
-			}
-			matcher = (doc =~ /<<([^>]+)>>/)
-			while (matcher.find()) {
-				def anchor = matcher.group(1);
-				def hasComma = anchor.contains(",")
-				if (!anchor.startsWith("./")) {
-					if (hasComma) {
-						anchor = anchor.substring(0, anchor.indexOf(","));
-					}
-					if (!anchors.contains(anchor)) {
-						errors.add("\nAnchor '" + anchor
-							+ "' not found in '" + file.name
-							+ "', if in another file, it needs to be qualified with './fileName.adoc#'")
-					}
-				}
-				else {
-					if (!hasComma) {
-						errors.add("\nExternal anchor '" + anchor
-							+ "' in '" + file.name
-							+ "' should have a textual description (,...)")
-					}
-				}
-			}
-		}
-		if (errors.size() > 1) {
-			throw new InvalidUserDataException(errors.toString())
-		}
-	}
-}
-
-asciidoctorPdf {
-	dependsOn checkAsciidocLinks
-	baseDirFollowsSourceFile()
-	configurations 'asciidoctorExt'
-
-	asciidoctorj {
-		sourceDir "$buildDir/asciidoc"
-		inputs.dir(sourceDir)
-		sources {
-			include 'index-single.adoc'
-		}
-		options doctype: 'book'
-		attributes 'icons': 'font',
-		'sectanchors': '',
-		'sectnums': '',
-		'toc': '',
-		'source-highlighter' : 'coderay',
-		revnumber: project.version,
-		'project-version': project.version
-	}
-}
-
-asciidoctorj {
-	version = '2.4.2'
-	options doctype: 'book', eruby: 'erubis'
-	attributes 'docinfo': 'shared',
-			stylesdir: 'css/',
-			stylesheet: 'stylesheet.css',
-			'linkcss': true,
-			'icons': 'font',
-			'sectanchors': '',
-			'source-highlighter': 'highlight.js',
-			'highlightjsdir': 'js/highlight',
-			'highlightjs-theme': 'github',
-			'idprefix': '',
-			'idseparator': '-',
-			'allow-uri-read': '',
-			'toc': 'left',
-			'toclevels': '4',
-			revnumber: project.version,
-			'project-version': project.version
-}
-
-asciidoctor {
-	dependsOn asciidoctorPdf
-	baseDirFollowsSourceFile()
-	configurations 'asciidoctorExt'
-	sourceDir "$buildDir/asciidoc"
-	inputs.dir(sourceDir)
-	resources {
-		from(sourceDir) {
-			include 'images/*', 'css/**', 'js/**'
-		}
-	}
-
-}
-
-task reference(dependsOn: asciidoctor) {
-	group = 'Documentation'
-	description = 'Generate the reference documentation'
-}
-
-reference.onlyIf { "$System.env.NO_REFERENCE_TASK" != 'true' || project.hasProperty('ignoreEnvToStopReference') }
 
 sonarqube {
 	properties {
@@ -1111,6 +985,8 @@ dokka {
 		}
 	}
 }
+
+apply from: "${rootDir}/gradle/docs.gradle"
 
 task schemaZip(type: Zip) {
 	group = 'Distribution'
@@ -1217,7 +1093,7 @@ task dist(dependsOn: assemble) {
 	description = 'Builds -dist, -docs and -schema distribution archives.'
 }
 
-apply from: "${rootProject.projectDir}/publish-maven.gradle"
+apply from: "${rootDir}/gradle/publish-maven.gradle"
 
 publishing {
 	publications {
@@ -1228,5 +1104,3 @@ publishing {
 		}
 	}
 }
-
-apply from: "${rootDir}/gradle/docs.gradle"
