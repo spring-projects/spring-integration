@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,35 +57,16 @@ public class JmsChannelParser extends AbstractChannelParser {
 		builder.addPropertyReference(JmsParserUtils.CONNECTION_FACTORY_PROPERTY,
 				JmsParserUtils.determineConnectionFactoryBeanName(element, parserContext));
 		if ("channel".equals(element.getLocalName())) {
-			this.parseDestination(element, parserContext, builder, "queue");
+			parseDestination(element, parserContext, builder, "queue");
 		}
 		else if ("publish-subscribe-channel".equals(element.getLocalName())) {
-			this.parseDestination(element, parserContext, builder, "topic");
+			parseDestination(element, parserContext, builder, "topic");
 		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-subscribers");
 
 		String containerType = element.getAttribute(CONTAINER_TYPE_ATTRIBUTE);
-		String containerClass = element.getAttribute(CONTAINER_CLASS_ATTRIBUTE);
-		if (!StringUtils.hasText(containerClass) && StringUtils.hasText(containerType)) {
-			if ("default".equals(containerType)) {
-				containerClass = "org.springframework.jms.listener.DefaultMessageListenerContainer";
-			}
-			else if ("simple".equals(containerType)) {
-				containerClass = "org.springframework.jms.listener.SimpleMessageListenerContainer";
-			}
-		}
-		/*
-		 * Schema docs tell the user to ensure that, if they supply a container-class, it
-		 * is their responsibility to set the container-type appropriately, based on the superclass
-		 * of their implementation (default="default"). If it is set incorrectly, some attributes
-		 * may not be applied.
-		 *
-		 * We cannot reliably infer it here.
-		 */
-		if (StringUtils.hasText(containerClass)) {
-			builder.addPropertyValue("containerType", containerClass);
-		}
+		setContainerClass(element, builder, containerType);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
@@ -98,38 +79,12 @@ public class JmsChannelParser extends AbstractChannelParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
-		String cache = element.getAttribute("cache");
-		if (StringUtils.hasText(cache)) {
-			if (containerType.startsWith("simple")) {
-				if (!("auto".equals(cache) || "consumer".equals(cache))) {
-					parserContext.getReaderContext().warning(
-							"'cache' attribute not actively supported for listener container of type \"simple\". " +
-									"Effective runtime behavior will be equivalent to \"consumer\" / \"auto\".", element);
-				}
-			}
-			else {
-				builder.addPropertyValue("cacheLevelName", "CACHE_" + cache.toUpperCase());
-			}
-		}
-		Integer acknowledgeMode = this.parseAcknowledgeMode(element, parserContext);
-		if (acknowledgeMode != null) {
-			if (acknowledgeMode == Session.SESSION_TRANSACTED) {
-				builder.addPropertyValue("sessionTransacted", Boolean.TRUE);
-			}
-			else {
-				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
-			}
-		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrency");
-
-		String prefetch = element.getAttribute("prefetch");
-		if (StringUtils.hasText(prefetch) && containerType.startsWith("default")) {
-			builder.addPropertyValue("maxMessagesPerTask", Integer.valueOf(prefetch));
-		}
+		setCache(element, parserContext, builder, containerType);
+		setAcknowledgeMode(element, parserContext, builder, containerType);
 		return builder;
 	}
 
-	private void parseDestination(Element element, ParserContext parserContext, BeanDefinitionBuilder builder,
+	private static void parseDestination(Element element, ParserContext parserContext, BeanDefinitionBuilder builder,
 			String type) {
 
 		boolean isPubSub = "topic".equals(type);
@@ -161,7 +116,68 @@ public class JmsChannelParser extends AbstractChannelParser {
 		}
 	}
 
-	private Integer parseAcknowledgeMode(Element ele, ParserContext parserContext) {
+	private static void setContainerClass(Element element, BeanDefinitionBuilder builder, String containerType) {
+		String containerClass = element.getAttribute(CONTAINER_CLASS_ATTRIBUTE);
+		if (!StringUtils.hasText(containerClass) && StringUtils.hasText(containerType)) {
+			if ("default".equals(containerType)) {
+				containerClass = "org.springframework.jms.listener.DefaultMessageListenerContainer";
+			}
+			else if ("simple".equals(containerType)) {
+				containerClass = "org.springframework.jms.listener.SimpleMessageListenerContainer";
+			}
+		}
+		/*
+		 * Schema docs tell the user to ensure that, if they supply a container-class, it
+		 * is their responsibility to set the container-type appropriately, based on the superclass
+		 * of their implementation (default="default"). If it is set incorrectly, some attributes
+		 * may not be applied.
+		 * We cannot reliably infer it here.
+		 */
+		if (StringUtils.hasText(containerClass)) {
+			builder.addPropertyValue("containerType", containerClass);
+		}
+	}
+
+	private static void setCache(Element element, ParserContext parserContext, BeanDefinitionBuilder builder,
+			String containerType) {
+
+		String cache = element.getAttribute("cache");
+		if (StringUtils.hasText(cache)) {
+			if (containerType.startsWith("simple")) {
+				if (!("auto".equals(cache) || "consumer".equals(cache))) {
+					parserContext.getReaderContext().warning(
+							"'cache' attribute not actively supported for listener container of type \"simple\". " +
+									"Effective runtime behavior will be equivalent to \"consumer\" / \"auto\".",
+							element);
+				}
+			}
+			else {
+				builder.addPropertyValue("cacheLevelName", "CACHE_" + cache.toUpperCase());
+			}
+		}
+	}
+
+	private static void setAcknowledgeMode(Element element, ParserContext parserContext, BeanDefinitionBuilder builder,
+			String containerType) {
+
+		Integer acknowledgeMode = parseAcknowledgeMode(element, parserContext);
+		if (acknowledgeMode != null) {
+			if (acknowledgeMode == Session.SESSION_TRANSACTED) {
+				builder.addPropertyValue("sessionTransacted", Boolean.TRUE);
+			}
+			else {
+				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
+			}
+		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrency");
+
+		String prefetch = element.getAttribute("prefetch");
+		if (StringUtils.hasText(prefetch) && containerType.startsWith("default")) {
+			builder.addPropertyValue("maxMessagesPerTask", Integer.valueOf(prefetch));
+		}
+	}
+
+	private static Integer parseAcknowledgeMode(Element ele, ParserContext parserContext) {
 		String acknowledge = ele.getAttribute(ACKNOWLEDGE_ATTRIBUTE);
 		if (StringUtils.hasText(acknowledge)) {
 			int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;

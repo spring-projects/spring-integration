@@ -998,8 +998,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 	}
 
-	private void processFile(Session<F> session, String directory, String subDirectory, List<F> lsFiles,
-			boolean recursion, F file) throws IOException {
+	private void processFile(Session<F> session, String directory, String subDirectory, // NOSONAR - complexity
+			List<F> lsFiles, boolean recursion, F file) throws IOException {
 
 		F fileToAdd = file;
 		if (recursion && StringUtils.hasText(subDirectory)) {
