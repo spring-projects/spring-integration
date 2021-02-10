@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package org.springframework.integration.mail.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.mail.MailHeaders;
 import org.springframework.integration.mail.MailSendingMessageHandler;
@@ -31,6 +31,8 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -38,7 +40,7 @@ public class SmtpTests {
 
 	private static final SmtpServer smtpServer = TestMailServer.smtp(0);
 
-	@BeforeClass
+	@BeforeAll
 	public static void setup() throws InterruptedException {
 		int n = 0;
 		while (n++ < 100 && (!smtpServer.isListening())) {
@@ -47,7 +49,7 @@ public class SmtpTests {
 		assertThat(n < 100).isTrue();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown() {
 		smtpServer.stop();
 	}
@@ -62,7 +64,7 @@ public class SmtpTests {
 		MailSendingMessageHandler handler = new MailSendingMessageHandler(mailSender);
 
 		handler.handleMessage(MessageBuilder.withPayload("foo")
-				.setHeader(MailHeaders.TO, new String[] {"bar@baz"})
+				.setHeader(MailHeaders.TO, new String[]{ "bar@baz" })
 				.setHeader(MailHeaders.FROM, "foo@bar")
 				.setHeader(MailHeaders.SUBJECT, "foo")
 				.build());
@@ -74,12 +76,12 @@ public class SmtpTests {
 
 		assertThat(smtpServer.getMessages().size() > 0).isTrue();
 		String message = smtpServer.getMessages().get(0);
-		assertThat(message).endsWith("foo\n");
-		assertThat(message).contains("foo@bar");
-		assertThat(message).contains("bar@baz");
-		assertThat(message).contains("user:user");
-		assertThat(message).contains("password:pw");
-
+		assertThat(message)
+				.endsWith("foo\n")
+				.contains("foo@bar")
+				.contains("bar@baz")
+				.contains("user:user")
+				.contains("password:pw");
 	}
 
 }

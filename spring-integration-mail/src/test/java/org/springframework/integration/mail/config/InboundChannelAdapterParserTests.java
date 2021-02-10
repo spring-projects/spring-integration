@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,11 @@
 package org.springframework.integration.mail.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import javax.mail.Authenticator;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXParseException;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -41,17 +40,17 @@ import org.springframework.integration.mail.SearchTermStrategy;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 1.0.5
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class InboundChannelAdapterParserTests {
 
@@ -61,11 +60,11 @@ public class InboundChannelAdapterParserTests {
 	@Autowired
 	private MessageChannel autoChannel;
 
-	@Autowired @Qualifier("autoChannel.adapter")
+	@Autowired
+	@Qualifier("autoChannel.adapter")
 	private SourcePollingChannelAdapter autoChannelAdapter;
 
 	//==================== INT-982 =====================
-
 	@Test
 	public void pop3ShouldDeleteTrue() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldDeleteTrue");
@@ -119,7 +118,6 @@ public class InboundChannelAdapterParserTests {
 
 
 	//==================== INT-1158 ====================
-
 	@Test
 	public void pop3ShouldDeleteTrueProperty() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldDeleteTrueProperty");
@@ -155,7 +153,6 @@ public class InboundChannelAdapterParserTests {
 
 
 	//==================== INT-1159 ====================
-
 	@Test
 	public void pop3WithAuthenticator() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithAuthenticator");
@@ -186,11 +183,11 @@ public class InboundChannelAdapterParserTests {
 
 	@SuppressWarnings("unused")
 	private static class TestAuthenticator extends Authenticator {
+
 	}
 
 
 	//==================== INT-1160 ====================
-
 	@Test
 	public void pop3WithMaxFetchSize() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithMaxFetchSize");
@@ -225,7 +222,6 @@ public class InboundChannelAdapterParserTests {
 
 
 	//==================== INT-1161 ====================
-
 	@Test
 	public void pop3WithSession() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithSession");
@@ -255,7 +251,6 @@ public class InboundChannelAdapterParserTests {
 
 
 	//==================== INT-1162 ====================
-
 	@Test
 	public void pop3WithoutStoreUri() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithoutStoreUri");
@@ -282,23 +277,16 @@ public class InboundChannelAdapterParserTests {
 
 
 	//==================== INT-1163 ====================
-
 	@Test
 	public void inboundChannelAdapterRequiresShouldDeleteMessages() {
-		try {
-			new ClassPathXmlApplicationContext(
-					"org/springframework/integration/mail/config/InboundChannelAdapterParserTests-invalidContext.xml")
-				.close();
-			fail("expected a parser error");
-		}
-		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getCause().getClass()).isEqualTo(SAXParseException.class);
-		}
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(
+						"InboundChannelAdapterParserTests-invalidContext.xml", getClass()))
+				.withCauseInstanceOf(SAXParseException.class);
 	}
 
 
 	//==================== INT-2800 ====================
-
 	@Test
 	public void imapWithSearchTermStrategy() {
 		AbstractMailReceiver receiver = this.getReceiver("imapWithSearch");
@@ -312,15 +300,10 @@ public class InboundChannelAdapterParserTests {
 
 	@Test
 	public void pop3WithSearchTermStrategy() {
-		try {
-			new ClassPathXmlApplicationContext(
-				"org/springframework/integration/mail/config/InboundChannelAdapterParserTests-pop3Search-context.xml")
-					.close();
-			fail("expected a parser error");
-		}
-		catch (BeanCreationException e) {
-			assertThat(e.getMessage().contains("searchTermStrategy is only allowed with imap")).isTrue();
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(
+						"InboundChannelAdapterParserTests-pop3Search-context.xml", getClass()))
+				.withMessageContaining("searchTermStrategy is only allowed with imap");
 	}
 
 

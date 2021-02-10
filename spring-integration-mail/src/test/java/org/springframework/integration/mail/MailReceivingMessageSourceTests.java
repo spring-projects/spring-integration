@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,13 @@ package org.springframework.integration.mail;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.mail.Message;
 import javax.mail.internet.MimeMessage;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -41,9 +43,9 @@ public class MailReceivingMessageSourceTests {
 		MimeMessage message3 = Mockito.mock(MimeMessage.class);
 		MimeMessage message4 = Mockito.mock(MimeMessage.class);
 
-		mailReceiver.messages.add(new javax.mail.Message[] { message1 });
-		mailReceiver.messages.add(new javax.mail.Message[] { message2, message3 });
-		mailReceiver.messages.add(new javax.mail.Message[] { message4 });
+		mailReceiver.messages.add(new javax.mail.Message[]{ message1 });
+		mailReceiver.messages.add(new javax.mail.Message[]{ message2, message3 });
+		mailReceiver.messages.add(new javax.mail.Message[]{ message4 });
 
 		MailReceivingMessageSource source = new MailReceivingMessageSource(mailReceiver);
 		assertThat(source.receive().getPayload()).as("Wrong message for number 1").isEqualTo(message1);
@@ -57,7 +59,7 @@ public class MailReceivingMessageSourceTests {
 	@SuppressWarnings("unused")
 	private static class StubMailReceiver implements MailReceiver {
 
-		private final ConcurrentLinkedQueue<javax.mail.Message[]> messages = new ConcurrentLinkedQueue<javax.mail.Message[]>();
+		private final Queue<Message[]> messages = new ConcurrentLinkedQueue<>();
 
 		StubMailReceiver() {
 			super();

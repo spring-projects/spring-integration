@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ import java.util.Properties;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.context.ConfigurableApplicationContext;
@@ -48,12 +48,13 @@ import org.springframework.util.FileCopyUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class MessageWithContentTypeTests {
 
 	@Test
-	@Ignore
+	@Disabled
 	public void testSendEmail() throws Exception {
 		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext(
 				"MessageWithContentTypeTests-context.xml", this.getClass());
@@ -61,7 +62,7 @@ public class MessageWithContentTypeTests {
 		StringWriter writer = new StringWriter();
 		FileReader reader = new FileReader("src/test/java/org/springframework/integration/mail/config/test.html");
 		FileCopyUtils.copy(reader, writer);
-		inputChannel.send(new GenericMessage<String>(writer.getBuffer().toString()));
+		inputChannel.send(new GenericMessage<>(writer.getBuffer().toString()));
 		ac.close();
 	}
 
@@ -73,10 +74,10 @@ public class MessageWithContentTypeTests {
 		FileReader reader = new FileReader("src/test/java/org/springframework/integration/mail/config/test.html");
 		FileCopyUtils.copy(reader, writer);
 		Message<String> message = MessageBuilder.withPayload(writer.getBuffer().toString())
-								.setHeader(MailHeaders.TO, "to")
-								.setHeader(MailHeaders.FROM, "from")
-								.setHeader(MailHeaders.CONTENT_TYPE, "text/html")
-								.build();
+				.setHeader(MailHeaders.TO, "to")
+				.setHeader(MailHeaders.FROM, "from")
+				.setHeader(MailHeaders.CONTENT_TYPE, "text/html")
+				.build();
 		MimeMessage mMessage = new TestMimeMessage();
 		// MOCKS
 		when(sender.createMimeMessage()).thenReturn(mMessage);
@@ -93,9 +94,11 @@ public class MessageWithContentTypeTests {
 	}
 
 	private static class TestMimeMessage extends MimeMessage {
+
 		TestMimeMessage() {
 			super(Session.getDefaultInstance(new Properties()));
 		}
+
 	}
 
 }

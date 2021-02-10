@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.mail.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import javax.mail.internet.MimeMessage;
 
@@ -40,8 +41,8 @@ class MailToStringTransformerParserTests {
 
 	@Test
 	void topLevelTransformer() throws Exception {
-		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("mailToStringTransformerParserTests.xml", this.getClass());) {
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"mailToStringTransformerParserTests.xml", getClass())) {
 
 			MessageChannel input = new BeanFactoryChannelResolver(context).resolveDestination("input");
 			PollableChannel output =
@@ -58,8 +59,8 @@ class MailToStringTransformerParserTests {
 
 	@Test
 	void transformerWithinChain() throws Exception {
-		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("mailToStringTransformerWithinChain.xml", this.getClass());) {
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"mailToStringTransformerWithinChain.xml", getClass())) {
 
 			MessageChannel input = new BeanFactoryChannelResolver(context).resolveDestination("input");
 			PollableChannel output =
@@ -76,13 +77,11 @@ class MailToStringTransformerParserTests {
 
 	@Test
 	void topLevelTransformerMissingInput() {
-		try {
-			new ClassPathXmlApplicationContext("mailToStringTransformerWithoutInputChannel.xml", this.getClass())
-					.close();
-		}
-		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getMessage().contains("input-channel")).isTrue();
-		}
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("mailToStringTransformerWithoutInputChannel.xml",
+								getClass()))
+				.withMessageContaining("input-channel");
 	}
 
 }

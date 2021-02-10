@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.springframework.integration.mail.config;
 
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.xml.XmlBeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -24,21 +26,27 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class FailedMailConfigurationTests {
+
 	/**
-	 * validates that if 'should-delete-messages' is not set the context fails
+	 * Validates that if 'should-delete-messages' is not set the context fails
 	 */
-	@Test(expected = XmlBeanDefinitionStoreException.class)
+	@Test
 	public void testImapIdleWithNoDeleteMessageAttribute() {
-		new ClassPathXmlApplicationContext("failed-imap-config.xml", this.getClass()).close();
+		assertThatExceptionOfType(XmlBeanDefinitionStoreException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("failed-imap-config.xml", getClass()));
 	}
+
 	/**
-	 * validates that if 'should-delete-messages' is not set the context fails
+	 * Validates that if 'should-delete-messages' is not set the context fails
 	 */
-	@Test(expected = XmlBeanDefinitionStoreException.class)
+	@Test
 	public void testAdapterWithNoDeleteMessageAttribute() {
-		new ClassPathXmlApplicationContext("failed-adapter-config.xml", this.getClass()).close();
+		assertThatExceptionOfType(XmlBeanDefinitionStoreException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("failed-adapter-config.xml", getClass()));
 	}
+
 }

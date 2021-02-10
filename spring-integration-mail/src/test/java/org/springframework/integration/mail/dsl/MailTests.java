@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,7 +169,7 @@ public class MailTests {
 		assertThat(headers.get(MailHeaders.TO, String[].class)).containsExactly("Foo <foo@bar>");
 		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
 		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
-		assertThat(message.getPayload()).isEqualTo(TestMailServer.MailServer.MailHandler.MESSAGE + "\r\n");
+		assertThat(message.getPayload()).isEqualTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n");
 		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isTrue();
 		this.imapIdleAdapter.stop();
 		assertThat(TestUtils.getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically", Boolean.class))
@@ -265,6 +265,7 @@ public class MailTests {
 							.javaMailProperties(p -> p.put("mail.debug", "false")
 									.put("mail.imap.connectionpoolsize", "5"))
 							.shouldReconnectAutomatically(false)
+							.simpleContent(true)
 							.headerMapper(mailHeaderMapper()))
 					.channel(MessageChannels.queue("imapIdleChannel"))
 					.get();
