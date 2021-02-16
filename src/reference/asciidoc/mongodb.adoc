@@ -456,6 +456,36 @@ public class MongoDbJavaApplication {
 
 }
 ----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+class MongoDbKotlinApplication {
+
+    fun main(args: Array<String>) = runApplication<MongoDbKotlinApplication>(*args)
+
+    @Autowired
+    lateinit var mongoDbFactory: MongoDatabaseFactory;
+
+    @Autowired
+    lateinit var mongoConverter: MongoConverter;
+
+    @Bean
+    fun gatewaySingleQueryFlow() =
+    integrationFlow {
+        handle(queryOutboundGateway())
+        channel { queue("retrieveResults") }
+    }
+
+    private fun queryOutboundGateway(): MongoDbOutboundGatewaySpec {
+        return MongoDb.outboundGateway(this.mongoDbFactory, this.mongoConverter)
+            .query("{name : 'Bob'}")
+            .collectionNameFunction<Any> { m -> m.headers["collection"] as String }
+            .expectSingleResult(true)
+            .entityClass(Person::class.java)
+    }
+
+}
+----
 [source, java, role="secondary"]
 .Java
 ----
