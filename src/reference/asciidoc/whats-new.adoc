@@ -58,6 +58,8 @@ In addition, `forRecursion=true` causes the full path to files to be used as the
 IMPORTANT: This means that existing keys in a persistent metadata store will not be found for files beneath the top level directory.
 For this reason, the property is `false` by default; this may change in a future release.
 
+The `FileInboundChannelAdapterSpec` has now a convenient `recursive(boolean)` option instead of requesting an explicit reference to the `RecursiveDirectoryScanner`.
+
 [[x5.5-mongodb]]
 ==== MongoDb Changes
 
