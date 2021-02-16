@@ -61,7 +61,7 @@ For this reason, the property is `false` by default; this may change in a future
 [[x5.5-mongodb]]
 ==== MongoDb Changes
 
-A `MongoDbMessageSourceSpec` was added into MongoDd Java DSL.
-An `update` option is exposed now on both `MongoDbMessageSource` and `ReactiveMongoDbMessageSource` implementations.
+The `MongoDbMessageSourceSpec` was added into MongoDd Java DSL.
+An `update` option is now exposed on both the `MongoDbMessageSource` and `ReactiveMongoDbMessageSource` implementations.
 
 See <<./mongodb.adoc#mongodb,MongoDb Support>> for more information.

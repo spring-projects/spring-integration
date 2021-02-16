@@ -347,9 +347,9 @@ If the result of an expression is null or void, no message is generated.
 
 For more information about transaction synchronization, see <<./transactions.adoc#transaction-synchronization,Transaction Synchronization>>.
 
-Starting with version 5.5, the `MongoDbMessageSource` can be configured with an `updateExpression`, which must be evaluated to `String` in the MongoDb `update` syntax or to an `org.springframework.data.mongodb.core.query.Update` instance.
-It can be used as an alternative to described above post-processing procedure and it modifies have just fetched entities from the collection, so they won't be pulled from the collection again on the next polling cycle.
-It is still recommended to use transactions to achieve an execution isolation and data consistency, when several instances of the `MongoDbMessageSource` for the same collection are used in the cluster.
+Starting with version 5.5, the `MongoDbMessageSource` can be configured with an `updateExpression`, which must evaluate to a `String` with the MongoDb `update` syntax or to an `org.springframework.data.mongodb.core.query.Update` instance.
+It can be used as an alternative to abov described post-processing procedure and it modifies those entities that were fetched from the collection, so they won't be pulled from the collection again on the next polling cycle (assuming the update changes some value used in the query).
+It is still recommended to use transactions to achieve execution isolation and data consistency, when several instances of the `MongoDbMessageSource` for the same collection are used in the cluster.
 
 [[mongodb-change-stream-channel-adapter]]
 === MongoDB Change Stream Inbound Channel Adapter
@@ -615,5 +615,5 @@ public IntegrationFlow reactiveMongoDbFlow(ReactiveMongoDatabaseFactory mongoDbF
 ====
 
 Starting with version 5.5, the `ReactiveMongoDbMessageSource` can be configured with an `updateExpression`.
-It has the same functionality as blocking `MongoDbMessageSource` does.
+It has the same functionality as the blocking `MongoDbMessageSource`.
 See <<mongodb-inbound-channel-adapter>> and `AbstractMongoDbMessageSourceSpec` JavaDocs for more information.
