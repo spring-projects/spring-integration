@@ -444,7 +444,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 								}
 
 							}))
-							.destination("jmsPipelineTest")
+							.requestDestination("jmsPipelineTest")
 							.configureListenerContainer(c ->
 									c.transactionManager(mock(PlatformTransactionManager.class))))
 					.filter(payload -> !"junk".equals(payload))
