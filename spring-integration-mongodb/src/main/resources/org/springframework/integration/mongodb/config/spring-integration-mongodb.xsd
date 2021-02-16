@@ -53,6 +53,28 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="update" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								String representation of MongoDb Update (e.g., update="{$set: {'name' : 'Bob'}").
+								Please refer to MongoDb documentation for more query samples
+								https://www.mongodb.org/display/DOCS/Querying
+								This attribute is
+								mutually exclusive with 'update-expression' attribute.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="update-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SpEL expression which should resolve to a String update (please refer to the 'update'
+								attribute),
+								or to an instance of MongoDb Update (e.q.,
+								update-expression="T(Update).update('name', 'Bob')").
+								This attribute is mutually exclusive with 'update' attribute.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="entity-class" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

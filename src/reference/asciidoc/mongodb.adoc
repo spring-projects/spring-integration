@@ -5,9 +5,10 @@ Version 2.1 introduced support for https://www.mongodb.org/[MongoDB]: a "`high-p
 
 You need to include this dependency into your project:
 
+
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,9 +16,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-mongodb:{project-version}"
 ----
@@ -33,37 +33,40 @@ To download, install, and run MongoDB, see the https://www.mongodb.org/downloads
 Beginning with version 5.3, Spring Integration provides support for reactive MongoDB drivers to enable non-blocking I/O when accessing MongoDB.
 To enable reactive support, add the MongoDB reactive streams driver to your dependencies:
 
+====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.mongodb</groupId>
     <artifactId>mongodb-driver-reactivestreams</artifactId>
-  </dependency>
+</dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.mongodb:mongodb-driver-reactivestreams"
 ----
+====
 
 For regular synchronous client you need to add its respective driver into dependencies:
 
+
+====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.mongodb</groupId>
     <artifactId>mongodb-driver-sync</artifactId>
-  </dependency>
+</dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.mongodb:mongodb-driver-sync"
 ----
+====
 
 Both of them are `optional` in the framework for better end-user choice support.
 
@@ -77,20 +80,17 @@ TIP: Spring Data provides provides the blocking MongoDB driver by default but yo
 
 To connect to MongoDB you can use an implementation of the `MongoDatabaseFactory` interface.
 
-The following example shows how to use `SimpleMongoClientDatabaseFactory`, the out-of-the-box implementation, in Java:
+The following example shows how to use `SimpleMongoClientDatabaseFactory`:
 
 ====
-[source,java]
+[source, java, role="primary"]
+.Java
 ----
 MongoDatabaseFactory mongoDbFactory =
         new SimpleMongoClientDatabaseFactory(com.mongodb.client.MongoClients.create(), "test");
 ----
-====
-
-The following example shows how to use `SimpleMongoClientDatabaseFactory` in XML configuration:
-
-====
-[source,xml]
+[source, xml, role="secondary"]
+.XML
 ----
 <bean id="mongoDbFactory" class="o.s.data.mongodb.core.SimpleMongoClientDatabaseFactory">
     <constructor-arg>
@@ -109,19 +109,18 @@ For more information on how to configure MongoDB, see the https://docs.spring.io
 
 To connect to MongoDB with the reactive driver, you can use an implementation of the `ReactiveMongoDatabaseFactory` interface.
 
-The following example shows how to use `SimpleReactiveMongoDatabaseFactory`, the out-of-the-box implementation, in Java:
+The following example shows how to use `SimpleReactiveMongoDatabaseFactory`:
+
 
 ====
-[source,java]
+[source, java, role="primary"]
+.Java
 ----
-new SimpleReactiveMongoDatabaseFactory(com.mongodb.reactivestreams.client.MongoClients.create(), "test");
+ReactiveMongoDatabaseFactory mongoDbFactory =
+        new SimpleReactiveMongoDatabaseFactory(com.mongodb.reactivestreams.client.MongoClients.create(), "test");
 ----
-====
-
-The following example shows how to use `SimpleReactiveMongoDatabaseFactory` in XML configuration:
-
-====
-[source,xml]
+[source, xml, role="secondary"]
+.XML
 ----
 <bean id="mongoDbFactory" class="o.s.data.mongodb.core.SimpleReactiveMongoDatabaseFactory">
     <constructor-arg>
@@ -302,7 +301,7 @@ You can do so by using that transaction synchronization feature Spring Integrati
 <int:transaction-synchronization-factory id="syncFactory">
     <int:after-commit
         expression="@documentCleaner.remove(#mongoTemplate, payload, headers.mongo_collectionName)"
-        channe="someChannel"/>
+        channel="someChannel"/>
 </int:transaction-synchronization-factory>
 
 <bean id="documentCleaner" class="thing1.thing2.DocumentCleaner"/>
@@ -347,6 +346,10 @@ If you want the evaluation result to go to a specific channel, add a `channel` a
 If the result of an expression is null or void, no message is generated.
 
 For more information about transaction synchronization, see <<./transactions.adoc#transaction-synchronization,Transaction Synchronization>>.
+
+Starting with version 5.5, the `MongoDbMessageSource` can be configured with an `updateExpression`, which must evaluate to a `String` with the MongoDb `update` syntax or to an `org.springframework.data.mongodb.core.query.Update` instance.
+It can be used as an alternative to abov described post-processing procedure and it modifies those entities that were fetched from the collection, so they won't be pulled from the collection again on the next polling cycle (assuming the update changes some value used in the query).
+It is still recommended to use transactions to achieve execution isolation and data consistency, when several instances of the `MongoDbMessageSource` for the same collection are used in the cluster.
 
 [[mongodb-change-stream-channel-adapter]]
 === MongoDB Change Stream Inbound Channel Adapter
@@ -415,82 +418,10 @@ It allows you query a database by sending a message to its request channel.
 The gateway then send the response to the reply channel.
 You can use the message payload and headers to specify the query and the collection name, as the following example shows:
 
-====
-[source,xml]
-----
-<int-mongodb:outbound-gateway id="gatewayQuery"
-    mongodb-factory="mongoDbFactory"
-    mongo-converter="mongoConverter"
-    query="{firstName: 'Bob'}"
-    collection-name="myCollection"
-    request-channel="in"
-    reply-channel="out"
-    entity-class="org.springframework.integration.mongodb.test.entity$Person"/>
-----
-====
-
-You can use the following attributes with a MongoDB outbound Gateway:
-
-* `collection-name` or `collection-name-expression`: Identifies the name of the MongoDB collection to use.
-* `mongo-converter`: Reference to an instance of `o.s.data.mongodb.core.convert.MongoConverter` that assists with converting a raw Java object to a JSON document representation.
-* `mongodb-factory`: Reference to an instance of `o.s.data.mongodb.MongoDbFactory`.
-* `mongo-template`: Reference to an instance of `o.s.data.mongodb.core.MongoTemplate`.
-NOTE: you can not set both `mongo-template` and `mongodb-factory`.
-* `entity-class`: The fully qualified name of the entity class to be passed to the `find(..)` and `findOne(..)` methods in MongoTemplate.
-If this attribute is not provided, the default value is `org.bson.Document`.
-* `query` or `query-expression`: Specifies the MongoDB query.
-See the https://www.mongodb.org/display/DOCS/Querying[MongoDB documentation] for more query samples.
-* `collection-callback`: Reference to an instance of `org.springframework.data.mongodb.core.CollectionCallback`.
-Preferable an instance of `o.s.i.mongodb.outbound.MessageCollectionCallback` since 5.0.11 with the request message context.
-See its Javadocs for more information.
-NOTE: You can not have both `collection-callback` and any of the query attributes.
-
-==== Configuring with Java Configuration
-
-The following Spring Boot application shows an example of how to configure the outbound gateway with Java configuration:
 
 ====
-[source, java]
-----
-@SpringBootApplication
-public class MongoDbJavaApplication {
-
-    public static void main(String[] args) {
-        new SpringApplicationBuilder(MongoDbJavaApplication.class)
-            .web(false)
-            .run(args);
-    }
-
-    @Autowired
-    private MongoDbFactory mongoDbFactory;
-
-    @Bean
-    @ServiceActivator(inputChannel = "requestChannel")
-    public MessageHandler mongoDbOutboundGateway() {
-        MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(this.mongoDbFactory);
-        gateway.setCollectionNameExpressionString("'myCollection'");
-        gateway.setQueryExpressionString("'{''name'' : ''Bob''}'");
-        gateway.setExpectSingleResult(true);
-        gateway.setEntityClass(Person.class);
-        gateway.setOutputChannelName("replyChannel");
-        return gateway;
-    }
-
-    @Bean
-    @ServiceActivator(inputChannel = "replyChannel")
-    public MessageHandler handler() {
-        return message -> System.out.println(message.getPayload());
-    }
-}
-----
-====
-
-==== Configuring with the Java DSL
-
-The following Spring Boot application show an example of how to configure the outbound gateway with the Java DSL:
-
-====
-[source, java]
+[source, java, role="primary"]
+.Java DSL
 ----
 @SpringBootApplication
 public class MongoDbJavaApplication {
@@ -525,7 +456,99 @@ public class MongoDbJavaApplication {
 
 }
 ----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+class MongoDbKotlinApplication {
+
+    fun main(args: Array<String>) = runApplication<MongoDbKotlinApplication>(*args)
+
+    @Autowired
+    lateinit var mongoDbFactory: MongoDatabaseFactory;
+
+    @Autowired
+    lateinit var mongoConverter: MongoConverter;
+
+    @Bean
+    fun gatewaySingleQueryFlow() =
+    integrationFlow {
+        handle(queryOutboundGateway())
+        channel { queue("retrieveResults") }
+    }
+
+    private fun queryOutboundGateway(): MongoDbOutboundGatewaySpec {
+        return MongoDb.outboundGateway(this.mongoDbFactory, this.mongoConverter)
+            .query("{name : 'Bob'}")
+            .collectionNameFunction<Any> { m -> m.headers["collection"] as String }
+            .expectSingleResult(true)
+            .entityClass(Person::class.java)
+    }
+
+}
+----
+[source, java, role="secondary"]
+.Java
+----
+@SpringBootApplication
+public class MongoDbJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(MongoDbJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Autowired
+    private MongoDbFactory mongoDbFactory;
+
+    @Bean
+    @ServiceActivator(inputChannel = "requestChannel")
+    public MessageHandler mongoDbOutboundGateway() {
+        MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(this.mongoDbFactory);
+        gateway.setCollectionNameExpressionString("'myCollection'");
+        gateway.setQueryExpressionString("'{''name'' : ''Bob''}'");
+        gateway.setExpectSingleResult(true);
+        gateway.setEntityClass(Person.class);
+        gateway.setOutputChannelName("replyChannel");
+        return gateway;
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "replyChannel")
+    public MessageHandler handler() {
+        return message -> System.out.println(message.getPayload());
+    }
+}
+----
+[source, xml, role="secondary"]
+.XML
+----
+<int-mongodb:outbound-gateway id="gatewayQuery"
+    mongodb-factory="mongoDbFactory"
+    mongo-converter="mongoConverter"
+    query="{firstName: 'Bob'}"
+    collection-name="myCollection"
+    request-channel="in"
+    reply-channel="out"
+    entity-class="org.springframework.integration.mongodb.test.entity$Person"/>
+----
 ====
+
+You can use the following attributes with a MongoDB outbound Gateway:
+
+* `collection-name` or `collection-name-expression`: Identifies the name of the MongoDB collection to use.
+* `mongo-converter`: Reference to an instance of `o.s.data.mongodb.core.convert.MongoConverter` that assists with converting a raw Java object to a JSON document representation.
+* `mongodb-factory`: Reference to an instance of `o.s.data.mongodb.MongoDbFactory`.
+* `mongo-template`: Reference to an instance of `o.s.data.mongodb.core.MongoTemplate`.
+NOTE: you can not set both `mongo-template` and `mongodb-factory`.
+* `entity-class`: The fully qualified name of the entity class to be passed to the `find(..)` and `findOne(..)` methods in MongoTemplate.
+If this attribute is not provided, the default value is `org.bson.Document`.
+* `query` or `query-expression`: Specifies the MongoDB query.
+See the https://www.mongodb.org/display/DOCS/Querying[MongoDB documentation] for more query samples.
+* `collection-callback`: Reference to an instance of `org.springframework.data.mongodb.core.CollectionCallback`.
+Preferable an instance of `o.s.i.mongodb.outbound.MessageCollectionCallback` since 5.0.11 with the request message context.
+See its Javadocs for more information.
+NOTE: You can not have both `collection-callback` and any of the query attributes.
 
 As an alternate to the `query` and `query-expression` properties, you can specify other database operations by using the `collectionCallback` property as a reference to the `MessageCollectionCallback` functional interface implementation.
 The following example specifies a count operation:
@@ -537,7 +560,7 @@ private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway() {
     return MongoDb.outboundGateway(this.mongoDbFactory, this.mongoConverter)
             .collectionCallback((collection, requestMessage) -> collection.count())
             .collectionName("myCollection");
-    }
+}
 ----
 ====
 
@@ -590,3 +613,7 @@ public IntegrationFlow reactiveMongoDbFlow(ReactiveMongoDatabaseFactory mongoDbF
 }
 ----
 ====
+
+Starting with version 5.5, the `ReactiveMongoDbMessageSource` can be configured with an `updateExpression`.
+It has the same functionality as the blocking `MongoDbMessageSource`.
+See <<mongodb-inbound-channel-adapter>> and `AbstractMongoDbMessageSourceSpec` JavaDocs for more information.

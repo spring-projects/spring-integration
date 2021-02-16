@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2020 the original author or authors.
+ * Copyright 2007-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -241,10 +242,8 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfulQueryWithMongoTemplate() {
-
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
-
+	public void validateSuccessfulQueryWithMongoTemplateAndUpdate() {
+		MongoDatabaseFactory mongoDbFactory = prepareMongoFactory();
 		MappingMongoConverter converter = new TestMongoConverter(mongoDbFactory, new MongoMappingContext());
 		converter.afterPropertiesSet();
 		converter = spy(converter);
@@ -253,16 +252,22 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(template, queryExpression);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setUpdateExpression(new LiteralExpression("{ $set: {'address.state' : 'NJ'} }"));
 		messageSource.afterPropertiesSet();
 
 		MongoTemplate writingTemplate = new MongoTemplate(mongoDbFactory, converter);
-		writingTemplate.save(this.createPerson("Manny"), "data");
-		writingTemplate.save(this.createPerson("Moe"), "data");
-		writingTemplate.save(this.createPerson("Jack"), "data");
+		writingTemplate.save(createPerson("Manny"), "data");
+		writingTemplate.save(createPerson("Moe"), "data");
+		writingTemplate.save(createPerson("Jack"), "data");
 
 		List<Person> persons = (List<Person>) messageSource.receive().getPayload();
-		assertThat(persons.size()).isEqualTo(3);
+		assertThat(persons).hasSize(3);
 		verify(converter, times(3)).read((Class<Person>) Mockito.any(), Mockito.any(Bson.class));
+
+		assertThat(messageSource.receive()).isNull();
+
+		assertThat(template.find(new BasicQuery("{'address.state' : 'NJ'}"), Object.class, "data"))
+				.hasSize(3);
 	}
 
 	@Test

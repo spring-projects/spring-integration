@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,27 +18,21 @@ package org.springframework.integration.mongodb.inbound;
 
 import org.reactivestreams.Publisher;
 
-import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.data.mongodb.core.convert.MongoConverter;
-import org.springframework.data.mongodb.core.query.BasicQuery;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.util.Pair;
 import org.springframework.expression.Expression;
-import org.springframework.expression.TypeLocator;
-import org.springframework.expression.common.LiteralExpression;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeLocator;
-import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
-import com.mongodb.DBObject;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * An instance of {@link org.springframework.integration.core.MessageSource} which returns
@@ -59,29 +53,12 @@ import com.mongodb.DBObject;
  *
  * @since 5.3
  */
-public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publisher<?>>
-		implements ApplicationContextAware {
+public class ReactiveMongoDbMessageSource extends AbstractMongoDbMessageSource<Publisher<?>> {
 
 	@Nullable
 	private final ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory;
 
-	private final Expression queryExpression;
-
-	private Expression collectionNameExpression = new LiteralExpression("data");
-
-	private StandardEvaluationContext evaluationContext;
-
 	private ReactiveMongoOperations reactiveMongoTemplate;
-
-	private MongoConverter mongoConverter;
-
-	private Class<?> entityClass = DBObject.class;
-
-	private boolean expectSingleResult = false;
-
-	private ApplicationContext applicationContext;
-
-	private volatile boolean initialized = false;
 
 	/**
 	 * Create an instance with the provided {@link ReactiveMongoDatabaseFactory} and SpEL expression
@@ -93,10 +70,9 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 	public ReactiveMongoDbMessageSource(ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory,
 			Expression queryExpression) {
 
+		super(queryExpression);
 		Assert.notNull(reactiveMongoDatabaseFactory, "'reactiveMongoDatabaseFactory' must not be null");
-		Assert.notNull(queryExpression, "'queryExpression' must not be null");
 		this.reactiveMongoDatabaseFactory = reactiveMongoDatabaseFactory;
-		this.queryExpression = queryExpression;
 	}
 
 	/**
@@ -108,65 +84,10 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 	 * @param queryExpression The query expression.
 	 */
 	public ReactiveMongoDbMessageSource(ReactiveMongoOperations reactiveMongoTemplate, Expression queryExpression) {
+		super(queryExpression);
 		Assert.notNull(reactiveMongoTemplate, "'reactiveMongoTemplate' must not be null");
-		Assert.notNull(queryExpression, "'queryExpression' must not be null");
 		this.reactiveMongoDatabaseFactory = null;
 		this.reactiveMongoTemplate = reactiveMongoTemplate;
-		this.queryExpression = queryExpression;
-	}
-
-	/**
-	 * Allow you to set the type of the entityClass that will be passed to the
-	 * {@link ReactiveMongoTemplate#find(Query, Class)} or {@link ReactiveMongoTemplate#findOne(Query, Class)}
-	 * method.
-	 * Default is {@link DBObject}.
-	 * @param entityClass The entity class.
-	 */
-	public void setEntityClass(Class<?> entityClass) {
-		Assert.notNull(entityClass, "'entityClass' must not be null");
-		this.entityClass = entityClass;
-	}
-
-	/**
-	 * Allow you to manage which find* method to invoke on {@link ReactiveMongoTemplate}.
-	 * Default is 'false', which means the {@link #receive()} method will use
-	 * the {@link ReactiveMongoTemplate#find(Query, Class)} method. If set to 'true',
-	 * {@link #receive()} will use {@link ReactiveMongoTemplate#findOne(Query, Class)},
-	 * and the payload of the returned {@link org.springframework.messaging.Message}
-	 * will be the returned target Object of type
-	 * identified by {@link #entityClass} instead of a List.
-	 * @param expectSingleResult true if a single result is expected.
-	 */
-	public void setExpectSingleResult(boolean expectSingleResult) {
-		this.expectSingleResult = expectSingleResult;
-	}
-
-	/**
-	 * Set the SpEL {@link Expression} that should resolve to a collection name
-	 * used by the {@link Query}. The resulting collection name will be included
-	 * in the {@link MongoHeaders#COLLECTION_NAME} header.
-	 * @param collectionNameExpression The collection name expression.
-	 */
-	public void setCollectionNameExpression(Expression collectionNameExpression) {
-		Assert.notNull(collectionNameExpression, "'collectionNameExpression' must not be null");
-		this.collectionNameExpression = collectionNameExpression;
-	}
-
-	/**
-	 * Allow you to provide a custom {@link MongoConverter} used to assist in deserialization
-	 * data read from MongoDb. Only allowed if this instance was constructed with a
-	 * {@link ReactiveMongoDatabaseFactory}.
-	 * @param mongoConverter The mongo converter.
-	 */
-	public void setMongoConverter(MongoConverter mongoConverter) {
-		Assert.isNull(this.reactiveMongoTemplate,
-				"'mongoConverter' can not be set when instance was constructed with ReactiveMongoTemplate");
-		this.mongoConverter = mongoConverter;
-	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
 	}
 
 	@Override
@@ -176,63 +97,83 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 
 	@Override
 	protected void onInit() {
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
-		if (typeLocator instanceof StandardTypeLocator) {
-			//Register MongoDB query API package so FQCN can be avoided in query-expression.
-			((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.mongodb.core.query");
-		}
+		super.onInit();
 		if (this.reactiveMongoDatabaseFactory != null) {
 			ReactiveMongoTemplate template =
-					new ReactiveMongoTemplate(this.reactiveMongoDatabaseFactory, this.mongoConverter);
-			if (this.applicationContext != null) {
-				template.setApplicationContext(this.applicationContext);
+					new ReactiveMongoTemplate(this.reactiveMongoDatabaseFactory, getMongoConverter());
+			ApplicationContext applicationContext = getApplicationContext();
+			if (applicationContext != null) {
+				template.setApplicationContext(applicationContext);
 			}
 			this.reactiveMongoTemplate = template;
 		}
-		this.initialized = true;
+		setMongoConverter(this.reactiveMongoTemplate.getConverter());
+		setInitialized(true);
 	}
 
 	/**
 	 * Execute a {@link Query} returning its results as the Message payload.
 	 * The payload can be either {@link reactor.core.publisher.Flux} or
-	 * {@link reactor.core.publisher.Mono} of objects of type identified by {@link #entityClass},
-	 * or a single element of type identified by {@link #entityClass}
-	 * based on the value of {@link #expectSingleResult} attribute which defaults to 'false' resulting
+	 * {@link reactor.core.publisher.Mono} of objects of type identified by {@link #getEntityClass()},
+	 * or a single element of type identified by {@link #getEntityClass()}
+	 * based on the value of {@link #isExpectSingleResult()} attribute which defaults to 'false' resulting
 	 * {@link org.springframework.messaging.Message} with payload of type
 	 * {@link reactor.core.publisher.Flux}. The collection name used in the
 	 * query will be provided in the {@link MongoHeaders#COLLECTION_NAME} header.
 	 */
 	@Override
 	public Object doReceive() {
-		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
-		Object value = this.queryExpression.getValue(this.evaluationContext);
-		Assert.notNull(value, "'queryExpression' must not evaluate to null");
-		Query query = null;
-		if (value instanceof String) {
-			query = new BasicQuery((String) value);
-		}
-		else if (value instanceof Query) {
-			query = ((Query) value);
+		Assert.isTrue(isInitialized(), "This class is not yet initialized. Invoke its afterPropertiesSet() method");
+
+		Query query = evaluateQueryExpression();
+
+		String collectionName = evaluateCollectionNameExpression();
+
+		Publisher<?> result;
+		if (isExpectSingleResult()) {
+			result = this.reactiveMongoTemplate.findOne(query, getEntityClass(), collectionName);
 		}
 		else {
-			throw new IllegalStateException("'queryExpression' must evaluate to String " +
-					"or org.springframework.data.mongodb.core.query.Query, but not: " + query);
+			result = this.reactiveMongoTemplate.find(query, getEntityClass(), collectionName);
 		}
 
-		String collectionName = this.collectionNameExpression.getValue(this.evaluationContext, String.class);
-		Assert.notNull(collectionName, "'collectionNameExpression' must not evaluate to null");
+		result = updateIfAny(result, collectionName);
 
-		Object result;
-		if (this.expectSingleResult) {
-			result = this.reactiveMongoTemplate.findOne(query, this.entityClass, collectionName);
-		}
-		else {
-			result = this.reactiveMongoTemplate.find(query, this.entityClass, collectionName);
-		}
 		return getMessageBuilderFactory()
 				.withPayload(result)
 				.setHeader(MongoHeaders.COLLECTION_NAME, collectionName);
+	}
+
+	private Publisher<?> updateIfAny(Publisher<?> result, String collectionName) {
+		Update update = evaluateUpdateExpression();
+		if (update != null) {
+			if (result instanceof Mono) {
+				return updateSingle((Mono<?>) result, update, collectionName);
+			}
+			else {
+				return updateMulti((Flux<?>) result, update, collectionName);
+			}
+		}
+		else {
+			return result;
+		}
+	}
+
+	private Publisher<?> updateSingle(Mono<?> result, Update update, String collectionName) {
+		return result.flatMap((entity) -> {
+			Pair<String, Object> idPair = idForEntity(entity);
+			Query query = new Query(Criteria.where(idPair.getFirst()).is(idPair.getSecond()));
+			return this.reactiveMongoTemplate.updateFirst(query, update, collectionName)
+					.thenReturn(entity);
+		});
+	}
+
+	private Publisher<?> updateMulti(Flux<?> result, Update update, String collectionName) {
+		return result.collectList()
+				.flatMapMany((entities) ->
+						this.reactiveMongoTemplate.updateMulti(getByIdInQuery(entities), update, collectionName)
+								.thenMany(Flux.fromIterable(entities))
+				);
 	}
 
 }

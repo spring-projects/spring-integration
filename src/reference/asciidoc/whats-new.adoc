@@ -57,3 +57,11 @@ This is to solve a problem where changes deep in the directory tree were not det
 In addition, `forRecursion=true` causes the full path to files to be used as the metadata store keys; this solves a problem where the filter did not work properly if a file with the same name appears multiple times in different directories.
 IMPORTANT: This means that existing keys in a persistent metadata store will not be found for files beneath the top level directory.
 For this reason, the property is `false` by default; this may change in a future release.
+
+[[x5.5-mongodb]]
+==== MongoDb Changes
+
+The `MongoDbMessageSourceSpec` was added into MongoDd Java DSL.
+An `update` option is now exposed on both the `MongoDbMessageSource` and `ReactiveMongoDbMessageSource` implementations.
+
+See <<./mongodb.adoc#mongodb,MongoDb Support>> for more information.

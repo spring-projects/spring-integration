@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,6 +152,54 @@ public final class MongoDb {
 			ReactiveMongoOperations mongoOperations) {
 
 		return new MongoDbChangeStreamMessageProducerSpec(new MongoDbChangeStreamMessageProducer(mongoOperations));
+	}
+
+	/**
+	 * Create a {@link MongoDbMessageSourceSpec} builder instance
+	 * based on the provided {@link MongoDatabaseFactory}.
+	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
+	 * @param query the MongoDb query
+	 * @return the {@link MongoDbMessageSourceSpec} instance
+	 * @since 5.5
+	 */
+	public static MongoDbMessageSourceSpec inboundChannelAdapter(MongoDatabaseFactory mongoDbFactory, String query) {
+		return new MongoDbMessageSourceSpec(mongoDbFactory, new LiteralExpression(query));
+	}
+
+	/**
+	 * Create a {@link MongoDbMessageSourceSpec} builder instance
+	 * based on the provided {@link MongoDatabaseFactory}.
+	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
+	 * @param query the MongoDb query DSL object
+	 * @return the {@link MongoDbMessageSourceSpec} instance
+	 * @since 5.5
+	 */
+	public static MongoDbMessageSourceSpec inboundChannelAdapter(MongoDatabaseFactory mongoDbFactory, Query query) {
+		return new MongoDbMessageSourceSpec(mongoDbFactory, new ValueExpression<>(query));
+	}
+
+	/**
+	 * Create a {@link MongoDbMessageSourceSpec} builder instance
+	 * based on the provided {@link MongoOperations}.
+	 * @param mongoTemplate the {@link MongoOperations} to use.
+	 * @param query the MongoDb query
+	 * @return the {@link MongoDbMessageSourceSpec} instance
+	 * @since 5.5
+	 */
+	public static MongoDbMessageSourceSpec inboundChannelAdapter(MongoOperations mongoTemplate, String query) {
+		return new MongoDbMessageSourceSpec(mongoTemplate, new LiteralExpression(query));
+	}
+
+	/**
+	 * Create a {@link MongoDbMessageSourceSpec} builder instance
+	 * based on the provided {@link MongoOperations}.
+	 * @param mongoTemplate the {@link MongoOperations} to use.
+	 * @param query the MongoDb query DSL object
+	 * @return the {@link MongoDbMessageSourceSpec} instance
+	 * @since 5.5
+	 */
+	public static MongoDbMessageSourceSpec reactiveInboundChannelAdapter(MongoOperations mongoTemplate, Query query) {
+		return new MongoDbMessageSourceSpec(mongoTemplate, new ValueExpression<>(query));
 	}
 
 	private MongoDb() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.springframework.integration.mongodb.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,8 +34,7 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.mongodb.inbound.MongoDbMessageSource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Oleg Zhurakousky
@@ -43,8 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Artem Bilan
  * @author Yaron Yamin
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class MongoDbInboundChannelAdapterParserTests {
 
@@ -112,6 +110,8 @@ public class MongoDbInboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(source, "queryExpression") instanceof SpelExpression).isTrue();
 		assertThat(TestUtils.getPropertyValue(source, "queryExpression.expression"))
 				.isEqualTo("new BasicQuery('{''address.state'' : ''PA''}').limit(2)");
+		assertThat(TestUtils.getPropertyValue(source, "updateExpression.literalValue"))
+				.isEqualTo("{ $set: {'address.state' : 'NJ'} }");
 	}
 
 	@Test
@@ -152,16 +152,20 @@ public class MongoDbInboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue")).isEqualTo("foo");
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void templateAndFactoryFail() {
-		new ClassPathXmlApplicationContext("inbound-adapter-parser-fail-template-factory-config.xml", this.getClass())
-				.close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("inbound-adapter-parser-fail-template-factory-config.xml",
+								getClass()));
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void templateAndConverterFail() {
-		new ClassPathXmlApplicationContext("inbound-adapter-parser-fail-template-converter-config.xml", this.getClass())
-				.close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("inbound-adapter-parser-fail-template-converter-config.xml",
+								getClass()));
 	}
 
 	private MongoDbMessageSource assertMongoDbMessageSource(Object testedBean) {
