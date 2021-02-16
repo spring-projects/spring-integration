@@ -197,7 +197,8 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 	 * @param <S> the target {@link JmsListenerContainerSpec} implementation type.
 	 * @param <C> the target {@link AbstractMessageListenerContainer} implementation type.
 	 */
-	public static class JmsInboundGatewayListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
+	public static class JmsInboundGatewayListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>,
+			C extends AbstractMessageListenerContainer>
 			extends JmsInboundGatewaySpec<JmsInboundGatewayListenerContainerSpec<S, C>> {
 
 		private final S spec;
@@ -212,9 +213,22 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		 * @param destination the destination
 		 * @return the spec.
 		 * @see JmsListenerContainerSpec#destination(Destination)
+		 * @deprecated since 5.5 in favor of {@link #requestDestination(Destination)}
 		 */
+		@Deprecated
 		public JmsInboundGatewayListenerContainerSpec<S, C> destination(Destination destination) {
-			this.spec.destination(destination);
+			return requestDestination(destination);
+		}
+
+		/**
+		 * Specify a request destination for incoming messages.
+		 * @param requestDestination the destination
+		 * @return the spec.
+		 * @see JmsListenerContainerSpec#destination(Destination)
+		 * @since 5.5
+		 */
+		public JmsInboundGatewayListenerContainerSpec<S, C> requestDestination(Destination requestDestination) {
+			this.spec.destination(requestDestination);
 			return _this();
 		}
 
@@ -222,14 +236,32 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		 * @param destinationName the destinationName
 		 * @return the spec.
 		 * @see JmsListenerContainerSpec#destination(String)
+		 * @deprecated since 5.5 in favor of {@link #requestDestination(String)}
 		 */
+		@Deprecated
 		public JmsInboundGatewayListenerContainerSpec<S, C> destination(String destinationName) {
-			this.spec.destination(destinationName);
+			return requestDestination(destinationName);
+		}
+
+		/**
+		 * Specify a request destination for incoming messages.
+		 * @param requestDestinationName the destination name
+		 * @return the spec.
+		 * @see JmsListenerContainerSpec#destination(String)
+		 * @since 5.5
+		 */
+		public JmsInboundGatewayListenerContainerSpec<S, C> requestDestination(String requestDestinationName) {
+			this.spec.destination(requestDestinationName);
 			return _this();
 		}
 
-		public JmsInboundGatewayListenerContainerSpec<S, C> configureListenerContainer(
-				Consumer<S> configurer) {
+		/**
+		 * Specify a {@link Consumer} to accept a {@link JmsListenerContainerSpec} for further configuration.
+		 * @param configurer the {@link Consumer} to accept a {@link JmsListenerContainerSpec}
+		 *                         for further configuration.
+		 * @return the spec
+		 */
+		public JmsInboundGatewayListenerContainerSpec<S, C> configureListenerContainer(Consumer<S> configurer) {
 			Assert.notNull(configurer, "'configurer' must not be null");
 			configurer.accept(this.spec);
 			return _this();
