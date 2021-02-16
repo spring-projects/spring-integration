@@ -415,7 +415,7 @@ To revert to the previous behavior, set the `shutdownContainerOnStop` on the `Jm
 === Outbound Gateway
 
 The outbound gateway creates JMS messages from Spring Integration messages and sends them to a 'request-destination'.
-It then handle the JMS reply message either by using a selector to receive from the 'reply-destination' that you configure or, if no 'reply-destination' is provided, by creating JMS `TemporaryQueue` instances.
+It then handles the JMS reply message either by using a selector to receive from the 'reply-destination' that you configure or, if no 'reply-destination' is provided, by creating JMS `TemporaryQueue` instances.
 
 [[jms-outbound-gateway-memory-caution]]
 [CAUTION]
