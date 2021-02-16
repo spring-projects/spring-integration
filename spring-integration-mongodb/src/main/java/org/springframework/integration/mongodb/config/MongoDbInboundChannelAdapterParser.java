@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,14 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.mongodb.inbound.MongoDbMessageSource;
+
 /**
- * Parser for Mongodb store inbound adapters
+ * Parser for MongoDb store inbound adapters
  *
  * @author Amol Nayak
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ *
  * @since 2.2
  */
 public class MongoDbInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -47,6 +50,11 @@ public class MongoDbInboundChannelAdapterParser extends AbstractPollingInboundCh
 						parserContext, element, true);
 
 		builder.addConstructorArgValue(queryExpressionDef);
+
+		BeanDefinition expressionDef =
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("update", "update-expression",
+						parserContext, element, false);
+		builder.addPropertyValue("updateExpression", expressionDef);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "entity-class");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");

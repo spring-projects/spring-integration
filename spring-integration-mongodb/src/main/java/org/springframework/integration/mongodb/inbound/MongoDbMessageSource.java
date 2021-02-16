@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2020 the original author or authors.
+ * Copyright 2007-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,18 @@
 
 package org.springframework.integration.mongodb.inbound;
 
+import java.util.Collection;
 import java.util.List;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.convert.MongoConverter;
-import org.springframework.data.mongodb.core.query.BasicQuery;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.util.Pair;
 import org.springframework.expression.Expression;
-import org.springframework.expression.TypeLocator;
-import org.springframework.expression.common.LiteralExpression;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeLocator;
-import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
@@ -38,8 +35,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-
-import com.mongodb.DBObject;
 
 /**
  * An instance of {@link org.springframework.integration.core.MessageSource} which returns
@@ -64,43 +59,28 @@ import com.mongodb.DBObject;
  *
  * @since 2.2
  */
-public class MongoDbMessageSource extends AbstractMessageSource<Object> {
+public class MongoDbMessageSource extends AbstractMongoDbMessageSource<Object> {
 
 	@Nullable
 	private final MongoDatabaseFactory mongoDbFactory;
 
-	private final Expression queryExpression;
-
-	private Expression collectionNameExpression = new LiteralExpression("data");
-
-	private StandardEvaluationContext evaluationContext;
-
 	private MongoOperations mongoTemplate;
 
-	private MongoConverter mongoConverter;
-
-	private Class<?> entityClass = DBObject.class;
-
-	private boolean expectSingleResult = false;
-
-	private volatile boolean initialized = false;
-
 	/**
-	 * Creates an instance with the provided {@link MongoDatabaseFactory} and SpEL expression
+	 * Create an instance with the provided {@link MongoDatabaseFactory} and SpEL expression
 	 * which should resolve to a MongoDb 'query' string (see https://www.mongodb.org/display/DOCS/Querying).
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 * @param mongoDbFactory The mongodb factory.
 	 * @param queryExpression The query expression.
 	 */
 	public MongoDbMessageSource(MongoDatabaseFactory mongoDbFactory, Expression queryExpression) {
+		super(queryExpression);
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
-		Assert.notNull(queryExpression, "'queryExpression' must not be null");
 		this.mongoDbFactory = mongoDbFactory;
-		this.queryExpression = queryExpression;
 	}
 
 	/**
-	 * Creates an instance with the provided {@link MongoOperations} and SpEL expression
+	 * Create an instance with the provided {@link MongoOperations} and SpEL expression
 	 * which should resolve to a Mongo 'query' string (see https://www.mongodb.org/display/DOCS/Querying).
 	 * It assumes that the {@link MongoOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
@@ -108,59 +88,10 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 	 * @param queryExpression The query expression.
 	 */
 	public MongoDbMessageSource(MongoOperations mongoTemplate, Expression queryExpression) {
+		super(queryExpression);
 		Assert.notNull(mongoTemplate, "'mongoTemplate' must not be null");
-		Assert.notNull(queryExpression, "'queryExpression' must not be null");
 		this.mongoDbFactory = null;
 		this.mongoTemplate = mongoTemplate;
-		this.queryExpression = queryExpression;
-	}
-
-	/**
-	 * Allows you to set the type of the entityClass that will be passed to the
-	 * {@link MongoTemplate#find(Query, Class)} or {@link MongoTemplate#findOne(Query, Class)} method.
-	 * Default is {@link DBObject}.
-	 * @param entityClass The entity class.
-	 */
-	public void setEntityClass(Class<?> entityClass) {
-		Assert.notNull(entityClass, "'entityClass' must not be null");
-		this.entityClass = entityClass;
-	}
-
-	/**
-	 * Allows you to manage which find* method to invoke on {@link MongoTemplate}.
-	 * Default is 'false', which means the {@link #receive()} method will use
-	 * the {@link MongoTemplate#find(Query, Class)} method. If set to 'true',
-	 * {@link #receive()} will use {@link MongoTemplate#findOne(Query, Class)},
-	 * and the payload of the returned {@link org.springframework.messaging.Message}
-	 * will be the returned target Object of type
-	 * identified by {@link #entityClass} instead of a List.
-	 * @param expectSingleResult true if a single result is expected.
-	 */
-	public void setExpectSingleResult(boolean expectSingleResult) {
-		this.expectSingleResult = expectSingleResult;
-	}
-
-	/**
-	 * Sets the SpEL {@link Expression} that should resolve to a collection name
-	 * used by the {@link Query}. The resulting collection name will be included
-	 * in the {@link MongoHeaders#COLLECTION_NAME} header.
-	 * @param collectionNameExpression The collection name expression.
-	 */
-	public void setCollectionNameExpression(Expression collectionNameExpression) {
-		Assert.notNull(collectionNameExpression, "'collectionNameExpression' must not be null");
-		this.collectionNameExpression = collectionNameExpression;
-	}
-
-	/**
-	 * Allows you to provide a custom {@link MongoConverter} used to assist in deserialization
-	 * data read from MongoDb. Only allowed if this instance was constructed with a
-	 * {@link MongoDatabaseFactory}.
-	 * @param mongoConverter The mongo converter.
-	 */
-	public void setMongoConverter(MongoConverter mongoConverter) {
-		Assert.isNull(this.mongoTemplate,
-				"'mongoConverter' can not be set when instance was constructed with MongoTemplate");
-		this.mongoConverter = mongoConverter;
 	}
 
 	@Override
@@ -170,63 +101,53 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 
 	@Override
 	protected void onInit() {
-		this.evaluationContext =
-				ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
-		if (typeLocator instanceof StandardTypeLocator) {
-			//Register MongoDB query API package so FQCN can be avoided in query-expression.
-			((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.mongodb.core.query");
-		}
+		super.onInit();
 		if (this.mongoDbFactory != null) {
-			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
+			MongoTemplate template = new MongoTemplate(this.mongoDbFactory, getMongoConverter());
+			ApplicationContext applicationContext = getApplicationContext();
+			if (applicationContext != null) {
+				template.setApplicationContext(applicationContext);
+			}
+			this.mongoTemplate = template;
 		}
-		this.initialized = true;
+		setMongoConverter(this.mongoTemplate.getConverter());
+		setInitialized(true);
 	}
 
 	/**
 	 * Will execute a {@link Query} returning its results as the Message payload.
 	 * The payload can be either {@link List} of elements of objects of type
-	 * identified by {@link #entityClass}, or a single element of type identified by {@link #entityClass}
-	 * based on the value of {@link #expectSingleResult} attribute which defaults to 'false' resulting
+	 * identified by {@link #getEntityClass()}, or a single element of type identified by {@link #getEntityClass()}
+	 * based on the value of {@link #isExpectSingleResult()} attribute which defaults to 'false' resulting
 	 * {@link org.springframework.messaging.Message} with payload of type
 	 * {@link List}. The collection name used in the
 	 * query will be provided in the {@link MongoHeaders#COLLECTION_NAME} header.
 	 */
 	@Override
 	protected Object doReceive() {
-		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
+		Assert.isTrue(isInitialized(), "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		AbstractIntegrationMessageBuilder<Object> messageBuilder = null;
-		Object value = this.queryExpression.getValue(this.evaluationContext);
-		Assert.notNull(value, "'queryExpression' must not evaluate to null");
-		Query query;
-		if (value instanceof String) {
-			query = new BasicQuery((String) value);
-		}
-		else if (value instanceof Query) {
-			query = ((Query) value);
-		}
-		else {
-			throw new IllegalStateException("'queryExpression' must evaluate to String " +
-					"or org.springframework.data.mongodb.core.query.Query");
-		}
 
-		Assert.notNull(query, "'queryExpression' must not evaluate to null");
-		String collectionName = this.collectionNameExpression.getValue(this.evaluationContext, String.class);
-		Assert.notNull(collectionName, "'collectionNameExpression' must not evaluate to null");
+		Query query = evaluateQueryExpression();
+
+		String collectionName = evaluateCollectionNameExpression();
 
 		Object result = null;
-		if (this.expectSingleResult) {
-			result = this.mongoTemplate.findOne(query, this.entityClass, collectionName);
+		if (isExpectSingleResult()) {
+			result = this.mongoTemplate.findOne(query, getEntityClass(), collectionName);
 		}
 		else {
-			List<?> results = this.mongoTemplate.find(query, this.entityClass, collectionName);
+			List<?> results = this.mongoTemplate.find(query, getEntityClass(), collectionName);
 			if (!CollectionUtils.isEmpty(results)) {
 				result = results;
 			}
 		}
 		if (result != null) {
-			messageBuilder = this.getMessageBuilderFactory().withPayload(result)
-					.setHeader(MongoHeaders.COLLECTION_NAME, collectionName);
+			updateIfAny(result, collectionName);
+			messageBuilder =
+					getMessageBuilderFactory()
+							.withPayload(result)
+							.setHeader(MongoHeaders.COLLECTION_NAME, collectionName);
 		}
 
 		Object holder = TransactionSynchronizationManager.getResource(this);
@@ -237,5 +158,20 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 
 		return messageBuilder;
 	}
+
+	private void updateIfAny(Object result, String collectionName) {
+		Update update = evaluateUpdateExpression();
+		if (update != null) {
+			if (result instanceof List) {
+				this.mongoTemplate.updateMulti(getByIdInQuery((Collection<?>) result), update, collectionName);
+			}
+			else {
+				Pair<String, Object> idPair = idForEntity(result);
+				Query query = new Query(Criteria.where(idPair.getFirst()).is(idPair.getSecond()));
+				this.mongoTemplate.updateFirst(query, update, collectionName);
+			}
+		}
+	}
+
 
 }

@@ -29,6 +29,7 @@
 	<int-mongodb:inbound-channel-adapter id="fullConfigWithQueryExpression"
 						collection-name-expression="'foo'"
 						query-expression="new BasicQuery('{''address.state'' : ''PA''}').limit(2)"
+						update="{ $set: {'address.state' : 'NJ'} }"
 						mongo-converter="mongoConverter"
 						mongodb-factory="mongoDbFactory"
 						auto-startup="false">
