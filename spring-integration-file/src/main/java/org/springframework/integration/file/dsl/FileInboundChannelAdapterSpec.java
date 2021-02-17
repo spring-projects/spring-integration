@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,14 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileLocker;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.RecursiveDirectoryScanner;
 import org.springframework.integration.file.config.FileListFilterFactoryBean;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -76,6 +77,22 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
+	 * A convenient flag to determine if target message source should use a
+	 * {@link RecursiveDirectoryScanner} or stay with a default one.
+	 * @param recursive to set or not a {@link RecursiveDirectoryScanner}.
+	 * @return the spec.
+	 * @see org.springframework.integration.file.RecursiveDirectoryScanner
+	 * @since 5.5
+	 */
+	public FileInboundChannelAdapterSpec recursive(boolean recursive) {
+		if (recursive) {
+			new DirectFieldAccessor(this.target).setPropertyValue("scanner", new RecursiveDirectoryScanner());
+		}
+		return _this();
+	}
+
+
+	/**
 	 * Specify a custom scanner.
 	 * @param scanner the scanner.
 	 * @return the spec.
@@ -90,7 +107,7 @@ public class FileInboundChannelAdapterSpec
 	/**
 	 * Specify whether to create the source directory automatically if it does
 	 * not yet exist upon initialization. By default, this value is
-	 * <em>true</em>. If set to <em>false</em> and the
+	 * {@code true}. If set to {@code false} and the
 	 * source directory does not exist, an Exception will be thrown upon
 	 * initialization.
 	 * @param autoCreateDirectory the autoCreateDirectory.
@@ -262,12 +279,7 @@ public class FileInboundChannelAdapterSpec
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		if (this.scanner == null || this.filtersSet) {
-			try {
-				this.target.setFilter(this.fileListFilterFactoryBean.getObject());
-			}
-			catch (Exception e) {
-				throw new BeanCreationException("The bean for the [" + this + "] can not be instantiated.", e);
-			}
+			this.target.setFilter(this.fileListFilterFactoryBean.getObject());
 		}
 
 		if (this.expressionFileListFilter != null) {

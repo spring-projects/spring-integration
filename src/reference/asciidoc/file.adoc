@@ -6,8 +6,8 @@ Spring Integration's file support extends the Spring Integration core with a ded
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,9 +15,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-file:{project-version}"
 ----
@@ -215,6 +214,8 @@ The root directory (`DirectoryScanner.listFiles(File)`) argument is excluded fro
 All other sub-directories inclusions and exclusions are based on the target `FileListFilter` implementation.
 For example, the `SimplePatternFileListFilter` filters out directories by default.
 See https://docs.spring.io/spring-integration/api/org/springframework/integration/file/filters/AbstractDirectoryAwareFileListFilter.html[`AbstractDirectoryAwareFileListFilter`] and its implementations for more information.
+
+NOTE: Starting with version 5.5, the `FileInboundChannelAdapterSpec` of the Java DSL has a convenient `recursive(boolean)` option to use a `RecursiveDirectoryScanner` in the target `FileReadingMessageSource` instead of the default one.
 
 [[file-namespace-support]]
 ==== Namespace Support
