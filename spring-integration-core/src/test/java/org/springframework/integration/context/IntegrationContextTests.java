@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +20,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
  *
  * @since 3.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class IntegrationContextTests {
 
 	@Autowired
@@ -56,6 +53,7 @@ public class IntegrationContextTests {
 	private ThreadPoolTaskScheduler taskScheduler;
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void testIntegrationContextComponents() {
 		assertThat(this.integrationProperties.get(IntegrationProperties.THROW_EXCEPTION_ON_LATE_REPLY))
 				.isEqualTo("true");

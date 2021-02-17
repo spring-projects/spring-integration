@@ -19,10 +19,7 @@ package org.springframework.integration.config;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
@@ -328,17 +325,15 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)) {
 			ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver(this.classLoader);
 			try {
-				Resource[] defaultResources =
-						resourceResolver.getResources("classpath*:META-INF/spring.integration.default.properties");
-				Resource[] userResources =
+				Resource[] resources =
 						resourceResolver.getResources("classpath*:META-INF/spring.integration.properties");
 
-				List<Resource> resources = new LinkedList<>(Arrays.asList(defaultResources));
-				resources.addAll(Arrays.asList(userResources));
-
+				// TODO Revise in favor of 'IntegrationProperties' instance in the next 6.0 version
 				BeanDefinitionBuilder integrationPropertiesBuilder = BeanDefinitionBuilder
 						.genericBeanDefinition(PropertiesFactoryBean.class)
-						.addPropertyValue("locations", resources);
+						.addPropertyValue("properties", IntegrationProperties.defaults())
+						.addPropertyValue("locations", resources)
+						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 				this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME,
 						integrationPropertiesBuilder.getBeanDefinition());
