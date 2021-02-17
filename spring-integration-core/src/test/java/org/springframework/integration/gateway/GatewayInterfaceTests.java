@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.gateway;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -29,15 +30,13 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -86,8 +85,7 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
@@ -97,8 +95,7 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@ContextConfiguration(classes = GatewayInterfaceTests.TestConfig.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig(classes = GatewayInterfaceTests.TestConfig.class)
 @DirtiesContext
 @ActiveProfiles("gatewayTest")
 public class GatewayInterfaceTests {
@@ -236,7 +233,7 @@ public class GatewayInterfaceTests {
 	}
 
 	@Test
-	public void testWithServiceUnAnnotatedMethodGlobalHeaderDoesntOverride() throws Exception {
+	public void testWithServiceUnAnnotatedMethodGlobalHeaderDoesNotOverride() throws Exception {
 		ConfigurableApplicationContext ac =
 				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
@@ -344,9 +341,9 @@ public class GatewayInterfaceTests {
 		ac.close();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testWithServiceAsNotAnInterface() {
-		new GatewayProxyFactoryBean(NotAnInterface.class);
+		assertThatIllegalArgumentException().isThrownBy(() -> new GatewayProxyFactoryBean(NotAnInterface.class));
 	}
 
 	@Test
@@ -420,7 +417,7 @@ public class GatewayInterfaceTests {
 		ListenableFuture<Thread> result2 = this.execGateway.test2(Thread.currentThread());
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Thread> thread = new AtomicReference<>();
-		result2.addCallback(new ListenableFutureCallback<Thread>() {
+		result2.addCallback(new ListenableFutureCallback<>() {
 
 			@Override
 			public void onSuccess(Thread result) {
@@ -431,6 +428,7 @@ public class GatewayInterfaceTests {
 			@Override
 			public void onFailure(Throwable t) {
 			}
+
 		});
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(result2.get().getName()).startsWith("exec-");
@@ -594,9 +592,9 @@ public class GatewayInterfaceTests {
 	public static class TestConfig {
 
 		@Bean(name = IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)
-		public static Properties integrationProperties() {
-			Properties properties = new Properties();
-			properties.setProperty(IntegrationProperties.READ_ONLY_HEADERS, IGNORE_HEADER);
+		public static IntegrationProperties integrationProperties() {
+			IntegrationProperties properties = new IntegrationProperties();
+			properties.setReadOnlyHeaders(IGNORE_HEADER);
 			return properties;
 		}
 

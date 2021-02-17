@@ -18,7 +18,12 @@ package org.springframework.integration.context;
 
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -110,6 +115,8 @@ public abstract class IntegrationContextUtils {
 
 	public static final String LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationListMessageHandlerMethodFactory";
 
+	private static final Log LOGGER = LogFactory.getLog(IntegrationContextUtils.class);
+
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link MetadataStore} bean whose name is "metadataStore".
@@ -173,15 +180,15 @@ public abstract class IntegrationContextUtils {
 		return beanFactory.getBean(beanName, type);
 	}
 
+	// TODO Revise in favor of 'IntegrationProperties' instance in the next 6.0 version
 	/**
 	 * @param beanFactory The bean factory.
 	 * @return the global {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME}
 	 *         bean from provided {@code #beanFactory}, which represents the merged
-	 *         properties values from all 'META-INF/spring.integration.default.properties'
-	 *         and 'META-INF/spring.integration.properties'.
-	 *         Or user-defined {@link Properties} bean.
+	 *         properties values from all 'META-INF/spring.integration.properties'.
+	 *         Or user-defined {@link IntegrationProperties} bean.
 	 *         May return only {@link IntegrationProperties#defaults()} if there is no
-	 *         {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME} bean within
+	 *         {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME} bean in the
 	 *         provided {@code #beanFactory} or provided {@code #beanFactory} is null.
 	 */
 	public static Properties getIntegrationProperties(BeanFactory beanFactory) {
@@ -191,8 +198,7 @@ public abstract class IntegrationContextUtils {
 			if (properties == null) {
 				Properties propertiesToRegister = new Properties();
 				propertiesToRegister.putAll(IntegrationProperties.defaults());
-				Properties userProperties =
-						getBeanOfType(beanFactory, INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Properties.class);
+				Properties userProperties = obtainUserProperties(beanFactory);
 				if (userProperties != null) {
 					propertiesToRegister.putAll(userProperties);
 				}
@@ -213,6 +219,32 @@ public abstract class IntegrationContextUtils {
 			properties.putAll(IntegrationProperties.defaults());
 		}
 		return properties;
+	}
+
+	@Nullable
+	private static Properties obtainUserProperties(BeanFactory beanFactory) {
+		Object userProperties = getBeanOfType(beanFactory, INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Object.class);
+		if (userProperties instanceof Properties) {
+			if (BeanDefinition.ROLE_INFRASTRUCTURE !=
+					((BeanDefinitionRegistry) beanFactory)
+							.getBeanDefinition(INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)
+							.getRole()) {
+
+				LOGGER.warn("The 'integrationGlobalProperties' bean must be declared as an instance of " +
+						"'org.springframework.integration.context.IntegrationProperties'. " +
+						"A 'java.util.Properties' support as a bean is deprecated for " +
+						"'integrationGlobalProperties' since version 5.5.");
+			}
+			return (Properties) userProperties;
+		}
+		else if (userProperties instanceof IntegrationProperties) {
+			return ((IntegrationProperties) userProperties).toProperties();
+		}
+		else if (userProperties != null) {
+			throw new BeanNotOfRequiredTypeException(INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME,
+					IntegrationProperties.class, userProperties.getClass());
+		}
+		return null;
 	}
 
 	/**

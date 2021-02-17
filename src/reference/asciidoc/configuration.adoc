@@ -154,8 +154,7 @@ The next section describes what happens if exceptions occur within the asynchron
 
 Certain global framework properties can be overridden by providing a properties file on the classpath.
 
-The default properties can be found in `/META-INF/spring.integration.default.properties` in the `spring-integration-core` jar.
-You can see them on GitHub https://github.com/spring-projects/spring-integration/blob/master/spring-integration-core/src/main/resources/META-INF/spring.integration.default.properties[here].
+The default properties can be found in `org.springframework.integration.context.IntegrationProperties` class.
 The following listing shows the default values:
 
 ====
@@ -205,7 +204,7 @@ See <<./error-handling.adoc#error-handling,Error Handling>> for more information
 Since version 5.5.
 ====
 
-These properties can be overridden by adding a `/META-INF/spring.integration.properties` file to the classpath.
+These properties can be overridden by adding a `/META-INF/spring.integration.properties` file to the classpath or an `IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME` bean for the `org.springframework.integration.context.IntegrationProperties` instance.
 You need not provide all the properties -- only those that you want to override.
 
 Starting with version 5.1, all the merged global properties are printed in the logs after application context startup when a `DEBUG` logic level is turned on for the `org.springframework.integration` category.
