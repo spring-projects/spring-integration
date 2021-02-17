@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.4.21'
+	ext.kotlinVersion = '1.4.30'
 	repositories {
 		mavenCentral()
 		maven { url 'https://plugins.gradle.org/m2' }
@@ -47,11 +47,11 @@ ext {
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.16.0'
+	activeMqVersion = '5.16.1'
 	apacheSshdVersion = '2.5.1'
 	aspectjVersion = '1.9.6'
 	assertjVersion = '3.17.2'
-	assertkVersion = '0.23'
+	assertkVersion = '0.23.1'
 	avroVersion = '1.10.1'
 	awaitilityVersion = '4.0.3'
 	commonsDbcp2Version = '2.8.0'
@@ -64,7 +64,7 @@ ext {
 	groovyVersion = '3.0.7'
 	hamcrestVersion = '2.2'
 	hazelcastVersion = '4.0.3'
-	hibernateVersion = '5.4.25.Final'
+	hibernateVersion = '5.4.28.Final'
 	hsqldbVersion = '2.5.1'
 	h2Version = '1.4.200'
 	jacksonVersion = '2.11.4'
@@ -78,14 +78,14 @@ ext {
 	jrubyVersion = '9.2.13.0'
 	jschVersion = '0.1.55'
 	jsonpathVersion = '2.4.0'
-	junit4Version = '4.13.1'
-	junitJupiterVersion = '5.7.0'
+	junit4Version = '4.13.2'
+	junitJupiterVersion = '5.7.1'
 	jythonVersion = '2.7.2'
 	kryoShadedVersion = '4.0.2'
-	lettuceVersion = '6.0.1.RELEASE'
+	lettuceVersion = '6.0.2.RELEASE'
 	log4jVersion = '2.13.3'
 	mailVersion = '1.6.5'
-	micrometerVersion = '1.5.9'
+	micrometerVersion = '1.5.11'
 	mockitoVersion = '3.6.28'
 	mongoDriverVersion = '4.1.1'
 	mysqlVersion = '8.0.22'
@@ -100,12 +100,12 @@ ext {
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.4'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.3'
-	springKafkaVersion = '2.6.5'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.5'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.4'
+	springKafkaVersion = '2.6.6'
 	springRetryVersion = '1.3.0'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.4.2'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.3'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.4.4'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.4'
 	springWsVersion = '3.0.10.RELEASE'
 	tomcatVersion = "9.0.41"
 	xstreamVersion = '1.4.15'
