@@ -38,22 +38,19 @@ task checkAsciidocLinks {
 			matcher = (doc =~ /<<([^>]+)>>/)
 			while (matcher.find()) {
 				def anchor = matcher.group(1);
-				def hasComma = anchor.contains(",")
-				if (!anchor.startsWith("./")) {
+				def hasComma = anchor.contains(',')
+				if (!anchor.startsWith('./')) {
 					if (hasComma) {
 						anchor = anchor.substring(0, anchor.indexOf(","));
 					}
 					if (!anchors.contains(anchor)) {
-						errors.add("\nAnchor '" + anchor
-								+ "' not found in '" + file.name
-								+ "', if in another file, it needs to be qualified with './fileName.adoc#'")
+						errors.add("\nAnchor '$anchor' not found in '${file.name}', " +
+								"if in another file, it needs to be qualified with './fileName.adoc#'")
 					}
 				}
 				else {
 					if (!hasComma) {
-						errors.add("\nExternal anchor '" + anchor
-								+ "' in '" + file.name
-								+ "' should have a textual description (,...)")
+						errors.add("\nExternal anchor '$anchor' in '${file.name}' should have a textual description (,...)")
 					}
 				}
 			}

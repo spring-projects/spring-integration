@@ -15,12 +15,12 @@ plugins {
 	id 'org.sonarqube' version '2.8'
 	id 'io.spring.nohttp' version '0.0.5.RELEASE' apply false
 	id 'org.ajoberstar.grgit' version '4.1.0'
-	id "io.spring.dependency-management" version '1.0.11.RELEASE'
-	id 'com.jfrog.artifactory' version '4.18.3' apply false
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'com.jfrog.artifactory' version '4.20.0' apply false
 	id 'org.jetbrains.dokka' version '0.10.1'
-	id 'org.asciidoctor.jvm.pdf' version '3.3.0'
-	id 'org.asciidoctor.jvm.gems' version '3.3.0'
-	id 'org.asciidoctor.jvm.convert' version '3.3.0'
+	id 'org.asciidoctor.jvm.pdf' version '3.3.1'
+	id 'org.asciidoctor.jvm.gems' version '3.3.1'
+	id 'org.asciidoctor.jvm.convert' version '3.3.1'
 }
 
 if (System.getenv('GITHUB_ACTION') || System.getenv('bamboo_buildKey')) {
@@ -46,11 +46,11 @@ ext {
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.16.0'
+	activeMqVersion = '5.16.1'
 	apacheSshdVersion = '2.6.0'
 	aspectjVersion = '1.9.6'
-	assertjVersion = '3.18.1'
-	assertkVersion = '0.23'
+	assertjVersion = '3.19.0'
+	assertkVersion = '0.23.1'
 	avroVersion = '1.10.1'
 	awaitilityVersion = '4.0.3'
 	commonsDbcp2Version = '2.8.0'
@@ -63,7 +63,7 @@ ext {
 	groovyVersion = '3.0.7'
 	hamcrestVersion = '2.2'
 	hazelcastVersion = '4.1.1'
-	hibernateVersion = '5.4.27.Final'
+	hibernateVersion = '5.4.28.Final'
 	hsqldbVersion = '2.5.1'
 	h2Version = '1.4.200'
 	jacksonVersion = '2.12.1'
@@ -71,41 +71,40 @@ ext {
 	jaxbVersion = '2.3.3'
 	jeroMqVersion = '0.5.2'
 	jmsApiVersion = '2.0.1'
-	jpa21ApiVersion = '1.0.2.Final'
 	jpaApiVersion = '2.7.7'
 	jrubyVersion = '9.2.14.0'
 	jschVersion = '0.1.55'
 	jsonpathVersion = '2.4.0'
-	junit4Version = '4.13.1'
+	junit4Version = '4.13.2'
 	junitJupiterVersion = '5.7.0'
 	jythonVersion = '2.7.2'
 	kryoShadedVersion = '4.0.2'
-    lettuceVersion = '6.0.2.RELEASE'
+    lettuceVersion = '6.1.0.M1'
 	log4jVersion = '2.14.0'
 	mailVersion = '1.6.5'
-	micrometerVersion = '1.6.3'
-	mockitoVersion = '3.7.0'
+	micrometerVersion = '1.6.4'
+	mockitoVersion = '3.7.7'
 	mongoDriverVersion = '4.2.0'
-	mysqlVersion = '8.0.22'
+	mysqlVersion = '8.0.23'
 	pahoMqttClientVersion = '1.2.5'
 	postgresVersion = '42.2.18'
 	r2dbch2Version='0.8.4.RELEASE'
 	reactorVersion = '2020.0.3'
-	resilience4jVersion = '1.6.1'
+	resilience4jVersion = '1.7.0'
 	romeToolsVersion = '1.15.0'
 	rsocketVersion = '1.1.0'
 	saajVersion = '1.5.2'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.5-SNAPSHOT'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.0-SNAPSHOT'
-	springKafkaVersion = '2.7.0-SNAPSHOT'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.5'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.0-M3'
+	springKafkaVersion = '2.7.0-M2'
 	springRetryVersion = '1.3.1'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.0-SNAPSHOT'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.4-SNAPSHOT'
-	springWsVersion = '3.1.0-SNAPSHOT'
-	tomcatVersion = '9.0.41'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.0-M2'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.4'
+	springWsVersion = '3.1.0-M1'
+	tomcatVersion = '9.0.43'
 	xmlUnitVersion = '2.8.2'
 	xstreamVersion = '1.4.15'
 
@@ -137,7 +136,7 @@ allprojects {
 		'https://docs.spring.io/spring-ws/docs/current/api/'
 	] as String[]
 
-	apply plugin: "io.spring.dependency-management"
+	apply plugin: 'io.spring.dependency-management'
 
 	dependencyManagement {
 		resolutionStrategy {
@@ -234,6 +233,9 @@ configure(javaProjects) { subproject ->
 		compileOnly "com.google.code.findbugs:jsr305:$googleJsr305Version"
 		testImplementation "com.google.code.findbugs:jsr305:$googleJsr305Version"
 		testImplementation("org.awaitility:awaitility:$awaitilityVersion") {
+			exclude group: 'org.hamcrest'
+		}
+		testImplementation ("junit:junit:$junit4Version") {
 			exclude group: 'org.hamcrest'
 		}
 		testImplementation 'org.junit.jupiter:junit-jupiter-api'
@@ -335,8 +337,8 @@ configure(javaProjects) { subproject ->
 	}
 
 	checkstyle {
-		configDirectory.set(rootProject.file("src/checkstyle"))
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.39'
+		configDirectory.set(rootProject.file('src/checkstyle'))
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.40'
 	}
 
 	jar {
@@ -392,14 +394,14 @@ project('spring-integration-test-support') {
 	dependencies {
 		compileOnly 'org.apiguardian:apiguardian-api:1.0.0'
 		api "org.hamcrest:hamcrest-library:$hamcrestVersion"
-		api ("junit:junit:$junit4Version") {
-			exclude group: 'org.hamcrest'
-		}
 		api "org.mockito:mockito-core:$mockitoVersion"
 		api "org.assertj:assertj-core:$assertjVersion"
 		api 'org.springframework:spring-context'
 		api 'org.springframework:spring-messaging'
 		api 'org.springframework:spring-test'
+		optionalApi ("junit:junit:$junit4Version") {
+			exclude group: 'org.hamcrest'
+		}
 		optionalApi 'org.junit.jupiter:junit-jupiter-api'
 		optionalApi 'org.apache.logging.log4j:log4j-core'
 	}
@@ -441,8 +443,8 @@ project('spring-integration-core') {
 		optionalApi "org.apache.avro:avro:$avroVersion"
 		optionalApi 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
-		testImplementation ("org.aspectj:aspectjweaver:$aspectjVersion")
-		testImplementation ('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
+		testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
+		testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 		testRuntime ('com.fasterxml.jackson.module:jackson-module-kotlin') {
             exclude group: 'org.jetbrains.kotlin'
         }
@@ -486,7 +488,6 @@ project('spring-integration-ftp') {
 		api project(':spring-integration-file')
 		api "commons-net:commons-net:$commonsNetVersion"
 		api 'org.springframework:spring-context-support'
-		optionalApi "javax.activation:javax.activation-api:$javaxActivationVersion"
 		optionalApi "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 
 		testImplementation project(':spring-integration-file').sourceSets.test.output
@@ -600,8 +601,6 @@ project('spring-integration-jpa') {
 		}
 		testImplementation "com.h2database:h2:$h2Version"
 		testImplementation "org.hibernate:hibernate-entitymanager:$hibernateVersion"
-
-//		testRuntimeOnly "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:$jpa21ApiVersion"
 	}
 }
 
@@ -630,8 +629,6 @@ project('spring-integration-mail') {
 		providedImplementation "jakarta.mail:jakarta.mail-api:$mailVersion"
 		providedImplementation "com.sun.mail:imap:$mailVersion"
 		providedImplementation "com.sun.mail:jakarta.mail:$mailVersion"
-
-		optionalApi "javax.activation:javax.activation-api:$javaxActivationVersion"
 	}
 }
 
@@ -705,10 +702,10 @@ project('spring-integration-scripting') {
 		optionalApi 'org.jetbrains.kotlin:kotlin-script-util'
 		optionalApi 'org.jetbrains.kotlin:kotlin-compiler-embeddable'
 
-		testImplementation("org.jruby:jruby-complete:$jrubyVersion")
-		testImplementation("org.codehaus.groovy:groovy:$groovyVersion")
-		testImplementation("org.codehaus.groovy:groovy-jsr223:$groovyVersion")
-		testImplementation("org.python:jython-standalone:$jythonVersion")
+		testImplementation "org.jruby:jruby-complete:$jrubyVersion"
+		testImplementation "org.codehaus.groovy:groovy:$groovyVersion"
+		testImplementation "org.codehaus.groovy:groovy-jsr223:$groovyVersion"
+		testImplementation "org.python:jython-standalone:$jythonVersion"
 
 		testRuntimeOnly 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable'
 	}
@@ -734,7 +731,6 @@ project('spring-integration-sftp') {
 		api project(':spring-integration-file')
 		api "com.jcraft:jsch:$jschVersion"
 		api 'org.springframework:spring-context-support'
-//		optionalApi "javax.activation:javax.activation-api:$javaxActivationVersion"
 		optionalApi "org.apache.sshd:sshd-sftp:$apacheSshdVersion"
 
 		testImplementation "org.apache.sshd:sshd-core:$apacheSshdVersion"
@@ -834,7 +830,7 @@ project('spring-integration-ws') {
 		testImplementation ("org.springframework.ws:spring-ws-support:$springWsVersion") {
 			exclude group: 'org.springframework'
 		}
-		testImplementation ('org.springframework:spring-jms')
+		testImplementation 'org.springframework:spring-jms'
 		testImplementation "javax.jms:javax.jms-api:$jmsApiVersion"
 		testImplementation "org.igniterealtime.smack:smack-tcp:$smackVersion"
 		testImplementation "org.igniterealtime.smack:smack-extensions:$smackVersion"
@@ -898,7 +894,7 @@ project('spring-integration-zookeeper') {
 }
 
 project('spring-integration-bom') {
-	description = "Spring Integration (Bill of Materials)"
+	description = 'Spring Integration (Bill of Materials)'
 
 	apply plugin: 'java-platform'
 	apply from:   "${rootDir}/gradle/publish-maven.gradle"
@@ -972,7 +968,7 @@ dokka {
 		moduleName = 'spring-integration'
 		externalDocumentationLink {
 			url = new URL("https://docs.spring.io/spring-integration/docs/$version/api/")
-			packageListUrl = new File(buildDir, "api/element-list").toURI().toURL()
+			packageListUrl = new File(buildDir, 'api/element-list').toURI().toURL()
 		}
 		externalDocumentationLink {
 			url = new URL('https://docs.spring.io/spring-framework/docs/current/javadoc-api/')
@@ -999,7 +995,7 @@ task schemaZip(type: Zip) {
 	javaProjects.each { subproject ->
 		Properties schemas = new Properties();
 		def shortName = subproject.name.replaceFirst("${rootProject.name}-", '')
-		if (subproject.name.endsWith("-core")) {
+		if (subproject.name.endsWith('-core')) {
 			shortName = ''
 		}
 
@@ -1042,12 +1038,12 @@ task docsZip(type: Zip, dependsOn: reference) {
 	    }
 
 	    from ('build/docs/asciidocPdf') {
-			include "index-single.pdf"
+			include 'index-single.pdf'
 			rename  'index-single.pdf', 'spring-integration-reference.pdf'
 			into 'reference/pdf'
 	    }
 	from (dokka) {
-		into "kdoc-api"
+		into 'kdoc-api'
 	}
 }
 
@@ -1063,7 +1059,7 @@ task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
 		include 'readme.txt'
 		include 'notice.txt'
 		into "${baseDir}"
-		expand(copyright: new Date().format("yyyy"), version: project.version)
+		expand(copyright: new Date().format('yyyy'), version: project.version)
 	}
 
 	from("$project.rootDir") {

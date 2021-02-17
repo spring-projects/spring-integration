@@ -25,17 +25,16 @@ import org.springframework.util.StringUtils;
  * Utility class to encapsulate infrastructure Integration properties constants and their default values.
  * The default values can be overridden by the {@code META-INF/spring.integration.properties} with this entries
  * (includes their default values):
- * <p>
  * <ul>
- * <li> {@code spring.integration.channels.autoCreate=true}
- * <li> {@code spring.integration.channels.maxUnicastSubscribers=0x7fffffff}
- * <li> {@code spring.integration.channels.maxBroadcastSubscribers=0x7fffffff}
- * <li> {@code spring.integration.taskScheduler.poolSize=10}
- * <li> {@code spring.integration.messagingTemplate.throwExceptionOnLateReply=false}
- * <li> {@code spring.integration.readOnly.headers=}
- * <li> {@code spring.integration.endpoints.noAutoStartup=}
- * <li> {@code spring.integration.channels.error.requireSubscribers=true}
- * <li> {@code spring.integration.channels.error.ignoreFailures=true}
+ *   <li> {@code spring.integration.channels.autoCreate=true}
+ *   <li> {@code spring.integration.channels.maxUnicastSubscribers=0x7fffffff}
+ *   <li> {@code spring.integration.channels.maxBroadcastSubscribers=0x7fffffff}
+ *   <li> {@code spring.integration.taskScheduler.poolSize=10}
+ *   <li> {@code spring.integration.messagingTemplate.throwExceptionOnLateReply=false}
+ *   <li> {@code spring.integration.readOnly.headers=}
+ *   <li> {@code spring.integration.endpoints.noAutoStartup=}
+ *   <li> {@code spring.integration.channels.error.requireSubscribers=true}
+ *   <li> {@code spring.integration.channels.error.ignoreFailures=true}
  * </ul>
  *
  * @author Artem Bilan
@@ -298,6 +297,7 @@ public final class IntegrationProperties {
 
 	/**
 	 * Parse a provided {@link Properties} and build an {@link IntegrationProperties} instance.
+	 * @param properties the {@link Properties} to parse entries for {@link IntegrationProperties}.
 	 * @return {@link IntegrationProperties} based on the provided {@link Properties}.
 	 * @since 5.5
 	 */

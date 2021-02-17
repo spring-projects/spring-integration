@@ -31,19 +31,19 @@ publishing {
 						id = 'artembilan'
 						name = 'Artem Bilan'
 						email = 'abilan@vmware.com'
-						roles = ["project lead"]
+						roles = ['project lead']
 					}
 					developer {
 						id = 'garyrussell'
 						name = 'Gary Russell'
 						email = 'grussell@vmware.com'
-						roles = ["project lead emeritus"]
+						roles = ['project lead emeritus']
 					}
 					developer {
 						id = 'markfisher'
 						name = 'Mark Fisher'
 						email = 'markfisher@vmware.com'
-						roles = ["project founder and lead emeritus"]
+						roles = ['project founder and lead emeritus']
 					}
 				}
 				issueManagement {

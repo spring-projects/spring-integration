@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class MockIntegrationContext implements BeanFactoryAware {
 
 	/**
 	 * Reinstate the mocked beans after execution test to their real state.
-	 * Typically is used from the {@link org.junit.After} method.
+	 * Typically is used from JUnit clean up method.
 	 * @param beanNames the bean names to reset.
 	 * If {@code null}, all the mocked beans are reset
 	 */
@@ -213,6 +213,7 @@ public class MockIntegrationContext implements BeanFactoryAware {
 
 	private void substituteMessageSourceFor(String endpointId, Object messagingComponent, Class<?> endpointClass,
 			String property, boolean autoStartup) {
+
 		Object endpoint = this.beanFactory.getBean(endpointId, endpointClass);
 		if (autoStartup && endpoint instanceof Lifecycle) {
 			((Lifecycle) endpoint).stop();
