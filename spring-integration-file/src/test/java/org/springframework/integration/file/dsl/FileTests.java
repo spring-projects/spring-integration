@@ -246,7 +246,7 @@ public class FileTests {
 	@Test
 	public void testFileSplitterFlow() throws Exception {
 		FileOutputStream file = new FileOutputStream(new File(tmpDir, "foo.tmp"));
-		file.write(("HelloWorld\nГ¤Г¶ГјГџ").getBytes(Charset.defaultCharset()));
+		file.write(("HelloWorld\näöüß").getBytes(Charset.defaultCharset()));
 		file.flush();
 		file.close();
 
@@ -257,7 +257,7 @@ public class FileTests {
 		receive = this.fileSplittingResultChannel.receive(10000);
 		assertThat(receive).isNotNull(); //HelloWorld
 		receive = this.fileSplittingResultChannel.receive(10000);
-		assertThat(receive).isNotNull(); //Г¤Г¶ГјГџ
+		assertThat(receive).isNotNull(); //äöüß
 		receive = this.fileSplittingResultChannel.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isInstanceOf(FileSplitter.FileMarker.class); // FileMarker.Mark.END

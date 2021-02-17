@@ -100,7 +100,7 @@ public class FileInboundChannelAdapterSpec
 	 */
 	public FileInboundChannelAdapterSpec scanner(DirectoryScanner scanner) {
 		this.scanner = scanner;
-
+		this.target.setScanner(scanner);
 		return _this();
 	}
 
