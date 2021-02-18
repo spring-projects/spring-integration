@@ -391,6 +391,30 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 	}
 
 	@Test
+	public void testSftpCopy() throws Exception {
+		this.template.execute(session -> {
+			PipedInputStream in = new PipedInputStream();
+			PipedOutputStream out = new PipedOutputStream(in);
+			session.read("sftpSource/sftpSource2.txt", out);
+			session.write(in, "sftpTarget/sftpTarget2.txt");
+			return null;
+		});
+
+		Session<?> session = this.sessionFactory.getSession();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		FileCopyUtils.copy(session.readRaw("sftpTarget/sftpTarget2.txt"), baos);
+		assertThat(session.finalizeRaw()).isTrue();
+		assertThat(new String(baos.toByteArray())).isEqualTo("source2");
+
+		baos = new ByteArrayOutputStream();
+		FileCopyUtils.copy(session.readRaw("sftpSource/sftpSource2.txt"), baos);
+		assertThat(session.finalizeRaw()).isTrue();
+		assertThat(new String(baos.toByteArray())).isEqualTo("source2");
+
+		session.close();
+	}
+
+	@Test
 	public void testInt3047ConcurrentSharedSession() throws Exception {
 		final Session<?> session1 = this.sessionFactory.getSession();
 		final Session<?> session2 = this.sessionFactory.getSession();
