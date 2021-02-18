@@ -266,7 +266,7 @@ public final class IntegrationProperties {
 	 */
 	public void setNoAutoStartupEndpoints(String... noAutoStartupEndpoints) {
 		Assert.notNull(noAutoStartupEndpoints, "'noAutoStartupEndpoints' must not be null.");
-		this.noAutoStartupEndpoints = Arrays.copyOf(noAutoStartupEndpoints, noAutoStartupEndpoints.length);;
+		this.noAutoStartupEndpoints = Arrays.copyOf(noAutoStartupEndpoints, noAutoStartupEndpoints.length);
 	}
 
 	/**
