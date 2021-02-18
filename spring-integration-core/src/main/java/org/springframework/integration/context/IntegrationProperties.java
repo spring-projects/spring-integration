@@ -16,9 +16,11 @@
 
 package org.springframework.integration.context;
 
+import java.util.Arrays;
 import java.util.Properties;
 
 import org.springframework.integration.util.JavaUtils;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -117,7 +119,7 @@ public final class IntegrationProperties {
 
 	private boolean errorChannelIgnoreFailures = true;
 
-	private int taskSchedulerPoolSize = 10;
+	private int taskSchedulerPoolSize = 10; // NOSONAR
 
 	private boolean messagingTemplateThrowExceptionOnLateReply = false;
 
@@ -246,7 +248,8 @@ public final class IntegrationProperties {
 	 * @param readOnlyHeaders the value for {@link #READ_ONLY_HEADERS} option.
 	 */
 	public void setReadOnlyHeaders(String... readOnlyHeaders) {
-		this.readOnlyHeaders = readOnlyHeaders;
+		Assert.notNull(readOnlyHeaders, "'readOnlyHeaders' must not be null.");
+		this.readOnlyHeaders = Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length);
 	}
 
 	/**
@@ -254,7 +257,7 @@ public final class IntegrationProperties {
 	 * @return the value of {@link #READ_ONLY_HEADERS} option.
 	 */
 	public String[] getReadOnlyHeaders() {
-		return this.readOnlyHeaders;
+		return Arrays.copyOf(this.readOnlyHeaders, this.readOnlyHeaders.length);
 	}
 
 	/**
@@ -262,7 +265,8 @@ public final class IntegrationProperties {
 	 * @param noAutoStartupEndpoints the value for {@link #ENDPOINTS_NO_AUTO_STARTUP} option.
 	 */
 	public void setNoAutoStartupEndpoints(String... noAutoStartupEndpoints) {
-		this.noAutoStartupEndpoints = noAutoStartupEndpoints;
+		Assert.notNull(noAutoStartupEndpoints, "'noAutoStartupEndpoints' must not be null.");
+		this.noAutoStartupEndpoints = Arrays.copyOf(noAutoStartupEndpoints, noAutoStartupEndpoints.length);;
 	}
 
 	/**
@@ -270,7 +274,7 @@ public final class IntegrationProperties {
 	 * @return the value of {@link #ENDPOINTS_NO_AUTO_STARTUP} option.
 	 */
 	public String[] getNoAutoStartupEndpoints() {
-		return this.noAutoStartupEndpoints;
+		return Arrays.copyOf(this.noAutoStartupEndpoints, this.noAutoStartupEndpoints.length);
 	}
 
 	/**

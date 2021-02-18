@@ -26,8 +26,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.mapping.IdentifierAccessor;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.query.BasicQuery;
@@ -35,14 +33,12 @@ import org.springframework.data.mongodb.core.query.BasicUpdate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.data.util.Pair;
 import org.springframework.expression.Expression;
 import org.springframework.expression.TypeLocator;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
@@ -64,7 +60,7 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 
 	private static final String ID_FIELD = "_id";
 
-	protected final Expression queryExpression;
+	protected final Expression queryExpression; // NOSONAR - final
 
 	private Expression collectionNameExpression = new LiteralExpression("data");
 
@@ -86,9 +82,7 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 	}
 
 	/**
-	 * Allow you to set the type of the entityClass that will be passed to the
-	 * {@link ReactiveMongoTemplate#find(Query, Class)} or {@link ReactiveMongoTemplate#findOne(Query, Class)}
-	 * method.
+	 * Set the type of the entityClass that will be passed to the find MongoDb template operation.
 	 * Default is {@link DBObject}.
 	 * @param entityClass The entity class.
 	 */
@@ -98,10 +92,10 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 	}
 
 	/**
-	 * Allow you to manage which find* method to invoke on {@link ReactiveMongoTemplate}.
+	 * Manage which find* method to invoke.
 	 * Default is 'false', which means the {@link #receive()} method will use
-	 * the {@link ReactiveMongoTemplate#find(Query, Class)} method. If set to 'true',
-	 * {@link #receive()} will use {@link ReactiveMongoTemplate#findOne(Query, Class)},
+	 * the {@code find()} method. If set to 'true',
+	 * {@link #receive()} will use {@code findOne(Query, Class)},
 	 * and the payload of the returned {@link org.springframework.messaging.Message}
 	 * will be the returned target Object of type
 	 * identified by {@link #entityClass} instead of a List.
@@ -114,7 +108,7 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 	/**
 	 * Set the SpEL {@link Expression} that should resolve to a collection name
 	 * used by the {@link Query}. The resulting collection name will be included
-	 * in the {@link MongoHeaders#COLLECTION_NAME} header.
+	 * in the {@link org.springframework.integration.mongodb.support.MongoHeaders#COLLECTION_NAME} header.
 	 * @param collectionNameExpression The collection name expression.
 	 */
 	public void setCollectionNameExpression(Expression collectionNameExpression) {
@@ -123,9 +117,8 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 	}
 
 	/**
-	 * Allow you to provide a custom {@link MongoConverter} used to assist in deserialization
-	 * data read from MongoDb. Only allowed if this instance was constructed with a
-	 * {@link ReactiveMongoDatabaseFactory}.
+	 * Provide a custom {@link MongoConverter} used to assist in deserialization
+	 * data read from MongoDb.
 	 * @param mongoConverter The mongo converter.
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {
@@ -134,7 +127,8 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 
 	/**
 	 * Specify an optional {@code update} for just polled records from the collection.
-	 * @param updateExpression SpEL expression for an {@link UpdateDefinition}.
+	 * @param updateExpression SpEL expression for an
+	 * {@link org.springframework.data.mongodb.core.query.UpdateDefinition}.
 	 * @since 5.5
 	 */
 	public void setUpdateExpression(Expression updateExpression) {
