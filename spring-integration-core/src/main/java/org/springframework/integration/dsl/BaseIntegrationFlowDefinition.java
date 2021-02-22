@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3100,12 +3100,15 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 		@Override
 		public boolean requiresDestruction(Object bean) {
-			return BaseIntegrationFlowDefinition.REFERENCED_REPLY_PRODUCERS.contains(bean);
+			return bean instanceof MessageProducer &&
+					BaseIntegrationFlowDefinition.REFERENCED_REPLY_PRODUCERS.contains(bean);
 		}
 
 		@Override
 		public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
-			BaseIntegrationFlowDefinition.REFERENCED_REPLY_PRODUCERS.remove(bean);
+			if (bean instanceof MessageProducer) {
+				BaseIntegrationFlowDefinition.REFERENCED_REPLY_PRODUCERS.remove(bean);
+			}
 		}
 
 	}
