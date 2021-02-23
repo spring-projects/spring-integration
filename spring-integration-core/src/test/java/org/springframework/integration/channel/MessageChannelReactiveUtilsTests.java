@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.util.IntegrationReactiveUtils;
@@ -31,6 +32,7 @@ import org.springframework.messaging.support.GenericMessage;
 import reactor.core.Disposable;
 import reactor.core.Disposables;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 import reactor.util.concurrent.Queues;
@@ -43,6 +45,13 @@ import reactor.util.concurrent.Queues;
  */
 class MessageChannelReactiveUtilsTests {
 
+	private static final Scheduler SCHEDULER = Schedulers.boundedElastic();
+
+	@AfterAll
+	static void tearDown() {
+		SCHEDULER.dispose();
+	}
+
 	@Test
 	void testBackpressureWithSubscribableChannel() {
 		Disposable.Composite compositeDisposable = Disposables.composite();
@@ -53,7 +62,7 @@ class MessageChannelReactiveUtilsTests {
 					.expectSubscription()
 					.then(() -> {
 						compositeDisposable.add(
-								Schedulers.boundedElastic().schedule(() -> {
+								SCHEDULER.schedule(() -> {
 									while (true) {
 										if (channel.getSubscriberCount() > 0) {
 											channel.send(new GenericMessage<>("foo"));
@@ -84,7 +93,7 @@ class MessageChannelReactiveUtilsTests {
 					.expectSubscription()
 					.then(() ->
 							compositeDisposable.add(
-									Schedulers.boundedElastic().schedule(() -> {
+									SCHEDULER.schedule(() -> {
 										while (true) {
 											if (channel.getSubscriberCount() > 0) {
 												channel.send(new GenericMessage<>("foo"));

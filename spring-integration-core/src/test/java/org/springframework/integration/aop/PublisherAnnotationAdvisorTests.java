@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.support.StaticApplicationContext;
@@ -36,6 +37,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 /**
  * @author Mark Fisher
  * @author Jeff Maxwell
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -43,10 +45,15 @@ public class PublisherAnnotationAdvisorTests {
 
 	private final StaticApplicationContext context = new StaticApplicationContext();
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		context.registerSingleton("testChannel", QueueChannel.class);
 		context.registerSingleton("testMetaChannel", QueueChannel.class);
+	}
+
+	@AfterEach
+	void tearDown() {
+		this.context.close();
 	}
 
 	@Test

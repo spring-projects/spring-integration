@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@
 package org.springframework.integration.channel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -35,21 +36,23 @@ import org.springframework.messaging.MessagingException;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 1.0.3
  */
 public class DispatchingChannelErrorHandlingTests {
 
 	private final CountDownLatch latch = new CountDownLatch(1);
 
-
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void handlerThrowsExceptionPublishSubscribeWithoutExecutor() {
 		PublishSubscribeChannel channel = new PublishSubscribeChannel();
 		channel.subscribe(message -> {
 			throw new UnsupportedOperationException("intentional test failure");
 		});
 		Message<?> message = MessageBuilder.withPayload("test").build();
-		channel.send(message);
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> channel.send(message));
 	}
 
 	@Test
@@ -72,13 +75,14 @@ public class DispatchingChannelErrorHandlingTests {
 		});
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		channel.send(message);
-		this.waitForLatch(10000);
+		waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
 		assertThat(errorMessage.getPayload().getClass()).isEqualTo(MessagingException.class);
 		MessagingException exceptionPayload = (MessagingException) errorMessage.getPayload();
 		assertThat(exceptionPayload.getCause().getClass()).isEqualTo(UnsupportedOperationException.class);
 		assertThat(exceptionPayload.getFailedMessage()).isSameAs(message);
 		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
+		context.close();
 	}
 
 	@Test
@@ -108,6 +112,7 @@ public class DispatchingChannelErrorHandlingTests {
 		assertThat(exceptionPayload.getCause().getClass()).isEqualTo(UnsupportedOperationException.class);
 		assertThat(exceptionPayload.getFailedMessage()).isSameAs(message);
 		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
+		context.close();
 	}
 
 
@@ -136,8 +141,8 @@ public class DispatchingChannelErrorHandlingTests {
 			this.lastThread = Thread.currentThread();
 			latch.countDown();
 		}
-	}
 
+	}
 
 	@SuppressWarnings("serial")
 	private static class TestTimedOutException extends RuntimeException {
@@ -145,6 +150,7 @@ public class DispatchingChannelErrorHandlingTests {
 		TestTimedOutException() {
 			super("timed out while waiting for latch");
 		}
+
 	}
 
 }
