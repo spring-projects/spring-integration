@@ -303,7 +303,8 @@ configure(javaProjects) { subproject ->
 	}
 
 	test {
-		maxHeapSize = '1536m'
+		maxHeapSize = '2g'
+		jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
 		jacoco {
 			destinationFile = file("$buildDir/jacoco.exec")
 		}
