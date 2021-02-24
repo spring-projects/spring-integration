@@ -70,7 +70,14 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 	@Override
 	public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
-		JsonNode node = asJson(target);
+		JsonNode node;
+		try {
+			node = asJson(target);
+		}
+		catch (AccessException e) {
+			// Cannot parse - treat as not a JSON
+			return false;
+		}
 		Integer index = maybeIndex(name);
 		if (node instanceof ArrayNode) {
 			return index != null;
