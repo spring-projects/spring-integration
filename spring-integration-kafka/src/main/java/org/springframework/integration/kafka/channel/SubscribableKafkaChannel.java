@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.KafkaOperations;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
@@ -110,9 +111,10 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 		this.dispatcher = createDispatcher();
 		this.container = this.factory.createContainer(this.topic);
 		String groupId = getGroupId();
-		this.container.getContainerProperties().setGroupId(groupId != null ? groupId : getBeanName());
-		this.container.getContainerProperties().setMessageListener(
-				new RecordMessagingMessageListenerAdapter<Object, Object>(null, null) {
+		ContainerProperties containerProperties = this.container.getContainerProperties();
+		containerProperties.setGroupId(groupId != null ? groupId : getBeanName());
+		containerProperties.setMessageListener(
+				new RecordMessagingMessageListenerAdapter<Object, Object>(null, null) { // NOSONAR - out of use
 
 					@Override
 					public void onMessage(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment,

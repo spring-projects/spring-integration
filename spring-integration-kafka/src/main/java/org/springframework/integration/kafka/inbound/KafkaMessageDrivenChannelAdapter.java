@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.BatchMessageListener;
 import org.springframework.kafka.listener.ConsumerSeekAware;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.adapter.BatchMessagingMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.FilteringBatchMessageListenerAdapter;
@@ -94,7 +95,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	private RetryTemplate retryTemplate;
 
-	private RecoveryCallback<? extends Object> recoveryCallback;
+	private RecoveryCallback<?> recoveryCallback;
 
 	private boolean filterInRetry;
 
@@ -210,7 +211,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * @param recoveryCallback the recovery callback.
 	 * @since 2.0.1
 	 */
-	public void setRecoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
+	public void setRecoveryCallback(RecoveryCallback<?> recoveryCallback) {
 		this.recoveryCallback = recoveryCallback;
 	}
 
@@ -280,6 +281,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 					+ "provided; use an 'ErrorMessageSendingRecoverer' in the 'recoveryCallback' property to "
 					+ "send an error message when retries are exhausted");
 		}
+		ContainerProperties containerProperties = this.messageListenerContainer.getContainerProperties();
 		if (this.mode.equals(ListenerMode.record)) {
 			MessageListener<K, V> listener = this.recordListener;
 
@@ -304,7 +306,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 							this.ackDiscarded);
 				}
 			}
-			this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
+			containerProperties.setMessageListener(listener);
 		}
 		else {
 			BatchMessageListener<K, V> listener = this.batchListener;
@@ -313,10 +315,9 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				listener = new FilteringBatchMessageListenerAdapter<>(listener, this.recordFilterStrategy,
 						this.ackDiscarded);
 			}
-			this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
+			containerProperties.setMessageListener(listener);
 		}
-		this.containerDeliveryAttemptPresent = this.messageListenerContainer.getContainerProperties()
-				.isDeliveryAttemptHeader();
+		this.containerDeliveryAttemptPresent = containerProperties.isDeliveryAttemptHeader();
 	}
 
 	@Override
@@ -402,7 +403,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			}
 		}
 		else {
-			KafkaMessageDrivenChannelAdapter.this.logger.debug("Converter returned a null message for: "
+			KafkaMessageDrivenChannelAdapter.this.logger.debug(() -> "Converter returned a null message for: "
 					+ kafkaConsumedObject);
 		}
 	}
@@ -430,7 +431,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			implements RetryListener {
 
 		IntegrationRecordMessageListener() {
-			super(null, null);
+			super(null, null); // NOSONAR - out of use
 		}
 
 		@Override
@@ -520,7 +521,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			implements RetryListener {
 
 		IntegrationBatchMessageListener() {
-			super(null, null);
+			super(null, null); // NOSONAR - out if use
 		}
 
 		@Override
