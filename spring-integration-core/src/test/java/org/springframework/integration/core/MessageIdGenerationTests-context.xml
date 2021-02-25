@@ -13,6 +13,6 @@
 	
 	<int:service-activator input-channel="nextB" output-channel="nextC" expression="'nextC'"/>
 	
-	<int:logging-channel-adapter id="nextC" level="WARN" log-full-message="true"/>
+	<int:logging-channel-adapter id="nextC" level="DEBUG" log-full-message="true"/>
 	
 </beans>
