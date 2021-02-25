@@ -5,6 +5,8 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<bean id="executor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool"
+		  destroy-method="shutdown"/>
 
 	<int:splitter input-channel="in" output-channel="aggregationChannelFromSplitter"/>
 
@@ -20,4 +22,5 @@
 	<int:channel id="resultChannel">
 		<int:queue/>
 	</int:channel>
+
 </beans>

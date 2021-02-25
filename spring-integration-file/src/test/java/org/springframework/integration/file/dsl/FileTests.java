@@ -201,10 +201,12 @@ public class FileTests {
 			if (even) {
 				evens.add(i);
 			}
-			FileOutputStream file = new FileOutputStream(new File(tmpDir, i + extension));
-			file.write(("" + i).getBytes());
-			file.flush();
-			file.close();
+			File tmpFile = new File(tmpDir, i + extension + ".tmp");
+			FileOutputStream stream = new FileOutputStream(tmpFile);
+			stream.write(("" + i).getBytes());
+			stream.flush();
+			stream.close();
+			tmpFile.renameTo(new File(tmpDir, i + extension));
 		}
 
 		Message<?> message = fileReadingResultChannel.receive(60000);
