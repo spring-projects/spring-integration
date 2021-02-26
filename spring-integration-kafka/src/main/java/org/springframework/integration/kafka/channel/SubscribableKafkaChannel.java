@@ -113,18 +113,7 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 		String groupId = getGroupId();
 		ContainerProperties containerProperties = this.container.getContainerProperties();
 		containerProperties.setGroupId(groupId != null ? groupId : getBeanName());
-		containerProperties.setMessageListener(
-				new RecordMessagingMessageListenerAdapter<Object, Object>(null, null) { // NOSONAR - out of use
-
-					@Override
-					public void onMessage(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment,
-							Consumer<?, ?> consumer) {
-
-						SubscribableKafkaChannel.this.dispatcher
-								.dispatch(toMessagingMessage(record, acknowledgment, consumer));
-					}
-
-				});
+		containerProperties.setMessageListener(new IntegrationRecordMessageListener());
 	}
 
 	protected MessageDispatcher createDispatcher() {
@@ -161,6 +150,22 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 	@Override
 	public boolean unsubscribe(MessageHandler handler) {
 		return this.dispatcher.removeHandler(handler);
+	}
+
+
+	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<Object, Object> {
+
+		IntegrationRecordMessageListener() {
+			super(null, null); // NOSONAR - out of use
+		}
+
+		@Override
+		public void onMessage(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment,
+				Consumer<?, ?> consumer) {
+
+			SubscribableKafkaChannel.this.dispatcher.dispatch(toMessagingMessage(record, acknowledgment, consumer));
+		}
+
 	}
 
 }

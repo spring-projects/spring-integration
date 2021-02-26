@@ -41,7 +41,7 @@
 		<poller trigger="customTrigger"/>
 	</inbound-channel-adapter>
 
-	<inbound-channel-adapter id="expressionElement" channel="triggerRefChannel">
+	<inbound-channel-adapter id="expressionElement" channel="triggerRefChannel" auto-startup="false">
 		<poller fixed-delay="1000"/>
 		<expression key="test.greeting"/>
 	</inbound-channel-adapter>
