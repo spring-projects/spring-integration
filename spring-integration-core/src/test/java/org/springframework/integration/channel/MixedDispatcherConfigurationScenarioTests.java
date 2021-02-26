@@ -32,10 +32,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -83,11 +81,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 	@Autowired
 	private ConfigurableApplicationContext ac;
-
-	@BeforeEach
-	public void initialize() {
-		Mockito.reset(this.exceptionRegistry, this.handlerA, this.handlerB, this.handlerC);
-	}
 
 	@Test
 	public void noFailoverNoLoadBalancing() {
@@ -158,9 +151,9 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 		doAnswer(invocation -> {
 			RuntimeException e = new RuntimeException();
-			allDone.countDown();
 			failed.set(true);
 			exceptionRegistry.add(e);
+			allDone.countDown();
 			throw e;
 		}).when(handlerA).handleMessage(message);
 
