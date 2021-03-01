@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,21 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author David Turanski
  * @author Artem Bilan
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 public class DeriveLanguageFromExtensionTests {
 
 	@Autowired
@@ -44,10 +43,9 @@ public class DeriveLanguageFromExtensionTests {
 
 	@Test
 	public void testParseLanguage() {
-		String[] langs = { "ruby", "Groovy", "ECMAScript", "python", "kotlin" };
+		String[] langs = { "ruby", "Groovy", "python", "kotlin" };
 		Class<?>[] executors = {
 				RubyScriptExecutor.class,
-				DefaultScriptExecutor.class,
 				DefaultScriptExecutor.class,
 				PythonScriptExecutor.class,
 				KotlinScriptExecutor.class
@@ -55,9 +53,9 @@ public class DeriveLanguageFromExtensionTests {
 
 		Map<String, ScriptExecutingMessageProcessor> scriptProcessors =
 				this.ctx.getBeansOfType(ScriptExecutingMessageProcessor.class);
-		assertThat(scriptProcessors.size()).isEqualTo(5);
+		assertThat(scriptProcessors.size()).isEqualTo(4);
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 4; i++) {
 			ScriptExecutingMessageProcessor processor = ctx.getBean(
 					"org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor#" + i,
 					ScriptExecutingMessageProcessor.class);

@@ -29,7 +29,7 @@
 
 
 	<beans:bean id="scriptVarSource"
-		class="org.springframework.integration.scripting.config.jsr223.Jsr223ServiceActivatorTests$SampleScriptVariSource"/>
+		class="org.springframework.integration.scripting.config.jsr223.Jsr223ServiceActivatorTests$SampleScriptVariableSource"/>
 
 	<service-activator input-channel="inlineScriptInput">
 		<script:script lang="ruby" variables="foo=#{'FOO'}, date-ref=date">
