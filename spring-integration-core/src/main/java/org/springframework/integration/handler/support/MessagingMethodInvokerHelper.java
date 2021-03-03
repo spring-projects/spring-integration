@@ -620,10 +620,10 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 		if (++handlerMethod.failedAttempts >= FAILED_ATTEMPTS_THRESHOLD) {
 			handlerMethod.spelOnly = true;
-				LOGGER.info(() -> "Failed to invoke [ " + handlerMethod.invocableHandlerMethod +
-						"] with provided arguments [ " + parameters + " ]. \n" +
-						"Falling back to SpEL invocation for expression [ " +
-						expression.getExpressionString() + " ]");
+			LOGGER.info(() -> "Failed to invoke [ " + handlerMethod.invocableHandlerMethod +
+					"] with provided arguments [ " + parameters + " ]. \n" +
+					"Falling back to SpEL invocation for expression [ " +
+					expression.getExpressionString() + " ]");
 		}
 
 		return invokeExpression(expression, parameters);
@@ -1329,7 +1329,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			if (this.targetParameterTypeDescriptor != null) {
 				throw new IneligibleMethodException("Found more than one parameter type candidate: [" +
 						this.targetParameterTypeDescriptor + "] and [" + targetParameterType + "].\n" +
-						"Consider to mark one of the parameter with '@Payload' annotation.");
+						"Consider annotating one of the parameters with '@Payload'.");
 			}
 			this.targetParameterTypeDescriptor = targetParameterType;
 			if (Message.class.isAssignableFrom(targetParameterType.getObjectType())) {
