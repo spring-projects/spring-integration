@@ -17,29 +17,23 @@
 package org.springframework.integration.endpoint;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
@@ -96,19 +90,8 @@ public class PseudoTransactionalMessageSourceTests {
 			}
 		});
 
-		MessageChannel afterCommitChannel = new NullChannel();
+		QueueChannel afterCommitChannel = new QueueChannel();
 		syncProcessor.setAfterCommitChannel(afterCommitChannel);
-		LogAccessor logAccessor = TestUtils.getPropertyValue(afterCommitChannel, "LOG", LogAccessor.class);
-
-		Log logger = logAccessor.getLog();
-
-		logger = Mockito.spy(logger);
-
-		Mockito.when(logger.isDebugEnabled()).thenReturn(true);
-
-		DirectFieldAccessor dfa = new DirectFieldAccessor(logAccessor);
-		dfa.setPropertyValue("log", logger);
-
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
 		doPoll(adapter);
@@ -118,7 +101,10 @@ public class PseudoTransactionalMessageSourceTests {
 		assertThat(beforeCommitMessage).isNotNull();
 		assertThat(beforeCommitMessage.getPayload()).isEqualTo("qox");
 
-		Mockito.verify(logger).debug(Mockito.any(CharSequence.class));
+		assertThat(afterCommitChannel.receive(1000))
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("qux");
 
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
@@ -393,14 +379,12 @@ public class PseudoTransactionalMessageSourceTests {
 	}
 
 	protected void doPoll(SourcePollingChannelAdapter adapter) {
-		try {
-			Method method = AbstractPollingEndpoint.class.getDeclaredMethod("doPoll");
-			method.setAccessible(true);
-			method.invoke(adapter);
-		}
-		catch (Exception e) {
-			fail("Failed to invoke doPoll(): " + e.toString());
-		}
+		assertThatNoException()
+				.isThrownBy(() -> {
+					Method method = AbstractPollingEndpoint.class.getDeclaredMethod("doPoll");
+					method.setAccessible(true);
+					method.invoke(adapter);
+				});
 	}
 
 	public class Bar {
