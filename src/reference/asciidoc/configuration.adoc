@@ -501,7 +501,7 @@ public void handleReactive(String payload) {
 ====
 
 The `reactive()` attribute on the messaging annotations is mutually exclusive with the `poller()` attribute.
-See <<configuration-using-poller-annotation>> and <<../reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
+See <<configuration-using-poller-annotation>> and <<./reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
 
 ==== Using the `@InboundChannelAdapter` Annotation
 

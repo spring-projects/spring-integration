@@ -285,7 +285,7 @@ public IntegrationFlow reactiveEndpointFlow() {
 ----
 ====
 
-See <<../reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
+See <<./reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
 
 [[java-dsl-endpoints]]
 === DSL and Endpoint Configuration
