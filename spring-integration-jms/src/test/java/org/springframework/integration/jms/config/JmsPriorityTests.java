@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,29 +23,28 @@ import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0.2
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class JmsPriorityTests {
+public class JmsPriorityTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	private MessageChannel channelAdapterChannel;
@@ -55,12 +54,6 @@ public class JmsPriorityTests {
 
 	@Autowired
 	private MessageChannel gatewayChannel;
-
-
-	@Before
-	public void prepareActiveMq() {
-		ActiveMqTestUtils.prepare();
-	}
 
 	@Test
 	public void verifyPrioritySettingOnChannelAdapterUsedAsJmsPriorityIfNoHeader() throws Exception {
@@ -85,7 +78,7 @@ public class JmsPriorityTests {
 	}
 
 	@Test
-	public void verifyPrioritySettingOnGatewayUsedAsJmsPriorityIfNoHeader() throws Exception {
+	public void verifyPrioritySettingOnGatewayUsedAsJmsPriorityIfNoHeader() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		gatewayChannel.send(message);
@@ -95,7 +88,7 @@ public class JmsPriorityTests {
 	}
 
 	@Test
-	public void verifyPriorityHeaderUsedAsJmsPriorityWithGateway() throws Exception {
+	public void verifyPriorityHeaderUsedAsJmsPriorityWithGateway() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test").setPriority(8).setReplyChannel(replyChannel).build();
 		gatewayChannel.send(message);
@@ -114,6 +107,7 @@ public class JmsPriorityTests {
 			reply.setJMSCorrelationID(request.getJMSMessageID());
 			producer.send(reply);
 		}
+
 	}
 
 }

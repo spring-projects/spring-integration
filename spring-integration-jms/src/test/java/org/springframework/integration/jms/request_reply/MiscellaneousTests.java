@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,23 +21,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.gateway.RequestReplyExchanger;
-import org.springframework.integration.jms.config.ActiveMqTestUtils;
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
+@LongRunningTest
 public class MiscellaneousTests {
-
-	@Rule
-	public LongRunningIntegrationTest longRunning = new LongRunningIntegrationTest();
 
 	/**
 	 * Asserts that receive-timeout is honored even if
@@ -46,7 +43,6 @@ public class MiscellaneousTests {
 	 */
 	@Test
 	public void testTimeoutHonoringWhenRequestsQueuedUp() throws Exception {
-		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("honor-timeout.xml", this.getClass());
 		final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
 		final CountDownLatch latch = new CountDownLatch(3);
@@ -64,10 +60,10 @@ public class MiscellaneousTests {
 	}
 
 
-	private void exchange(final CountDownLatch latch, final RequestReplyExchanger gateway, final AtomicInteger replies) {
+	private void exchange(CountDownLatch latch, RequestReplyExchanger gateway, AtomicInteger replies) {
 		new Thread(() -> {
 			try {
-				gateway.exchange(new GenericMessage<String>(""));
+				gateway.exchange(new GenericMessage<>(""));
 				replies.incrementAndGet();
 			}
 			catch (Exception e) {
@@ -76,4 +72,5 @@ public class MiscellaneousTests {
 			latch.countDown();
 		}).start();
 	}
+
 }

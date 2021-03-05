@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import assertk.assertions.contains
 import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThan
 import assertk.assertions.isNotNull
-import org.apache.activemq.ActiveMQConnectionFactory
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -32,6 +31,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.MessageChannels
 import org.springframework.integration.dsl.integrationFlow
+import org.springframework.integration.jms.ActiveMQMultiContextTests
 import org.springframework.integration.jms.DefaultJmsHeaderMapper
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.jms.support.JmsHeaders
@@ -50,7 +50,7 @@ import javax.jms.DeliveryMode
  */
 @SpringJUnitConfig
 @DirtiesContext
-class JmsDslKotlinTests {
+class JmsDslKotlinTests : ActiveMQMultiContextTests() {
 
 	@Autowired
 	@Qualifier("jmsOutboundFlow.input")
@@ -62,10 +62,12 @@ class JmsDslKotlinTests {
 	@Test
 	fun `test JMS Channel Adapters DSL`() {
 
-		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("    foo    ")
+		this.jmsOutboundInboundChannel.send(
+			MessageBuilder.withPayload("    foo    ")
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "containerSpecDestination")
 				.setPriority(9)
-				.build())
+				.build()
+		)
 
 		val receive = this.jmsOutboundInboundReplyChannel.receive(10000)
 
@@ -74,11 +76,11 @@ class JmsDslKotlinTests {
 		assertThat(payload).isNotNull().isEqualTo("foo")
 
 		assertThat(receive?.headers)
-				.isNotNull()
-				.all {
-					contains(IntegrationMessageHeaderAccessor.PRIORITY, 9)
-					contains(JmsHeaders.DELIVERY_MODE, 1)
-				}
+			.isNotNull()
+			.all {
+				contains(IntegrationMessageHeaderAccessor.PRIORITY, 9)
+				contains(JmsHeaders.DELIVERY_MODE, 1)
+			}
 
 		val expiration = receive!!.headers[JmsHeaders.EXPIRATION] as Long
 		assertThat(expiration).isGreaterThan(System.currentTimeMillis())
@@ -89,24 +91,17 @@ class JmsDslKotlinTests {
 	class Config {
 
 		@Bean
-		fun jmsConnectionFactory(): ActiveMQConnectionFactory {
-			val activeMQConnectionFactory = ActiveMQConnectionFactory("vm://localhost?broker.persistent=false")
-			activeMQConnectionFactory.isTrustAllPackages = true
-			return activeMQConnectionFactory
-		}
-
-		@Bean
 		fun jmsOutboundFlow() =
-				integrationFlow {
-					handle(Jms.outboundAdapter(jmsConnectionFactory())
-							.apply {
-								destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER)
-								deliveryModeFunction<Any> { DeliveryMode.NON_PERSISTENT }
-								timeToLiveExpression("10000")
-								configureJmsTemplate { it.explicitQosEnabled(true) }
-							}
-					)
-				}
+			integrationFlow {
+				handle(Jms.outboundAdapter(connectionFactory)
+					.apply {
+						destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER)
+						deliveryModeFunction<Any> { DeliveryMode.NON_PERSISTENT }
+						timeToLiveExpression("10000")
+						configureJmsTemplate { it.explicitQosEnabled(true) }
+					}
+				)
+			}
 
 		@Bean
 		fun jmsHeaderMapper(): DefaultJmsHeaderMapper {
@@ -121,17 +116,18 @@ class JmsDslKotlinTests {
 
 		@Bean
 		fun jmsMessageDrivenFlowWithContainer() =
-				integrationFlow(
-						Jms.messageDrivenChannelAdapter(
-								Jms.container(jmsConnectionFactory(), "containerSpecDestination")
-										.pubSubDomain(false)
-										.taskExecutor(Executors.newCachedThreadPool()))
-								.headerMapper(jmsHeaderMapper())) {
-					transform { it: String -> it.trim { it <= ' ' } }
-					channel(jmsOutboundInboundReplyChannel())
-				}
+			integrationFlow(
+				Jms.messageDrivenChannelAdapter(
+					Jms.container(amqFactory, "containerSpecDestination")
+						.pubSubDomain(false)
+						.taskExecutor(Executors.newCachedThreadPool())
+				)
+					.headerMapper(jmsHeaderMapper())
+			) {
+				transform { it: String -> it.trim { it <= ' ' } }
+				channel(jmsOutboundInboundReplyChannel())
+			}
 
 	}
-
 
 }

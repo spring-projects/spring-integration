@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import javax.jms.Message;
 import javax.jms.TextMessage;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -33,16 +31,13 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.JmsTimeoutException;
-import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.support.JmsHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -51,13 +46,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 4.3
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class AsyncGatewayTests extends ActiveMQMultiContextTests {
-
-	@Autowired
-	private CachingConnectionFactory ccf;
 
 	@Autowired
 	private JmsOutboundGateway gateway1;
@@ -73,11 +64,11 @@ public class AsyncGatewayTests extends ActiveMQMultiContextTests {
 		this.gateway1.handleMessage(MessageBuilder.withPayload("foo")
 				.setHeader(JmsHeaders.CORRELATION_ID, "baz")// make sure it's restored in case we're from an upstream gw
 				.build());
-		JmsTemplate template = new JmsTemplate(this.ccf);
+		JmsTemplate template = new JmsTemplate(connectionFactory);
 		template.setReceiveTimeout(10000);
 		final Message received = template.receive("asyncTest1");
 		assertThat(received).isNotNull();
-		template.send(received.getJMSReplyTo(), (MessageCreator) session -> {
+		template.send(received.getJMSReplyTo(), session -> {
 			TextMessage textMessage = session.createTextMessage("bar");
 			textMessage.setJMSCorrelationID(received.getJMSCorrelationID());
 			return textMessage;
@@ -90,12 +81,12 @@ public class AsyncGatewayTests extends ActiveMQMultiContextTests {
 	}
 
 	@Test
-	public void testWithTimeout() throws Exception {
+	public void testWithTimeout() {
 		QueueChannel errors = new QueueChannel();
 		this.gateway2.setOutputChannel(errors);
 		this.gateway2.start();
 		this.gateway2.handleMessage(MessageBuilder.withPayload("foo").setErrorChannel(errors).build());
-		JmsTemplate template = new JmsTemplate(this.ccf);
+		JmsTemplate template = new JmsTemplate(connectionFactory);
 		template.setReceiveTimeout(10000);
 		final Message received = template.receive("asyncTest3");
 		assertThat(received).isNotNull();
@@ -110,13 +101,13 @@ public class AsyncGatewayTests extends ActiveMQMultiContextTests {
 
 	@Test
 	@DirtiesContext
-	public void testWithTimeoutNoReplyRequired() throws Exception {
+	public void testWithTimeoutNoReplyRequired() {
 		QueueChannel errors = new QueueChannel();
 		this.gateway2.setOutputChannel(errors);
 		this.gateway2.setRequiresReply(false);
 		this.gateway2.start();
 		this.gateway2.handleMessage(MessageBuilder.withPayload("foo").setErrorChannel(errors).build());
-		JmsTemplate template = new JmsTemplate(this.ccf);
+		JmsTemplate template = new JmsTemplate(connectionFactory);
 		template.setReceiveTimeout(10000);
 		final Message received = template.receive("asyncTest3");
 		assertThat(received).isNotNull();
@@ -130,18 +121,10 @@ public class AsyncGatewayTests extends ActiveMQMultiContextTests {
 	public static class Config {
 
 		@Bean
-		public CachingConnectionFactory ccf() {
-			CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(
-					new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
-			cachingConnectionFactory.setCacheConsumers(false);
-			return cachingConnectionFactory;
-		}
-
-		@Bean
 		public JmsOutboundGateway gateway1() {
 			JmsOutboundGateway gateway = new JmsOutboundGateway();
 			gateway.setUseReplyContainer(true);
-			gateway.setConnectionFactory(ccf());
+			gateway.setConnectionFactory(connectionFactory);
 			gateway.setRequestDestinationName("asyncTest1");
 			gateway.setReplyDestinationName("asyncTest2");
 			gateway.setRequiresReply(true);
@@ -155,7 +138,7 @@ public class AsyncGatewayTests extends ActiveMQMultiContextTests {
 		public JmsOutboundGateway gateway2() {
 			JmsOutboundGateway gateway = new JmsOutboundGateway();
 			gateway.setUseReplyContainer(true);
-			gateway.setConnectionFactory(ccf());
+			gateway.setConnectionFactory(connectionFactory);
 			gateway.setRequestDestinationName("asyncTest3");
 			gateway.setReplyDestinationName("asyncTest4");
 			gateway.setRequiresReply(true);

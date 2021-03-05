@@ -25,15 +25,8 @@
 
 	<int-jms:channel id="jmsChannel" cache="${CACHELEVEL}" queue="jmsQueue" container-type="${listenerContainer}"/>
 
-	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
-		<property name="targetConnectionFactory">
-			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
-				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
-			</bean>
-		</property>
-		<property name="sessionCacheSize" value="10"/>
-		<property name="cacheProducers" value="false"/>
-	</bean>
+	<util:constant id="jmsConnectionFactory"
+				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.connectionFactory"/>
 
 	<bean id="jmsQueue" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="jmsQueue.queue"/>

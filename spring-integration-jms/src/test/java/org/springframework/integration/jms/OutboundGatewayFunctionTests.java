@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,23 +26,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.JmsException;
-import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
@@ -77,9 +71,6 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 
 	private static Destination replyQueue7 = new ActiveMQQueue("reply7");
 
-	@Rule
-	public Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.trace();
-
 	@Test
 	public void testContainerWithDest() throws Exception {
 		BeanFactory beanFactory = mock(BeanFactory.class);
@@ -90,7 +81,6 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		ConnectionFactory connectionFactory = getConnectionFactory();
 		gateway.setConnectionFactory(connectionFactory);
 		gateway.setRequestDestination(requestQueue1);
 		gateway.setReplyDestination(replyQueue1);
@@ -98,14 +88,14 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		gateway.setUseReplyContainer(true);
 		gateway.afterPropertiesSet();
 		gateway.start();
-		final AtomicReference<Object> reply = new AtomicReference<Object>();
+		final AtomicReference<Object> reply = new AtomicReference<>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
 			}
 			finally {
 				latch2.countDown();
@@ -118,7 +108,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		javax.jms.Message request = template.receive(requestQueue1);
 		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
+		template.send(request.getJMSReplyTo(), session -> jmsReply);
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reply.get()).isNotNull();
 
@@ -137,20 +127,20 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getConnectionFactory());
+		gateway.setConnectionFactory(connectionFactory);
 		gateway.setRequestDestination(requestQueue2);
 		gateway.setReplyDestination(replyQueue2);
 		gateway.setUseReplyContainer(true);
 		gateway.afterPropertiesSet();
 		gateway.start();
-		final AtomicReference<Object> reply = new AtomicReference<Object>();
+		final AtomicReference<Object> reply = new AtomicReference<>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
 			}
 			finally {
 				latch2.countDown();
@@ -158,12 +148,12 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		});
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getConnectionFactory());
+		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue2);
 		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), (MessageCreator) session -> {
+		template.send(request.getJMSReplyTo(), session -> {
 			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 			return jmsReply;
 		});
@@ -185,21 +175,21 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getConnectionFactory());
+		gateway.setConnectionFactory(connectionFactory);
 		gateway.setRequestDestination(requestQueue3);
 		gateway.setReplyDestinationName("reply3");
 		gateway.setCorrelationKey("JMSCorrelationID");
 		gateway.setUseReplyContainer(true);
 		gateway.afterPropertiesSet();
 		gateway.start();
-		final AtomicReference<Object> reply = new AtomicReference<Object>();
+		final AtomicReference<Object> reply = new AtomicReference<>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
 			}
 			finally {
 				latch2.countDown();
@@ -207,7 +197,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		});
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getConnectionFactory());
+		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue3);
 		assertThat(request).isNotNull();
@@ -231,7 +221,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getConnectionFactory());
+		gateway.setConnectionFactory(connectionFactory);
 		gateway.setRequestDestination(requestQueue4);
 		gateway.setReplyDestinationName("reply4");
 		gateway.setUseReplyContainer(true);
@@ -252,7 +242,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		});
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getConnectionFactory());
+		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue4);
 		assertThat(request).isNotNull();
@@ -279,7 +269,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getConnectionFactory());
+		gateway.setConnectionFactory(connectionFactory);
 		gateway.setRequestDestination(requestQueue5);
 		gateway.setCorrelationKey("JMSCorrelationID");
 		gateway.setUseReplyContainer(true);
@@ -301,7 +291,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		});
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getConnectionFactory());
+		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue5);
 		assertThat(request).isNotNull();
@@ -325,7 +315,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getConnectionFactory());
+		gateway.setConnectionFactory(connectionFactory);
 		gateway.setRequestDestination(requestQueue6);
 		gateway.setUseReplyContainer(true);
 		gateway.afterPropertiesSet();
@@ -345,7 +335,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		});
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getConnectionFactory());
+		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue6);
 		assertThat(request).isNotNull();
@@ -372,7 +362,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getConnectionFactory());
+		gateway.setConnectionFactory(connectionFactory);
 		gateway.setRequestDestination(requestQueue7);
 		gateway.setReplyDestination(replyQueue7);
 		gateway.setCorrelationKey("JMSCorrelationID");
@@ -385,7 +375,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
 			JmsTemplate template = new JmsTemplate();
-			template.setConnectionFactory(getConnectionFactory());
+			template.setConnectionFactory(connectionFactory);
 			template.setReceiveTimeout(20000);
 			receiveAndSend(template);
 			receiveAndSend(template);
@@ -416,14 +406,6 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		}
 		catch (JmsException | JMSException e) {
 		}
-	}
-
-	private ConnectionFactory getConnectionFactory() {
-		ActiveMQConnectionFactory activeMQConnectionFactory =
-				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
-		CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(activeMQConnectionFactory);
-		cachingConnectionFactory.setCacheConsumers(false);
-		return cachingConnectionFactory;
 	}
 
 }

@@ -1,26 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/jms https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
+		http://www.springframework.org/schema/integration/jms https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+
+	<util:constant id="jmsConnectionFactory"
+				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.amqFactory"/>
 
 	<int-jms:message-driven-channel-adapter channel="toOut"
-		connection-factory="jmsConnectionFactory"
-		acknowledge="transacted"
-		destination-name="outcatQ1"/>
+											connection-factory="jmsConnectionFactory"
+											acknowledge="transacted"
+											destination-name="outcatQ1"/>
 
-	<int:publish-subscribe-channel id="toOut" />
+	<int:publish-subscribe-channel id="toOut"/>
 
 	<int-jms:outbound-channel-adapter channel="toOut" order="1"
-		connection-factory="jmsConnectionFactory"
-		destination-name="outcatQ2"
-		session-transacted="true" />
+									  connection-factory="jmsConnectionFactory"
+									  destination-name="outcatQ2"
+									  session-transacted="true"/>
 
 	<int:service-activator input-channel="toOut" order="2" ref="aborter"/>
 
-	<bean id="aborter" class="org.springframework.integration.jms.JmsOutboundChannelAdapterTests$Aborter" />
+	<bean id="aborter" class="org.springframework.integration.jms.JmsOutboundChannelAdapterTests$Aborter"/>
 
 </beans>

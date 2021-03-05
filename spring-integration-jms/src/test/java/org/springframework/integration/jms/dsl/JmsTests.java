@@ -25,16 +25,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.jms.ConnectionFactory;
-
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -60,7 +56,6 @@ import org.springframework.integration.jms.JmsDestinationPollingSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.MessageListenerContainer;
@@ -72,7 +67,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.InterceptableChannel;
-import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -116,9 +110,6 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	private TestChannelInterceptor testChannelInterceptor;
-
-	@Autowired
-	private ConnectionFactory cachingConnectionFactory;
 
 	@Autowired
 	private PollableChannel jmsPubSubBridgeChannel;
@@ -246,7 +237,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testPubSubFlow() {
-		JmsTemplate template = new JmsTemplate(this.cachingConnectionFactory);
+		JmsTemplate template = new JmsTemplate(connectionFactory);
 		template.setPubSubDomain(true);
 		template.setDefaultDestinationName("pubsub");
 		template.convertAndSend("foo");
@@ -284,25 +275,11 @@ public class JmsTests extends ActiveMQMultiContextTests {
 	@Configuration
 	@EnableIntegration
 	@IntegrationComponentScan
-	@ComponentScan
 	public static class ContextConfiguration {
 
 		@Bean
-		public ActiveMQConnectionFactory jmsConnectionFactory() {
-			ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(
-					"vm://localhost?broker.persistent=false");
-			activeMQConnectionFactory.setTrustAllPackages(true);
-			return activeMQConnectionFactory;
-		}
-
-		@Bean
-		public ConnectionFactory cachingConnectionFactory() {
-			return new CachingConnectionFactory(jmsConnectionFactory());
-		}
-
-		@Bean
 		public JmsTemplate jmsTemplate() {
-			return new JmsTemplate(cachingConnectionFactory());
+			return new JmsTemplate(connectionFactory);
 		}
 
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
@@ -329,14 +306,14 @@ public class JmsTests extends ActiveMQMultiContextTests {
 			return f -> f
 					.fixedSubscriberChannel("integerChannel")
 					.transform("payload.toString()")
-					.channel(Jms.pollableChannel("flow1QueueChannel", jmsConnectionFactory())
+					.channel(Jms.pollableChannel("flow1QueueChannel", amqFactory)
 							.destination("flow1QueueChannel"));
 		}
 
 		@Bean
 		public IntegrationFlow jmsOutboundFlow() {
 			return f -> f
-					.handle(Jms.outboundAdapter(cachingConnectionFactory())
+					.handle(Jms.outboundAdapter(connectionFactory)
 							.destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER)
 							.configureJmsTemplate(t -> t.id("jmsOutboundFlowTemplate")));
 		}
@@ -349,9 +326,16 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		@Bean
 		public IntegrationFlow jmsInboundFlow() {
 			return IntegrationFlows
-					.from(Jms.inboundAdapter(jmsConnectionFactory()).destination("jmsInbound"))
+					.from(Jms.inboundAdapter(amqFactory).destination("jmsInbound"))
 					.<String, String>transform(String::toUpperCase)
 					.channel(this.jmsOutboundInboundReplyChannel())
+					.get();
+		}
+
+		@Bean
+		public BroadcastCapableChannel jmsPublishSubscribeChannel() {
+			return Jms.publishSubscribeChannel(amqFactory)
+					.destination("pubsub")
 					.get();
 		}
 
@@ -367,16 +351,9 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		}
 
 		@Bean
-		public BroadcastCapableChannel jmsPublishSubscribeChannel() {
-			return Jms.publishSubscribeChannel(jmsConnectionFactory())
-					.destination("pubsub")
-					.get();
-		}
-
-		@Bean
 		public IntegrationFlow jmsMessageDrivenFlow() {
 			return IntegrationFlows
-					.from(Jms.messageDrivenChannelAdapter(jmsConnectionFactory(),
+					.from(Jms.messageDrivenChannelAdapter(amqFactory,
 							DefaultMessageListenerContainer.class)
 							.outputChannel(jmsMessageDrivenInputChannel())
 							.destination("jmsMessageDriven")
@@ -410,7 +387,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		public IntegrationFlow jmsMessageDrivenFlowWithContainer() {
 			return IntegrationFlows
 					.from(Jms.messageDrivenChannelAdapter(
-							Jms.container(jmsConnectionFactory(), "containerSpecDestination")
+							Jms.container(amqFactory, "containerSpecDestination")
 									.pubSubDomain(false)
 									.taskExecutor(Executors.newCachedThreadPool())
 									.get()))
@@ -421,7 +398,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public IntegrationFlow jmsOutboundGatewayFlow() {
-			return f -> f.handle(Jms.outboundGateway(cachingConnectionFactory())
+			return f -> f.handle(Jms.outboundGateway(connectionFactory)
 							.replyContainer(c -> c.idleReplyContainerTimeout(10))
 							.requestDestination("jmsPipelineTest"),
 					e -> e.id("jmsOutboundGateway"));
@@ -430,7 +407,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		@Bean
 		public IntegrationFlow jmsInboundGatewayFlow() {
 			return IntegrationFlows.from(
-					Jms.inboundGateway(jmsConnectionFactory())
+					Jms.inboundGateway(amqFactory)
 							.requestChannel(jmsInboundGatewayInputChannel())
 							.replyTimeout(1)
 							.errorOnTimeout(true)
@@ -475,7 +452,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		@Bean
 		public IntegrationFlow jmsMessageDrivenRedeliveryFlow() {
 			return IntegrationFlows
-					.from(Jms.messageDrivenChannelAdapter(jmsConnectionFactory())
+					.from(Jms.messageDrivenChannelAdapter(amqFactory)
 							.errorChannel("errorChannelForRedelivery")
 							.destination("jmsMessageDrivenRedelivery")
 							.configureListenerContainer(c -> c
@@ -505,10 +482,14 @@ public class JmsTests extends ActiveMQMultiContextTests {
 					.get();
 		}
 
+		@Bean
+		@GlobalChannelInterceptor(patterns = "flow1QueueChannel")
+		ChannelInterceptor testChannelInterceptor() {
+			return new TestChannelInterceptor();
+		}
+
 	}
 
-	@Component
-	@GlobalChannelInterceptor(patterns = "flow1QueueChannel")
 	public static class TestChannelInterceptor implements ChannelInterceptor {
 
 		private final AtomicInteger invoked = new AtomicInteger();

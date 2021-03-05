@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,27 +18,27 @@ package org.springframework.integration.jms.request_reply;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class GatewaySerializedReplyChannelTests {
+public class GatewaySerializedReplyChannelTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	MessageChannel input;
@@ -48,7 +48,7 @@ public class GatewaySerializedReplyChannelTests {
 
 	@Test
 	public void test() {
-		input.send(new GenericMessage<String>("foo"));
+		input.send(new GenericMessage<>("foo"));
 		Message<?> reply = output.receive(0);
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:foo");

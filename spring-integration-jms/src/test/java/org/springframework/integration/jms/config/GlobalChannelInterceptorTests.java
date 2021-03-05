@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.InterceptableChannel;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Oleg Zhurakousky
@@ -35,20 +36,19 @@ import org.springframework.messaging.support.InterceptableChannel;
  *
  * @since 2.0.1
  */
-public class GlobalChannelInterceptorTests {
+@SpringJUnitConfig
+@DirtiesContext
+public class GlobalChannelInterceptorTests extends ActiveMQMultiContextTests {
+
+	@Autowired
+	InterceptableChannel jmsChannel;
 
 	@Test
 	public void testJmsChannel() {
-		ActiveMqTestUtils.prepare();
-		try (ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				"GlobalChannelInterceptorTests-context.xml", GlobalChannelInterceptorTests.class)) {
-
-			InterceptableChannel jmsChannel = context.getBean("jmsChannel", AbstractMessageChannel.class);
-			List<ChannelInterceptor> interceptors = jmsChannel.getInterceptors();
-			assertThat(interceptors).isNotNull();
-			assertThat(interceptors.size()).isEqualTo(1);
-			assertThat(interceptors.get(0) instanceof SampleInterceptor).isTrue();
-		}
+		List<ChannelInterceptor> interceptors = this.jmsChannel.getInterceptors();
+		assertThat(interceptors).isNotNull();
+		assertThat(interceptors.size()).isEqualTo(1);
+		assertThat(interceptors.get(0) instanceof SampleInterceptor).isTrue();
 	}
 
 

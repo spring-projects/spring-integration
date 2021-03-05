@@ -1,45 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/jms https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
+		http://www.springframework.org/schema/integration/jms https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<int:channel id="outbound-gateway-channel"/>
-	
+
 	<int:channel id="output">
 		<int:queue/>
 	</int:channel>
-	
-	<int-jms:outbound-gateway request-channel="outbound-gateway-channel" 
+
+	<int-jms:outbound-gateway request-channel="outbound-gateway-channel"
 							  reply-destination="replyQueue"
 							  reply-channel="output"
-					          request-destination="requestQueue"
-					          message-converter="marshallingMessageConverter"/>
-	
-	<int-jms:inbound-gateway request-destination="requestQueue" 
-                             request-channel="inbound-gateway-channel"
-                             message-converter="marshallingMessageConverter"/>
-                             
-    <int:channel id="inbound-gateway-channel"/> 
-    
-    <int:service-activator input-channel="inbound-gateway-channel" method="echo">
-    	<bean class="org.springframework.integration.jms.config.JmsWithMarshallingMessageConverterTests$SampleService"/>
-    </int:service-activator>
-    
-    <bean id="marshallingMessageConverter" class="org.springframework.jms.support.converter.MarshallingMessageConverter">
-    	<constructor-arg>
-    		<bean class="org.springframework.integration.jms.config.JmsWithMarshallingMessageConverterTests$SampleMarshaller"/>
-    	</constructor-arg>
-    	<constructor-arg>
-    		<bean class="org.springframework.integration.jms.config.JmsWithMarshallingMessageConverterTests$SampleUnmarshaller"/>
-    	</constructor-arg>
-    </bean>
-    
-    
-    <bean id="requestQueue" class="org.apache.activemq.command.ActiveMQQueue">
+							  request-destination="requestQueue"
+							  message-converter="marshallingMessageConverter"/>
+
+	<int-jms:inbound-gateway request-destination="requestQueue"
+							 request-channel="inbound-gateway-channel"
+							 message-converter="marshallingMessageConverter"/>
+
+	<int:channel id="inbound-gateway-channel"/>
+
+	<int:service-activator input-channel="inbound-gateway-channel" method="echo">
+		<bean class="org.springframework.integration.jms.config.JmsWithMarshallingMessageConverterTests$SampleService"/>
+	</int:service-activator>
+
+	<bean id="marshallingMessageConverter"
+		  class="org.springframework.jms.support.converter.MarshallingMessageConverter">
+		<constructor-arg>
+			<bean class="org.springframework.integration.jms.config.JmsWithMarshallingMessageConverterTests$SampleMarshaller"/>
+		</constructor-arg>
+		<constructor-arg>
+			<bean class="org.springframework.integration.jms.config.JmsWithMarshallingMessageConverterTests$SampleUnmarshaller"/>
+		</constructor-arg>
+	</bean>
+
+
+	<bean id="requestQueue" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="request.queue"/>
 	</bean>
 
@@ -47,14 +50,7 @@
 		<constructor-arg value="reply.queue"/>
 	</bean>
 
-	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
-		<property name="targetConnectionFactory">
-			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
-				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
-			</bean>
-		</property>
-		<property name="sessionCacheSize" value="10"/>
-		<property name="cacheProducers" value="false"/>
-	</bean>
+	<util:constant id="jmsConnectionFactory"
+				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.amqFactory"/>
 
 </beans>

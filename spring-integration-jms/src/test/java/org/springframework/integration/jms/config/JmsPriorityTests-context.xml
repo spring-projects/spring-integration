@@ -1,35 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:jms="http://www.springframework.org/schema/jms"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jms="http://www.springframework.org/schema/jms"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/jms https://www.springframework.org/schema/jms/spring-jms.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/jms https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
+		http://www.springframework.org/schema/integration/jms https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
-	<int-jms:outbound-channel-adapter id="channelAdapterChannel" destination-name="queue.test.priority.channelAdapter" priority="3" explicit-qos-enabled="true"/>
+	<int-jms:outbound-channel-adapter id="channelAdapterChannel" destination-name="queue.test.priority.channelAdapter"
+									  priority="3" explicit-qos-enabled="true"/>
 
-	<int-jms:message-driven-channel-adapter channel="channelAdapterResults" destination-name="queue.test.priority.channelAdapter" extract-payload="false"/>
+	<int-jms:message-driven-channel-adapter channel="channelAdapterResults"
+											destination-name="queue.test.priority.channelAdapter"
+											extract-payload="false"/>
 
 	<int:channel id="gatewayChannel"/>
 
-	<int-jms:outbound-gateway request-channel="gatewayChannel" request-destination-name="queue.test.priority.gateway" priority="2" explicit-qos-enabled="true"/>
+	<int-jms:outbound-gateway request-channel="gatewayChannel" request-destination-name="queue.test.priority.gateway"
+							  priority="2" explicit-qos-enabled="true"/>
 
 	<int:channel id="channelAdapterResults">
 		<int:queue capacity="2"/>
 	</int:channel>
 
-	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
-		<property name="targetConnectionFactory">
-			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
-				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
-			</bean>
-		</property>
-		<property name="sessionCacheSize" value="10"/>
-		<property name="cacheProducers" value="false"/>
-	</bean>
+	<util:constant id="jmsConnectionFactory"
+				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.connectionFactory"/>
 
 	<jms:listener-container connection-factory="jmsConnectionFactory">
 		<jms:listener destination="queue.test.priority.gateway" ref="priorityReader"/>

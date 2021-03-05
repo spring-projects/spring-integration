@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,14 +42,12 @@ import javax.jms.TextMessage;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.jms.JmsOutboundGateway.ReplyContainerProperties;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jms.JmsException;
@@ -69,11 +67,6 @@ import org.springframework.util.ObjectUtils;
 public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
-
-	@Rule
-	public Log4j2LevelAdjuster adjuster =
-			Log4j2LevelAdjuster.trace()
-					.categories(true, "org.springframework.jms", "org.apache");
 
 	@Test
 	public void testContainerBeanNameWhenNoGatewayBeanName() {
@@ -98,7 +91,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.setRequestDestinationName("foo");
 		gateway.setUseReplyContainer(true);
 		ReplyContainerProperties replyContainerProperties = new ReplyContainerProperties();
-		final List<Throwable> errors = new ArrayList<Throwable>();
+		final List<Throwable> errors = new ArrayList<>();
 		ExecutorService exec = Executors.newFixedThreadPool(10);
 		ErrorHandlingTaskExecutor errorHandlingTaskExecutor =
 				new ErrorHandlingTaskExecutor(exec, t -> {
@@ -162,7 +155,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 	}
 
 	@Test
-	public void testConnectionBreakOnReplyMessageIdCorrelation() throws Exception {
+	public void testConnectionBreakOnReplyMessageIdCorrelation() {
 		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
 		connectionFactory1.setCacheConsumers(false);
@@ -179,7 +172,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.afterPropertiesSet();
 		gateway.start();
 		ExecutorService exec = Executors.newSingleThreadExecutor();
-		exec.execute(() -> gateway.handleMessage(new GenericMessage<String>("foo")));
+		exec.execute(() -> gateway.handleMessage(new GenericMessage<>("foo")));
 		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
 		connectionFactory2.setCacheConsumers(false);
@@ -205,7 +198,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 	}
 
 	@Test
-	public void testConnectionBreakOnReplyCustomCorrelation() throws Exception {
+	public void testConnectionBreakOnReplyCustomCorrelation() {
 		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
 		connectionFactory1.setCacheConsumers(false);
@@ -223,7 +216,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.afterPropertiesSet();
 		gateway.start();
 		ExecutorService exec = Executors.newSingleThreadExecutor();
-		exec.execute(() -> gateway.handleMessage(new GenericMessage<String>("foo")));
+		exec.execute(() -> gateway.handleMessage(new GenericMessage<>("foo")));
 		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
 		connectionFactory2.setCacheConsumers(false);

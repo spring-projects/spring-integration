@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,22 +33,18 @@ import java.util.concurrent.TimeUnit;
 import javax.jms.Destination;
 import javax.jms.MessageListener;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.command.ActiveMQTopic;
 import org.apache.commons.logging.Log;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.messaging.Message;
@@ -67,43 +63,31 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 
 	private static final int TIMEOUT = 30000;
 
-	private CachingConnectionFactory connectionFactory;
-
 	private Destination topic;
 
 	private Destination queue;
 
-	@Before
+	@BeforeEach
 	public void setup() {
-		ActiveMqTestUtils.prepare();
-		ActiveMQConnectionFactory targetConnectionFactory = new ActiveMQConnectionFactory();
-		targetConnectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
-		targetConnectionFactory.setTrustAllPackages(true);
-		this.connectionFactory = new CachingConnectionFactory(targetConnectionFactory);
 		this.topic = new ActiveMQTopic("testTopic");
 		this.queue = new ActiveMQQueue("testQueue");
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		this.connectionFactory.resetConnection();
 	}
 
 	@Test
 	public void queueReference() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(2);
-		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<>());
 		MessageHandler handler1 = message -> {
 			receivedList1.add(message);
 			latch.countDown();
 		};
-		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<>());
 		MessageHandler handler2 = message -> {
 			receivedList2.add(message);
 			latch.countDown();
 		};
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
-		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setConnectionFactory(connectionFactory);
 		factoryBean.setDestination(this.queue);
 		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
@@ -112,8 +96,8 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		channel.start();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
-		channel.send(new GenericMessage<String>("foo"));
-		channel.send(new GenericMessage<String>("bar"));
+		channel.send(new GenericMessage<>("foo"));
+		channel.send(new GenericMessage<>("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertThat(receivedList1.size()).isEqualTo(1);
 		assertThat(receivedList1.get(0)).isNotNull();
@@ -127,18 +111,18 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 	@Test
 	public void topicReference() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(4);
-		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<>());
 		MessageHandler handler1 = message -> {
 			receivedList1.add(message);
 			latch.countDown();
 		};
-		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<>());
 		MessageHandler handler2 = message -> {
 			receivedList2.add(message);
 			latch.countDown();
 		};
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
-		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setConnectionFactory(connectionFactory);
 		factoryBean.setDestination(this.topic);
 		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
@@ -150,8 +134,8 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		if (!waitUntilRegisteredWithDestination(channel, 10000)) {
 			fail("Listener failed to subscribe to topic");
 		}
-		channel.send(new GenericMessage<String>("foo"));
-		channel.send(new GenericMessage<String>("bar"));
+		channel.send(new GenericMessage<>("foo"));
+		channel.send(new GenericMessage<>("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertThat(receivedList1.size()).isEqualTo(2);
 		assertThat(receivedList1.get(0).getPayload()).isEqualTo("foo");
@@ -165,18 +149,18 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 	@Test
 	public void queueName() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(2);
-		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<>());
 		MessageHandler handler1 = message -> {
 			receivedList1.add(message);
 			latch.countDown();
 		};
-		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<>());
 		MessageHandler handler2 = message -> {
 			receivedList2.add(message);
 			latch.countDown();
 		};
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
-		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setConnectionFactory(connectionFactory);
 		factoryBean.setDestinationName("dynamicQueue");
 		factoryBean.setPubSubDomain(false);
 		factoryBean.setBeanFactory(mock(BeanFactory.class));
@@ -187,8 +171,8 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		channel.start();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
-		channel.send(new GenericMessage<String>("foo"));
-		channel.send(new GenericMessage<String>("bar"));
+		channel.send(new GenericMessage<>("foo"));
+		channel.send(new GenericMessage<>("bar"));
 
 		assertThat(latch.await(TIMEOUT, TimeUnit.MILLISECONDS))
 				.as("Countdown latch should have counted down to 0 but was "
@@ -206,19 +190,19 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 	@Test
 	public void topicName() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(4);
-		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<>());
 		MessageHandler handler1 = message -> {
 			receivedList1.add(message);
 			latch.countDown();
 		};
-		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<>());
 		MessageHandler handler2 = message -> {
 			receivedList2.add(message);
 			latch.countDown();
 		};
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
-		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setConnectionFactory(connectionFactory);
 		factoryBean.setDestinationName("dynamicTopic");
 		factoryBean.setPubSubDomain(true);
 		factoryBean.setBeanFactory(mock(BeanFactory.class));
@@ -231,8 +215,8 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		}
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
-		channel.send(new GenericMessage<String>("foo"));
-		channel.send(new GenericMessage<String>("bar"));
+		channel.send(new GenericMessage<>("foo"));
+		channel.send(new GenericMessage<>("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertThat(receivedList1.size()).isEqualTo(2);
 		assertThat(receivedList1.get(0).getPayload()).isEqualTo("foo");
@@ -247,7 +231,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 	public void contextManagesLifecycle() {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsChannelFactoryBean.class);
 		builder.addConstructorArgValue(true);
-		builder.addPropertyValue("connectionFactory", this.connectionFactory);
+		builder.addPropertyValue("connectionFactory", connectionFactory);
 		builder.addPropertyValue("destinationName", "dynamicQueue");
 		builder.addPropertyValue("pubSubDomain", false);
 		StaticApplicationContext context = new StaticApplicationContext();
@@ -264,7 +248,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 	@Test
 	public void dispatcherHasNoSubscribersQueue() throws Exception {
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
-		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setConnectionFactory(connectionFactory);
 		factoryBean.setDestinationName("noSubscribersQueue");
 		factoryBean.setBeanName("noSubscribersChannel");
 		factoryBean.setBeanFactory(mock(BeanFactory.class));
@@ -289,7 +273,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 	@Test
 	public void dispatcherHasNoSubscribersTopic() throws Exception {
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
-		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setConnectionFactory(connectionFactory);
 		factoryBean.setDestinationName("noSubscribersTopic");
 		factoryBean.setBeanName("noSubscribersChannel");
 		factoryBean.setPubSubDomain(true);
@@ -302,7 +286,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 				.getPropertyValue(channel, "container",
 						AbstractMessageListenerContainer.class);
 		MessageListener listener = (MessageListener) container.getMessageListener();
-		List<String> logList  = insertMockLoggerInListener(channel);
+		List<String> logList = insertMockLoggerInListener(channel);
 		listener.onMessage(new StubTextMessage("Hello, world!"));
 		verifyLogReceived(logList);
 	}
@@ -312,7 +296,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(
 				channel, "container", AbstractMessageListenerContainer.class);
 		Log logger = mock(Log.class);
-		final ArrayList<String> logList = new ArrayList<String>();
+		final ArrayList<String> logList = new ArrayList<>();
 		doAnswer(invocation -> {
 			String message = invocation.getArgument(0);
 			if (message.startsWith("Dispatcher has no subscribers")) {
@@ -357,7 +341,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 				(AbstractMessageListenerContainer) new DirectFieldAccessor(channel).getPropertyValue("container");
 		if (container instanceof DefaultMessageListenerContainer) {
 			DefaultMessageListenerContainer listenerContainer =
-				(DefaultMessageListenerContainer) container;
+					(DefaultMessageListenerContainer) container;
 			if (listenerContainer.getCacheLevel() != DefaultMessageListenerContainer.CACHE_CONSUMER) {
 				return true;
 			}

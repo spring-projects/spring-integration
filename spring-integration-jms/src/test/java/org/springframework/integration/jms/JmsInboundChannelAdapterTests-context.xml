@@ -13,12 +13,15 @@
 
 	<context:property-placeholder properties-ref="props"/>
 
+	<util:constant id="jmsConnectionFactory"
+				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.amqFactory"/>
+
 	<util:properties id="props">
 		<prop key="jmsAcknowledgeModeTransacted">transacted</prop>
  	</util:properties>
  	
 	<int-jms:inbound-channel-adapter channel="out" session-transacted="true"
-			connection-factory="jmsConnectionFactory" destination-name="incatQ"
+			destination-name="incatQ"
 			receive-timeout="500" acknowledge="${jmsAcknowledgeModeTransacted}">
 		<int:poller fixed-delay="500"/>
 	</int-jms:inbound-channel-adapter>
