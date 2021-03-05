@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,8 +50,8 @@ import java.lang.annotation.Target;
 public @interface BridgeTo {
 
 	/**
-	 * @return the outbound channel name to send the message to
-	 * {@link org.springframework.integration.handler.BridgeHandler}.
+	 * @return the outbound channel name to send the message to for the
+	 * {@link org.springframework.integration.handler.BridgeHandler} reply.
 	 * Optional: when omitted the message is sent to the {@code reply-channel}
 	 * in its headers (if present - an exception is thrown otherwise).
 	 */
@@ -73,11 +73,19 @@ public @interface BridgeTo {
 	String phase() default "";
 
 	/**
-	 * @return the {@link org.springframework.integration.annotation.Poller} options for a polled endpoint
+	 * @return the {@link Poller} options for a polled endpoint
 	 * ({@link org.springframework.integration.scheduling.PollerMetadata}).
 	 * This attribute is an {@code array} just to allow an empty default (no poller).
-	 * Only one {@link org.springframework.integration.annotation.Poller} element is allowed.
+	 * Mutually exclusive with {@link #reactive()}.
 	 */
 	Poller[] poller() default { };
+
+	/**
+	 * @return the {@link Reactive} options for a consumer endpoint.
+	 * This attribute is an {@code array} just to allow an empty default (not reactive).
+	 * Only one {@link Reactive} element is allowed.
+	 * Mutually exclusive with {@link #poller()}.
+	 */
+	Reactive[] reactive() default { };
 
 }

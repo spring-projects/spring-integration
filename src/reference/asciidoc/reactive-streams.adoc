@@ -62,9 +62,13 @@ A consumer for the `FluxMessageChannel` must be a `org.reactivestreams.Subscribe
 Fortunately, all of the `MessageHandler` implementations in Spring Integration also implement a `CoreSubscriber` from project Reactor.
 And thanks to a `ReactiveStreamsConsumer` implementation in between, the whole integration flow configuration is left transparent for target developers.
 In this case, the flow behavior is changed from an imperative push model to a reactive pull model.
-A `ReactiveStreamsConsumer` can also be used to turn any `MessageChannel` into a reactive source using `MessageChannelReactiveUtils`, making an integration flow partially reactive.
+A `ReactiveStreamsConsumer` can also be used to turn any `MessageChannel` into a reactive source using `IntegrationReactiveUtils`, making an integration flow partially reactive.
 
 See <<./channel.adoc#flux-message-channel,`FluxMessageChannel`>> for more information.
+
+Starting with version 5.5, the `ConsumerEndpointSpec` introduces a `reactive()` option to make the endpoint in the flow as a `ReactiveStreamsConsumer` independently of the input channel.
+The optional `Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>>` can be provided to customise a source `Flux` from the input channel via `Flux.transform()` operation, e.g. with the `publishOn()`, `doOnNext()`, `retry()` etc.
+This functionality is represented as a `@Reactive` sub-annotation for all the messaging annotation (`@ServiceActivator`, `@Splitter` etc.) via their `reactive()` attribute.
 
 === Source Polling Channel Adapter
 

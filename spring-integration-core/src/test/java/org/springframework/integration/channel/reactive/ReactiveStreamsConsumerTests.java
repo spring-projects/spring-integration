@@ -33,6 +33,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -334,6 +335,38 @@ public class ReactiveStreamsConsumerTests {
 
 		reactiveConsumer.stop();
 		testChannel.destroy();
+	}
+
+	@Test
+	public void testReactiveCustomizer() throws Exception {
+		DirectChannel testChannel = new DirectChannel();
+
+		AtomicReference<Message<?>> spied = new AtomicReference<>();
+		AtomicReference<Message<?>> result = new AtomicReference<>();
+		CountDownLatch stopLatch = new CountDownLatch(1);
+
+		MessageHandler messageHandler = m -> {
+			result.set(m);
+			stopLatch.countDown();
+		};
+
+		ConsumerEndpointFactoryBean endpointFactoryBean = new ConsumerEndpointFactoryBean();
+		endpointFactoryBean.setBeanFactory(mock(ConfigurableBeanFactory.class));
+		endpointFactoryBean.setInputChannel(testChannel);
+		endpointFactoryBean.setHandler(messageHandler);
+		endpointFactoryBean.setBeanName("reactiveConsumer");
+		endpointFactoryBean.setReactiveCustomizer(flux -> flux.doOnNext(spied::set));
+		endpointFactoryBean.afterPropertiesSet();
+		endpointFactoryBean.start();
+
+		Message<?> testMessage = new GenericMessage<>("test");
+		testChannel.send(testMessage);
+
+		assertThat(stopLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		endpointFactoryBean.stop();
+
+		assertThat(result.get()).isSameAs(testMessage);
+		assertThat(spied.get()).isSameAs(testMessage);
 	}
 
 }

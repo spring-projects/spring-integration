@@ -471,6 +471,38 @@ Starting with version 4.3.3, the `@Poller` annotation has the `errorChannel` att
 This attribute plays the same role as `error-channel` in the `<poller>` XML component.
 See <<./endpoint.adoc#endpoint-namespace,Endpoint Namespace Support>> for more information.
 
+The `poller()` attribute on the messaging annotations is mutually exclusive with the `reactive()` attribute.
+See next section for more information.
+
+[[configuration-using-reactive-annotation]]
+==== Using `@Reactive` Annotation
+
+The `ReactiveStreamsConsumer` has been around since version 5.0, but it was applied only when an input channel for the endpoint is a `FluxMessageChannel` (or any `org.reactivestreams.Publisher` implementation).
+Starting with version 5.3, its instance is also created by the framework when the target message handler is a `ReactiveMessageHandler` independently of the input channel type.
+The `@Reactive` sub-annotation (similar to mentioned above `@Poller`) has been introduced for all the messaging annotations starting with version 5.5.
+It accepts an optional `Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>>` bean reference and, independently of the input channel type and message handler, turns the target endpoint into the `ReactiveStreamsConsumer` instance.
+The function is used from the `Flux.transform()` operator to apply some customization (`publishOn()`, `doOnNext()`, `log()`, `retry()` etc.) on a reactive stream source from the input channel.
+
+The following example demonstrates how to change the publishing thread from the input channel independently of the final subscriber and producer to that `DirectChannel`:
+
+====
+[source,java]
+----
+@Bean
+public Function<Flux<?>, Flux<?>> publishOnCustomizer() {
+    return flux -> flux.publishOn(Schedulers.parallel());
+}
+
+@ServiceActivator(inputChannel = "directChannel", reactive = @Reactive("publishOnCustomizer"))
+public void handleReactive(String payload) {
+    ...
+}
+----
+====
+
+The `reactive()` attribute on the messaging annotations is mutually exclusive with the `poller()` attribute.
+See <<configuration-using-poller-annotation>> and <<../reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
+
 ==== Using the `@InboundChannelAdapter` Annotation
 
 Version 4.0 introduced the `@InboundChannelAdapter` method-level annotation.

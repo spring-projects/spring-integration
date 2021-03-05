@@ -262,6 +262,31 @@ See https://docs.spring.io/spring-integration/api/org/springframework/integratio
 IMPORTANT: If you use the DSL to construct a `PollerSpec` as a `@Bean`, do not call the `get()` method in the bean definition.
 The `PollerSpec` is a `FactoryBean` that generates the `PollerMetadata` object from the specification and initializes all of its properties.
 
+[[java-dsl-reactive]]
+=== The `reactive()` Endpoint
+
+Starting with version 5.5, the `ConsumerEndpointSpec` provide a `reactive()` configuration property with an optional customizer `Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>>`.
+This option makes the target endpoint as a `ReactiveStreamsConsumer` instance independently of the input channel type, which is turned to the `Flux` via `IntegrationReactiveUtils.messageChannelToFlux()`.
+The provided function is used from the `Flux.transform()` operator to customize (`publishOn()`, `log()`, `doOnNext()` etc.) a reactive stream source from the input channel.
+
+The following example demonstrates how to change the publishing thread from the input channel independently of the final subscriber and producer to that `DirectChannel`:
+
+====
+[source,java]
+----
+@Bean
+public IntegrationFlow reactiveEndpointFlow() {
+    return IntegrationFlows
+            .from("inputChannel")
+            .<String, Integer>transform(Integer::parseInt,
+                    e -> e.reactive(flux -> flux.publishOn(Schedulers.parallel())))
+            .get();
+}
+----
+====
+
+See <<../reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
+
 [[java-dsl-endpoints]]
 === DSL and Endpoint Configuration
 

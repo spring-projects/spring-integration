@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -41,6 +42,7 @@ import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
@@ -79,6 +81,26 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	@Override
 	public S poller(PollerMetadata pollerMetadata) {
 		this.endpointFactoryBean.setPollerMetadata(pollerMetadata);
+		return _this();
+	}
+
+	/**
+	 * Make the consumer endpoint as reactive independently of an input channel.
+	 * @return the spec
+	 * @since 5.5
+	 */
+	public S reactive() {
+		return reactive(Function.identity());
+	}
+	/**
+	 * Make the consumer endpoint as reactive independently of an input channel and
+	 * apply the provided function into the {@link Flux#transform(Function)} operator.
+	 * @param reactiveCustomizer the function to transform {@link Flux} for the input channel.
+	 * @return the spec
+	 * @since 5.5
+	 */
+	public S reactive(Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>> reactiveCustomizer) {
+		this.endpointFactoryBean.setReactiveCustomizer(reactiveCustomizer);
 		return _this();
 	}
 

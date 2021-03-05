@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,7 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.Publisher;
+import org.springframework.integration.annotation.Reactive;
 import org.springframework.integration.annotation.Role;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
@@ -105,6 +106,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -269,6 +271,9 @@ public class EnableIntegrationTests {
 
 	@Autowired
 	private MessageChannel bridgeToInput;
+
+	@Autowired
+	private AbstractEndpoint reactiveBridge;
 
 	@Autowired
 	private PollableChannel bridgeToOutput;
@@ -655,6 +660,7 @@ public class EnableIntegrationTests {
 		assertThat(testMessage).isSameAs(receive);
 		assertThat(this.metaBridgeOutput.receive(10)).isNull();
 
+		assertThat(this.reactiveBridge).isInstanceOf(ReactiveStreamsConsumer.class);
 		this.bridgeToInput.send(testMessage);
 		receive = this.bridgeToOutput.receive(10_000);
 		assertThat(receive).isNotNull();
@@ -881,7 +887,7 @@ public class EnableIntegrationTests {
 		@Bean
 		@GlobalChannelInterceptor
 		public FactoryBean<ChannelInterceptor> ciFactoryBean() {
-			return new AbstractFactoryBean<ChannelInterceptor>() {
+			return new AbstractFactoryBean<>() {
 
 				@Override
 				public Class<?> getObjectType() {
@@ -889,7 +895,7 @@ public class EnableIntegrationTests {
 				}
 
 				@Override
-				protected ChannelInterceptor createInstance() throws Exception {
+				protected ChannelInterceptor createInstance() {
 					return new ChannelInterceptor() {
 
 						@Override
@@ -933,7 +939,8 @@ public class EnableIntegrationTests {
 		}
 
 		@Bean
-		@BridgeTo("bridgeToOutput")
+		@BridgeTo(value = "bridgeToOutput", reactive = @Reactive)
+		@EndpointId("reactiveBridge")
 		public MessageChannel bridgeToInput() {
 			return new DirectChannel();
 		}
@@ -1320,7 +1327,7 @@ public class EnableIntegrationTests {
 			assertThat(message.getHeaders().get("foo")).isEqualTo("FOO");
 			assertThat(message.getHeaders()).containsKey("calledMethod");
 			assertThat(message.getHeaders().get("calledMethod")).isEqualTo("echo");
-			return this.handle(message.getPayload()) + Arrays.asList(new Throwable().getStackTrace()).toString();
+			return handle(message.getPayload()) + Arrays.asList(new Throwable().getStackTrace()).toString();
 		}
 
 		@Transformer(inputChannel = "gatewayChannel2")
@@ -1330,7 +1337,7 @@ public class EnableIntegrationTests {
 			assertThat(message.getHeaders().get("foo")).isEqualTo("FOO");
 			assertThat(message.getHeaders()).containsKey("calledMethod");
 			assertThat(message.getHeaders().get("calledMethod")).isEqualTo("echo2");
-			return this.handle(message.getPayload()) + "2" + Arrays.asList(new Throwable().getStackTrace()).toString();
+			return handle(message.getPayload()) + "2" + Arrays.asList(new Throwable().getStackTrace()).toString();
 		}
 
 		@MyInboundChannelAdapter1
