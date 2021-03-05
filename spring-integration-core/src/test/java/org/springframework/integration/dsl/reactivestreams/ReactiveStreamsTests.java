@@ -29,23 +29,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 
-import org.springframework.aop.ThrowsAdvice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.annotation.Reactive;
-import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -57,11 +51,9 @@ import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.annotation.Schedules;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import io.vavr.collection.Stream;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
@@ -123,7 +115,7 @@ public class ReactiveStreamsTests {
 		this.messageSource.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		String[] strings = results.toArray(new String[0]);
-		assertThat(strings).isEqualTo(new String[] { "A", "B", "C", "D", "E", "F" });
+		assertThat(strings).isEqualTo(new String[]{ "A", "B", "C", "D", "E", "F" });
 		this.messageSource.stop();
 	}
 
@@ -246,22 +238,6 @@ public class ReactiveStreamsTests {
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
-	@Autowired
-	MessageChannel directChannel;
-
-	@Test
-	void testReactiveCustomizer() throws InterruptedException {
-		Flux.fromStream(IntStream.range(1, 100).boxed())
-
-				.subscribe(value -> System.out.println(Thread.currentThread().getName() + ": " + value));
-
-		/*for (int i = 0; i < 100; i++) {
-			this.directChannel.send(new GenericMessage<>(i));
-		}
-*/
-		Thread.sleep(1000);
-	}
-
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -281,12 +257,15 @@ public class ReactiveStreamsTests {
 		}
 
 		@Bean
-		public IntegrationFlow reactiveEndpointFlow() {
+		public Publisher<Message<Integer>> pollableReactiveFlow() {
 			return IntegrationFlows
 					.from("inputChannel")
+					.split(s -> s.delimiters(","))
 					.<String, Integer>transform(Integer::parseInt,
-							e -> e.reactive(flux -> flux.publishOn(Schedulers.parallel())))
-					.get();
+							e -> e.reactive(flux -> flux.publishOn(Schedulers.parallel())).id("reactiveTransformer"))
+					.channel(MessageChannels.queue())
+					.log()
+					.toReactivePublisher();
 		}
 
 		@Bean
@@ -303,16 +282,6 @@ public class ReactiveStreamsTests {
 					.from("fixedSubscriberChannel", true)
 					.log()
 					.toReactivePublisher();
-		}
-
-		@Bean
-		public Function<Flux<?>, Flux<?>> publishOnCustomizer() {
-			return flux -> flux.publishOn(Schedulers.parallel());
-		}
-
-		@ServiceActivator(inputChannel = "directChannel", reactive = @Reactive("publishOnCustomizer"))
-		public void handleReactive(String payload) {
-			System.out.println(Thread.currentThread().getName() + ": " + payload);
 		}
 
 	}
