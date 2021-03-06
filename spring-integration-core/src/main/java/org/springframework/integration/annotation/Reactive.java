@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Provides a reactive configuration options for the consumer endpoint making
+ * Provides reactive configuration options for the consumer endpoint making
  * any input channel as a reactive stream source of data.
  *
  * @author Artem Bilan

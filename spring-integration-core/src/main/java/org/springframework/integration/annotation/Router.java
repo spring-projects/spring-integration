@@ -22,6 +22,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.messaging.handler.annotation.ValueConstants;
+
 /**
  * Indicates that a method is capable of resolving to a channel or channel name
  * based on a message, message header(s), or both.
@@ -155,11 +157,10 @@ public @interface Router {
 	Poller[] poller() default { };
 
 	/**
-	 * @return the {@link Reactive} options for a consumer endpoint.
-	 * This attribute is an {@code array} just to allow an empty default (not reactive).
-	 * Only one {@link Reactive} element is allowed.
+	 * @return the {@link Reactive} marker for a consumer endpoint.
 	 * Mutually exclusive with {@link #poller()}.
+	 * @since 5.5
 	 */
-	Reactive[] reactive() default { };
+	Reactive reactive() default @Reactive(ValueConstants.DEFAULT_NONE);
 
 }

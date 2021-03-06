@@ -83,6 +83,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.handler.annotation.ValueConstants;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -376,41 +377,34 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel,
 			List<Annotation> annotations) {
 
-		AbstractEndpoint endpoint;
-
-
 		Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
-		Reactive[] reactive = MessagingAnnotationUtils.resolveAttribute(annotations, "reactive", Reactive[].class);
+		Reactive reactive = MessagingAnnotationUtils.resolveAttribute(annotations, "reactive", Reactive.class);
+		boolean reactiveProvided = reactive != null && !ValueConstants.DEFAULT_NONE.equals(reactive.value());
 
-		Assert.state(ObjectUtils.isEmpty(reactive) || ObjectUtils.isEmpty(pollers),
+		Assert.state(!reactiveProvided || ObjectUtils.isEmpty(pollers),
 				"The 'poller' and 'reactive' are mutually exclusive.");
 
-		if (inputChannel instanceof Publisher ||
-				handler instanceof ReactiveMessageHandlerAdapter ||
-				!ObjectUtils.isEmpty(reactive)) {
-
-			endpoint = reactiveStreamsConsumer(inputChannel, handler, reactive);
+		if (inputChannel instanceof Publisher || handler instanceof ReactiveMessageHandlerAdapter || reactiveProvided) {
+			return reactiveStreamsConsumer(inputChannel, handler, reactiveProvided ? reactive : null);
 		}
 		else if (inputChannel instanceof SubscribableChannel) {
 			Assert.state(ObjectUtils.isEmpty(pollers), () ->
 					"A '@Poller' should not be specified for Annotation-based " +
 							"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
-			endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
+			return new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
 		}
 		else if (inputChannel instanceof PollableChannel) {
-			endpoint = pollingConsumer(inputChannel, handler, pollers);
+			return pollingConsumer(inputChannel, handler, pollers);
 		}
 		else {
 			throw new IllegalArgumentException("Unsupported 'inputChannel' type: '"
 					+ inputChannel.getClass().getName() + "'. " +
 					"Must be one of 'SubscribableChannel', 'PollableChannel' or 'ReactiveStreamsSubscribableChannel'");
 		}
-
-		return endpoint;
 	}
 
 	private ReactiveStreamsConsumer reactiveStreamsConsumer(MessageChannel channel, MessageHandler handler,
-			Reactive[] reactives) {
+			Reactive reactive) {
 
 		ReactiveStreamsConsumer reactiveStreamsConsumer;
 		if (handler instanceof ReactiveMessageHandlerAdapter) {
@@ -421,10 +415,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			reactiveStreamsConsumer = new ReactiveStreamsConsumer(channel, handler);
 		}
 
-		if (!ObjectUtils.isEmpty(reactives)) {
-			Assert.state(reactives.length == 1,
-					"The 'reactive' for an Annotation-based endpoint can have only one '@Reactive'.");
-			Reactive reactive = reactives[0];
+		if (reactive != null) {
 			String functionBeanName = reactive.value();
 			if (StringUtils.hasText(functionBeanName)) {
 				@SuppressWarnings("unchecked")
@@ -433,7 +424,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				reactiveStreamsConsumer.setReactiveCustomizer(reactiveCustomizer);
 			}
 		}
-
 
 		return reactiveStreamsConsumer;
 	}
