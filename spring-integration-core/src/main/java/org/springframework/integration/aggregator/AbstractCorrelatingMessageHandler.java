@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -626,16 +626,24 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	private void scheduleGroupToForceComplete(MessageGroup messageGroup) {
-		final Long groupTimeout = obtainGroupTimeout(messageGroup);
+		Object groupTimeout = obtainGroupTimeout(messageGroup);
 		/*
 		 * When 'groupTimeout' is evaluated to 'null' we do nothing.
 		 * The 'MessageGroupStoreReaper' can be used to 'forceComplete' message groups.
 		 */
 		if (groupTimeout != null) {
-			if (groupTimeout > 0) {
-				final Object groupId = messageGroup.getGroupId();
-				final long timestamp = messageGroup.getTimestamp();
-				final long lastModified = messageGroup.getLastModified();
+			Date startTime = null;
+			if (groupTimeout instanceof Date) {
+				startTime = (Date) groupTimeout;
+			}
+			else if ((Long) groupTimeout > 0) {
+				startTime = new Date(System.currentTimeMillis() + (Long) groupTimeout);
+			}
+
+			if (startTime != null) {
+				Object groupId = messageGroup.getGroupId();
+				long timestamp = messageGroup.getTimestamp();
+				long lastModified = messageGroup.getLastModified();
 				ScheduledFuture<?> scheduledFuture =
 						getTaskScheduler()
 								.schedule(() -> {
@@ -643,14 +651,12 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 										processForceRelease(groupId, timestamp, lastModified);
 									}
 									catch (MessageDeliveryException ex) {
-										if (AbstractCorrelatingMessageHandler.this.logger.isWarnEnabled()) {
-											AbstractCorrelatingMessageHandler.this.logger.warn(ex,
-													() -> "The MessageGroup [" + groupId
-															+ "] is rescheduled by the reason of:");
-										}
+											logger.warn(ex, () ->
+													"The MessageGroup [" + groupId +
+															"] is rescheduled by the reason of: ");
 										scheduleGroupToForceComplete(groupId);
 									}
-								}, new Date(System.currentTimeMillis() + groupTimeout));
+								}, startTime);
 
 				this.logger.debug(() -> "Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
 				this.expireGroupScheduledFutures.put(UUIDConverter.getUUID(groupId), scheduledFuture);
@@ -905,9 +911,22 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				"The expected collection of Messages contains non-Message element: " + commonElementType);
 	}
 
-	protected Long obtainGroupTimeout(MessageGroup group) {
-		return this.groupTimeoutExpression != null
-				? this.groupTimeoutExpression.getValue(this.evaluationContext, group, Long.class) : null;
+	protected Object obtainGroupTimeout(MessageGroup group) {
+		if (this.groupTimeoutExpression != null) {
+			Object timeout = this.groupTimeoutExpression.getValue(this.evaluationContext, group);
+			if (timeout instanceof Date) {
+				return timeout;
+			}
+			else if (timeout != null) {
+				try {
+					return Long.parseLong(timeout.toString());
+				}
+				catch (NumberFormatException ex) {
+					throw new IllegalStateException("Error evaluating 'groupTimeoutExpression'", ex);
+				}
+			}
+		}
+		return null;
 	}
 
 	@Override

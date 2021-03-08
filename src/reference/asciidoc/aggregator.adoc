@@ -691,7 +691,7 @@ In the preceding example, the root object of the SpEL evaluation context is the 
 [[agg-and-group-to]]
 ====== Aggregator and Group Timeout
 
-Starting with version 4.0, two new mutually exclusive attributes have been introduced: `group-timeout` and `group-timeout-expression` (see the earlier description).
+Starting with version 4.0, two new mutually exclusive attributes have been introduced: `group-timeout` and `group-timeout-expression`.
 See <<aggregator-xml>>.
 In some cases, you may need to emit the aggregator result (or discard the group) after a timeout if the `ReleaseStrategy` does not release when the current message arrives.
 For this purpose, the `groupTimeout` option lets scheduling the `MessageGroup` be forced to complete, as the following example shows:
@@ -720,6 +720,16 @@ There is a difference between `groupTimeout` behavior and `MessageGroupStoreReap
 The reaper initiates forced completion for all `MessageGroup` s in the `MessageGroupStore` periodically.
 The `groupTimeout` does it for each `MessageGroup` individually if a new message does not arrive during the `groupTimeout`.
 Also, the reaper can be used to remove empty groups (empty groups are retained in order to discard late messages if `expire-groups-upon-completion` is false).
+
+Starting with version 5.5, the `groupTimeoutExpression` can be evaluate to a `java.util.Date` instance.
+This can be useful in cases like determining a scheduled task moment based on the group creation time (`MessageGroup.getTimestamp()`) instead of a current message arrival as it is calculated when `groupTimeoutExpression` is evaluated to `long`:
+
+====
+[source,xml]
+----
+group-timeout-expression="size() ge 2 ? new java.util.Date(timestamp + 200) : null"
+----
+====
 
 [[aggregator-annotations]]
 ===== Configuring an Aggregator with Annotations
