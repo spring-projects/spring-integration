@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.messaging.handler.annotation.ValueConstants;
+
 /**
  * Indicates that a method is capable of playing the role of a Message Filter.
  * <p>
@@ -38,6 +40,7 @@ import java.lang.annotation.Target;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
@@ -126,8 +129,15 @@ public @interface Filter {
 	 * @return the {@link Poller} options for a polled endpoint
 	 * ({@link org.springframework.integration.scheduling.PollerMetadata}).
 	 * This attribute is an {@code array} just to allow an empty default (no poller).
-	 * Only one {@link Poller} element is allowed.
+	 * Mutually exclusive with {@link #reactive()}.
 	 */
 	Poller[] poller() default { };
+
+	/**
+	 * @return the {@link Reactive} marker for a consumer endpoint.
+	 * Mutually exclusive with {@link #poller()}.
+	 * @since 5.5
+	 */
+	Reactive reactive() default @Reactive(ValueConstants.DEFAULT_NONE);
 
 }

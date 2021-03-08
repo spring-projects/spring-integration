@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -53,6 +55,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 
 /**
@@ -72,6 +75,9 @@ public class ReactiveStreamsTests {
 	@Autowired
 	@Qualifier("pollableReactiveFlow")
 	private Publisher<Message<Integer>> pollablePublisher;
+
+	@Autowired
+	private AbstractEndpoint reactiveTransformer;
 
 	@Autowired
 	@Qualifier("reactiveStreamsMessageSource")
@@ -109,12 +115,13 @@ public class ReactiveStreamsTests {
 		this.messageSource.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		String[] strings = results.toArray(new String[0]);
-		assertThat(strings).isEqualTo(new String[] { "A", "B", "C", "D", "E", "F" });
+		assertThat(strings).isEqualTo(new String[]{ "A", "B", "C", "D", "E", "F" });
 		this.messageSource.stop();
 	}
 
 	@Test
 	void testPollableReactiveFlow() throws Exception {
+		assertThat(this.reactiveTransformer).isInstanceOf(ReactiveStreamsConsumer.class);
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
 		CountDownLatch latch = new CountDownLatch(6);
@@ -216,9 +223,7 @@ public class ReactiveStreamsTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		Flux.from(this.singleChannelFlow)
 				.map(m -> m.getPayload().toUpperCase())
-				.subscribe(p -> {
-					latch.countDown();
-				});
+				.subscribe(p -> latch.countDown());
 		this.singleChannel.send(new GenericMessage<>("foo"));
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
@@ -228,9 +233,7 @@ public class ReactiveStreamsTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		Flux.from(this.fixedSubscriberChannelFlow)
 				.map(m -> m.getPayload().toUpperCase())
-				.subscribe(p -> {
-					latch.countDown();
-				});
+				.subscribe(p -> latch.countDown());
 		this.fixedSubscriberChannel.send(new GenericMessage<>("bar"));
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
@@ -258,7 +261,8 @@ public class ReactiveStreamsTests {
 			return IntegrationFlows
 					.from("inputChannel")
 					.split(s -> s.delimiters(","))
-					.<String, Integer>transform(Integer::parseInt)
+					.<String, Integer>transform(Integer::parseInt,
+							e -> e.reactive(flux -> flux.publishOn(Schedulers.parallel())).id("reactiveTransformer"))
 					.channel(MessageChannels.queue())
 					.log()
 					.toReactivePublisher();
