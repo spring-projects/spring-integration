@@ -3913,6 +3913,7 @@
 							the MessageGroup won't be scheduled to be forced complete.
 							The action taken when the group is forced complete depends on the
 							'send-partial-result-on-expiry' attribute.
+                            Can be evaluated directly to 'java.util.Date' instance for a scheduled task.
 							Mutually exclusive with the 'group-timeout' attribute.
 						</xsd:documentation>
 					</xsd:annotation>

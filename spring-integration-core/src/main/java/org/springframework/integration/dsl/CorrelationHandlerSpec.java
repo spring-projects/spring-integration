@@ -107,6 +107,8 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	}
 
 	/**
+	 * Specify a SpEL expression to evaluate the group timeout for scheduled expiration.
+	 * Must return {@link java.util.Date}, {@link java.lang.Long} or {@link String} as a long.
 	 * @param groupTimeoutExpression the group timeout expression string.
 	 * @return the handler spec.
 	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression
@@ -122,11 +124,12 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * based on the message group.
 	 * Usually used with a JDK8 lambda:
 	 * <p>{@code .groupTimeout(g -> g.size() * 2000L)}.
+	 * Must return {@link java.util.Date}, {@link java.lang.Long} or {@link String} a long.
 	 * @param groupTimeoutFunction a function invoked to resolve the group timeout in milliseconds.
 	 * @return the handler spec.
 	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression
 	 */
-	public S groupTimeout(Function<MessageGroup, Long> groupTimeoutFunction) {
+	public S groupTimeout(Function<MessageGroup, ?> groupTimeoutFunction) {
 		this.handler.setGroupTimeoutExpression(new FunctionExpression<>(groupTimeoutFunction));
 		return _this();
 	}
