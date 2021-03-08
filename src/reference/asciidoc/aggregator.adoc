@@ -721,7 +721,7 @@ The reaper initiates forced completion for all `MessageGroup` s in the `MessageG
 The `groupTimeout` does it for each `MessageGroup` individually if a new message does not arrive during the `groupTimeout`.
 Also, the reaper can be used to remove empty groups (empty groups are retained in order to discard late messages if `expire-groups-upon-completion` is false).
 
-Starting with version 5.5, the `groupTimeoutExpression` can be evaluate to a `java.util.Date` instance.
+Starting with version 5.5, the `groupTimeoutExpression` can be evaluated to a `java.util.Date` instance.
 This can be useful in cases like determining a scheduled task moment based on the group creation time (`MessageGroup.getTimestamp()`) instead of a current message arrival as it is calculated when `groupTimeoutExpression` is evaluated to `long`:
 
 ====

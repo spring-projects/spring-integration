@@ -107,7 +107,7 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	}
 
 	/**
-	 * Specify a SpEL expression to evaluate group timeout for scheduled expiration.
+	 * Specify a SpEL expression to evaluate the group timeout for scheduled expiration.
 	 * Must return {@link java.util.Date}, {@link java.lang.Long} or {@link String} as a long.
 	 * @param groupTimeoutExpression the group timeout expression string.
 	 * @return the handler spec.
