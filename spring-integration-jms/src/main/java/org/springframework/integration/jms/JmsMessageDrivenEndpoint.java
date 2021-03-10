@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,10 +74,10 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 
 		Assert.notNull(listenerContainer, "listener container must not be null");
 		Assert.notNull(listener, "listener must not be null");
-		if (listenerContainer.getMessageListener() != null) {
-			logger.warn("The provided listener container already has a MessageListener implementation, " +
-					"but it will be overridden by the provided ChannelPublishingJmsMessageListener.");
-		}
+		Assert.isNull(listenerContainer.getMessageListener(),
+				"The listenerContainer provided to a JMS Inbound Endpoint " +
+						"must not have a MessageListener configured since the endpoint " +
+						"configures its own listener implementation.");
 		listenerContainer.setMessageListener(listener);
 		this.listener = listener;
 		this.listenerContainer = listenerContainer;
