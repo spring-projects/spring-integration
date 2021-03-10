@@ -72,6 +72,7 @@ import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.PoolItemNotAvailableException;
 import org.springframework.integration.util.SimplePool;
@@ -93,6 +94,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
+@LogLevels(level = "trace", categories = "org.springframework.integration")
 public class CachingClientConnectionFactoryTests {
 
 	@Autowired
@@ -752,7 +754,7 @@ public class CachingClientConnectionFactoryTests {
 					new SimpleAsyncTaskExecutor()
 							.execute(() -> gate.handleMessage(new GenericMessage<>("bar")));
 					// hold up the first thread until the second has added its pending reply
-					latch.await(10, TimeUnit.SECONDS);
+					latch.await(20, TimeUnit.SECONDS);
 				}
 				else if (log.startsWith("Added")) {
 					latch.countDown();
