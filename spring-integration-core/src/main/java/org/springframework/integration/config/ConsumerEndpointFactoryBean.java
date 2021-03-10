@@ -245,7 +245,7 @@ public class ConsumerEndpointFactoryBean
 		}
 		catch (Exception ex) {
 			LOGGER.debug(() -> "Could not set component name for handler "
-						+ this.handler + " for " + this.beanName + " :" + ex.getMessage());
+					+ this.handler + " for " + this.beanName + " :" + ex.getMessage());
 		}
 	}
 
@@ -302,14 +302,7 @@ public class ConsumerEndpointFactoryBean
 			if (this.initialized) {
 				return;
 			}
-			MessageChannel channel = null;
-			if (StringUtils.hasText(this.inputChannelName)) {
-				channel = this.channelResolver.resolveDestination(this.inputChannelName);
-			}
-			if (this.inputChannel != null) {
-				channel = this.inputChannel;
-			}
-			Assert.state(channel != null, "one of inputChannelName or inputChannel is required");
+			MessageChannel channel = resolveInputChannel();
 
 			Assert.state(this.reactiveCustomizer == null || this.pollerMetadata == null,
 					"The 'pollerMetadata' and 'reactiveCustomizer' are mutually exclusive.");
@@ -342,6 +335,18 @@ public class ConsumerEndpointFactoryBean
 			this.endpoint.afterPropertiesSet();
 			this.initialized = true;
 		}
+	}
+
+	private MessageChannel resolveInputChannel() {
+		MessageChannel channel = null;
+		if (StringUtils.hasText(this.inputChannelName)) {
+			channel = this.channelResolver.resolveDestination(this.inputChannelName);
+		}
+		if (this.inputChannel != null) {
+			channel = this.inputChannel;
+		}
+		Assert.state(channel != null, "one of inputChannelName or inputChannel is required");
+		return channel;
 	}
 
 	private void reactiveStreamsConsumer(MessageChannel channel) {

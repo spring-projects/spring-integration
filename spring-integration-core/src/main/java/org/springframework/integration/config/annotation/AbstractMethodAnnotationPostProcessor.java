@@ -104,6 +104,8 @@ import reactor.core.publisher.Flux;
 public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation>
 		implements MethodAnnotationPostProcessor<T> {
 
+	private static final String UNCHECKED = "unchecked";
+
 	private static final String INPUT_CHANNEL_ATTRIBUTE = "inputChannel";
 
 	private static final String ADVICE_CHAIN_ATTRIBUTE = "adviceChain";
@@ -124,7 +126,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final Disposables disposables; // NOSONAR
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public AbstractMethodAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		this.messageHandlerAttributes.add(SEND_TIMEOUT_ATTRIBUTE);
@@ -145,7 +147,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 		this.disposables = disposablesBean;
 	}
-
 
 	@Override
 	public Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations) {
@@ -203,7 +204,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return handlerBean;
 	}
 
-
 	private void orderable(Method method, MessageHandler handler) {
 		if (handler instanceof Orderable) {
 			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
@@ -212,7 +212,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 	}
-
 
 	private void producerOrRouter(List<Annotation> annotations, MessageHandler handler) {
 		if (handler instanceof AbstractMessageProducingHandler || handler instanceof AbstractMessageRouter) {
@@ -231,7 +230,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 	}
-
 
 	private MessageHandler annotated(Method method, MessageHandler handlerArg) {
 		MessageHandler handler = handlerArg;
@@ -260,7 +258,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 		return handler;
 	}
-
 
 	private MessageHandler adviceChain(String beanName, List<Annotation> annotations, MessageHandler handlerArg) {
 		MessageHandler handler = handlerArg;
@@ -330,7 +327,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					Collections.addAll(adviceChain, (Advice[]) adviceChainBean);
 				}
 				else if (adviceChainBean instanceof Collection) {
-					@SuppressWarnings("unchecked")
+					@SuppressWarnings(UNCHECKED)
 					Collection<Advice> adviceChainEntries = (Collection<Advice>) adviceChainBean;
 					adviceChain.addAll(adviceChainEntries);
 				}
@@ -418,7 +415,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (reactive != null) {
 			String functionBeanName = reactive.value();
 			if (StringUtils.hasText(functionBeanName)) {
-				@SuppressWarnings("unchecked")
+				@SuppressWarnings(UNCHECKED)
 				Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>> reactiveCustomizer =
 						this.beanFactory.getBean(functionBeanName, Function.class);
 				reactiveStreamsConsumer.setReactiveCustomizer(reactiveCustomizer);
@@ -516,9 +513,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return pollerMetadata;
 	}
 
-
 	private void trigger(String triggerRef, String fixedDelayValue, String fixedRateValue, String cron,
 			PollerMetadata pollerMetadata) {
+
 		Trigger trigger = null;
 		if (StringUtils.hasText(triggerRef)) {
 			Assert.state(!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue)
@@ -581,7 +578,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return id;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	protected <H> H extractTypeIfPossible(@Nullable Object targetObject, Class<H> expectedType) {
 		if (targetObject == null) {
 			return null;
