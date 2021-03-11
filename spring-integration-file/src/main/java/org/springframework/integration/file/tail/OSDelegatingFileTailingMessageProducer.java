@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,8 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 
 	private volatile String command = "ADAPTER_NOT_INITIALIZED";
 
+	private volatile String[] tailCommand;
+
 	private volatile Process nativeTailProcess;
 
 	private volatile BufferedReader stdOutReader;
@@ -89,7 +91,12 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	protected void doStart() {
 		super.doStart();
 		destroyProcess();
-		this.command = "tail " + this.options + " " + getFile().getAbsolutePath();
+		String[] tailOptions = this.options.split("\\s+");
+		this.tailCommand = new String[tailOptions.length + 2];
+		this.tailCommand[0] = "tail";
+		this.tailCommand[this.tailCommand.length - 1] = getFile().getAbsolutePath();
+		System.arraycopy(tailOptions, 0, this.tailCommand, 1, tailOptions.length);
+		this.command = String.join(" ", this.tailCommand);
 		getTaskExecutor().execute(this::runExec);
 	}
 
@@ -116,7 +123,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 			logger.info("Starting tail process");
 		}
 		try {
-			Process process = Runtime.getRuntime().exec(this.command);
+			Process process = Runtime.getRuntime().exec(this.tailCommand);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			this.nativeTailProcess = process;
 			this.startProcessMonitor();
