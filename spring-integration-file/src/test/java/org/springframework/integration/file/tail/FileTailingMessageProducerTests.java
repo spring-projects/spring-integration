@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author Gavin Gray
  * @author Artem Bilan
  * @author Ali Shahbour
+ * @author Trung Pham
  *
  * @since 3.0
  */
@@ -183,7 +184,7 @@ public class FileTailingMessageProducerTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		adapter.setTaskScheduler(taskScheduler);
-		final List<FileTailingEvent> events = new ArrayList<FileTailingEvent>();
+		final List<FileTailingEvent> events = new ArrayList<>();
 		adapter.setApplicationEventPublisher(event -> {
 			FileTailingEvent tailEvent = (FileTailingEvent) event;
 			logger.debug(event);
@@ -232,6 +233,8 @@ public class FileTailingMessageProducerTests {
 		}
 
 		assertThat(events.size()).isGreaterThanOrEqualTo(1);
+
+		taskScheduler.destroy();
 	}
 
 	private void waitForField(FileTailingMessageProducerSupport adapter, String field) throws Exception {
@@ -246,6 +249,40 @@ public class FileTailingMessageProducerTests {
 			}
 		}
 		fail("adapter failed to start");
+	}
+
+	@Test
+	@TailAvailable
+	public void canHandleFilenameHavingSpecialCharacters() throws Exception {
+		File file = File.createTempFile("foo bar", " -c 1");
+		file.delete();
+
+		OSDelegatingFileTailingMessageProducer adapter = new OSDelegatingFileTailingMessageProducer();
+		adapter.setOptions(TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES);
+		adapter.setFile(file);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		adapter.setTaskScheduler(taskScheduler);
+		QueueChannel outputChannel = new QueueChannel();
+		adapter.setOutputChannel(outputChannel);
+		adapter.setTailAttemptsDelay(500);
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.afterPropertiesSet();
+
+		adapter.start();
+		waitForField(adapter, "stdOutReader");
+
+		FileOutputStream fos = new FileOutputStream(file);
+		fos.write(("hello foobar\n").getBytes());
+		fos.close();
+
+		Message<?> message = outputChannel.receive(10000);
+		assertThat(message).as("expected a non-null message").isNotNull();
+		assertThat(message.getPayload()).isEqualTo("hello foobar");
+
+		adapter.stop();
+		file.delete();
+		taskScheduler.destroy();
 	}
 
 }
