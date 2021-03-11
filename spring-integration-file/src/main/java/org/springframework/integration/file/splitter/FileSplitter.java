@@ -412,8 +412,14 @@ public class FileSplitter extends AbstractMessageSplitter {
 			else {
 				payload = fileMarker;
 			}
-			return getMessageBuilderFactory().withPayload(payload)
-					.setHeader(FileHeaders.MARKER, fileMarker.mark.name());
+			AbstractIntegrationMessageBuilder<Object> messageBuilder =
+					getMessageBuilderFactory()
+							.withPayload(payload)
+							.setHeader(FileHeaders.MARKER, fileMarker.mark.name());
+			if (Mark.END.equals(fileMarker.mark)) {
+				messageBuilder.setHeader(FileHeaders.LINE_COUNT, fileMarker.lineCount);
+			}
+			return messageBuilder;
 		}
 
 		@Override

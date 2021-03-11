@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.aopalliance.aop.Advice;
+import org.jetbrains.annotations.Nullable;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.aggregator.AbstractAggregatingMessageGroupProcessor;
@@ -211,14 +212,15 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		}
 
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(outputProcessor);
+
 		JavaUtils.INSTANCE
 				.acceptIfNotNull(this.expireGroupsUponCompletion, aggregator::setExpireGroupsUponCompletion)
 				.acceptIfNotNull(this.sendTimeout, aggregator::setSendTimeout)
 				.acceptIfNotNull(this.outputChannelName, aggregator::setOutputChannelName)
 				.acceptIfNotNull(this.lockRegistry, aggregator::setLockRegistry)
 				.acceptIfNotNull(this.messageStore, aggregator::setMessageStore)
-				.acceptIfNotNull(this.correlationStrategy, aggregator::setCorrelationStrategy)
-				.acceptIfNotNull(this.releaseStrategy, aggregator::setReleaseStrategy)
+				.acceptIfNotNull(obtainCorrelationStrategy(), aggregator::setCorrelationStrategy)
+				.acceptIfNotNull(obtainReleaseStrategy(), aggregator::setReleaseStrategy)
 				.acceptIfNotNull(this.groupTimeoutExpression, aggregator::setGroupTimeoutExpression)
 				.acceptIfNotNull(this.forceReleaseAdviceChain, aggregator::setForceReleaseAdviceChain)
 				.acceptIfNotNull(this.taskScheduler, aggregator::setTaskScheduler)
@@ -234,6 +236,28 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 				.acceptIfNotNull(this.expireTimeout, aggregator::setExpireTimeout);
 
 		return aggregator;
+	}
+
+	@Nullable
+	private CorrelationStrategy obtainCorrelationStrategy() {
+		if (this.correlationStrategy == null && this.processorBean != null) {
+			CorrelationStrategyFactoryBean correlationStrategyFactoryBean = new CorrelationStrategyFactoryBean();
+			correlationStrategyFactoryBean.setTarget(this.processorBean);
+			correlationStrategyFactoryBean.afterPropertiesSet();
+			return correlationStrategyFactoryBean.getObject();
+		}
+		return this.correlationStrategy;
+	}
+
+	@Nullable
+	private ReleaseStrategy obtainReleaseStrategy() {
+		if (this.releaseStrategy == null && this.processorBean != null) {
+			ReleaseStrategyFactoryBean releaseStrategyFactoryBean = new ReleaseStrategyFactoryBean();
+			releaseStrategyFactoryBean.setTarget(this.processorBean);
+			releaseStrategyFactoryBean.afterPropertiesSet();
+			return releaseStrategyFactoryBean.getObject();
+		}
+		return this.releaseStrategy;
 	}
 
 	@Override
