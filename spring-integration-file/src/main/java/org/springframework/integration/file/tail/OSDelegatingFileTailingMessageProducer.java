@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,21 +33,27 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Gavin Gray
  * @author Ali Shahbour
+ * @author Artem Bilan
+ * @author Trung Pham
+ *
  * @since 3.0
  *
  */
 public class OSDelegatingFileTailingMessageProducer extends FileTailingMessageProducerSupport
 		implements SchedulingAwareRunnable {
 
-	private volatile Process nativeTailProcess;
 
 	private volatile String options = "-F -n 0";
 
 	private volatile String command = "ADAPTER_NOT_INITIALIZED";
 
-	private volatile boolean enableStatusReader = true;
+	private volatile String[] tailCommand;
+
+	private volatile Process nativeTailProcess;
 
 	private volatile BufferedReader stdOutReader;
+
+	private volatile boolean enableStatusReader = true;
 
 	public void setOptions(String options) {
 		if (options == null) {
@@ -92,8 +98,13 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	protected void doStart() {
 		super.doStart();
 		destroyProcess();
-		this.command = "tail " + this.options + " " + this.getFile().getAbsolutePath();
-		this.getTaskExecutor().execute(this::runExec);
+		String[] tailOptions = this.options.split("\\s+");
+		this.tailCommand = new String[tailOptions.length + 2];
+		this.tailCommand[0] = "tail";
+		this.tailCommand[this.tailCommand.length - 1] = getFile().getAbsolutePath();
+		System.arraycopy(tailOptions, 0, this.tailCommand, 1, tailOptions.length);
+		this.command = String.join(" ", this.tailCommand);
+		getTaskExecutor().execute(this::runExec);
 	}
 
 	@Override
@@ -114,20 +125,18 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	 * Exec the native tail process.
 	 */
 	private void runExec() {
-		this.destroyProcess();
-		if (logger.isInfoEnabled()) {
-			logger.info("Starting tail process");
-		}
+		destroyProcess();
+		logger.info("Starting tail process");
 		try {
-			Process process = Runtime.getRuntime().exec(this.command);
+			Process process = Runtime.getRuntime().exec(this.tailCommand);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			this.nativeTailProcess = process;
-			this.startProcessMonitor();
+			startProcessMonitor();
 			if (this.enableStatusReader) {
 				startStatusReader();
 			}
 			this.stdOutReader = reader;
-			this.getTaskExecutor().execute(this);
+			getTaskExecutor().execute(this);
 		}
 		catch (IOException e) {
 			throw new MessagingException("Failed to exec tail command: '" + this.command + "'", e);
@@ -139,14 +148,13 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	 * Runs a thread that waits for the Process result.
 	 */
 	private void startProcessMonitor() {
-		this.getTaskExecutor().execute(() -> {
-			Process process = OSDelegatingFileTailingMessageProducer.this.nativeTailProcess;
-			if (process == null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Process destroyed before starting process monitor");
-				}
-				return;
-			}
+		getTaskExecutor()
+				.execute(() -> {
+					Process process = OSDelegatingFileTailingMessageProducer.this.nativeTailProcess;
+					if (process == null) {
+						logger.debug("Process destroyed before starting process monitor");
+						return;
+					}
 
 			int result = Integer.MIN_VALUE;
 			try {
