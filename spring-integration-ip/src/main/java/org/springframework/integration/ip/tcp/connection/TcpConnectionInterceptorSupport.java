@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.ip.tcp.connection;
+
+import java.util.List;
 
 import javax.net.ssl.SSLSession;
 
@@ -94,6 +96,11 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	public void registerSender(TcpSender sender) {
 		this.tcpSender = sender;
 		this.theConnection.registerSender(this);
+	}
+
+	@Override
+	public void registerSenders(List<TcpSender> sendersToRegister) {
+		this.theConnection.registerSenders(sendersToRegister);
 	}
 
 	@Override

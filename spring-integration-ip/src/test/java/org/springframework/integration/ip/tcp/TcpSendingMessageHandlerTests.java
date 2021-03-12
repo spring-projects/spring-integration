@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
+import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +47,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.serializer.DefaultDeserializer;
@@ -57,9 +59,11 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionCloseEvent;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
@@ -1191,4 +1195,38 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		}
 	}
 
+	@Test
+	public void testInterceptedCleanup() throws Exception {
+		final CountDownLatch latch = new CountDownLatch(1);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		scf.setSerializer(serializer);
+		scf.setDeserializer(serializer);
+		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
+		adapter.setConnectionFactory(scf);
+		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		handler.setConnectionFactory(scf);
+		scf.setApplicationEventPublisher(new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(Object event) {
+				if (event instanceof TcpConnectionCloseEvent) {
+					latch.countDown();
+				}
+			}
+		});
+		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {
+				newInterceptorFactory(scf.getApplicationEventPublisher()),
+		});
+		scf.setInterceptorFactoryChain(fc);
+		scf.start();
+		TestingUtilities.waitListening(scf, null);
+		int port = scf.getPort();
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+		socket.close();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(handler.getConnections().isEmpty()).isTrue();
+		scf.stop();
+	}
 }
