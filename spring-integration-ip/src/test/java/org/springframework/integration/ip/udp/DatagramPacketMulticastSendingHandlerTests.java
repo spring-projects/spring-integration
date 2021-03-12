@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				e.printStackTrace();
 			}
 		};
-		Executor executor = new SimpleAsyncTaskExecutor();
+		Executor executor = new SimpleAsyncTaskExecutor("verifySendMulticast");
 		executor.execute(catcher);
 		executor.execute(catcher);
 		assertThat(listening.await(10000, TimeUnit.MILLISECONDS)).isTrue();
@@ -191,7 +191,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				e.printStackTrace();
 			}
 		};
-		Executor executor = new SimpleAsyncTaskExecutor();
+		Executor executor = new SimpleAsyncTaskExecutor("verifySendMulticastWithAcks");
 		executor.execute(catcher);
 		executor.execute(catcher);
 		assertThat(listening.await(10000, TimeUnit.MILLISECONDS)).isTrue();

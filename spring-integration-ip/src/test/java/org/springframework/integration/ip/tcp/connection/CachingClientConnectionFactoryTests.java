@@ -751,7 +751,7 @@ public class CachingClientConnectionFactoryTests {
 				invocation.callRealMethod();
 				String log = ((Supplier<String>) invocation.getArgument(0)).get();
 				if (log.startsWith("Response")) {
-					new SimpleAsyncTaskExecutor()
+					new SimpleAsyncTaskExecutor("testGatewayRelease")
 							.execute(() -> gate.handleMessage(new GenericMessage<>("bar")));
 					// hold up the first thread until the second has added its pending reply
 					latch.await(20, TimeUnit.SECONDS);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,7 +228,7 @@ public class ConnectionFactoryTests {
 		factory.start();
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).as("missing info log").isTrue();
 		// stop on a different thread because it waits for the executor
-		new SimpleAsyncTaskExecutor()
+		new SimpleAsyncTaskExecutor("testEarlyClose")
 				.execute(factory::stop);
 		int n = 0;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(factory);
