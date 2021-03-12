@@ -407,7 +407,7 @@ public class DeserializationTests {
 				// eat SocketTimeoutException. Doesn't matter for this test
 			}
 		};
-		Executor exec = new SimpleAsyncTaskExecutor("testTimeoutWhileDecoding");
+		Executor exec = new SimpleAsyncTaskExecutor("-");
 
 		Message<?> message;
 
@@ -459,7 +459,7 @@ public class DeserializationTests {
 				// eat SocketTimeoutException. Doesn't matter for this test
 			}
 		};
-		Executor exec = new SimpleAsyncTaskExecutor("testTimeoutWithRawDeserializerEofIsTerminator");
+		Executor exec = new SimpleAsyncTaskExecutor("testTimeoutWithRawDeserializerEofIsTerminator-");
 
 		Message<?> message;
 

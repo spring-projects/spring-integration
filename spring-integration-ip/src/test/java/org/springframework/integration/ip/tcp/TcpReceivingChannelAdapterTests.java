@@ -100,7 +100,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		new SimpleAsyncTaskExecutor("testNetClientMode").execute(() -> {
+		new SimpleAsyncTaskExecutor("testNetClientMode-").execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
 				serverSocket.set(server);
@@ -412,7 +412,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		handler.setConnectionFactory(scf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
-		Executor te = new SimpleAsyncTaskExecutor("testNioSingleSharedMany");
+		Executor te = new SimpleAsyncTaskExecutor("testNioSingleSharedMany-");
 		scf.setTaskExecutor(te);
 		scf.start();
 		QueueChannel channel = new QueueChannel();

@@ -99,7 +99,7 @@ public class TcpOutboundGatewayTests {
 
 	private static final Log logger = LogFactory.getLog(TcpOutboundGatewayTests.class);
 
-	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("TcpOutboundGatewayTests");
+	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("TcpOutboundGatewayTests-");
 
 	@Test
 	void testGoodNetSingle() throws Exception {

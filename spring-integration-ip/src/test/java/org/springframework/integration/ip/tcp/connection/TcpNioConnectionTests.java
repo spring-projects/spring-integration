@@ -109,7 +109,7 @@ public class TcpNioConnectionTests {
 
 	private final ApplicationEventPublisher nullPublisher = mock(ApplicationEventPublisher.class);
 
-	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("TcpNioConnectionTests");
+	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("TcpNioConnectionTests-");
 
 	@Test
 	public void testWriteTimeout(TestInfo testInfo) throws Exception {

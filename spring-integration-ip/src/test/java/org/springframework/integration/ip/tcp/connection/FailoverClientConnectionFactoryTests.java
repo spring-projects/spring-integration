@@ -609,7 +609,7 @@ public class FailoverClientConnectionFactoryTests {
 	private Holder setupAndStartServers(AbstractServerConnectionFactory server1,
 			AbstractServerConnectionFactory server2) {
 
-		Executor exec = new SimpleAsyncTaskExecutor("FailoverClientConnectionFactoryTests");
+		Executor exec = new SimpleAsyncTaskExecutor("FailoverClientConnectionFactoryTests-");
 		server1.setTaskExecutor(exec);
 		server2.setTaskExecutor(exec);
 		server1.setBeanName("server1");

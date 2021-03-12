@@ -228,7 +228,7 @@ public class ConnectionFactoryTests {
 		factory.start();
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).as("missing info log").isTrue();
 		// stop on a different thread because it waits for the executor
-		new SimpleAsyncTaskExecutor("testEarlyClose")
+		new SimpleAsyncTaskExecutor("testEarlyClose-")
 				.execute(factory::stop);
 		int n = 0;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(factory);

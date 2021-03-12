@@ -84,7 +84,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	private static final Log logger = LogFactory.getLog(TcpSendingMessageHandlerTests.class);
 
-	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("TcpSendingMessageHandlerTests");
+	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("TcpSendingMessageHandlerTests-");
 
 	private void readFully(InputStream is, byte[] buff) throws IOException {
 		for (int i = 0; i < buff.length; i++) {

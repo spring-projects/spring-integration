@@ -65,6 +65,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
@@ -751,13 +752,19 @@ public class CachingClientConnectionFactoryTests {
 				invocation.callRealMethod();
 				String log = ((Supplier<String>) invocation.getArgument(0)).get();
 				if (log.startsWith("Response")) {
-					new SimpleAsyncTaskExecutor("testGatewayRelease")
-							.execute(() -> gate.handleMessage(new GenericMessage<>("bar")));
+					new SimpleAsyncTaskExecutor("testGatewayRelease-")
+							.execute(() -> {
+								try {
+									gate.handleMessage(new GenericMessage<>("bar"));
+								}
+								catch (MessageTimeoutException e) {
+								}
+							});
 					// hold up the first thread until the second has added its pending reply
-					latch.await(20, TimeUnit.SECONDS);
+					this.latch.await(20, TimeUnit.SECONDS);
 				}
 				else if (log.startsWith("Added")) {
-					latch.countDown();
+					this.latch.countDown();
 				}
 				return null;
 			}

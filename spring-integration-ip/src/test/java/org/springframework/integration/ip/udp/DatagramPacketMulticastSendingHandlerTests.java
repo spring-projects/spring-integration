@@ -90,7 +90,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				e.printStackTrace();
 			}
 		};
-		Executor executor = new SimpleAsyncTaskExecutor("verifySendMulticast");
+		Executor executor = new SimpleAsyncTaskExecutor("verifySendMulticast-");
 		executor.execute(catcher);
 		executor.execute(catcher);
 		assertThat(listening.await(10000, TimeUnit.MILLISECONDS)).isTrue();
@@ -191,7 +191,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				e.printStackTrace();
 			}
 		};
-		Executor executor = new SimpleAsyncTaskExecutor("verifySendMulticastWithAcks");
+		Executor executor = new SimpleAsyncTaskExecutor("verifySendMulticastWithAcks-");
 		executor.execute(catcher);
 		executor.execute(catcher);
 		assertThat(listening.await(10000, TimeUnit.MILLISECONDS)).isTrue();
