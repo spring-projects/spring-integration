@@ -65,7 +65,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
@@ -747,19 +746,15 @@ public class CachingClientConnectionFactoryTests {
 
 			private final CountDownLatch latch = new CountDownLatch(2);
 
+			private final AtomicBoolean first = new AtomicBoolean(true);
+
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
 				invocation.callRealMethod();
 				String log = ((Supplier<String>) invocation.getArgument(0)).get();
-				if (log.startsWith("Response")) {
+				if (log.startsWith("Response") && this.first.getAndSet(false)) {
 					new SimpleAsyncTaskExecutor("testGatewayRelease-")
-							.execute(() -> {
-								try {
-									gate.handleMessage(new GenericMessage<>("bar"));
-								}
-								catch (MessageTimeoutException e) {
-								}
-							});
+							.execute(() -> gate.handleMessage(new GenericMessage<>("bar")));
 					// hold up the first thread until the second has added its pending reply
 					this.latch.await(20, TimeUnit.SECONDS);
 				}
