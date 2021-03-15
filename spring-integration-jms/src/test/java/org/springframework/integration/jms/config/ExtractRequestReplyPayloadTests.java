@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.jms.JMSException;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.messaging.Message;
@@ -40,21 +39,17 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
- * @author ozhurakousky
+ * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class ExtractRequestReplyPayloadTests {
-
-	@Rule
-	public TestName testName = new TestName();
+public class ExtractRequestReplyPayloadTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	ApplicationContext applicationContext;
@@ -75,7 +70,7 @@ public class ExtractRequestReplyPayloadTests {
 	ChannelPublishingJmsMessageListener inboundGateway;
 
 	@Test
-	public void testOutboundInboundDefault() {
+	public void testOutboundInboundDefault(TestInfo testInfo) {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -84,15 +79,15 @@ public class ExtractRequestReplyPayloadTests {
 
 		MessageHandler handler = echoInboundStringHandler();
 		this.jmsInputChannel.subscribe(handler);
-		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
+		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload() instanceof String).isTrue();
+		assertThat(replyMessage.getPayload()).isInstanceOf(String.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
 	@Test
-	public void testOutboundInboundDefaultIsTx() {
+	public void testOutboundInboundDefaultIsTx(TestInfo testInfo) {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -110,15 +105,15 @@ public class ExtractRequestReplyPayloadTests {
 			template.send(message);
 		};
 		this.jmsInputChannel.subscribe(handler);
-		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
+		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload() instanceof String).isTrue();
+		assertThat(replyMessage.getPayload()).isInstanceOf(String.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
 	@Test
-	public void testOutboundBothFalseInboundDefault() {
+	public void testOutboundBothFalseInboundDefault(TestInfo testInfo) {
 		this.outboundGateway.setExtractRequestPayload(false);
 		this.outboundGateway.setExtractReplyPayload(false);
 
@@ -127,7 +122,7 @@ public class ExtractRequestReplyPayloadTests {
 
 		MessageHandler handler = echoInboundStringHandler();
 		this.jmsInputChannel.subscribe(handler);
-		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
+		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 
 		Message<?> replyMessage = this.replyChannel.receive(10000);
 		assertThat(replyMessage.getPayload()).isInstanceOf(javax.jms.TextMessage.class);
@@ -135,7 +130,7 @@ public class ExtractRequestReplyPayloadTests {
 	}
 
 	@Test
-	public void testOutboundDefaultInboundBothFalse() throws Exception {
+	public void testOutboundDefaultInboundBothFalse(TestInfo testInfo) {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -144,14 +139,14 @@ public class ExtractRequestReplyPayloadTests {
 
 		MessageHandler handler = unwrapTextMessageAndEchoHandler();
 		this.jmsInputChannel.subscribe(handler);
-		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
+		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
 		assertThat(replyMessage.getPayload()).isInstanceOf(String.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
 	@Test
-	public void testOutboundDefaultInboundReplyTrueRequestFalse() {
+	public void testOutboundDefaultInboundReplyTrueRequestFalse(TestInfo testInfo) {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -160,14 +155,14 @@ public class ExtractRequestReplyPayloadTests {
 
 		MessageHandler handler = unwrapTextMessageAndEchoHandler();
 		this.jmsInputChannel.subscribe(handler);
-		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
+		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
 		assertThat(replyMessage.getPayload()).isInstanceOf(String.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
 	@Test
-	public void testOutboundDefaultInboundReplyFalseRequestTrue() {
+	public void testOutboundDefaultInboundReplyFalseRequestTrue(TestInfo testInfo) {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -176,14 +171,14 @@ public class ExtractRequestReplyPayloadTests {
 
 		MessageHandler handler = echoInboundStringHandler();
 		this.jmsInputChannel.subscribe(handler);
-		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
+		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload() instanceof String).isTrue();
+		assertThat(replyMessage.getPayload()).isInstanceOf(String.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
 	@Test
-	public void testOutboundRequestTrueReplyFalseInboundDefault() {
+	public void testOutboundRequestTrueReplyFalseInboundDefault(TestInfo testInfo) {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(false);
 
@@ -192,14 +187,14 @@ public class ExtractRequestReplyPayloadTests {
 
 		MessageHandler handler = echoInboundStringHandler();
 		this.jmsInputChannel.subscribe(handler);
-		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
+		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload() instanceof javax.jms.Message).isTrue();
+		assertThat(replyMessage.getPayload()).isInstanceOf(javax.jms.Message.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
 	@Test
-	public void testOutboundRequestFalseReplyTrueInboundDefault() {
+	public void testOutboundRequestFalseReplyTrueInboundDefault(TestInfo testInfo) {
 		this.outboundGateway.setExtractRequestPayload(false);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -208,14 +203,14 @@ public class ExtractRequestReplyPayloadTests {
 
 		MessageHandler handler = echoInboundStringHandler();
 		this.jmsInputChannel.subscribe(handler);
-		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
+		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
 		assertThat(replyMessage.getPayload()).isInstanceOf(String.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
 	@Test
-	public void testAllFalse() throws Exception {
+	public void testAllFalse(TestInfo testInfo) {
 		this.outboundGateway.setExtractRequestPayload(false);
 		this.outboundGateway.setExtractReplyPayload(false);
 
@@ -224,7 +219,7 @@ public class ExtractRequestReplyPayloadTests {
 
 		MessageHandler handler = unwrapObjectMessageAndEchoHandler();
 		this.jmsInputChannel.subscribe(handler);
-		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
+		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
 		assertThat(replyMessage.getPayload()).isInstanceOf(javax.jms.Message.class);
 		this.jmsInputChannel.unsubscribe(handler);
@@ -267,7 +262,7 @@ public class ExtractRequestReplyPayloadTests {
 			catch (JMSException e) {
 				fail("failed to deserialize message");
 			}
-			template.send(new GenericMessage<String>(payload));
+			template.send(new GenericMessage<>(payload));
 		};
 	}
 

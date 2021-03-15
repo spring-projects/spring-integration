@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,6 @@ import org.springframework.messaging.support.AbstractSubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.client.WebSocketClient;
@@ -94,7 +93,6 @@ import org.springframework.web.socket.messaging.SubProtocolHandler;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
-import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 /**
@@ -102,8 +100,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
  *
  * @since 4.1
  */
-@ContextConfiguration(classes = StompIntegrationTests.ClientConfig.class)
-@SpringJUnitConfig
+@SpringJUnitConfig(classes = StompIntegrationTests.ClientConfig.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class StompIntegrationTests {
 
@@ -334,7 +331,7 @@ public class StompIntegrationTests {
 
 		@Bean
 		public WebSocketClient webSocketClient() {
-			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new StandardWebSocketClient())));
+			return new SockJsClient(Collections.singletonList(new WebSocketTransport(new StandardWebSocketClient())));
 		}
 
 		@Bean

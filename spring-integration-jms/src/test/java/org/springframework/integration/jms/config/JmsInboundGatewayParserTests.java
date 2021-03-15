@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.TestUtils;
@@ -48,7 +49,7 @@ import org.springframework.util.MultiValueMap;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class JmsInboundGatewayParserTests {
+public class JmsInboundGatewayParserTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testGatewayWithConnectionFactoryAndDestination() {

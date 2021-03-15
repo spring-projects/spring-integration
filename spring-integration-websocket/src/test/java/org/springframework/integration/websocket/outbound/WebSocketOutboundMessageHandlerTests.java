@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,8 +40,7 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
@@ -53,10 +51,10 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class WebSocketOutboundMessageHandlerTests {
 
@@ -68,7 +66,7 @@ public class WebSocketOutboundMessageHandlerTests {
 	private QueueChannel clientInboundChannel;
 
 	@Test
-	public void testWebSocketOutboundMessageHandler() throws Exception {
+	public void testWebSocketOutboundMessageHandler() {
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SEND);
 		headers.setMessageId("mess0");
 		headers.setSubscriptionId("sub0");
@@ -88,7 +86,7 @@ public class WebSocketOutboundMessageHandlerTests {
 
 		Object receivedPayload = received.getPayload();
 		assertThat(receivedPayload).isInstanceOf(byte[].class);
-		assertThat(payload.getBytes()).isEqualTo((byte[]) receivedPayload);
+		assertThat(payload.getBytes()).isEqualTo(receivedPayload);
 	}
 
 

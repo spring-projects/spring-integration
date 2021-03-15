@@ -25,9 +25,10 @@ import static org.mockito.Mockito.verify;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
@@ -35,6 +36,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Oleg Zhurakousky
@@ -42,7 +45,12 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class JmsChannelHistoryTests {
+@SpringJUnitConfig
+@DirtiesContext
+public class JmsChannelHistoryTests extends ActiveMQMultiContextTests {
+
+	@Autowired
+	ApplicationContext context;
 
 	@Test
 	public void testMessageHistory() {
@@ -66,16 +74,12 @@ public class JmsChannelHistoryTests {
 
 	@Test
 	public void testFullConfig() {
-		try (ConfigurableApplicationContext ac =
-				new ClassPathXmlApplicationContext("JmsChannelHistoryTests-context.xml", this.getClass())) {
-
-			SubscribableChannel channel = ac.getBean("jmsChannel", SubscribableChannel.class);
-			PollableChannel resultChannel = ac.getBean("resultChannel", PollableChannel.class);
-			channel.send(new GenericMessage<>("hello"));
-			Message<?> resultMessage = resultChannel.receive(10000);
-			MessageHistory history = MessageHistory.read(resultMessage);
-			assertThat(history.get(0).contains("jmsChannel")).isTrue();
-		}
+		SubscribableChannel channel = context.getBean("jmsChannel", SubscribableChannel.class);
+		PollableChannel resultChannel = context.getBean("resultChannel", PollableChannel.class);
+		channel.send(new GenericMessage<>("hello"));
+		Message<?> resultMessage = resultChannel.receive(10000);
+		MessageHistory history = MessageHistory.read(resultMessage);
+		assertThat(history.get(0).contains("jmsChannel")).isTrue();
 	}
 
 }

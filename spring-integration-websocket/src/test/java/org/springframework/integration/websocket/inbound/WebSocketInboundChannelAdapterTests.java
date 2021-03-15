@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,8 +45,7 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -60,10 +58,10 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class WebSocketInboundChannelAdapterTests {
 
@@ -82,7 +80,7 @@ public class WebSocketInboundChannelAdapterTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testWebSocketInboundChannelAdapter() throws Exception {
+	public void testWebSocketInboundChannelAdapter() {
 		WebSocketSession session = clientWebSocketContainer.getSession(null);
 		assertThat(session).isNotNull();
 		assertThat(session.isOpen()).isTrue();
@@ -99,7 +97,8 @@ public class WebSocketInboundChannelAdapterTests {
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.MESSAGE);
 		headers.setLeaveMutable(true);
 		headers.setSessionId(sessionId);
-		Message<byte[]> message = MessageBuilder.createMessage(ByteBuffer.allocate(0).array(), headers.getMessageHeaders());
+		Message<byte[]> message =
+				MessageBuilder.createMessage(ByteBuffer.allocate(0).array(), headers.getMessageHeaders());
 
 		this.clientOutboundChannel.send(message);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.websocket;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.net.URI;
 import java.util.Collections;
@@ -31,9 +31,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.tomcat.websocket.Constants;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -55,12 +55,12 @@ public class ClientWebSocketContainerTests {
 
 	private static final TomcatWebSocketTestServer server = new TomcatWebSocketTestServer(TestServerConfig.class);
 
-	@BeforeClass
+	@BeforeAll
 	public static void setup() throws Exception {
 		server.afterPropertiesSet();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown() throws Exception {
 		server.destroy();
 	}
@@ -111,15 +111,10 @@ public class ClientWebSocketContainerTests {
 		assertThat(messageListener.messageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		container.stop();
-		try {
-			container.getSession(null);
-			fail("IllegalStateException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalStateException.class);
-			assertThat("'clientSession' has not been established. Consider to 'start' this container.")
-					.isEqualTo(e.getMessage());
-		}
+
+		assertThatIllegalStateException()
+				.isThrownBy(() -> container.getSession(null))
+				.withMessage("'clientSession' has not been established. Consider to 'start' this container.");
 
 		assertThat(messageListener.sessionEndedLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(session.isOpen()).isFalse();
@@ -130,14 +125,9 @@ public class ClientWebSocketContainerTests {
 
 		container.start();
 
-		try {
-			container.getSession(null);
-			fail("IllegalStateException is expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalStateException.class);
-			assertThat(e.getCause()).isInstanceOf(CancellationException.class);
-		}
+		assertThatIllegalStateException()
+				.isThrownBy(() -> container.getSession(null))
+				.withCauseInstanceOf(CancellationException.class);
 
 		failure.set(false);
 
@@ -148,15 +138,18 @@ public class ClientWebSocketContainerTests {
 		assertThat(session.isOpen()).isTrue();
 	}
 
-	private class TestWebSocketListener implements WebSocketListener {
-
-		public boolean started;
+	private static class TestWebSocketListener implements WebSocketListener {
 
 		public final CountDownLatch messageLatch = new CountDownLatch(1);
 
+		public final CountDownLatch sessionEndedLatch = new CountDownLatch(1);
+
 		public WebSocketMessage<?> message;
 
-		public final CountDownLatch sessionEndedLatch = new CountDownLatch(1);
+		public boolean started;
+
+		TestWebSocketListener() {
+		}
 
 		@Override
 		public void onMessage(WebSocketSession session, WebSocketMessage<?> message) {
