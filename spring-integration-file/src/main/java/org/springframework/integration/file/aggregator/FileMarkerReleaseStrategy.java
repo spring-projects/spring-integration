@@ -23,6 +23,7 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * A {@link ReleaseStrategy} which makes a decision based on the presence of
@@ -35,19 +36,28 @@ import org.springframework.messaging.Message;
  */
 public class FileMarkerReleaseStrategy implements ReleaseStrategy {
 
-	@Override public boolean canRelease(MessageGroup group) {
-		Collection<Message<?>> messages = group.getMessages();
+	@Override
+	public boolean canRelease(MessageGroup group) {
+		int size = group.size();
+		if (size > 1) { // Need more than only a START marker
+			Collection<Message<?>> messages = group.getMessages();
+			for (Message<?> message : messages) {
+				if (checkForEndMarker(size, message.getHeaders())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
-		return messages
-				.stream()
-				.filter((message) ->
-						FileSplitter.FileMarker.Mark.END.name()
-								.equals(message.getHeaders().get(FileHeaders.MARKER)))
-				.findAny()
-				.map((message) -> message.getHeaders().get(FileHeaders.LINE_COUNT, Long.class))
-				.map((lineCount) -> lineCount == messages.size() - 2)
-				.orElse(false);
-
+	private boolean checkForEndMarker(int groupSize, MessageHeaders headers) {
+		if (FileSplitter.FileMarker.Mark.END.name().equals(headers.get(FileHeaders.MARKER))) {
+			Long lineCount = headers.get(FileHeaders.LINE_COUNT, Long.class);
+			return lineCount != null && lineCount == groupSize - 2;
+		}
+		else {
+			return false;
+		}
 	}
 
 }

@@ -17,8 +17,9 @@
 package org.springframework.integration.file.aggregator;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.integration.aggregator.AbstractAggregatingMessageGroupProcessor;
 import org.springframework.integration.file.FileHeaders;
@@ -46,11 +47,14 @@ public class FileAggregatingMessageGroupProcessor extends AbstractAggregatingMes
 
 	@Override
 	protected Object aggregatePayloads(MessageGroup group, Map<String, Object> defaultHeaders) {
-		return group.getMessages()
-				.stream()
-				.filter((message) -> !message.getHeaders().containsKey(FileHeaders.MARKER))
-				.map(Message::getPayload)
-				.collect(Collectors.toList());
+		Collection<Message<?>> messages = group.getMessages();
+		List<Object> payloads = new ArrayList<>(messages.size() - 2);
+		for (Message<?> message : messages) {
+			if (!message.getHeaders().containsKey(FileHeaders.MARKER)) {
+				payloads.add(message.getPayload());
+			}
+		}
+		return payloads;
 	}
 
 }
