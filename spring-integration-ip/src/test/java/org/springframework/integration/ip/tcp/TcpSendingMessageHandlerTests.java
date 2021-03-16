@@ -1220,8 +1220,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.close();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(connection.get() instanceof HelloWorldInterceptor)
-			.as("Expected HelloWorldInterceptor, got " + connection.get().getClass().getSimpleName()).isTrue();
+		assertThat(connection.get()).isInstanceOf(HelloWorldInterceptor.class);
 		scf.stop();
 	}
 
