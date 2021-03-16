@@ -105,6 +105,25 @@ public class FileAggregatorTests {
 	}
 
 	@Test
+	void testEmptyFileAggregator() throws IOException {
+		File file = new File(tmpDir, "empty.txt");
+		file.createNewFile();
+		this.fileSplitterAggregatorFlow.send(new GenericMessage<>(file));
+
+		Message<?> receive = this.resultChannel.receive(10_000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders())
+				.containsEntry(FileHeaders.FILENAME, "empty.txt")
+				.containsEntry(FileHeaders.LINE_COUNT, 0L)
+				.doesNotContainKey(IntegrationMessageHeaderAccessor.CORRELATION_ID);
+
+		assertThat(receive.getPayload())
+				.isInstanceOf(List.class)
+				.asList()
+				.isEmpty();
+	}
+
+	@Test
 	void testFileAggregatorXmlConfig() {
 		this.input.send(new GenericMessage<>(file));
 

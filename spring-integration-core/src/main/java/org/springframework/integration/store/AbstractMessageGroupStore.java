@@ -19,6 +19,7 @@ package org.springframework.integration.store;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -47,9 +49,11 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	private final MessageGroupFactory persistentMessageGroupFactory =
 			new SimpleMessageGroupFactory(SimpleMessageGroupFactory.GroupType.PERSISTENT);
 
-	private volatile boolean timeoutOnIdle;
-
 	private boolean lazyLoadMessageGroups = true;
+
+	private Function<Message<?>, String> conditionSupplier;
+
+	private volatile boolean timeoutOnIdle;
 
 	protected AbstractMessageGroupStore() {
 	}
@@ -75,6 +79,11 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	 */
 	public void setExpiryCallbacks(Collection<MessageGroupCallback> expiryCallbacks) {
 		expiryCallbacks.forEach(this::registerMessageGroupExpiryCallback);
+	}
+
+	@Override
+	public void setConditionSupplier(Function<Message<?>, String> conditionSupplier) {
+		this.conditionSupplier = conditionSupplier;
 	}
 
 	public boolean isTimeoutOnIdle() {
@@ -111,7 +120,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 					this.expiryCallbacks.stream()
 							.anyMatch(UniqueExpiryCallback.class::isInstance);
 
-			if (uniqueExpiryCallbackPresent && this.logger.isErrorEnabled()) {
+			if (uniqueExpiryCallbackPresent) {
 				this.logger.error("Only one instance of 'UniqueExpiryCallback' can be registered in the " +
 						"'MessageGroupStore'. Use a separate 'MessageGroupStore' for each aggregator/resequencer.");
 			}
@@ -188,6 +197,17 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		addMessagesToGroup(groupId, message);
 		return getMessageGroup(groupId);
+	}
+
+	@Nullable
+	protected String obtainConditionIfAny(Message<?> message, @Nullable String existingCondition) {
+		if (this.conditionSupplier != null) {
+			String newCondition = this.conditionSupplier.apply(message);
+			if (newCondition != null) {
+				return newCondition;
+			}
+		}
+		return existingCondition;
 	}
 
 	private void expire(MessageGroup group) {

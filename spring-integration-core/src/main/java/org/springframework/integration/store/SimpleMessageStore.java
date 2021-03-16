@@ -56,12 +56,11 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	private static final String INTERRUPTED_WHILE_OBTAINING_LOCK = "Interrupted while obtaining lock";
 
-	private final ConcurrentMap<UUID, Message<?>> idToMessage = new ConcurrentHashMap<UUID, Message<?>>();
+	private final ConcurrentMap<UUID, Message<?>> idToMessage = new ConcurrentHashMap<>();
 
-	private final ConcurrentMap<Object, MessageGroup> groupIdToMessageGroup =
-			new ConcurrentHashMap<Object, MessageGroup>();
+	private final ConcurrentMap<Object, MessageGroup> groupIdToMessageGroup = new ConcurrentHashMap<>();
 
-	private final ConcurrentMap<Object, UpperBound> groupToUpperBound = new ConcurrentHashMap<Object, UpperBound>();
+	private final ConcurrentMap<Object, UpperBound> groupToUpperBound = new ConcurrentHashMap<>();
 
 	private final int groupCapacity;
 
@@ -282,6 +281,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 						new MessagingException(getClass().getSimpleName() +
 								" was out of capacity (" + this.groupCapacity + ") for group '" + groupId +
 								"', try constructing it with a larger capacity.");
+
+				String condition = null;
+
 				if (group == null) {
 					if (this.groupCapacity > 0 && messages.length > this.groupCapacity) {
 						throw outOfCapacityException;
@@ -305,11 +307,15 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 							throw outOfCapacityException;
 						}
 						lock.lockInterruptibly();
+						condition = obtainConditionIfAny(message, condition);
 						group.add(message);
 					}
 				}
 
 				group.setLastModified(System.currentTimeMillis());
+				if (condition != null) {
+					group.setCondition(condition);
+				}
 			}
 			finally {
 				if (!unlocked) {

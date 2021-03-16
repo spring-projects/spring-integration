@@ -286,6 +286,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					.create(this, groupId, createdTime, complete);
 			messageGroup.setLastModified(lastModifiedTime);
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
+			messageGroup.setCondition(messageWrapper.get_condition());
 			return messageGroup;
 
 		}
@@ -860,6 +861,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		private volatile boolean _group_complete; // NOSONAR name
 
+		private volatile String _condition; // NOSONAR name
+
 		@SuppressWarnings(UNUSED)
 		private long sequence;
 
@@ -928,6 +931,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		public void set_Group_complete(boolean completedGroup) { // NOSONAR name
 			this._group_complete = completedGroup;
+		}
+
+		public String get_condition() {
+			return this._condition;
+		}
+
+		public void set_condition(String _condition) {
+			this._condition = _condition;
 		}
 
 		public void set_Sequence(long sequence) { // NOSONAR name

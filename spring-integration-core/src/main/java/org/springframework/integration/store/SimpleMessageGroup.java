@@ -24,12 +24,13 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
  * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and group id.
- * The group will grow during its lifetime, when messages are <code>add</code>ed to it.
+ * The group will grow during its lifetime, when messages are {@link #add}ed to it.
  * This MessageGroup is thread safe.
  *
  * @author Iwein Fuld
@@ -56,8 +57,11 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	private volatile boolean complete;
 
+	@Nullable
+	private volatile String condition;
+
 	public SimpleMessageGroup(Object groupId) {
-		this(Collections.<Message<?>>emptyList(), groupId);
+		this(Collections.emptyList(), groupId);
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId) {
@@ -170,6 +174,17 @@ public class SimpleMessageGroup implements MessageGroup {
 	@Override
 	public int size() {
 		return this.messages.size();
+	}
+
+	@Override
+	public void setCondition(String condition) {
+		this.condition = condition;
+	}
+
+	@Override
+	@Nullable
+	public String getCondition() {
+		return this.condition;
 	}
 
 	@Override

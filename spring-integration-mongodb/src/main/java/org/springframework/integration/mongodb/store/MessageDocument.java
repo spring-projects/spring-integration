@@ -22,6 +22,7 @@ import org.springframework.data.annotation.AccessType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -60,6 +61,8 @@ public class MessageDocument {
 	private Boolean complete = false;
 
 	private Integer lastReleasedSequence = 0;
+
+	private String condition;
 
 	private long sequence;
 
@@ -149,6 +152,15 @@ public class MessageDocument {
 
 	public Object getGroupId() {
 		return this.groupId;
+	}
+
+	@Nullable
+	public String getCondition() {
+		return this.condition;
+	}
+
+	public void setCondition(String condition) {
+		this.condition = condition;
 	}
 
 	public long getSequence() {

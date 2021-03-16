@@ -16,8 +16,9 @@
 
 package org.springframework.integration.file.aggregator;
 
-import java.util.Collection;
+import java.util.function.Function;
 
+import org.springframework.integration.aggregator.GroupConditionProvider;
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter;
@@ -29,35 +30,46 @@ import org.springframework.messaging.MessageHeaders;
  * A {@link ReleaseStrategy} which makes a decision based on the presence of
  * {@link org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mark#END}
  * message in the group and its {@link org.springframework.integration.file.FileHeaders#LINE_COUNT} header.
+ * <p>
+ * The logic of this strategy is based on the {@link FileMarkerReleaseStrategy#GROUP_CONDITION}
+ * function populated to the {@link org.springframework.integration.store.MessageGroupStore} for an
+ * aggregator.
  *
  * @author Artem Bilan
  *
  * @since 5.5
  */
-public class FileMarkerReleaseStrategy implements ReleaseStrategy {
+public class FileMarkerReleaseStrategy implements ReleaseStrategy, GroupConditionProvider {
+
+	/**
+	 * The {@link Function} for
+	 * {@link org.springframework.integration.store.MessageGroupStore#setConditionSupplier(Function)}.
+	 */
+	public static final Function<Message<?>, String> GROUP_CONDITION =
+			(message) -> {
+				MessageHeaders headers = message.getHeaders();
+				if (FileSplitter.FileMarker.Mark.END.name().equals(headers.get(FileHeaders.MARKER))) {
+					Long lineCount = headers.get(FileHeaders.LINE_COUNT, Long.class);
+					return lineCount != null ? "" + lineCount : null;
+				}
+				return null;
+			};
 
 	@Override
 	public boolean canRelease(MessageGroup group) {
 		int size = group.size();
 		if (size > 1) { // Need more than only a START marker
-			Collection<Message<?>> messages = group.getMessages();
-			for (Message<?> message : messages) {
-				if (checkForEndMarker(size, message.getHeaders())) {
-					return true;
-				}
+			String condition = group.getCondition();
+			if (condition != null) {
+				long lineCount = Long.parseLong(condition);
+				return lineCount == size - 2; // line count doesn't include START/END markers.
 			}
 		}
 		return false;
 	}
 
-	private boolean checkForEndMarker(int groupSize, MessageHeaders headers) {
-		if (FileSplitter.FileMarker.Mark.END.name().equals(headers.get(FileHeaders.MARKER))) {
-			Long lineCount = headers.get(FileHeaders.LINE_COUNT, Long.class);
-			return lineCount != null && lineCount == groupSize - 2;
-		}
-		else {
-			return false;
-		}
+	@Override public Function<Message<?>, String> getGroupConditionSupplier() {
+		return GROUP_CONDITION;
 	}
 
 }
