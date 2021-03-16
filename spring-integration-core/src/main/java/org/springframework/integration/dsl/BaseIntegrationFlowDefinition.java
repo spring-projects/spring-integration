@@ -1744,6 +1744,17 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
+	 * A short-cut for the {@code aggregate((aggregator) -> aggregator.processor(aggregatorProcessor))}
+	 * @param aggregatorProcessor the POJO representing aggregation strategies.
+	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @since 5.5
+	 * @see AggregatorSpec
+	 */
+	public B aggregate(Object aggregatorProcessor) {
+		return aggregate((aggregator) -> aggregator.processor(aggregatorProcessor));
+	}
+
+	/**
 	 * Populate the {@link AggregatingMessageHandler} with provided options from {@link AggregatorSpec}.
 	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * Typically used with a Java 8 Lambda expression:

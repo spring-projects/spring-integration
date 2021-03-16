@@ -15,6 +15,12 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 [[x5.5-new-components]]
 === New Components
 
+[[x5.5-file-aggregator]]
+==== File Aggregator
+
+A `FileSplitter.FileMaker`-based implementation of `CorrelationStrategy`, `ReleaseStrategy` and `MessageGroupProcessor` as a `FileAggregator` component was introduced.
+See <<./file.adoc#file-aggregator, File Aggregator>> for more information.
+
 [[x5.5-general]]
 === General Changes
 

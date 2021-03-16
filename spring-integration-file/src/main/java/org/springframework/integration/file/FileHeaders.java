@@ -48,6 +48,11 @@ public abstract class FileHeaders {
 	public static final String MARKER = PREFIX + "marker";
 
 	/**
+	 * The line count for END marker message after splitting
+	 */
+	public static final String LINE_COUNT = PREFIX + "lineCount";
+
+	/**
 	 * A remote file information representation
 	 */
 	public static final String REMOTE_FILE_INFO = PREFIX + "remoteFileInfo";
