@@ -51,4 +51,4 @@ jobs:
         with:
           name: test-results
           path: '*/build/reports/tests/**/*.*'
-          retention-days: 1
+          retention-days: 3
