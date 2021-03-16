@@ -746,18 +746,20 @@ public class CachingClientConnectionFactoryTests {
 
 			private final CountDownLatch latch = new CountDownLatch(2);
 
+			private final AtomicBoolean first = new AtomicBoolean(true);
+
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
 				invocation.callRealMethod();
 				String log = ((Supplier<String>) invocation.getArgument(0)).get();
-				if (log.startsWith("Response")) {
-					new SimpleAsyncTaskExecutor()
+				if (log.startsWith("Response") && this.first.getAndSet(false)) {
+					new SimpleAsyncTaskExecutor("testGatewayRelease-")
 							.execute(() -> gate.handleMessage(new GenericMessage<>("bar")));
 					// hold up the first thread until the second has added its pending reply
-					latch.await(20, TimeUnit.SECONDS);
+					this.latch.await(20, TimeUnit.SECONDS);
 				}
 				else if (log.startsWith("Added")) {
-					latch.countDown();
+					this.latch.countDown();
 				}
 				return null;
 			}

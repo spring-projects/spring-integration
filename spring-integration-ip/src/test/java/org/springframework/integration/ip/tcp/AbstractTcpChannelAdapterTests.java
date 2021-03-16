@@ -16,30 +16,21 @@
 
 package org.springframework.integration.ip.tcp;
 
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory;
 
 /**
  * @author Gary Russell
+ * @author Mário Dias
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
 public class AbstractTcpChannelAdapterTests {
 
-	private static final ApplicationEventPublisher NOOP_PUBLISHER = new ApplicationEventPublisher() {
-
-		@Override
-		public void publishEvent(ApplicationEvent event) {
-		}
-
-		@Override
-		public void publishEvent(Object event) {
-
-		}
-
-	};
+	private static final ApplicationEventPublisher NOOP_PUBLISHER = event -> { };
 
 	protected HelloWorldInterceptorFactory newInterceptorFactory() {
 		return newInterceptorFactory(NOOP_PUBLISHER);
@@ -54,6 +45,5 @@ public class AbstractTcpChannelAdapterTests {
 	protected void noopPublisher(AbstractConnectionFactory connectionFactory) {
 		connectionFactory.setApplicationEventPublisher(NOOP_PUBLISHER);
 	}
-
 
 }

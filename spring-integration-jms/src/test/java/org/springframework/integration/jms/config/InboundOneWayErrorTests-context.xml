@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
-	xmlns:jms="http://www.springframework.org/schema/jms"
-	xmlns:task="http://www.springframework.org/schema/task"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/jms https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
-		http://www.springframework.org/schema/jms https://www.springframework.org/schema/jms/spring-jms.xsd
-		http://www.springframework.org/schema/task https://www.springframework.org/schema/task/spring-task.xsd">
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<int-jms:message-driven-channel-adapter channel="jmsInputChannel" container="container"/>
 
-	<int-jms:message-driven-channel-adapter channel="jmsInputChannel" destination="queueB" error-channel="testErrorChannel"/>
+	<int-jms:message-driven-channel-adapter channel="jmsInputChannel" destination="queueB"
+											error-channel="testErrorChannel"/>
 
 	<int:service-activator input-channel="jmsInputChannel">
 		<bean id="testService" class="org.springframework.integration.jms.config.InboundOneWayErrorTests$TestService"/>
@@ -23,7 +22,7 @@
 		<int:queue/>
 	</int:channel>
 
-    <bean id="queueA" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="queueA" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="oneway.a"/>
 	</bean>
 
@@ -37,16 +36,10 @@
 		<property name="errorHandler" ref="testErrorHandler"/>
 	</bean>
 
-	<bean id="testErrorHandler" class="org.springframework.integration.jms.config.InboundOneWayErrorTests$TestErrorHandler"/>
+	<bean id="testErrorHandler"
+		  class="org.springframework.integration.jms.config.InboundOneWayErrorTests$TestErrorHandler"/>
 
-	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
-		<property name="targetConnectionFactory">
-			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
-				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
-			</bean>
-		</property>
-		<property name="sessionCacheSize" value="10"/>
-		<property name="cacheProducers" value="false"/>
-	</bean>
+	<util:constant id="jmsConnectionFactory"
+				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.connectionFactory"/>
 
 </beans>

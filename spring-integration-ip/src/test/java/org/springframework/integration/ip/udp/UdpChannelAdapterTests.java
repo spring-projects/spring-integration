@@ -190,7 +190,7 @@ public class UdpChannelAdapterTests {
 		final CountDownLatch receiverReadyLatch = new CountDownLatch(1);
 		final CountDownLatch replyReceivedLatch = new CountDownLatch(1);
 		//main thread sends the reply using the headers, this thread will receive it
-		new SimpleAsyncTaskExecutor()
+		new SimpleAsyncTaskExecutor("testUnicastReceiverWithReply-")
 				.execute(() -> {
 					DatagramPacket answer = new DatagramPacket(new byte[2000], 2000);
 					try {

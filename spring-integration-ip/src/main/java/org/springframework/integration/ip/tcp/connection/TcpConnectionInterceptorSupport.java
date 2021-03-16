@@ -31,6 +31,7 @@ import org.springframework.messaging.support.ErrorMessage;
  * to the underlying {@link TcpConnection}.
  *
  * @author Gary Russell
+ * @author Mário Dias
  *
  * @since 2.0
  */
