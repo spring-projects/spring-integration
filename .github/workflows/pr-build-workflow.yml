@@ -44,3 +44,11 @@ jobs:
           NO_REFERENCE_TASK: true
         with:
           arguments: checkAsciidocLinks check
+
+      - name: Capture Test Results
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: '*/build/reports/tests/**/*.*'
+          retention-days: 3
