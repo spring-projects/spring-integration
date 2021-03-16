@@ -45,8 +45,10 @@ jobs:
         with:
           arguments: checkAsciidocLinks check
 
-      - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
+      - name: Capture Test Results
+        if: failure()
+        uses: actions/upload-artifact@v2
         with:
-          files: '**/build/test-results/**/*.xml'
+          name: test-results
+          path: '*/build/reports/tests/**/*.*'
+          retention-days: 1
