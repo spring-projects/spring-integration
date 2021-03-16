@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Mário Dias
  *
  * @since 2.0
  *
@@ -316,9 +317,13 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * @since 5.4
 	 */
 	public void registerSenders(List<TcpSender> sendersToRegister) {
+		registerSenders(sendersToRegister, this);
+	}
+
+	protected final void registerSenders(List<TcpSender> sendersToRegister, TcpConnection connection) {
 		this.senders.addAll(sendersToRegister);
 		for (TcpSender sender : sendersToRegister) {
-			sender.addNewConnection(this);
+			sender.addNewConnection(connection);
 		}
 	}
 

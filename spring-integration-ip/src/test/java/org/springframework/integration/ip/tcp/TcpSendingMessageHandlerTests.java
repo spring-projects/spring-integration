@@ -58,9 +58,12 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptor;
+import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionCloseEvent;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
@@ -80,7 +83,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 /**
  * @author Gary Russell
  * @author Artem Bilan
- * @author Mario Dias
+ * @author Mário Dias
  *
  * @since 2.0
  */
@@ -1187,6 +1190,39 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 			assertThat(e.getCause() instanceof SocketException).isTrue();
 			assertThat(e.getCause().getMessage()).isEqualTo("Failed to connect");
 		}
+	}
+
+	@Test
+	public void testInterceptedConnection() throws Exception {
+		final CountDownLatch latch = new CountDownLatch(1);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		scf.setSerializer(serializer);
+		scf.setDeserializer(serializer);
+		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
+		adapter.setConnectionFactory(scf);
+		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		handler.setConnectionFactory(scf);
+		final AtomicReference<TcpConnection> connection = new AtomicReference<>();
+		scf.setApplicationEventPublisher(event -> {
+			if (event instanceof TcpConnectionOpenEvent) {
+				connection.set(handler.getConnections()
+						.get(((TcpConnectionOpenEvent) event).getConnectionId()));
+				latch.countDown();
+			}
+		});
+		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
+		fc.setInterceptor(newInterceptorFactory(scf.getApplicationEventPublisher()));
+		scf.setInterceptorFactoryChain(fc);
+		scf.start();
+		TestingUtilities.waitListening(scf, null);
+		int port = scf.getPort();
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+		socket.close();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(connection.get() instanceof HelloWorldInterceptor)
+			.as("Expected HelloWorldInterceptor, got " + connection.get().getClass().getSimpleName()).isTrue();
+		scf.stop();
 	}
 
 	@Test

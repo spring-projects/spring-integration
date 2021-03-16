@@ -101,7 +101,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 
 	@Override
 	public void registerSenders(List<TcpSender> sendersToRegister) {
-		this.theConnection.registerSenders(sendersToRegister);
+		this.theConnection.registerSenders(sendersToRegister, this);
 	}
 
 	@Override
