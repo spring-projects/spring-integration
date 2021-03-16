@@ -1,9 +1,9 @@
 buildscript {
-	ext.kotlinVersion = '1.4.30'
+	ext.kotlinVersion = '1.4.31'
 	repositories {
 		mavenCentral()
 		maven { url 'https://plugins.gradle.org/m2' }
-		maven { url 'https://repo.spring.io/plugins-release' }
+		maven { url 'https://repo.spring.io/plugins-release-local' }
 	}
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
@@ -16,11 +16,11 @@ plugins {
 	id 'io.spring.nohttp' version '0.0.5.RELEASE' apply false
 	id 'org.ajoberstar.grgit' version '4.1.0'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'com.jfrog.artifactory' version '4.20.0' apply false
-	id 'org.jetbrains.dokka' version '0.10.1'
-	id 'org.asciidoctor.jvm.pdf' version '3.3.1'
-	id 'org.asciidoctor.jvm.gems' version '3.3.1'
-	id 'org.asciidoctor.jvm.convert' version '3.3.1'
+	id 'com.jfrog.artifactory' version '4.21.0' apply false
+	id 'org.jetbrains.dokka' version '1.4.30'
+	id 'org.asciidoctor.jvm.pdf' version '3.3.2'
+	id 'org.asciidoctor.jvm.gems' version '3.3.2'
+	id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
 if (System.getenv('GITHUB_ACTION') || System.getenv('bamboo_buildKey')) {
@@ -55,41 +55,41 @@ ext {
 	awaitilityVersion = '4.0.3'
 	commonsDbcp2Version = '2.8.0'
 	commonsIoVersion = '2.8.0'
-	commonsNetVersion = '3.7.2'
+	commonsNetVersion = '3.8.0'
 	curatorVersion = '4.3.0'
 	derbyVersion = '10.14.2.0'
 	ftpServerVersion = '1.1.1'
 	googleJsr305Version = '3.0.2'
 	groovyVersion = '3.0.7'
 	hamcrestVersion = '2.2'
-	hazelcastVersion = '4.1.1'
-	hibernateVersion = '5.4.28.Final'
+	hazelcastVersion = '4.1.2'
+	hibernateVersion = '5.4.29.Final'
 	hsqldbVersion = '2.5.1'
 	h2Version = '1.4.200'
-	jacksonVersion = '2.12.1'
+	jacksonVersion = '2.12.2'
 	javaxActivationVersion = '1.2.0'
 	jaxbVersion = '2.3.3'
 	jeroMqVersion = '0.5.2'
 	jmsApiVersion = '2.0.1'
 	jpaApiVersion = '2.7.7'
-	jrubyVersion = '9.2.14.0'
+	jrubyVersion = '9.2.16.0'
 	jschVersion = '0.1.55'
-	jsonpathVersion = '2.4.0'
+	jsonpathVersion = '2.5.0'
 	junit4Version = '4.13.2'
-	junitJupiterVersion = '5.7.0'
+	junitJupiterVersion = '5.7.1'
 	jythonVersion = '2.7.2'
 	kryoShadedVersion = '4.0.2'
     lettuceVersion = '6.1.0.M1'
-	log4jVersion = '2.14.0'
+	log4jVersion = '2.14.1'
 	mailVersion = '1.6.5'
-	micrometerVersion = '1.6.4'
-	mockitoVersion = '3.7.7'
-	mongoDriverVersion = '4.2.0'
+	micrometerVersion = '1.6.5'
+	mockitoVersion = '3.8.0'
+	mongoDriverVersion = '4.2.2'
 	mysqlVersion = '8.0.23'
 	pahoMqttClientVersion = '1.2.5'
-	postgresVersion = '42.2.18'
+	postgresVersion = '42.2.19'
 	r2dbch2Version='0.8.4.RELEASE'
-	reactorVersion = '2020.0.4-SNAPSHOT'
+	reactorVersion = '2020.0.5'
 	resilience4jVersion = '1.7.0'
 	romeToolsVersion = '1.15.0'
 	rsocketVersion = '1.1.0'
@@ -101,12 +101,12 @@ ext {
 	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.0-SNAPSHOT'
 	springKafkaVersion = '2.7.0-SNAPSHOT'
 	springRetryVersion = '1.3.1'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.0-SNAPSHOT'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.5-SNAPSHOT'
-	springWsVersion = '3.1.0-SNAPSHOT'
-	tomcatVersion = '9.0.43'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.0-M3'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.5'
+	springWsVersion = '3.1.0-M1'
+	tomcatVersion = '9.0.44'
 	xmlUnitVersion = '2.8.2'
-	xstreamVersion = '1.4.15'
+	xstreamVersion = '1.4.16'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
 }
@@ -119,9 +119,9 @@ allprojects {
 			mavenLocal()
 		}
 		mavenCentral()
-		maven { url 'https://repo.spring.io/libs-milestone' }
+		maven { url 'https://repo.spring.io/milestone' }
 		if (version.endsWith('SNAPSHOT')) {
-			maven { url 'https://repo.spring.io/libs-snapshot' }
+			maven { url 'https://repo.spring.io/snapshot' }
 		}
 //		maven { url 'https://repo.spring.io/libs-staging-local' }
 	}
@@ -339,7 +339,7 @@ configure(javaProjects) { subproject ->
 
 	checkstyle {
 		configDirectory.set(rootProject.file('src/checkstyle'))
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.40'
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.41'
 	}
 
 	jar {

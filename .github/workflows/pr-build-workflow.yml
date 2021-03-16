@@ -44,3 +44,8 @@ jobs:
           NO_REFERENCE_TASK: true
         with:
           arguments: checkAsciidocLinks check
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          files: '**/build/test-results/**/*.xml'
