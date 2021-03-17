@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import org.springframework.lang.Nullable;
 
 /**
  * @author Gary Russell
- * @author Artem Bilan
- *
  * @since 2.0
  *
  */
@@ -33,17 +31,11 @@ public class TcpConnectionInterceptorFactoryChain {
 
 	@Nullable
 	public TcpConnectionInterceptorFactory[] getInterceptorFactories() {
-		return this.interceptorFactories != null
-				? Arrays.copyOf(this.interceptorFactories, this.interceptorFactories.length)
-				: null;
+		return this.interceptorFactories; //NOSONAR
 	}
 
 	public void setInterceptors(TcpConnectionInterceptorFactory[] interceptorFactories) {
 		this.interceptorFactories = Arrays.copyOf(interceptorFactories, interceptorFactories.length);
-	}
-
-	public void setInterceptor(TcpConnectionInterceptorFactory... interceptorFactories) {
-		setInterceptors(interceptorFactories);
 	}
 
 }
