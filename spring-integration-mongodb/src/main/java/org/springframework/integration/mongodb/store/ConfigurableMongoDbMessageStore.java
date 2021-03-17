@@ -131,8 +131,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 					.create(this, groupId, createdTime, complete);
 			messageGroup.setLastModified(lastModifiedTime);
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
+			messageGroup.setCondition(messageDocument.getCondition());
 			return messageGroup;
-
 		}
 		else {
 			return new SimpleMessageGroup(groupId);
@@ -157,10 +157,19 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		int lastReleasedSequence = 0;
 		boolean complete = false;
 
+		String condition = null;
+
 		if (messageDocument != null) {
 			createdTime = messageDocument.getGroupCreatedTime();
 			lastReleasedSequence = messageDocument.getLastReleasedSequence();
 			complete = messageDocument.isComplete();
+			condition = messageDocument.getCondition();
+		}
+
+		if (getConditionSupplier() != null) {
+			for (Message<?> message : messages) {
+				condition = obtainConditionIfAny(message, condition);
+			}
 		}
 
 		for (Message<?> message : messages) {
@@ -171,7 +180,9 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 			document.setGroupCreatedTime(createdTime);
 			document.setLastModifiedTime(messageDocument == null ? createdTime : System.currentTimeMillis());
 			document.setSequence(getNextId());
-
+			if (condition != null) {
+				document.setCondition(condition);
+			}
 			addMessageDocument(document);
 		}
 	}
