@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -39,6 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
+import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,15 +59,21 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptor;
+import org.springframework.integration.ip.tcp.connection.TcpConnection;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionCloseEvent;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -77,6 +85,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Mário Dias
  *
  * @since 2.0
  */
@@ -84,7 +93,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	private static final Log logger = LogFactory.getLog(TcpSendingMessageHandlerTests.class);
 
-	private AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
 
 	private void readFully(InputStream is, byte[] buff) throws IOException {
 		for (int i = 0; i < buff.length; i++) {
@@ -1189,6 +1198,69 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 			assertThat(e.getCause() instanceof SocketException).isTrue();
 			assertThat(e.getCause().getMessage()).isEqualTo("Failed to connect");
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testInterceptedConnection() throws Exception {
+		final CountDownLatch latch = new CountDownLatch(1);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		scf.setSerializer(serializer);
+		scf.setDeserializer(serializer);
+		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
+		adapter.setConnectionFactory(scf);
+		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		handler.setConnectionFactory(scf);
+		final AtomicReference<TcpConnection> connection = new AtomicReference<>();
+		scf.setApplicationEventPublisher(event -> {
+			if (event instanceof TcpConnectionOpenEvent) {
+				connection.set(handler.getConnections()
+						.get(((TcpConnectionOpenEvent) event).getConnectionId()));
+				latch.countDown();
+			}
+		});
+		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
+		fc.setInterceptor(newInterceptorFactory(scf.getApplicationEventPublisher()));
+		scf.setInterceptorFactoryChain(fc);
+		scf.start();
+		TestingUtilities.waitListening(scf, null);
+		int port = scf.getPort();
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+		socket.close();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(connection.get()).isInstanceOf(HelloWorldInterceptor.class);
+		assertThat(TestUtils.getPropertyValue(handler, "connections", Map.class)).isEmpty();
+		scf.stop();
+	}
+
+	@Test
+	public void testInterceptedCleanup() throws Exception {
+		final CountDownLatch latch = new CountDownLatch(1);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		scf.setSerializer(serializer);
+		scf.setDeserializer(serializer);
+		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
+		adapter.setConnectionFactory(scf);
+		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		handler.setConnectionFactory(scf);
+		scf.setApplicationEventPublisher(event -> {
+			if (event instanceof TcpConnectionCloseEvent) {
+				latch.countDown();
+			}
+		});
+		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
+		fc.setInterceptor(newInterceptorFactory(scf.getApplicationEventPublisher()));
+		scf.setInterceptorFactoryChain(fc);
+		scf.start();
+		TestingUtilities.waitListening(scf, null);
+		int port = scf.getPort();
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+		socket.close();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(handler.getConnections().isEmpty()).isTrue();
+		scf.stop();
 	}
 
 }

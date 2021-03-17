@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2020 the original author or authors.
+ * Copyright 2001-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private boolean manualListenerRegistration;
 
+	private boolean wrapped;
+
 	/*
 	 * This boolean is to avoid looking for a temporary listener when not needed
 	 * to avoid a CPU cache flush. This does not have to be volatile because it
@@ -164,8 +166,10 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	@Override
 	public void close() {
-		for (TcpSender sender : this.senders) {
-			sender.removeDeadConnection(this);
+		if (!this.wrapped) {
+			for (TcpSender sender : this.senders) {
+				sender.removeDeadConnection(this);
+			}
 		}
 		// close() may be called multiple times; only publish once
 		if (!this.closePublished.getAndSet(true)) {
@@ -194,6 +198,9 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 				outerListener = nextListener;
 			}
 			outerListener.close();
+			for (TcpSender sender : getSenders()) {
+				sender.removeDeadConnection(outerListener);
+			}
 			if (isException) {
 				// ensure physical close in case the interceptor did not close
 				this.close();
@@ -262,6 +269,10 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	public void setNeedsTest(boolean needsTest) {
 		this.needsTest = needsTest;
+	}
+
+	void setSenders(List<TcpSender> senders) {
+		this.senders.addAll(senders);
 	}
 
 	/**
@@ -399,6 +410,14 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	@Override
 	public SocketInfo getSocketInfo() {
 		return this.socketInfo;
+	}
+
+	/**
+	 * Set to true if intercepted.
+	 * @param wrapped true if wrapped.
+	 */
+	public void setWrapped(boolean wrapped) {
+		this.wrapped = wrapped;
 	}
 
 	public String getConnectionFactoryName() {
