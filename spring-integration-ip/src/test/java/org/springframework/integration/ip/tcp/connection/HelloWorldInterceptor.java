@@ -130,11 +130,6 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 		}
 	}
 
-	@Override
-	public String getConnectionId() {
-		return super.getConnectionId() + "-test-modified-id";
-	}
-
 	/**
 	 * Defer the close until we've actually sent the data after negotiation
 	 */
