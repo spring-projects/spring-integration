@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -30,7 +31,6 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -73,7 +73,6 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSe
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -1230,7 +1229,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		socket.close();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(connection.get()).isInstanceOf(HelloWorldInterceptor.class);
-		assertThat(TestUtils.getPropertyValue(handler, "connections", Map.class)).isEmpty();
+		await().untilAsserted(() -> handler.getConnections().isEmpty());
 		scf.stop();
 	}
 
@@ -1259,7 +1258,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.close();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(handler.getConnections().isEmpty()).isTrue();
+		await().untilAsserted(() -> handler.getConnections().isEmpty());
 		scf.stop();
 	}
 
