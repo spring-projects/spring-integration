@@ -57,7 +57,7 @@ public class TcpNetClientConnectionFactory extends
 					this.tcpNetConnectionSupport.createNewConnection(socket, false, isLookupHost(),
 					getApplicationEventPublisher(), getComponentName());
 			TcpConnectionSupport wrapped = wrapConnection(connection);
-			if (wrapped.equals(connection)) {
+			if (!wrapped.equals(connection)) {
 				connection.setSenders(getSenders());
 				connection = wrapped;
 			}
