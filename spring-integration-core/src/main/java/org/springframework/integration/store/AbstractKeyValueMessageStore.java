@@ -180,6 +180,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 					.create(this, groupId, metadata.getTimestamp(), metadata.isComplete());
 			messageGroup.setLastModified(metadata.getLastModified());
 			messageGroup.setLastReleasedMessageSequenceNumber(metadata.getLastReleasedMessageSequenceNumber());
+			messageGroup.setCondition(metadata.getCondition());
 			return messageGroup;
 		}
 		else {
@@ -209,6 +210,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			group = new SimpleMessageGroup(groupId);
 		}
 
+		String condition = null;
+
 		for (Message<?> message : messages) {
 			doAddMessage(message);
 			if (metadata != null) {
@@ -217,6 +220,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			else {
 				group.add(message);
 			}
+			condition = obtainConditionIfAny(message, condition);
 		}
 
 		if (group != null) {
@@ -228,6 +232,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			metadata.setLastModified(System.currentTimeMillis());
 		}
 
+		if (condition != null) {
+			metadata.setCondition(condition);
+		}
 
 		// store MessageGroupMetadata built from enriched MG
 		doStore(this.groupPrefix + groupId, metadata);

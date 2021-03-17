@@ -50,6 +50,8 @@ public class MessageGroupMetadata implements Serializable {
 
 	private volatile int lastReleasedMessageSequenceNumber;
 
+	private volatile String condition;
+
 	private MessageGroupMetadata() {
 		//For Jackson deserialization
 	}
@@ -127,6 +129,14 @@ public class MessageGroupMetadata implements Serializable {
 
 	void setLastReleasedMessageSequenceNumber(int lastReleasedMessageSequenceNumber) {
 		this.lastReleasedMessageSequenceNumber = lastReleasedMessageSequenceNumber;
+	}
+
+	public String getCondition() {
+		return this.condition;
+	}
+
+	public void setCondition(String condition) {
+		this.condition = condition;
 	}
 
 }

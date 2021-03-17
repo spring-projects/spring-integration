@@ -86,6 +86,10 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 		this.conditionSupplier = conditionSupplier;
 	}
 
+	protected Function<Message<?>, String> getConditionSupplier() {
+		return this.conditionSupplier;
+	}
+
 	public boolean isTimeoutOnIdle() {
 		return this.timeoutOnIdle;
 	}

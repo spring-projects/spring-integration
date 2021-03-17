@@ -286,7 +286,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					.create(this, groupId, createdTime, complete);
 			messageGroup.setLastModified(lastModifiedTime);
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
-			messageGroup.setCondition(messageWrapper.get_condition());
+			messageGroup.setCondition(messageWrapper.get_Condition());
 			return messageGroup;
 
 		}
@@ -305,11 +305,18 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		long createdTime = System.currentTimeMillis();
 		int lastReleasedSequence = 0;
 		boolean complete = false;
-
+		String condition = null;
 		if (messageDocument != null) {
 			createdTime = messageDocument.get_Group_timestamp();
 			lastReleasedSequence = messageDocument.get_LastReleasedSequenceNumber();
 			complete = messageDocument.get_Group_complete();
+			condition = messageDocument.get_Condition();
+		}
+
+		if (getConditionSupplier() != null) {
+			for (Message<?> message : messages) {
+				condition = obtainConditionIfAny(message, condition);
+			}
 		}
 
 		for (Message<?> message : messages) {
@@ -319,7 +326,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			wrapper.set_Group_update_timestamp(messageDocument == null ? createdTime : System.currentTimeMillis());
 			wrapper.set_Group_complete(complete);
 			wrapper.set_LastReleasedSequenceNumber(lastReleasedSequence);
-			wrapper.set_Sequence(getNextId());
+			wrapper.setSequence(getNextId());
+			if (condition != null) {
+				wrapper.set_Condition(condition);
+			}
 
 			addMessageDocument(wrapper);
 		}
@@ -619,6 +629,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				if (completeGroup != null) {
 					wrapper.set_Group_complete(completeGroup);
 				}
+				wrapper.set_Condition((String) sourceMap.get("_condition"));
 
 				return (S) wrapper;
 			}
@@ -933,15 +944,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			this._group_complete = completedGroup;
 		}
 
-		public String get_condition() {
+		public String get_Condition() {
 			return this._condition;
 		}
 
-		public void set_condition(String _condition) {
-			this._condition = _condition;
+		public void set_Condition(String condition) {
+			this._condition = condition;
 		}
 
-		public void set_Sequence(long sequence) { // NOSONAR name
+		public void setSequence(long sequence) {
 			this.sequence = sequence;
 		}
 

@@ -68,7 +68,8 @@ public class FileMarkerReleaseStrategy implements ReleaseStrategy, GroupConditio
 		return false;
 	}
 
-	@Override public Function<Message<?>, String> getGroupConditionSupplier() {
+	@Override
+	public Function<Message<?>, String> getGroupConditionSupplier() {
 		return GROUP_CONDITION;
 	}
 

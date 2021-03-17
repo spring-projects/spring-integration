@@ -24,13 +24,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.function.Function;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.internal.junit.StrictStubsRunnerTestListener;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -53,6 +56,11 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Artem Bilan
  */
 public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
+
+	public static final Function<Message<?>, String> CONDITION_SUPPLIER = m -> "10";
+
+	public static final ReleaseStrategy RELEASE_STRATEGY =
+			group -> group.size() == Integer.parseInt(group.getCondition());
 
 	protected final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 
