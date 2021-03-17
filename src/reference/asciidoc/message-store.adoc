@@ -148,3 +148,19 @@ This improves resources utilization when groups are very big in the store.
 Internally in the framework this new API is used in the <<./delayer.adoc#delayer,Delayer>> (for example) when it reschedules persisted messages on startup.
 A returned `Stream<Message<?>>` must be closed in the end of processing, e.g. via auto-close by the `try-with-resources`.
 Whenever a `PersistentMessageGroup` is used, its `streamMessages()` delegates to the `MessageGroupStore.streamMessagesForGroup()`.
+
+[[message-group-condition]]
+==== Message Group Condition
+
+Starting with version 5.5, the `MessageGroup` abstraction provides a `condition` string option.
+The value of this option can be anything what could be parsed later on  for any reasons to make a decision for the group.
+For example a `ReleaseStrategy` from a <<./aggregator.adoc#aggregator-api, correlation message handler>> may consult this property from the group instead of iterating all the messages in the group.
+The framework populates a `condition` in the `MessageGroupStore` implementations when a messages is added into the group.
+For this purpose a `setConditionSupplier(Function<Message<?>, String>)` API is exposed to be called against every message added to the group.
+The function may return `null`, but only non-null value is going to be populated into the group: once set, it cannot be reset, however can be replaced with a new value.
+The value for a `condition` can be a JSON, SpEL expression, number or anything what can be serialized as a string and parsed afterwards.
+For example, the `FileMarkerReleaseStrategy` from the <<./file.adoc#file-aggregator, File Aggregator>> component, populates a condition into a group from the `FileHeaders.LINE_COUNT` header of the `FileSplitter.FileMarker.Mark.END` message and consults with it from its `canRelease()` comparing a group size with the value in this condition.
+This way it doesn't iterate all the messages in group to find a `FileSplitter.FileMarker.Mark.END` message with the `FileHeaders.LINE_COUNT` header.
+
+In addition, for target configuration convenience, a `GroupConditionProvider` contract has been introduced.
+The `AbstractCorrelatingMessageHandler` checks provided `ReleaseStrategy` for this contract implementation and populates a `conditionSupplier` function into the `MessageGroupStore`.

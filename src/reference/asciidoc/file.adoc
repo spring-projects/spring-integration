@@ -1192,6 +1192,8 @@ When markers are enabled on the `FileSplitter`, it does not populate sequence de
 The `FileHeaders.FILENAME` is still populated for each line emitted, including START/END marker messages.
 
 - The `FileMarkerReleaseStrategy` - checks for `FileSplitter.FileMarker.Mark.END` message in the group and then compare a `FileHeaders.LINE_COUNT` header value with the group size minus `2` - `FileSplitter.FileMarker` instances.
+It also implements a convenient `GroupConditionProvider` contact for `conditionSupplier` function to be used in the `AbstractCorrelatingMessageHandler`.
+See <<./message-store.adoc#message-group-condition, Message Group Condition>> for more information.
 
 - The `FileAggregatingMessageGroupProcessor` just removes `FileSplitter.FileMarker` messages from the group and collect the rest of messages into a list payload to produce.
 

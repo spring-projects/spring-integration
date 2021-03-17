@@ -43,6 +43,9 @@ See <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> for mo
 The `groupTimeoutExpression` for a correlation message handler (an `Aggregator` and `Resequencer`) can now be evaluated to a `java.util.Date` for some fine-grained scheduling use-cases.
 See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 
+The `MessageGroup` abstraction can be supplied with a `condition` to evaluate later on to make a decision for the group.
+See <<./message-store.adoc#message-group-condition,Message Group Condition>> for more information.
+
 [[x5.5-amqp]]
 ==== AMQP Changes
 
