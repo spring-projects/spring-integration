@@ -19,6 +19,7 @@ package org.springframework.integration.config;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.aopalliance.aop.Advice;
@@ -36,6 +37,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.JavaUtils;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.scheduling.TaskScheduler;
@@ -97,6 +99,8 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 	private Long expireDuration;
 
 	private Function<MessageGroup, Map<String, Object>> headersFunction;
+
+	private BiFunction<Message<?>, String, String> groupConditionSupplier;
 
 	public void setProcessorBean(Object processorBean) {
 		this.processorBean = processorBean;
@@ -187,6 +191,10 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.expireDuration = expireDuration;
 	}
 
+	public void setGroupConditionSupplier(BiFunction<Message<?>, String, String> groupConditionSupplier) {
+		this.groupConditionSupplier = groupConditionSupplier;
+	}
+
 	@Override
 	protected AggregatingMessageHandler createHandler() {
 		MessageGroupProcessor outputProcessor;
@@ -233,6 +241,7 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 				.acceptIfNotNull(this.releaseLockBeforeSend, aggregator::setReleaseLockBeforeSend)
 				.acceptIfNotNull(this.expireDuration,
 						(duration) -> aggregator.setExpireDuration(Duration.ofMillis(duration)))
+				.acceptIfNotNull(this.groupConditionSupplier, aggregator::setGroupConditionSupplier)
 				.acceptIfNotNull(this.expireTimeout, aggregator::setExpireTimeout);
 
 		return aggregator;

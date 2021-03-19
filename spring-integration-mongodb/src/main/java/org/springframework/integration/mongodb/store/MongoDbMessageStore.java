@@ -313,12 +313,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			condition = messageDocument.get_Condition();
 		}
 
-		if (getConditionSupplier() != null) {
-			for (Message<?> message : messages) {
-				condition = obtainConditionIfAny(message, condition);
-			}
-		}
-
 		for (Message<?> message : messages) {
 			MessageWrapper wrapper = new MessageWrapper(message);
 			wrapper.set_GroupId(groupId);
@@ -405,8 +399,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	public void setGroupCondition(Object groupId, String condition) {
+		updateGroup(groupId, lastModifiedUpdate().set("_condition", condition));
+	}
+
+	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
-		this.updateGroup(groupId, lastModifiedUpdate().set(LAST_RELEASED_SEQUENCE_NUMBER, sequenceNumber));
+		updateGroup(groupId, lastModifiedUpdate().set(LAST_RELEASED_SEQUENCE_NUMBER, sequenceNumber));
 	}
 
 	@Override

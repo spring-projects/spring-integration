@@ -166,12 +166,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 			condition = messageDocument.getCondition();
 		}
 
-		if (getConditionSupplier() != null) {
-			for (Message<?> message : messages) {
-				condition = obtainConditionIfAny(message, condition);
-			}
-		}
-
 		for (Message<?> message : messages) {
 			MessageDocument document = new MessageDocument(message);
 			document.setGroupId(groupId);
@@ -230,6 +224,11 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.LAST_RELEASED_SEQUENCE, sequenceNumber));
+	}
+
+	@Override
+	public void setGroupCondition(Object groupId, String condition) {
+		updateGroup(groupId, lastModifiedUpdate().set("condition", condition));
 	}
 
 	@Override

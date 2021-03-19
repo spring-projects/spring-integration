@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.store;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,7 +26,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -51,9 +49,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	private boolean lazyLoadMessageGroups = true;
 
-	private Function<Message<?>, String> conditionSupplier;
-
-	private volatile boolean timeoutOnIdle;
+	private boolean timeoutOnIdle;
 
 	protected AbstractMessageGroupStore() {
 	}
@@ -79,15 +75,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	 */
 	public void setExpiryCallbacks(Collection<MessageGroupCallback> expiryCallbacks) {
 		expiryCallbacks.forEach(this::registerMessageGroupExpiryCallback);
-	}
-
-	@Override
-	public void setConditionSupplier(Function<Message<?>, String> conditionSupplier) {
-		this.conditionSupplier = conditionSupplier;
-	}
-
-	protected Function<Message<?>, String> getConditionSupplier() {
-		return this.conditionSupplier;
 	}
 
 	public boolean isTimeoutOnIdle() {
@@ -201,17 +188,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		addMessagesToGroup(groupId, message);
 		return getMessageGroup(groupId);
-	}
-
-	@Nullable
-	protected String obtainConditionIfAny(Message<?> message, @Nullable String existingCondition) {
-		if (this.conditionSupplier != null) {
-			String newCondition = this.conditionSupplier.apply(message);
-			if (newCondition != null) {
-				return newCondition;
-			}
-		}
-		return existingCondition;
 	}
 
 	private void expire(MessageGroup group) {

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import org.springframework.messaging.Message;
 
@@ -32,6 +32,6 @@ import org.springframework.messaging.Message;
  */
 public interface GroupConditionProvider {
 
-	Function<Message<?>, String> getGroupConditionSupplier();
+	BiFunction<Message<?>, String, String> getGroupConditionSupplier();
 
 }

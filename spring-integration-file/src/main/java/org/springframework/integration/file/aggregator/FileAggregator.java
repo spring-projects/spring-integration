@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file.aggregator;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -75,7 +75,7 @@ public class FileAggregator implements CorrelationStrategy, ReleaseStrategy, Gro
 	}
 
 	@Override
-	public Function<Message<?>, String> getGroupConditionSupplier() {
+	public BiFunction<Message<?>, String, String> getGroupConditionSupplier() {
 		return this.releaseStrategy.getGroupConditionSupplier();
 	}
 

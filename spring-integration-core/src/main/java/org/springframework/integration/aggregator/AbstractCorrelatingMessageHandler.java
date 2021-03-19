@@ -27,6 +27,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
+import java.util.function.BiFunction;
 
 import org.aopalliance.aop.Advice;
 
@@ -157,6 +158,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private boolean releaseLockBeforeSend;
 
 	private volatile boolean running;
+
+	private BiFunction<Message<?>, String, String> groupConditionSupplier;
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
@@ -361,6 +364,17 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.expireDuration = expireDuration;
 	}
 
+	/**
+	 * Configure a {@link BiFunction} to supply a group condition from a message to be added to the group.
+	 * The {@code null} result from the function will reset a condition set before.
+	 * @param conditionSupplier the function to supply a group condition from a message to be added to the group.
+	 * @since 5.5
+	 * @see GroupConditionProvider
+	 */
+	public void setGroupConditionSupplier(BiFunction<Message<?>, String, String> conditionSupplier) {
+		this.groupConditionSupplier = conditionSupplier;
+	}
+
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
@@ -409,8 +423,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.forceReleaseProcessor = createGroupTimeoutProcessor();
 
 		if (this.releaseStrategy instanceof GroupConditionProvider) {
-			this.messageStore.setConditionSupplier(
-					((GroupConditionProvider) this.releaseStrategy).getGroupConditionSupplier());
+			this.groupConditionSupplier = ((GroupConditionProvider) this.releaseStrategy).getGroupConditionSupplier();
 		}
 	}
 
@@ -444,6 +457,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	protected ReleaseStrategy getReleaseStrategy() {
 		return this.releaseStrategy;
+	}
+
+	@Nullable
+	protected BiFunction<Message<?>, String, String> getGroupConditionSupplier() {
+		return this.groupConditionSupplier;
 	}
 
 	@Override
@@ -547,6 +565,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			this.logger.trace(() -> "Adding message to group [ " + messageGroupToLog + "]");
 			messageGroup = store(correlationKey, message);
 
+			setGroupConditionIfAny(message, messageGroup);
+
 			if (this.releaseStrategy.canRelease(messageGroup)) {
 				Collection<Message<?>> completedMessages = null;
 				try {
@@ -581,6 +601,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				this.logger.debug(() ->
 						"Cancel 'ScheduledFuture' for MessageGroup with Correlation Key [ " + correlationKey + "].");
 			}
+		}
+	}
+
+	private void setGroupConditionIfAny(Message<?> message, MessageGroup messageGroup) {
+		if (this.groupConditionSupplier != null) {
+			String condition = this.groupConditionSupplier.apply(message, messageGroup.getCondition());
+			this.messageStore.setGroupCondition(messageGroup.getGroupId(), condition);
+			messageGroup.setCondition(condition);
 		}
 	}
 

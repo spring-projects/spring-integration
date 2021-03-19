@@ -24,7 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import org.junit.After;
 import org.junit.Before;
@@ -56,7 +56,7 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 
-	public static final Function<Message<?>, String> CONDITION_SUPPLIER = m -> "10";
+	public static final BiFunction<Message<?>, String, String> CONDITION_SUPPLIER = (m, c) -> "10";
 
 	public static final ReleaseStrategy RELEASE_STRATEGY =
 			group -> group.size() == Integer.parseInt(group.getCondition());

@@ -18,7 +18,6 @@ package org.springframework.integration.store;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -98,12 +97,15 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber);
 
 	/**
-	 * Configure a {@link Function} to supply a group condition from a message to be added to the group.
-	 * The {@code null} result from the function doesn't override already present conditon on the group.
-	 * @param conditionSupplier the function to supply a group condition from a message to be added to the group.
+	 * Add a condition sentence into the group.
+	 * Can be used later on for making some decisions for group, e.g. release strategy
+	 * for correlation handler can consult this condition instead of iterating all
+	 * the messages in group.
+	 * @param groupId The group identifier.
+	 * @param condition The condition to store into the group.
 	 * @since 5.5
 	 */
-	void setConditionSupplier(Function<Message<?>, String> conditionSupplier);
+	void setGroupCondition(Object groupId, String condition);
 
 	/**
 	 * @return The iterator of currently accumulated {@link MessageGroup}s.

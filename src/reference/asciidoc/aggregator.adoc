@@ -970,4 +970,12 @@ Flux<Message<?>> window =
 ----
 ====
 
+[[agg-message-group-condition]]
+==== Condition on the Message Group
+
+Starting with version 5.5, an `AbstractCorrelatingMessageHandler` (including its Java & XML DSLs) exposes a `groupConditionSupplier` option of the `BiFunction<Message<?>, String, String>` implementation.
+This function is used on each message added to the group and a result condition sentence is stored into the group for future consideration.
+The `ReleaseStrategy` may consult this condition instead of iterating over all the messages in the group.
+See `GroupConditionProvider` JavaDocs and <<./message-store.adoc#message-group-condition, Message Group Condition>> for more information.
+
 See also <<./file.adoc#file-aggregator, File Aggregator>>.

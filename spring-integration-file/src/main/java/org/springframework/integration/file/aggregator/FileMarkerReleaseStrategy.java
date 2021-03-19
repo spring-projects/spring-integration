@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.aggregator;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.springframework.integration.aggregator.GroupConditionProvider;
@@ -32,8 +33,7 @@ import org.springframework.messaging.MessageHeaders;
  * message in the group and its {@link org.springframework.integration.file.FileHeaders#LINE_COUNT} header.
  * <p>
  * The logic of this strategy is based on the {@link FileMarkerReleaseStrategy#GROUP_CONDITION}
- * function populated to the {@link org.springframework.integration.store.MessageGroupStore} for an
- * aggregator.
+ * function populated to the {@link org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler}.
  *
  * @author Artem Bilan
  *
@@ -43,16 +43,16 @@ public class FileMarkerReleaseStrategy implements ReleaseStrategy, GroupConditio
 
 	/**
 	 * The {@link Function} for
-	 * {@link org.springframework.integration.store.MessageGroupStore#setConditionSupplier(Function)}.
+	 * {@link org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler#setGroupConditionSupplier(BiFunction)}.
 	 */
-	public static final Function<Message<?>, String> GROUP_CONDITION =
-			(message) -> {
+	public static final BiFunction<Message<?>, String, String> GROUP_CONDITION =
+			(message, existingCondition) -> {
 				MessageHeaders headers = message.getHeaders();
 				if (FileSplitter.FileMarker.Mark.END.name().equals(headers.get(FileHeaders.MARKER))) {
 					Long lineCount = headers.get(FileHeaders.LINE_COUNT, Long.class);
-					return lineCount != null ? "" + lineCount : null;
+					return lineCount != null ? "" + lineCount : existingCondition;
 				}
-				return null;
+				return existingCondition;
 			};
 
 	@Override
@@ -69,7 +69,7 @@ public class FileMarkerReleaseStrategy implements ReleaseStrategy, GroupConditio
 	}
 
 	@Override
-	public Function<Message<?>, String> getGroupConditionSupplier() {
+	public BiFunction<Message<?>, String, String> getGroupConditionSupplier() {
 		return GROUP_CONDITION;
 	}
 

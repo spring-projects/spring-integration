@@ -41,6 +41,7 @@ This is covered as a `ConsumerEndpointSpec.reactive()` option in Java DSL and as
 See <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> for more information.
 
 The `groupTimeoutExpression` for a correlation message handler (an `Aggregator` and `Resequencer`) can now be evaluated to a `java.util.Date` for some fine-grained scheduling use-cases.
+Also  `BiFunction groupConditionSupplier` option is added to the `AbstractCorrelatingMessageHandler` to supply a `MessageGroup` condition against a message to be added to the group.
 See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 
 The `MessageGroup` abstraction can be supplied with a `condition` to evaluate later on to make a decision for the group.

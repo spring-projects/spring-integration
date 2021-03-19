@@ -50,7 +50,6 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -85,8 +84,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private enum Query {
 		CREATE_MESSAGE_GROUP("INSERT into %PREFIX%MESSAGE_GROUP" +
-				"(GROUP_KEY, REGION, COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE, CONDITION)"
-				+ " values (?, ?, 0, 0, ?, ?, ?)"),
+				"(GROUP_KEY, REGION, COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE)"
+				+ " values (?, ?, 0, 0, ?, ?)"),
 
 		UPDATE_MESSAGE_GROUP("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, CONDITION=? " +
 				"where GROUP_KEY=? and REGION=?"),
@@ -340,10 +339,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		Timestamp updatedDate = new Timestamp(System.currentTimeMillis());
 		boolean groupNotExist = groupInfo.isEmpty();
 		Timestamp createdDate = groupNotExist ? updatedDate : (Timestamp) groupInfo.get("CREATED_DATE");
-		String condition = (String) groupInfo.get("CONDITION");
 
 		for (Message<?> message : messages) {
-			condition = obtainConditionIfAny(message, condition);
 			addMessage(message);
 		}
 		this.jdbcTemplate.batchUpdate(getQuery(Query.CREATE_GROUP_TO_MESSAGE),
@@ -362,15 +359,15 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		if (groupNotExist) {
 			try {
-				doCreateMessageGroup(groupKey, createdDate, condition);
+				doCreateMessageGroup(groupKey, createdDate);
 			}
 			catch (DuplicateKeyException e) {
 				logger.warn("Lost race to create group; attempting update instead", e);
-				doUpdateMessageGroup(groupKey, updatedDate, condition);
+				updateMessageGroup(groupKey);
 			}
 		}
 		else {
-			doUpdateMessageGroup(groupKey, updatedDate, condition);
+			updateMessageGroup(groupKey);
 		}
 	}
 
@@ -443,6 +440,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 					ps.setString(2, getKey(messageToRemove.getHeaders().getId()));
 					ps.setString(3, JdbcMessageStore.this.region);
 				});
+
 		this.jdbcTemplate.batchUpdate(getQuery(Query.DELETE_MESSAGE),
 				messages,
 				getRemoveBatchSize(),
@@ -450,7 +448,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 					ps.setString(1, getKey(messageToRemove.getHeaders().getId()));
 					ps.setString(2, JdbcMessageStore.this.region);
 				});
-		this.updateMessageGroup(groupKey);
+
+		updateMessageGroup(groupKey);
 	}
 
 	@Override
@@ -482,36 +481,49 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	@Override
 	public void completeGroup(Object groupId) {
-		final long updatedDate = System.currentTimeMillis();
 		final String groupKey = getKey(groupId);
 
 		this.jdbcTemplate.update(getQuery(Query.COMPLETE_GROUP), ps -> {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Completing MessageGroup: " + groupKey);
 			}
-			ps.setTimestamp(1, new Timestamp(updatedDate));
+			ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
 			ps.setString(2, groupKey);
 			ps.setString(3, JdbcMessageStore.this.region);
 		});
 	}
 
 	@Override
+	public void setGroupCondition(Object groupId, String condition) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		String groupKey = getKey(groupId);
+		Timestamp updatedDate = new Timestamp(System.currentTimeMillis());
+		this.jdbcTemplate.update(getQuery(Query.UPDATE_MESSAGE_GROUP), ps -> {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Updating message group with id key=" + groupKey + " and updated date=" + updatedDate);
+			}
+			ps.setTimestamp(1, updatedDate);
+			ps.setString(2, condition);
+			ps.setString(3, groupKey);
+			ps.setString(4, this.region);
+		});
+	}
+
+	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, final int sequenceNumber) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		final long updatedDate = System.currentTimeMillis();
-		final String groupKey = getKey(groupId);
+		String groupKey = getKey(groupId);
 
 		this.jdbcTemplate.update(getQuery(Query.UPDATE_LAST_RELEASED_SEQUENCE), ps -> {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Updating  the sequence number of the last released Message in the MessageGroup: " +
 						groupKey);
 			}
-			ps.setTimestamp(1, new Timestamp(updatedDate));
+			ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
 			ps.setInt(2, sequenceNumber);
 			ps.setString(3, groupKey);
 			ps.setString(4, JdbcMessageStore.this.region);
 		});
-		this.updateMessageGroup(groupKey);
 	}
 
 	@Override
@@ -613,7 +625,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return null;
 	}
 
-	private void doCreateMessageGroup(String groupKey, Timestamp createdDate, @Nullable String condition) {
+	private void doCreateMessageGroup(String groupKey, Timestamp createdDate) {
 		this.jdbcTemplate.update(getQuery(Query.CREATE_MESSAGE_GROUP), ps -> {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Creating message group with id key=" + groupKey + " and created date=" + createdDate);
@@ -622,23 +634,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			ps.setString(2, this.region);
 			ps.setTimestamp(3, createdDate);
 			ps.setTimestamp(4, createdDate);
-			ps.setString(5, condition);
 		});
 	}
 
-	private void doUpdateMessageGroup(String groupKey, Timestamp updatedDate, @Nullable String condition) {
-		this.jdbcTemplate.update(getQuery(Query.UPDATE_MESSAGE_GROUP), ps -> {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Updating message group with id key=" + groupKey + " and updated date=" + updatedDate);
-			}
-			ps.setTimestamp(1, updatedDate);
-			ps.setString(2, condition);
-			ps.setString(3, groupKey);
-			ps.setString(4, this.region);
-		});
-	}
-
-	private void updateMessageGroup(final String groupId) {
+	private void updateMessageGroup(String groupId) {
 		this.jdbcTemplate.update(getQuery(Query.UPDATE_GROUP), ps -> {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Updating MessageGroup: " + groupId);

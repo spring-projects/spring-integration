@@ -153,14 +153,15 @@ Whenever a `PersistentMessageGroup` is used, its `streamMessages()` delegates to
 ==== Message Group Condition
 
 Starting with version 5.5, the `MessageGroup` abstraction provides a `condition` string option.
-The value of this option can be anything what could be parsed later on  for any reasons to make a decision for the group.
+The value of this option can be anything what could be parsed later on for any reason to make a decision for the group.
 For example a `ReleaseStrategy` from a <<./aggregator.adoc#aggregator-api, correlation message handler>> may consult this property from the group instead of iterating all the messages in the group.
-The framework populates a `condition` in the `MessageGroupStore` implementations when a messages is added into the group.
-For this purpose a `setConditionSupplier(Function<Message<?>, String>)` API is exposed to be called against every message added to the group.
-The function may return `null`, but only non-null value is going to be populated into the group: once set, it cannot be reset, however can be replaced with a new value.
+The `MessageGroupStore` expose a `setGroupCondition(Object groupId, String condition)` API.
+For this purpose a `setGroupConditionSupplier(BiFunction<Message<?>, String, String>)` option has been added to the `AbstractCorrelatingMessageHandler`.
+This function is evaluated against each message to be added to the group and existing condition on the group.
+The implementation may decide to return new value, existing or reset the target condition to `null`.
 The value for a `condition` can be a JSON, SpEL expression, number or anything what can be serialized as a string and parsed afterwards.
 For example, the `FileMarkerReleaseStrategy` from the <<./file.adoc#file-aggregator, File Aggregator>> component, populates a condition into a group from the `FileHeaders.LINE_COUNT` header of the `FileSplitter.FileMarker.Mark.END` message and consults with it from its `canRelease()` comparing a group size with the value in this condition.
 This way it doesn't iterate all the messages in group to find a `FileSplitter.FileMarker.Mark.END` message with the `FileHeaders.LINE_COUNT` header.
 
 In addition, for target configuration convenience, a `GroupConditionProvider` contract has been introduced.
-The `AbstractCorrelatingMessageHandler` checks provided `ReleaseStrategy` for this contract implementation and populates a `conditionSupplier` function into the `MessageGroupStore`.
+The `AbstractCorrelatingMessageHandler` checks provided `ReleaseStrategy` for this contract implementation and extracts a `conditionSupplier` for further group condition evaluation logic.
