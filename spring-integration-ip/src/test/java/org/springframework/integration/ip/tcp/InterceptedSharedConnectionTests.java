@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@ package org.springframework.integration.ip.tcp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -30,20 +32,20 @@ import org.springframework.integration.ip.tcp.connection.AbstractClientConnectio
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptor;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionOpenEvent;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class InterceptedSharedConnectionTests {
 
@@ -55,6 +57,12 @@ public class InterceptedSharedConnectionTests {
 
 	@Autowired
 	AbstractClientConnectionFactory client;
+
+	@Autowired
+	AbstractServerConnectionFactory netServer;
+
+	@Autowired
+	AbstractClientConnectionFactory netClient;
 
 	@Autowired
 	Listener listener;
@@ -70,7 +78,7 @@ public class InterceptedSharedConnectionTests {
 	 * @throws Exception
 	 */
 	@Test
-	public void test1() throws Exception {
+	void test1() throws Exception {
 		TestingUtilities.waitListening(this.server, null);
 		this.client.setPort(this.server.getPort());
 		this.ctx.getBeansOfType(ConsumerEndpointFactoryBean.class).values().forEach(c -> c.start());
@@ -82,18 +90,49 @@ public class InterceptedSharedConnectionTests {
 			assertThat(message).isNotNull();
 			assertThat(message.getPayload()).isEqualTo("Test");
 		}
-		assertThat(this.listener.openEvent).isNotNull();
-		assertThat(this.listener.openEvent.getConnectionFactoryName()).isEqualTo("client");
+		assertThat(this.listener.clientOpenEvent).isNotNull();
+		assertThat(this.listener.clientOpenEvent.getConnectionFactoryName()).isEqualTo("client");
+		assertThat(this.listener.serverOpenEvent).isNotNull();
+		assertThat(this.listener.serverOpenEvent.getConnectionFactoryName()).isEqualTo("server");
+	}
+
+	@Test
+	void correctOpenNetEventPublished() throws InterruptedException {
+		TestingUtilities.waitListening(this.netServer, null);
+		this.listener.clientOpenEvent = null;
+		this.listener.serverOpenEvent = null;
+		this.netClient.setPort(this.netServer.getPort());
+		this.netClient.start();
+		TcpConnectionSupport conn = this.netClient.getConnection();
+		conn.send(new GenericMessage<>("foo"));
+		conn.close();
+		assertThat(this.listener.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.listener.clientOpenEvent).isNotNull();
+		assertThat(this.listener.clientOpenEvent.getConnectionFactoryName()).isEqualTo("netClient");
+		assertThat(this.listener.serverOpenEvent).isNotNull();
+		assertThat(this.listener.serverOpenEvent.getConnectionFactoryName()).isEqualTo("netServer");
 	}
 
 	public static class Listener implements ApplicationListener<TcpConnectionOpenEvent> {
 
-		private volatile TcpConnectionOpenEvent openEvent;
+		final CountDownLatch latch = new CountDownLatch(2);
+
+		volatile TcpConnectionOpenEvent clientOpenEvent;
+
+		volatile TcpConnectionOpenEvent serverOpenEvent;
 
 		@Override
 		public void onApplicationEvent(TcpConnectionOpenEvent event) {
 			if (event.getSource() instanceof HelloWorldInterceptor) {
-				this.openEvent = event;
+				if (event.getConnectionFactoryName().startsWith("net")) {
+					this.latch.countDown();
+				}
+				if (event.getConnectionFactoryName().contains("lient")) {
+					this.clientOpenEvent = event;
+				}
+				else {
+					this.serverOpenEvent = event;
+				}
 			}
 		}
 

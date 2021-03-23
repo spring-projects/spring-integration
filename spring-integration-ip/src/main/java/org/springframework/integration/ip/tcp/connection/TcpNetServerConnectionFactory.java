@@ -112,59 +112,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		try {
 			setupServerSocket();
 			while (true) {
-				final Socket socket;
-				/*
-				 *  User hooks in the TcpSocketSupport may have set the server socket SO_TIMEOUT.
-				 *  Not fatal.
-				 */
-				try {
-					if (this.serverSocket == null) {
-						logger.debug(() -> this + " stopped before accept");
-						throw new IOException(this + " stopped before accept");
-					}
-					else {
-						socket = this.serverSocket.accept();
-					}
-				}
-				catch (@SuppressWarnings("unused") SocketTimeoutException ste) {
-					logger.debug("Timed out on accept; continuing");
-					continue;
-				}
-				if (isShuttingDown()) {
-					logger.info(() -> "New connection from " + socket.getInetAddress().getHostAddress()
-							+ ":" + socket.getPort()
-							+ " rejected; the server is in the process of shutting down.");
-					socket.close();
-				}
-				else {
-					logger.debug(() -> "Accepted connection from " + socket.getInetAddress().getHostAddress()
-							+ ":" + socket.getPort());
-					try {
-						setSocketAttributes(socket);
-						TcpConnectionSupport connection = this.tcpNetConnectionSupport.createNewConnection(socket, true,
-								isLookupHost(), getApplicationEventPublisher(), getComponentName());
-						TcpConnectionSupport wrapped = wrapConnection(connection);
-						if (!wrapped.equals(connection)) {
-							connection.setSenders(getSenders());
-							connection = wrapped;
-						}
-						initializeConnection(connection, socket);
-						getTaskExecutor().execute(connection);
-						harvestClosedConnections();
-						connection.publishConnectionOpenEvent();
-					}
-					catch (RuntimeException ex) {
-						this.logger.error(ex, () ->
-								"Failed to create and configure a TcpConnection for the new socket: "
-										+ socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
-						try {
-							socket.close();
-						}
-						catch (@SuppressWarnings("unused") IOException e1) { // NOSONAR - exception as flow control
-							// empty
-						}
-					}
-				}
+				acceptConnectionAndExecute();
 			}
 		}
 		catch (IOException ex) { // NOSONAR flow control via exceptions
@@ -198,6 +146,57 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		setListening(true);
 		logger.info(() -> this + " Listening");
 		publishServerListeningEvent(getPort());
+	}
+
+	private void acceptConnectionAndExecute() throws IOException {
+		final Socket socket;
+		/*
+		 *  User hooks in the TcpSocketSupport may have set the server socket SO_TIMEOUT.
+		 *  Not fatal.
+		 */
+		try {
+			if (this.serverSocket == null) {
+				logger.debug(() -> this + " stopped before accept");
+				throw new IOException(this + " stopped before accept");
+			}
+			else {
+				socket = this.serverSocket.accept();
+			}
+		}
+		catch (@SuppressWarnings("unused") SocketTimeoutException ste) {
+			logger.debug("Timed out on accept; continuing");
+			return;
+		}
+		if (isShuttingDown()) {
+			logger.info(() -> "New connection from " + socket.getInetAddress().getHostAddress()
+					+ ":" + socket.getPort()
+					+ " rejected; the server is in the process of shutting down.");
+			socket.close();
+		}
+		else {
+			logger.debug(() -> "Accepted connection from " + socket.getInetAddress().getHostAddress()
+					+ ":" + socket.getPort());
+			try {
+				setSocketAttributes(socket);
+				TcpConnectionSupport connection = this.tcpNetConnectionSupport.createNewConnection(socket, true,
+						isLookupHost(), getApplicationEventPublisher(), getComponentName());
+				connection = wrapConnection(connection);
+				initializeConnection(connection, socket);
+				getTaskExecutor().execute(connection);
+				harvestClosedConnections();
+			}
+			catch (RuntimeException ex) {
+				this.logger.error(ex, () ->
+						"Failed to create and configure a TcpConnection for the new socket: "
+								+ socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
+				try {
+					socket.close();
+				}
+				catch (@SuppressWarnings("unused") IOException e1) { // NOSONAR - exception as flow control
+					// empty
+				}
+			}
+		}
 	}
 
 	/**

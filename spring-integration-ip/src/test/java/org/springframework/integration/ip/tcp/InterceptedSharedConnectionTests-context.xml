@@ -45,6 +45,28 @@
 		interceptor-factory-chain="helloWorldInterceptors"
 	/>
 
+	<int-ip:tcp-connection-factory id="netServer"
+		type="server"
+		port="0"
+		serializer="serializer"
+		deserializer="deserializer"
+		using-nio="false"
+		single-use="true"
+		interceptor-factory-chain="helloWorldInterceptors"
+	/>
+
+	<int-ip:tcp-connection-factory id="netClient"
+		type="client"
+		host="localhost"
+		port="0"
+		single-use="true"
+		so-timeout="100000"
+		using-nio="false"
+		serializer="serializer"
+		deserializer="deserializer"
+		interceptor-factory-chain="helloWorldInterceptors"
+	/>
+
 	<int:channel id="input" />
 
 	<int:channel id="replies">
@@ -70,6 +92,16 @@
 		connection-factory="server"/>
 
 	<int:channel id="loop" />
+
+	<int-ip:tcp-inbound-channel-adapter id="inboundNetServer"
+		channel="loop2"
+		connection-factory="netServer"/>
+
+	<int-ip:tcp-outbound-channel-adapter id="outboundNetServer"
+		channel="loop2"
+		connection-factory="netServer"/>
+
+	<int:channel id="loop2" />
 
 	<bean class="org.springframework.integration.ip.tcp.InterceptedSharedConnectionTests$Listener" />
 
