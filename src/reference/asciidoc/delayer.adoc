@@ -195,8 +195,9 @@ controlBusChannel.send(delayerReschedulingMessage);
 
 NOTE: For more information regarding the message store, JMX, and the control bus, see <<./system-management.adoc#system-management-chapter,System Management>>.
 
-Starting with version 5.3.7, if transaction is active when message is stored into a `MessageStore`, the release task is scheduled in a `TransactionSynchronization.afterCommit()` callback.
-This is necessary to ensure that there is no a race condition when message is not stored because no transaction commit yet, but scheduled task is ready to be performed after delay.
+Starting with version 5.3.7, if a transaction is active when a message is stored into a `MessageStore`, the release task is scheduled in a `TransactionSynchronization.afterCommit()` callback.
+This is necessary to prevent a race condition, where the scheduled release could run before the transaction has committed, and the message is not found.
+In this case, the message will be released after the delay, or after the transaction commits, whichever is later.
 
 [[delayer-release-failures]]
 ==== Release Failures
