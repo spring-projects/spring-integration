@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.aopalliance.aop.Advice;
@@ -36,6 +37,7 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -394,6 +396,17 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 */
 	public S releaseLockBeforeSend(boolean releaseLockBeforeSend) {
 		this.handler.setReleaseLockBeforeSend(releaseLockBeforeSend);
+		return _this();
+	}
+
+	/**
+	 * Configure a {@link BiFunction} to supply a group condition from a message to be added to the group.
+	 * The {@code null} result from the function will reset a condition set before.
+	 * @param conditionSupplier the function to supply a group condition from a message to be added to the group.
+	 * @since 5.5
+	 */
+	public S groupConditionSupplier(BiFunction<Message<?>, String, String> conditionSupplier) {
+		this.handler.setGroupConditionSupplier(conditionSupplier);
 		return _this();
 	}
 

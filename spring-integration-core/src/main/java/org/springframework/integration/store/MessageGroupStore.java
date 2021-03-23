@@ -97,6 +97,17 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber);
 
 	/**
+	 * Add a condition sentence into the group.
+	 * Can be used later on for making some decisions for group, e.g. release strategy
+	 * for correlation handler can consult this condition instead of iterating all
+	 * the messages in group.
+	 * @param groupId The group identifier.
+	 * @param condition The condition to store into the group.
+	 * @since 5.5
+	 */
+	void setGroupCondition(Object groupId, String condition);
+
+	/**
 	 * @return The iterator of currently accumulated {@link MessageGroup}s.
 	 */
 	Iterator<MessageGroup> iterator();

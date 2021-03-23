@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,12 +56,11 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	private static final String INTERRUPTED_WHILE_OBTAINING_LOCK = "Interrupted while obtaining lock";
 
-	private final ConcurrentMap<UUID, Message<?>> idToMessage = new ConcurrentHashMap<UUID, Message<?>>();
+	private final ConcurrentMap<UUID, Message<?>> idToMessage = new ConcurrentHashMap<>();
 
-	private final ConcurrentMap<Object, MessageGroup> groupIdToMessageGroup =
-			new ConcurrentHashMap<Object, MessageGroup>();
+	private final ConcurrentMap<Object, MessageGroup> groupIdToMessageGroup = new ConcurrentHashMap<>();
 
-	private final ConcurrentMap<Object, UpperBound> groupToUpperBound = new ConcurrentHashMap<Object, UpperBound>();
+	private final ConcurrentMap<Object, UpperBound> groupToUpperBound = new ConcurrentHashMap<>();
 
 	private final int groupCapacity;
 
@@ -69,13 +68,13 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	private final UpperBound individualUpperBound;
 
-	private volatile LockRegistry lockRegistry;
+	private final long upperBoundTimeout;
+
+	private LockRegistry lockRegistry;
+
+	private boolean copyOnGet = false;
 
 	private volatile boolean isUsed;
-
-	private volatile boolean copyOnGet = false;
-
-	private final long upperBoundTimeout;
 
 	/**
 	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited size if the given
@@ -183,7 +182,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	public <T> Message<T> addMessage(Message<T> message) {
 		this.isUsed = true;
 		if (!this.individualUpperBound.tryAcquire(this.upperBoundTimeout)) {
-			throw new MessagingException(this.getClass().getSimpleName()
+			throw new MessagingException(getClass().getSimpleName()
 					+ " was out of capacity ("
 					+ this.individualCapacity
 					+ "), try constructing it with a larger capacity.");
@@ -254,6 +253,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 						.create(group.getMessages(), groupId, group.getTimestamp(), group.isComplete());
 				simpleMessageGroup.setLastModified(group.getLastModified());
 				simpleMessageGroup.setLastReleasedMessageSequenceNumber(group.getLastReleasedMessageSequenceNumber());
+				simpleMessageGroup.setCondition(group.getCondition());
 				return simpleMessageGroup;
 			}
 			finally {
@@ -353,8 +353,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			lock.lockInterruptibly();
 			try {
 				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group, MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
-						"can not be located while attempting to remove Message(s) from the MessageGroup");
+				Assert.notNull(group,
+						() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
+								"can not be located while attempting to remove Message(s) from the MessageGroup");
 				UpperBound upperBound = this.groupToUpperBound.get(groupId);
 				Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
 				boolean modified = false;
@@ -380,7 +381,15 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public Iterator<MessageGroup> iterator() {
-		return new HashSet<MessageGroup>(this.groupIdToMessageGroup.values()).iterator();
+		return new HashSet<>(this.groupIdToMessageGroup.values()).iterator();
+	}
+
+	@Override
+	public void setGroupCondition(Object groupId, String condition) {
+		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
+		if (group != null) {
+			group.setCondition(condition);
+		}
 	}
 
 	@Override
@@ -390,8 +399,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			lock.lockInterruptibly();
 			try {
 				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group, MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
-						"can not be located while attempting to set 'lastReleasedSequenceNumber'");
+				Assert.notNull(group,
+						() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
+								"can not be located while attempting to set 'lastReleasedSequenceNumber'");
 				group.setLastReleasedMessageSequenceNumber(sequenceNumber);
 				group.setLastModified(System.currentTimeMillis());
 			}
@@ -412,8 +422,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			lock.lockInterruptibly();
 			try {
 				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group, MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
-						"can not be located while attempting to complete the MessageGroup");
+				Assert.notNull(group,
+						() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
+								"can not be located while attempting to complete the MessageGroup");
 				group.complete();
 				group.setLastModified(System.currentTimeMillis());
 			}
@@ -466,8 +477,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			lock.lockInterruptibly();
 			try {
 				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group, MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
-						"can not be located while attempting to complete the MessageGroup");
+				Assert.notNull(group,
+						() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
+								"can not be located while attempting to complete the MessageGroup");
 				group.clear();
 				group.setLastModified(System.currentTimeMillis());
 				UpperBound upperBound = this.groupToUpperBound.get(groupId);

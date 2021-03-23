@@ -27,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -173,6 +174,17 @@ class PersistentMessageGroup implements MessageGroup {
 	@Override
 	public void setLastReleasedMessageSequenceNumber(int sequenceNumber) {
 		this.original.setLastReleasedMessageSequenceNumber(sequenceNumber);
+	}
+
+	@Override
+	public void setCondition(String condition) {
+		this.original.setCondition(condition);
+	}
+
+	@Override
+	@Nullable
+	public String getCondition() {
+		return this.original.getCondition();
 	}
 
 	@Override

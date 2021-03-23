@@ -4071,6 +4071,19 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="group-condition-supplier" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="java.util.function.BiFunction"/>
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							A reference to a 'java.util.function.BiFunction' bean that may provide a group
+							condition evaluated against the message to be added to the group.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

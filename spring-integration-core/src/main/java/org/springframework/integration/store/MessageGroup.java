@@ -19,6 +19,7 @@ package org.springframework.integration.store;
 import java.util.Collection;
 import java.util.stream.Stream;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -119,6 +120,21 @@ public interface MessageGroup {
 	long getLastModified();
 
 	void setLastModified(long lastModified);
+
+	/**
+	 * Add a condition statement to this group which can be consulted later on, e.g. from the release strategy.
+	 * @param condition statement which could be consulted later on, e.g. from the release strategy.
+	 * @since 5.5
+	 */
+	void setCondition(String condition);
+
+	/**
+	 * Return the condition for this group to consult with, e.g. from the release strategy.
+	 * @return the condition for this group to consult with, e.g. from the release strategy.
+	 * @since 5.5
+	 */
+	@Nullable
+	String getCondition();
 
 	void clear();
 

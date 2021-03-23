@@ -286,6 +286,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					.create(this, groupId, createdTime, complete);
 			messageGroup.setLastModified(lastModifiedTime);
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
+			messageGroup.setCondition(messageWrapper.get_Condition());
 			return messageGroup;
 
 		}
@@ -304,11 +305,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		long createdTime = System.currentTimeMillis();
 		int lastReleasedSequence = 0;
 		boolean complete = false;
-
+		String condition = null;
 		if (messageDocument != null) {
 			createdTime = messageDocument.get_Group_timestamp();
 			lastReleasedSequence = messageDocument.get_LastReleasedSequenceNumber();
 			complete = messageDocument.get_Group_complete();
+			condition = messageDocument.get_Condition();
 		}
 
 		for (Message<?> message : messages) {
@@ -318,7 +320,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			wrapper.set_Group_update_timestamp(messageDocument == null ? createdTime : System.currentTimeMillis());
 			wrapper.set_Group_complete(complete);
 			wrapper.set_LastReleasedSequenceNumber(lastReleasedSequence);
-			wrapper.set_Sequence(getNextId());
+			wrapper.setSequence(getNextId());
+			if (condition != null) {
+				wrapper.set_Condition(condition);
+			}
 
 			addMessageDocument(wrapper);
 		}
@@ -394,8 +399,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	public void setGroupCondition(Object groupId, String condition) {
+		updateGroup(groupId, lastModifiedUpdate().set("_condition", condition));
+	}
+
+	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
-		this.updateGroup(groupId, lastModifiedUpdate().set(LAST_RELEASED_SEQUENCE_NUMBER, sequenceNumber));
+		updateGroup(groupId, lastModifiedUpdate().set(LAST_RELEASED_SEQUENCE_NUMBER, sequenceNumber));
 	}
 
 	@Override
@@ -618,6 +628,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				if (completeGroup != null) {
 					wrapper.set_Group_complete(completeGroup);
 				}
+				wrapper.set_Condition((String) sourceMap.get("_condition"));
 
 				return (S) wrapper;
 			}
@@ -860,6 +871,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		private volatile boolean _group_complete; // NOSONAR name
 
+		private volatile String _condition; // NOSONAR name
+
 		@SuppressWarnings(UNUSED)
 		private long sequence;
 
@@ -930,7 +943,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			this._group_complete = completedGroup;
 		}
 
-		public void set_Sequence(long sequence) { // NOSONAR name
+		public String get_Condition() {
+			return this._condition;
+		}
+
+		public void set_Condition(String condition) {
+			this._condition = condition;
+		}
+
+		public void setSequence(long sequence) {
 			this.sequence = sequence;
 		}
 

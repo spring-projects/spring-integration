@@ -16,10 +16,13 @@
 
 package org.springframework.integration.file.aggregator;
 
+import java.util.function.BiFunction;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.aggregator.CorrelationStrategy;
+import org.springframework.integration.aggregator.GroupConditionProvider;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.aggregator.ReleaseStrategy;
@@ -35,7 +38,7 @@ import org.springframework.messaging.Message;
  * Delegates to {@link HeaderAttributeCorrelationStrategy} with {@link FileHeaders#FILENAME} attribute,
  * {@link FileMarkerReleaseStrategy} and {@link FileAggregatingMessageGroupProcessor}, respectively.
  * <p>
- * The default {@link FileSplitter} behavior with markers enabled is do not provide a sequence details
+ * The default {@link FileSplitter} behavior with markers enabled is about do not provide a sequence details
  * headers, therefore correlation in this aggregator implementation is done by the {@link FileHeaders#FILENAME}
  * header which is still populated by the {@link FileSplitter} for each line emitted, including
  * {@link FileSplitter.FileMarker} messages.
@@ -47,7 +50,8 @@ import org.springframework.messaging.Message;
  *
  * @since 5.5
  */
-public class FileAggregator implements CorrelationStrategy, ReleaseStrategy, MessageGroupProcessor, BeanFactoryAware {
+public class FileAggregator implements CorrelationStrategy, ReleaseStrategy, GroupConditionProvider,
+		MessageGroupProcessor, BeanFactoryAware {
 
 	private final CorrelationStrategy correlationStrategy = new HeaderAttributeCorrelationStrategy(FileHeaders.FILENAME);
 
@@ -68,6 +72,11 @@ public class FileAggregator implements CorrelationStrategy, ReleaseStrategy, Mes
 	@Override
 	public boolean canRelease(MessageGroup group) {
 		return this.releaseStrategy.canRelease(group);
+	}
+
+	@Override
+	public BiFunction<Message<?>, String, String> getGroupConditionSupplier() {
+		return this.releaseStrategy.getGroupConditionSupplier();
 	}
 
 	@Override
