@@ -184,7 +184,6 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				initializeConnection(connection, socket);
 				getTaskExecutor().execute(connection);
 				harvestClosedConnections();
-				connection.publishConnectionOpenEvent();
 			}
 			catch (RuntimeException ex) {
 				this.logger.error(ex, () ->

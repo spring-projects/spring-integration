@@ -29,7 +29,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.SocketAddress;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -42,6 +44,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -77,6 +81,36 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  *
  */
 public class ConnectionFactoryTests {
+
+	@Test
+	void netOpenEventOnReadThread() throws InterruptedException, IOException {
+		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		AtomicReference<Thread> readThread = new AtomicReference<>();
+		AtomicReference<Thread> openEventThread = new AtomicReference<>();
+		CountDownLatch latch1 = new CountDownLatch(1);
+		CountDownLatch latch2 = new CountDownLatch(1);
+		server.registerListener(msg -> {
+			readThread.set(Thread.currentThread());
+			latch2.countDown();
+			return false;
+		});
+		server.setApplicationEventPublisher(event -> {
+			if (event instanceof TcpConnectionServerListeningEvent) {
+				latch1.countDown();
+			}
+			if (event instanceof TcpConnectionOpenEvent) {
+				openEventThread.set(Thread.currentThread());
+			}
+		});
+		server.afterPropertiesSet();
+		server.start();
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", server.getPort());
+		socket.getOutputStream().write("test\r\n".getBytes());
+		socket.close();
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(readThread.get()).isSameAs(openEventThread.get());
+	}
 
 	@Test
 	public void factoryBeanTests() {

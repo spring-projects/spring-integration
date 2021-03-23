@@ -616,6 +616,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 					connection.registerSender(wrapper);
 				}
 				connection.setWrapped(true);
+				connection.setWrapper(wrapper);
 				connection = wrapper;
 			}
 			return connection;
