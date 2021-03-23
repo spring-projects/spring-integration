@@ -21,15 +21,17 @@ import java.util.function.BiFunction;
 import org.springframework.messaging.Message;
 
 /**
- * A contract which can be implement on the {@link ReleaseStrategy}
+ * A contract which can be implemented on the {@link ReleaseStrategy}
  * and used in the {@link AbstractCorrelatingMessageHandler} to
- * populate a provided group condition supplier function into the
- * {@link org.springframework.integration.store.MessageGroupStore}.
+ * populate the provided group condition supplier.
  *
  * @author Artem Bilan
  *
  * @since 5.5
+ *
+ * @see AbstractCorrelatingMessageHandler#setGroupConditionSupplier(BiFunction)
  */
+@FunctionalInterface
 public interface GroupConditionProvider {
 
 	BiFunction<Message<?>, String, String> getGroupConditionSupplier();

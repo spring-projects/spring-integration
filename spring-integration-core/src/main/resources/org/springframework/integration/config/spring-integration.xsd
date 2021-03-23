@@ -4079,7 +4079,7 @@
 							</tool:annotation>
 						</xsd:appinfo>
 						<xsd:documentation>
-							A reference to an 'java.util.function.BiFunction' bean that may provide a group
+							A reference to a 'java.util.function.BiFunction' bean that may provide a group
 							condition evaluated against the message to be added to the group.
 						</xsd:documentation>
 					</xsd:annotation>
