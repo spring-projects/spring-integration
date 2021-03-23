@@ -98,6 +98,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private boolean wrapped;
 
+	private TcpConnectionSupport wrapper;
+
 	/*
 	 * This boolean is to avoid looking for a temporary listener when not needed
 	 * to avoid a CPU cache flush. This does not have to be volatile because it
@@ -415,9 +417,19 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	/**
 	 * Set to true if intercepted.
 	 * @param wrapped true if wrapped.
+	 * @since 5.4.5
 	 */
 	public void setWrapped(boolean wrapped) {
 		this.wrapped = wrapped;
+	}
+
+	/**
+	 * Set the wrapper.
+	 * @param wrapper the wrapper.
+	 * @since 5.4.6
+	 */
+	public void setWrapper(TcpConnectionSupport wrapper) {
+		this.wrapper = wrapper;
 	}
 
 	public String getConnectionFactoryName() {
@@ -443,15 +455,30 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	protected void publishConnectionOpenEvent() {
-		doPublish(new TcpConnectionOpenEvent(this, getConnectionFactoryName()));
+		if (this.wrapper != null) {
+			this.wrapper.publishConnectionOpenEvent();
+		}
+		else {
+			doPublish(new TcpConnectionOpenEvent(this, getConnectionFactoryName()));
+		}
 	}
 
 	protected void publishConnectionCloseEvent() {
-		doPublish(new TcpConnectionCloseEvent(this, getConnectionFactoryName()));
+		if (this.wrapper != null) {
+			this.wrapper.publishConnectionCloseEvent();
+		}
+		else {
+			doPublish(new TcpConnectionCloseEvent(this, getConnectionFactoryName()));
+		}
 	}
 
 	protected void publishConnectionExceptionEvent(Throwable t) {
-		doPublish(new TcpConnectionExceptionEvent(this, getConnectionFactoryName(), t));
+		if (this.wrapper != null) {
+			this.wrapper.publishConnectionExceptionEvent(t);
+		}
+		else {
+			doPublish(new TcpConnectionExceptionEvent(this, getConnectionFactoryName(), t));
+		}
 	}
 
 	/**

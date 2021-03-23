@@ -258,7 +258,6 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				}
 				this.channelMap.put(channel, connection);
 				channel.register(selectorForNewSocket, SelectionKey.OP_READ, connection);
-				connection.publishConnectionOpenEvent();
 			}
 		}
 		catch (IOException ex) {
@@ -281,6 +280,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				connection.setSenders(getSenders());
 			}
 			initializeConnection(wrappedConnection, socketChannel.socket());
+			wrappedConnection.publishConnectionOpenEvent();
 			return connection;
 		}
 		catch (Exception ex) {
