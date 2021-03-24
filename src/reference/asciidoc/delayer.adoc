@@ -25,39 +25,10 @@ The following example delays all messages by three seconds:
 
 If you need to determine the delay for each message, you can also provide the SpEL expression by using the 'expression' attribute, as the following expression shows:
 
-====
-[source,xml]
-----
-<int:delayer id="delayer" input-channel="input" output-channel="output"
-             default-delay="3000" expression="headers['delay']"/>
-----
-====
-
-In the preceding example, the three-second delay applies only when the expression evaluates to null for a given inbound message.
-If you want to apply a delay only to messages that have a valid result of the expression evaluation, you can use a 'default-delay' of `0` (the default).
-For any message that has a delay of `0` (or less), the message is sent immediately, on the calling thread.
-
-The following example shows the Java configuration equivalent of the preceding example:
 
 ====
-[source, java]
-----
-@ServiceActivator(inputChannel = "input")
-@Bean
-public DelayHandler delayer() {
-    DelayHandler handler = new DelayHandler("delayer.messageGroupId");
-    handler.setDefaultDelay(3_000L);
-    handler.setDelayExpressionString("headers['delay']");
-    handler.setOutputChannelName("output");
-    return handler;
-}
-----
-====
-
-The following example shows the Java DSL equivalent of the preceding example:
-
-====
-[source, java]
+[source, java, role="primary"]
+.Java DSL
 ----
 @Bean
 public IntegrationFlow flow() {
@@ -69,7 +40,43 @@ public IntegrationFlow flow() {
             .get();
 }
 ----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun flow() =
+    integrationFlow("input") {
+        delay("delayer.messageGroupId") {
+            defaultDelay(3000L)
+            delayExpression("headers['delay']")
+        }
+        channel("output")
+    }
+----
+[source, java, role="secondary"]
+.Java
+----
+@ServiceActivator(inputChannel = "input")
+@Bean
+public DelayHandler delayer() {
+    DelayHandler handler = new DelayHandler("delayer.messageGroupId");
+    handler.setDefaultDelay(3_000L);
+    handler.setDelayExpressionString("headers['delay']");
+    handler.setOutputChannelName("output");
+    return handler;
+}
+----
+[source, xml, role="secondary"]
+.XML
+----
+<int:delayer id="delayer" input-channel="input" output-channel="output"
+             default-delay="3000" expression="headers['delay']"/>
+----
 ====
+
+In the preceding example, the three-second delay applies only when the expression evaluates to null for a given inbound message.
+If you want to apply a delay only to messages that have a valid result of the expression evaluation, you can use a 'default-delay' of `0` (the default).
+For any message that has a delay of `0` (or less), the message is sent immediately, on the calling thread.
 
 NOTE: The XML parser uses a message group ID of `<beanName>.messageGroupId`.
 
@@ -182,11 +189,15 @@ These operations can be invoked through a `Control Bus` command, as the followin
 ----
 Message<String> delayerReschedulingMessage =
     MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
-    controlBusChannel.send(delayerReschedulingMessage);
+controlBusChannel.send(delayerReschedulingMessage);
 ----
 ====
 
 NOTE: For more information regarding the message store, JMX, and the control bus, see <<./system-management.adoc#system-management-chapter,System Management>>.
+
+Starting with version 5.3.7, if a transaction is active when a message is stored into a `MessageStore`, the release task is scheduled in a `TransactionSynchronization.afterCommit()` callback.
+This is necessary to prevent a race condition, where the scheduled release could run before the transaction has committed, and the message is not found.
+In this case, the message will be released after the delay, or after the transaction commits, whichever is later.
 
 [[delayer-release-failures]]
 ==== Release Failures

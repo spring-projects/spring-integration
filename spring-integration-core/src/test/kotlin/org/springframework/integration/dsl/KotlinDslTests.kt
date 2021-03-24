@@ -18,8 +18,6 @@ package org.springframework.integration.dsl
 
 import assertk.assertThat
 import assertk.assertions.*
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,6 +49,7 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Function
 
+
 /**
  * @author Artem Bilan
  */
@@ -74,16 +73,16 @@ class KotlinDslTests {
 		val replyChannel = QueueChannel()
 		val date = Date()
 		val testMessage =
-				MessageBuilder.withPayload("{\"name\": \"Test\",\"date\": " + date.time + "}")
-						.setHeader(MessageHeaders.CONTENT_TYPE, "application/json")
-						.setReplyChannel(replyChannel)
-						.build()
+			MessageBuilder.withPayload("{\"name\": \"Test\",\"date\": " + date.time + "}")
+				.setHeader(MessageHeaders.CONTENT_TYPE, "application/json")
+				.setReplyChannel(replyChannel)
+				.build()
 		this.convertFlowInput.send(testMessage)
 
 		assertThat(replyChannel.receive(10000)?.payload)
-				.isNotNull()
-				.isInstanceOf(TestPojo::class.java)
-				.isEqualTo(TestPojo("Test", date))
+			.isNotNull()
+			.isInstanceOf(TestPojo::class.java)
+			.isEqualTo(TestPojo("Test", date))
 	}
 
 	@Autowired
@@ -119,7 +118,7 @@ class KotlinDslTests {
 	@Test
 	fun `fixed subscriber channel`() {
 		assertThat(MessagingTemplate().convertSendAndReceive(this.fixedSubscriberInput, "test", String::class.java))
-				.isEqualTo("test")
+			.isEqualTo("test")
 	}
 
 	@Autowired
@@ -151,19 +150,19 @@ class KotlinDslTests {
 		val fluxChannel = FluxMessageChannel()
 
 		val verifyLater =
-				StepVerifier
-						.create(Flux.from(fluxChannel).map { it.payload }.cast(Integer::class.java))
-						.expectNext(Integer(4), Integer(6))
-						.thenCancel()
-						.verifyLater()
+			StepVerifier
+				.create(Flux.from(fluxChannel).map { it.payload }.map { it.toString().toInt() })
+				.expectNext(4, 6)
+				.thenCancel()
+				.verifyLater()
 
 		val publisher = Flux.just(2, 3).map { GenericMessage(it) }
 
 		val integrationFlow =
-				integrationFlow(publisher) {
-					transform<Message<Int>>({ it.payload * 2 }) { id("foo") }
-					channel(fluxChannel)
-				}
+			integrationFlow(publisher) {
+				transform<Message<Int>>({ it.payload * 2 }) { id("foo") }
+				channel(fluxChannel)
+			}
 
 		val registration = this.integrationFlowContext.registration(integrationFlow).register()
 
@@ -198,9 +197,9 @@ class KotlinDslTests {
 	fun `Scatter-Gather`() {
 		val replyChannel = QueueChannel()
 		val request =
-				MessageBuilder.withPayload("foo")
-						.setReplyChannel(replyChannel)
-						.build()
+			MessageBuilder.withPayload("foo")
+				.setReplyChannel(replyChannel)
+				.build()
 		this.scatterGatherFlowInput.send(request)
 		val bestQuoteMessage = replyChannel.receive(10000)
 		assertThat(bestQuoteMessage).isNotNull()
@@ -212,9 +211,9 @@ class KotlinDslTests {
 	fun `no reply from handle`() {
 		val payloadReference = AtomicReference<String>()
 		val integrationFlow =
-				integrationFlow("handlerInputChanenl") {
-					handle<String> { payload, _ ->  payloadReference.set(payload) }
-				}
+			integrationFlow("handlerInputChanenl") {
+				handle<String> { payload, _ -> payloadReference.set(payload) }
+			}
 
 		val registration = this.integrationFlowContext.registration(integrationFlow).register()
 
@@ -231,89 +230,89 @@ class KotlinDslTests {
 
 		@Bean(PollerMetadata.DEFAULT_POLLER)
 		fun defaultPoller() =
-				Pollers.fixedDelay(100).maxMessagesPerPoll(1).get()
+			Pollers.fixedDelay(100).maxMessagesPerPoll(1).get()
 
 		@Bean
 		fun convertFlow() =
-				integrationFlow("convertFlowInput") {
-					convert<TestPojo>()
-					convert<TestPojo> { id("kotlinConverter") }
-					handle { m -> (m.headers[MessageHeaders.REPLY_CHANNEL] as MessageChannel).send(m) }
-				}
+			integrationFlow("convertFlowInput") {
+				convert<TestPojo>()
+				convert<TestPojo> { id("kotlinConverter") }
+				handle { m -> (m.headers[MessageHeaders.REPLY_CHANNEL] as MessageChannel).send(m) }
+			}
 
 		@Bean
 		fun functionFlow() =
-				integrationFlow<Function<ByteArray, String>>({ beanName("functionGateway") }) {
-					transform(Transformers.objectToString()) { id("objectToStringTransformer") }
-					transform<String> { it.toUpperCase() }
-					split<Message<*>> { it.payload }
-					split<String>({ it }) { id("splitterEndpoint") }
-					resequence()
-					aggregate {
-						id("aggregator")
-						outputProcessor { it.one }
-					}
+			integrationFlow<Function<ByteArray, String>>({ beanName("functionGateway") }) {
+				transform(Transformers.objectToString()) { id("objectToStringTransformer") }
+				transform<String> { it.toUpperCase() }
+				split<Message<*>> { it.payload }
+				split<String>({ it }) { id("splitterEndpoint") }
+				resequence()
+				aggregate {
+					id("aggregator")
+					outputProcessor { it.one }
 				}
+			}
 
 		@Bean
 		fun functionFlow2() =
-				integrationFlow<Function<*, *>> {
-					transform<String> { it.toLowerCase() }
-					filter(UnexpiredMessageSelector())
-					route<Message<*>, Any?>({ null }) { defaultOutputToParentFlow() }
-					route<Message<*>> { m -> m.headers.replyChannel }
-				}
+			integrationFlow<Function<*, *>> {
+				transform<String> { it.toLowerCase() }
+				filter(UnexpiredMessageSelector())
+				route<Message<*>, Any?>({ null }) { defaultOutputToParentFlow() }
+				route<Message<*>> { m -> m.headers.replyChannel }
+			}
 
 		@Bean
 		fun messageSourceFlow() =
-				integrationFlow(MessageProcessorMessageSource { "testSource" },
-						{ poller { it.trigger(OnlyOnceTrigger()) } }) {
-					publishSubscribe(PublishSubscribeChannel(),
-							{
-								channel { queue("fromSupplierQueue") }
-							},
-							{
-								log<Any>(LoggingHandler.Level.WARN) { "From second subscriber: ${it.payload}"}
-							})
-				}
+			integrationFlow(MessageProcessorMessageSource { "testSource" },
+				{ poller { it.trigger(OnlyOnceTrigger()) } }) {
+				publishSubscribe(PublishSubscribeChannel(),
+					{
+						channel { queue("fromSupplierQueue") }
+					},
+					{
+						log<Any>(LoggingHandler.Level.WARN) { "From second subscriber: ${it.payload}" }
+					})
+			}
 
 		@Bean
 		fun messageSourceFlow2() =
-				integrationFlow(MessageProcessorMessageSource { "testSource2" }) {
-					channel { queue("fromSupplierQueue2") }
-				}
+			integrationFlow(MessageProcessorMessageSource { "testSource2" }) {
+				channel { queue("fromSupplierQueue2") }
+			}
 
 		@Bean
 		fun fixedSubscriberFlow() =
-				integrationFlow("fixedSubscriberInput", true) {
-					log<Any>(LoggingHandler.Level.WARN) { it.payload }
-					transform("payload") { id("spelTransformer") }
-				}
+			integrationFlow("fixedSubscriberInput", true) {
+				log<Any>(LoggingHandler.Level.WARN) { it.payload }
+				transform("payload") { id("spelTransformer") }
+			}
 
 		@Bean
 		fun flowFromSupplier() =
-				integrationFlow({ "testSupplier" }) {
-					channel { queue("testSupplierResult") }
-				}
+			integrationFlow({ "testSupplier" }) {
+				channel { queue("testSupplierResult") }
+			}
 
 		@Bean
 		fun flowFromSupplier2() =
-				integrationFlow({ "testSupplier2" },
-						{ poller { it.trigger(OnlyOnceTrigger()) } }) {
-					filter<Message<*>> { m -> m.payload is String }
-					channel { queue("testSupplierResult2") }
-				}
+			integrationFlow({ "testSupplier2" },
+				{ poller { it.trigger(OnlyOnceTrigger()) } }) {
+				filter<Message<*>> { m -> m.payload is String }
+				channel { queue("testSupplierResult2") }
+			}
 
 		@Bean
 		fun flowLambda() =
-				integrationFlow {
-					filter<String>({ it === "test" }) { id("filterEndpoint") }
-					wireTap {
-						channel { queue("wireTapChannel") }
-					}
-					delay("delayGroup") { defaultDelay(100) }
-					transform<String> { it.toUpperCase() }
+			integrationFlow {
+				filter<String>({ it === "test" }) { id("filterEndpoint") }
+				wireTap {
+					channel { queue("wireTapChannel") }
 				}
+				delay("delayGroup") { defaultDelay(100) }
+				transform<String> { it.toUpperCase() }
+			}
 
 
 		/*
@@ -337,23 +336,25 @@ class KotlinDslTests {
 		}*/
 		@Bean
 		fun scatterGatherFlow() =
-				integrationFlow {
-					scatterGather(
-							{
-								applySequence(true)
-								recipientFlow<Any>({ true }) { handle<Any> { _, _ -> Math.random() * 10 } }
-								recipientFlow<Any>({ true }) { handle<Any> { _, _ -> Math.random() * 10 } }
-								recipientFlow<Any>({ true }) { handle<Any> { _, _ -> Math.random() * 10 } }
-							},
-							{
-								releaseStrategy {
-									it.size() == 3 || it.messages.stream().anyMatch { it.payload as Double > 5 }
-								}
-							})
+			integrationFlow {
+				scatterGather(
 					{
-						gatherTimeout(10_000)
-					}
+						applySequence(true)
+						recipientFlow<Any>({ true }) { handle<Any> { _, _ -> Math.random() * 10 } }
+						recipientFlow<Any>({ true }) { handle<Any> { _, _ -> Math.random() * 10 } }
+						recipientFlow<Any>({ true }) { handle<Any> { _, _ -> Math.random() * 10 } }
+					},
+					{
+						releaseStrategy {
+							it.size() == 3 || it.messages.stream().anyMatch { it.payload as Double > 5 }
+						}
+					})
+				{
+					gatherTimeout(10_000)
 				}
+			}
+
+
 	}
 
 	data class TestPojo(val name: String?, val date: Date?)
