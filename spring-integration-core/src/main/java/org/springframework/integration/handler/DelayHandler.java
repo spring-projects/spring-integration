@@ -51,6 +51,8 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -440,7 +442,24 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			};
 		}
 
-		getTaskScheduler().schedule(releaseTask, new Date(messageWrapper.getRequestDate() + delay));
+		Date startTime = new Date(messageWrapper.getRequestDate() + delay);
+
+		if (TransactionSynchronizationManager.isSynchronizationActive() &&
+				TransactionSynchronizationManager.isActualTransactionActive()) {
+
+			TransactionSynchronizationManager.registerSynchronization(
+					new TransactionSynchronization() {
+
+						@Override
+						public void afterCommit() {
+							getTaskScheduler().schedule(releaseTask, startTime);
+						}
+
+					});
+		}
+		else {
+			getTaskScheduler().schedule(releaseTask, startTime);
+		}
 	}
 
 	private Message<?> getMessageById(UUID messageId) {

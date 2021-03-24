@@ -18,27 +18,28 @@ package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transaction.PseudoTransactionManager;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 1.0.3
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
+@DirtiesContext
 public class DelayerUsageTests {
 
 	@Autowired
@@ -68,11 +69,17 @@ public class DelayerUsageTests {
 
 
 	@Test
-	public void testDelayWithDefaultScheduler() {
+	public void testDelayWithDefaultSchedulerAndTransactionSynchronization() {
 		long start = System.currentTimeMillis();
-		inputA.send(new GenericMessage<String>("Hello"));
+
+		new TransactionTemplate(new PseudoTransactionManager())
+				.execute(status -> {
+					inputA.send(new GenericMessage<>("Hello"));
+					return null;
+				});
+
 		assertThat(outputA.receive(10000)).isNotNull();
-		assertThat((System.currentTimeMillis() - start) >= 1000).isTrue();
+		assertThat(System.currentTimeMillis() - start).isGreaterThanOrEqualTo(1000);
 	}
 
 	@Test
@@ -83,20 +90,19 @@ public class DelayerUsageTests {
 		long start = System.currentTimeMillis();
 		inputA.send(builder.build());
 		assertThat(outputA.receive(10000)).isNotNull();
-		assertThat((System.currentTimeMillis() - start) >= 2000).isTrue();
+		assertThat(System.currentTimeMillis() - start).isGreaterThanOrEqualTo(2000);
 	}
 
 	@Test
-	@Ignore("Enough wonky test based on the timeout and hardware")
 	public void testDelayWithCustomScheduler() {
 		long start = System.currentTimeMillis();
-		inputB.send(new GenericMessage<String>("1"));
-		inputB.send(new GenericMessage<String>("2"));
-		inputB.send(new GenericMessage<String>("3"));
-		inputB.send(new GenericMessage<String>("4"));
-		inputB.send(new GenericMessage<String>("5"));
-		inputB.send(new GenericMessage<String>("6"));
-		inputB.send(new GenericMessage<String>("7"));
+		inputB.send(new GenericMessage<>("1"));
+		inputB.send(new GenericMessage<>("2"));
+		inputB.send(new GenericMessage<>("3"));
+		inputB.send(new GenericMessage<>("4"));
+		inputB.send(new GenericMessage<>("5"));
+		inputB.send(new GenericMessage<>("6"));
+		inputB.send(new GenericMessage<>("7"));
 		assertThat(outputB1.receive(10000)).isNotNull();
 		assertThat(outputB1.receive(10000)).isNotNull();
 		assertThat(outputB1.receive(10000)).isNotNull();
@@ -108,27 +114,26 @@ public class DelayerUsageTests {
 		// must execute under 3 seconds, since threadPool is set too 5.
 		// first batch is 5 concurrent invocations on SA, then 2 more
 		// elapsed time for the whole execution should be a bit over 2 seconds depending on the hardware
-		assertThat(((System.currentTimeMillis() - start) >= 1000) && ((System.currentTimeMillis() - start) < 3000))
-				.isTrue();
+		assertThat(System.currentTimeMillis() - start).isBetween(1000L, 3000L);
 	}
 
-	@Test //INT-1132
+	@Test
 	public void testDelayerInsideChain() {
 		long start = System.currentTimeMillis();
-		delayerInsideChain.send(new GenericMessage<String>("Hello"));
+		delayerInsideChain.send(new GenericMessage<>("Hello"));
 		Message<?> message = outputA.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat((System.currentTimeMillis() - start) >= 1000).isTrue();
+		assertThat(System.currentTimeMillis() - start).isGreaterThanOrEqualTo(1000);
 		assertThat(message.getPayload()).isEqualTo("hello");
 	}
 
 	@Test
 	public void testInt2243DelayerExpression() {
 		long start = System.currentTimeMillis();
-		this.inputC.send(new GenericMessage<String>("test"));
+		this.inputC.send(new GenericMessage<>("test"));
 		Message<?> message = this.outputC.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat((System.currentTimeMillis() - start) >= 1000).isTrue();
+		assertThat(System.currentTimeMillis() - start).isGreaterThanOrEqualTo(1000);
 		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
