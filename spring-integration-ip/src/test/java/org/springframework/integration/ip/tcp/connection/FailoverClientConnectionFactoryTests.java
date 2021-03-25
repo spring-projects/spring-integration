@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,8 +46,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
@@ -64,7 +61,6 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
@@ -208,21 +204,12 @@ public class FailoverClientConnectionFactoryTests {
 		Mockito.verify(conn2).send(message);
 	}
 
-	@LogLevels(level = "DEBUG", classes =
-			{ FailoverClientConnectionFactory.class, TcpNetClientConnectionFactory.class, TcpNetConnection.class },
-			categories = {
-			"org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory$FailoverTcpConnection",
-			"failoverAllDeadAfterSuccess" })
 	@Test
 	void failoverAllDeadAfterSuccess() throws Exception {
-		Log logger = LogFactory.getLog("failoverAllDeadAfterSuccess");
 		ServerSocket ss1 = ServerSocketFactory.getDefault().createServerSocket(0);
-		ServerSocket ss2 = ServerSocketFactory.getDefault().createServerSocket(0);
-		int port2 = ss2.getLocalPort();
-		ss2.close();
 		ThreadPoolTaskExecutor exec = new ThreadPoolTaskExecutor();
 		exec.initialize();
-		Future<Boolean> done = exec.submit(() -> {
+		exec.submit(() -> {
 			Socket accepted = ss1.accept();
 			BufferedReader br = new BufferedReader(new InputStreamReader(accepted.getInputStream()));
 			br.readLine();
@@ -232,10 +219,10 @@ public class FailoverClientConnectionFactoryTests {
 			return true;
 		});
 		TcpNetClientConnectionFactory cf1 = new TcpNetClientConnectionFactory("localhost", ss1.getLocalPort());
-		TcpNetClientConnectionFactory cf2 = new TcpNetClientConnectionFactory("localhost", port2);
+		AbstractClientConnectionFactory cf2 = mock(AbstractClientConnectionFactory.class);
+		doThrow(new UncheckedIOException(new IOException("fail"))).when(cf2).getConnection();
 		CountDownLatch latch = new CountDownLatch(2);
 		cf1.setApplicationEventPublisher(event -> {
-			logger.debug(event);
 			if (event instanceof TcpConnectionCloseEvent) {
 				latch.countDown();
 			}
@@ -248,7 +235,6 @@ public class FailoverClientConnectionFactoryTests {
 		});
 		fccf.start();
 		fccf.getConnection().send(new GenericMessage<>("test"));
-		assertThat(done.get(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(() ->
 				fccf.getConnection().send(new GenericMessage<>("test")));
