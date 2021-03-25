@@ -49,7 +49,7 @@ public abstract class ActiveMQMultiContextTests {
 
 	@AfterAll
 	public static void shutDown() {
-		connectionFactory.resetConnection();
+		connectionFactory.destroy();
 	}
 
 }
