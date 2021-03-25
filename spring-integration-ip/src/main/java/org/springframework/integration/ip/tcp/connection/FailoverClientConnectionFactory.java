@@ -283,6 +283,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 								+ ", trying another");
 					}
 					if (restartedList && (lastFactoryToTry == null || lastFactoryToTry.equals(nextFactory))) {
+						logger.debug("Failover failed to find a connection");
 						/*
 						 *  We've tried every factory including the
 						 *  one the current connection was on.

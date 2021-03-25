@@ -62,6 +62,7 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
@@ -205,6 +206,10 @@ public class FailoverClientConnectionFactoryTests {
 		Mockito.verify(conn2).send(message);
 	}
 
+	@LogLevels(level = "DEBUG", classes =
+			{ FailoverClientConnectionFactory.class, TcpNetClientConnectionFactory.class, TcpNetConnection.class },
+			categories =
+			"org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory$FailoverTcpConnection")
 	@Test
 	void failoverAllDeadAfterSuccess() throws Exception {
 		ServerSocket ss1 = ServerSocketFactory.getDefault().createServerSocket(0);
@@ -224,6 +229,8 @@ public class FailoverClientConnectionFactoryTests {
 		});
 		TcpNetClientConnectionFactory cf1 = new TcpNetClientConnectionFactory("localhost", ss1.getLocalPort());
 		TcpNetClientConnectionFactory cf2 = new TcpNetClientConnectionFactory("localhost", port2);
+		cf1.setApplicationEventPublisher(event -> { });
+		cf2.setApplicationEventPublisher(event -> { });
 		FailoverClientConnectionFactory fccf = new FailoverClientConnectionFactory(List.of(cf1, cf2));
 		CountDownLatch latch = new CountDownLatch(1);
 		fccf.registerListener(msf -> {
