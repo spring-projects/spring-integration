@@ -316,10 +316,14 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 			return this.testListener;
 		}
 		if (this.manualListenerRegistration && !this.testFailed) {
-			if (this.logger.isDebugEnabled()) {
+			boolean debugEnabled = this.logger.isDebugEnabled();
+			if (debugEnabled) {
 				this.logger.debug(getConnectionId() + " Waiting for listener registration");
 			}
 			waitForListenerRegistration();
+			if (debugEnabled) {
+				this.logger.debug(getConnectionId() + " Listener registered");
+			}
 		}
 		return this.listener;
 	}
