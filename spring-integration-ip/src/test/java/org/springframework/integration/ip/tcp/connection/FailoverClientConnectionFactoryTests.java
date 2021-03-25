@@ -229,10 +229,12 @@ public class FailoverClientConnectionFactoryTests {
 		});
 		TcpNetClientConnectionFactory cf1 = new TcpNetClientConnectionFactory("localhost", ss1.getLocalPort());
 		TcpNetClientConnectionFactory cf2 = new TcpNetClientConnectionFactory("localhost", port2);
-		cf1.setApplicationEventPublisher(event -> { });
+		CountDownLatch latch = new CountDownLatch(2);
+		cf1.setApplicationEventPublisher(event -> {
+			latch.countDown();
+		});
 		cf2.setApplicationEventPublisher(event -> { });
 		FailoverClientConnectionFactory fccf = new FailoverClientConnectionFactory(List.of(cf1, cf2));
-		CountDownLatch latch = new CountDownLatch(1);
 		fccf.registerListener(msf -> {
 			latch.countDown();
 			return false;
