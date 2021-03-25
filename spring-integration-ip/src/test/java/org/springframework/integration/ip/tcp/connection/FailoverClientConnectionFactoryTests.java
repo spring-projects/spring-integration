@@ -220,6 +220,9 @@ public class FailoverClientConnectionFactoryTests {
 		});
 		TcpNetClientConnectionFactory cf1 = new TcpNetClientConnectionFactory("localhost", ss1.getLocalPort());
 		AbstractClientConnectionFactory cf2 = mock(AbstractClientConnectionFactory.class);
+		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
+		factories.add(cf1);
+		factories.add(cf2);
 		doThrow(new UncheckedIOException(new IOException("fail"))).when(cf2).getConnection();
 		CountDownLatch latch = new CountDownLatch(2);
 		cf1.setApplicationEventPublisher(event -> {
@@ -228,7 +231,7 @@ public class FailoverClientConnectionFactoryTests {
 			}
 		});
 		cf2.setApplicationEventPublisher(event -> { });
-		FailoverClientConnectionFactory fccf = new FailoverClientConnectionFactory(List.of(cf1, cf2));
+		FailoverClientConnectionFactory fccf = new FailoverClientConnectionFactory(factories);
 		fccf.registerListener(msf -> {
 			latch.countDown();
 			return false;
