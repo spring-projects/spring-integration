@@ -47,6 +47,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
@@ -208,10 +210,12 @@ public class FailoverClientConnectionFactoryTests {
 
 	@LogLevels(level = "DEBUG", classes =
 			{ FailoverClientConnectionFactory.class, TcpNetClientConnectionFactory.class, TcpNetConnection.class },
-			categories =
-			"org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory$FailoverTcpConnection")
+			categories = {
+			"org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory$FailoverTcpConnection",
+			"failoverAllDeadAfterSuccess" })
 	@Test
 	void failoverAllDeadAfterSuccess() throws Exception {
+		Log logger = LogFactory.getLog("failoverAllDeadAfterSuccess");
 		ServerSocket ss1 = ServerSocketFactory.getDefault().createServerSocket(0);
 		ServerSocket ss2 = ServerSocketFactory.getDefault().createServerSocket(0);
 		int port2 = ss2.getLocalPort();
@@ -231,7 +235,10 @@ public class FailoverClientConnectionFactoryTests {
 		TcpNetClientConnectionFactory cf2 = new TcpNetClientConnectionFactory("localhost", port2);
 		CountDownLatch latch = new CountDownLatch(2);
 		cf1.setApplicationEventPublisher(event -> {
-			latch.countDown();
+			logger.debug(event);
+			if (event instanceof TcpConnectionCloseEvent) {
+				latch.countDown();
+			}
 		});
 		cf2.setApplicationEventPublisher(event -> { });
 		FailoverClientConnectionFactory fccf = new FailoverClientConnectionFactory(List.of(cf1, cf2));
