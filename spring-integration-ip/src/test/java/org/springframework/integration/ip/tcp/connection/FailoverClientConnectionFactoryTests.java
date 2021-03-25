@@ -28,20 +28,26 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
+import javax.net.ServerSocketFactory;
+
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -62,6 +68,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author Gary Russell
@@ -173,7 +180,7 @@ public class FailoverClientConnectionFactoryTests {
 		inOrder.verifyNoMoreInteractions();
 	}
 
-	@Test(expected = UncheckedIOException.class)
+	@Test
 	public void testFailoverAllDead() throws Exception {
 		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
 		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
@@ -193,8 +200,42 @@ public class FailoverClientConnectionFactoryTests {
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
 		failoverFactory.start();
 		GenericMessage<String> message = new GenericMessage<String>("foo");
-		failoverFactory.getConnection().send(message);
+		assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(() ->
+			failoverFactory.getConnection().send(message));
 		Mockito.verify(conn2).send(message);
+	}
+
+	@Test
+	void failoverAllDeadAfterSuccess() throws Exception {
+		ServerSocket ss1 = ServerSocketFactory.getDefault().createServerSocket(0);
+		ServerSocket ss2 = ServerSocketFactory.getDefault().createServerSocket(0);
+		int port2 = ss2.getLocalPort();
+		ss2.close();
+		ThreadPoolTaskExecutor exec = new ThreadPoolTaskExecutor();
+		exec.initialize();
+		Future<Boolean> done = exec.submit(() -> {
+			Socket accepted = ss1.accept();
+			BufferedReader br = new BufferedReader(new InputStreamReader(accepted.getInputStream()));
+			br.readLine();
+			accepted.getOutputStream().write("ok\r\n".getBytes());
+			accepted.close();
+			ss1.close();
+			return true;
+		});
+		TcpNetClientConnectionFactory cf1 = new TcpNetClientConnectionFactory("localhost", ss1.getLocalPort());
+		TcpNetClientConnectionFactory cf2 = new TcpNetClientConnectionFactory("localhost", port2);
+		FailoverClientConnectionFactory fccf = new FailoverClientConnectionFactory(List.of(cf1, cf2));
+		CountDownLatch latch = new CountDownLatch(1);
+		fccf.registerListener(msf -> {
+			latch.countDown();
+			return false;
+		});
+		fccf.start();
+		fccf.getConnection().send(new GenericMessage<>("test"));
+		assertThat(done.get(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(() ->
+				fccf.getConnection().send(new GenericMessage<>("test")));
 	}
 
 	@Test
@@ -228,7 +269,7 @@ public class FailoverClientConnectionFactoryTests {
 		Mockito.verify(conn1, times(2)).send(message);
 	}
 
-	@Test(expected = UncheckedIOException.class)
+	@Test
 	public void testFailoverConnectNone() throws Exception {
 		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
 		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
@@ -242,7 +283,8 @@ public class FailoverClientConnectionFactoryTests {
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
 		failoverFactory.start();
 		GenericMessage<String> message = new GenericMessage<String>("foo");
-		failoverFactory.getConnection().send(message);
+		assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(() ->
+			failoverFactory.getConnection().send(message));
 	}
 
 	@Test
