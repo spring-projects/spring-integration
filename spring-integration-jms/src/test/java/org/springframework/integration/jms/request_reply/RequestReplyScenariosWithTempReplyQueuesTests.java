@@ -104,15 +104,16 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 
 	@Test
 	public void messageCorrelationBasedOnRequestCorrelationIdTimedOutFirstReply() throws Exception {
+		DefaultMessageListenerContainer dmlc = new DefaultMessageListenerContainer();
 		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("producer-temp-reply-consumers.xml", this.getClass())) {
+				new ClassPathXmlApplicationContext("producer-temp-reply-consumers.xml", getClass())) {
 
 			RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
 			ConnectionFactory connectionFactory = context.getBean(ConnectionFactory.class);
 
 			final Destination requestDestination = context.getBean("siOutQueue", Destination.class);
 
-			DefaultMessageListenerContainer dmlc = new DefaultMessageListenerContainer();
+			;
 			dmlc.setConnectionFactory(connectionFactory);
 			dmlc.setDestination(requestDestination);
 			dmlc.setMessageListener((SessionAwareMessageListener<Message>) (message, session) -> {
@@ -154,6 +155,10 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 			}
 			Thread.sleep(1000);
 			assertThat(gateway.exchange(new GenericMessage<>("bar")).getPayload()).isEqualTo("bar");
+		}
+		finally {
+			dmlc.stop();
+			dmlc.destroy();
 		}
 	}
 
@@ -202,11 +207,11 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 
 	@Test
 	public void testConcurrently() throws Exception {
+		ExecutorService executor = Executors.newFixedThreadPool(10);
 		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("mult-producer-and-consumers-temp-reply.xml", this.getClass())) {
+				new ClassPathXmlApplicationContext("multi-producer-and-consumers-temp-reply.xml", this.getClass())) {
 
 			final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
-			ExecutorService executor = Executors.newFixedThreadPool(10);
 			final int testNumbers = 30;
 			final CountDownLatch latch = new CountDownLatch(testNumbers);
 			final AtomicInteger failures = new AtomicInteger();
@@ -239,6 +244,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 			assertThat(mismatches.get()).isEqualTo(0);
 			assertThat(failures.get()).isEqualTo(0);
 			assertThat(timeouts.get()).isEqualTo(0);
+		}
+		finally {
 			executor.shutdownNow();
 		}
 	}

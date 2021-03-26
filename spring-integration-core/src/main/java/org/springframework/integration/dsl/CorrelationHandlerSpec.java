@@ -403,6 +403,7 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * Configure a {@link BiFunction} to supply a group condition from a message to be added to the group.
 	 * The {@code null} result from the function will reset a condition set before.
 	 * @param conditionSupplier the function to supply a group condition from a message to be added to the group.
+	 * @return the endpoint spec.
 	 * @since 5.5
 	 */
 	public S groupConditionSupplier(BiFunction<Message<?>, String, String> conditionSupplier) {

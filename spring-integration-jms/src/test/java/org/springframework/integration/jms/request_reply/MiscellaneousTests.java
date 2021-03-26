@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.gateway.RequestReplyExchanger;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
@@ -32,9 +33,10 @@ import org.springframework.util.StopWatch;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @LongRunningTest
-public class MiscellaneousTests {
+public class MiscellaneousTests extends ActiveMQMultiContextTests {
 
 	/**
 	 * Asserts that receive-timeout is honored even if
@@ -43,20 +45,22 @@ public class MiscellaneousTests {
 	 */
 	@Test
 	public void testTimeoutHonoringWhenRequestsQueuedUp() throws Exception {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("honor-timeout.xml", this.getClass());
-		final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
-		final CountDownLatch latch = new CountDownLatch(3);
-		final AtomicInteger replies = new AtomicInteger();
-		StopWatch stopWatch = new StopWatch();
-		stopWatch.start();
-		for (int i = 0; i < 3; i++) {
-			this.exchange(latch, gateway, replies);
+		try (ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("honor-timeout.xml", getClass())) {
+
+			final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
+			final CountDownLatch latch = new CountDownLatch(3);
+			final AtomicInteger replies = new AtomicInteger();
+			StopWatch stopWatch = new StopWatch();
+			stopWatch.start();
+			for (int i = 0; i < 3; i++) {
+				this.exchange(latch, gateway, replies);
+			}
+			latch.await();
+			stopWatch.stop();
+			assertThat(stopWatch.getTotalTimeMillis()).isLessThanOrEqualTo(18000);
+			assertThat(replies.get()).isEqualTo(1);
 		}
-		latch.await();
-		stopWatch.stop();
-		assertThat(stopWatch.getTotalTimeMillis() <= 18000).isTrue();
-		assertThat(replies.get()).isEqualTo(1);
-		context.close();
 	}
 
 

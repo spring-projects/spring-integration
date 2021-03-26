@@ -17,7 +17,6 @@
 package org.springframework.integration.file.aggregator;
 
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import org.springframework.integration.aggregator.GroupConditionProvider;
 import org.springframework.integration.aggregator.ReleaseStrategy;
@@ -42,7 +41,7 @@ import org.springframework.messaging.MessageHeaders;
 public class FileMarkerReleaseStrategy implements ReleaseStrategy, GroupConditionProvider {
 
 	/**
-	 * The {@link Function} for
+	 * The {@link BiFunction} for
 	 * {@link org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler#setGroupConditionSupplier(BiFunction)}.
 	 */
 	public static final BiFunction<Message<?>, String, String> GROUP_CONDITION =
