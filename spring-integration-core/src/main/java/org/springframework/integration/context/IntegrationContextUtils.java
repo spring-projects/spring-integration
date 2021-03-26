@@ -85,7 +85,7 @@ public abstract class IntegrationContextUtils {
 			IntegrationConfigUtils.BASE_PACKAGE + ".internalPublisherAnnotationBeanPostProcessor";
 
 	public static final String INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME =
-			"IntegrationConfigurationBeanFactoryPostProcessor";
+			"integrationConfigurationBeanFactoryPostProcessor";
 
 	public static final String INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME = "messageHistoryConfigurer";
 
