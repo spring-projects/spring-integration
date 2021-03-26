@@ -111,9 +111,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 			RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
 			ConnectionFactory connectionFactory = context.getBean(ConnectionFactory.class);
 
-			final Destination requestDestination = context.getBean("siOutQueue", Destination.class);
+			Destination requestDestination = context.getBean("siOutQueue", Destination.class);
 
-			;
 			dmlc.setConnectionFactory(connectionFactory);
 			dmlc.setDestination(requestDestination);
 			dmlc.setMessageListener((SessionAwareMessageListener<Message>) (message, session) -> {
