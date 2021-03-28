@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
-	xmlns:task="http://www.springframework.org/schema/task"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	   xmlns:task="http://www.springframework.org/schema/task" xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/task https://www.springframework.org/schema/task/spring-task.xsd
 		http://www.springframework.org/schema/integration/jms https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
-		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<int:gateway id="multiOutGateway" default-request-channel="outGatewayInChannel"/>
 
@@ -35,16 +36,9 @@
 		<bean class="org.springframework.integration.jms.request_reply.RequestReplyScenariosWithTempReplyQueuesTests.MyRandomlySlowService"/>
 	</int:service-activator>
 
-	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
-		<property name="targetConnectionFactory">
-			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
-				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
-			</bean>
-		</property>
-		<property name="cacheProducers" value="true" />
-		<property name="cacheConsumers" value="true" />
-		<property name="sessionCacheSize" value="10" />
-	</bean>
+	<util:constant id="jmsConnectionFactory"
+				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.connectionFactory"/>
 
 	<task:executor id="executor" pool-size="20"/>
+
 </beans>

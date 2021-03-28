@@ -232,6 +232,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 							timeouts.incrementAndGet();
 						}
 						else {
+							logger.error("testConcurrently failure", e);
 							failures.incrementAndGet();
 						}
 					}
