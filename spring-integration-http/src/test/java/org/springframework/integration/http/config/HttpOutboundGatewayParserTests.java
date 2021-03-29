@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,13 @@
 package org.springframework.integration.http.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,8 +45,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 
@@ -59,8 +55,7 @@ import org.springframework.web.client.ResponseErrorHandler;
  * @author Artem Bilan
  * @author Biju Kunjummen
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext
 public class HttpOutboundGatewayParserTests {
 
@@ -107,16 +102,17 @@ public class HttpOutboundGatewayParserTests {
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
 		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
-		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
 		assertThat(handlerAccessor.getPropertyValue("transferCookies")).isEqualTo(false);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void fullConfig() throws Exception {
+	public void fullConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.fullConfigEndpoint);
-		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
+		HttpRequestExecutingMessageHandler handler =
+				(HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
 		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
 				this.fullConfigEndpoint).getPropertyValue("inputChannel");
 		assertThat(requestChannel).isEqualTo(this.applicationContext.getBean("requests"));
@@ -139,7 +135,7 @@ public class HttpOutboundGatewayParserTests {
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test2");
 		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
 				.isEqualTo(HttpMethod.PUT.name());
-		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(false);
 		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
 		assertThat(requestFactory).isEqualTo(requestFactoryBean);
@@ -161,6 +157,7 @@ public class HttpOutboundGatewayParserTests {
 		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2")).isTrue();
 		assertThat(mappedResponseHeaders[0]).isEqualTo("responseHeader");
 		assertThat(handlerAccessor.getPropertyValue("transferCookies")).isEqualTo(true);
+		assertThat(handlerAccessor.getPropertyValue("extractResponseBody")).isEqualTo(false);
 	}
 
 	@Test
@@ -182,7 +179,7 @@ public class HttpOutboundGatewayParserTests {
 		assertThat(expression.getExpressionString()).isEqualTo("'http://localhost/test1'");
 		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
-		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
 		assertThat(handlerAccessor.getPropertyValue("transferCookies")).isEqualTo(false);
 
@@ -199,21 +196,17 @@ public class HttpOutboundGatewayParserTests {
 	public void withAdvice() {
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) new DirectFieldAccessor(
 				this.withAdvice).getPropertyValue("handler");
-		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test
 	public void testInt2718FailForGatewayRequestChannelAttribute() {
-		try {
-			new ClassPathXmlApplicationContext("HttpOutboundGatewayWithinChainTests-fail-context.xml", this.getClass())
-					.close();
-			fail("Expected BeanDefinitionParsingException");
-		}
-		catch (BeansException e) {
-			assertThat(e instanceof BeanDefinitionParsingException).isTrue();
-			assertThat(e.getMessage().contains("'request-channel' attribute isn't allowed for a nested")).isTrue();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("HttpOutboundGatewayWithinChainTests-fail-context.xml",
+								getClass()))
+				.withMessageContaining("'request-channel' attribute isn't allowed for a nested");
 	}
 
 	@Test
@@ -225,13 +218,14 @@ public class HttpOutboundGatewayParserTests {
 	public static class StubErrorHandler implements ResponseErrorHandler {
 
 		@Override
-		public boolean hasError(ClientHttpResponse response) throws IOException {
+		public boolean hasError(ClientHttpResponse response) {
 			return false;
 		}
 
 		@Override
-		public void handleError(ClientHttpResponse response) throws IOException {
+		public void handleError(ClientHttpResponse response) {
 		}
+
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

@@ -101,6 +101,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	private boolean extractPayloadExplicitlySet = false;
 
+	private boolean extractResponseBody = true;
+
 	private Charset charset = StandardCharsets.UTF_8;
 
 	private boolean transferCookies = false;
@@ -112,22 +114,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	public AbstractHttpRequestExecutingMessageHandler(Expression uriExpression) {
 		Assert.notNull(uriExpression, "URI Expression is required");
 		this.uriExpression = uriExpression;
-	}
-
-	/**
-	 * Specify whether the real URI should be encoded after {@code uriVariables}
-	 * expanding and before send request via {@link org.springframework.web.client.RestTemplate}.
-	 * The default value is {@code true}.
-	 * @param encodeUri true if the URI should be encoded.
-	 * @see org.springframework.web.util.UriComponentsBuilder
-	 * @deprecated since 5.3 in favor of {@link #setEncodingMode}
-	 */
-	@Deprecated
-	public void setEncodeUri(boolean encodeUri) {
-		setEncodingMode(
-				encodeUri
-						? DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES
-						: DefaultUriBuilderFactory.EncodingMode.NONE);
 	}
 
 	/**
@@ -202,9 +188,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	}
 
 	/**
-	 * Specify the expected response type for the REST request
-	 * otherwise the default response type is {@link ResponseEntity} and will
-	 * be returned as a payload of the reply Message.
+	 * Specify the expected response type for the REST request.
+	 * Otherwise it is null and an empty {@link ResponseEntity} si returned from HTTP client.
 	 * To take advantage of the HttpMessageConverters
 	 * registered on this adapter, provide a different type).
 	 * @param expectedResponseType The expected type.
@@ -278,6 +263,15 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		this.trustedSpel = trustedSpel;
 	}
 
+	/**
+	 * The flag to extract a body of the {@link ResponseEntity} for reply message payload.
+	 * @param extractResponseBody produce a reply message with a whole {@link ResponseEntity} or just its body.
+	 * @since 5.5
+	 */
+	public void setExtractResponseBody(boolean extractResponseBody) {
+		this.extractResponseBody = extractResponseBody;
+	}
+
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
 		return this.expectReply ? super.getIntegrationPatternType() : IntegrationPatternType.outbound_channel_adapter;
@@ -329,7 +323,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 		AbstractIntegrationMessageBuilder<?> replyBuilder;
 		MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
-		if (httpResponse.hasBody()) {
+		if (httpResponse.hasBody() && this.extractResponseBody) {
 			Object responseBody = httpResponse.getBody();
 			replyBuilder = (responseBody instanceof Message<?>)
 					? messageBuilderFactory.fromMessage((Message<?>) responseBody)

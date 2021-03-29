@@ -36,7 +36,8 @@
 					  charset="UTF-8"
 					  order="77"
 					  auto-startup="false"
-					  transfer-cookies="true">
+					  transfer-cookies="true"
+					  extract-response-body="false">
 		<uri-variable name="foo" expression="headers.bar"/>
 	</outbound-gateway>
 
