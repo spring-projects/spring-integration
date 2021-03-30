@@ -17,8 +17,6 @@
 package org.springframework.integration.config;
 
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.beans.BeansException;
@@ -130,39 +128,18 @@ public class IntegrationManagementConfigurer
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
+
 		if (obtainMetricsCaptor() != null) {
-			injectCaptor();
 			registerComponentGauges();
 		}
-		Map<String, IntegrationManagement> managed = this.applicationContext
-				.getBeansOfType(IntegrationManagement.class);
-		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
-			IntegrationManagement bean = entry.getValue();
-			if (!getOverrides(bean).loggingConfigured) {
-				bean.setLoggingEnabled(this.defaultLoggingEnabled);
-			}
+
+		for (IntegrationManagement integrationManagement :
+				this.applicationContext.getBeansOfType(IntegrationManagement.class).values()) {
+
+			enhanceIntegrationManagement(integrationManagement);
 		}
+
 		this.singletonsInstantiated = true;
-	}
-
-	private void injectCaptor() {
-		Map<String, IntegrationManagement> managed =
-				this.applicationContext.getBeansOfType(IntegrationManagement.class);
-		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
-			IntegrationManagement bean = entry.getValue();
-			if (!getOverrides(bean).loggingConfigured) {
-				bean.setLoggingEnabled(this.defaultLoggingEnabled);
-			}
-			bean.registerMetricsCaptor(this.metricsCaptor);
-		}
-	}
-
-	@Override
-	public Object postProcessAfterInitialization(Object bean, String name) throws BeansException {
-		if (this.singletonsInstantiated && obtainMetricsCaptor() != null && bean instanceof IntegrationManagement) {
-			((IntegrationManagement) bean).registerMetricsCaptor(this.metricsCaptor);
-		}
-		return bean;
 	}
 
 	private void registerComponentGauges() {
@@ -183,6 +160,23 @@ public class IntegrationManagementConfigurer
 						(c) -> this.applicationContext.getBeansOfType(MessageSource.class).size())
 						.description("The number of message sources")
 						.build());
+	}
+
+	private void enhanceIntegrationManagement(IntegrationManagement integrationManagement) {
+		if (!getOverrides(integrationManagement).loggingConfigured) {
+			integrationManagement.setLoggingEnabled(this.defaultLoggingEnabled);
+		}
+		if (this.metricsCaptor != null) {
+			integrationManagement.registerMetricsCaptor(this.metricsCaptor);
+		}
+	}
+
+	@Override
+	public Object postProcessAfterInitialization(Object bean, String name) throws BeansException {
+		if (this.singletonsInstantiated && bean instanceof IntegrationManagement) {
+			enhanceIntegrationManagement((IntegrationManagement) bean);
+		}
+		return bean;
 	}
 
 	@Override public void onApplicationEvent(ContextClosedEvent event) {

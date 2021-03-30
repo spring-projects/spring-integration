@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.NativeDetector;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -46,7 +47,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 				IntegrationRegistrar.class.getClassLoader())) {
 
 			throw new ApplicationContextException("Starting with Spring Integration 5.0, "
-					+  "the 'spring-integration-java-dsl' dependency is no longer needed; "
+					+ "the 'spring-integration-java-dsl' dependency is no longer needed; "
 					+ "the Java DSL has been merged into the core project. "
 					+ "If it is present on the classpath, it will cause class loading conflicts.");
 		}
@@ -108,7 +109,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 	private void registerDefaultConfiguringBeanFactoryPostProcessor(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME)) {
 			BeanDefinitionBuilder postProcessorBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class);
+					BeanDefinitionBuilder.genericBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class,
+							DefaultConfiguringBeanFactoryPostProcessor::new);
 			BeanDefinitionHolder postProcessorHolder = new BeanDefinitionHolder(
 					postProcessorBuilder.getBeanDefinition(),
 					IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME);
@@ -121,7 +123,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 	 * to process the external Integration infrastructure.
 	 */
 	private void registerIntegrationConfigurationBeanFactoryPostProcessor(BeanDefinitionRegistry registry) {
-		if (!registry.containsBeanDefinition(
+		if (!(NativeDetector.inNativeImage()) // Spring Native detects all the 'spring.factories'
+				&& !registry.containsBeanDefinition(
 				IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME)) {
 
 			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder
@@ -143,7 +146,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 	private void registerMessagingAnnotationPostProcessors(AnnotationMetadata meta, BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)) {
 			BeanDefinitionBuilder builder =
-					BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class)
+					BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class,
+							MessagingAnnotationPostProcessor::new)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME,

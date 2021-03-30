@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.support;
 
 import java.util.Arrays;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -39,7 +40,7 @@ public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 	 * and {@link org.springframework.messaging.MessageHeaders#TIMESTAMP}.
 	 * @since 4.3.2
 	 */
-	public void setReadOnlyHeaders(String... readOnlyHeaders) {
+	public void setReadOnlyHeaders(@Nullable String... readOnlyHeaders) {
 		this.readOnlyHeaders = readOnlyHeaders != null ? Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length) : null;
 	}
 

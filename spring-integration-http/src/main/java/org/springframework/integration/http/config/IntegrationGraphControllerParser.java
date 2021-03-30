@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.integration.config.annotation.AnnotationMetadataAdapt
 
 /**
  * The {@link BeanDefinitionParser} for the {@code <int-http:graph-controller>} component.
+ *
  * @author Artem Bilan
  *
  * @since 4.3
@@ -39,22 +40,15 @@ public class IntegrationGraphControllerParser implements BeanDefinitionParser {
 
 	@Override
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
-		if (HttpContextUtils.WEB_MVC_PRESENT) {
-			this.graphControllerRegistrar.registerBeanDefinitions(
-					new AnnotationMetadataAdapter() {
+		this.graphControllerRegistrar.registerBeanDefinitions(
+				new AnnotationMetadataAdapter() {
 
-						@Override
-						public Map<String, Object> getAnnotationAttributes(String annotationType) {
-							return Collections.singletonMap("value", element.getAttribute("path"));
-						}
+					@Override
+					public Map<String, Object> getAnnotationAttributes(String annotationType) {
+						return Collections.singletonMap("value", element.getAttribute("path"));
+					}
 
-					}, parserContext.getRegistry());
-		}
-		else {
-			parserContext.getReaderContext().warning("The 'IntegrationGraphController' isn't registered " +
-					"with the application context because" +
-					" there is no 'org.springframework.web.servlet.DispatcherServlet' in the classpath.", element);
-		}
+				}, parserContext.getRegistry());
 
 		return null;
 	}
