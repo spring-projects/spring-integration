@@ -302,6 +302,7 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 	/**
 	 * Set to {@code true} if you wish {@code Set-Cookie} header in response to be
 	 * transferred as {@code Cookie} header in subsequent interaction for a message.
+	 * Defaults to false.
 	 * @param transferCookies the transferCookies to set.
 	 * @return the current Spec.
 	 */
@@ -312,6 +313,7 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 
 	/**
 	 * The flag to extract a body of the {@link ResponseEntity} for reply message payload.
+	 * Defaults to true.
 	 * @param extractResponseBody produce a reply message with a whole {@link ResponseEntity} or just its body.
 	 * @return the current Spec.
 	 * @since 5.5

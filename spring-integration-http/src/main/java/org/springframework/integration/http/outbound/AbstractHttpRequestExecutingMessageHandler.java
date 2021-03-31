@@ -189,7 +189,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	/**
 	 * Specify the expected response type for the REST request.
-	 * Otherwise it is null and an empty {@link ResponseEntity} si returned from HTTP client.
+	 * Otherwise it is null and an empty {@link ResponseEntity} is returned from HTTP client.
 	 * To take advantage of the HttpMessageConverters
 	 * registered on this adapter, provide a different type).
 	 * @param expectedResponseType The expected type.
@@ -244,8 +244,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	/**
 	 * Set to true if you wish 'Set-Cookie' headers in responses to be
-	 * transferred as 'Cookie' headers in subsequent interactions for
-	 * a message.
+	 * transferred as 'Cookie' headers in subsequent interactions for a message.
+	 * Defaults to false.
 	 * @param transferCookies the transferCookies to set.
 	 */
 	public void setTransferCookies(boolean transferCookies) {
@@ -265,6 +265,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	/**
 	 * The flag to extract a body of the {@link ResponseEntity} for reply message payload.
+	 * Defaults to true.
 	 * @param extractResponseBody produce a reply message with a whole {@link ResponseEntity} or just its body.
 	 * @since 5.5
 	 */

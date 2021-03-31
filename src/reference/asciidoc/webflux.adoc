@@ -309,8 +309,8 @@ A respective `BodyInserter` is used internally to be populated into the `WebClie
 When the payload is a reactive `Publisher`, a configured `publisherElementType` or `publisherElementTypeExpression` can be used to determine a type for the publisher's element type.
 The expression must be resolved to a `Class<?>`, `String` which is resolved to the target `Class<?>` or `ParameterizedTypeReference`.
 
-Starting with version 5.5, the `WebFluxRequestExecutingMessageHandler` exposes an `extractResponseBody` flag (which is `true` by default) to return the whole `ResponseEntity` as a reply message payload or just its body, independently of the provided `expectedResponseType` or `replyPayloadToFlux``.
-If body is not present in the `ResponseEntity`, this flag doesn't count and the whole `ResponseEntity` is returned.
+Starting with version 5.5, the `WebFluxRequestExecutingMessageHandler` exposes an `extractResponseBody` flag (which is `true` by default) to return just the response body, or to return the whole `ResponseEntity` as the reply message payload, independently of the provided `expectedResponseType` or `replyPayloadToFlux`.
+If a body is not present in the `ResponseEntity`, this flag is ignored and the whole `ResponseEntity` is returned.
 
 See <<./http.adoc#http-outbound,HTTP Outbound Components>> for more possible configuration options.
 
