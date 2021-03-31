@@ -536,6 +536,17 @@
 							<xsd:union memberTypes="xsd:boolean xsd:string"/>
 						</xsd:simpleType>
 					</xsd:attribute>
+					<xsd:attribute name="extract-response-body" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								Set to 'false' to return the whole 'ResponseEntity' in the reply message payload.
+								The default value is 'true'.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -841,16 +852,6 @@
 					]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="encode-uri" type="xsd:string" default="true">
-			<xsd:annotation>
-				<xsd:documentation>
-					[DEPRECATED] When set to "false", the real URI won't be encoded before the request is sent.
-					This may be useful in some scenarios as it allows user control over the encoding, if needed,
-					for example by using the "url-expression". Default is "true".
-					Deprecated since 5.3 in favor of 'encoding-mode'.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="encoding-mode" default="TEMPLATE_AND_VALUES">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -892,7 +893,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					The expected type to which the response body should be converted.
-					Default is 'org.springframework.http.ResponseEntity'.
+					Default is 'null' - no body expected.
 					This attribute cannot be provided if expected-response-type-expression has a value
 				</xsd:documentation>
 				<xsd:appinfo>

@@ -8,8 +8,8 @@ See also <<./webflux.adoc#webflux,WebFlux Support>>.
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -17,9 +17,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-http:{project-version}"
 ----
@@ -222,6 +221,9 @@ Further to the preceding note about empty response bodies, if a response does co
 The `expected-response-type` must be compatible with the (configured or default) `HttpMessageConverter` instances and the `Content-Type` header in the response.
 This can be an abstract class or even an interface (such as `java.io.Serializable` when you use Java serialization and `Content-Type: application/x-java-serialized-object`).
 =====
+
+Starting with version 5.5, the `HttpRequestExecutingMessageHandler` exposes an `extractResponseBody` flag (which is `true` by default) to return just the response body, or to return the whole `ResponseEntity` as the reply message payload, independently of the provided `expectedResponseType`.
+If a body is not present in the `ResponseEntity`, this flag is ignored and the whole `ResponseEntity` is returned.
 
 [[http-namespace]]
 === HTTP Namespace Support

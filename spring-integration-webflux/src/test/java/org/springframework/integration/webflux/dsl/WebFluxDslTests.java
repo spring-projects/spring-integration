@@ -25,6 +25,7 @@ import java.security.Principal;
 import java.time.Duration;
 import java.util.Collections;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,9 +38,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -172,11 +175,14 @@ public class WebFluxDslTests {
 
 		Message<?> receive = replyChannel.receive(10_000);
 
-		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isInstanceOf(Flux.class);
+		assertThat(receive).isNotNull()
+				.extracting(Message::getPayload)
+				.asInstanceOf(InstanceOfAssertFactories.type(ResponseEntity.class))
+				.extracting(HttpEntity<Flux<String>>::getBody)
+				.isInstanceOf(Flux.class);
 
 		@SuppressWarnings("unchecked")
-		Flux<String> response = (Flux<String>) receive.getPayload();
+		Flux<String> response = ((ResponseEntity<Flux<String>>) receive.getPayload()).getBody();
 
 		StepVerifier.create(response)
 				.expectNext("FOO", "BAR")
@@ -410,7 +416,8 @@ public class WebFluxDslTests {
 					.handle(WebFlux.outboundGateway("https://www.springsource.org/spring-integration")
 									.httpMethod(HttpMethod.GET)
 									.replyPayloadToFlux(true)
-									.expectedResponseType(String.class),
+									.expectedResponseType(String.class)
+									.extractResponseBody(false),
 							e -> e
 									.id("webFluxWithReplyPayloadToFlux")
 									.customizeMonoReply(
