@@ -3106,9 +3106,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	public static final class ReplyProducerCleaner implements DestructionAwareBeanPostProcessor {
 
-		private ReplyProducerCleaner() {
-		}
-
 		@Override
 		public boolean requiresDestruction(Object bean) {
 			return bean instanceof MessageProducer &&

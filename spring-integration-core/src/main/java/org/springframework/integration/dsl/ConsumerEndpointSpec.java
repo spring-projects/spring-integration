@@ -63,7 +63,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	protected final List<Advice> adviceChain = new LinkedList<>(); // NOSONAR final
 
 	protected ConsumerEndpointSpec(H messageHandler) {
-		super(messageHandler);
+		super(messageHandler, new ConsumerEndpointFactoryBean());
 	}
 
 	@Override

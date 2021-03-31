@@ -554,11 +554,11 @@ public class EnableIntegrationTests {
 
 	@Test
 	public void testIntegrationConverter() {
-		this.numberChannel.send(new GenericMessage<Integer>(10));
-		this.numberChannel.send(new GenericMessage<Boolean>(true));
+		this.numberChannel.send(new GenericMessage<>(10));
+		this.numberChannel.send(new GenericMessage<>(true));
 		assertThat(this.testConverter.getInvoked()).isGreaterThan(0);
 
-		assertThat(this.bytesChannel.send(new GenericMessage<byte[]>("foo".getBytes()))).isTrue();
+		assertThat(this.bytesChannel.send(new GenericMessage<>("foo".getBytes()))).isTrue();
 		assertThat(this.bytesChannel.send(new GenericMessage<>(MutableMessageBuilder.withPayload("").build())))
 				.isTrue();
 
@@ -1046,7 +1046,7 @@ public class EnableIntegrationTests {
 	@EnableIntegration
 	@ImportResource("classpath:org/springframework/integration/configuration/EnableIntegrationTests-context.xml")
 	@EnableMessageHistory("${message.history.tracked.components}")
-	@EnablePublisher(defaultChannel = "publishedChannel")
+	@EnablePublisher(defaultChannel = "publishedChannel", proxyTargetClass = true, order = 2147483646)
 	@EnableAsync
 	public static class ContextConfiguration2 {
 
@@ -1069,7 +1069,7 @@ public class EnableIntegrationTests {
 
 		@Bean
 		public AtomicReference<Thread> asyncAnnotationProcessThread() {
-			return new AtomicReference<Thread>();
+			return new AtomicReference<>();
 		}
 
 		@Bean

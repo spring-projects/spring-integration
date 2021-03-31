@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.channel.DirectChannel;
 
 /**
@@ -36,7 +35,7 @@ public final class IntegrationConfigUtils {
 	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
 
 	public static void registerSpelFunctionBean(BeanDefinitionRegistry registry, String functionId, String className,
-												String methodSignature) {
+			String methodSignature) {
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class)
 				.addConstructorArgValue(className)
@@ -44,10 +43,23 @@ public final class IntegrationConfigUtils {
 		registry.registerBeanDefinition(functionId, builder.getBeanDefinition());
 	}
 
+	/**
+	 * Register a {@link SpelFunctionFactoryBean} for the provided method signature
+	 * @param registry the registry for bean to register
+	 * @param functionId the bean name
+	 * @param aClass the class for function
+	 * @param methodSignature the function method to be called from SpEL
+	 * @since 5.5
+	 */
+	public static void registerSpelFunctionBean(BeanDefinitionRegistry registry, String functionId, Class<?> aClass,
+			String methodSignature) {
+
+		registry.registerBeanDefinition(functionId, new RootBeanDefinition(SpelFunctionFactoryBean.class,
+				() -> new SpelFunctionFactoryBean(aClass, methodSignature)));
+	}
+
 	public static void autoCreateDirectChannel(String channelName, BeanDefinitionRegistry registry) {
-		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
-		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelName);
-		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
+		registry.registerBeanDefinition(channelName, new RootBeanDefinition(DirectChannel.class, DirectChannel::new));
 	}
 
 	private IntegrationConfigUtils() {

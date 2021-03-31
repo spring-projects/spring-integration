@@ -440,7 +440,15 @@ project('spring-integration-core') {
 			exclude group: 'org.springframework'
 		}
 		api 'io.projectreactor:reactor-core'
+
 		optionalApi 'com.fasterxml.jackson.core:jackson-databind'
+		optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+		optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+		optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
+		optionalApi ('com.fasterxml.jackson.module:jackson-module-kotlin') {
+			exclude group: 'org.jetbrains.kotlin'
+		}
+
 		optionalApi "com.jayway.jsonpath:json-path:$jsonpathVersion"
 		optionalApi "com.esotericsoftware:kryo-shaded:$kryoShadedVersion"
 		optionalApi "io.micrometer:micrometer-core:$micrometerVersion"
@@ -449,10 +457,6 @@ project('spring-integration-core') {
 		optionalApi 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
 		testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
-		testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-		testRuntime ('com.fasterxml.jackson.module:jackson-module-kotlin') {
-            exclude group: 'org.jetbrains.kotlin'
-        }
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }
