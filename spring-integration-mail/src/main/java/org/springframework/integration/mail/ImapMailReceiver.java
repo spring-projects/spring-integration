@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,6 @@ import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.event.MessageCountAdapter;
-import javax.mail.event.MessageCountEvent;
-import javax.mail.event.MessageCountListener;
 import javax.mail.search.AndTerm;
 import javax.mail.search.FlagTerm;
 import javax.mail.search.NotTerm;
@@ -54,14 +51,13 @@ import com.sun.mail.imap.IMAPFolder;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Alexander Pinske
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
 
 	private static final int DEFAULT_CANCEL_IDLE_INTERVAL = 120000;
 
 	private static final String PROTOCOL = "imap";
-
-	private final MessageCountListener messageCountListener = new SimpleMessageCountListener();
 
 	private final IdleCanceler idleCanceler = new IdleCanceler();
 
@@ -188,16 +184,14 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		else if (!folder.getPermanentFlags().contains(Flags.Flag.RECENT) && searchForNewMessages().length > 0) {
 			return;
 		}
-		imapFolder.addMessageCountListener(this.messageCountListener);
 		try {
 			this.pingTask = this.scheduler.schedule(this.idleCanceler,
 					new Date(System.currentTimeMillis() + this.cancelIdleInterval));
 			if (imapFolder.isOpen()) {
-				imapFolder.idle();
+				imapFolder.idle(true);
 			}
 		}
 		finally {
-			imapFolder.removeMessageCountListener(this.messageCountListener);
 			if (this.pingTask != null) {
 				this.pingTask.cancel(true);
 			}
@@ -271,25 +265,6 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			}
 			catch (Exception ex) {
 				logger.error("Error during resetting idle state.", ex);
-			}
-		}
-
-	}
-
-	/**
-	 * Callback used for handling the event-driven idle response.
-	 */
-	private static class SimpleMessageCountListener extends MessageCountAdapter {
-
-		SimpleMessageCountListener() {
-		}
-
-		@Override
-		public void messagesAdded(MessageCountEvent event) {
-			Message[] messages = event.getMessages();
-			if (messages.length > 0) {
-				// this will return the flow to the idle call
-				messages[0].getFolder().isOpen();
 			}
 		}
 
