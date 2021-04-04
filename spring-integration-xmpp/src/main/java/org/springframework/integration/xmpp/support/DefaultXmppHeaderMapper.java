@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.MessageBuilder;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
 import org.jxmpp.jid.Jid;
-import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 import org.springframework.integration.mapping.AbstractHeaderMapper;
@@ -43,7 +43,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.1
  */
-public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> implements XmppHeaderMapper {
+public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<MessageBuilder> implements XmppHeaderMapper {
 
 	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<>();
 
@@ -60,7 +60,7 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 	}
 
 	@Override
-	protected Map<String, Object> extractStandardHeaders(Message source) {
+	protected Map<String, Object> extractStandardHeaders(MessageBuilder source) {
 		Map<String, Object> headers = new HashMap<>();
 		Jid from = source.getFrom();
 		if (from != null) {
@@ -86,9 +86,9 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 	}
 
 	@Override
-	protected Map<String, Object> extractUserDefinedHeaders(Message source) {
+	protected Map<String, Object> extractUserDefinedHeaders(MessageBuilder source) {
 		Map<String, Object> headers = new HashMap<>();
-		JivePropertiesExtension jpe = (JivePropertiesExtension) source.getExtension(JivePropertiesExtension.NAMESPACE);
+		JivePropertiesExtension jpe = JivePropertiesExtension.from(source.build());
 		if (jpe == null) {
 			return headers;
 		}
@@ -99,7 +99,7 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 	}
 
 	@Override
-	protected void populateStandardHeaders(Map<String, Object> headers, Message target) {
+	protected void populateStandardHeaders(Map<String, Object> headers, MessageBuilder target) {
 		String threadId = getHeaderIfAvailable(headers, XmppHeaders.THREAD, String.class);
 		if (StringUtils.hasText(threadId)) {
 			target.setThread(threadId);
@@ -126,15 +126,16 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 			}
 		}
 		if (typeHeader instanceof Message.Type) {
-			target.setType((Message.Type) typeHeader);
+			Message.Type messageType = (Message.Type) typeHeader;
+			target.ofType(messageType);
 		}
 	}
 
-	private void populateToHeader(Map<String, Object> headers, Message target) {
+	private void populateToHeader(Map<String, Object> headers, MessageBuilder target) {
 		String to = getHeaderIfAvailable(headers, XmppHeaders.TO, String.class);
 		if (StringUtils.hasText(to)) {
 			try {
-				target.setTo(JidCreate.from(to));
+				target.to(to);
 			}
 			catch (XmppStringprepException e) {
 				throw new IllegalStateException("Cannot parse 'xmpp_to' header value", e);
@@ -142,11 +143,11 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 		}
 	}
 
-	private void populateFromHeader(Map<String, Object> headers, Message target) {
+	private void populateFromHeader(Map<String, Object> headers, MessageBuilder target) {
 		String from = getHeaderIfAvailable(headers, XmppHeaders.FROM, String.class);
 		if (StringUtils.hasText(from)) {
 			try {
-				target.setFrom(JidCreate.from(from));
+				target.from(from);
 			}
 			catch (XmppStringprepException e) {
 				throw new IllegalStateException("Cannot parse 'xmpp_from' header value", e);
@@ -155,7 +156,7 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 	}
 
 	@Override
-	protected void populateUserDefinedHeader(String headerName, Object headerValue, Message target) {
+	protected void populateUserDefinedHeader(String headerName, Object headerValue, MessageBuilder target) {
 		JivePropertiesManager.addProperty(target, headerName, headerValue);
 	}
 

@@ -12,7 +12,7 @@
 	<beans:bean id="testConnection" class="org.mockito.Mockito" factory-method="spy">
 		<beans:constructor-arg>
 			<beans:bean class="org.jivesoftware.smack.tcp.XMPPTCPConnection">
-				<beans:constructor-arg value="guest"/>
+				<beans:constructor-arg value="guest@example.org"/>
 				<beans:constructor-arg value="guest"/>
 			</beans:bean>
 		</beans:constructor-arg>

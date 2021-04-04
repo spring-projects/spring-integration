@@ -95,7 +95,7 @@ ext {
 	rsocketVersion = '1.1.0'
 	saajVersion = '1.5.2'
 	servletApiVersion = '4.0.1'
-	smackVersion = '4.3.5'
+	smackVersion = '4.4.2'
 	soapVersion = '1.4.0'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.6'
 	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.0-SNAPSHOT'
@@ -868,7 +868,7 @@ project('spring-integration-xmpp') {
 	dependencies {
 		api project(':spring-integration-core')
 		api "org.igniterealtime.smack:smack-tcp:$smackVersion"
-		api "org.igniterealtime.smack:smack-java7:$smackVersion"
+		api "org.igniterealtime.smack:smack-java8:$smackVersion"
 		api "org.igniterealtime.smack:smack-extensions:$smackVersion"
 
 		testImplementation project(':spring-integration-stream')
