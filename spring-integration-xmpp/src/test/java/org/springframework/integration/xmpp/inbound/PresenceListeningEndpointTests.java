@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,7 @@ import java.util.Set;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smack.packet.Presence.Mode;
-import org.jivesoftware.smack.packet.Presence.Type;
+import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterListener;
 import org.junit.Test;
@@ -45,6 +44,7 @@ import org.springframework.messaging.support.ErrorMessage;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Florian Schmaus
  */
 public class PresenceListeningEndpointTests {
 
@@ -74,7 +74,6 @@ public class PresenceListeningEndpointTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testRosterPresenceChangeEvent() {
 		XMPPConnection connection = mock(XMPPConnection.class);
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);
@@ -84,7 +83,11 @@ public class PresenceListeningEndpointTests {
 		rosterEndpoint.afterPropertiesSet();
 		rosterEndpoint.start();
 		RosterListener rosterListener = (RosterListener) TestUtils.getPropertyValue(rosterEndpoint, "rosterListener");
-		Presence presence = new Presence(Type.available, "Hello", 1, Mode.chat);
+		Presence presence = StanzaBuilder.buildPresence()
+				.setStatus("Hello")
+				.setPriority(1)
+				.setMode(Presence.Mode.chat)
+				.build();
 		rosterListener.presenceChanged(presence);
 		Message<?> message = channel.receive(10);
 		assertThat(message.getPayload()).isEqualTo(presence);
@@ -126,7 +129,7 @@ public class PresenceListeningEndpointTests {
 		endpoint.setErrorChannel(errorChannel);
 		endpoint.afterPropertiesSet();
 		RosterListener listener = (RosterListener) TestUtils.getPropertyValue(endpoint, "rosterListener");
-		Presence presence = new Presence(Type.available);
+		Presence presence = StanzaBuilder.buildPresence().build();
 
 		listener.presenceChanged(presence);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Florian Schmaus
  *
  * @since 2.0
  */
@@ -122,10 +123,9 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 
 		@Override
 		public void processStanza(Stanza packet) {
-			if (packet instanceof org.jivesoftware.smack.packet.Message) {
-				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
+			if (packet instanceof org.jivesoftware.smack.packet.Message xmppMessage) {
 				Map<String, ?> mappedHeaders =
-						ChatMessageListeningEndpoint.this.headerMapper.toHeadersFromRequest(xmppMessage);
+						ChatMessageListeningEndpoint.this.headerMapper.toHeadersFromRequest(xmppMessage.asBuilder());
 
 				Object messageBody = xmppMessage.getBody();
 

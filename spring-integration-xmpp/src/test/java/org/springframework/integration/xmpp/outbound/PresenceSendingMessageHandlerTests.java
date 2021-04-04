@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -34,19 +34,19 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Florian Schmaus
  */
 public class PresenceSendingMessageHandlerTests {
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	public void testPresencePayload() {
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler(mock(XMPPConnection.class));
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		handler.handleMessage(new GenericMessage<Presence>(new Presence(Presence.Type.subscribe)));
+		handler.handleMessage(new GenericMessage<>(StanzaBuilder.buildPresence().build()));
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(expected = MessageHandlingException.class)
 	public void testWrongPayload() {
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler(mock(XMPPConnection.class));

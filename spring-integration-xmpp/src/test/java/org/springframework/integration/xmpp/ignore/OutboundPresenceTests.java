@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.xmpp.ignore;
 
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Tests {@link PresenceSendingMessageHandler} to ensure that we are able to publish status.
  *
  * @author Josh Long
+ * @author Florian Schmaus
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -46,8 +49,9 @@ public class OutboundPresenceTests {
 	@Test
 	@Ignore
 	public void testOutbound() throws Throwable {
-		Presence presence = new Presence(Presence.Type.available);
-		input.send(new GenericMessage<Presence>(presence));
+		Presence presence = StanzaBuilder.buildPresence().build();
+		input.send(new GenericMessage<>(presence));
 		Thread.sleep(60 * 1000);
 	}
+
 }
