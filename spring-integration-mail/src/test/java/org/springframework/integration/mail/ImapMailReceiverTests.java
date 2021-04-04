@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,7 @@ import com.sun.mail.imap.IMAPFolder;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Alexander Pinske
  */
 @SpringJUnitConfig
 @ContextConfiguration(
@@ -607,7 +608,7 @@ public class ImapMailReceiverTests {
 			Thread.sleep(300);
 			shouldFindMessagesCounter.set(1);
 			return null;
-		}).given(folder).idle();
+		}).given(folder).idle(true);
 
 		adapter.start();
 
@@ -667,7 +668,7 @@ public class ImapMailReceiverTests {
 			idles.countDown();
 			Thread.sleep(500);
 			return null;
-		}).given(folder).idle();
+		}).given(folder).idle(true);
 
 		adapter.start();
 
