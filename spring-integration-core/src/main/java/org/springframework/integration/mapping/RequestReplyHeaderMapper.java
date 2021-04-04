@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Stephane Nicoll
  * @since 2.1
  */
-public interface RequestReplyHeaderMapper<T> {
+public interface RequestReplyHeaderMapper<T, S> {
 
 	/**
 	 * Map from the given {@link MessageHeaders} to the specified request target.
@@ -51,13 +51,13 @@ public interface RequestReplyHeaderMapper<T> {
 	 * @param source the native target request
 	 * @return the abstracted MessageHeaders
 	 */
-	Map<String, Object> toHeadersFromRequest(T source);
+	Map<String, Object> toHeadersFromRequest(S source);
 
 	/**
 	 * Map from the given reply object to abstracted {@link MessageHeaders}.
 	 * @param source the native target reply
 	 * @return the abstracted MessageHeaders
 	 */
-	Map<String, Object> toHeadersFromReply(T source);
+	Map<String, Object> toHeadersFromReply(S source);
 
 }

@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.MessageBuilder;
+import org.jivesoftware.smack.packet.MessageView;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
 import org.jxmpp.jid.Jid;
@@ -43,7 +44,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.1
  */
-public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<MessageBuilder> implements XmppHeaderMapper {
+public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<MessageBuilder, MessageView> implements XmppHeaderMapper {
 
 	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<>();
 
@@ -60,7 +61,7 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<MessageBuilder
 	}
 
 	@Override
-	protected Map<String, Object> extractStandardHeaders(MessageBuilder source) {
+	protected Map<String, Object> extractStandardHeaders(MessageView source) {
 		Map<String, Object> headers = new HashMap<>();
 		Jid from = source.getFrom();
 		if (from != null) {
@@ -86,9 +87,9 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<MessageBuilder
 	}
 
 	@Override
-	protected Map<String, Object> extractUserDefinedHeaders(MessageBuilder source) {
+	protected Map<String, Object> extractUserDefinedHeaders(MessageView source) {
 		Map<String, Object> headers = new HashMap<>();
-		JivePropertiesExtension jpe = JivePropertiesExtension.from(source.build());
+		JivePropertiesExtension jpe = source.getExtension(JivePropertiesExtension.class);
 		if (jpe == null) {
 			return headers;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.1
  */
-public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMapper<T>, BeanClassLoaderAware {
+public abstract class AbstractHeaderMapper<T, S> implements RequestReplyHeaderMapper<T, S>, BeanClassLoaderAware {
 
 	/**
 	 * A special pattern that only matches standard request headers.
@@ -200,12 +200,12 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	}
 
 	@Override
-	public Map<String, Object> toHeadersFromRequest(T source) {
+	public Map<String, Object> toHeadersFromRequest(S source) {
 		return toHeaders(source, this.requestHeaderMatcher);
 	}
 
 	@Override
-	public Map<String, Object> toHeadersFromReply(T source) {
+	public Map<String, Object> toHeadersFromReply(S source) {
 		return toHeaders(source, this.replyHeaderMatcher);
 	}
 
@@ -260,7 +260,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * Map headers from a source instance to the {@link MessageHeaders} of
 	 * a {@link org.springframework.messaging.Message}.
 	 */
-	private Map<String, Object> toHeaders(T source, HeaderMatcher headerMatcher) {
+	private Map<String, Object> toHeaders(S source, HeaderMatcher headerMatcher) {
 		Map<String, Object> headers = new HashMap<>();
 		Map<String, Object> standardHeaders = extractStandardHeaders(source);
 		copyHeaders(standardHeaders, headers, headerMatcher);
@@ -361,14 +361,14 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * @param source the source object to extract standard headers.
 	 * @return the map of headers to be mapped.
 	 */
-	protected abstract Map<String, Object> extractStandardHeaders(T source);
+	protected abstract Map<String, Object> extractStandardHeaders(S source);
 
 	/**
 	 * Extract the user-defined headers from the specified source.
 	 * @param source the source object to extract user defined headers.
 	 * @return the map of headers to be mapped.
 	 */
-	protected abstract Map<String, Object> extractUserDefinedHeaders(T source);
+	protected abstract Map<String, Object> extractUserDefinedHeaders(S source);
 
 	/**
 	 * Populate the specified standard headers to the specified source.
