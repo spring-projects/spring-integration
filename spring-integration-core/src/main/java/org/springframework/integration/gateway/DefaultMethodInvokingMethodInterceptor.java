@@ -49,7 +49,8 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 
 	private final MethodHandleLookup methodHandleLookup = MethodHandleLookup.getMethodHandleLookup();
 
-	private final Map<Method, MethodHandle> methodHandleCache = new ConcurrentReferenceHashMap<>(10, ReferenceType.WEAK);
+	private final Map<Method, MethodHandle> methodHandleCache =
+			new ConcurrentReferenceHashMap<>(10, ReferenceType.WEAK);
 
 	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable { // NOSONAR
