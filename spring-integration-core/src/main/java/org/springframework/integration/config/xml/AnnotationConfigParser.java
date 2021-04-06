@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,20 @@ import java.util.Map;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.IntegrationRegistrar;
+import org.springframework.integration.config.PublisherRegistrar;
 import org.springframework.integration.config.annotation.AnnotationMetadataAdapter;
 import org.springframework.util.xml.DomUtils;
 
 /**
- * Parser for the &lt;annotation-config&gt; element of the integration namespace.
- * Just delegate the real configuration to the {@link IntegrationRegistrar}.
+ * Parser for the {@code <annotation-config>} element of the integration namespace.
+ * Delegates the real configuration to the {@link IntegrationRegistrar}.
+ * If {@code <enable-publisher>} sub-element is present, the {@link PublisherRegistrar}
+ * is called, too.
  *
  * @author Mark Fisher
  * @author Artem Bilan
@@ -40,9 +44,15 @@ import org.springframework.util.xml.DomUtils;
 public class AnnotationConfigParser implements BeanDefinitionParser {
 
 	@Override
-	public BeanDefinition parse(final Element element, ParserContext parserContext) {
-		new IntegrationRegistrar().registerBeanDefinitions(new ExtendedAnnotationMetadata(element),
-				parserContext.getRegistry());
+	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		ExtendedAnnotationMetadata importingClassMetadata = new ExtendedAnnotationMetadata(element);
+		BeanDefinitionRegistry registry = parserContext.getRegistry();
+		new IntegrationRegistrar()
+				.registerBeanDefinitions(importingClassMetadata, registry);
+		if (DomUtils.getChildElementByTagName(element, "enable-publisher") != null) {
+			new PublisherRegistrar()
+					.registerBeanDefinitions(importingClassMetadata, registry);
+		}
 		return null;
 	}
 

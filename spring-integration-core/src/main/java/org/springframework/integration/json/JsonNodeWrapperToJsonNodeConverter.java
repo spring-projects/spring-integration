@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @since 5.5
  */
-class JsonNodeWrapperToJsonNodeConverter implements GenericConverter {
+public class JsonNodeWrapperToJsonNodeConverter implements GenericConverter {
 
 	@Override
 	public Set<ConvertiblePair> getConvertibleTypes() {

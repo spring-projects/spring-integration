@@ -25,7 +25,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.expression.Expression;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
@@ -312,9 +311,10 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 	}
 
 	/**
-	 * The flag to extract a body of the {@link ResponseEntity} for reply message payload.
-	 * Defaults to true.
-	 * @param extractResponseBody produce a reply message with a whole {@link ResponseEntity} or just its body.
+	 * The flag to extract a body of the {@link org.springframework.http.ResponseEntity}
+	 * for reply message payload. Defaults to true.
+	 * @param extractResponseBody produce a reply message with a whole
+	 * {@link org.springframework.http.ResponseEntity} or just its body.
 	 * @return the current Spec.
 	 * @since 5.5
 	 */

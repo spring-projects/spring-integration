@@ -32,7 +32,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.HierarchicalBeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -58,6 +57,7 @@ import org.springframework.integration.handler.support.CollectionArgumentResolve
 import org.springframework.integration.handler.support.MapArgumentResolver;
 import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
 import org.springframework.integration.handler.support.PayloadsArgumentResolver;
+import org.springframework.integration.json.JsonNodeWrapperToJsonNodeConverter;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.integration.support.SmartLifecycleRoleController;
@@ -67,7 +67,6 @@ import org.springframework.integration.support.converter.ConfigurableCompositeMe
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
@@ -75,6 +74,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@link BeanFactoryPostProcessor} implementation that registers bean definitions
@@ -100,11 +100,43 @@ class DefaultConfiguringBeanFactoryPostProcessor
 
 	private static final Set<Integer> REGISTRIES_PROCESSED = new HashSet<>();
 
+
+	private static final Class<?> XPATH_CLASS;
+
+	private static final Class<?> JSON_PATH_CLASS;
+
+	static {
+		Class<?> xpathClass = null;
+		try {
+			xpathClass = ClassUtils.forName(IntegrationConfigUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
+					ClassUtils.getDefaultClassLoader());
+		}
+		catch (@SuppressWarnings("unused") ClassNotFoundException e) {
+			LOGGER.debug("SpEL function '#xpath' isn't registered: " +
+					"there is no spring-integration-xml.jar on the classpath.");
+		}
+		finally {
+			XPATH_CLASS = xpathClass;
+		}
+
+		Class<?> jsonPathClass = null;
+		try {
+			jsonPathClass = ClassUtils.forName(IntegrationConfigUtils.BASE_PACKAGE + ".json.JsonPathUtils",
+					ClassUtils.getDefaultClassLoader());
+		}
+		catch (@SuppressWarnings("unused") ClassNotFoundException e) {
+			LOGGER.debug("The '#jsonPath' SpEL function cannot be registered: " +
+					"there is no jayway json-path.jar on the classpath.");
+		}
+		finally {
+			JSON_PATH_CLASS = jsonPathClass;
+		}
+	}
+
+
 	private ClassLoader classLoader;
 
 	private ConfigurableListableBeanFactory beanFactory;
-
-	private BeanExpressionContext expressionContext;
 
 	private BeanDefinitionRegistry registry;
 
@@ -117,7 +149,6 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			this.beanFactory = beanFactory;
-			this.expressionContext = new BeanExpressionContext(beanFactory, null);
 			this.registry = (BeanDefinitionRegistry) beanFactory;
 
 			registerBeanFactoryChannelResolver();
@@ -242,16 +273,14 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	}
 
 	private PublishSubscribeChannel createErrorChannel() {
-		String requireSubscribersExpression =
-				IntegrationProperties.getExpressionFor(IntegrationProperties.ERROR_CHANNEL_REQUIRE_SUBSCRIBERS);
-		Boolean requireSubscribers = resolveExpression(requireSubscribersExpression, Boolean.class);
+		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+		String requireSubscribers =
+				integrationProperties.getProperty(IntegrationProperties.ERROR_CHANNEL_REQUIRE_SUBSCRIBERS);
 
-		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel(Boolean.TRUE.equals(requireSubscribers));
+		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel(Boolean.parseBoolean(requireSubscribers));
 
-		String ignoreFailuresExpression =
-				IntegrationProperties.getExpressionFor(IntegrationProperties.ERROR_CHANNEL_IGNORE_FAILURES);
-		Boolean ignoreFailures = resolveExpression(ignoreFailuresExpression, Boolean.class);
-		errorChannel.setIgnoreFailures(Boolean.TRUE.equals(ignoreFailures));
+		String ignoreFailures = integrationProperties.getProperty(IntegrationProperties.ERROR_CHANNEL_IGNORE_FAILURES);
+		errorChannel.setIgnoreFailures(Boolean.parseBoolean(ignoreFailures));
 
 		return errorChannel;
 	}
@@ -323,12 +352,9 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		taskScheduler.setErrorHandler(
 				this.beanFactory.getBean(ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME, ErrorHandler.class));
 
-		String poolSizeExpression =
-				IntegrationProperties.getExpressionFor(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE);
-		Integer poolSize = resolveExpression(poolSizeExpression, Integer.class);
-		if (poolSize != null) {
-			taskScheduler.setPoolSize(poolSize);
-		}
+		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+		String poolSize = integrationProperties.getProperty(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE);
+		taskScheduler.setPoolSize(Integer.parseInt(poolSize));
 
 		return taskScheduler;
 	}
@@ -376,54 +402,21 @@ class DefaultConfiguringBeanFactoryPostProcessor
 
 	private void jsonPath(int registryId) throws LinkageError {
 		String jsonPathBeanName = "jsonPath";
-		if (!this.beanFactory.containsBean(jsonPathBeanName) && !REGISTRIES_PROCESSED.contains(registryId)) {
-			Class<?> jsonPathClass = null;
-			try {
-				jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", this.classLoader);
-			}
-			catch (@SuppressWarnings("unused") ClassNotFoundException e) {
-				LOGGER.debug("The '#jsonPath' SpEL function cannot be registered: " +
-						"there is no jayway json-path.jar on the classpath.");
-			}
+		if (JSON_PATH_CLASS != null
+				&& !this.beanFactory.containsBean(jsonPathBeanName)
+				&& !REGISTRIES_PROCESSED.contains(registryId)) {
 
-			if (jsonPathClass != null) {
-				try {
-					ClassUtils.forName("com.jayway.jsonpath.Predicate", this.classLoader);
-				}
-				catch (ClassNotFoundException ex) {
-					jsonPathClass = null;
-					LOGGER.warn(ex, "The '#jsonPath' SpEL function cannot be registered. " +
-							"An old json-path.jar version is detected in the classpath." +
-							"At least 2.4.0 is required; see version information at: " +
-							"https://github.com/jayway/JsonPath/releases");
-
-				}
-			}
-
-			if (jsonPathClass != null) {
-				IntegrationConfigUtils.registerSpelFunctionBean(this.registry, jsonPathBeanName,
-						IntegrationConfigUtils.BASE_PACKAGE + ".json.JsonPathUtils", "evaluate");
-			}
+			IntegrationConfigUtils.registerSpelFunctionBean(this.registry, jsonPathBeanName, JSON_PATH_CLASS, "evaluate");
 		}
 	}
 
 	private void xpath(int registryId) throws LinkageError {
 		String xpathBeanName = "xpath";
-		if (!this.beanFactory.containsBean(xpathBeanName) && !REGISTRIES_PROCESSED.contains(registryId)) {
-			Class<?> xpathClass = null;
-			try {
-				xpathClass = ClassUtils.forName(IntegrationConfigUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
-						this.classLoader);
-			}
-			catch (@SuppressWarnings("unused") ClassNotFoundException e) {
-				LOGGER.debug("SpEL function '#xpath' isn't registered: " +
-						"there is no spring-integration-xml.jar on the classpath.");
-			}
+		if (XPATH_CLASS != null
+				&& !this.beanFactory.containsBean(xpathBeanName)
+				&& !REGISTRIES_PROCESSED.contains(registryId)) {
 
-			if (xpathClass != null) {
-				IntegrationConfigUtils.registerSpelFunctionBean(this.registry, xpathBeanName,
-						IntegrationConfigUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils", "evaluate");
-			}
+			IntegrationConfigUtils.registerSpelFunctionBean(this.registry, xpathBeanName, XPATH_CLASS, "evaluate");
 		}
 	}
 
@@ -434,9 +427,9 @@ class DefaultConfiguringBeanFactoryPostProcessor
 
 			this.registry.registerBeanDefinition(
 					IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER,
-					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE +
-							".json.JsonNodeWrapperToJsonNodeConverter")
-							.getBeanDefinition());
+					new RootBeanDefinition(JsonNodeWrapperToJsonNodeConverter.class,
+							JsonNodeWrapperToJsonNodeConverter::new));
+
 			INTEGRATION_CONVERTER_INITIALIZER.registerConverter(this.registry,
 					new RuntimeBeanReference(IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER));
 		}
@@ -457,19 +450,17 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerMessageBuilderFactory() {
 		if (!this.beanFactory.containsBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME)) {
-			BeanDefinition mbfBean =
-					new RootBeanDefinition(DefaultMessageBuilderFactory.class,
-							() -> {
-								DefaultMessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
-								String readOnlyHeadersExpression =
-										IntegrationProperties.getExpressionFor(IntegrationProperties.READ_ONLY_HEADERS);
-								String[] readOnlyHeaders = resolveExpression(readOnlyHeadersExpression, String[].class);
-								messageBuilderFactory.setReadOnlyHeaders(readOnlyHeaders);
-								return messageBuilderFactory;
-							});
-
-			this.registry.registerBeanDefinition(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME, mbfBean);
+			this.registry.registerBeanDefinition(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+					new RootBeanDefinition(DefaultMessageBuilderFactory.class, this::createDefaultMessageBuilderFactory));
 		}
+	}
+
+	private DefaultMessageBuilderFactory createDefaultMessageBuilderFactory() {
+		DefaultMessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+		String readOnlyHeaders = integrationProperties.getProperty(IntegrationProperties.READ_ONLY_HEADERS);
+		messageBuilderFactory.setReadOnlyHeaders(StringUtils.commaDelimitedListToStringArray(readOnlyHeaders));
+		return messageBuilderFactory;
 	}
 
 	/**
@@ -583,12 +574,6 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		resolvers.add(mapArgumentResolver);
 
 		return resolvers;
-	}
-
-	@Nullable
-	private <T> T resolveExpression(String expression, Class<T> expectedType) {
-		Object value = this.beanFactory.getBeanExpressionResolver().evaluate(expression, this.expressionContext);
-		return this.beanFactory.getTypeConverter().convertIfNecessary(value, expectedType);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -38,14 +37,13 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
 /**
  * Jackson 2 JSON-processor (@link https://github.com/FasterXML)
  * {@linkplain JsonObjectMapper} implementation.
- * Delegates <code>toJson</code> and <code>fromJson</code>
+ * Delegates {@link #toJson} and {@link #fromJson}
  * to the {@linkplain com.fasterxml.jackson.databind.ObjectMapper}
  * <p>
  * It customizes Jackson's default properties with the following ones:
@@ -66,7 +64,20 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
  */
 public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
 
-	private static final String UNUSED = "unused";
+	private static final ClassLoader CLASS_LOADER = ClassUtils.getDefaultClassLoader();
+
+	private static final boolean JDK8_MODULE_PRESENT =
+			ClassUtils.isPresent("com.fasterxml.jackson.datatype.jdk8.Jdk8Module", CLASS_LOADER);
+
+	private static final boolean JAVA_TIME_MODULE_PRESENT =
+			ClassUtils.isPresent("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", CLASS_LOADER);
+
+	private static final boolean JODA_MODULE_PRESENT =
+			ClassUtils.isPresent("com.fasterxml.jackson.datatype.joda.JodaModule", CLASS_LOADER);
+
+	private static final boolean KOTLIN_MODULE_PRESENT =
+			ClassUtils.isPresent("kotlin.Unit", CLASS_LOADER) &&
+					ClassUtils.isPresent("com.fasterxml.jackson.module.kotlin.KotlinModule", CLASS_LOADER);
 
 	private final ObjectMapper objectMapper;
 
@@ -185,58 +196,48 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 		return this.objectMapper.constructType(type);
 	}
 
-	@SuppressWarnings("unchecked")
 	private void registerWellKnownModulesIfAvailable() {
-		try {
-			Class<? extends Module> jdk7Module = (Class<? extends Module>)
-					ClassUtils.forName("com.fasterxml.jackson.datatype.jdk7.Jdk7Module", getClassLoader());
-			this.objectMapper.registerModule(BeanUtils.instantiateClass(jdk7Module));
-		}
-		catch (@SuppressWarnings(UNUSED) ClassNotFoundException ex) {
-			// jackson-datatype-jdk7 not available
+		if (JDK8_MODULE_PRESENT) {
+			this.objectMapper.registerModule(Jdk8ModuleProvider.module);
 		}
 
-		try {
-			Class<? extends Module> jdk8Module = (Class<? extends Module>)
-					ClassUtils.forName("com.fasterxml.jackson.datatype.jdk8.Jdk8Module", getClassLoader());
-			this.objectMapper.registerModule(BeanUtils.instantiateClass(jdk8Module));
-		}
-		catch (@SuppressWarnings(UNUSED) ClassNotFoundException ex) {
-			// jackson-datatype-jdk8 not available
+		if (JAVA_TIME_MODULE_PRESENT) {
+			this.objectMapper.registerModule(JavaTimeModuleProvider.module);
 		}
 
-		try {
-			Class<? extends Module> javaTimeModule = (Class<? extends Module>)
-					ClassUtils.forName("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", getClassLoader());
-			this.objectMapper.registerModule(BeanUtils.instantiateClass(javaTimeModule));
-		}
-		catch (@SuppressWarnings(UNUSED) ClassNotFoundException ex) {
-			// jackson-datatype-jsr310 not available
+		if (JODA_MODULE_PRESENT) {
+			this.objectMapper.registerModule(JodaModuleProvider.module);
 		}
 
-		// Joda-Time present?
-		if (ClassUtils.isPresent("org.joda.time.LocalDate", getClassLoader())) {
-			try {
-				Class<? extends Module> jodaModule = (Class<? extends Module>)
-						ClassUtils.forName("com.fasterxml.jackson.datatype.joda.JodaModule", getClassLoader());
-				this.objectMapper.registerModule(BeanUtils.instantiateClass(jodaModule));
-			}
-			catch (@SuppressWarnings(UNUSED) ClassNotFoundException ex) {
-				// jackson-datatype-joda not available
-			}
+		if (KOTLIN_MODULE_PRESENT) {
+			this.objectMapper.registerModule(KotlinModuleProvider.module);
 		}
+	}
 
-		// Kotlin present?
-		if (ClassUtils.isPresent("kotlin.Unit", getClassLoader())) {
-			try {
-				Class<? extends Module> kotlinModule = (Class<? extends Module>)
-						ClassUtils.forName("com.fasterxml.jackson.module.kotlin.KotlinModule", getClassLoader());
-				this.objectMapper.registerModule(BeanUtils.instantiateClass(kotlinModule));
-			}
-			catch (@SuppressWarnings(UNUSED) ClassNotFoundException ex) {
-				//jackson-module-kotlin not available
-			}
-		}
+	private static final class Jdk8ModuleProvider {
+
+		static final com.fasterxml.jackson.databind.Module module = new com.fasterxml.jackson.datatype.jdk8.Jdk8Module();
+
+	}
+
+	private static final class JavaTimeModuleProvider {
+
+		static final com.fasterxml.jackson.databind.Module module =
+				new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule();
+
+	}
+
+	private static final class JodaModuleProvider {
+
+		static final com.fasterxml.jackson.databind.Module module = new com.fasterxml.jackson.datatype.joda.JodaModule();
+
+	}
+
+	private static final class KotlinModuleProvider {
+
+		static final com.fasterxml.jackson.databind.Module module =
+				new com.fasterxml.jackson.module.kotlin.KotlinModule();
+
 	}
 
 }
