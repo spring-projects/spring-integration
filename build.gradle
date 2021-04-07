@@ -610,6 +610,7 @@ project('spring-integration-jpa') {
 		}
 		testImplementation "com.h2database:h2:$h2Version"
 		testImplementation "org.hibernate:hibernate-entitymanager:$hibernateVersion"
+		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }
 

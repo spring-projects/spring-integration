@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,9 +46,9 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 	@Override
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = null;
-		Element queueElement = null;
+		Element queueElement;
 		String fixedSubscriberChannel = element.getAttribute("fixed-subscriber");
-		boolean isFixedSubscriber = "true".equals(fixedSubscriberChannel.trim().toLowerCase());
+		boolean isFixedSubscriber = "true".equalsIgnoreCase(fixedSubscriberChannel.trim());
 
 		// configure a queue-based channel if any queue sub-element is defined
 		String channel = element.getAttribute(ID_ATTRIBUTE);

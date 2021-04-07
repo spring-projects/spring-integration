@@ -198,44 +198,46 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 
 	private void registerWellKnownModulesIfAvailable() {
 		if (JDK8_MODULE_PRESENT) {
-			this.objectMapper.registerModule(Jdk8ModuleProvider.module);
+			this.objectMapper.registerModule(Jdk8ModuleProvider.MODULE);
 		}
 
 		if (JAVA_TIME_MODULE_PRESENT) {
-			this.objectMapper.registerModule(JavaTimeModuleProvider.module);
+			this.objectMapper.registerModule(JavaTimeModuleProvider.MODULE);
 		}
 
 		if (JODA_MODULE_PRESENT) {
-			this.objectMapper.registerModule(JodaModuleProvider.module);
+			this.objectMapper.registerModule(JodaModuleProvider.MODULE);
 		}
 
 		if (KOTLIN_MODULE_PRESENT) {
-			this.objectMapper.registerModule(KotlinModuleProvider.module);
+			this.objectMapper.registerModule(KotlinModuleProvider.MODULE);
 		}
 	}
 
 	private static final class Jdk8ModuleProvider {
 
-		static final com.fasterxml.jackson.databind.Module module = new com.fasterxml.jackson.datatype.jdk8.Jdk8Module();
+		static final com.fasterxml.jackson.databind.Module MODULE =
+				new com.fasterxml.jackson.datatype.jdk8.Jdk8Module();
 
 	}
 
 	private static final class JavaTimeModuleProvider {
 
-		static final com.fasterxml.jackson.databind.Module module =
+		static final com.fasterxml.jackson.databind.Module MODULE =
 				new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule();
 
 	}
 
 	private static final class JodaModuleProvider {
 
-		static final com.fasterxml.jackson.databind.Module module = new com.fasterxml.jackson.datatype.joda.JodaModule();
+		static final com.fasterxml.jackson.databind.Module MODULE =
+				new com.fasterxml.jackson.datatype.joda.JodaModule();
 
 	}
 
 	private static final class KotlinModuleProvider {
 
-		static final com.fasterxml.jackson.databind.Module module =
+		static final com.fasterxml.jackson.databind.Module MODULE =
 				new com.fasterxml.jackson.module.kotlin.KotlinModule();
 
 	}

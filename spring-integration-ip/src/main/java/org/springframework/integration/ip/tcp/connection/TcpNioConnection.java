@@ -28,6 +28,7 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -65,6 +66,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private static final int SIXTY = 60;
 
+	private static final int MAX_MESSAGE_SIZE = 60 * 1024;
+
 	private static final long DEFAULT_PIPE_TIMEOUT = 60000;
 
 	private static final byte[] EOF = new byte[0]; // EOF marker buffer
@@ -87,8 +90,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private volatile ByteBuffer rawBuffer;
 
-	private volatile int maxMessageSize = 60 * 1024;
-
 	private volatile long lastRead;
 
 	private volatile long lastSend;
@@ -100,7 +101,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	private volatile boolean timedOut;
 
 	/**
-	 * Constructs a TcpNetConnection for the SocketChannel.
+	 * Construct a TcpNetConnection for the SocketChannel.
 	 * @param socketChannel The socketChannel.
 	 * @param server If true, this connection was created as
 	 * a result of an incoming request.
@@ -211,7 +212,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	/**
-	 * Allocates a ByteBuffer of the requested length using normal or
+	 * Allocate a ByteBuffer of the requested length using normal or
 	 * direct buffers, depending on the usingDirectBuffers field.
 	 *
 	 * @param length The buffer length.
@@ -229,8 +230,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	/**
-	 * If there is no listener,
-	 * this method exits. When there is a listener, this method assembles
+	 * If there is no listener, this method exits.
+	 * When there is a listener, this method assembles
 	 * data into messages by invoking convertAndSend whenever there is
 	 * data in the input Stream. Method exits when a message is complete
 	 * and there is no more data; thus freeing the thread to work on other
@@ -409,7 +410,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private void doRead() throws IOException {
 		if (this.rawBuffer == null) {
-			this.rawBuffer = allocate(this.maxMessageSize);
+			this.rawBuffer = allocate(MAX_MESSAGE_SIZE);
 		}
 
 		this.writingLatch = new CountDownLatch(1);
@@ -722,7 +723,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				}
 			}
 			int bite;
-			bite = this.currentBuffer[this.currentOffset++] & 0xff;
+			bite = this.currentBuffer[this.currentOffset++] & 0xff; // N0SONAR
 			this.available.decrementAndGet();
 			if (this.currentOffset >= this.currentBuffer.length) {
 				this.currentBuffer = null;
@@ -736,7 +737,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			while (buffer == null) {
 				try {
 					buffer = this.buffers.poll(1, TimeUnit.SECONDS);
-					if (buffer == EOF || (buffer == null && this.isClosed)) {
+					if (Arrays.equals(EOF, buffer) || (buffer == null && this.isClosed)) {
 						return null;
 					}
 				}

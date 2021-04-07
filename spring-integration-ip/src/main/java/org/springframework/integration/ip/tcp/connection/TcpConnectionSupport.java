@@ -120,7 +120,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	/**
-	 * Creates a {@link TcpConnectionSupport} object and publishes a
+	 * Create a {@link TcpConnectionSupport} object and publishes a
 	 * {@link TcpConnectionOpenEvent}, if an event publisher is provided.
 	 * @param socket the underlying socket.
 	 * @param server true if this connection is a server connection
@@ -164,7 +164,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	/**
-	 * Closes this connection.
+	 * Close this connection.
 	 */
 	@Override
 	public void close() {
@@ -182,7 +182,6 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	/**
 	 * If we have been intercepted, propagate the close from the outermost interceptor;
 	 * otherwise, just call close().
-	 *
 	 * @param isException true when this call is the result of an Exception.
 	 */
 	protected void closeConnection(boolean isException) {
@@ -288,8 +287,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	/**
 	 * Set a temporary listener to receive just the first incoming message.
-	 * Used in conjunction with a connectionTest in a client connection
-	 * factory.
+	 * Used in conjunction with a connectionTest in a client connection factory.
 	 * @param tListener the test listener.
 	 * @since 5.3
 	 */
@@ -309,7 +307,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	/**
-	 * Registers a sender. Used on server side connections so a
+	 * Register a sender. Used on server side connections so a
 	 * sender can determine which connection to send a reply
 	 * to.
 	 * @param senderToRegister the sender.
@@ -322,7 +320,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	/**
-	 * Registers the senders. Used on server side connections so a
+	 * Register the senders. Used on server side connections so a
 	 * sender can determine which connection to send a reply
 	 * to.
 	 * @param sendersToRegister the sender.
@@ -451,8 +449,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	protected final void sendExceptionToListener(Exception e) {
 		TcpListener listenerForException = getListener();
 		if (!this.exceptionSent.getAndSet(true) && listenerForException != null) {
-			Map<String, Object> headers = Collections.singletonMap(IpHeaders.CONNECTION_ID,
-					(Object) this.getConnectionId());
+			Map<String, Object> headers = Collections.singletonMap(IpHeaders.CONNECTION_ID, getConnectionId());
 			ErrorMessage errorMessage = new ErrorMessage(e, headers);
 			listenerForException.onMessage(errorMessage);
 		}
@@ -491,7 +488,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * @param event the event to publish.
 	 */
 	public void publishEvent(TcpConnectionEvent event) {
-		Assert.isTrue(event.getSource() == this, "Can only publish events with this as the source");
+		Assert.isTrue(equals(event.getSource()), "Can only publish events with this as the source");
 		this.doPublish(event);
 	}
 

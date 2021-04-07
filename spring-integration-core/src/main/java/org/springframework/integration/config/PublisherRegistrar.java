@@ -103,7 +103,9 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 			if (beanFactory != null) {
 				order = beanFactory.resolveEmbeddedValue(order);
 			}
-			postProcessor.setOrder(Integer.parseInt(order));
+			if (StringUtils.hasText(order)) {
+				postProcessor.setOrder(Integer.parseInt(order));
+			}
 		}
 		return postProcessor;
 	}

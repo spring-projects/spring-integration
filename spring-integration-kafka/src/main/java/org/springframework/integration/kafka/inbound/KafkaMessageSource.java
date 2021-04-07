@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -440,7 +440,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 					this.consumerProperties.getClientId(), null, this.consumerProperties.getKafkaConsumerProperties());
 
 			ConsumerRebalanceListener rebalanceCallback =
-					new ItegrationConsumerRebalanceListener(this.consumerProperties.getConsumerRebalanceListener());
+					new IntegrationConsumerRebalanceListener(this.consumerProperties.getConsumerRebalanceListener());
 
 			Pattern topicPattern = this.consumerProperties.getTopicPattern();
 			TopicPartitionOffset[] partitions = this.consumerProperties.getTopicPartitions();
@@ -580,13 +580,13 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 	}
 
-	private class ItegrationConsumerRebalanceListener implements ConsumerRebalanceListener {
+	private class IntegrationConsumerRebalanceListener implements ConsumerRebalanceListener {
 
 		private final ConsumerRebalanceListener providedRebalanceListener;
 
 		private final boolean isConsumerAware;
 
-		ItegrationConsumerRebalanceListener(ConsumerRebalanceListener providedRebalanceListener) {
+		IntegrationConsumerRebalanceListener(ConsumerRebalanceListener providedRebalanceListener) {
 			this.providedRebalanceListener = providedRebalanceListener;
 			this.isConsumerAware = providedRebalanceListener instanceof ConsumerAwareRebalanceListener;
 		}
@@ -594,9 +594,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		@Override
 		public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
 			KafkaMessageSource.this.assignedPartitions.removeAll(partitions);
-			if (KafkaMessageSource.this.logger.isInfoEnabled()) {
-				KafkaMessageSource.this.logger.info("Partitions revoked: " + partitions);
-			}
+			KafkaMessageSource.this.logger.info(() -> "Partitions revoked: " + partitions);
 			if (this.providedRebalanceListener != null) {
 				if (this.isConsumerAware) {
 					((ConsumerAwareRebalanceListener) this.providedRebalanceListener)
@@ -625,9 +623,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				KafkaMessageSource.this.logger.warn("Paused consumer resumed by Kafka due to rebalance; "
 						+ "consumer paused again, so the initial poll() will never return any records");
 			}
-			if (KafkaMessageSource.this.logger.isInfoEnabled()) {
-				KafkaMessageSource.this.logger.info("Partitions assigned: " + partitions);
-			}
+			KafkaMessageSource.this.logger.info(() -> "Partitions assigned: " + partitions);
 			if (this.providedRebalanceListener != null) {
 				if (this.isConsumerAware) {
 					((ConsumerAwareRebalanceListener) this.providedRebalanceListener)
@@ -783,7 +779,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 						// see if there are any pending acks for higher offsets
 						List<KafkaAckInfo<K, V>> toCommit = new ArrayList<>();
 						for (KafkaAckInfo<K, V> info : candidates) {
-							if (info != this.ackInfo) {
+							if (!this.ackInfo.equals(info)) {
 								if (info.isAckDeferred()) {
 									toCommit.add(info);
 								}
@@ -828,9 +824,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 						}
 					}
 					else {
-						if (this.logger.isDebugEnabled()) {
-							this.logger.debug("Deferring commit offset; earlier messages are in flight.");
-						}
+						this.logger.debug("Deferring commit offset; earlier messages are in flight.");
 					}
 				}
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.core.ResolvableType;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -47,6 +46,7 @@ import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.integration.expression.ExpressionEvalMap;
+import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.inbound.BaseHttpInboundEndpoint;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -281,9 +281,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 				prepareRequestMessageBuilder(request, payload, headers);
 
 		return exchange.getPrincipal()
-				.map(principal ->
-						messageBuilder
-								.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, principal))
+				.map(principal -> messageBuilder.setHeader(HttpHeaders.USER_PRINCIPAL, principal))
 				.defaultIfEmpty(messageBuilder)
 				.map(AbstractIntegrationMessageBuilder::build)
 				.zipWith(Mono.just(httpEntity));
@@ -308,19 +306,17 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 							.copyHeaders(headers);
 		}
 
-		messageBuilder.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL,
-				request.getURI().toString());
+		messageBuilder.setHeader(HttpHeaders.REQUEST_URL, request.getURI().toString());
 		HttpMethod httpMethod = request.getMethod();
 		if (httpMethod != null) {
-			messageBuilder.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
-					httpMethod.toString());
+			messageBuilder.setHeader(HttpHeaders.REQUEST_METHOD, httpMethod.toString());
 		}
 		return messageBuilder;
 	}
 
 	private EvaluationContext buildEvaluationContext(RequestEntity<?> httpEntity, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
-		HttpHeaders requestHeaders = request.getHeaders();
+		org.springframework.http.HttpHeaders requestHeaders = request.getHeaders();
 		MultiValueMap<String, String> requestParams = request.getQueryParams();
 		Map<String, Object> exchangeAttributes = exchange.getAttributes();
 
@@ -375,8 +371,8 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 								exchange.getResponse().setStatusCode(e.getStatusCode());
 							}
 
-							HttpHeaders entityHeaders = e.getHeaders();
-							HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
+							org.springframework.http.HttpHeaders entityHeaders = e.getHeaders();
+							org.springframework.http.HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
 
 							if (!entityHeaders.isEmpty()) {
 								entityHeaders.entrySet().stream()
@@ -501,7 +497,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		if (adapter.isNoValue()) {
 			return ResolvableType.forClass(Void.class);
 		}
-		else if (genericType != ResolvableType.NONE) {
+		else if (!ResolvableType.NONE.equals(genericType)) {
 			return genericType;
 		}
 		else {
