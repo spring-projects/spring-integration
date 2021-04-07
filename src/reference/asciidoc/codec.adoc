@@ -91,7 +91,7 @@ You can override these framework defaults by configuring the registrars mentione
 ====== Using a Custom Kryo Serializer
 
 If you need custom serialization, see the https://github.com/EsotericSoftware/kryo[Kryo] documentation, because you need to use the native API to do the customization.
-For an example, see the https://github.com/spring-projects/spring-integration/blob/master/spring-integration-core/src/main/java/org/springframework/integration/codec/kryo/MessageCodec.java[`MessageCodec`] implementation.
+For an example, see the https://github.com/spring-projects/spring-integration/blob/main/spring-integration-core/src/main/java/org/springframework/integration/codec/kryo/MessageCodec.java[`MessageCodec`] implementation.
 
 ====== Implementing KryoSerializable
 

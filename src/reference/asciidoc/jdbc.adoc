@@ -958,7 +958,7 @@ In the second sample, we call a stored procedure that uses output parameters to 
 Have a look at the https://github.com/spring-projects/spring-integration-samples[Spring Integration Samples project].
 
 The project contains the Apache Derby example referenced here, as well as instructions on how to run it.
-The Spring Integration Samples project also provides an https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/stored-procedures-oracle[example] of using Oracle stored procedures.
+The Spring Integration Samples project also provides an https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/stored-procedures-oracle[example] of using Oracle stored procedures.
 =====
 
 In the first example, we call a stored procedure named `FIND_ALL_COFFEE_BEVERAGES` that does not define any input parameters but that returns a `ResultSet`.

@@ -9,7 +9,7 @@ The Java DSL for Spring Integration is essentially a facade for Spring Integrati
 The DSL provides a simple way to embed Spring Integration Message Flows into your application by using the fluent `Builder` pattern together with existing Java configuration from Spring Framework and Spring Integration.
 We also use and support lambdas (available with Java 8) to further simplify Java configuration.
 
-The https://github.com/spring-projects/spring-integration-samples/tree/master/dsl/cafe-dsl[cafe] offers a good example of using the DSL.
+The https://github.com/spring-projects/spring-integration-samples/tree/main/dsl/cafe-dsl[cafe] offers a good example of using the DSL.
 
 The DSL is  presented by the `IntegrationFlows` factory for the `IntegrationFlowBuilder`.
 This produces the `IntegrationFlow` component, which should be registered as a Spring bean (by using the `@Bean` annotation).

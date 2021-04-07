@@ -128,7 +128,7 @@ For more information, see <<./configuration.adoc#annotations,Annotation Support>
 
 We added a new twitter endpoint: `<int-twitter-search-outbound-gateway/>`.
 Unlike the search inbound adapter, which polls by using the same search query each time, the outbound gateway allows on-demand customized queries.
-For more information, see https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-social-twitter[Spring Integration Social Twitter].
+For more information, see https://github.com/spring-projects/spring-integration-extensions/tree/main/spring-integration-social-twitter[Spring Integration Social Twitter].
 
 [[x4.0-gemfire-metadata]]
 ===== Gemfire Metadata Store
@@ -248,7 +248,7 @@ See <<./ftp.adoc#ftp-session-factory,FTP Session Factory>> for more information.
 
 The `StatusUpdatingMessageHandler` (`<int-twitter:outbound-channel-adapter>`) now supports the `tweet-data-expression` attribute to build a `org.springframework.social.twitter.api.TweetData` object for updating the timeline status.
 This feature allows, for example, attaching an image.
-See https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-social-twitter[Spring Integration Social Twitter] for more information.
+See https://github.com/spring-projects/spring-integration-extensions/tree/main/spring-integration-social-twitter[Spring Integration Social Twitter] for more information.
 
 [[x4.0-jpa-id-expression]]
 ===== JPA Retrieving Gateway: `id-expression`
