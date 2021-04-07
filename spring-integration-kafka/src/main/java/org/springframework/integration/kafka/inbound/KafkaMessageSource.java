@@ -71,15 +71,14 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Polled message source for kafka. Only one thread can poll for data (or
- * acknowledge a message) at a time.
+ * Polled message source for Apache Kafka.
+ * Only one thread can poll for data (or acknowledge a message) at a time.
  * <p>
  * NOTE: If the application acknowledges messages out of order, the acks
  * will be deferred until all messages prior to the offset are ack'd.
  * If multiple records are retrieved and an earlier offset is requeued, records
  * from the subsequent offsets will be redelivered - even if they were
- * processed successfully. Applications should therefore implement
- * idempotency.
+ * processed successfully. Applications should therefore implement idempotency.
  * <p>
  * Starting with version 3.1.2, this source implements {@link Pausable} which
  * allows you to pause and resume the {@link Consumer}. While the consumer is

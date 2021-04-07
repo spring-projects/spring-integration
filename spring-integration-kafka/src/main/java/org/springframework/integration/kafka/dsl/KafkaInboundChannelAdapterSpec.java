@@ -24,7 +24,7 @@ import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 
 /**
- * Spec for a polled Kafka inbound channel adapter.
+ * Spec for a polled Apache Kafka inbound channel adapter.
  *
  * @param <K> the key type.
  * @param <V> the value type.

@@ -97,7 +97,7 @@ public interface AcknowledgmentCallback {
 }
 ----
 
-Not all message sources (for example, Kafka) support the `REJECT` status.
+Not all message sources (for example, a `KafkaMessageSource`) support the `REJECT` status.
 It is treated the same as `ACCEPT`.
 
 Applications can acknowledge a message at any time, as the following example shows:

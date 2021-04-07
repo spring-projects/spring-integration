@@ -75,11 +75,11 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
- * Kafka Message Handler; when supplied with a {@link ReplyingKafkaTemplate} it is used as
+ * A Message Handler for Apache Kafka; when supplied with a {@link ReplyingKafkaTemplate} it is used as
  * the handler in an outbound gateway. When supplied with a simple {@link KafkaTemplate}
  * it used as the handler in an outbound channel adapter.
  * <p>
- * Starting with version 3.2.1 the handler supports receiving a pre-built
+ * The handler also supports receiving a pre-built
  * {@link ProducerRecord} payload. In that case, most configuration properties
  * ({@link #setTopicExpression(Expression)} etc.) are ignored. If the handler is used as
  * gateway, the {@link ProducerRecord} will have its headers enhanced to add the
@@ -103,7 +103,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		implements ManageableLifecycle {
 
 	/**
-	 * Buffer added to ensure our timeout is longer than Kafka's.
+	 * Buffer added to ensure our timeout is longer than Apache Kafka timeout.
 	 */
 	private static final int DEFAULT_TIMEOUT_BUFFER = 5000;
 
@@ -227,7 +227,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * The resulting value should be a {@link Long} type representing epoch time in milliseconds.
 	 * @param timestampExpression the {@link Expression} for timestamp to wait for result
 	 * fo send operation.
-	 * @since 2.3
 	 */
 	public void setTimestampExpression(Expression timestampExpression) {
 		this.timestampExpression = timestampExpression;
@@ -239,7 +238,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * {@link Boolean} value in a {@link KafkaIntegrationHeaders#FLUSH} header; false if
 	 * absent.
 	 * @param flushExpression the {@link Expression}.
-	 * @since 3.3
 	 */
 	public void setFlushExpression(Expression flushExpression) {
 		Assert.notNull(flushExpression, "'flushExpression' cannot be null");
@@ -249,7 +247,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	/**
 	 * Set the header mapper to use.
 	 * @param headerMapper the mapper; can be null to disable header mapping.
-	 * @since 2.3
 	 */
 	public void setHeaderMapper(KafkaHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
@@ -268,7 +265,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * should wait for the send operation results or not. Defaults to {@code false}.
 	 * In {@code sync} mode a downstream send operation exception will be re-thrown.
 	 * @param sync the send mode; async by default.
-	 * @since 2.0.1
 	 */
 	public void setSync(boolean sync) {
 		this.sync = sync;
@@ -280,7 +276,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * Defaults to the kafka {@code delivery.timeout.ms} property + 5 seconds. The timeout
 	 * is applied Also applies when sending to the success or failure channels.
 	 * @param sendTimeout the timeout to wait for result for a send operation.
-	 * @since 2.0.1
 	 */
 	@Override
 	public final void setSendTimeout(long sendTimeout) {
@@ -296,7 +291,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * less than that value, the higher value is used.
 	 * @param sendTimeoutExpression the {@link Expression} for timeout to wait for result
 	 * for a send operation.
-	 * @since 2.1.1
 	 * @see #setTimeoutBuffer(int)
 	 */
 	public void setSendTimeoutExpression(Expression sendTimeoutExpression) {
@@ -310,7 +304,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * to this channel with a payload of a {@link KafkaSendFailureException} with the
 	 * failed message and cause.
 	 * @param sendFailureChannel the failure channel.
-	 * @since 2.1.2
 	 */
 	public void setSendFailureChannel(MessageChannel sendFailureChannel) {
 		this.sendFailureChannel = sendFailureChannel;
@@ -322,7 +315,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * sent to this channel name with a payload of a {@link KafkaSendFailureException}
 	 * with the failed message and cause.
 	 * @param sendFailureChannelName the failure channel name.
-	 * @since 2.1.2
 	 */
 	public void setSendFailureChannelName(String sendFailureChannelName) {
 		this.sendFailureChannelName = sendFailureChannelName;
@@ -331,7 +323,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	/**
 	 * Set the success channel.
 	 * @param sendSuccessChannel the Success channel.
-	 * @since 3.0.2
 	 */
 	public void setSendSuccessChannel(MessageChannel sendSuccessChannel) {
 		this.sendSuccessChannel = sendSuccessChannel;
@@ -340,7 +331,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	/**
 	 * Set the Success channel name.
 	 * @param sendSuccessChannelName the Success channel name.
-	 * @since 3.0.2
 	 */
 	public void setSendSuccessChannelName(String sendSuccessChannelName) {
 		this.sendSuccessChannelName = sendSuccessChannelName;
@@ -349,7 +339,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	/**
 	 * Set the futures channel.
 	 * @param futuresChannel the futures channel.
-	 * @since 5.4
 	 */
 	public void setFuturesChannel(MessageChannel futuresChannel) {
 		this.futuresChannel = futuresChannel;
@@ -358,7 +347,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	/**
 	 * Set the futures channel name.
 	 * @param futuresChannelName the futures channel name.
-	 * @since 5.4
 	 */
 	public void setFuturesChannelName(String futuresChannelName) {
 		this.futuresChannelName = futuresChannelName;
@@ -368,7 +356,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * Set the error message strategy implementation to use when sending error messages after
 	 * send failures. Cannot be null.
 	 * @param errorMessageStrategy the implementation.
-	 * @since 2.1.2
 	 */
 	public void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
 		Assert.notNull(errorMessageStrategy, "'errorMessageStrategy' cannot be null");
@@ -378,7 +365,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	/**
 	 * Set a message converter for gateway replies.
 	 * @param messageConverter the converter.
-	 * @since 3.0.2
 	 * @see #setReplyPayloadType(Type)
 	 */
 	public void setReplyMessageConverter(RecordMessageConverter messageConverter) {
@@ -390,7 +376,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * When using a type-aware message converter (such as {@code StringJsonMessageConverter},
 	 * set the payload type the converter should create. Defaults to {@link Object}.
 	 * @param payloadType the type.
-	 * @since 3.0.2
 	 * @see #setReplyMessageConverter(RecordMessageConverter)
 	 */
 	public void setReplyPayloadType(Type payloadType) {
@@ -401,7 +386,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	/**
 	 * Set a {@link ProducerRecordCreator} to create the {@link ProducerRecord}.
 	 * @param producerRecordCreator the creator.
-	 * @since 3.2.1
 	 */
 	public void setProducerRecordCreator(ProducerRecordCreator<K, V> producerRecordCreator) {
 		Assert.notNull(producerRecordCreator, "'producerRecordCreator' cannot be null");
@@ -413,7 +397,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * to determine the minimum time to wait for the send future completion when
 	 * {@link #setSync(boolean) sync} is true.
 	 * @param timeoutBuffer the buffer.
-	 * @since 5.4
 	 * @see #setSendTimeoutExpression(Expression)
 	 */
 	public void setTimeoutBuffer(int timeoutBuffer) {
@@ -694,7 +677,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		if (this.sync || this.isGateway) {
 			Long sendTimeout = this.sendTimeoutExpression.getValue(this.evaluationContext, message, Long.class);
 			if (sendTimeout != null && sendTimeout <= this.deliveryTimeoutMsProperty) {
-				this.logger.debug("'sendTimeout' increased to "
+				this.logger.debug(() -> "'sendTimeout' increased to "
 						+ (this.deliveryTimeoutMsProperty + this.timeoutBuffer)
 						+ "ms; it must be greater than the 'delivery.timeout.ms' Kafka producer "
 						+ "property to avoid false failures");

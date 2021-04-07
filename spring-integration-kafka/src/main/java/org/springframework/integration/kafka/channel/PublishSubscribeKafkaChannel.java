@@ -23,7 +23,7 @@ import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.KafkaOperations;
 
 /**
- * Publish/subscribe channel backed by a Kafka topic.
+ * Publish/subscribe channel backed by an Apache Kafka topic.
  *
  * @author Gary Russell
  *

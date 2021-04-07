@@ -21,7 +21,7 @@ import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
 /**
- * Spec for a point to point channel backed by a Kafka topic.
+ * Spec for a point to point channel backed by an Apache Kafka topic.
  *
  * @author Gary Russell
  *

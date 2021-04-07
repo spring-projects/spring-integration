@@ -34,7 +34,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 
 /**
- * Subscribable channel backed by a Kafka topic.
+ * Subscribable channel backed by an Apache Kafka topic.
  *
  * @author Gary Russell
  * @author Artem Bilan

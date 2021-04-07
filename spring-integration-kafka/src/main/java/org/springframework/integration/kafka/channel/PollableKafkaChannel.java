@@ -33,7 +33,7 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.util.Assert;
 
 /**
- * Pollable channel backed by a Kafka topic.
+ * Pollable channel backed by an Apache Kafka topic.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -64,13 +64,6 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 		}
 	}
 
-	private static String topic(KafkaMessageSource<?, ?> source) {
-		Assert.notNull(source, "'source' cannot be null");
-		String[] topics = source.getConsumerProperties().getTopics();
-		Assert.isTrue(topics != null && topics.length == 1, "Only one topic is allowed");
-		return topics[0];
-	}
-
 	@Override
 	@Nullable
 	public Message<?> receive() {
@@ -88,10 +81,9 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 		ChannelInterceptorList interceptorList = getIChannelInterceptorList();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
-		boolean traceEnabled = isLoggingEnabled() && logger.isTraceEnabled();
 		try {
-			if (traceEnabled) {
-				logger.trace("preReceive on channel '" + this + "'");
+			if (isLoggingEnabled()) {
+				logger.trace(() -> "preReceive on channel '" + this + "'");
 			}
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<>();
@@ -195,6 +187,13 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 	@Override
 	public boolean hasExecutorInterceptors() {
 		return this.executorInterceptorsSize > 0;
+	}
+
+	private static String topic(KafkaMessageSource<?, ?> source) {
+		Assert.notNull(source, "'source' cannot be null");
+		String[] topics = source.getConsumerProperties().getTopics();
+		Assert.isTrue(topics != null && topics.length == 1, "Only one topic is allowed");
+		return topics[0];
 	}
 
 }
