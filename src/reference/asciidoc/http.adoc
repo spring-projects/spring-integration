@@ -52,7 +52,7 @@ For more information, see
 https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc[Web MVC framework], which is part of the Spring Framework Reference documentation.
 
 TIP: For a sample application and the corresponding configuration, see the https://github.com/spring-projects/spring-integration-samples[Spring Integration Samples] repository.
-It contains the https://github.com/spring-projects/spring-integration-samples/tree/master/basic/http[HTTP sample] application, which demonstrates Spring Integration's HTTP support.
+It contains the https://github.com/spring-projects/spring-integration-samples/tree/main/basic/http[HTTP sample] application, which demonstrates Spring Integration's HTTP support.
 
 The following example bean defines an HTTP inbound endpoint:
 

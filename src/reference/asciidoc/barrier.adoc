@@ -83,4 +83,4 @@ public class Config {
 }
 ----
 
-For an example of this component, see the https://github.com/spring-projects/spring-integration-samples/tree/master/basic/barrier[barrier sample application].
+For an example of this component, see the https://github.com/spring-projects/spring-integration-samples/tree/main/basic/barrier[barrier sample application].

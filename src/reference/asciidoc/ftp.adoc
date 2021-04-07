@@ -361,7 +361,7 @@ Files are downloaded with this suffix (the default is `.writing`), and the file 
 
 The `remote-file-separator` attribute lets you configure a file separator character to use if the default '/' is not applicable for your particular environment.
 
-See the https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more details on these attributes.
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more details on these attributes.
 
 You should also understand that the FTP inbound channel adapter is a polling consumer.
 Therefore, you must configure a poller (by using either a global default or a local sub-element).
@@ -848,7 +848,7 @@ The following example shows how to configure an `outbound-channel-adapter`:
 The preceding configuration shows how you can configure an FTP outbound channel adapter by using the `outbound-channel-adapter` element while also providing values for various attributes, such as `filename-generator` (an implementation of the `o.s.i.file.FileNameGenerator` strategy interface), a reference to a `session-factory`, and other attributes.
 You can also see some examples of `*expression` attributes that let you use SpEL to configure settings such as `remote-directory-expression`, `temporary-remote-directory-expression`, and `remote-filename-generator-expression` (a SpEL alternative to `filename-generator`, shown in the preceding example).
 As with any component that allows the usage of SpEL, access to the payload and the message Headers is available through the 'payload' and 'headers' variables.
-See the https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more details on the available attributes.
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more details on the available attributes.
 
 NOTE: By default,  if no file name generator is specified, Spring Integration uses `o.s.i.file.DefaultFileNameGenerator`.
 `DefaultFileNameGenerator` determines the file name based on the value of the `file_name` header (if it exists) in the `MessageHeaders`, or, if the payload of the Message is already a `java.io.File`, it uses the original name of that file.
@@ -1203,7 +1203,7 @@ The `put` commad sends a file to the remote server.
 The payload of the message can be a `java.io.File`, a `byte[]`, or a `String`.
 A `remote-filename-generator` (or expression) is used to name the remote file.
 Other available attributes include `remote-directory`, `temporary-remote-directory`, and their `*-expression` equivalents: `use-temporary-file-name` and `auto-create-directory`.
-See the https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] documentation for more information.
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] documentation for more information.
 
 The message payload resulting from a `put` operation is a `String` that represents the full path of the file on the server after transfer.
 

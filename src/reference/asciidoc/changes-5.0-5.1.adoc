@@ -188,7 +188,7 @@ In addition the key and trust store types can now be configured on the `DefaultT
 ==== Twitter Support
 
 Since the Spring Social project has moved to https://spring.io/blog/2018/07/03/spring-social-end-of-life-announcement[end of life status], Twitter support in Spring Integration has been moved to the Extensions project.
-See https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-social-twitter[Spring Integration Social Twitter] for more information.
+See https://github.com/spring-projects/spring-integration-extensions/tree/main/spring-integration-social-twitter[Spring Integration Social Twitter] for more information.
 
 [[x51.-jms]]
 ==== JMS Support

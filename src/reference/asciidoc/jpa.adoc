@@ -1277,4 +1277,4 @@ The difference is that the `named-query` attribute is used instead, as the follo
 ----
 ====
 
-NOTE: You can find a complete sample application that uses Spring Integration's JPA adapter https://github.com/spring-projects/spring-integration-samples/tree/master/basic/jpa[here].
+NOTE: You can find a complete sample application that uses Spring Integration's JPA adapter https://github.com/spring-projects/spring-integration-samples/tree/main/basic/jpa[here].

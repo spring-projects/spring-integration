@@ -901,11 +901,11 @@ IMPORTANT: You cannot reference message body values by using JMS Message selecto
 [[jms-samples]]
 === JMS Samples
 
-To experiment with these JMS adapters, check out the JMS samples available in the Spring Integration Samples Git repository at https://github.com/SpringSource/spring-integration-samples/tree/master/basic/jms[https://github.com/spring-projects/spring-integration-samples/tree/master/basic/jms].
+To experiment with these JMS adapters, check out the JMS samples available in the Spring Integration Samples Git repository at https://github.com/SpringSource/spring-integration-samples/tree/main/basic/jms[https://github.com/spring-projects/spring-integration-samples/tree/master/basic/jms].
 
 That repository includes two samples.
 One provides inbound and outbound channel adapters, and the other provides inbound and outbound gateways.
-They are configured to run with an embedded https://activemq.apache.org/[ActiveMQ] process, but you can modify the https://github.com/spring-projects/spring-integration-samples/blob/master/basic/jms/src/main/resources/META-INF/spring/integration/common.xml[common.xml] Spring application context file of each sample to support either a different JMS provider or a standalone ActiveMQ process.
+They are configured to run with an embedded https://activemq.apache.org/[ActiveMQ] process, but you can modify the https://github.com/spring-projects/spring-integration-samples/blob/main/basic/jms/src/main/resources/META-INF/spring/integration/common.xml[common.xml] Spring application context file of each sample to support either a different JMS provider or a standalone ActiveMQ process.
 
 In other words, you can split the configuration so that the inbound and outbound adapters run in separate JVMs.
 If you have ActiveMQ installed,  modify the `brokerURL` property within the `common.xml` file to use `tcp://localhost:61616` (instead of `vm://localhost`).
