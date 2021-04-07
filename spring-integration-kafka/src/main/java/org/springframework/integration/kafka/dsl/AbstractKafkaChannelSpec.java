@@ -21,7 +21,7 @@ import org.springframework.integration.kafka.channel.AbstractKafkaChannel;
 
 /**
  *
- * Spec for a message channel backed by a Kafka topic.
+ * Spec for a message channel backed by an Apache Kafka topic.
  *
  * @param <S> the spec type.
  * @param <C> the channel type.

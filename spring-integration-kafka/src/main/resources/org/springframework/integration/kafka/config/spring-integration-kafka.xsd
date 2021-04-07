@@ -12,16 +12,15 @@
 				schemaLocation="https://www.springframework.org/schema/integration/spring-integration.xsd"/>
 
 	<xsd:annotation>
-		<xsd:documentation><![CDATA[
-			Defines the configuration elements for the Spring Integration
-			Kafka Adapters.
-		]]></xsd:documentation>
+		<xsd:documentation>
+			Defines the configuration elements for the Spring Integration Adapters for Apache Kafka.
+		</xsd:documentation>
 	</xsd:annotation>
 
 	<xsd:element name="channel">
 		<xsd:annotation>
 			<xsd:documentation>
-				Creates a subscribable channel that is backed by a Kafka topic.
+				Creates a subscribable channel that is backed by an Apache Kafka topic.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -35,7 +34,7 @@
 	<xsd:element name="pollable-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-				Creates a pollable channel that is backed by a Kafka topic.
+				Creates a pollable channel that is backed by an Apache Kafka topic.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -64,7 +63,7 @@
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-				Creates a subscribable pub/sub channel that is backed by a Kafka topic.
+				Creates a subscribable pub/sub channel that is backed by an Apache Kafka topic.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -98,7 +97,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines the Consumer Endpoint for the KafkaProducerMessageHandler
-				that writes the contents of the Message to kafka broker and receives
+				that writes the contents of the Message to an Apache Kafka broker and receives
 				a reply.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -129,7 +128,7 @@
 					<xsd:attribute name="request-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-			Message Channel to which Messages should be sent in order to have them sent to Kafka.
+			Message Channel to which Messages should be sent in order to have them sent to the Apache Kafka.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -151,7 +150,7 @@
 					<xsd:attribute name="reply-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-			Message Channel to which replies should be sent after being received from Kafka.
+			Message Channel to which replies should be sent after being received from the Apache Kafka.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -195,7 +194,7 @@
 			<xsd:documentation>
 				Defines a Polling Channel Adapter for the
 				'org.springframework.integration.kafka.inbound.KafkaMessageSource'
-				for polling a Kafka topic.
+				for polling an Apache Kafka topic.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -253,7 +252,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						[DEPRECATED]
-						The 'group.id' Kafka Consumer property; overrides the value in the consumer factory.
+						The 'group.id' KafkaConsumer property; overrides the value in the consumer factory.
 						Deprecated in favor of 'consumer-properties'.
 					</xsd:documentation>
 				</xsd:annotation>
@@ -262,7 +261,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						[DEPRECATED]
-						The 'client.id' Kafka Consumer property; overrides the value in the consumer factory.
+						The 'client.id' KafkaConsumer property; overrides the value in the consumer factory.
 						Deprecated in favor of 'consumer-properties'.
 					</xsd:documentation>
 				</xsd:annotation>
@@ -512,7 +511,7 @@
 		<xsd:attribute name="topic" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-							Specifies the name of the Kafka topic.
+							Specifies the name of an Apache Kafka topic.
 							This attribute is mutually exclusive with 'topic-expression' attribute.
 				]]></xsd:documentation>
 			</xsd:annotation>
@@ -520,7 +519,7 @@
 		<xsd:attribute name="topic-expression" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-							Specifies the expression to determine the name of the Kafka topic
+							Specifies the expression to determine the name of an Apache Kafka topic
 							against the Message at runtime.
 							This attribute is mutually exclusive with 'topic' attribute.
 				]]></xsd:documentation>
@@ -529,7 +528,7 @@
 		<xsd:attribute name="message-key" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-							Specifies the Key for the Kafka message.
+							Specifies the Key for the Kafka record.
 							This attribute is mutually exclusive with 'message-key-expression' attribute.
 				]]></xsd:documentation>
 			</xsd:annotation>
@@ -537,7 +536,7 @@
 		<xsd:attribute name="message-key-expression" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-							Specifies the expression to determine the Key for Kafka message
+							Specifies the expression to determine the Key for Kafka record
 							against the Message at runtime.
 							This attribute is mutually exclusive with 'message-key' attribute.
 				]]></xsd:documentation>
@@ -546,7 +545,7 @@
 		<xsd:attribute name="partition-id" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-							Specifies the target partition for the Kafka message.
+							Specifies the target partition for the Kafka record.
 							This attribute is mutually exclusive with 'partition-id-expression' attribute.
 				]]></xsd:documentation>
 			</xsd:annotation>
@@ -554,7 +553,7 @@
 		<xsd:attribute name="partition-id-expression" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-							Specifies the expression to determine the partition for Kafka message
+							Specifies the expression to determine the partition for Kafka record
 							against the Message at runtime.
 							This attribute is mutually exclusive with 'partition-id' attribute.
 				]]></xsd:documentation>
@@ -760,7 +759,7 @@
 		<xsd:attribute name="group-id">
 			<xsd:annotation>
 				<xsd:documentation>
-					Set the 'group.id' Kafka consumer property.
+					Set the 'group.id' KafkaConsumer property.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -770,7 +769,7 @@
 		<xsd:attribute name="header-mapper" use="optional" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-							Specifies the HeaderMapper used map Spring message headers to or from Kafka message headers.
+							Specifies the HeaderMapper used map Spring message headers to or from Kafka record headers.
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">

@@ -5,8 +5,8 @@
 === New Components
 
 [[x5.4-sik]]
-==== Apache Kafka Channel Adapters
-The standalone https://projects.spring.io/spring-integration-kafka/[Spring Integration Kafka] project has been merged as a `spring-integration-kafka` module to this project.
+==== Channel Adapters for Apache Kafka
+The standalone https://projects.spring.io/spring-integration-kafka/[Spring Integration for Apache Kafka] project has been merged as a `spring-integration-kafka` module to this project.
 
 The `KafkaProducerMessageHandler` `sendTimeoutExpression` default has changed.
 
