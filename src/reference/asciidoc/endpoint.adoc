@@ -448,7 +448,7 @@ The `period` property is used with each call to `nextExecutionTime` to schedule 
 To use this custom trigger within pollers, declare the bean definition of the custom trigger in your application context and inject the dependency into your poller configuration by using the `trigger` attribute, which references the custom trigger bean instance.
 You can now obtain a reference to the trigger bean and change the polling interval between polls.
 
-For an example, see the https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate[Spring Integration Samples] project.
+For an example, see the https://github.com/SpringSource/spring-integration-samples/tree/main/intermediate[Spring Integration Samples] project.
 It contains a sample called `dynamic-poller`, which uses a custom trigger and demonstrates the ability to change the polling interval at runtime.
 
 The sample provides a custom trigger that implements the https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/scheduling/Trigger.html[`org.springframework.scheduling.Trigger`] interface.

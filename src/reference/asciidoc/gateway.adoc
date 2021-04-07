@@ -474,7 +474,7 @@ The same applies to any message with a `Throwable` payload.
 This can be useful in asynchronous situations when when you need to propagate an `Exception` directly to the caller.
 To do so, you can either return an `Exception` (as the `reply` from some service) or throw it.
 Generally, even with an asynchronous flow, the framework takes care of propagating an exception thrown by the downstream flow back to the gateway.
-The https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/tcp-client-server-multiplex[TCP Client-Server Multiplex] sample demonstrates both techniques to return the exception to the caller.
+The https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/tcp-client-server-multiplex[TCP Client-Server Multiplex] sample demonstrates both techniques to return the exception to the caller.
 It emulates a socket IO error to the waiting thread by using an `aggregator` with `group-timeout` (see <<./aggregator.adoc#agg-and-group-to,Aggregator and Group Timeout>>) and a `MessagingTimeoutException` reply on the discard flow.
 
 [[gateway-timeouts]]
@@ -562,7 +562,7 @@ int finalResult =  result.get(1000, TimeUnit.SECONDS);
 ----
 ====
 
-For a more detailed example, see the https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/async-gateway[async-gateway] sample in the Spring Integration samples.
+For a more detailed example, see the https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/async-gateway[async-gateway] sample in the Spring Integration samples.
 
 ===== `ListenableFuture`
 

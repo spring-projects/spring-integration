@@ -668,7 +668,7 @@ clientFactory.setConnectionTest(conn -> {
 
 You can configure connection factories with a reference to a `TcpConnectionInterceptorFactoryChain`.
 You can use interceptors to add behavior to connections, such as negotiation, security, and other options.
-No interceptors are currently provided by the framework, but see https://github.com/spring-projects/spring-integration/blob/master/spring-integration-ip/src/test/java/org/springframework/integration/ip/tcp/InterceptedSharedConnectionTests.java[`InterceptedSharedConnectionTests` in the source repository] for an example.
+No interceptors are currently provided by the framework, but see https://github.com/spring-projects/spring-integration/blob/main/spring-integration-ip/src/test/java/org/springframework/integration/ip/tcp/InterceptedSharedConnectionTests.java[`InterceptedSharedConnectionTests` in the source repository] for an example.
 
 The `HelloWorldInterceptor` used in the test case works as follows:
 
