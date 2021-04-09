@@ -185,13 +185,10 @@ public class ImapMailReceiverTests {
 		receiver.setMaxFetchSize(1);
 		receiver.setShouldDeleteMessages(false);
 		receiver.setShouldMarkMessagesAsRead(true);
-		receiver.setCancelIdleInterval(1);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		setUpScheduler(receiver, taskScheduler);
 		receiver.setUserFlag("testSIUserFlag");
 		receiver.afterPropertiesSet();
-		LogAccessor logger = spy(TestUtils.getPropertyValue(receiver, "logger", LogAccessor.class));
-		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
 		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(receiver);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
@@ -237,7 +234,6 @@ public class ImapMailReceiverTests {
 		}
 		assertThat(channel.receive(20000)).isNotNull(); // new message after idle
 		assertThat(channel.receive(100)).isNull(); // no new message after second and third idle
-		verify(logger).debug("Canceling IDLE");
 
 		adapter.stop();
 		taskScheduler.shutdown();
