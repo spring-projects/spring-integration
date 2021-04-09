@@ -22,10 +22,13 @@ import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.util.IntegrationReactiveUtils;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 import reactor.core.Disposable;
@@ -41,7 +44,7 @@ import reactor.util.concurrent.Queues;
  *
  * @since 5.1.9
  */
-class MessageChannelReactiveUtilsTests {
+class IntegrationReactiveUtilsTests {
 
 	@Test
 	void testBackpressureWithSubscribableChannel() {
@@ -114,6 +117,30 @@ class MessageChannelReactiveUtilsTests {
 		Mono<Object> mono = Mono.empty().doOnSubscribe((s) -> publisherSubscribed.countDown());
 		nullChannel.send(new GenericMessage<>(mono));
 		assertThat(publisherSubscribed.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+
+	@Test
+	void testRetryOnMessagingExceptionOnly() {
+		AtomicInteger retryAttempts = new AtomicInteger(3);
+		AtomicReference<Throwable> finalException = new AtomicReference<>();
+		MessageSource<?> messageSource =
+				() -> {
+					if (retryAttempts.getAndDecrement() > 0) {
+						throw new MessagingException("retryable MessagingException");
+					}
+					else {
+						throw new RuntimeException("non-retryable RuntimeException");
+					}
+				};
+
+		StepVerifier.create(IntegrationReactiveUtils.messageSourceToFlux(messageSource).doOnError(finalException::set))
+				.expectSubscription()
+				.expectErrorMessage("non-retryable RuntimeException")
+				.verify(Duration.ofSeconds(1));
+
+		assertThat(retryAttempts.get()).isEqualTo(-1);
+		assertThat(finalException.get()).hasMessage("non-retryable RuntimeException");
 	}
 
 }
