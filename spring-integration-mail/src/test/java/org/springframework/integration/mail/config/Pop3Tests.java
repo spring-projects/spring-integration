@@ -20,6 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 
+import javax.mail.Message.RecipientType;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,29 +32,35 @@ import org.springframework.integration.mail.MailHeaders;
 import org.springframework.integration.mail.MailReceivingMessageSource;
 import org.springframework.integration.mail.Pop3MailReceiver;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
-import org.springframework.integration.test.mail.TestMailServer;
-import org.springframework.integration.test.mail.TestMailServer.Pop3Server;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+
+import com.icegreen.greenmail.user.GreenMailUser;
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.GreenMailUtil;
+import com.icegreen.greenmail.util.ServerSetup;
+import com.icegreen.greenmail.util.ServerSetupTest;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Alexander Pinske
  *
  * @since 5.0
  *
  */
 public class Pop3Tests {
 
-	private static final Pop3Server pop3Server = TestMailServer.pop3(0);
+	private static GreenMail pop3Server;
+	private static GreenMailUser user;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException {
-		int n = 0;
-		while (n++ < 100 && (!pop3Server.isListening())) {
-			Thread.sleep(100);
-		}
-		assertThat(n < 100).isTrue();
+		ServerSetup pop3 = ServerSetupTest.POP3.dynamicPort();
+		pop3.setServerStartupTimeout(10000);
+		pop3Server = new GreenMail(pop3);
+		user = pop3Server.setUser("user", "pw");
+		pop3Server.start();
 	}
 
 	@AfterAll
@@ -59,8 +69,13 @@ public class Pop3Tests {
 	}
 
 	@Test
-	public void testPop3() {
-		Pop3MailReceiver receiver = new Pop3MailReceiver("localhost", pop3Server.getPort(), "user", "pw");
+	public void testPop3() throws MessagingException {
+		MimeMessage mimeMessage = GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>", "Test Email", "foo\r\n", pop3Server.getPop3().getServerSetup());
+		mimeMessage.setRecipients(RecipientType.CC, "a@b, c@d");
+		mimeMessage.setRecipients(RecipientType.BCC, "e@f, g@h");
+		user.deliver(mimeMessage);
+
+		Pop3MailReceiver receiver = new Pop3MailReceiver("localhost", pop3Server.getPop3().getPort(), "user", "pw");
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		MailReceivingMessageSource source = new MailReceivingMessageSource(receiver);
 		Message<?> message = source.receive();
@@ -71,7 +86,7 @@ public class Pop3Tests {
 		assertThat(Arrays.toString(headers.get(MailHeaders.BCC, String[].class))).isEqualTo("[e@f, g@h]");
 		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>,Bar2 <bar2@baz>");
 		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
-		assertThat(message.getPayload()).isEqualTo("foo\r\n\r\n");
+		assertThat(message.getPayload()).isEqualTo("foo\r\n");
 	}
 
 }
