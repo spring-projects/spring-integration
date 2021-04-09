@@ -48,7 +48,10 @@ import org.springframework.util.Base64Utils;
  *
  * @since 5.0
  *
+ * @deprecated since 5.5 in favor of GreenMail library for mail testing.
+ *
  */
+@Deprecated
 public final class TestMailServer {
 
 	public static SmtpServer smtp(int port) {

@@ -60,6 +60,7 @@ ext {
 	derbyVersion = '10.14.2.0'
 	ftpServerVersion = '1.1.1'
 	googleJsr305Version = '3.0.2'
+	greenmailVersion = '1.6.4'
 	groovyVersion = '3.0.8'
 	hamcrestVersion = '2.2'
 	hazelcastVersion = '4.2'
@@ -641,9 +642,9 @@ project('spring-integration-mail') {
 		api project(':spring-integration-core')
 		api 'org.springframework:spring-context-support'
 
-		providedImplementation "jakarta.mail:jakarta.mail-api:$mailVersion"
-		providedImplementation "com.sun.mail:imap:$mailVersion"
 		providedImplementation "com.sun.mail:jakarta.mail:$mailVersion"
+		testImplementation "com.icegreen:greenmail:$greenmailVersion"
+		testRuntimeOnly 'org.apache.logging.log4j:log4j-jul'
 	}
 }
 

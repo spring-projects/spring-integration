@@ -19,7 +19,6 @@ package org.springframework.integration.mail.dsl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Properties;
 
 import javax.mail.Flags;
@@ -33,12 +32,12 @@ import javax.mail.search.FlagTerm;
 import javax.mail.search.FromTerm;
 import javax.mail.search.SearchTerm;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -51,10 +50,6 @@ import org.springframework.integration.mail.MailHeaders;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.mail.TestMailServer;
-import org.springframework.integration.test.mail.TestMailServer.ImapServer;
-import org.springframework.integration.test.mail.TestMailServer.Pop3Server;
-import org.springframework.integration.test.mail.TestMailServer.SmtpServer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -64,31 +59,41 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.GreenMailUtil;
+import com.icegreen.greenmail.util.ServerSetup;
+import com.icegreen.greenmail.util.ServerSetupTest;
+
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Alexander Pinske
  */
 @SpringJUnitConfig
 @DirtiesContext
 public class MailTests {
 
-	private static final SmtpServer smtpServer = TestMailServer.smtp(0);
-
-	private static final Pop3Server pop3Server = TestMailServer.pop3(0);
-
-	private static final ImapServer imapServer = TestMailServer.imap(0);
-
-	private static final ImapServer imapIdleServer = TestMailServer.imap(0);
-
+	private static GreenMail mailServer;
 
 	@BeforeAll
-	public static void setup() throws InterruptedException {
-		int n = 0;
-		while (n++ < 100 && (!smtpServer.isListening() || !pop3Server.isListening()
-				|| !imapServer.isListening()) || !imapIdleServer.isListening()) {
-			Thread.sleep(100);
-		}
-		assertThat(n < 100).isTrue();
+	public static void setup() {
+		ServerSetup smtp = ServerSetupTest.SMTP.dynamicPort();
+		smtp.setServerStartupTimeout(10000);
+		ServerSetup imap = ServerSetupTest.IMAP.dynamicPort();
+		imap.setServerStartupTimeout(10000);
+		ServerSetup pop3 = ServerSetupTest.POP3.dynamicPort();
+		pop3.setServerStartupTimeout(10000);
+		mailServer = new GreenMail(new ServerSetup[]{ smtp, pop3, imap });
+		mailServer.setUser("bar@baz", "smtpuser", "pw");
+		mailServer.setUser("popuser", "pw");
+		mailServer.setUser("imapuser", "pw");
+		mailServer.setUser("imapidleuser", "pw");
+		mailServer.start();
+	}
+
+	@AfterAll
+	static void tearDown() {
+		mailServer.stop();
 	}
 
 	@Autowired
@@ -120,56 +125,72 @@ public class MailTests {
 
 		this.sendMailChannel.send(MessageBuilder.withPayload("foo").build());
 
-		int n = 0;
-		while (n++ < 100 && smtpServer.getMessages().size() == 0) {
-			Thread.sleep(100);
-		}
+		mailServer.waitForIncomingEmail(10000, 1);
 
-		assertThat(smtpServer.getMessages().size() > 0).isTrue();
-		String message = smtpServer.getMessages().get(0);
-		assertThat(message).endsWith("foo\n");
-		assertThat(message).contains("foo@bar");
-		assertThat(message).contains("bar@baz");
-		assertThat(message).contains("user:user");
-		assertThat(message).contains("password:pw");
+		assertThat(mailServer.getReceivedMessagesForDomain("baz").length > 0).isTrue();
+		MimeMessage message = mailServer.getReceivedMessagesForDomain("baz")[0];
+		assertThat(message.getFrom()).containsOnly(new InternetAddress("foo@bar"));
+		assertThat(message.getRecipients(RecipientType.TO)).containsOnly(new InternetAddress("bar@baz"));
+		assertThat(message.getSubject()).isEqualTo("foo");
+		assertThat(message.getContent()).asString().isEqualTo("foo\r\n");
 
 	}
 
 	@Test
-	public void testPop3() throws IOException {
+	public void testPop3() throws Exception {
+		MimeMessage mimeMessage =
+				GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>, Bar2 <bar2@baz>", "Test Email",
+						"foo\r\n", mailServer.getPop3().getServerSetup());
+		mimeMessage.setRecipients(RecipientType.CC, "a@b, c@d");
+		mimeMessage.setRecipients(RecipientType.BCC, "e@f, g@h");
+		mailServer.getUserManager().getUser("popuser").deliver(mimeMessage);
+
 		Message<?> message = this.pop3Channel.receive(10000);
 		assertThat(message).isNotNull();
 		MessageHeaders headers = message.getHeaders();
 		assertThat(headers.get(MailHeaders.TO, String[].class)).containsExactly("Foo <foo@bar>");
 		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>,Bar2 <bar2@baz>");
 		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
-		assertThat(message.getPayload()).isEqualTo("foo\r\n\r\n");
-		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isTrue();
-		message.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, Closeable.class).close();
+		assertThat(message.getPayload()).isEqualTo("foo\r\n");
+		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isFalse();
 	}
 
 	@Test
 	public void testImap() throws Exception {
+		MimeMessage mimeMessage =
+				GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>", "Test Email", "foo\r\n",
+						mailServer.getImap().getServerSetup());
+		mimeMessage.setRecipients(RecipientType.CC, "a@b, c@d");
+		mimeMessage.setRecipients(RecipientType.BCC, "e@f, g@h");
+		mailServer.getUserManager().getUser("imapuser").deliver(mimeMessage);
+
 		Message<?> message = this.imapChannel.receive(10000);
 		assertThat(message).isNotNull();
 		MimeMessage mm = (MimeMessage) message.getPayload();
 		assertThat(mm.getRecipients(RecipientType.TO)[0].toString()).isEqualTo("Foo <foo@bar>");
 		assertThat(mm.getFrom()[0].toString()).isEqualTo("Bar <bar@baz>");
 		assertThat(mm.getSubject()).isEqualTo("Test Email");
-		assertThat(mm.getContent()).isEqualTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n");
+		assertThat(mm.getContent()).isEqualTo("foo\r\n");
 		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isTrue();
 		message.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, Closeable.class).close();
 	}
 
 	@Test
-	public void testImapIdle() {
+	public void testImapIdle() throws Exception {
+		MimeMessage mimeMessage =
+				GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>", "Test Email", "foo\r\n",
+						mailServer.getImap().getServerSetup());
+		mimeMessage.setRecipients(RecipientType.CC, "a@b, c@d");
+		mimeMessage.setRecipients(RecipientType.BCC, "e@f, g@h");
+		mailServer.getUserManager().getUser("imapidleuser").deliver(mimeMessage);
+
 		Message<?> message = this.imapIdleChannel.receive(10000);
 		assertThat(message).isNotNull();
 		MessageHeaders headers = message.getHeaders();
 		assertThat(headers.get(MailHeaders.TO, String[].class)).containsExactly("Foo <foo@bar>");
 		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
 		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
-		assertThat(message.getPayload()).isEqualTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n");
+		assertThat(message.getPayload()).isEqualTo("foo\r\n");
 		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isTrue();
 		this.imapIdleAdapter.stop();
 		assertThat(TestUtils.getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically", Boolean.class))
@@ -181,35 +202,6 @@ public class MailTests {
 	public static class ContextConfiguration {
 
 		@Bean
-		public SmartLifecycle serverStopper() {
-			return new SmartLifecycle() {
-
-				@Override
-				public int getPhase() {
-					return Integer.MAX_VALUE;
-				}
-
-				@Override
-				public void stop() {
-					smtpServer.stop();
-					pop3Server.stop();
-					imapServer.stop();
-					imapIdleServer.stop();
-				}
-
-				@Override
-				public void start() {
-				}
-
-				@Override
-				public boolean isRunning() {
-					return true;
-				}
-
-			};
-		}
-
-		@Bean
 		public IntegrationFlow sendMailFlow() {
 			return IntegrationFlows.from("sendMailChannel")
 					.enrichHeaders(Mail.headers()
@@ -217,8 +209,8 @@ public class MailTests {
 							.from("foo@bar")
 							.toFunction(m -> new String[]{ "bar@baz" }))
 					.handle(Mail.outboundAdapter("localhost")
-									.port(smtpServer.getPort())
-									.credentials("user", "pw")
+									.port(mailServer.getSmtp().getPort())
+									.credentials("smtpuser", "pw")
 									.protocol("smtp")
 									.javaMailProperties(p -> p.put("mail.debug", "false")),
 							e -> e.id("sendMailEndpoint"))
@@ -228,9 +220,9 @@ public class MailTests {
 		@Bean
 		public IntegrationFlow pop3MailFlow() {
 			return IntegrationFlows
-					.from(Mail.pop3InboundAdapter("localhost", pop3Server.getPort(), "user", "pw")
+					.from(Mail.pop3InboundAdapter("localhost", mailServer.getPop3().getPort(), "popuser", "pw")
 									.javaMailProperties(p -> p.put("mail.debug", "false"))
-									.autoCloseFolder(false)
+									.autoCloseFolder(true)
 									.headerMapper(mailHeaderMapper()),
 							e -> e.autoStartup(true).poller(p -> p.fixedDelay(1000)))
 					.enrichHeaders(s -> s.headerExpressions(c -> c.put(MailHeaders.SUBJECT, "payload.subject")
@@ -242,7 +234,7 @@ public class MailTests {
 		@Bean
 		public IntegrationFlow imapMailFlow() {
 			return IntegrationFlows
-					.from(Mail.imapInboundAdapter("imap://user:pw@localhost:" + imapServer.getPort() + "/INBOX")
+					.from(Mail.imapInboundAdapter("imap://imapuser:pw@localhost:" + mailServer.getImap().getPort() + "/INBOX")
 									.searchTermStrategy(this::fromAndNotSeenTerm)
 									.userFlag("testSIUserFlag")
 									.autoCloseFolder(false)
@@ -257,7 +249,7 @@ public class MailTests {
 		@Bean
 		public IntegrationFlow imapIdleFlow() {
 			return IntegrationFlows
-					.from(Mail.imapIdleAdapter("imap://user:pw@localhost:" + imapIdleServer.getPort() + "/INBOX")
+					.from(Mail.imapIdleAdapter("imap://imapidleuser:pw@localhost:" + mailServer.getImap().getPort() + "/INBOX")
 							.autoStartup(true)
 							.searchTermStrategy(this::fromAndNotSeenTerm)
 							.userFlag("testSIUserFlag")

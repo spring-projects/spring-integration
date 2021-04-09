@@ -31,12 +31,18 @@ import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.LogRecord;
 
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
@@ -72,8 +78,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
-import org.springframework.integration.test.mail.TestMailServer;
-import org.springframework.integration.test.mail.TestMailServer.ImapServer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
@@ -84,6 +88,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MimeTypeUtils;
 
+import com.icegreen.greenmail.user.GreenMailUser;
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.GreenMailUtil;
+import com.icegreen.greenmail.util.ServerSetup;
+import com.icegreen.greenmail.util.ServerSetupTest;
 import com.sun.mail.imap.IMAPFolder;
 
 /**
@@ -100,31 +109,43 @@ public class ImapMailReceiverTests {
 
 	private AtomicInteger failed;
 
-	private ImapServer imapIdleServer;
+	private GreenMail imapIdleServer;
+
+	private GreenMailUser user;
 
 	@Autowired
 	private ApplicationContext context;
 
+	static {
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+	}
+
+	private final ImapSearchLoggingHandler imapSearches = new ImapSearchLoggingHandler();
+
 	@BeforeEach
-	public void setup() throws InterruptedException {
+	public void setup() {
+		LogManager.getLogManager().getLogger("").setLevel(Level.ALL);
+		imapSearches.searches.clear();
+		imapSearches.stores.clear();
+		LogManager.getLogManager().getLogger("").addHandler(imapSearches);
 		failed = new AtomicInteger(0);
-		this.imapIdleServer = TestMailServer.imap(0);
-		int n = 0;
-		while (n++ < 100 && (!this.imapIdleServer.isListening())) {
-			Thread.sleep(100);
-		}
-		assertThat(n < 100).isTrue();
+		ServerSetup imap = ServerSetupTest.IMAP.dynamicPort();
+		imap.setServerStartupTimeout(10000);
+		imapIdleServer = new GreenMail(imap);
+		user = imapIdleServer.setUser("user", "pw");
+		imapIdleServer.start();
 	}
 
 	@AfterEach
 	public void tearDown() {
 		this.imapIdleServer.stop();
+		LogManager.getLogManager().getLogger("").removeHandler(imapSearches);
 	}
 
 	@Test
 	public void testIdleWithServerCustomSearch() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setSearchTermStrategy((supportedFlags, folder) -> {
 			try {
 				FromTerm fromTerm = new FromTerm(new InternetAddress("bar@baz"));
@@ -140,15 +161,15 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testIdleWithServerDefaultSearch() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getImap().getPort() + "/INBOX");
 		testIdleWithServerGuts(receiver, false);
-		assertThat(this.imapIdleServer.assertReceived("searchWithUserFlag")).isTrue();
+		assertThat(imapSearches.searches.get(0)).contains("testSIUserFlag");
 	}
 
 	@Test
 	public void testIdleWithMessageMapping() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		testIdleWithServerGuts(receiver, true);
 	}
@@ -156,16 +177,16 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testIdleWithServerDefaultSearchSimple() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setSimpleContent(true);
 		testIdleWithServerGuts(receiver, false, true);
-		assertThat(this.imapIdleServer.assertReceived("searchWithUserFlag")).isTrue();
+		assertThat(imapSearches.searches.get(0)).contains("testSIUserFlag");
 	}
 
 	@Test
 	public void testIdleWithMessageMappingSimple() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setSimpleContent(true);
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		testIdleWithServerGuts(receiver, true, true);
@@ -176,10 +197,6 @@ public class ImapMailReceiverTests {
 	}
 
 	public void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped, boolean simple) throws Exception {
-		Properties mailProps = new Properties();
-		mailProps.put("mail.debug", "true");
-		mailProps.put("mail.imap.connectionpool.debug", "true");
-		receiver.setJavaMailProperties(mailProps);
 		receiver.setMaxFetchSize(1);
 		receiver.setShouldDeleteMessages(false);
 		receiver.setShouldMarkMessagesAsRead(true);
@@ -193,6 +210,14 @@ public class ImapMailReceiverTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.setReconnectDelay(1);
 		adapter.start();
+		MimeMessage message =
+				GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>", "Test Email", "foo\r\n",
+						imapIdleServer.getImap().getServerSetup());
+		message.setRecipients(Message.RecipientType.CC, "a@b, c@d");
+		message.setRecipients(Message.RecipientType.BCC, "e@f, g@h");
+		user.deliver(message);
+		user.deliver(GreenMailUtil.createTextEmail("to", "Bar <bar@baz>", "subject", "body",
+				imapIdleServer.getImap().getServerSetup()));
 		if (!mapped) {
 			@SuppressWarnings("unchecked")
 			org.springframework.messaging.Message<MimeMessage> received =
@@ -202,11 +227,11 @@ public class ImapMailReceiverTests {
 			assertThat(received.getPayload().getLineCount() > -1).isTrue();
 			if (simple) {
 				assertThat(received.getPayload().getContent())
-						.isEqualTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n");
+						.isEqualTo("foo\r\n");
 			}
 			else {
 				assertThat(received.getPayload().getContent())
-						.isEqualTo(TestMailServer.MailServer.MailHandler.MESSAGE + "\r\n");
+						.isEqualTo("foo");
 			}
 		}
 		else {
@@ -214,7 +239,7 @@ public class ImapMailReceiverTests {
 			assertThat(received).isNotNull();
 			MessageHeaders headers = received.getHeaders();
 			assertThat(headers.get(MailHeaders.RAW_HEADERS)).isNotNull();
-			assertThat(headers.get(MailHeaders.CONTENT_TYPE)).isEqualTo("TEXT/PLAIN; charset=ISO-8859-1");
+			assertThat(headers.get(MailHeaders.CONTENT_TYPE)).isEqualTo("TEXT/PLAIN; charset=us-ascii");
 			assertThat(headers.get(MessageHeaders.CONTENT_TYPE)).isEqualTo(MimeTypeUtils.TEXT_PLAIN_VALUE);
 			assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
 			String[] toHeader = headers.get(MailHeaders.TO, String[].class);
@@ -224,10 +249,10 @@ public class ImapMailReceiverTests {
 			assertThat(Arrays.toString(headers.get(MailHeaders.BCC, String[].class))).isEqualTo("[e@f, g@h]");
 			assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
 			if (simple) {
-				assertThat(received.getPayload()).isEqualTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n");
+				assertThat(received.getPayload()).isEqualTo("foo\r\n");
 			}
 			else {
-				assertThat(received.getPayload()).isEqualTo(TestMailServer.MailServer.MailHandler.MESSAGE + "\r\n");
+				assertThat(received.getPayload()).isEqualTo("foo");
 			}
 		}
 		assertThat(channel.receive(20000)).isNotNull(); // new message after idle
@@ -235,11 +260,13 @@ public class ImapMailReceiverTests {
 
 		adapter.stop();
 		taskScheduler.shutdown();
-		assertThat(this.imapIdleServer.assertReceived("storeUserFlag")).isTrue();
+		assertThat(imapSearches.stores.get(0)).contains("testSIUserFlag");
 	}
 
 	@Test
 	public void receiveAndMarkAsReadDontDelete() throws Exception {
+		user.deliver(GreenMailUtil.createTextEmail("user", "sender", "subject", "body",
+				imapIdleServer.getImap().getServerSetup()));
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
@@ -896,6 +923,42 @@ public class ImapMailReceiverTests {
 		given(bf.containsBean("taskScheduler")).willReturn(true);
 		given(bf.getBean("taskScheduler", TaskScheduler.class)).willReturn(taskScheduler);
 		mailReceiver.setBeanFactory(bf);
+	}
+
+
+	private static class ImapSearchLoggingHandler extends Handler {
+
+		private final List<String> searches = new ArrayList<>();
+
+		private final List<String> stores = new ArrayList<>();
+
+		private static final String SEARCH = " SEARCH ";
+
+		private static final String STORE = " STORE ";
+
+		@Override
+		public void publish(LogRecord record) {
+			if ("com.sun.mail.imap.protocol".equals(record.getLoggerName())) {
+				String message = record.getMessage();
+				if (!message.startsWith("*")) {
+					if (message.contains(SEARCH) && !message.contains(" OK ")) {
+						searches.add(message.substring(message.indexOf(SEARCH) + SEARCH.length()));
+					}
+					else if (message.contains(STORE) && !message.contains(" OK ")) {
+						stores.add(message.substring(message.indexOf(STORE) + STORE.length()));
+					}
+				}
+			}
+		}
+
+		@Override
+		public void flush() {
+		}
+
+		@Override
+		public void close() throws SecurityException {
+		}
+
 	}
 
 }
