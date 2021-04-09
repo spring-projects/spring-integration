@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,7 +254,7 @@ public final class TestMailServer {
 			/**
 			 * Time to wait while IDLE before returning a result.
 			 */
-			private static final int IDLE_WAIT_TIME = 1000;
+			private static final int IDLE_WAIT_TIME = 500;
 
 			ImapHandler(Socket socket) {
 				super(socket);
