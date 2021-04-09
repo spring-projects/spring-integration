@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.ip.udp;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.UUID;
@@ -303,7 +304,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		}
 		finally {
 			//reposition the buffer
-			buffer.position(pos);
+			((Buffer) buffer).position(pos);
 		}
 	}
 

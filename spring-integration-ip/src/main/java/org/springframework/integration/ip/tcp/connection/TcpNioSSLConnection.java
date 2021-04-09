@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.Semaphore;
@@ -135,7 +136,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			networkBuffer.compact();
 		}
 		else {
-			networkBuffer.clear();
+			((Buffer) networkBuffer).clear();
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("sendToPipe.x " + resultToString(result) + ", remaining: " + networkBuffer.remaining());
@@ -160,7 +161,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			case NEED_UNWRAP:
 			case FINISHED:
 			case NOT_HANDSHAKING:
-				this.decoded.clear();
+				((Buffer) this.decoded).clear();
 				result = this.sslEngine.unwrap(networkBuffer, this.decoded);
 				if (logger.isDebugEnabled()) {
 					logger.debug("After unwrap: " + resultToString(result));
@@ -171,13 +172,13 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 							this.allocateEncryptionBuffer(this.sslEngine.getSession().getApplicationBufferSize());
 				}
 				if (result.bytesProduced() > 0) {
-					this.decoded.flip();
+					((Buffer) this.decoded).flip();
 					super.sendToPipe(this.decoded);
 				}
 				break;
 			case NEED_WRAP:
 				if (!resumeWriterIfNeeded()) {
-					this.encoded.clear();
+					((Buffer) this.encoded).clear();
 					result = this.sslEngine.wrap(networkBuffer, this.encoded);
 					if (logger.isDebugEnabled()) {
 						logger.debug("After wrap: " + resultToString(result));
@@ -186,7 +187,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 						this.encoded = this.allocateEncryptionBuffer(this.sslEngine.getSession().getPacketBufferSize());
 					}
 					else {
-						this.encoded.flip();
+						((Buffer) this.encoded).flip();
 						getSSLChannelOutputStream().writeEncoded(this.encoded);
 					}
 				}
@@ -393,9 +394,9 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		}
 
 		private void writeEncodedIfAny() throws IOException {
-			TcpNioSSLConnection.this.encoded.flip();
+			((Buffer) TcpNioSSLConnection.this.encoded).flip();
 			writeEncoded(TcpNioSSLConnection.this.encoded);
-			TcpNioSSLConnection.this.encoded.clear();
+			((Buffer) TcpNioSSLConnection.this.encoded).clear();
 		}
 
 		/**
@@ -430,7 +431,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		 * Encrypts plain text data. The result may indicate handshaking is needed.
 		 */
 		private SSLEngineResult encode(ByteBuffer plainText) throws IOException {
-			TcpNioSSLConnection.this.encoded.clear();
+			((Buffer) TcpNioSSLConnection.this.encoded).clear();
 			SSLEngineResult result =
 					TcpNioSSLConnection.this.sslEngine.wrap(plainText, TcpNioSSLConnection.this.encoded);
 			if (logger.isDebugEnabled()) {
