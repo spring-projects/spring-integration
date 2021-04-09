@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,7 @@ import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,16 +43,14 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
  * @since 4.0
  */
-@ContextConfiguration(initializers = EnableMBeanExportTests.EnvironmentApplicationContextInitializer.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig(initializers = EnableMBeanExportTests.EnvironmentApplicationContextInitializer.class)
 @DirtiesContext
 public class EnableMBeanExportTests {
 
@@ -72,6 +69,8 @@ public class EnableMBeanExportTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEnableMBeanExport() throws MalformedObjectNameException, ClassNotFoundException {
+		assertThat(beanFactory.containsBean("jsonPath")).isFalse(); // GH-3541
+		assertThat(beanFactory.containsBean("xPath")).isFalse(); // GH-3541
 
 		assertThat(this.exporter.getServer()).isSameAs(this.mBeanServer);
 		String[] componentNamePatterns = TestUtils.getPropertyValue(this.exporter, "componentNamePatterns", String[].class);
@@ -103,11 +102,11 @@ public class EnableMBeanExportTests {
 
 	@Configuration
 	@EnableIntegration
-	@EnableIntegrationMBeanExport(server = "#{mbeanServer}",
+	@EnableIntegrationMBeanExport(
+			server = "#{mbeanServer}",
 			defaultDomain = "${managed.domain}",
-			managedComponents = {"input", "${managed.component}"})
-	@EnableIntegrationManagement(
-		defaultLoggingEnabled = "false")
+			managedComponents = { "input", "${managed.component}" })
+	@EnableIntegrationManagement(defaultLoggingEnabled = "false")
 	public static class ContextConfiguration {
 
 		@Bean
