@@ -58,6 +58,7 @@ import org.springframework.integration.handler.support.MapArgumentResolver;
 import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
 import org.springframework.integration.handler.support.PayloadsArgumentResolver;
 import org.springframework.integration.json.JsonNodeWrapperToJsonNodeConverter;
+import org.springframework.integration.json.JsonPathUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.integration.support.SmartLifecycleRoleController;
@@ -121,8 +122,7 @@ class DefaultConfiguringBeanFactoryPostProcessor
 
 		Class<?> jsonPathClass = null;
 		try {
-			jsonPathClass = ClassUtils.forName(IntegrationConfigUtils.BASE_PACKAGE + ".json.JsonPathUtils",
-					ClassUtils.getDefaultClassLoader());
+			jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", ClassUtils.getDefaultClassLoader());
 		}
 		catch (@SuppressWarnings("unused") ClassNotFoundException e) {
 			LOGGER.debug("The '#jsonPath' SpEL function cannot be registered: " +
@@ -406,7 +406,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 				&& !this.beanFactory.containsBean(jsonPathBeanName)
 				&& !REGISTRIES_PROCESSED.contains(registryId)) {
 
-			IntegrationConfigUtils.registerSpelFunctionBean(this.registry, jsonPathBeanName, JSON_PATH_CLASS, "evaluate");
+			IntegrationConfigUtils.registerSpelFunctionBean(this.registry, jsonPathBeanName,
+					JsonPathUtils.class, "evaluate");
 		}
 	}
 

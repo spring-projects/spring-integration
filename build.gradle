@@ -249,8 +249,6 @@ configure(javaProjects) { subproject ->
 		testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
 		testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 		testImplementation 'io.projectreactor:reactor-test'
-		testImplementation "com.jayway.jsonpath:json-path:$jsonpathVersion"
-		testImplementation 'com.fasterxml.jackson.core:jackson-databind'
 
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -488,6 +486,7 @@ project('spring-integration-file') {
 		testImplementation project(':spring-integration-jdbc')
 		testImplementation "com.h2database:h2:$h2Version"
 		testImplementation "io.lettuce:lettuce-core:$lettuceVersion"
+		testImplementation "com.jayway.jsonpath:json-path:$jsonpathVersion"
 	}
 }
 
@@ -546,6 +545,9 @@ project('spring-integration-http') {
 		testImplementation ("org.springframework.security:spring-security-test:$springSecurityVersion") {
 			exclude group: 'org.springframework'
 		}
+		testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+
+		testRuntimeOnly "com.jayway.jsonpath:json-path:$jsonpathVersion"
 	}
 }
 
@@ -556,7 +558,9 @@ project('spring-integration-ip') {
 		testImplementation project(':spring-integration-stream')
 		testImplementation project(':spring-integration-event')
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
+
 		testRuntimeOnly "com.esotericsoftware:kryo-shaded:$kryoShadedVersion"
+		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
 
@@ -573,6 +577,8 @@ project('spring-integration-jdbc') {
 		testImplementation "org.postgresql:postgresql:$postgresVersion"
 		testImplementation "mysql:mysql-connector-java:$mysqlVersion"
 		testImplementation "org.apache.commons:commons-dbcp2:$commonsDbcp2Version"
+
+		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
 
@@ -625,7 +631,6 @@ project('spring-integration-kafka') {
 		testImplementation "org.springframework.kafka:spring-kafka-test:$springKafkaVersion"
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 
-		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-core'
 		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
@@ -674,6 +679,7 @@ project('spring-integration-mqtt') {
 		api "org.eclipse.paho:org.eclipse.paho.client.mqttv3:$pahoMqttClientVersion"
 
 		testImplementation project(':spring-integration-jmx')
+		testImplementation 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
 
@@ -687,6 +693,7 @@ project('spring-integration-redis') {
 
 		testImplementation "io.lettuce:lettuce-core:$lettuceVersion"
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
+		testImplementation 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
 
@@ -806,6 +813,9 @@ project('spring-integration-webflux') {
 		testImplementation ("org.springframework.security:spring-security-test:$springSecurityVersion") {
 			exclude group: 'org.springframework'
 		}
+		testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+
+		testRuntimeOnly "com.jayway.jsonpath:json-path:$jsonpathVersion"
 	}
 }
 
@@ -818,6 +828,8 @@ project('spring-integration-websocket') {
 
 		testImplementation project(':spring-integration-event')
 		testImplementation "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
+
+		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
 
