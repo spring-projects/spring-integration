@@ -67,6 +67,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Alexander Pinske
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -144,8 +145,7 @@ public class MailTests {
 		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>,Bar2 <bar2@baz>");
 		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
 		assertThat(message.getPayload()).isEqualTo("foo\r\n\r\n");
-		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isTrue();
-		message.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, Closeable.class).close();
+		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isFalse();
 	}
 
 	@Test
@@ -230,7 +230,7 @@ public class MailTests {
 			return IntegrationFlows
 					.from(Mail.pop3InboundAdapter("localhost", pop3Server.getPort(), "user", "pw")
 									.javaMailProperties(p -> p.put("mail.debug", "false"))
-									.autoCloseFolder(false)
+									.autoCloseFolder(true)
 									.headerMapper(mailHeaderMapper()),
 							e -> e.autoStartup(true).poller(p -> p.fixedDelay(1000)))
 					.enrichHeaders(s -> s.headerExpressions(c -> c.put(MailHeaders.SUBJECT, "payload.subject")

@@ -119,6 +119,7 @@ It now allows body-only rendering when a header mapper is provided.
 
 Starting with version 5.2, the `autoCloseFolder` option is provided on the mail receiver.
 Setting it to `false` doesn't close the folder automatically after a fetch, but instead an `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header (see <<./message.adoc#message-header-accessor,`MessageHeaderAccessor` API>> for more information) is populated into every message to producer from the channel adapter.
+This does not work with `Pop3MailReceiver` as it relies on opening and closing the folder to get new messages.
 It is the target application's responsibility to call the `close()` on this header whenever it is necessary in the downstream flow:
 
 ====
