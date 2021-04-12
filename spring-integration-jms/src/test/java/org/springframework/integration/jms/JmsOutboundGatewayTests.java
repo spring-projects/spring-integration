@@ -39,7 +39,6 @@ import javax.jms.Session;
 import javax.jms.TemporaryQueue;
 import javax.jms.TextMessage;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
@@ -155,8 +154,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testConnectionBreakOnReplyMessageIdCorrelation() {
-		CachingConnectionFactory connectionFactory1 =
-				new CachingConnectionFactory(new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(ActiveMQMultiContextTests.amqFactory);
 		connectionFactory1.setCacheConsumers(false);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setConnectionFactory(connectionFactory1);
@@ -171,8 +169,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.afterPropertiesSet();
 		gateway.start();
 		ExecutorService exec = Executors.newSingleThreadExecutor();
-		CachingConnectionFactory connectionFactory2 =
-				new CachingConnectionFactory(new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(ActiveMQMultiContextTests.amqFactory);
 		connectionFactory2.setCacheConsumers(false);
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
 		template.setReceiveTimeout(10000);
@@ -203,8 +200,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testConnectionBreakOnReplyCustomCorrelation() {
-		CachingConnectionFactory connectionFactory1 =
-				new CachingConnectionFactory(new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(ActiveMQMultiContextTests.amqFactory);
 		connectionFactory1.setCacheConsumers(false);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setConnectionFactory(connectionFactory1);
@@ -220,8 +216,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.afterPropertiesSet();
 		gateway.start();
 		ExecutorService exec = Executors.newSingleThreadExecutor();
-		CachingConnectionFactory connectionFactory2 =
-				new CachingConnectionFactory(new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(ActiveMQMultiContextTests.amqFactory);
 		connectionFactory2.setCacheConsumers(false);
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
 		template.setReceiveTimeout(10000);

@@ -20,11 +20,8 @@
 	</bean>
 
 	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
-		<property name="targetConnectionFactory">
-			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
-				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
-			</bean>
-		</property>
+		<property name="targetConnectionFactory"
+				  value="#{T(org.springframework.integration.jms.ActiveMQMultiContextTests).amqFactory}"/>
 		<property name="cacheProducers" value="true" />
 		<property name="cacheConsumers" value="true" />
 		<property name="sessionCacheSize" value="10" />

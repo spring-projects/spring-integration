@@ -85,7 +85,7 @@ public class OutboundGatewayConnectionTests {
 		exec.execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
 			}
 			finally {
 				latch2.countDown();
@@ -98,7 +98,7 @@ public class OutboundGatewayConnectionTests {
 		javax.jms.Message request = template.receive(requestQueue1);
 		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
+		template.send(request.getJMSReplyTo(), session -> jmsReply);
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reply.get()).isNotNull();
 
