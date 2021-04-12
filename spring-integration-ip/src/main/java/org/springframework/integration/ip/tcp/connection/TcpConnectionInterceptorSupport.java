@@ -96,6 +96,15 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 		this.theConnection.registerSender(this);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * IMPORTANT: Do not override this method in your interceptor implementation if the
+	 * intercepted connection is created by a server connection factory, because the
+	 * connection id of the underlying connection is used for routing when arbitrary
+	 * outbound messaging is being used. The method is not final because client-side
+	 * interceptors can override it without any issues.
+	 */
 	@Override
 	public String getConnectionId() {
 		return this.theConnection.getConnectionId();
