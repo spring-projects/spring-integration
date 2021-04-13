@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -280,7 +280,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	public boolean isActive() {
 		boolean active = super.isActive();
 		if (!active) {
-			logger.warn("MessageProducer '" + this + "' isn't started to accept WebSocket events.");
+			logger.warn(() -> "MessageProducer '" + this + "' isn't started to accept WebSocket events.");
 		}
 		return active;
 	}
@@ -308,8 +308,8 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 			if (this.useBroker) {
 				this.brokerHandler.handleMessage(message);
 			}
-			else if (logger.isDebugEnabled()) {
-				logger.debug("Messages with non 'SimpMessageType.MESSAGE' type are ignored for sending to the " +
+			else {
+				logger.debug(() -> "Messages with non 'SimpMessageType.MESSAGE' type are ignored for sending to the " +
 						"'outputChannel'. They have to be emitted as 'ApplicationEvent's " +
 						"from the 'SubProtocolHandler'. Or using 'AbstractBrokerMessageHandler'(useBroker = true) " +
 						"from server side. Received message: " + message);

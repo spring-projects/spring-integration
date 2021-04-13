@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.catalina.Context;
+import org.apache.catalina.Wrapper;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.websocket.server.WsContextListener;
 
@@ -49,8 +50,10 @@ public class TomcatWebSocketTestServer implements InitializingBean, DisposableBe
 
 		Context context = this.tomcatServer.addContext("", System.getProperty("java.io.tmpdir"));
 		context.addApplicationListener(WsContextListener.class.getName());
-		Tomcat.addServlet(context, "dispatcherServlet", new DispatcherServlet(this.serverContext))
-				.setAsyncSupported(true);
+		Wrapper dispatcherServlet =
+				Tomcat.addServlet(context, "dispatcherServlet", new DispatcherServlet(this.serverContext));
+		dispatcherServlet.setAsyncSupported(true);
+		dispatcherServlet.setLoadOnStartup(1);
 		context.addServletMappingDecoded("/", "dispatcherServlet");
 	}
 

@@ -104,6 +104,10 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 		}
 	}
 
+	public WebSocketHandler getWebSocketHandler() {
+		return this.webSocketHandler;
+	}
+
 	public List<String> getSubProtocols() {
 		List<String> protocols = new ArrayList<>();
 		if (this.messageListener != null) {

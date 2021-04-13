@@ -3,14 +3,14 @@
 
 Starting with version 4.1, Spring Integration has WebSocket support.
 It is based on the architecture, infrastructure, and API from the Spring Framework's `web-socket` module.
-Therefore, many of Spring WebSocket's components (such as `SubProtocolHandler` or `WebSocketClient`) and configuration options (such as  `@EnableWebSocketMessageBroker`) can be reused within Spring Integration.
+Therefore, many of Spring WebSocket's components (such as `SubProtocolHandler` or `WebSocketClient`) and configuration options (such as `@EnableWebSocketMessageBroker`) can be reused within Spring Integration.
 For more information, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#websocket[Spring Framework WebSocket Support] chapter in the Spring Framework reference manual.
 
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -18,9 +18,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-websocket:{project-version}"
 ----
@@ -102,8 +101,7 @@ The adapter delegates to the `SubProtocolHandlerRegistry` to determine the appro
 NOTE: By default, the `WebSocketInboundChannelAdapter` relies only on the raw `PassThruSubProtocolHandler` implementation, which converts the `WebSocketMessage` to a `Message`.
 
 The `WebSocketInboundChannelAdapter` accepts and sends to the underlying integration flow only `Message` instances that have `SimpMessageType.MESSAGE` or an empty `simpMessageType` header.
-All other `Message` types are handled through the `ApplicationEvent` instances emitted from a `SubProtocolHandler` implementation (such as
-`StompSubProtocolHandler`).
+All other `Message` types are handled through the `ApplicationEvent` instances emitted from a `SubProtocolHandler` implementation (such as `StompSubProtocolHandler`).
 
 On the server side, if the `@EnableWebSocketMessageBroker` configuration is present, you can configure `WebSocketInboundChannelAdapter` with the `useBroker = true` option.
 In this case, all `non-MESSAGE` `Message` types are delegated to the provided `AbstractBrokerMessageHandler`.
@@ -391,3 +389,44 @@ For proper client side message preparation, you must inject an instance of the `
 One problem with the default `StompSubProtocolHandler` is that it was designed for the server side, so it updates the `SEND` `stompCommand` header into `MESSAGE` (as required by the STOMP protocol for the server side).
 If the client does not send its messages in the proper `SEND` web socket frame, some STOMP brokers do not accept them.
 The purpose of the `ClientStompEncoder`, in this case, is to override the `stompCommand` header and set it to the `SEND` value before encoding the message to the `byte[]`.
+
+[[websocket-dynamic-endpoints]]
+=== Dynamic WebSocket Endpoints Registration
+
+Starting with version 5.5, the WebSocket server endpoints (channel adapters based on a `ServerWebSocketContainer`) can now be registered (and removed) at runtime - the `paths` a `ServerWebSocketContainer` is mapped is exposed via `HandlerMapping` into a `DispatcherServlet` and accessible for WebSocket clients.
+The <<./dsl.adoc#java-dsl-runtime-flows,Dynamic and Runtime Integration Flows>> support helps to register these endpoints in a transparent manner:
+
+====
+[source,java]
+----
+@Autowired
+IntegrationFlowContext integrationFlowContext;
+
+@Autowired
+HandshakeHandler handshakeHandler;
+...
+ServerWebSocketContainer serverWebSocketContainer =
+       new ServerWebSocketContainer("/dynamic")
+               .setHandshakeHandler(this.handshakeHandler);
+
+WebSocketInboundChannelAdapter webSocketInboundChannelAdapter =
+       new WebSocketInboundChannelAdapter(serverWebSocketContainer);
+
+QueueChannel dynamicRequestsChannel = new QueueChannel();
+
+IntegrationFlow serverFlow =
+       IntegrationFlows.from(webSocketInboundChannelAdapter)
+               .channel(dynamicRequestsChannel)
+               .get();
+
+IntegrationFlowContext.IntegrationFlowRegistration dynamicServerFlow =
+       this.integrationFlowContext.registration(serverFlow)
+               .addBean(serverWebSocketContainer)
+               .register();
+...
+dynamicServerFlow.destroy();
+----
+====
+
+NOTE: It is important to call `.addBean(serverWebSocketContainer)` on the dynamic flow registration to add the instance of `ServerWebSocketContainer` into an `ApplicationContext` for endpoint registration.
+When a dynamic flow registration is destroyed, the associated `ServerWebSocketContainer` instance is destroyed, too, as well as the respective endpoint registration, including URL path mappings.
