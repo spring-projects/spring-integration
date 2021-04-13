@@ -429,4 +429,4 @@ dynamicServerFlow.destroy();
 ====
 
 NOTE: It is important to call `.addBean(serverWebSocketContainer)` on the dynamic flow registration to add the instance of `ServerWebSocketContainer` into an `ApplicationContext` for endpoint registration.
-When we destroy a dynamic flow registration, an associated `ServerWebSocketContainer` instance is destroyed, too, as well as respective endpoint registration including URL path mappings.
+When a dynamic flow registration is destroyed, the associated `ServerWebSocketContainer` instance is destroyed, too, as well as the respective endpoint registration, including URL path mappings.
