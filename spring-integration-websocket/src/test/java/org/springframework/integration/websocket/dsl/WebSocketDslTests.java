@@ -88,6 +88,7 @@ public class WebSocketDslTests {
 		// Dynamic client flow
 		ClientWebSocketContainer clientWebSocketContainer =
 				new ClientWebSocketContainer(this.webSocketClient, this.server.getWsBaseUrl() + "/dynamic");
+		clientWebSocketContainer.setAutoStartup(true);
 		WebSocketOutboundMessageHandler webSocketOutboundMessageHandler =
 				new WebSocketOutboundMessageHandler(clientWebSocketContainer);
 
