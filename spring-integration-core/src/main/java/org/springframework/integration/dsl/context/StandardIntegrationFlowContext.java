@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -121,9 +122,14 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		final String theFlowId = flowId;
 		builder.additionalBeans.forEach((key, value) -> registerBean(key, value, theFlowId));
 
-		IntegrationFlowRegistration registration = new StandardIntegrationFlowRegistration(integrationFlow, this, flowId);
+		IntegrationFlowRegistration registration =
+				new StandardIntegrationFlowRegistration(integrationFlow, this, flowId);
 		if (builder.autoStartup) {
 			registration.start();
+			builder.additionalBeans.keySet()
+					.stream()
+					.filter(SmartLifecycle.class::isInstance)
+					.forEach((lifecycle) -> ((SmartLifecycle) lifecycle).start());
 		}
 		this.registry.put(flowId, registration);
 

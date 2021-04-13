@@ -825,6 +825,7 @@ project('spring-integration-websocket') {
 		api project(':spring-integration-core')
 		api 'org.springframework:spring-websocket'
 		optionalApi 'org.springframework:spring-webmvc'
+		providedImplementation "javax.servlet:javax.servlet-api:$servletApiVersion"
 
 		testImplementation project(':spring-integration-event')
 		testImplementation "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"

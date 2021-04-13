@@ -52,6 +52,7 @@ public class TomcatWebSocketTestServer implements InitializingBean, DisposableBe
 		Tomcat.addServlet(context, "dispatcherServlet", new DispatcherServlet(this.serverContext))
 				.setAsyncSupported(true);
 		context.addServletMappingDecoded("/", "dispatcherServlet");
+		this.serverContext.refresh();
 	}
 
 	private String createTempDir() {

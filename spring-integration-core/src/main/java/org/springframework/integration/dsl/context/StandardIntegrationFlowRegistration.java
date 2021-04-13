@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,9 @@ class StandardIntegrationFlowRegistration implements IntegrationFlowRegistration
 
 	private ConfigurableListableBeanFactory beanFactory;
 
-	StandardIntegrationFlowRegistration(IntegrationFlow integrationFlow, IntegrationFlowContext integrationFlowContext, String id) {
+	StandardIntegrationFlowRegistration(IntegrationFlow integrationFlow, IntegrationFlowContext integrationFlowContext,
+			String id) {
+
 		this.integrationFlow = integrationFlow;
 		this.integrationFlowContext = integrationFlowContext;
 		this.id = id;
@@ -81,7 +83,7 @@ class StandardIntegrationFlowRegistration implements IntegrationFlowRegistration
 				throw new IllegalStateException("Only 'IntegrationFlow' instances started from the 'MessageChannel' " +
 						"(e.g. extracted from 'IntegrationFlow' Lambdas) can be used " +
 						"for direct 'send' operation. " +
-						"But [" + this.integrationFlow + "] ins't one of them.\n" +
+						"But [" + this.integrationFlow + "] isn't one of them.\n" +
 						"Consider 'BeanFactory.getBean()' usage for sending messages " +
 						"to the required 'MessageChannel'.");
 			}
