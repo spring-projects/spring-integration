@@ -97,7 +97,6 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 	@After
 	public void tearDown() {
 		this.reactiveRedisStreamProducer.stop();
-		RedisAvailableRule.connectionFactory.resetConnection();
 	}
 
 	@Test
