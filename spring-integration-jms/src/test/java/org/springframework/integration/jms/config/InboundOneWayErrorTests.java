@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,22 +44,29 @@ import org.springframework.util.ErrorHandler;
  * @author Artem Bilan
  */
 @SpringJUnitConfig
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext
 public class InboundOneWayErrorTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	ApplicationContext context;
+
+	@Autowired
+	TestErrorHandler errorHandler;
+
+	@BeforeEach
+	void setup() {
+		this.errorHandler.lastError = null;
+	}
 
 	@Test
 	public void noErrorChannel() throws Exception {
 		JmsTemplate jmsTemplate = new JmsTemplate(context.getBean("jmsConnectionFactory", ConnectionFactory.class));
 		Destination queue = context.getBean("queueA", Destination.class);
 		jmsTemplate.send(queue, session -> session.createTextMessage("test-A"));
-		TestErrorHandler errorHandler = context.getBean("testErrorHandler", TestErrorHandler.class);
-		errorHandler.latch.await(3000, TimeUnit.MILLISECONDS);
-		assertThat(errorHandler.lastError).isNotNull();
-		assertThat(errorHandler.lastError.getCause()).isNotNull();
-		assertThat(errorHandler.lastError.getCause().getMessage()).isEqualTo("failed to process: test-A");
+		assertThat(this.errorHandler.latch.await(3000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(this.errorHandler.lastError).isNotNull();
+		assertThat(this.errorHandler.lastError.getCause()).isNotNull();
+		assertThat(this.errorHandler.lastError.getCause().getMessage()).isEqualTo("failed to process: test-A");
 		PollableChannel testErrorChannel = context.getBean("testErrorChannel", PollableChannel.class);
 		assertThat(testErrorChannel.receive(0)).isNull();
 	}
@@ -76,8 +84,7 @@ public class InboundOneWayErrorTests extends ActiveMQMultiContextTests {
 		assertThat(exception.getCause()).isNotNull();
 		assertThat(exception.getCause().getClass()).isEqualTo(TestException.class);
 		assertThat(exception.getCause().getMessage()).isEqualTo("failed to process: test-B");
-		TestErrorHandler errorHandler = context.getBean("testErrorHandler", TestErrorHandler.class);
-		assertThat(errorHandler.lastError).isNull();
+		assertThat(this.errorHandler.lastError).isNull();
 	}
 
 
