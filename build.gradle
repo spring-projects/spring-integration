@@ -103,7 +103,7 @@ ext {
 	springRetryVersion = '1.3.1'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.0-RC1'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.6'
-	springWsVersion = '3.1.0-M2'
+	springWsVersion = '3.1.0-RC1'
 	tomcatVersion = '9.0.45'
 	xmlUnitVersion = '2.8.2'
 	xstreamVersion = '1.4.16'
