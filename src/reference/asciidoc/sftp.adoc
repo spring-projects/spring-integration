@@ -1009,7 +1009,7 @@ When using the recursive option (`-R`), the `fileName` includes any subdirectory
 If you use the `-dirs` option, each recursive directory is also returned as an element in the list.
 In this case, we recommend that you not use the `-1` option, because you would not be able to distinguish files from directories, which you can do when you use `FileInfo` objects.
 
-Using `nlst` Command
+==== Using `nlst` Command
 
 Version 5 introduced support for the `nlst` command.
 
@@ -1186,7 +1186,7 @@ In addition, you can filter files in the local directory with one of `mput-patte
 The filter works with recursion, as long as the subdirectories themselves pass the filter.
 Subdirectories that do not pass the filter are not recursed.
 
-The message payload resulting from an `mget` operation is a `List<String>` object (that is, a `List` of remote file paths resulting from the transfer).
+The message payload resulting from an `mput` operation is a `List<String>` object (that is, a `List` of remote file paths resulting from the transfer).
 
 See also <<sftp-partial>>.
 
@@ -1194,7 +1194,7 @@ Version 4.3 introduced the `chmod` attribute, which lets you change the remote f
 You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
 When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 
-Using the `rm` Command
+==== Using the `rm` Command
 
 The `rm` command has no options.
 

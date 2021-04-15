@@ -1212,7 +1212,7 @@ You can use the conventional Unix octal format (for example, `600` allows read-w
 When configuring the adapter using java, you can use `setChmod(0600)`.
 Only applies if your FTP server supports the `SITE CHMOD` subcommand.
 
-Using the `mput` Command
+==== Using the `mput` Command
 
 The `mput` sends multiple files to the server and supports only one option:
 
@@ -1227,7 +1227,7 @@ In addition, files in the local directory can be filtered with one of `mput-patt
 The filter works with recursion, as long as the subdirectories themselves pass the filter.
 Subdirectories that do not pass the filter are not recursed.
 
-The message payload resulting from an `mget` operation is a `List<String>` object (that is, a `List` of remote file paths that result from the transfer).
+The message payload resulting from an `mput` operation is a `List<String>` object (that is, a `List` of remote file paths that result from the transfer).
 
 See also <<ftp-partial>>.
 
