@@ -800,7 +800,6 @@ public class EnableIntegrationTests {
 	@EnableIntegration
 	//	INT-3853
 	//	@PropertySource("classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties")
-	@EnableMessageHistory({ "input", "publishedChannel", "annotationTestService*" })
 	public static class ContextConfiguration {
 
 		@Bean

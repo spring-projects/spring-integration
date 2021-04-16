@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
@@ -57,9 +57,8 @@ public class MessageHistoryIntegrationTests {
 		Map<String, ConsumerEndpointFactoryBean> cefBeans = ac.getBeansOfType(ConsumerEndpointFactoryBean.class);
 		for (ConsumerEndpointFactoryBean cefBean : cefBeans.values()) {
 			DirectFieldAccessor bridgeAccessor = new DirectFieldAccessor(cefBean);
-			String handlerClassName = bridgeAccessor.getPropertyValue("handler").getClass().getName();
-			assertThat("org.springframework.integration.config.MessageHistoryWritingMessageHandler"
-					.equals(handlerClassName)).isFalse();
+			Boolean shouldTrack = (Boolean) bridgeAccessor.getPropertyValue("handler.shouldTrack");
+			assertThat(shouldTrack).isFalse();
 		}
 		ac.close();
 	}
@@ -226,7 +225,7 @@ public class MessageHistoryIntegrationTests {
 
 	@Test
 	public void testMessageHistoryMoreThanOneNamespaceFail() {
-		assertThatExceptionOfType(BeanCreationException.class)
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
 				.isThrownBy(() ->
 						new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespace-fail.xml",
 								MessageHistoryIntegrationTests.class));

@@ -47,32 +47,31 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		Map<String, Object> annotationAttributes =
-				importingClassMetadata.getAnnotationAttributes(EnablePublisher.class.getName());
-
-		if (!registry.containsBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME)) {
-			ConfigurableBeanFactory beanFactory;
-			if (registry instanceof ConfigurableBeanFactory) {
-				beanFactory = (ConfigurableBeanFactory) registry;
-			}
-			else if (registry instanceof ConfigurableApplicationContext) {
-				beanFactory = ((ConfigurableApplicationContext) registry).getBeanFactory();
-			}
-			else {
-				beanFactory = null;
-			}
-			BeanDefinitionBuilder builder =
-					BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class,
-							() -> createPublisherAnnotationBeanPostProcessor(annotationAttributes, beanFactory))
-							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-
-			registry.registerBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME,
-					builder.getBeanDefinition());
-		}
-		else {
+		if (registry.containsBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME)) {
 			throw new BeanDefinitionStoreException("Only one enable publisher definition " +
 					"(@EnablePublisher or <annotation-config>) can be declared in the application context.");
 		}
+		Map<String, Object> annotationAttributes =
+				importingClassMetadata.getAnnotationAttributes(EnablePublisher.class.getName());
+
+		ConfigurableBeanFactory beanFactory;
+		if (registry instanceof ConfigurableBeanFactory) {
+			beanFactory = (ConfigurableBeanFactory) registry;
+		}
+		else if (registry instanceof ConfigurableApplicationContext) {
+			beanFactory = ((ConfigurableApplicationContext) registry).getBeanFactory();
+		}
+		else {
+			beanFactory = null;
+		}
+
+		BeanDefinitionBuilder builder =
+				BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class,
+						() -> createPublisherAnnotationBeanPostProcessor(annotationAttributes, beanFactory))
+						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+		registry.registerBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME,
+				builder.getBeanDefinition());
 	}
 
 	private PublisherAnnotationBeanPostProcessor createPublisherAnnotationBeanPostProcessor(

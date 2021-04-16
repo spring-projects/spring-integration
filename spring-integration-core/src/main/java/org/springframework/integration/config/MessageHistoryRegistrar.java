@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 
 package org.springframework.integration.config;
 
+import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 
-import org.springframework.beans.PropertyValue;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.ManagedSet;
+import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.history.MessageHistoryConfigurer;
+import org.springframework.util.StringUtils;
 
 /**
  * Registers the {@link MessageHistoryConfigurer} {@link org.springframework.beans.factory.config.BeanDefinition}
@@ -38,49 +38,60 @@ import org.springframework.integration.history.MessageHistoryConfigurer;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 public class MessageHistoryRegistrar implements ImportBeanDefinitionRegistrar {
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(EnableMessageHistory.class.getName());
+		if (registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME)) {
+			throw new BeanDefinitionStoreException(
+					"Only one @EnableMessageHistory or <message-history/> can be declared in the application context.");
+		}
+
+		Map<String, Object> annotationAttributes =
+				importingClassMetadata.getAnnotationAttributes(EnableMessageHistory.class.getName());
 		Object componentNamePatterns = annotationAttributes.get("value"); // NOSONAR never null
 
+		String patterns;
+
 		if (componentNamePatterns instanceof String[]) {
-			StringBuilder componentNamePatternsString = new StringBuilder();
-			for (String s : (String[]) componentNamePatterns) {
-				componentNamePatternsString.append(s).append(",");
-			}
-			componentNamePatterns = componentNamePatternsString.substring(0, componentNamePatternsString.length() - 1);
-		}
-
-		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME)) {
-			Set<Object> componentNamePatternsSet = new ManagedSet<Object>();
-			componentNamePatternsSet.add(componentNamePatterns);
-
-			AbstractBeanDefinition messageHistoryConfigurer = BeanDefinitionBuilder.genericBeanDefinition(MessageHistoryConfigurer.class)
-					.addPropertyValue("componentNamePatternsSet", componentNamePatternsSet)
-					.getBeanDefinition();
-
-			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME, messageHistoryConfigurer);
-
+			patterns = String.join(",", (String[]) componentNamePatterns);
 		}
 		else {
-			BeanDefinition beanDefinition = registry.getBeanDefinition(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME);
-			PropertyValue propertyValue = beanDefinition
-					.getPropertyValues().getPropertyValue("componentNamePatternsSet");
-			if (propertyValue != null) {
-				@SuppressWarnings("unchecked")
-				Set<Object> currentComponentNamePatternsSet = (Set<Object>) propertyValue.getValue();
-				currentComponentNamePatternsSet.add(componentNamePatterns); // NOSONAR never null
-			}
-			else {
-				Set<Object> componentNamePatternsSet = new ManagedSet<Object>();
-				componentNamePatternsSet.add(componentNamePatterns);
-				beanDefinition.getPropertyValues().addPropertyValue("componentNamePatternsSet", componentNamePatternsSet);
-			}
+			patterns = (String) componentNamePatterns;
 		}
+
+		registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME,
+				new RootBeanDefinition(MessageHistoryConfigurer.class,
+						() -> createMessageHistoryConfigurer(registry, patterns)));
+	}
+
+	private MessageHistoryConfigurer createMessageHistoryConfigurer(BeanDefinitionRegistry registry, String patterns) {
+		MessageHistoryConfigurer messageHistoryConfigurer = new MessageHistoryConfigurer();
+		if (StringUtils.hasText(patterns)) {
+			ConfigurableBeanFactory beanFactory = null;
+			if (registry instanceof ConfigurableBeanFactory) {
+				beanFactory = (ConfigurableBeanFactory) registry;
+			}
+			else if (registry instanceof ConfigurableApplicationContext) {
+				beanFactory = ((ConfigurableApplicationContext) registry).getBeanFactory();
+			}
+
+			String[] patternsToSet = StringUtils.delimitedListToStringArray(patterns, ",", " ");
+			if (beanFactory != null) {
+				patternsToSet =
+						Arrays.stream(patternsToSet)
+								.map(beanFactory::resolveEmbeddedValue)
+								.flatMap((pattern) ->
+										Arrays.stream(StringUtils.delimitedListToStringArray(pattern, ",", " ")))
+								.toArray(String[]::new);
+			}
+			messageHistoryConfigurer.setComponentNamePatterns(patternsToSet);
+		}
+
+		return messageHistoryConfigurer;
 	}
 
 }
