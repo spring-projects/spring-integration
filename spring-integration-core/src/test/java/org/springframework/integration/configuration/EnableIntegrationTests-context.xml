@@ -12,8 +12,6 @@
 	<!--INT-3853 -->
 	<context:property-placeholder location="classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties"/>
 
-	<message-history tracked-components="publishedChannel,input,annotationTestService*"/>
-
 	<channel-interceptor pattern="none">
 		<wire-tap channel="bar" />
 	</channel-interceptor>
