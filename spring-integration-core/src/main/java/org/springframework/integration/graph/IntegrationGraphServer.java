@@ -54,7 +54,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.util.ClassUtils;
 
 /**
  * Builds the runtime object model graph.
@@ -497,7 +496,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 					? new ErrorCapableCompositeMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
 					inputChannel, output, errors, innerHandlers)
 					: new CompositeMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-							inputChannel, output, innerHandlers);
+					inputChannel, output, innerHandlers);
 		}
 
 		MessageHandlerNode discardingHandler(String name, IntegrationConsumer consumer,
@@ -509,7 +508,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 					? new ErrorCapableDiscardingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
 					inputChannel, output, discards, errors)
 					: new DiscardingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-							inputChannel, output, discards);
+					inputChannel, output, discards);
 		}
 
 		MessageHandlerNode routingHandler(String name, IntegrationConsumer consumer, MessageHandler handler,
@@ -525,7 +524,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 					? new ErrorCapableRoutingNode(this.nodeId.incrementAndGet(), name, handler,
 					inputChannel, output, errors, routes)
 					: new RoutingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-							inputChannel, output, routes);
+					inputChannel, output, routes);
 		}
 
 		MessageHandlerNode recipientListRoutingHandler(String name, IntegrationConsumer consumer,
@@ -543,7 +542,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 					? new ErrorCapableRoutingNode(this.nodeId.incrementAndGet(), name, handler,
 					inputChannel, output, errors, routes)
 					: new RoutingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-							inputChannel, output, routes);
+					inputChannel, output, routes);
 		}
 
 		void reset() {

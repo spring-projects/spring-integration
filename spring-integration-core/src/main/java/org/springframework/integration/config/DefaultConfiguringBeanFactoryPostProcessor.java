@@ -389,7 +389,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	private void jsonPath(int registryId) throws LinkageError {
 		String jsonPathBeanName = "jsonPath";
 		if (JSON_PATH_PRESENT) {
-			if(!this.beanFactory.containsBean(jsonPathBeanName) && !REGISTRIES_PROCESSED.contains(registryId)) {
+			if (!this.beanFactory.containsBean(jsonPathBeanName) && !REGISTRIES_PROCESSED.contains(registryId)) {
 				IntegrationConfigUtils.registerSpelFunctionBean(this.registry, jsonPathBeanName,
 						JsonPathUtils.class, "evaluate");
 			}
