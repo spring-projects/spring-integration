@@ -35,7 +35,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -91,25 +90,21 @@ import org.springframework.util.StringUtils;
  *
  * @see IntegrationContextUtils
  */
-class DefaultConfiguringBeanFactoryPostProcessor
+public class DefaultConfiguringBeanFactoryPostProcessor
 		implements BeanFactoryPostProcessor, BeanClassLoaderAware, SmartInitializingSingleton {
 
 	private static final LogAccessor LOGGER = new LogAccessor(DefaultConfiguringBeanFactoryPostProcessor.class);
 
-	private static final IntegrationConverterInitializer INTEGRATION_CONVERTER_INITIALIZER =
-			new IntegrationConverterInitializer();
-
 	private static final Set<Integer> REGISTRIES_PROCESSED = new HashSet<>();
-
 
 	private static final Class<?> XPATH_CLASS;
 
-	private static final Class<?> JSON_PATH_CLASS;
+	private static final boolean JSON_PATH_PRESENT = ClassUtils.isPresent("com.jayway.jsonpath.JsonPath", null);
 
 	static {
 		Class<?> xpathClass = null;
 		try {
-			xpathClass = ClassUtils.forName(IntegrationConfigUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
+			xpathClass = ClassUtils.forName(IntegrationContextUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
 					ClassUtils.getDefaultClassLoader());
 		}
 		catch (@SuppressWarnings("unused") ClassNotFoundException e) {
@@ -119,18 +114,6 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		finally {
 			XPATH_CLASS = xpathClass;
 		}
-
-		Class<?> jsonPathClass = null;
-		try {
-			jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", ClassUtils.getDefaultClassLoader());
-		}
-		catch (@SuppressWarnings("unused") ClassNotFoundException e) {
-			LOGGER.debug("The '#jsonPath' SpEL function cannot be registered: " +
-					"there is no jayway json-path.jar on the classpath.");
-		}
-		finally {
-			JSON_PATH_CLASS = jsonPathClass;
-		}
 	}
 
 
@@ -139,6 +122,9 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	private ConfigurableListableBeanFactory beanFactory;
 
 	private BeanDefinitionRegistry registry;
+
+	DefaultConfiguringBeanFactoryPostProcessor() {
+	}
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
@@ -402,12 +388,15 @@ class DefaultConfiguringBeanFactoryPostProcessor
 
 	private void jsonPath(int registryId) throws LinkageError {
 		String jsonPathBeanName = "jsonPath";
-		if (JSON_PATH_CLASS != null
-				&& !this.beanFactory.containsBean(jsonPathBeanName)
-				&& !REGISTRIES_PROCESSED.contains(registryId)) {
-
-			IntegrationConfigUtils.registerSpelFunctionBean(this.registry, jsonPathBeanName,
-					JsonPathUtils.class, "evaluate");
+		if (JSON_PATH_PRESENT) {
+			if(!this.beanFactory.containsBean(jsonPathBeanName) && !REGISTRIES_PROCESSED.contains(registryId)) {
+				IntegrationConfigUtils.registerSpelFunctionBean(this.registry, jsonPathBeanName,
+						JsonPathUtils.class, "evaluate");
+			}
+		}
+		else {
+			LOGGER.debug("The '#jsonPath' SpEL function cannot be registered: " +
+					"there is no jayway json-path.jar on the classpath.");
 		}
 	}
 
@@ -430,9 +419,6 @@ class DefaultConfiguringBeanFactoryPostProcessor
 					IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER,
 					new RootBeanDefinition(JsonNodeWrapperToJsonNodeConverter.class,
 							JsonNodeWrapperToJsonNodeConverter::new));
-
-			INTEGRATION_CONVERTER_INITIALIZER.registerConverter(this.registry,
-					new RuntimeBeanReference(IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER));
 		}
 	}
 

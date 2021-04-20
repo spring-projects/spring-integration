@@ -18,6 +18,7 @@ package org.springframework.integration.websocket.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 
 import javax.websocket.DeploymentException;
 
@@ -108,10 +109,13 @@ public class WebSocketDslTests {
 
 		dynamicServerFlow.destroy();
 
-		assertThatExceptionOfType(MessageHandlingException.class)
-				.isThrownBy(() -> dynamicClientFlow.getInputChannel().send(new GenericMessage<>("another test")))
-				.withCauseInstanceOf(DeploymentException.class)
-				.withMessageContaining("The HTTP response from the server [404]");
+		await() // Looks like endpoint is removed on the server side somewhat async
+				.untilAsserted(() ->
+						assertThatExceptionOfType(MessageHandlingException.class)
+								.isThrownBy(() ->
+										dynamicClientFlow.getInputChannel().send(new GenericMessage<>("another test")))
+								.withCauseInstanceOf(DeploymentException.class)
+								.withMessageContaining("The HTTP response from the server [404]"));
 
 		dynamicClientFlow.destroy();
 	}

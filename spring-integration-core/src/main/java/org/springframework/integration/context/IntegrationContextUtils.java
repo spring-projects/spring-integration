@@ -31,7 +31,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
@@ -48,6 +47,8 @@ import org.springframework.util.Assert;
  * @author Pierre Lakreb
  */
 public abstract class IntegrationContextUtils {
+
+	public static final String BASE_PACKAGE = "org.springframework.integration";
 
 	public static final String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
 
@@ -79,10 +80,10 @@ public abstract class IntegrationContextUtils {
 			"DefaultConfiguringBeanFactoryPostProcessor";
 
 	public static final String MESSAGING_ANNOTATION_POSTPROCESSOR_NAME =
-			IntegrationConfigUtils.BASE_PACKAGE + ".internalMessagingAnnotationPostProcessor";
+			BASE_PACKAGE + ".internalMessagingAnnotationPostProcessor";
 
 	public static final String PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME =
-			IntegrationConfigUtils.BASE_PACKAGE + ".internalPublisherAnnotationBeanPostProcessor";
+			BASE_PACKAGE + ".internalPublisherAnnotationBeanPostProcessor";
 
 	public static final String INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME =
 			"integrationConfigurationBeanFactoryPostProcessor";
@@ -181,6 +182,7 @@ public abstract class IntegrationContextUtils {
 	}
 
 	// TODO Revise in favor of 'IntegrationProperties' instance in the next 6.0 version
+
 	/**
 	 * @param beanFactory The bean factory.
 	 * @return the global {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME}

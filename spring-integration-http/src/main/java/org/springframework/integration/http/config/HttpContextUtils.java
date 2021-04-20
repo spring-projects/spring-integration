@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,7 @@ public final class HttpContextUtils {
 	 * e.g. {@code IntegrationGraphController}.
 	 */
 	public static final boolean WEB_MVC_PRESENT =
-			ClassUtils.isPresent("org.springframework.web.servlet.DispatcherServlet",
-					HttpContextUtils.class.getClassLoader());
+			ClassUtils.isPresent("org.springframework.web.servlet.DispatcherServlet", null);
 
 	/**
 	 * A {@code boolean} flag to indicate if the
@@ -55,8 +54,7 @@ public final class HttpContextUtils {
 	 * e.g. {@code IntegrationGraphController}.
 	 */
 	public static final boolean WEB_FLUX_PRESENT =
-			ClassUtils.isPresent("org.springframework.web.reactive.DispatcherHandler",
-					HttpContextUtils.class.getClassLoader());
+			ClassUtils.isPresent("org.springframework.web.reactive.DispatcherHandler", null);
 
 	/**
 	 * The name for the infrastructure
@@ -89,6 +87,7 @@ public final class HttpContextUtils {
 	 */
 	public static RequestMapping convertRequestMappingToAnnotation(
 			org.springframework.integration.http.inbound.RequestMapping requestMapping) {
+
 		if (ObjectUtils.isEmpty(requestMapping.getPathPatterns())) {
 			return null;
 		}

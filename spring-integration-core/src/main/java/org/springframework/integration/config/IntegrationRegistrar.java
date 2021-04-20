@@ -39,9 +39,7 @@ import org.springframework.util.ClassUtils;
 public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 
 	static {
-		if (ClassUtils.isPresent("org.springframework.integration.dsl.support.Function",
-				IntegrationRegistrar.class.getClassLoader())) {
-
+		if (ClassUtils.isPresent("org.springframework.integration.dsl.support.Function", null)) {
 			throw new ApplicationContextException("Starting with Spring Integration 5.0, "
 					+ "the 'spring-integration-java-dsl' dependency is no longer needed; "
 					+ "the Java DSL has been merged into the core project. "

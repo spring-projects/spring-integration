@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,13 +56,9 @@ import org.springframework.validation.Validator;
  */
 public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements OrderlyShutdownCapable {
 
-	protected static final boolean JAXB_PRESENT =
-			ClassUtils.isPresent("javax.xml.bind.Binder",
-					BaseHttpInboundEndpoint.class.getClassLoader());
+	protected static final boolean JAXB_PRESENT = ClassUtils.isPresent("javax.xml.bind.Binder", null);
 
-	protected static final boolean ROME_TOOLS_PRESENT =
-			ClassUtils.isPresent("com.rometools.rome.feed.atom.Feed",
-					BaseHttpInboundEndpoint.class.getClassLoader());
+	protected static final boolean ROME_TOOLS_PRESENT = ClassUtils.isPresent("com.rometools.rome.feed.atom.Feed", null);
 
 	protected static final List<HttpMethod> NON_READABLE_BODY_HTTP_METHODS =
 			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);

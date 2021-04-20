@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import org.springframework.integration.router.RecipientListRouter.Recipient;
 import org.springframework.integration.router.RecipientListRouterManagement;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
+import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptorRegistrar;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
@@ -105,8 +106,9 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 * @param additionalPropertiesCallback the {@link Function} to use for properties.
 	 * @since 5.1
 	 */
-	public void setAdditionalPropertiesCallback(
-			@Nullable Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback) {
+	public void setAdditionalPropertiesCallback(@Nullable Function<NamedComponent,
+			Map<String, Object>> additionalPropertiesCallback) {
+
 		this.additionalPropertiesCallback = additionalPropertiesCallback;
 	}
 
@@ -158,8 +160,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	}
 
 	private synchronized Graph buildGraph() {
-		if (micrometerEnhancer == null && ClassUtils.isPresent("io.micrometer.core.instrument.MeterRegistry",
-				this.applicationContext.getClassLoader())) {
+		if (micrometerEnhancer == null && MicrometerMetricsCaptorRegistrar.METER_REGISTRY_PRESENT) {
 			micrometerEnhancer = new MicrometerNodeEnhancer(this.applicationContext);
 		}
 		String implementationVersion = IntegrationGraphServer.class.getPackage().getImplementationVersion();

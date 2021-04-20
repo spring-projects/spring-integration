@@ -48,9 +48,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 
 	private static final Log LOGGER = LogFactory.getLog(WebSocketIntegrationConfigurationInitializer.class);
 
-	private static final boolean SERVLET_PRESENT =
-			ClassUtils.isPresent("javax.servlet.Servlet",
-					WebSocketIntegrationConfigurationInitializer.class.getClassLoader());
+	private static final boolean SERVLET_PRESENT = ClassUtils.isPresent("javax.servlet.Servlet", null);
 
 	private static final String WEB_SOCKET_HANDLER_MAPPING_BEAN_NAME = "integrationWebSocketHandlerMapping";
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
-import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.ExpressionEvaluatingMessageSource;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.expression.DynamicExpression;
@@ -67,13 +67,13 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 
 		if (!hasInnerDef && !hasRef && !hasExpression && !hasScriptElement && !hasExpressionElement) { // NOSONAR
 			parserContext.getReaderContext().error(
-				"Exactly one of the 'ref', 'expression', inner bean, <script> or <expression> is required.", element);
+					"Exactly one of the 'ref', 'expression', inner bean, <script> or <expression> is required.", element);
 		}
 		if (hasInnerDef) {
 			if (hasRef || hasExpression) {
 				parserContext.getReaderContext().error(
 						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured on "
-						+ "element " + IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+								+ "element " + IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 				return null;
 			}
 			if (hasMethod) {
@@ -87,13 +87,13 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 			if (hasRef || hasMethod || hasExpression) {
 				parserContext.getReaderContext().error(
 						"Neither 'ref' and 'method' nor 'expression' are permitted when an inner script element is "
-						+ "configured on element "
-						+ IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+								+ "configured on element "
+								+ IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 				return null;
 			}
 			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement);
 			BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationConfigUtils.BASE_PACKAGE + ".scripting.ScriptExecutingMessageSource");
+					IntegrationContextUtils.BASE_PACKAGE + ".scripting.ScriptExecutingMessageSource");
 			sourceBuilder.addConstructorArgValue(scriptBeanDefinition);
 			parseHeaderExpressions(sourceBuilder, element, parserContext);
 			result = sourceBuilder.getBeanDefinition();
@@ -102,7 +102,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 			if (hasRef || hasMethod) {
 				parserContext.getReaderContext().error(
 						"The 'ref' and 'method' attributes can't be used with 'expression' attribute or inner "
-						+ "<expression>.", element);
+								+ "<expression>.", element);
 				return null;
 			}
 			if (hasExpression & hasExpressionElement) {
