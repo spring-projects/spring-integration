@@ -20,6 +20,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
  * Shared utility methods for Integration configuration.
@@ -30,7 +31,11 @@ import org.springframework.integration.channel.DirectChannel;
  */
 public final class IntegrationConfigUtils {
 
-	public static final String BASE_PACKAGE = "org.springframework.integration";
+	/**
+	 * @deprecated in favor of {@link IntegrationContextUtils#BASE_PACKAGE}.
+	 */
+	@Deprecated
+	public static final String BASE_PACKAGE = IntegrationContextUtils.BASE_PACKAGE;
 
 	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
 

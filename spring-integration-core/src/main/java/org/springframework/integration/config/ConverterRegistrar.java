@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.context;
+package org.springframework.integration.config;
 
+import java.util.HashSet;
 import java.util.Set;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -34,35 +36,45 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-class ConverterRegistrar implements InitializingBean, BeanFactoryAware {
+class ConverterRegistrar implements InitializingBean, ApplicationContextAware {
 
-	private final Set<?> converters;
+	private final Set<Object> converters;
 
-	private BeanFactory beanFactory;
+	private ApplicationContext applicationContext;
 
 
-	ConverterRegistrar(Set<?> converters) {
+	ConverterRegistrar() {
+		this(new HashSet<>());
+	}
+
+	ConverterRegistrar(Set<Object> converters) {
 		this.converters = converters;
 	}
 
-
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
 	}
 
 	@Override
 	public void afterPropertiesSet() {
-		Assert.notNull(this.beanFactory, "BeanFactory is required");
-		ConversionService conversionService = IntegrationUtils.getConversionService(this.beanFactory);
+		ConversionService conversionService = IntegrationUtils.getConversionService(this.applicationContext);
 		if (conversionService instanceof GenericConversionService) {
-			ConversionServiceFactory.registerConverters(this.converters, (GenericConversionService) conversionService);
+			registerConverters((GenericConversionService) conversionService);
 		}
 		else {
-			Assert.notNull(conversionService, "Failed to locate '" + IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME + "'");
+			Assert.notNull(conversionService,
+					() -> "Failed to locate '" + IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME + "'");
 		}
+	}
+
+	private void registerConverters(GenericConversionService conversionService) {
+		this.converters.addAll(this.applicationContext.getBeansWithAnnotation(IntegrationConverter.class).values());
+		ConversionServiceFactory.registerConverters(this.converters, conversionService);
 	}
 
 }

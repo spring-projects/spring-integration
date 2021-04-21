@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,9 @@ import org.springframework.util.ClassUtils;
  */
 public final class JacksonPresent {
 
-	private static final ClassLoader CLASS_LOADER = ClassUtils.getDefaultClassLoader();
-
 	private static final boolean JACKSON_2_PRESENT =
-			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", CLASS_LOADER) &&
-					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", CLASS_LOADER);
+			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", null) &&
+					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", null);
 
 	public static boolean isJackson2Present() {
 		return JACKSON_2_PRESENT;

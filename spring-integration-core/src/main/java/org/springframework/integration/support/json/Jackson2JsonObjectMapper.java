@@ -64,20 +64,18 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
  */
 public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
 
-	private static final ClassLoader CLASS_LOADER = ClassUtils.getDefaultClassLoader();
-
 	private static final boolean JDK8_MODULE_PRESENT =
-			ClassUtils.isPresent("com.fasterxml.jackson.datatype.jdk8.Jdk8Module", CLASS_LOADER);
+			ClassUtils.isPresent("com.fasterxml.jackson.datatype.jdk8.Jdk8Module", null);
 
 	private static final boolean JAVA_TIME_MODULE_PRESENT =
-			ClassUtils.isPresent("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", CLASS_LOADER);
+			ClassUtils.isPresent("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", null);
 
 	private static final boolean JODA_MODULE_PRESENT =
-			ClassUtils.isPresent("com.fasterxml.jackson.datatype.joda.JodaModule", CLASS_LOADER);
+			ClassUtils.isPresent("com.fasterxml.jackson.datatype.joda.JodaModule", null);
 
 	private static final boolean KOTLIN_MODULE_PRESENT =
-			ClassUtils.isPresent("kotlin.Unit", CLASS_LOADER) &&
-					ClassUtils.isPresent("com.fasterxml.jackson.module.kotlin.KotlinModule", CLASS_LOADER);
+			ClassUtils.isPresent("kotlin.Unit", null) &&
+					ClassUtils.isPresent("com.fasterxml.jackson.module.kotlin.KotlinModule", null);
 
 	private final ObjectMapper objectMapper;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -662,7 +662,7 @@ public abstract class IntegrationNamespaceUtils {
 		}
 		else if (hasExpression) {
 			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".aggregator.ExpressionEvaluating"
+					.genericBeanDefinition(IntegrationContextUtils.BASE_PACKAGE + ".aggregator.ExpressionEvaluating"
 							+ adapterClass);
 			adapterBuilder.addConstructorArgValue(expression);
 			adapter = adapterBuilder.getBeanDefinition();
@@ -678,7 +678,7 @@ public abstract class IntegrationNamespaceUtils {
 			String unqualifiedClassName) {
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".config." + unqualifiedClassName
+				.genericBeanDefinition(IntegrationContextUtils.BASE_PACKAGE + ".config." + unqualifiedClassName
 						+ "FactoryBean");
 		builder.addPropertyValue("target", ref);
 		if (StringUtils.hasText(method)) {

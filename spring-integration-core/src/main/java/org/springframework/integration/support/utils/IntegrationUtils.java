@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.context.NamedComponent;
@@ -49,7 +49,7 @@ public final class IntegrationUtils {
 
 	private static final Log LOGGER = LogFactory.getLog(IntegrationUtils.class);
 
-	private static final String INTERNAL_COMPONENT_PREFIX = '_' + IntegrationConfigUtils.BASE_PACKAGE;
+	private static final String INTERNAL_COMPONENT_PREFIX = '_' + IntegrationContextUtils.BASE_PACKAGE;
 
 	public static final String INTEGRATION_CONVERSION_SERVICE_BEAN_NAME = "integrationConversionService";
 
