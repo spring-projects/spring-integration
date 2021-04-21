@@ -111,11 +111,6 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 						return file;
 					}
 
-					@Override
-					protected boolean isDirectory(String file) {
-						return false;
-					}
-
 				};
 		doTestRollback(filter);
 	}

@@ -180,6 +180,11 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 		}
 	}
 
+	@Override
+	protected boolean isDirectory(F file) {
+		return false;
+	}
+
 	protected abstract long modified(F file);
 
 	protected abstract String fileName(F file);
