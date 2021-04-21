@@ -292,7 +292,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		this.targetEvaluationContext = targetContext;
 
 		if (beanFactory != null) {
-			configureHeaderExpressions(beanFactory);
+			configureHeaderExpressions(beanFactory, this.headerExpressions);
+			configureHeaderExpressions(beanFactory, this.nullResultHeaderExpressions);
 		}
 	}
 
@@ -316,29 +317,18 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		}
 	}
 
-	private void configureHeaderExpressions(BeanFactory beanFactory) {
+	private void configureHeaderExpressions(BeanFactory beanFactory,
+			Map<String, HeaderValueMessageProcessor<?>> headerExpressions) {
+
 		boolean checkReadOnlyHeaders = getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory;
 
-		for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.headerExpressions.entrySet()) {
+		for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : headerExpressions.entrySet()) {
 			if (checkReadOnlyHeaders &&
 					(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
-				throw new BeanInitializationException(
-						"ContentEnricher cannot override 'id' and 'timestamp' read-only headers.\n" +
-								"Wrong 'headerExpressions' [" + this.headerExpressions
-								+ "] configuration for " + getComponentName());
-			}
-			if (entry.getValue() instanceof BeanFactoryAware) {
-				((BeanFactoryAware) entry.getValue()).setBeanFactory(beanFactory);
-			}
-		}
 
-		for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry :
-				this.nullResultHeaderExpressions.entrySet()) {
-			if (checkReadOnlyHeaders &&
-					(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
 				throw new BeanInitializationException(
 						"ContentEnricher cannot override 'id' and 'timestamp' read-only headers.\n" +
-								"Wrong 'nullResultHeaderExpressions' [" + this.nullResultHeaderExpressions
+								"Wrong 'headerExpressions' [" + headerExpressions
 								+ "] configuration for " + getComponentName());
 			}
 			if (entry.getValue() instanceof BeanFactoryAware) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -56,7 +56,7 @@ public class ResequencerTests {
 
 	private final MessageGroupStore store = new SimpleMessageStore();
 
-	@Before
+	@BeforeEach
 	public void configureResequencer() {
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, null);
 		this.resequencer.setBeanFactory(mock(BeanFactory.class));
@@ -64,7 +64,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testBasicResequencing() throws InterruptedException {
+	public void testBasicResequencing() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 3, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 1, replyChannel);
@@ -84,7 +84,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testBasicResequencingA() throws InterruptedException {
+	public void testBasicResequencingA() {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
@@ -103,7 +103,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testBasicUnboundedResequencing() throws InterruptedException {
+	public void testBasicUnboundedResequencing() {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
@@ -158,7 +158,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testResequencingWithIncompleteSequenceRelease() throws InterruptedException {
+	public void testResequencingWithIncompleteSequenceRelease() {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
 		// INT-3846
 		this.resequencer.setMessageStore(new SimpleMessageStore(3));
@@ -190,7 +190,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testResequencingWithCapacity() throws InterruptedException {
+	public void testResequencingWithCapacity() {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
 		// INT-3846
 		this.resequencer.setMessageStore(new SimpleMessageStore(3, 2));
@@ -210,7 +210,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testResequencingWithPartialSequenceAndComparator() throws InterruptedException {
+	public void testResequencingWithPartialSequenceAndComparator() {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("456", "ABC", 4, 2, replyChannel);
@@ -240,7 +240,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testResequencingWithDiscard() throws InterruptedException {
+	public void testResequencingWithDiscard() {
 		QueueChannel discardChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, null);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, null);
@@ -269,7 +269,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testResequencingWithDifferentSequenceSizes() throws InterruptedException {
+	public void testResequencingWithDifferentSequenceSizes() {
 		QueueChannel discardChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, null);
 		Message<?> message2 = createMessage("456", "ABC", 5, 1, null);
@@ -288,7 +288,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testResequencingWithWrongSequenceSizeAndNumber() throws InterruptedException {
+	public void testResequencingWithWrongSequenceSizeAndNumber() {
 		QueueChannel discardChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 2, 4, null);
 		this.resequencer.setSendPartialResultOnExpiry(false);
@@ -301,7 +301,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testResequencingWithCompleteSequenceRelease() throws InterruptedException {
+	public void testResequencingWithCompleteSequenceRelease() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
@@ -343,7 +343,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testTimeoutDefaultExpiry() throws InterruptedException {
+	public void testTimeoutDefaultExpiry() {
 		this.resequencer.setGroupTimeoutExpression(new SpelExpressionParser().parseExpression("100"));
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
@@ -359,7 +359,7 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message2);
 		Message<?> out1 = replyChannel.receive(10);
 		assertThat(out1).isNull();
-		out1 = discardChannel.receive(10000);
+		out1 = discardChannel.receive(20000);
 		assertThat(out1).isNotNull();
 		Message<?> out2 = discardChannel.receive(10);
 		assertThat(out2).isNotNull();
@@ -370,7 +370,7 @@ public class ResequencerTests {
 	}
 
 	@Test
-	public void testTimeoutDontExpire() throws InterruptedException {
+	public void testTimeoutDontExpire() {
 		this.resequencer.setGroupTimeoutExpression(new SpelExpressionParser().parseExpression("100"));
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
@@ -387,7 +387,7 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message2);
 		Message<?> out1 = replyChannel.receive(0);
 		assertThat(out1).isNull();
-		out1 = discardChannel.receive(10_000);
+		out1 = discardChannel.receive(20_000);
 		assertThat(out1).isNotNull();
 		Message<?> out2 = discardChannel.receive(10_000);
 		assertThat(out2).isNotNull();
@@ -401,8 +401,13 @@ public class ResequencerTests {
 
 	private static Message<?> createMessage(String payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel) {
-		return MessageBuilder.withPayload(payload).setCorrelationId(correlationId).setSequenceSize(sequenceSize)
-				.setSequenceNumber(sequenceNumber).setReplyChannel(replyChannel).build();
+
+		return MessageBuilder.withPayload(payload)
+				.setCorrelationId(correlationId)
+				.setSequenceSize(sequenceSize)
+				.setSequenceNumber(sequenceNumber)
+				.setReplyChannel(replyChannel)
+				.build();
 	}
 
 }

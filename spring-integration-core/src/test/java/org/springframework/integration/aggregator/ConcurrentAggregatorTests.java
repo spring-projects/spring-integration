@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@
 package org.springframework.integration.aggregator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
@@ -53,7 +54,7 @@ public class ConcurrentAggregatorTests {
 	private final MessageGroupStore store = new SimpleMessageStore();
 
 
-	@Before
+	@BeforeEach
 	public void configureAggregator() {
 		this.taskExecutor = new SimpleAsyncTaskExecutor();
 		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), this.store);
@@ -68,12 +69,9 @@ public class ConcurrentAggregatorTests {
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
 		Message<?> message3 = createMessage(7, "ABC", 3, 3, replyChannel, null);
 		CountDownLatch latch = new CountDownLatch(3);
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message1, latch));
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message2, latch));
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message3, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message1, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message2, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message3, latch));
 
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 
@@ -84,16 +82,13 @@ public class ConcurrentAggregatorTests {
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	// dropped backwards compatibility for duplicate ID's
 	public void testCompleteGroupWithinTimeoutWithSameId() {
 		QueueChannel replyChannel = new QueueChannel();
-		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel,
-				"ID#1");
-		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel,
-				"ID#1");
-		Message<?> message3 = createMessage(7, "ABC", 3, 3, replyChannel,
-				"ID#1");
+		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, "ID#1");
+		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, "ID#1");
+		Message<?> message3 = createMessage(7, "ABC", 3, 3, replyChannel, "ID#1");
 		CountDownLatch latch = new CountDownLatch(3);
 		// for testing the duplication scenario, the messages must be processed
 		// synchronously
@@ -107,20 +102,17 @@ public class ConcurrentAggregatorTests {
 
 	@Test
 	public void testShouldNotSendPartialResultOnTimeoutByDefault() throws InterruptedException {
-
 		QueueChannel discardChannel = new QueueChannel();
 		this.aggregator.setDiscardChannel(discardChannel);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = createMessage(3, "ABC", 2, 1, replyChannel, null);
 		CountDownLatch latch = new CountDownLatch(1);
-		AggregatorTestTask task = new AggregatorTestTask(this.aggregator,
-				message, latch);
+		AggregatorTestTask task = new AggregatorTestTask(this.aggregator, message, latch);
 		this.taskExecutor.execute(task);
 
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(latch
-				.getCount()).as("Task should have completed within timeout").isEqualTo(0);
+		assertThat(latch.getCount()).as("Task should have completed within timeout").isEqualTo(0);
 		Message<?> reply = replyChannel.receive(10);
 		assertThat(reply).as("No message should have been sent normally").isNull();
 		this.store.expireMessageGroups(-10000);
@@ -136,10 +128,8 @@ public class ConcurrentAggregatorTests {
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
 		CountDownLatch latch = new CountDownLatch(2);
-		AggregatorTestTask task1 = new AggregatorTestTask(this.aggregator,
-				message1, latch);
-		AggregatorTestTask task2 = new AggregatorTestTask(this.aggregator,
-				message2, latch);
+		AggregatorTestTask task1 = new AggregatorTestTask(this.aggregator, message1, latch);
+		AggregatorTestTask task2 = new AggregatorTestTask(this.aggregator, message2, latch);
 		this.taskExecutor.execute(task1);
 		this.taskExecutor.execute(task2);
 
@@ -161,25 +151,16 @@ public class ConcurrentAggregatorTests {
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel1, null);
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel1, null);
 		Message<?> message3 = createMessage(7, "ABC", 3, 3, replyChannel1, null);
-		Message<?> message4 = createMessage(11, "XYZ", 3, 1, replyChannel2,
-				null);
-		Message<?> message5 = createMessage(13, "XYZ", 3, 2, replyChannel2,
-				null);
-		Message<?> message6 = createMessage(17, "XYZ", 3, 3, replyChannel2,
-				null);
+		Message<?> message4 = createMessage(11, "XYZ", 3, 1, replyChannel2, null);
+		Message<?> message5 = createMessage(13, "XYZ", 3, 2, replyChannel2, null);
+		Message<?> message6 = createMessage(17, "XYZ", 3, 3, replyChannel2, null);
 		CountDownLatch latch = new CountDownLatch(6);
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message1, latch));
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message6, latch));
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message2, latch));
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message5, latch));
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message3, latch));
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message4, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message1, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message6, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message2, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message5, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message3, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message4, latch));
 
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 
@@ -194,7 +175,7 @@ public class ConcurrentAggregatorTests {
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	// dropped backwards compatibility for setting capacity limit (it's always
 	// Integer.MAX_VALUE)
 	public void testTrackedCorrelationIdsCapacityAtLimit() {
@@ -202,23 +183,19 @@ public class ConcurrentAggregatorTests {
 		QueueChannel discardChannel = new QueueChannel();
 		// this.aggregator.setTrackedCorrelationIdCapacity(3);
 		this.aggregator.setDiscardChannel(discardChannel);
-		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel,
-				null));
+		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel, null));
 		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(1);
-		this.aggregator.handleMessage(createMessage(3, 2, 1, 1, replyChannel,
-				null));
+		this.aggregator.handleMessage(createMessage(3, 2, 1, 1, replyChannel, null));
 		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(3);
-		this.aggregator.handleMessage(createMessage(4, 3, 1, 1, replyChannel,
-				null));
+		this.aggregator.handleMessage(createMessage(4, 3, 1, 1, replyChannel, null));
 		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(4);
 		// next message with same correlation ID is discarded
-		this.aggregator.handleMessage(createMessage(2, 1, 1, 1, replyChannel,
-				null));
+		this.aggregator.handleMessage(createMessage(2, 1, 1, 1, replyChannel, null));
 		assertThat(discardChannel.receive(1000).getPayload()).isEqualTo(2);
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	// dropped backwards compatibility for setting capacity limit (it's always
 	// Integer.MAX_VALUE)
 	public void testTrackedCorrelationIdsCapacityPassesLimit() {
@@ -226,29 +203,24 @@ public class ConcurrentAggregatorTests {
 		QueueChannel discardChannel = new QueueChannel();
 		// this.aggregator.setTrackedCorrelationIdCapacity(3);
 		this.aggregator.setDiscardChannel(discardChannel);
-		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel,
-				null));
+		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel, null));
 		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(1);
-		this.aggregator.handleMessage(createMessage(2, 2, 1, 1, replyChannel,
-				null));
+		this.aggregator.handleMessage(createMessage(2, 2, 1, 1, replyChannel, null));
 		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(2);
-		this.aggregator.handleMessage(createMessage(3, 3, 1, 1, replyChannel,
-				null));
+		this.aggregator.handleMessage(createMessage(3, 3, 1, 1, replyChannel, null));
 		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(3);
-		this.aggregator.handleMessage(createMessage(4, 4, 1, 1, replyChannel,
-				null));
+		this.aggregator.handleMessage(createMessage(4, 4, 1, 1, replyChannel, null));
 		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(4);
-		this.aggregator.handleMessage(createMessage(5, 1, 1, 1, replyChannel,
-				null));
+		this.aggregator.handleMessage(createMessage(5, 1, 1, 1, replyChannel, null));
 		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(5);
 		assertThat(discardChannel.receive(0)).isNull();
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void testExceptionThrownIfNoCorrelationId() {
-		Message<?> message = createMessage(3, null, 2, 1, new QueueChannel(),
-				null);
-		this.aggregator.handleMessage(message);
+		Message<?> message = createMessage(3, null, 2, 1, new QueueChannel(), null);
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.aggregator.handleMessage(message));
 	}
 
 	@Test
@@ -262,16 +234,12 @@ public class ConcurrentAggregatorTests {
 
 		this.aggregator.setReleaseStrategy(new SequenceSizeReleaseStrategy());
 
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message1, latch));
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message2, latch));
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message3, latch));
-		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
-				message4, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message1, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message2, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message3, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message4, latch));
 
-		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latch.await(20, TimeUnit.SECONDS)).isTrue();
 
 		Message<?> reply = replyChannel.receive(10000);
 		assertThat(reply).as("A message should be aggregated").isNotNull();
@@ -283,10 +251,11 @@ public class ConcurrentAggregatorTests {
 			Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel, String predefinedId) {
 
-		MessageBuilder<Object> builder = MessageBuilder.withPayload(payload)
-				.setCorrelationId(correlationId).setSequenceSize(sequenceSize)
-				.setSequenceNumber(sequenceNumber)
-				.setReplyChannel(replyChannel);
+		MessageBuilder<Object> builder =
+				MessageBuilder.withPayload(payload)
+						.setCorrelationId(correlationId).setSequenceSize(sequenceSize)
+						.setSequenceNumber(sequenceNumber)
+						.setReplyChannel(replyChannel);
 		if (predefinedId != null) {
 			builder.setHeader(MessageHeaders.ID, predefinedId);
 		}
