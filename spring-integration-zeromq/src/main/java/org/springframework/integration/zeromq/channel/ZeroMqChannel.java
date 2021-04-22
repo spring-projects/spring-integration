@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,7 +168,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 										? SocketType.PAIR
 										: (this.pubSub ? SocketType.PUB : SocketType.PUSH))
 				))
-				.doOnNext(this.sendSocketConfigurer)
+				.doOnNext((socket) -> this.sendSocketConfigurer.accept(socket))
 				.doOnNext((socket) ->
 						socket.connect(this.connectSendUrl != null
 								? this.connectSendUrl
@@ -184,7 +184,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 								this.connectSubscribeUrl == null
 										? SocketType.PAIR
 										: (this.pubSub ? SocketType.SUB : SocketType.PULL))))
-				.doOnNext(this.subscribeSocketConfigurer)
+				.doOnNext((socket) -> this.subscribeSocketConfigurer.accept(socket))
 				.doOnNext((socket) -> {
 					if (this.connectSubscribeUrl != null) {
 						if (this.pubSub) {
@@ -213,7 +213,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 							return Mono.empty();
 						})
 						.publishOn(Schedulers.parallel())
-						.map(this.messageMapper::toMessage)
+						.map((data) -> this.messageMapper.toMessage(data))
 						.doOnError((error) -> logger.error(error,
 								() -> "Error processing ZeroMQ message in the " + this))
 						.repeatWhenEmpty((repeat) ->
