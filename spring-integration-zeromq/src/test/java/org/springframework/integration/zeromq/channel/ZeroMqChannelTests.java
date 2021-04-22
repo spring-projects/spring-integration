@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -31,9 +33,12 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+
+import reactor.core.publisher.Mono;
 
 /**
  * @author Artem Bilan
@@ -54,7 +59,28 @@ public class ZeroMqChannelTests {
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT);
 		channel.setBeanName("testChannel1");
 		channel.setConsumeDelay(Duration.ofMillis(10));
+		channel.setSendSocketConfigurer(socket -> socket.setZapDomain("global"));
+		channel.setSubscribeSocketConfigurer(socket -> socket.setZapDomain("local"));
+		AtomicBoolean customMessageMapperCalled = new AtomicBoolean();
+		channel.setMessageMapper(new EmbeddedJsonHeadersMessageMapper() {
+
+			@Override public Message<?> toMessage(byte[] bytes, Map<String, Object> headers) {
+				customMessageMapperCalled.set(true);
+				return super.toMessage(bytes, headers);
+			}
+
+		});
 		channel.afterPropertiesSet();
+
+		@SuppressWarnings("unchecked")
+		Mono<ZMQ.Socket> sendSocketMono = TestUtils.getPropertyValue(channel, "sendSocket", Mono.class);
+		ZMQ.Socket sendSocket = sendSocketMono.block(Duration.ofSeconds(10));
+		assertThat(sendSocket.getZapDomain()).isEqualTo("global");
+
+		@SuppressWarnings("unchecked")
+		Mono<ZMQ.Socket> subscribeSocketMono = TestUtils.getPropertyValue(channel, "subscribeSocket", Mono.class);
+		ZMQ.Socket subscribeSocket = subscribeSocketMono.block(Duration.ofSeconds(10));
+		assertThat(subscribeSocket.getZapDomain()).isEqualTo("local");
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
 
@@ -78,6 +104,8 @@ public class ZeroMqChannelTests {
 		assertThat(received.poll(100, TimeUnit.MILLISECONDS)).isNull();
 
 		channel.destroy();
+
+		assertThat(customMessageMapperCalled.get()).isTrue();
 	}
 
 	@Test
