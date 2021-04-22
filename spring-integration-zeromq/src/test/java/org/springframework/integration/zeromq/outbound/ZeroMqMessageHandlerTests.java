@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.zeromq.SocketType;
@@ -32,10 +34,13 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.support.GenericMessage;
+
+import reactor.core.publisher.Mono;
 
 /**
  * @author Artem Bilan
@@ -59,7 +64,13 @@ public class ZeroMqMessageHandlerTests {
 
 		ZeroMqMessageHandler messageHandler = new ZeroMqMessageHandler(CONTEXT, socketAddress);
 		messageHandler.setBeanFactory(mock(BeanFactory.class));
+		messageHandler.setSocketConfigurer(s -> s.setZapDomain("global"));
 		messageHandler.afterPropertiesSet();
+
+		@SuppressWarnings("unchecked")
+		Mono<ZMQ.Socket> socketMono = TestUtils.getPropertyValue(messageHandler, "socketMono", Mono.class);
+		ZMQ.Socket socketInUse = socketMono.block(Duration.ofSeconds(10));
+		assertThat(socketInUse.getZapDomain()).isEqualTo("global");
 
 		Message<?> testMessage = new GenericMessage<>("test");
 		messageHandler.handleMessage(testMessage).subscribe();

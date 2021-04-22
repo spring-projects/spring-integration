@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler {
 		this.socketMono =
 				Mono.just(context.createSocket(socketType))
 						.publishOn(this.publisherScheduler)
-						.doOnNext(this.socketConfigurer)
+						.doOnNext((socket) -> this.socketConfigurer.accept(socket))
 						.doOnNext((socket) -> socket.connect(connectUrl))
 						.cache()
 						.publishOn(this.publisherScheduler);
