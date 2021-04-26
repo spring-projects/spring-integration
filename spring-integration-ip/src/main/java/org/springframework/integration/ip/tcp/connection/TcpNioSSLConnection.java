@@ -27,6 +27,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 
@@ -152,8 +153,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	 */
 	@SuppressWarnings("fallthrough")
 	private SSLEngineResult decode(ByteBuffer networkBuffer) throws IOException {
-		SSLEngineResult result = new SSLEngineResult(Status.OK, this.sslEngine.getHandshakeStatus(), 0, 0);
 		HandshakeStatus handshakeStatus = this.sslEngine.getHandshakeStatus();
+		SSLEngineResult result = new SSLEngineResult(Status.OK, handshakeStatus, 0, 0);
 		switch (handshakeStatus) {
 			case NEED_TASK:
 				runTasks();
@@ -161,36 +162,10 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			case NEED_UNWRAP:
 			case FINISHED:
 			case NOT_HANDSHAKING:
-				((Buffer) this.decoded).clear();
-				result = this.sslEngine.unwrap(networkBuffer, this.decoded);
-				if (logger.isDebugEnabled()) {
-					logger.debug("After unwrap: " + resultToString(result));
-				}
-				Status status = result.getStatus();
-				if (status == Status.BUFFER_OVERFLOW) {
-					this.decoded =
-							this.allocateEncryptionBuffer(this.sslEngine.getSession().getApplicationBufferSize());
-				}
-				if (result.bytesProduced() > 0) {
-					((Buffer) this.decoded).flip();
-					super.sendToPipe(this.decoded);
-				}
+			result = checkBytesProduced(networkBuffer);
 				break;
 			case NEED_WRAP:
-				if (!resumeWriterIfNeeded()) {
-					((Buffer) this.encoded).clear();
-					result = this.sslEngine.wrap(networkBuffer, this.encoded);
-					if (logger.isDebugEnabled()) {
-						logger.debug("After wrap: " + resultToString(result));
-					}
-					if (result.getStatus() == Status.BUFFER_OVERFLOW) {
-						this.encoded = this.allocateEncryptionBuffer(this.sslEngine.getSession().getPacketBufferSize());
-					}
-					else {
-						((Buffer) this.encoded).flip();
-						getSSLChannelOutputStream().writeEncoded(this.encoded);
-					}
-				}
+				result = needWrap(networkBuffer, result);
 				break;
 			default:
 		}
@@ -206,6 +181,46 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			default:
 		}
 		return result;
+	}
+
+	private SSLEngineResult checkBytesProduced(ByteBuffer networkBuffer) throws SSLException, IOException {
+		SSLEngineResult result;
+		((Buffer) this.decoded).clear();
+		result = this.sslEngine.unwrap(networkBuffer, this.decoded);
+		if (logger.isDebugEnabled()) {
+			logger.debug("After unwrap: " + resultToString(result));
+		}
+		Status status = result.getStatus();
+		if (status == Status.BUFFER_OVERFLOW) {
+			this.decoded =
+					this.allocateEncryptionBuffer(this.sslEngine.getSession().getApplicationBufferSize());
+		}
+		if (result.bytesProduced() > 0) {
+			((Buffer) this.decoded).flip();
+			super.sendToPipe(this.decoded);
+		}
+		return result;
+	}
+
+	private SSLEngineResult needWrap(ByteBuffer networkBuffer, SSLEngineResult result)
+			throws SSLException, IOException {
+
+		SSLEngineResult engineResult = result;
+		if (!resumeWriterIfNeeded()) {
+			((Buffer) this.encoded).clear();
+			engineResult = this.sslEngine.wrap(networkBuffer, this.encoded);
+			if (logger.isDebugEnabled()) {
+				logger.debug("After wrap: " + resultToString(engineResult));
+			}
+			if (engineResult.getStatus() == Status.BUFFER_OVERFLOW) {
+				this.encoded = this.allocateEncryptionBuffer(this.sslEngine.getSession().getPacketBufferSize());
+			}
+			else {
+				((Buffer) this.encoded).flip();
+				getSSLChannelOutputStream().writeEncoded(this.encoded);
+			}
+		}
+		return engineResult;
 	}
 
 	/**

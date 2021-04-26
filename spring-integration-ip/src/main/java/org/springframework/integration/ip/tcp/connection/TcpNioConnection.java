@@ -274,60 +274,70 @@ public class TcpNioConnection extends TcpConnectionSupport {
 						this.executionControl.decrementAndGet();
 					}
 				}
-				catch (Exception e) {
-					if (logger.isTraceEnabled()) {
-						logger.error("Read exception " + getConnectionId(), e);
-					}
-					else if (!isNoReadErrorOnClose()) {
-						logger.error("Read exception " +
-								getConnectionId() + " " +
-								e.getClass().getSimpleName() +
-								":" + e.getCause() + ":" + e.getMessage());
-					}
-					else {
-						if (logger.isDebugEnabled()) {
-							logger.debug("Read exception " +
-									getConnectionId() + " " +
-									e.getClass().getSimpleName() +
-									":" + e.getCause() + ":" + e.getMessage());
-						}
-					}
-					closeConnection(true);
-					sendExceptionToListener(e);
+				catch (Exception ex) {
+					wrapUp(ex);
 					return;
 				}
 			}
 			finally {
-				moreDataAvailable = false;
-				// Final check in case new data came in and the
-				// timing was such that we were the last assembler and
-				// a new one wasn't run
-				if (dataAvailable()) {
-					synchronized (this.executionControl) {
-						if (this.executionControl.incrementAndGet() <= 1) {
-							// only continue if we don't already have another assembler running
-							this.executionControl.set(1);
-							moreDataAvailable = true;
+				moreDataAvailable = checkForMoreData();
+			}
+		}
+	}
 
-						}
-						else {
-							this.executionControl.decrementAndGet();
-						}
-					}
-				}
-				if (moreDataAvailable) {
-					if (logger.isTraceEnabled()) {
-						logger.trace(getConnectionId() + " Nio message assembler continuing...");
-					}
+	private void wrapUp(Exception ex) {
+		if (logger.isTraceEnabled()) {
+			logger.error("Read exception " + getConnectionId(), ex);
+		}
+		else if (!isNoReadErrorOnClose()) {
+			logger.error("Read exception " +
+					getConnectionId() + " " +
+					ex.getClass().getSimpleName() +
+					":" + ex.getCause() + ":" + ex.getMessage());
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Read exception " +
+						getConnectionId() + " " +
+						ex.getClass().getSimpleName() +
+						":" + ex.getCause() + ":" + ex.getMessage());
+			}
+		}
+		closeConnection(true);
+		sendExceptionToListener(ex);
+	}
+
+	private boolean checkForMoreData() {
+		boolean moreDataAvailable;
+		moreDataAvailable = false;
+		// Final check in case new data came in and the
+		// timing was such that we were the last assembler and
+		// a new one wasn't run
+		if (dataAvailable()) {
+			synchronized (this.executionControl) {
+				if (this.executionControl.incrementAndGet() <= 1) {
+					// only continue if we don't already have another assembler running
+					this.executionControl.set(1);
+					moreDataAvailable = true;
+
 				}
 				else {
-					if (logger.isTraceEnabled()) {
-						logger.trace(getConnectionId() + " Nio message assembler exiting... avail: "
-								+ this.channelInputStream.available());
-					}
+					this.executionControl.decrementAndGet();
 				}
 			}
 		}
+		if (moreDataAvailable) {
+			if (logger.isTraceEnabled()) {
+				logger.trace(getConnectionId() + " Nio message assembler continuing...");
+			}
+		}
+		else {
+			if (logger.isTraceEnabled()) {
+				logger.trace(getConnectionId() + " Nio message assembler exiting... avail: "
+						+ this.channelInputStream.available());
+			}
+		}
+		return moreDataAvailable;
 	}
 
 	private boolean dataAvailable() {
@@ -723,7 +733,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				}
 			}
 			int bite;
-			bite = this.currentBuffer[this.currentOffset++] & 0xff; // N0SONAR
+			bite = this.currentBuffer[this.currentOffset++] & 0xff; // NOSONAR
 			this.available.decrementAndGet();
 			if (this.currentOffset >= this.currentBuffer.length) {
 				this.currentBuffer = null;

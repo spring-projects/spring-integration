@@ -648,33 +648,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 			this.nextCheckForClosedNioConnections = now + this.nioHarvestInterval;
 			Iterator<Entry<SocketChannel, TcpNioConnection>> it = connectionMap.entrySet().iterator();
 			while (it.hasNext()) {
-				SocketChannel channel = it.next().getKey();
-				if (!channel.isOpen()) {
-					logger.debug("Removing closed channel");
-					it.remove();
-				}
-				else if (this.soTimeout > 0) {
-					TcpNioConnection connection = connectionMap.get(channel);
-					if (now - connection.getLastRead() >= this.soTimeout) {
-						/*
-						 * For client connections, we have to wait for 2 timeouts if the last
-						 * send was within the current timeout.
-						 */
-						if (!connection.isServer() &&
-								now - connection.getLastSend() < this.soTimeout &&
-								now - connection.getLastRead() < this.soTimeout * 2) {
-							logger.debug(() -> "Skipping a connection timeout because we have a recent send " +
-									connection.getConnectionId());
-						}
-						else {
-							logger.warn(() -> "Timing out TcpNioConnection " + connection.getConnectionId());
-							Exception exception = new SocketTimeoutException("Timing out connection");
-							connection.publishConnectionExceptionEvent(exception);
-							connection.timeout();
-							connection.sendExceptionToListener(exception);
-						}
-					}
-				}
+				checkChannel(connectionMap, now, it);
 			}
 		}
 		harvestClosedConnections();
@@ -695,61 +669,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				final SelectionKey key = iterator.next();
 				iterator.remove();
 				try {
-					if (!key.isValid()) {
-						logger.debug("Selection key no longer valid");
-					}
-					else if (key.isReadable()) {
-						key.interestOps(key.interestOps() - SelectionKey.OP_READ);
-						final TcpNioConnection connection;
-						connection = (TcpNioConnection) key.attachment();
-						connection.setLastRead(System.currentTimeMillis());
-						try {
-							this.taskExecutor.execute(() -> {
-								boolean delayed = false;
-								try {
-									connection.readPacket();
-								}
-								catch (@SuppressWarnings(UNUSED) RejectedExecutionException e1) {
-									delayRead(selector, now, key);
-									delayed = true;
-								}
-								catch (Exception e2) {
-									if (connection.isOpen()) {
-										logger.error(() -> "Exception on read " +
-												connection.getConnectionId() + " " +
-												e2.getMessage());
-										connection.close();
-									}
-									else {
-										logger.debug("Connection closed");
-									}
-								}
-								if (!delayed) {
-									if (key.channel().isOpen()) {
-										key.interestOps(SelectionKey.OP_READ);
-										selector.wakeup();
-									}
-									else {
-										connection.sendExceptionToListener(new EOFException("Connection is closed"));
-									}
-								}
-							});
-						}
-						catch (@SuppressWarnings(UNUSED) RejectedExecutionException e) {
-							delayRead(selector, now, key);
-						}
-					}
-					else if (key.isAcceptable()) {
-						try {
-							doAccept(selector, server, now);
-						}
-						catch (Exception ex) {
-							logger.error(ex, "Exception accepting new connection(s)");
-						}
-					}
-					else {
-						logger.error("Unexpected key: " + key);
-					}
+					handleKey(selector, server, now, key);
 				}
 				catch (@SuppressWarnings(UNUSED) CancelledKeyException e) {
 					logger.debug(() -> "Selection key " + key + " cancelled");
@@ -758,6 +678,105 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 					logger.error(ex, () -> "Exception on selection key " + key);
 				}
 			}
+		}
+	}
+
+	private void checkChannel(Map<SocketChannel, TcpNioConnection> connectionMap, final long now,
+			Iterator<Entry<SocketChannel, TcpNioConnection>> it) {
+		SocketChannel channel = it.next().getKey();
+		if (!channel.isOpen()) {
+			logger.debug("Removing closed channel");
+			it.remove();
+		}
+		else if (this.soTimeout > 0) {
+			TcpNioConnection connection = connectionMap.get(channel);
+			if (now - connection.getLastRead() >= this.soTimeout) {
+				/*
+				 * For client connections, we have to wait for 2 timeouts if the last
+				 * send was within the current timeout.
+				 */
+				if (!connection.isServer() &&
+						now - connection.getLastSend() < this.soTimeout &&
+						now - connection.getLastRead() < this.soTimeout * 2) {
+					logger.debug(() -> "Skipping a connection timeout because we have a recent send " +
+							connection.getConnectionId());
+				}
+				else {
+					logger.warn(() -> "Timing out TcpNioConnection " + connection.getConnectionId());
+					Exception exception = new SocketTimeoutException("Timing out connection");
+					connection.publishConnectionExceptionEvent(exception);
+					connection.timeout();
+					connection.sendExceptionToListener(exception);
+				}
+			}
+		}
+	}
+
+	private void handleKey(final Selector selector, ServerSocketChannel server, final long now,
+			final SelectionKey key) {
+
+		if (!key.isValid()) {
+			logger.debug("Selection key no longer valid");
+		}
+		else if (key.isReadable()) {
+			keyReadable(selector, now, key);
+		}
+		else if (key.isAcceptable()) {
+			keyAcceptable(selector, server, now);
+		}
+		else {
+			logger.error("Unexpected key: " + key);
+		}
+	}
+
+	private void keyReadable(final Selector selector, final long now, final SelectionKey key) {
+		key.interestOps(key.interestOps() - SelectionKey.OP_READ);
+		final TcpNioConnection connection;
+		connection = (TcpNioConnection) key.attachment();
+		connection.setLastRead(System.currentTimeMillis());
+		try {
+			this.taskExecutor.execute(() -> {
+				boolean delayed = false;
+				try {
+					connection.readPacket();
+				}
+				catch (@SuppressWarnings(UNUSED) RejectedExecutionException e1) {
+					delayRead(selector, now, key);
+					delayed = true;
+				}
+				catch (Exception e2) {
+					if (connection.isOpen()) {
+						logger.error(() -> "Exception on read " +
+								connection.getConnectionId() + " " +
+								e2.getMessage());
+						connection.close();
+					}
+					else {
+						logger.debug("Connection closed");
+					}
+				}
+				if (!delayed) {
+					if (key.channel().isOpen()) {
+						key.interestOps(SelectionKey.OP_READ);
+						selector.wakeup();
+					}
+					else {
+						connection.sendExceptionToListener(new EOFException("Connection is closed"));
+					}
+				}
+			});
+		}
+		catch (@SuppressWarnings(UNUSED) RejectedExecutionException e) {
+			delayRead(selector, now, key);
+		}
+	}
+
+	private void keyAcceptable(final Selector selector, ServerSocketChannel server, final long now) {
+		try {
+			doAccept(selector, server, now);
+		}
+		catch (Exception ex) {
+			logger.error(ex, "Exception accepting new connection(s)");
 		}
 	}
 
