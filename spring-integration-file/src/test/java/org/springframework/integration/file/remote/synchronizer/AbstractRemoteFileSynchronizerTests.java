@@ -38,13 +38,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.EvaluationContext;
-import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.integration.file.HeadDirectoryScanner;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 
 /**
@@ -258,7 +257,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		Queue<String> remoteDirs = new LinkedList<>();
 		remoteDirs.add("dir1");
 		remoteDirs.add("dir2");
-		sync.setRemoteDirectoryExpression(new FunctionExpression<Message<?>>(s -> remoteDirs.poll()));
+		sync.setRemoteDirectoryExpression(new SupplierExpression<>(remoteDirs::poll));
 		sync.setLocalFilenameGeneratorExpressionString("#remoteDirectory+'/'+#root");
 		sync.setBeanFactory(mock(BeanFactory.class));
 		sync.afterPropertiesSet();
@@ -271,7 +270,7 @@ public class AbstractRemoteFileSynchronizerTests {
 				(filePath, fileAttr) -> fileAttr.isRegularFile())
 				.forEach(System.out::println);*/
 
-		assertThat(localDir.list()).containsAll(remoteDirs);
+		assertThat(localDir.list()).contains("dir1", "dir2");
 	}
 
 	private AbstractInboundFileSynchronizingMessageSource<String> createSource(AtomicInteger count) {
