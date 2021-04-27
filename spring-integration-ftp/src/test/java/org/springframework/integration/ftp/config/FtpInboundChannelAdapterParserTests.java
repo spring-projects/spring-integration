@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -136,7 +137,8 @@ public class FtpInboundChannelAdapterParserTests {
 			method.setAccessible(true);
 			genMethod.set(method);
 		}, method -> "generateLocalFileName".equals(method.getName()));
-		assertThat(genMethod.get().invoke(fisync, "foo")).isEqualTo("FOO.afoo");
+		assertThat(genMethod.get().invoke(fisync, "foo", ExpressionUtils.createStandardEvaluationContext(this.context)))
+				.isEqualTo("FOO.afoo");
 		assertThat(inbound.getMaxFetchSize()).isEqualTo(42);
 	}
 
