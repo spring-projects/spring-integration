@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.zeromq.SocketType;
+import org.zeromq.ZAuth;
+import org.zeromq.ZCert;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
@@ -219,6 +221,71 @@ public class ZeroMqChannelTests {
 
 		channel.destroy();
 		channel2.destroy();
+		proxy.stop();
+	}
+
+	@Test
+	void testPubSubWithCurve() throws InterruptedException {
+		new ZAuth(CONTEXT).configureCurve(ZAuth.CURVE_ALLOW_ANY);
+
+		ZMQ.Curve.KeyPair frontendKeyPair = ZMQ.Curve.generateKeyPair();
+		ZMQ.Curve.KeyPair backendKeyPair = ZMQ.Curve.generateKeyPair();
+
+		ZeroMqProxy proxy = new ZeroMqProxy(CONTEXT, ZeroMqProxy.Type.SUB_PUB);
+		proxy.setBeanName("subPubCurveProxy");
+		proxy.setFrontendSocketConfigurer(socket -> {
+			socket.setZAPDomain("global".getBytes());
+			socket.setCurveServer(true);
+			socket.setCurvePublicKey(frontendKeyPair.publicKey.getBytes());
+			socket.setCurveSecretKey(frontendKeyPair.secretKey.getBytes());
+		});
+		proxy.setBackendSocketConfigurer(socket -> {
+			socket.setZAPDomain("global".getBytes());
+			socket.setCurveServer(true);
+			socket.setCurvePublicKey(backendKeyPair.publicKey.getBytes());
+			socket.setCurveSecretKey(backendKeyPair.secretKey.getBytes());
+		});
+		proxy.afterPropertiesSet();
+		proxy.start();
+
+		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
+		channel.setZeroMqProxy(proxy);
+		channel.setBeanName("testChannelWithCurve");
+		channel.setSendSocketConfigurer(socket -> {
+			ZCert clientCert = new ZCert();
+			socket.setCurvePublicKey(clientCert.getPublicKey());
+			socket.setCurveSecretKey(clientCert.getSecretKey());
+			socket.setCurveServerKey(frontendKeyPair.publicKey.getBytes());
+		});
+		channel.setSubscribeSocketConfigurer(socket -> {
+					ZCert clientCert = new ZCert();
+					socket.setCurvePublicKey(clientCert.getPublicKey());
+					socket.setCurveSecretKey(clientCert.getSecretKey());
+					socket.setCurveServerKey(backendKeyPair.publicKey.getBytes());
+				}
+		);
+		channel.setConsumeDelay(Duration.ofMillis(10));
+		channel.afterPropertiesSet();
+
+		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
+
+		channel.subscribe(received::offer);
+		channel.subscribe(received::offer);
+
+		await().until(() -> proxy.getBackendPort() > 0);
+
+		// Give it some time to connect and subscribe
+		Thread.sleep(1000);
+
+		GenericMessage<String> testMessage = new GenericMessage<>("test1");
+		assertThat(channel.send(testMessage)).isTrue();
+
+		Message<?> message = received.poll(10, TimeUnit.SECONDS);
+		assertThat(message).isNotNull().isEqualTo(testMessage);
+		message = received.poll(10, TimeUnit.SECONDS);
+		assertThat(message).isNotNull().isEqualTo(testMessage);
+
+		channel.destroy();
 		proxy.stop();
 	}
 

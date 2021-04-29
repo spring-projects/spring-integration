@@ -48,7 +48,7 @@ import reactor.core.scheduler.Schedulers;
  * It can work in two messaging models:
  * - {@code push-pull}, where sent messages are distributed to subscribers in a round-robin manner
  * according a respective ZeroMQ {@link SocketType#PUSH} and {@link SocketType#PULL} socket types logic;
- * - {@code pub-sub}, where sent messages are distributed to all subscribers;
+ * - {@code pub-sub}, where sent messages are distributed to all subscribers.
  * <p>
  * This message channel can work in local mode, when a pair of ZeroMQ sockets of {@link SocketType#PAIR} type
  * are connected between publisher (send operation) and subscriber using inter-thread transport binding.
@@ -63,7 +63,7 @@ import reactor.core.scheduler.Schedulers;
  * This way sending and receiving operations on this channel are similar to interaction over a messaging broker.
  * <p>
  * An internal logic of this message channel implementation is based on the project Reactor using its
- * {@link Mono}, {@link Flux} and {@link Scheduler} API for better thead model and flow control to avoid
+ * {@link Mono}, {@link Flux} and {@link Scheduler} API for better thread model and flow control to avoid
  * concurrency primitives for multi-publisher(subscriber) communication within the same application.
  *
  * @author Artem Bilan
@@ -278,6 +278,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 	/**
 	 * The {@link Consumer} callback to configure a publishing socket.
+	 * The send socket is connected to the frontend socket of ZeroMQ proxy (if any).
 	 * @param sendSocketConfigurer the {@link Consumer} to use.
 	 */
 	public void setSendSocketConfigurer(Consumer<ZMQ.Socket> sendSocketConfigurer) {
@@ -287,6 +288,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 	/**
 	 * The {@link Consumer} callback to configure a consuming socket.
+	 * The subscribe socket is connected to the backend socket of ZeroMQ proxy (if any).
 	 * @param subscribeSocketConfigurer the {@link Consumer} to use.
 	 */
 	public void setSubscribeSocketConfigurer(Consumer<ZMQ.Socket> subscribeSocketConfigurer) {
