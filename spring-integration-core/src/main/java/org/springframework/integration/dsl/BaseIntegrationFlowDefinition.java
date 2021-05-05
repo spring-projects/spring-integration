@@ -1046,6 +1046,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		if (ClassUtils.isLambda(handler.getClass())) {
 			serviceActivatingHandler = new ServiceActivatingHandler(new LambdaMessageProcessor(handler, payloadType));
 		}
+		else if (payloadType != null) {
+			return handle(payloadType, handler::handle, endpointConfigurer);
+		}
 		else {
 			serviceActivatingHandler = new ServiceActivatingHandler(handler, ClassUtils.HANDLER_HANDLE_METHOD);
 		}
