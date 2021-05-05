@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,8 +212,8 @@ class KotlinDslTests {
 	fun `no reply from handle`() {
 		val payloadReference = AtomicReference<String>()
 		val integrationFlow =
-			integrationFlow("handlerInputChanenl") {
-				handle<String> { payload, _ -> payloadReference.set(payload) }
+			integrationFlow("handlerInputChannel") {
+				handle<Message<String>> { message, _ -> payloadReference.set(message.payload) }
 			}
 
 		val registration = this.integrationFlowContext.registration(integrationFlow).register()
