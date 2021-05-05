@@ -142,7 +142,7 @@ public class MailTests {
 		assertThat(message).isNotNull();
 		MessageHeaders headers = message.getHeaders();
 		assertThat(headers.get(MailHeaders.TO, String[].class)).containsExactly("Foo <foo@bar>");
-		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
+		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>,Bar2 <bar2@baz>");
 		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
 		assertThat(message.getPayload()).isEqualTo("foo\r\n\r\n");
 		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isTrue();

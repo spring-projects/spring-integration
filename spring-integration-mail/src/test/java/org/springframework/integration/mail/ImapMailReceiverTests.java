@@ -709,7 +709,7 @@ public class ImapMailReceiverTests {
 
 	@Test // see INT-1801
 	public void testImapLifecycleForRaceCondition() throws Exception {
-		for (int i = 0; i < 1000; i++) {
+		for (int i = 0; i < 100; i++) {
 			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
 			Store store = mock(Store.class);
 			Folder folder = mock(Folder.class);
