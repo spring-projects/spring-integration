@@ -94,7 +94,11 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		Object[] args = buildArgs(message);
 
 		try {
-			return this.method.invoke(this.target, args);
+			Object result = this.method.invoke(this.target, args);
+			if (result != null && org.springframework.integration.util.ClassUtils.isKotlinUnit(result.getClass())) {
+				result = null;
+			}
+			return result;
 		}
 		catch (InvocationTargetException e) {
 			if (e.getTargetException() instanceof ClassCastException) {
