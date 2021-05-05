@@ -67,7 +67,7 @@ public class Pop3Tests {
 		assertThat(headers.get(MailHeaders.TO, String[].class)[0]).isEqualTo("Foo <foo@bar>");
 		assertThat(Arrays.toString(headers.get(MailHeaders.CC, String[].class))).isEqualTo("[a@b, c@d]");
 		assertThat(Arrays.toString(headers.get(MailHeaders.BCC, String[].class))).isEqualTo("[e@f, g@h]");
-		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
+		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>,Bar2 <bar2@baz>");
 		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
 		assertThat(message.getPayload()).isEqualTo("foo\r\n\r\n");
 	}

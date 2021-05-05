@@ -489,7 +489,7 @@ public final class TestMailServer {
 					"To: Foo <foo@bar>\r\n"
 							+ "cc: a@b, c@d\r\n"
 							+ "bcc: e@f, g@h\r\n"
-							+ "From: Bar <bar@baz>\r\n"
+							+ "From: Bar <bar@baz>, Bar2 <bar2@baz>\r\n"
 							+ "Subject: Test Email\r\n"
 							+ "\r\n" + BODY;
 

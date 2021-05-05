@@ -72,7 +72,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
-import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.integration.test.mail.TestMailServer;
 import org.springframework.integration.test.mail.TestMailServer.ImapServer;
 import org.springframework.integration.test.util.TestUtils;
@@ -97,7 +96,6 @@ import com.sun.mail.imap.IMAPFolder;
 @ContextConfiguration(
 		"classpath:org/springframework/integration/mail/config/ImapIdleChannelAdapterParserTests-context.xml")
 @DirtiesContext
-@LongRunningTest
 public class ImapMailReceiverTests {
 
 	private AtomicInteger failed;
@@ -707,7 +705,7 @@ public class ImapMailReceiverTests {
 
 	@Test // see INT-1801
 	public void testImapLifecycleForRaceCondition() throws Exception {
-		for (int i = 0; i < 1000; i++) {
+		for (int i = 0; i < 100; i++) {
 			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
 			Store store = mock(Store.class);
 			Folder folder = mock(Folder.class);
