@@ -57,7 +57,7 @@ The most important thing to understand here is that the messaging-based error ha
 This does not apply to exceptions thrown by a handler that operates within the same thread as the sender (for example, through a `DirectChannel` as described earlier in this section).
 
 NOTE: When exceptions occur in a scheduled poller task's execution, those exceptions are wrapped in `ErrorMessage` instances and sent to the 'errorChannel' as well.
-This is done via a `MessagePublishingErrorHandler` injected into a global `taskScheduler` bean.
+This is done via a `MessagePublishingErrorHandler` injected into the global `taskScheduler` bean.
 It is recommended to use that `MessagePublishingErrorHandler` for any custom `taskScheduler` if the error handling still has to be done using standard 'errorChannel' integration flow logic.
 A registered `integrationMessagePublishingErrorHandler` bean can be used in this case.
 

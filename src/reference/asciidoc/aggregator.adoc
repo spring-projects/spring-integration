@@ -893,8 +893,8 @@ In addition to the reaper, the expiry callbacks are invoked when the application
 The `AbstractCorrelatingMessageHandler` registers its own expiry callback, and this is the link with the boolean flag `send-partial-result-on-expiry` in the XML configuration of the aggregator.
 If the flag is set to `true`, then, when the expiry callback is invoked, any unmarked messages in groups that are not yet released can be sent on to the output channel.
 
-IMPORTANT: Since `MessageGroupStoreReaper` is called from a scheduled task and may result in the message producing (according `sendPartialResultOnExpiry` option) as a regular integration flow, it is recommended to supply a custom `TaskScheduler` with a `MessagePublishingErrorHandler` to handler exception via `errorChannel` as it might be expected by hte regular aggregator release functionality.
-Same logic applies for a group timeout functionality which is also relies on a `TaskScheduler`.
+IMPORTANT: Since the `MessageGroupStoreReaper` is called from a scheduled task, and may result in the production of a message (depending on the `sendPartialResultOnExpiry` option) to a downstream integration flow, it is recommended to supply a custom `TaskScheduler` with a `MessagePublishingErrorHandler` to handler exceptions via an `errorChannel`, as it might be expected by the regular aggregator release functionality.
+The same logic applies for group timeout functionality which also relies on a `TaskScheduler`.
 See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 
 [IMPORTANT]
