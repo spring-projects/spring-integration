@@ -318,7 +318,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		public void registerStompEndpoints(StompEndpointRegistry registry) {
 			registry.addEndpoint("/ws")
 					.setHandshakeHandler(handshakeHandler())
-					.setAllowedOrigins("https://www.example.com/")
+					.setAllowedOrigins("https://www.example.com")
 					.addInterceptors(new HandshakeInterceptor() {
 
 						@Override

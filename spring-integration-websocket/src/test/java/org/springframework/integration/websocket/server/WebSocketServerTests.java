@@ -263,7 +263,7 @@ public class WebSocketServerTests {
 			return new ServerWebSocketContainer("/ws")
 					.setHandshakeHandler(handshakeHandler())
 					.setDecoratorFactories(testWebSocketHandlerDecoratorFactory())
-					.setAllowedOrigins("https://www.example.com/")
+					.setAllowedOrigins("https://www.example.com")
 					.withSockJs();
 		}
 
