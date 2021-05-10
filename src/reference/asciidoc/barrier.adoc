@@ -35,7 +35,27 @@ An exception is thrown if a second thread arrives with the same correlation.
 
 The following example shows how to use a custom header for correlation:
 
-[source, xml]
+====
+[source, java, role="primary"]
+.Java
+----
+@ServiceActivator(inputChannel="in")
+@Bean
+public BarrierMessageHandler barrier(MessageChannel out, MessageChannel lateTriggerChannel) {
+    BarrierMessageHandler barrier = new BarrierMessageHandler(10000);
+    barrier.setOutputChannel(out());
+    barrier.setDiscardChannel(lateTriggerChannel);
+    return barrier;
+}
+
+@ServiceActivator (inputChannel="release")
+@Bean
+public MessageHandler releaser(MessageTriggerAction barrier) {
+    return barrier::trigger(message);
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:barrier id="barrier1" input-channel="in" output-channel="out"
         correlation-strategy-expression="headers['myHeader']"
@@ -46,41 +66,10 @@ The following example shows how to use a custom header for correlation:
 
 <int:outbound-channel-adapter channel="release" ref="barrier1.handler" method="trigger" />
 ----
+====
 
 Depending on which one has a message arrive first, either the thread sending a message to `in` or the thread sending a message to `release` waits for up to ten seconds until the other message arrives.
 When the message is released, the `out` channel is sent a message that combines the result of invoking the custom `MessageGroupProcessor` bean, named `myOutputProcessor`.
 If the main thread times out and a trigger arrives later, you can configure a discard channel to which the late trigger is sent.
-The following example shows the Java configuration to do so:
-
-[source, java]
-----
-@Configuration
-@EnableIntegration
-public class Config {
-
-    @ServiceActivator(inputChannel="in")
-    @Bean
-    public BarrierMessageHandler barrier() {
-        BarrierMessageHandler barrier = new BarrierMessageHandler(10000);
-        barrier.setOutputChannel(out());
-        barrier.setDiscardChannel(lateTriggers());
-        return barrier;
-    }
-
-    @ServiceActivator (inputChannel="release")
-    @Bean
-    public MessageHandler releaser() {
-        return new MessageHandler() {
-
-            @Override
-            public void handleMessage(Message<?> message) throws MessagingException {
-                barrier().trigger(message);
-            }
-
-        };
-    }
-
-}
-----
 
 For an example of this component, see the https://github.com/spring-projects/spring-integration-samples/tree/main/basic/barrier[barrier sample application].
