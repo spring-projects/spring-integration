@@ -132,7 +132,6 @@ Consequently, the `Collection<Message>` variable in the POJO is cleared too, if 
 If you wish to simply release that collection as-is for further processing, you must build a new `Collection` (for example, `new ArrayList<Message>(messages)`).
 Starting with version 4.3, the framework no longer copies the messages to a new collection, to avoid undesired extra object creation.
 
-
 If the `processMessageGroup` method of the `MessageGroupProcessor` returns a collection, it must be a collection of `Message<?>` objects.
 In this case, the messages are individually released.
 Prior to version 4.2, it was not possible to provide a `MessageGroupProcessor` by using XML configuration.
@@ -853,7 +852,6 @@ public interface MessageGroupCallback {
 The callback has direct access to the store and the message group so that it can manage the persistent state (for example, by entirely removing the group from the store).
 
 The `MessageGroupStore` maintains a list of these callbacks, which it applies, on demand, to all messages whose timestamps are earlier than a time supplied as a parameter (see the `registerMessageGroupExpiryCallback(..)` and `expireMessageGroups(..)` methods, described earlier).
-For more detail, see <<reaper>>.
 
 IMPORTANT: It is important not to use the same `MessageGroupStore` instance in different aggregator components, when you intend to rely on the `expireMessageGroups` functionality.
 Every `AbstractCorrelatingMessageHandler` registers its own `MessageGroupCallback` based on the `forceComplete()` callback.
@@ -894,6 +892,10 @@ In addition to the reaper, the expiry callbacks are invoked when the application
 
 The `AbstractCorrelatingMessageHandler` registers its own expiry callback, and this is the link with the boolean flag `send-partial-result-on-expiry` in the XML configuration of the aggregator.
 If the flag is set to `true`, then, when the expiry callback is invoked, any unmarked messages in groups that are not yet released can be sent on to the output channel.
+
+IMPORTANT: Since the `MessageGroupStoreReaper` is called from a scheduled task, and may result in the production of a message (depending on the `sendPartialResultOnExpiry` option) to a downstream integration flow, it is recommended to supply a custom `TaskScheduler` with a `MessagePublishingErrorHandler` to handler exceptions via an `errorChannel`, as it might be expected by the regular aggregator release functionality.
+The same logic applies for group timeout functionality which also relies on a `TaskScheduler`.
+See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 
 [IMPORTANT]
 =====

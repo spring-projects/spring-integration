@@ -139,15 +139,17 @@ To do so, define a bean with the appropriate JNDI name for your environment, as 
 ====
 [source,xml]
 ----
-<bean id="taskScheduler" class="o.s.scheduling.commonj.TimerManagerTaskScheduler">
-    <property name="timerManagerName" value="tm/MyTimerManager" />
+<bean id="taskScheduler" class="org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler">
+    <property name="jndiName" value="tm/MyTimerManager" />
     <property name="resourceRef" value="true" />
 </bean>
 ----
 ====
 =====
 
-The next section describes what happens if exceptions occur within the asynchronous invocations.
+IMPORTANT: When a custom `TaskScheduler` is configured in the application context (like the above mentioned `DefaultManagedTaskScheduler`), it is recommended to supply it with a `MessagePublishingErrorHandler` (`integrationMessagePublishingErrorHandler` bean) to be able to handle exceptions as `ErrorMessage`s sent to the error channel, as is done with the default `TaskScheduler` bean provided by the framework.
+
+See also <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 
 [[global-properties]]
 === Global Properties
@@ -631,7 +633,7 @@ public class MyFlowConfiguration {
 ====
 
 Version 5.0 introduced support for a `@Bean` annotated with `@InboundChannelAdapter` that returns `java.util.function.Supplier`, which can produce either a POJO or a `Message`.
-The followig example shows how to use that combination:
+The following example shows how to use that combination:
 
 ====
 [source,java]
