@@ -260,8 +260,8 @@ The following example shows how to configure an aggregator with the previous imp
 ----
 ====
 
-NOTE: If the filter endpoint is involved in the flow upstream of an aggregator, the sequence size release strategy (fixed or based on the `sequenceSize` header) is not going to server its purpose because some messages from a sequence may be discarded by the filter.
-In this case it is recommended to choose other `ReleaseStrategy` or use compensation messages sent from a discard sub-flow carrying some information in their content to be skipped in a custom complete group function.
+NOTE: If the filter endpoint is involved in the flow upstream of an aggregator, the sequence size release strategy (fixed or based on the `sequenceSize` header) is not going to serve its purpose because some messages from a sequence may be discarded by the filter.
+In this case it is recommended to choose another `ReleaseStrategy`, or use compensation messages sent from a discard sub-flow carrying some information in their content to be skipped in a custom complete group function.
 See <<./filter.adoc#filter,Filter>> for more information.
 
 ===== Correlation Strategy
