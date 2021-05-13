@@ -150,6 +150,8 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 		assertThat(TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue())
 				.isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(container, "taskExecutor.threadNamePrefix"))
+				.isEqualTo("queueNameChannel.container-");
 	}
 
 	@Test

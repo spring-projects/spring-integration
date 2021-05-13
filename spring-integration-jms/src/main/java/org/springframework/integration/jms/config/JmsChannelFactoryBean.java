@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,8 +65,6 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	private final boolean messageDriven;
 
 	private final JmsTemplate jmsTemplate = new DynamicJmsTemplate();
-
-	private AbstractMessageListenerContainer listenerContainer;
 
 	private Class<? extends AbstractMessageListenerContainer> containerType;
 
@@ -376,9 +374,9 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	protected AbstractJmsChannel createInstance() {
 		this.initializeJmsTemplate();
 		if (this.messageDriven) {
-			this.listenerContainer = createContainer();
+			AbstractMessageListenerContainer listenerContainer = createContainer();
 			SubscribableJmsChannel subscribableJmsChannel =
-					new SubscribableJmsChannel(this.listenerContainer, this.jmsTemplate);
+					new SubscribableJmsChannel(listenerContainer, this.jmsTemplate);
 			subscribableJmsChannel.setMaxSubscribers(this.maxSubscribers);
 			this.channel = subscribableJmsChannel;
 		}
@@ -414,6 +412,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 			this.containerType = DefaultMessageListenerContainer.class;
 		}
 		AbstractMessageListenerContainer container = BeanUtils.instantiateClass(this.containerType);
+		container.setBeanName(this.beanName + ".container");
 		container.setAcceptMessagesWhileStopping(this.acceptMessagesWhileStopping);
 		container.setAutoStartup(this.autoStartup);
 		container.setClientId(this.clientId);
@@ -435,8 +434,6 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		container.setSessionTransacted(this.sessionTransacted);
 		container.setSubscriptionDurable(this.subscriptionDurable);
 		container.setSubscriptionShared(this.subscriptionShared);
-
-
 
 		if (container instanceof DefaultMessageListenerContainer) {
 			DefaultMessageListenerContainer dmlc = (DefaultMessageListenerContainer) container;
