@@ -70,7 +70,7 @@ public class Pop3Tests {
 
 	@Test
 	public void testPop3() throws MessagingException {
-		MimeMessage mimeMessage = GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>", "Test Email", "foo\r\n", pop3Server.getPop3().getServerSetup());
+		MimeMessage mimeMessage = GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>, Bar2 <bar2@baz>", "Test Email", "foo\r\n", pop3Server.getPop3().getServerSetup());
 		mimeMessage.setRecipients(RecipientType.CC, "a@b, c@d");
 		mimeMessage.setRecipients(RecipientType.BCC, "e@f, g@h");
 		user.deliver(mimeMessage);
