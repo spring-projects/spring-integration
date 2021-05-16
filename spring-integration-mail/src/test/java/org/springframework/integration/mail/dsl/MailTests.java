@@ -137,7 +137,7 @@ public class MailTests {
 		MimeMessage mimeMessage = GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>", "Test Email", "foo\r\n", mailServer.getPop3().getServerSetup());
 		mimeMessage.setRecipients(RecipientType.CC, "a@b, c@d");
 		mimeMessage.setRecipients(RecipientType.BCC, "e@f, g@h");
-		mailServer.getManagers().getUserManager().getUser("popuser").deliver(mimeMessage);
+		mailServer.getUserManager().getUser("popuser").deliver(mimeMessage);
 
 		Message<?> message = this.pop3Channel.receive(10000);
 		assertThat(message).isNotNull();
@@ -154,7 +154,7 @@ public class MailTests {
 		MimeMessage mimeMessage = GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>", "Test Email", "foo\r\n", mailServer.getImap().getServerSetup());
 		mimeMessage.setRecipients(RecipientType.CC, "a@b, c@d");
 		mimeMessage.setRecipients(RecipientType.BCC, "e@f, g@h");
-		mailServer.getManagers().getUserManager().getUser("imapuser").deliver(mimeMessage);
+		mailServer.getUserManager().getUser("imapuser").deliver(mimeMessage);
 
 		Message<?> message = this.imapChannel.receive(10000);
 		assertThat(message).isNotNull();
@@ -172,7 +172,7 @@ public class MailTests {
 		MimeMessage mimeMessage = GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>", "Test Email", "foo\r\n", mailServer.getImap().getServerSetup());
 		mimeMessage.setRecipients(RecipientType.CC, "a@b, c@d");
 		mimeMessage.setRecipients(RecipientType.BCC, "e@f, g@h");
-		mailServer.getManagers().getUserManager().getUser("imapidleuser").deliver(mimeMessage);
+		mailServer.getUserManager().getUser("imapidleuser").deliver(mimeMessage);
 
 		Message<?> message = this.imapIdleChannel.receive(10000);
 		assertThat(message).isNotNull();
