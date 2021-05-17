@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -80,7 +81,7 @@ public class DispatcherHasNoSubscribersTests {
 
 		MessageListener listener = (MessageListener) container.getMessageListener();
 		try {
-			listener.onMessage(new Message("Hello world!".getBytes(), null));
+			listener.onMessage(new Message("Hello world!".getBytes(), new MessageProperties()));
 			fail("Exception expected");
 		}
 		catch (MessageDeliveryException e) {
@@ -107,7 +108,7 @@ public class DispatcherHasNoSubscribersTests {
 
 		List<String> logList = insertMockLoggerInListener(amqpChannel);
 		MessageListener listener = (MessageListener) container.getMessageListener();
-		listener.onMessage(new Message("Hello world!".getBytes(), null));
+		listener.onMessage(new Message("Hello world!".getBytes(), new MessageProperties()));
 		verifyLogReceived(logList);
 	}
 
