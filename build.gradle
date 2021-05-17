@@ -47,7 +47,7 @@ ext {
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.16.1'
+	activeMqVersion = '5.16.2'
 	apacheSshdVersion = '2.5.1'
 	aspectjVersion = '1.9.6'
 	assertjVersion = '3.17.2'
@@ -79,20 +79,20 @@ ext {
 	jschVersion = '0.1.55'
 	jsonpathVersion = '2.4.0'
 	junit4Version = '4.13.2'
-	junitJupiterVersion = '5.7.1'
+	junitJupiterVersion = '5.7.2'
 	jythonVersion = '2.7.2'
 	kryoShadedVersion = '4.0.2'
-	lettuceVersion = '6.0.4.RELEASE'
+	lettuceVersion = '6.0.5.RELEASE'
 	log4jVersion = '2.13.3'
 	mailVersion = '1.6.7'
-	micrometerVersion = '1.5.12'
+	micrometerVersion = '1.5.14'
 	mockitoVersion = '3.6.28'
 	mongoDriverVersion = '4.1.2'
 	mysqlVersion = '8.0.23'
 	pahoMqttClientVersion = '1.2.5'
 	postgresVersion = '42.2.19'
 	r2dbch2Version='0.8.4.RELEASE'
-	reactorVersion = '2020.0.6'
+	reactorVersion = '2020.0.7'
 	resilience4jVersion = '1.6.1'
 	romeToolsVersion = '1.15.0'
 	rsocketVersion = '1.1.0'
@@ -100,14 +100,14 @@ ext {
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.6'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.8'
-	springKafkaVersion = '2.6.7'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.7'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.9'
+	springKafkaVersion = '2.6.8'
 	springRetryVersion = '1.3.1'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.4.6'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.6'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.7'
 	springWsVersion = '3.0.10.RELEASE'
-	tomcatVersion = "9.0.45"
+	tomcatVersion = "9.0.46"
 	xstreamVersion = '1.4.16'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
@@ -126,7 +126,7 @@ allprojects {
 		if (version.endsWith('SNAPSHOT')) {
 			maven { url 'https://repo.spring.io/snapshot' }
 		}
-//		maven { url 'https://repo.spring.io/libs-staging-local' }
+		maven { url 'https://repo.spring.io/libs-staging-local' }
 	}
 
 	ext.javadocLinks = [
