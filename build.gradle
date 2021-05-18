@@ -64,7 +64,7 @@ ext {
 	groovyVersion = '3.0.7'
 	hamcrestVersion = '2.2'
 	hazelcastVersion = '4.0.3'
-	hibernateVersion = '5.4.30.Final'
+	hibernateVersion = '5.4.31.Final'
 	hsqldbVersion = '2.5.1'
 	h2Version = '1.4.200'
 	jacksonVersion = '2.11.4'
@@ -328,7 +328,7 @@ configure(javaProjects) { subproject ->
 
 	checkstyle {
 		configDirectory.set(rootProject.file("src/checkstyle"))
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.41.1'
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.42'
 	}
 
 	jar {
