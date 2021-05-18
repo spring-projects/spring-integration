@@ -32,8 +32,7 @@ The following example shows how to configure a 'PropertiesPersistingMetadataStor
     class="org.springframework.integration.metadata.PropertiesPersistingMetadataStore"/>
 ----
 
-Alternatively, you can provide your own implementation of the `MetadataStore` interface (for example,
-`JdbcMetadataStore`) and configure it as a bean in the application context.
+Alternatively, you can provide your own implementation of the `MetadataStore` interface (for example, `JdbcMetadataStore`) and configure it as a bean in the application context.
 
 Starting with version 4.0, `SimpleMetadataStore`, `PropertiesPersistingMetadataStore`, and `RedisMetadataStore` implement `ConcurrentMetadataStore`.
 These provide for atomic updates and can be used across multiple component or application instances.

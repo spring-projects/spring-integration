@@ -6,8 +6,8 @@ This section describes how to work with mail messages in Spring Integration.
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,8 +16,8 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-mail:{project-version}"
 ----
@@ -177,20 +177,18 @@ To change this behavior and receive a `Multipart` object payload, set `embeddedP
 For content types that are unknown to the `DataHandler`, the contents are rendered as a `byte[]` with a `contentType` header of `application/octet-stream`.
 
 When you do not provide a header mapper, the message payload is the `MimeMessage` presented by `javax.mail`.
-The framework provides a `MailToStringTransformer` that you can use to convert the message by using a strategy to convert the mail contents to a `String`.
-This is also available by using the XML namespace, as the following example shows:
+The framework provides a `MailToStringTransformer` that you can use to convert the message by using a strategy to convert the mail contents to a `String`:
 
 ====
-[source, xml]
+[source, java, role="primary"]
+.Java DSL
 ----
-<int-mail:mail-to-string-transformer ... >
+   ...
+   .transform(Mail.toStringTransformer())
+   ...
 ----
-====
-
-The following example does the same thing with Java configuration:
-
-====
-[source, java]
+[source, java, role="secondary"]
+.Java
 ----
 @Bean
 @Transformer(inputChannel="...", outputChannel="...")
@@ -198,16 +196,17 @@ public Transformer transformer() {
     return new MailToStringTransformer();
 }
 ----
-====
-
-The following example does the same thing with the Java DSL:
-
-====
-[source, java]
+[source, kotlin, role="secondary"]
+.Kotlin
 ----
    ...
-   .transform(Mail.toStringTransformer())
+   transform(Mail.toStringTransformer())
    ...
+----
+[source, xml, role="secondary"]
+.XML
+----
+<int-mail:mail-to-string-transformer ... >
 ----
 ====
 

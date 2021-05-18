@@ -4,6 +4,27 @@
 === Overview
 
 Spring Integration for Apache Kafka is based on the https://projects.spring.io/spring-kafka/[Spring for Apache Kafka project].
+
+You need to include this dependency into your project:
+
+====
+[source, xml, subs="normal", role="primary"]
+.Maven
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-kafka</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+[source, groovy, subs="normal", role="secondary"]
+.Gradle
+----
+compile "org.springframework.integration:spring-integration-kafka:{project-version}"
+----
+====
+
 It provides the following components:
 
 * <<kafka-outbound>>
@@ -373,7 +394,7 @@ Refer to the javadocs for available properties.
 
 [[max-poll-records]]
 By default, `max.poll.records` must be either explicitly set in the consumer factory, or it will be forced to 1 if the consumer factory is a `DefaultKafkaConsumerFactory`.
-Starting with version 3.2, you can set the property `allowMultiFetch` to `true` to override this behavior.
+You can set the property `allowMultiFetch` to `true` to override this behavior.
 
 IMPORTANT: You must poll the consumer within `max.poll.interval.ms` to avoid a rebalance.
 If you set `allowMultiFetch` to `true` you must process all the retrieved records, and poll again, within `max.poll.interval.ms`.
@@ -663,7 +684,7 @@ public IntegrationFlow flowWithPollable(KafkaTemplate<Integer, String> template,
 
     return IntegrationFlows.from(...)
             ...
-            .channel(Kafka.pollableChannel(template, source, "someTopic3").greoupId("group3"))
+            .channel(Kafka.pollableChannel(template, source, "someTopic3").groupId("group3"))
             .handle(...,  e -> e.poller(...))
             ...
             .get();

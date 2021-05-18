@@ -29,8 +29,7 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 ==== `CodecMessageConverter`
 
 Certain endpoints (such as TCP and Redis) have no concept of message headers.
-They support the use of a `MessageConverter`, and the `CodecMessageConverter` can be used to convert a message to or from a `byte[]` for
-transmission.
+They support the use of a `MessageConverter`, and the `CodecMessageConverter` can be used to convert a message to or from a `byte[]` for transmission.
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/codec/CodecMessageConverter.html[Javadoc] for more information.
 
