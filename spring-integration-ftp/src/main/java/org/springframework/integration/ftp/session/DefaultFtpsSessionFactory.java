@@ -150,7 +150,6 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 			.acceptIfNotNull(this.protocols, ftpsClient::setEnabledProtocols)
 			.acceptIfNotNull(this.sessionCreation, ftpsClient::setEnabledSessionCreation)
 			.acceptIfNotNull(this.useClientMode, ftpsClient::setUseClientMode)
-			.acceptIfNotNull(this.sessionCreation, ftpsClient::setEnabledSessionCreation)
 			.acceptIfNotNull(this.keyManager, ftpsClient::setKeyManager)
 			.acceptIfNotNull(this.needClientAuth, ftpsClient::setNeedClientAuth)
 			.acceptIfNotNull(this.wantsClientAuth, ftpsClient::setWantClientAuth);
