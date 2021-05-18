@@ -28,7 +28,7 @@ jobs:
     # Extract build id from input
     - name: Extract Build Id
       run: |
-        echo JFROG_CLI_BUILD_NAME=${{ github.event.inputs.buildName }} >> $GITHUB_ENV
+        echo JFROG_CLI_BUILD_NAME="${{ github.event.inputs.buildName }}" >> $GITHUB_ENV
         echo JFROG_CLI_BUILD_NUMBER=${{ github.event.inputs.buildNumber }} >> $GITHUB_ENV
 
     # Download released files
