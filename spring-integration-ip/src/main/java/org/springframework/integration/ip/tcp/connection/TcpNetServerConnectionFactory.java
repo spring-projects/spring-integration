@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Mário Dias
  *
  * @since 2.0
  *
@@ -180,7 +181,11 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				setSocketAttributes(socket);
 				TcpConnectionSupport connection = this.tcpNetConnectionSupport.createNewConnection(socket, true,
 						isLookupHost(), getApplicationEventPublisher(), getComponentName());
-				connection = wrapConnection(connection);
+				TcpConnectionSupport wrapped = wrapConnection(connection);
+				if (!wrapped.equals(connection)) {
+					connection.setSenders(getSenders());
+					connection = wrapped;
+				}
 				initializeConnection(connection, socket);
 				getTaskExecutor().execute(connection);
 				harvestClosedConnections();
