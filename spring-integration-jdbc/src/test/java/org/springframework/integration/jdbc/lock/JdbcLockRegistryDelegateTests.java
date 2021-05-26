@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,10 +32,12 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.TransactionTimedOutException;
 
 /**
  * @author Olivier Hubaut
+ * @author Fran Aranda
  *
  * @since 5.2.11
  */
@@ -113,6 +115,24 @@ public class JdbcLockRegistryDelegateTests {
 		doAnswer(invocation -> {
 			if (shouldThrow.getAndSet(false)) {
 				throw mock(TransactionTimedOutException.class);
+			}
+			return null;
+		}).when(repository).delete(anyString());
+
+		lock.unlock();
+
+		assertThat(TestUtils.getPropertyValue(lock, "delegate", ReentrantLock.class).isLocked()).isFalse();
+	}
+
+	@Test
+	public void testTransactionSystemException() {
+		final Lock lock = registry.obtain("foo");
+		lock.tryLock();
+
+		final AtomicBoolean shouldThrow = new AtomicBoolean(true);
+		doAnswer(invocation -> {
+			if (shouldThrow.getAndSet(false)) {
+				throw mock(TransactionSystemException.class);
 			}
 			return null;
 		}).when(repository).delete(anyString());
