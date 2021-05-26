@@ -1199,7 +1199,6 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testInterceptedConnection() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -1229,7 +1228,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		socket.close();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(connection.get()).isInstanceOf(HelloWorldInterceptor.class);
-		await().untilAsserted(() -> handler.getConnections().isEmpty());
+		await().untilAsserted(() -> assertThat(handler.getConnections()).isEmpty());
 		scf.stop();
 	}
 
@@ -1258,7 +1257,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.close();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-		await().untilAsserted(() -> handler.getConnections().isEmpty());
+		await().untilAsserted(() -> assertThat(handler.getConnections()).isEmpty());
 		scf.stop();
 	}
 
