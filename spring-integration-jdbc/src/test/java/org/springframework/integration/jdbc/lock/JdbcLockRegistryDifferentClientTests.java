@@ -132,58 +132,56 @@ public class JdbcLockRegistryDifferentClientTests {
 
 	@Test
 	public void testBothLock() throws Exception {
-		for (int i = 0; i < 100; i++) {
-			final JdbcLockRegistry registry1 = this.registry;
-			final JdbcLockRegistry registry2 = this.child.getBean(JdbcLockRegistry.class);
-			final List<String> locked = new ArrayList<>();
-			final CountDownLatch latch = new CountDownLatch(2);
-			ExecutorService pool = Executors.newFixedThreadPool(2);
-			pool.execute(() -> {
-				Lock lock = registry1.obtain("foo");
+		final JdbcLockRegistry registry1 = this.registry;
+		final JdbcLockRegistry registry2 = this.child.getBean(JdbcLockRegistry.class);
+		final List<String> locked = new ArrayList<>();
+		final CountDownLatch latch = new CountDownLatch(2);
+		ExecutorService pool = Executors.newFixedThreadPool(2);
+		pool.execute(() -> {
+			Lock lock = registry1.obtain("foo");
+			try {
+				lock.lockInterruptibly();
+				locked.add("1");
+				latch.countDown();
+			}
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+			}
+			finally {
 				try {
-					lock.lockInterruptibly();
-					locked.add("1");
-					latch.countDown();
+					lock.unlock();
 				}
-				catch (InterruptedException e1) {
-					Thread.currentThread().interrupt();
+				catch (Exception e2) {
+					// ignore
 				}
-				finally {
-					try {
-						lock.unlock();
-					}
-					catch (Exception e2) {
-						// ignore
-					}
-				}
-			});
+			}
+		});
 
-			pool.execute(() -> {
-				Lock lock = registry2.obtain("foo");
+		pool.execute(() -> {
+			Lock lock = registry2.obtain("foo");
+			try {
+				lock.lockInterruptibly();
+				locked.add("2");
+				latch.countDown();
+			}
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+			}
+			finally {
 				try {
-					lock.lockInterruptibly();
-					locked.add("2");
-					latch.countDown();
+					lock.unlock();
 				}
-				catch (InterruptedException e1) {
-					Thread.currentThread().interrupt();
+				catch (Exception e2) {
+					// ignore
 				}
-				finally {
-					try {
-						lock.unlock();
-					}
-					catch (Exception e2) {
-						// ignore
-					}
-				}
-			});
+			}
+		});
 
-			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-			// eventually they both get the lock and release it
-			assertThat(locked.contains("1")).isTrue();
-			assertThat(locked.contains("2")).isTrue();
-			pool.shutdownNow();
-		}
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		// eventually they both get the lock and release it
+		assertThat(locked.contains("1")).isTrue();
+		assertThat(locked.contains("2")).isTrue();
+		pool.shutdownNow();
 	}
 
 	@Test
