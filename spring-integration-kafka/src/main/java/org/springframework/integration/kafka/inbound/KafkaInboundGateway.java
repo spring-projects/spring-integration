@@ -287,7 +287,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 			catch (RuntimeException e) {
 				if (getErrorChannel() != null) {
 					KafkaInboundGateway.this.messagingTemplate.send(getErrorChannel(), buildErrorMessage(null,
-							new ConversionException("Failed to convert to message for: " + record, e)));
+							new ConversionException("Failed to convert to message", record, e)));
 				}
 			}
 			if (message != null) {

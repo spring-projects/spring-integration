@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -449,7 +450,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				setAttributesIfNecessary(record, message);
 			}
 			catch (RuntimeException e) {
-				RuntimeException exception = new ConversionException("Failed to convert to message for: " + record, e);
+				RuntimeException exception = new ConversionException("Failed to convert to message", record, e);
 				sendErrorMessageIfNecessary(null, exception);
 			}
 
@@ -541,7 +542,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				setAttributesIfNecessary(records, message);
 			}
 			catch (RuntimeException e) {
-				Exception exception = new ConversionException("Failed to convert to message for: " + records, e);
+				Exception exception = new ConversionException("Failed to convert to message",
+						records.stream().collect(Collectors.toList()), e);
 				MessageChannel errorChannel = getErrorChannel();
 				if (errorChannel != null) {
 					getMessagingTemplate().send(errorChannel, new ErrorMessage(exception));
