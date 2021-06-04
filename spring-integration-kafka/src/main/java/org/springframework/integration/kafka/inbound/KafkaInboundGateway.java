@@ -48,6 +48,7 @@ import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryCallback;
@@ -285,8 +286,9 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 				setAttributesIfNecessary(record, message);
 			}
 			catch (RuntimeException e) {
-				if (getErrorChannel() != null) {
-					KafkaInboundGateway.this.messagingTemplate.send(getErrorChannel(), buildErrorMessage(null,
+				MessageChannel errorChannel = getErrorChannel();
+				if (errorChannel != null) {
+					KafkaInboundGateway.this.messagingTemplate.send(errorChannel, buildErrorMessage(null,
 							new ConversionException("Failed to convert to message", record, e)));
 				}
 			}
