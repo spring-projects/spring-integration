@@ -4,6 +4,12 @@ Mark Fisher; Marius Bogoevici; Iwein Fuld; Jonas Partner; Oleg Zhurakousky; Gary
 
 ifdef::backend-html5[]
 *{revnumber}*
+
+NOTE: This documentation is also available as https://docs.spring.io/spring-integration/docs/current/reference/html/index.html[multiple (faster to load) HTML pages] and as https://docs.spring.io/spring-integration/docs/current/reference/pdf/spring-integration-reference.pdf[PDF].
+endif::[]
+
+ifdef::backend-pdf[]
+NOTE: This documentation is also available as https://docs.spring.io/spring-integration/docs/current/reference/html/index.html[multiple (faster to load) HTML pages] and as a single https://docs.spring.io/spring-integration/docs/current/reference/html/index-single.html[(more easily searchable) HTML file].
 endif::[]
 
 (C) 2009 - 2021 VMware, Inc.
