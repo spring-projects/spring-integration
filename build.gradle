@@ -94,11 +94,11 @@ ext {
 	rsocketVersion = '1.0.3'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.17.RELEASE'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.18.RELEASE'
 	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-SR9'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.3.9.RELEASE'
 	springRetryVersion = '1.2.5.RELEASE'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.14.RELEASE'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.15.RELEASE'
 	springWsVersion = '3.0.10.RELEASE'
 	tomcatVersion = "9.0.41"
 	xstreamVersion = '1.4.15'
