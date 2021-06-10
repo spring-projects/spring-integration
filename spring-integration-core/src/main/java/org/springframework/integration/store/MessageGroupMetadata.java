@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class MessageGroupMetadata implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private List<UUID> messageIds = new LinkedList<>();
+	private final List<UUID> messageIds = new LinkedList<>();
 
 	private long timestamp;
 
@@ -52,8 +52,7 @@ public class MessageGroupMetadata implements Serializable {
 
 	private volatile String condition;
 
-	private MessageGroupMetadata() {
-		//For Jackson deserialization
+	public MessageGroupMetadata() {
 	}
 
 	public MessageGroupMetadata(MessageGroup messageGroup) {
@@ -79,7 +78,7 @@ public class MessageGroupMetadata implements Serializable {
 		return !this.messageIds.contains(messageId) && this.messageIds.add(messageId);
 	}
 
-	void setLastModified(long lastModified) {
+	public void setLastModified(long lastModified) {
 		this.lastModified = lastModified;
 	}
 
@@ -107,7 +106,7 @@ public class MessageGroupMetadata implements Serializable {
 		return new LinkedList<UUID>(this.messageIds);
 	}
 
-	void complete() {
+	public void complete() {
 		this.complete = true;
 	}
 
@@ -123,11 +122,15 @@ public class MessageGroupMetadata implements Serializable {
 		return this.timestamp;
 	}
 
+	public void setTimestamp(long timestamp) {
+		this.timestamp = timestamp;
+	}
+
 	public int getLastReleasedMessageSequenceNumber() {
 		return this.lastReleasedMessageSequenceNumber;
 	}
 
-	void setLastReleasedMessageSequenceNumber(int lastReleasedMessageSequenceNumber) {
+	public void setLastReleasedMessageSequenceNumber(int lastReleasedMessageSequenceNumber) {
 		this.lastReleasedMessageSequenceNumber = lastReleasedMessageSequenceNumber;
 	}
 

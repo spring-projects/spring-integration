@@ -21,7 +21,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -38,6 +37,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupMetadata;
 import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
@@ -334,11 +334,13 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@Override
 	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
 		String groupKey = getKey(groupId);
-		Map<String, Object> groupInfo = getGroupMetadata(groupKey);
+		MessageGroupMetadata groupMetadata = getGroupMetadata(groupKey);
 
-		Timestamp updatedDate = new Timestamp(System.currentTimeMillis());
-		boolean groupNotExist = groupInfo.isEmpty();
-		Timestamp createdDate = groupNotExist ? updatedDate : (Timestamp) groupInfo.get("CREATED_DATE");
+		boolean groupNotExist = groupMetadata == null;
+		Timestamp createdDate =
+				groupNotExist
+						? new Timestamp(System.currentTimeMillis())
+						: new Timestamp(groupMetadata.getTimestamp());
 
 		for (Message<?> message : messages) {
 			addMessage(message);
@@ -397,28 +399,39 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		String key = getKey(groupId);
-		Map<String, Object> groupInfo = getGroupMetadata(key);
-
-		if (groupInfo.isEmpty()) {
+		MessageGroupMetadata groupMetadata = getGroupMetadata(groupId);
+		if (groupMetadata != null) {
+			MessageGroup messageGroup =
+					getMessageGroupFactory()
+							.create(this, groupId, groupMetadata.getTimestamp(), groupMetadata.isComplete());
+			messageGroup.setLastModified(groupMetadata.getLastModified());
+			messageGroup.setLastReleasedMessageSequenceNumber(groupMetadata.getLastReleasedMessageSequenceNumber());
+			messageGroup.setCondition(groupMetadata.getCondition());
+			return messageGroup;
+		}
+		else {
 			return new SimpleMessageGroup(groupId);
 		}
-
-		MessageGroup messageGroup = getMessageGroupFactory()
-				.create(this, groupId, ((Timestamp) groupInfo.get("CREATED_DATE")).getTime(),
-						((Long) groupInfo.get("COMPLETE")) > 0);
-		messageGroup.setLastModified(((Timestamp) groupInfo.get("UPDATED_DATE")).getTime());
-		messageGroup.setLastReleasedMessageSequenceNumber(((Long) groupInfo.get("LAST_RELEASED_SEQUENCE")).intValue());
-		messageGroup.setCondition((String) groupInfo.get("CONDITION"));
-		return messageGroup;
 	}
 
-	private Map<String, Object> getGroupMetadata(String groupKey) {
+	@Override
+	public MessageGroupMetadata getGroupMetadata(Object groupId) {
+		String key = getKey(groupId);
 		try {
-			return this.jdbcTemplate.queryForMap(getQuery(Query.GET_GROUP_INFO), groupKey, this.region);
+			return this.jdbcTemplate.queryForObject(getQuery(Query.GET_GROUP_INFO), (rs, rowNum) -> {
+				MessageGroupMetadata groupMetadata = new MessageGroupMetadata();
+				if (rs.getInt("COMPLETE") > 0) {
+					groupMetadata.complete();
+				}
+				groupMetadata.setTimestamp(rs.getTimestamp("CREATED_DATE").getTime());
+				groupMetadata.setLastModified(rs.getTimestamp("UPDATED_DATE").getTime());
+				groupMetadata.setLastReleasedMessageSequenceNumber(rs.getInt("LAST_RELEASED_SEQUENCE"));
+				groupMetadata.setCondition(rs.getString("CONDITION"));
+				return groupMetadata;
+			}, key, this.region);
 		}
 		catch (IncorrectResultSizeDataAccessException ex) {
-			return Collections.emptyMap();
+			return null;
 		}
 	}
 
