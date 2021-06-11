@@ -53,7 +53,6 @@ public class SourceService {
     }
 }
 ----
-====
 [source, kotlin, role="secondary"]
 .Kotlin DSL
 ----
@@ -63,8 +62,6 @@ fun messageSourceFlow() =
                     { poller { it.fixedRate(5000) } }) {
         ...
     }
-----
-====
 ----
 [source, xml, role="secondary"]
 .XML
@@ -157,7 +154,6 @@ public class MyPojo {
 
 }
 ----
-====
 [source, kotlin, role="secondary"]
 .Kotlin DSL
 ----
@@ -166,8 +162,6 @@ fun outboundChannelAdapterFlow(myPojo: MyPojo) =
     integrationFlow {
         handle(myPojo, "handle")
     }
-----
-====
 ----
 [source, xml, role="secondary"]
 .XML
