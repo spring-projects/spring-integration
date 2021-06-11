@@ -99,7 +99,12 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 
 				BeanDefinitionReaderUtils.registerWithGeneratedName(
 						new RootBeanDefinition(IntegrationDynamicWebSocketHandlerMapping.class,
-								IntegrationDynamicWebSocketHandlerMapping::new),
+								() -> {
+									IntegrationDynamicWebSocketHandlerMapping dynamicWebSocketHandlerMapping =
+											new IntegrationDynamicWebSocketHandlerMapping();
+									dynamicWebSocketHandlerMapping.setOrder(0);
+									return dynamicWebSocketHandlerMapping;
+								}),
 						registry);
 
 				BeanDefinitionBuilder enableWebSocketBuilder =
