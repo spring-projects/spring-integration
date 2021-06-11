@@ -430,3 +430,5 @@ dynamicServerFlow.destroy();
 
 NOTE: It is important to call `.addBean(serverWebSocketContainer)` on the dynamic flow registration to add the instance of `ServerWebSocketContainer` into an `ApplicationContext` for endpoint registration.
 When a dynamic flow registration is destroyed, the associated `ServerWebSocketContainer` instance is destroyed, too, as well as the respective endpoint registration, including URL path mappings.
+
+IMPORTANT: The dynamic Websocket endpoints can only be registered via Spring Integration mechanism: when regular Spring `@EnableWebsocket` is used, Spring Integration configuration backs off and no infrastructure for dynamic endpoints is registered.
