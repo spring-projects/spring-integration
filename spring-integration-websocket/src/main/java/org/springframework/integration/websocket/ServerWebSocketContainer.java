@@ -22,7 +22,6 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.util.JavaUtils;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.socket.WebSocketHandler;
@@ -134,6 +133,13 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 		this.sockJsServiceOptions = sockJsServiceOptions;
 	}
 
+	/**
+	 * Configure a {@link TaskScheduler} for SockJS fallback service.
+	 * This is an alternative for default SockJS service scheduler
+	 * when Websocket endpoint (this server container) is registered at runtime.
+	 * @param sockJsTaskScheduler the {@link TaskScheduler} for SockJS fallback service.
+	 * @since 5.5.1
+	 */
 	public void setSockJsTaskScheduler(TaskScheduler sockJsTaskScheduler) {
 		this.sockJsTaskScheduler = sockJsTaskScheduler;
 	}
