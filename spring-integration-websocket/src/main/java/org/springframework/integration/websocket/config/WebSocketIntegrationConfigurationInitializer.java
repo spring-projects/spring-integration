@@ -35,6 +35,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.socket.config.annotation.DelegatingWebSocketConfiguration;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 /**
  * The WebSocket Integration infrastructure {@code beanFactory} initializer.
@@ -102,6 +103,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 								() -> {
 									IntegrationDynamicWebSocketHandlerMapping dynamicWebSocketHandlerMapping =
 											new IntegrationDynamicWebSocketHandlerMapping();
+									dynamicWebSocketHandlerMapping.setPatternParser(new PathPatternParser());
 									dynamicWebSocketHandlerMapping.setOrder(0);
 									return dynamicWebSocketHandlerMapping;
 								}),
@@ -143,9 +145,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 						.values()
 						.forEach(configurer -> configurer.registerWebSocketHandlers(this.registry));
 			}
-			if (this.registry.requiresTaskScheduler()) {
-				this.registry.setTaskScheduler(this.sockJsTaskScheduler);
-			}
+			this.registry.setTaskScheduler(this.sockJsTaskScheduler);
 			return this.registry.getHandlerMapping();
 		}
 
