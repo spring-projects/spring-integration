@@ -37,7 +37,7 @@ import org.springframework.core.annotation.AliasFor;
  * The result {@link org.springframework.messaging.Message} will be sent to the provided {@link #value()}.
  * <p>
  * {@code @InboundChannelAdapter} is an analogue of {@code <int:inbound-channel-adapter/>}. With that
- * the {@link org.springframework.integration.scheduling.PollerMetadata} is required to to initiate
+ * the {@link org.springframework.integration.scheduling.PollerMetadata} is required to initiate
  * the method invocation. Or {@link #poller()} should be provided, or the
  * {@link org.springframework.integration.scheduling.PollerMetadata#DEFAULT_POLLER} bean has to be configured
  * in the application context.
