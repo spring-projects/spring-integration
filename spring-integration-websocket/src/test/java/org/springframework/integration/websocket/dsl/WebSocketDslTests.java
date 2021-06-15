@@ -69,7 +69,8 @@ public class WebSocketDslTests {
 		IntegrationFlowContext serverIntegrationFlowContext = serverContext.getBean(IntegrationFlowContext.class);
 		ServerWebSocketContainer serverWebSocketContainer =
 				new ServerWebSocketContainer("/dynamic")
-						.setHandshakeHandler(serverContext.getBean(HandshakeHandler.class));
+						.setHandshakeHandler(serverContext.getBean(HandshakeHandler.class))
+						.withSockJs();
 
 		WebSocketInboundChannelAdapter webSocketInboundChannelAdapter =
 				new WebSocketInboundChannelAdapter(serverWebSocketContainer);
@@ -88,7 +89,7 @@ public class WebSocketDslTests {
 
 		// Dynamic client flow
 		ClientWebSocketContainer clientWebSocketContainer =
-				new ClientWebSocketContainer(this.webSocketClient, this.server.getWsBaseUrl() + "/dynamic");
+				new ClientWebSocketContainer(this.webSocketClient, this.server.getWsBaseUrl() + "/dynamic/websocket");
 		clientWebSocketContainer.setAutoStartup(true);
 		WebSocketOutboundMessageHandler webSocketOutboundMessageHandler =
 				new WebSocketOutboundMessageHandler(clientWebSocketContainer);
