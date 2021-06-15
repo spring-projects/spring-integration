@@ -46,9 +46,13 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistra
 class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandlerRegistry
 		implements ApplicationContextAware, DestructionAwareBeanPostProcessor {
 
+	private final ThreadLocal<IntegrationDynamicWebSocketHandlerRegistration> currentRegistration = new ThreadLocal<>();
+
 	private final Map<WebSocketHandler, List<String>> dynamicRegistrations = new HashMap<>();
 
 	private ApplicationContext applicationContext;
+
+	private TaskScheduler sockJsTaskScheduler;
 
 	private volatile IntegrationDynamicWebSocketHandlerMapping dynamicHandlerMapping;
 
@@ -60,15 +64,10 @@ class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandler
 		this.applicationContext = applicationContext;
 	}
 
-
 	@Override
-	protected boolean requiresTaskScheduler() { // NOSONAR visibility
-		return super.requiresTaskScheduler();
-	}
-
-	@Override
-	protected void setTaskScheduler(TaskScheduler scheduler) { // NOSONAR visibility
+	protected void setTaskScheduler(TaskScheduler scheduler) {
 		super.setTaskScheduler(scheduler);
+		this.sockJsTaskScheduler = scheduler;
 	}
 
 	@Override
@@ -85,15 +84,7 @@ class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandler
 			IntegrationDynamicWebSocketHandlerRegistration registration =
 					new IntegrationDynamicWebSocketHandlerRegistration();
 			registration.addHandler(handler, paths);
-			MultiValueMap<HttpRequestHandler, String> mappings = registration.getMapping();
-			for (Map.Entry<HttpRequestHandler, List<String>> entry : mappings.entrySet()) {
-				HttpRequestHandler httpHandler = entry.getKey();
-				List<String> patterns = entry.getValue();
-				this.dynamicRegistrations.put(handler, patterns);
-				for (String pattern : patterns) {
-					this.dynamicHandlerMapping.registerHandler(pattern, httpHandler);
-				}
-			}
+			this.currentRegistration.set(registration);
 			return registration;
 		}
 		else {
@@ -102,9 +93,24 @@ class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandler
 	}
 
 	@Override
-	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (this.dynamicHandlerMapping != null && bean instanceof ServerWebSocketContainer) {
-			((ServerWebSocketContainer) bean).registerWebSocketHandlers(this);
+			ServerWebSocketContainer serverWebSocketContainer = (ServerWebSocketContainer) bean;
+			if (serverWebSocketContainer.getSockJsTaskScheduler() == null) {
+				serverWebSocketContainer.setSockJsTaskScheduler(this.sockJsTaskScheduler);
+			}
+			serverWebSocketContainer.registerWebSocketHandlers(this);
+			IntegrationDynamicWebSocketHandlerRegistration registration = this.currentRegistration.get();
+			this.currentRegistration.remove();
+			MultiValueMap<HttpRequestHandler, String> mappings = registration.getMapping();
+			for (Map.Entry<HttpRequestHandler, List<String>> entry : mappings.entrySet()) {
+				HttpRequestHandler httpHandler = entry.getKey();
+				List<String> patterns = entry.getValue();
+				this.dynamicRegistrations.put(registration.handler, patterns);
+				for (String pattern : patterns) {
+					this.dynamicHandlerMapping.registerHandler(pattern, httpHandler);
+				}
+			}
 		}
 		return bean;
 	}
@@ -132,6 +138,15 @@ class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandler
 
 	private static final class IntegrationDynamicWebSocketHandlerRegistration
 			extends ServletWebSocketHandlerRegistration {
+
+		private WebSocketHandler handler;
+
+		@Override
+		public WebSocketHandlerRegistration addHandler(WebSocketHandler handler, String... paths) {
+			// The IntegrationWebSocketContainer comes only with a single WebSocketHandler
+			this.handler = handler;
+			return super.addHandler(handler, paths);
+		}
 
 		MultiValueMap<HttpRequestHandler, String> getMapping() {
 			return getMappings();

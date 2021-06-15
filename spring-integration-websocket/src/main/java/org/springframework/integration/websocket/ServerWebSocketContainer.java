@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
 
 /**
  * The {@link IntegrationWebSocketContainer} implementation for the {@code server}
- * {@link org.springframework.web.socket.WebSocketHandler} registration.
+ * {@link WebSocketHandler} registration.
  * <p>
  * Registers an internal {@code IntegrationWebSocketContainer.IntegrationWebSocketHandler}
  * for provided {@link #paths} with the {@link WebSocketHandlerRegistry}.
@@ -68,6 +68,8 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	private boolean autoStartup = true;
 
 	private int phase = 0;
+
+	private TaskScheduler sockJsTaskScheduler;
 
 	public ServerWebSocketContainer(String... paths) {
 		Assert.notEmpty(paths, "'paths' must not be empty");
@@ -118,17 +120,32 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 
 	public ServerWebSocketContainer withSockJs(SockJsServiceOptions... sockJsServiceOptions) {
 		if (ObjectUtils.isEmpty(sockJsServiceOptions)) {
-			this.sockJsServiceOptions = new SockJsServiceOptions();
+			setSockJsServiceOptions(new SockJsServiceOptions());
 		}
 		else {
 			Assert.state(sockJsServiceOptions.length == 1, "Only one 'sockJsServiceOptions' is applicable.");
-			this.sockJsServiceOptions = sockJsServiceOptions[0];
+			setSockJsServiceOptions(sockJsServiceOptions[0]);
 		}
 		return this;
 	}
 
 	public void setSockJsServiceOptions(SockJsServiceOptions sockJsServiceOptions) {
 		this.sockJsServiceOptions = sockJsServiceOptions;
+	}
+
+	/**
+	 * Configure a {@link TaskScheduler} for SockJS fallback service.
+	 * This is an alternative for default SockJS service scheduler
+	 * when Websocket endpoint (this server container) is registered at runtime.
+	 * @param sockJsTaskScheduler the {@link TaskScheduler} for SockJS fallback service.
+	 * @since 5.5.1
+	 */
+	public void setSockJsTaskScheduler(TaskScheduler sockJsTaskScheduler) {
+		this.sockJsTaskScheduler = sockJsTaskScheduler;
+	}
+
+	public TaskScheduler getSockJsTaskScheduler() {
+		return this.sockJsTaskScheduler;
 	}
 
 	@Override
@@ -153,6 +170,8 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 		if (this.sockJsServiceOptions != null) {
 			SockJsServiceRegistration sockJsServiceRegistration = registration.withSockJS();
 			JavaUtils.INSTANCE
+					.acceptIfCondition(this.sockJsServiceOptions.taskScheduler == null,
+							this.sockJsTaskScheduler, this.sockJsServiceOptions::setTaskScheduler)
 					.acceptIfNotNull(this.sockJsServiceOptions.webSocketEnabled,
 							sockJsServiceRegistration::setWebSocketEnabled)
 					.acceptIfNotNull(this.sockJsServiceOptions.clientLibraryUrl,
@@ -226,7 +245,7 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	}
 
 	/**
-	 * @see org.springframework.web.socket.config.annotation.SockJsServiceRegistration
+	 * @see SockJsServiceRegistration
 	 */
 	public static class SockJsServiceOptions {
 
