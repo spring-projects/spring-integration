@@ -395,7 +395,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testThreadLocalListLeaks() {
-		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 100);
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 10000);
 
 		for (int i = 0; i < 10; i++) {
 			registry.obtain("foo" + i);
