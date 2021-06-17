@@ -28,14 +28,13 @@ import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.servlet.HandlerExecutionChain;
-import org.springframework.web.servlet.handler.AbstractHandlerMapping;
 import org.springframework.web.servlet.handler.AbstractUrlHandlerMapping;
 import org.springframework.web.util.ServletRequestPathUtils;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
 /**
- * The {@link AbstractHandlerMapping} implementation for dynamic WebSocket endpoint registrations in Spring Integration.
+ * The {@link AbstractUrlHandlerMapping} implementation for dynamic WebSocket endpoint registrations in Spring Integration.
  * <p>
  * TODO until https://github.com/spring-projects/spring-framework/issues/26798
  *
