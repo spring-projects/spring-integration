@@ -100,27 +100,18 @@ public class ZeroMqMessageHandlerTests {
 		messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
 		messageHandler.afterPropertiesSet();
 
-		ZMQ.Poller poller = CONTEXT.createPoller(1);
-		poller.register(subSocket, ZMQ.Poller.POLLIN);
-
 		Message<?> testMessage = MessageBuilder.withPayload("test").setHeader("topic", "testTopic").build();
-		messageHandler.handleMessage(testMessage).subscribe();
 
-		while (true) {
-			poller.poll(10000);
-			if (poller.pollin(0)) {
-				ZMsg msg = ZMsg.recvMsg(subSocket);
-				assertThat(msg).isNotNull();
-				assertThat(msg.unwrap().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
-				Message<?> capturedMessage = new EmbeddedJsonHeadersMessageMapper().toMessage(msg.getFirst().getData());
-				assertThat(capturedMessage).isEqualTo(testMessage);
-				msg.destroy();
-				break;
-			}
-		}
+		await().untilAsserted(() -> {
+			messageHandler.handleMessage(testMessage).subscribe();
+			ZMsg msg = ZMsg.recvMsg(subSocket);
+			assertThat(msg).isNotNull();
+			assertThat(msg.unwrap().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
+			Message<?> capturedMessage = new EmbeddedJsonHeadersMessageMapper().toMessage(msg.getFirst().getData());
+			assertThat(capturedMessage).isEqualTo(testMessage);
+			msg.destroy();
+		});
 
-		poller.unregister(subSocket);
-		poller.close();
 		messageHandler.destroy();
 		subSocket.close();
 	}
