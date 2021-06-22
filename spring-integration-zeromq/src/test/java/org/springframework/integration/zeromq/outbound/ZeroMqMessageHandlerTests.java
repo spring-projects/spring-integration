@@ -102,7 +102,8 @@ public class ZeroMqMessageHandlerTests {
 
 		Message<?> testMessage = MessageBuilder.withPayload("test").setHeader("topic", "testTopic").build();
 
-		await().untilAsserted(() -> {
+		await().atMost(Duration.ofSeconds(20)).pollDelay(Duration.ofMillis(100))
+				.untilAsserted(() -> {
 			messageHandler.handleMessage(testMessage).subscribe();
 			ZMsg msg = ZMsg.recvMsg(subSocket);
 			assertThat(msg).isNotNull();
