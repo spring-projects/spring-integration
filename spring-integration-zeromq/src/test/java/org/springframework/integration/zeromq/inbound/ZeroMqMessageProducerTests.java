@@ -94,10 +94,11 @@ public class ZeroMqMessageProducerTests {
 	}
 
 	@Test
-	void testMessageProducerForPubSubReceiveRaw() throws InterruptedException {
+	void testMessageProducerForPubSubReceiveRaw() {
 		String socketAddress = "inproc://messageProducer.test";
-		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.PUB);
+		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.XPUB);
 		socket.bind(socketAddress);
+		socket.setReceiveTimeOut(10_000);
 
 		FluxMessageChannel outputChannel = new FluxMessageChannel();
 
@@ -126,8 +127,7 @@ public class ZeroMqMessageProducerTests {
 		messageProducer.afterPropertiesSet();
 		messageProducer.start();
 
-		// Give it some time to connect and subscribe
-		Thread.sleep(2000);
+		assertThat(socket.recv()).isNotNull();
 
 		ZMsg msg = ZMsg.newStringMsg("test");
 		msg.wrap(new ZFrame("testTopic"));
@@ -135,8 +135,7 @@ public class ZeroMqMessageProducerTests {
 
 		messageProducer.subscribeToTopics("other");
 
-		// Give it some time to connect and subscribe
-		Thread.sleep(2000);
+		assertThat(socket.recv()).isNotNull();
 
 		msg = ZMsg.newStringMsg("test");
 		msg.wrap(new ZFrame("otherTopic"));
