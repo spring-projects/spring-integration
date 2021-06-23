@@ -27,6 +27,7 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.batch.BatchingStrategy;
 import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareBatchMessageListener;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.retry.MessageBatchRecoverer;
@@ -102,7 +103,9 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
-	private final AbstractMessageListenerContainer messageListenerContainer;
+	private final MessageListenerContainer messageListenerContainer;
+
+	private final AbstractMessageListenerContainer abstractListenerContainer;
 
 	private MessageConverter messageConverter = new SimpleMessageConverter();
 
@@ -120,7 +123,11 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	private BatchMode batchMode = BatchMode.MESSAGES;
 
-	public AmqpInboundChannelAdapter(AbstractMessageListenerContainer listenerContainer) {
+	/**
+	 * Construct an instance using the provided container.
+	 * @param listenerContainer the container.
+	 */
+	public AmqpInboundChannelAdapter(MessageListenerContainer listenerContainer) {
 		Assert.notNull(listenerContainer, "listenerContainer must not be null");
 		Assert.isNull(listenerContainer.getMessageListener(),
 				"The listenerContainer provided to an AMQP inbound Channel Adapter " +
@@ -129,6 +136,9 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		this.messageListenerContainer = listenerContainer;
 		this.messageListenerContainer.setAutoStartup(false);
 		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
+		this.abstractListenerContainer = listenerContainer instanceof AbstractMessageListenerContainer
+				? (AbstractMessageListenerContainer) listenerContainer
+				: null;
 	}
 
 
@@ -230,7 +240,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		else {
 			messageListener = new Listener();
 		}
-		this.messageListenerContainer.setMessageListener(messageListener);
+		this.messageListenerContainer.setupMessageListener(messageListener);
 		this.messageListenerContainer.afterPropertiesSet();
 		super.onInit();
 	}
@@ -330,8 +340,11 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 		protected final MessageConverter converter = AmqpInboundChannelAdapter.this.messageConverter; // NOSONAR
 
-		protected final boolean manualAcks = // NNOSONAR
-				AcknowledgeMode.MANUAL == AmqpInboundChannelAdapter.this.messageListenerContainer.getAcknowledgeMode();
+		protected final boolean manualAcks = // NOSONAR
+				AmqpInboundChannelAdapter.this.abstractListenerContainer == null
+						? false
+						: AcknowledgeMode.MANUAL == AmqpInboundChannelAdapter.this.abstractListenerContainer
+								.getAcknowledgeMode();
 
 		protected final RetryOperations retryOps = AmqpInboundChannelAdapter.this.retryTemplate; // NOSONAR
 
