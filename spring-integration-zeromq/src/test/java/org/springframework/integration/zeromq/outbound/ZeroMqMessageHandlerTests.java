@@ -90,7 +90,6 @@ public class ZeroMqMessageHandlerTests {
 		ZMQ.Socket subSocket = CONTEXT.createSocket(SocketType.SUB);
 		subSocket.setReceiveTimeOut(20_000);
 		int port = subSocket.bindToRandomPort("tcp://*");
-		subSocket.subscribe("test");
 
 		ZeroMqMessageHandler messageHandler =
 				new ZeroMqMessageHandler(CONTEXT, "tcp://localhost:" + port, SocketType.PUB);
@@ -104,14 +103,16 @@ public class ZeroMqMessageHandlerTests {
 
 		await().atMost(Duration.ofSeconds(20)).pollDelay(Duration.ofMillis(100))
 				.untilAsserted(() -> {
-			messageHandler.handleMessage(testMessage).subscribe();
-			ZMsg msg = ZMsg.recvMsg(subSocket);
-			assertThat(msg).isNotNull();
-			assertThat(msg.unwrap().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
-			Message<?> capturedMessage = new EmbeddedJsonHeadersMessageMapper().toMessage(msg.getFirst().getData());
-			assertThat(capturedMessage).isEqualTo(testMessage);
-			msg.destroy();
-		});
+					subSocket.subscribe("test");
+					messageHandler.handleMessage(testMessage).subscribe();
+					ZMsg msg = ZMsg.recvMsg(subSocket);
+					assertThat(msg).isNotNull();
+					assertThat(msg.unwrap().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
+					Message<?> capturedMessage =
+							new EmbeddedJsonHeadersMessageMapper().toMessage(msg.getFirst().getData());
+					assertThat(capturedMessage).isEqualTo(testMessage);
+					msg.destroy();
+				});
 
 		messageHandler.destroy();
 		subSocket.close();
