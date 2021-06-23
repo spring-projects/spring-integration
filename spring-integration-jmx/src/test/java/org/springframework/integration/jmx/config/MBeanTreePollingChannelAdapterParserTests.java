@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ import java.util.Map;
 import javax.management.ObjectName;
 import javax.management.QueryExp;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,8 +34,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Stuart Williams
@@ -44,8 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Artem Bilan
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class MBeanTreePollingChannelAdapterParserTests {
 
@@ -103,39 +100,39 @@ public class MBeanTreePollingChannelAdapterParserTests {
 	private final long testTimeout = 20000L;
 
 	@Test
-	public void pollDefaultAdapter() throws Exception {
+	public void pollDefaultAdapter() {
 		adapterDefault.start();
 
 		Message<?> result = channel1.receive(testTimeout);
-		assertThat(result).isNotNull();
-
-		assertThat(result.getPayload().getClass()).isEqualTo(HashMap.class);
+		assertThat(result)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(HashMap.class);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
 		// test for a couple of MBeans
-		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isTrue();
-		assertThat(beans.containsKey("java.lang:type=Runtime")).isTrue();
+		assertThat(beans).containsKeys("java.lang:type=OperatingSystem", "java.lang:type=Runtime");
 
 		adapterDefault.stop();
 	}
 
 	@Test
-	public void pollInnerAdapter() throws Exception {
+	public void pollInnerAdapter() {
 		adapterInner.start();
 
 		Message<?> result = channel2.receive(testTimeout);
-		assertThat(result).isNotNull();
-
-		assertThat(result.getPayload().getClass()).isEqualTo(HashMap.class);
+		assertThat(result)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(HashMap.class);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
 		// test for a couple of MBeans
-		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isTrue();
-		assertThat(beans.containsKey("java.lang:type=Runtime")).isTrue();
+		assertThat(beans).containsKeys("java.lang:type=OperatingSystem", "java.lang:type=Runtime");
 
 		adapterInner.stop();
 	}
@@ -151,73 +148,80 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertThat(queryExp.apply(new ObjectName("java.lang:type=Runtime"))).isTrue();
 
 		Message<?> result = channel3.receive(testTimeout);
-		assertThat(result).isNotNull();
-
-		assertThat(result.getPayload().getClass()).isEqualTo(HashMap.class);
+		assertThat(result)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(HashMap.class);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
 		// test for a couple of MBeans
-		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isFalse();
-		assertThat(beans.containsKey("java.lang:type=Runtime")).isTrue();
+		assertThat(beans)
+				.containsKey("java.lang:type=Runtime")
+				.doesNotContainKey("java.lang:type=OperatingSystem");
 
 		adapterQueryName.stop();
 	}
 
 	@Test
-	public void pollQueryNameBeanAdapter() throws Exception {
+	public void pollQueryNameBeanAdapter() {
 		adapterQueryNameBean.start();
 
 		Message<?> result = channel4.receive(testTimeout);
-		assertThat(result).isNotNull();
-
-		assertThat(result.getPayload().getClass()).isEqualTo(HashMap.class);
+		assertThat(result)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(HashMap.class);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
 		// test for a couple of MBeans
-		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isTrue();
-		assertThat(beans.containsKey("java.lang:type=Runtime")).isFalse();
+		assertThat(beans)
+				.containsKey("java.lang:type=OperatingSystem")
+				.doesNotContainKey("java.lang:type=Runtime");
 
 		adapterQueryNameBean.stop();
 	}
 
 	@Test
-	public void pollQueryExprBeanAdapter() throws Exception {
+	public void pollQueryExprBeanAdapter() {
 		adapterQueryExprBean.start();
 
 		Message<?> result = channel5.receive(testTimeout);
-		assertThat(result).isNotNull();
-
-		assertThat(result.getPayload().getClass()).isEqualTo(HashMap.class);
+		assertThat(result)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(HashMap.class);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
 		// test for a couple of MBeans
-		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isFalse();
-		assertThat(beans.containsKey("java.lang:type=Runtime")).isTrue();
+		assertThat(beans)
+				.containsKey("java.lang:type=Runtime")
+				.doesNotContainKey("java.lang:type=OperatingSystem");
 
 		adapterQueryExprBean.stop();
 	}
 
 	@Test
-	public void pollConverterAdapter() throws Exception {
+	public void pollConverterAdapter() {
 		adapterConverter.start();
 
 		Message<?> result = channel6.receive(testTimeout);
-		assertThat(result).isNotNull();
+		assertThat(result)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(HashMap.class);
 
-		assertThat(result.getPayload().getClass()).isEqualTo(HashMap.class);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
 		// test for a couple of MBeans
-		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isTrue();
-		assertThat(beans.containsKey("java.lang:type=Runtime")).isTrue();
+		assertThat(beans).containsKeys("java.lang:type=OperatingSystem", "java.lang:type=Runtime");
 
 		adapterConverter.stop();
 		assertThat(TestUtils.getPropertyValue(adapterConverter, "source.converter")).isSameAs(converter);
