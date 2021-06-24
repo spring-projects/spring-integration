@@ -367,10 +367,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 														fluxSink.complete();
 													}
 												})
-												.limitRequest(
+												.take(
 														this.maxMessagesPerPoll < 0
 																? Long.MAX_VALUE
-																: this.maxMessagesPerPoll)
+																: this.maxMessagesPerPoll,
+														true)
 												.subscribeOn(Schedulers.fromExecutor(this.taskExecutor))
 												.doOnComplete(() ->
 														triggerContext

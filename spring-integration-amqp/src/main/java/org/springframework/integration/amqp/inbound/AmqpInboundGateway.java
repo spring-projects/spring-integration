@@ -29,6 +29,7 @@ import org.springframework.amqp.rabbit.batch.BatchingStrategy;
 import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -67,7 +68,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
-	private final AbstractMessageListenerContainer messageListenerContainer;
+	private final MessageListenerContainer messageListenerContainer;
+
+	private final AbstractMessageListenerContainer abstractListenerContainer;
 
 	private final AmqpTemplate amqpTemplate;
 
@@ -96,17 +99,17 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	}
 
 	/**
-	 * Construct {@link AmqpInboundGateway} based on the provided {@link AbstractMessageListenerContainer}
+	 * Construct {@link AmqpInboundGateway} based on the provided {@link MessageListenerContainer}
 	 * to receive request messages and {@link AmqpTemplate} to send replies.
-	 * @param listenerContainer the {@link AbstractMessageListenerContainer} to receive AMQP messages.
+	 * @param listenerContainer the {@link MessageListenerContainer} to receive AMQP messages.
 	 * @param amqpTemplate the {@link AmqpTemplate} to send reply messages.
 	 * @since 4.2
 	 */
-	public AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
+	public AmqpInboundGateway(MessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
 		this(listenerContainer, amqpTemplate, true);
 	}
 
-	private AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate,
+	private AmqpInboundGateway(MessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate,
 			boolean amqpTemplateExplicitlySet) {
 		Assert.notNull(listenerContainer, "listenerContainer must not be null");
 		Assert.notNull(amqpTemplate, "'amqpTemplate' must not be null");
@@ -122,6 +125,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			this.templateMessageConverter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 		}
 		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
+		this.abstractListenerContainer = listenerContainer instanceof AbstractMessageListenerContainer
+				? (AbstractMessageListenerContainer) listenerContainer
+				: null;
 	}
 
 
@@ -241,7 +247,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					+ "send an error message when retries are exhausted");
 		}
 		Listener messageListener = new Listener();
-		this.messageListenerContainer.setMessageListener(messageListener);
+		this.messageListenerContainer.setupMessageListener(messageListener);
 		this.messageListenerContainer.afterPropertiesSet();
 		if (!this.amqpTemplateExplicitlySet) {
 			((RabbitTemplate) this.amqpTemplate).afterPropertiesSet();
@@ -336,8 +342,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		private org.springframework.messaging.Message<Object> convert(Message message, Channel channel) {
 			Map<String, Object> headers;
 			Object payload;
-			boolean isManualAck =
-					AmqpInboundGateway.this.messageListenerContainer.getAcknowledgeMode() == AcknowledgeMode.MANUAL;
+			boolean isManualAck = AmqpInboundGateway.this.abstractListenerContainer == null
+					? false
+					: AcknowledgeMode.MANUAL == AmqpInboundGateway.this.abstractListenerContainer.getAcknowledgeMode();
 			try {
 				if (AmqpInboundGateway.this.batchingStrategy.canDebatch(message.getMessageProperties())) {
 					List<Object> payloads = new ArrayList<>();
