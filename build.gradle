@@ -46,15 +46,15 @@ ext {
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.16.1'
-	apacheSshdVersion = '2.6.0'
+	activeMqVersion = '5.16.2'
+	apacheSshdVersion = '2.7.0'
 	aspectjVersion = '1.9.6'
-	assertjVersion = '3.19.0'
+	assertjVersion = '3.20.2'
 	assertkVersion = '0.24'
 	avroVersion = '1.10.2'
-	awaitilityVersion = '4.0.3'
+	awaitilityVersion = '4.1.0'
 	commonsDbcp2Version = '2.8.0'
-	commonsIoVersion = '2.8.0'
+	commonsIoVersion = '2.10.0'
 	commonsNetVersion = '3.8.0'
 	curatorVersion = '4.3.0'
 	derbyVersion = '10.14.2.0'
@@ -64,7 +64,7 @@ ext {
 	groovyVersion = '3.0.8'
 	hamcrestVersion = '2.2'
 	hazelcastVersion = '4.2'
-	hibernateVersion = '5.4.31.Final'
+	hibernateVersion = '5.5.3.Final'
 	hsqldbVersion = '2.6.0'
 	h2Version = '1.4.200'
 	jacksonVersion = '2.12.3'
@@ -73,39 +73,39 @@ ext {
 	jeroMqVersion = '0.5.2'
 	jmsApiVersion = '2.0.1'
 	jpaApiVersion = '2.7.7'
-	jrubyVersion = '9.2.17.0'
+	jrubyVersion = '9.2.19.0'
 	jschVersion = '0.1.55'
-	jsonpathVersion = '2.5.0'
+	jsonpathVersion = '2.6.0'
 	junit4Version = '4.13.2'
 	junitJupiterVersion = '5.7.2'
 	jythonVersion = '2.7.2'
 	kryoShadedVersion = '4.0.2'
-    lettuceVersion = '6.1.2.RELEASE'
+    lettuceVersion = '6.1.3.RELEASE'
 	log4jVersion = '2.14.1'
 	mailVersion = '1.6.7'
-	micrometerVersion = '1.7.0'
-	mockitoVersion = '3.10.0'
+	micrometerVersion = '1.7.1'
+	mockitoVersion = '3.11.2'
 	mongoDriverVersion = '4.2.3'
-	mysqlVersion = '8.0.23'
+	mysqlVersion = '8.0.25'
 	pahoMqttClientVersion = '1.2.5'
-	postgresVersion = '42.2.19'
+	postgresVersion = '42.2.22'
 	r2dbch2Version='0.8.4.RELEASE'
 	reactorVersion = '2020.0.7'
 	resilience4jVersion = '1.7.0'
 	romeToolsVersion = '1.15.0'
-	rsocketVersion = '1.1.0'
+	rsocketVersion = '1.1.1'
 	saajVersion = '1.5.2'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.10-SNAPSHOT'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.1'
-	springKafkaVersion = '2.7.2-SNAPSHOT'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.2'
+	springKafkaVersion = '2.7.3'
 	springRetryVersion = '1.3.1'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.0'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.7'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.1'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.8'
 	springWsVersion = '3.1.1'
-	tomcatVersion = '9.0.46'
+	tomcatVersion = '9.0.48'
 	xmlUnitVersion = '2.8.2'
 	xstreamVersion = '1.4.17'
 
@@ -223,7 +223,7 @@ configure(javaProjects) { subproject ->
 	}
 
 	jacoco {
-		toolVersion = '0.8.6'
+		toolVersion = '0.8.7'
 	}
 
 	// dependencies that are common across all java projects
@@ -342,7 +342,7 @@ configure(javaProjects) { subproject ->
 
 	checkstyle {
 		configDirectory.set(rootProject.file('src/checkstyle'))
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.42'
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.43'
 	}
 
 	jar {
