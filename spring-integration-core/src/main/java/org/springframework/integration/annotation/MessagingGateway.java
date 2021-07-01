@@ -45,7 +45,6 @@ import org.springframework.stereotype.Indexed;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Documented
 @Indexed
 public @interface MessagingGateway {
 

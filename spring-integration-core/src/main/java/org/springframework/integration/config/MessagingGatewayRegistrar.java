@@ -199,7 +199,10 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 			Set<String> chain = importingClassMetadata.getMetaAnnotationTypes(ann);
 			if (chain.contains(MessagingGateway.class.getName())) {
 				for (String meta : chain) {
-					valuesHierarchy.add(importingClassMetadata.getAllAnnotationAttributes(meta));
+					MultiValueMap<String, Object> attributes = importingClassMetadata.getAllAnnotationAttributes(meta);
+					if (attributes != null) {
+						valuesHierarchy.add(attributes);
+					}
 				}
 			}
 		}
