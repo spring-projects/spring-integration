@@ -537,6 +537,7 @@ project('spring-integration-http') {
 		api 'org.springframework:spring-webmvc'
 		providedImplementation "javax.servlet:javax.servlet-api:$servletApiVersion"
 		optionalApi "com.rometools:rome:$romeToolsVersion"
+		optionalApi 'org.springframework:spring-webflux'
 
 		testImplementation project(':spring-integration-security')
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"

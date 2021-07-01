@@ -32,6 +32,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -43,8 +44,6 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.graph.IntegrationGraphServer;
 import org.springframework.integration.http.management.IntegrationGraphController;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Registers the necessary beans for {@link EnableIntegrationGraphController}.
@@ -54,7 +53,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  *
  * @since 4.3
  */
-class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistrar {
+public class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistrar {
 
 	private static final Log LOGGER = LogFactory.getLog(IntegrationGraphControllerRegistrar.class);
 
@@ -81,10 +80,21 @@ class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistr
 		String path = (String) annotationAttributes.get("value");
 		String[] allowedOrigins = (String[]) annotationAttributes.get("allowedOrigins");
 		if (allowedOrigins != null && allowedOrigins.length > 0) {
-			AbstractBeanDefinition controllerCorsConfigurer =
-					new RootBeanDefinition(IntegrationGraphCorsConfigurer.class,
-							() -> new IntegrationGraphCorsConfigurer(path, allowedOrigins));
-			BeanDefinitionReaderUtils.registerWithGeneratedName(controllerCorsConfigurer, registry);
+			AbstractBeanDefinition controllerCorsConfigurer = null;
+			if (HttpContextUtils.WEB_MVC_PRESENT) {
+				controllerCorsConfigurer = webMvcControllerCorsConfigurerBean(path, allowedOrigins);
+			}
+			else if (HttpContextUtils.WEB_FLUX_PRESENT) {
+				controllerCorsConfigurer = webFluxControllerCorsConfigurerBean(path, allowedOrigins);
+			}
+
+			if (controllerCorsConfigurer != null) {
+				BeanDefinitionReaderUtils.registerWithGeneratedName(controllerCorsConfigurer, registry);
+			}
+			else {
+				LOGGER.warn("Nor Spring MVC, neither WebFlux is present to configure CORS origins " +
+						"for Integration Graph Controller.");
+			}
 		}
 
 		if (!registry.containsBeanDefinition(HttpContextUtils.GRAPH_CONTROLLER_BEAN_NAME)) {
@@ -107,7 +117,22 @@ class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistr
 		}
 	}
 
-	private static final class GraphControllerPropertiesPopulator implements BeanFactoryPostProcessor, EnvironmentAware {
+	private static AbstractBeanDefinition webMvcControllerCorsConfigurerBean(String path, String[] allowedOrigins) {
+		GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+		beanDefinition.setBeanClass(WebMvcIntegrationGraphCorsConfigurer.class);
+		beanDefinition.setInstanceSupplier(() -> new WebMvcIntegrationGraphCorsConfigurer(path, allowedOrigins));
+		return beanDefinition;
+	}
+
+	private static AbstractBeanDefinition webFluxControllerCorsConfigurerBean(String path, String[] allowedOrigins) {
+		GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+		beanDefinition.setBeanClass(WebFluxIntegrationGraphCorsConfigurer.class);
+		beanDefinition.setInstanceSupplier(() -> new WebFluxIntegrationGraphCorsConfigurer(path, allowedOrigins));
+		return beanDefinition;
+	}
+
+	private static final class GraphControllerPropertiesPopulator
+			implements BeanFactoryPostProcessor, EnvironmentAware {
 
 		private final Map<String, Object> properties = new HashMap<>();
 
@@ -127,24 +152,6 @@ class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistr
 		@Override
 		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
-		}
-
-	}
-
-	private static final class IntegrationGraphCorsConfigurer implements WebMvcConfigurer {
-
-		private final String path;
-
-		private final String[] allowedOrigins;
-
-		private IntegrationGraphCorsConfigurer(String path, String[] allowedOrigins) { // NOSONAR
-			this.path = path;
-			this.allowedOrigins = allowedOrigins;
-		}
-
-		@Override
-		public void addCorsMappings(CorsRegistry registry) {
-			registry.addMapping(this.path).allowedOrigins(this.allowedOrigins).allowedMethods("GET");
 		}
 
 	}
