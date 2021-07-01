@@ -16,7 +16,6 @@
 
 package org.springframework.integration.http.config;
 
-import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
