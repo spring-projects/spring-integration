@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping;
 
 /**
@@ -55,8 +54,7 @@ public class HttpIntegrationConfigurationInitializer implements IntegrationConfi
 	 * which could also be overridden by the user by simply registering
 	 * a {@link IntegrationRequestMappingHandlerMapping} {@code <bean>} with 'id'
 	 * {@link HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
-	 * <p>
-	 * In addition, checks if the {@code javax.servlet.Servlet} class is present on the classpath.
+	 * <p> In addition, checks if the {@code javax.servlet.Servlet} class is present on the classpath.
 	 * When Spring Integration HTTP is used only as an HTTP client, there is no reason to use and register
 	 * the HTTP server components.
 	 */
@@ -64,9 +62,14 @@ public class HttpIntegrationConfigurationInitializer implements IntegrationConfi
 		if (HttpContextUtils.WEB_MVC_PRESENT &&
 				!registry.containsBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
 			BeanDefinitionBuilder requestMappingBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(IntegrationRequestMappingHandlerMapping.class);
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationRequestMappingHandlerMapping.class,
+							() -> {
+								IntegrationRequestMappingHandlerMapping mapping =
+										new IntegrationRequestMappingHandlerMapping();
+								mapping.setOrder(0);
+								return mapping;
+							});
 			requestMappingBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			requestMappingBuilder.addPropertyValue(IntegrationNamespaceUtils.ORDER, 0);
 			registry.registerBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME,
 					requestMappingBuilder.getBeanDefinition());
 		}

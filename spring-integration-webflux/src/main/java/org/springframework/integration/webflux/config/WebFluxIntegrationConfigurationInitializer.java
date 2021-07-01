@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.config.HttpContextUtils;
 import org.springframework.integration.webflux.inbound.IntegrationHandlerResultHandler;
 import org.springframework.integration.webflux.inbound.WebFluxIntegrationRequestMappingHandlerMapping;
@@ -69,15 +68,22 @@ public class WebFluxIntegrationConfigurationInitializer implements IntegrationCo
 	private void registerReactiveRequestMappingHandlerMappingIfNecessary(BeanDefinitionRegistry registry) {
 		if (HttpContextUtils.WEB_FLUX_PRESENT &&
 				!registry.containsBeanDefinition(WebFluxContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
+
 			BeanDefinitionBuilder requestMappingBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(WebFluxIntegrationRequestMappingHandlerMapping.class);
+					BeanDefinitionBuilder.genericBeanDefinition(WebFluxIntegrationRequestMappingHandlerMapping.class,
+							() -> {
+								WebFluxIntegrationRequestMappingHandlerMapping mapping =
+										new WebFluxIntegrationRequestMappingHandlerMapping();
+								mapping.setOrder(0);
+								return mapping;
+							});
 			requestMappingBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			requestMappingBuilder.addPropertyValue(IntegrationNamespaceUtils.ORDER, 0);
 			registry.registerBeanDefinition(WebFluxContextUtils.HANDLER_MAPPING_BEAN_NAME,
 					requestMappingBuilder.getBeanDefinition());
 
 			BeanDefinitionReaderUtils.registerWithGeneratedName(
-					new RootBeanDefinition(IntegrationHandlerResultHandler.class), registry);
+					new RootBeanDefinition(IntegrationHandlerResultHandler.class, IntegrationHandlerResultHandler::new),
+					registry);
 		}
 	}
 
