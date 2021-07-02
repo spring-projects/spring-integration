@@ -181,7 +181,7 @@ public class GatewayParserTests {
 		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
 		Object attribute =
 				beanFactory.getMergedBeanDefinition("&oneWay").getAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE);
-		assertThat(attribute).isEqualTo(TestService.class.getName());
+		assertThat(attribute).isEqualTo(TestService.class);
 	}
 
 	@Test
@@ -189,7 +189,7 @@ public class GatewayParserTests {
 		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
 		Object attribute =
 				beanFactory.getMergedBeanDefinition("&defaultConfig").getAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE);
-		assertThat(attribute).isEqualTo(RequestReplyExchanger.class.getName());
+		assertThat(attribute).isEqualTo(RequestReplyExchanger.class);
 	}
 
 	@Test
