@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 	private PollerMetadata pollerMetadata;
 
-	private boolean autoStartup = true;
+	private Boolean autoStartup;
 
 	private int phase = Integer.MAX_VALUE / 2;
 
@@ -96,7 +96,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 		this.pollerMetadata = pollerMetadata;
 	}
 
-	public void setAutoStartup(boolean autoStartup) {
+	public void setAutoStartup(Boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
 
@@ -178,7 +178,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 			if (this.pollerMetadata == null) {
 				this.pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);
-				Assert.notNull(this.pollerMetadata, "No poller has been defined for channel-adapter '"
+				Assert.notNull(this.pollerMetadata, () -> "No poller has been defined for channel-adapter '"
 						+ this.beanName + "', and no default poller is available within the context.");
 			}
 			if (this.pollerMetadata.getMaxMessagesPerPoll() == Integer.MIN_VALUE) {
@@ -195,7 +195,9 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			spca.setTrigger(this.pollerMetadata.getTrigger());
 			spca.setErrorHandler(this.pollerMetadata.getErrorHandler());
 			spca.setBeanClassLoader(this.beanClassLoader);
-			spca.setAutoStartup(this.autoStartup);
+			if (this.autoStartup != null) {
+				spca.setAutoStartup(this.autoStartup);
+			}
 			spca.setPhase(this.phase);
 			spca.setRole(this.role);
 			spca.setBeanName(this.beanName);
