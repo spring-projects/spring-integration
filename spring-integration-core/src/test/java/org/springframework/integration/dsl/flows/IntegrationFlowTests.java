@@ -63,6 +63,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.Transformers;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.LoggingHandler;
@@ -178,8 +179,14 @@ public class IntegrationFlowTests {
 	@Qualifier("lambdasInput")
 	private MessageChannel lambdasInput;
 
+	@Autowired
+	AbstractEndpoint stringSupplierEndpoint;
+
 	@Test
 	public void testWithSupplierMessageSourceImpliedPoller() {
+		assertThat(this.stringSupplierEndpoint.isAutoStartup()).isFalse();
+		assertThat(this.stringSupplierEndpoint.isRunning()).isFalse();
+		this.stringSupplierEndpoint.start();
 		assertThat(this.suppliedChannel.receive(10000).getPayload()).isEqualTo("FOO");
 	}
 
@@ -540,7 +547,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow supplierFlow() {
-			return IntegrationFlows.from(stringSupplier())
+			return IntegrationFlows.from(stringSupplier(), c -> c.id("stringSupplierEndpoint"))
 					.transform(toUpperCaseFunction())
 					.channel("suppliedChannel")
 					.get();
