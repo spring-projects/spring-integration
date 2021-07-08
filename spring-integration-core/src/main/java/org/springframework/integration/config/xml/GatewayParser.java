@@ -176,8 +176,10 @@ public class GatewayParser implements BeanDefinitionParser {
 				"'payload-expression' is not allowed when a 'mapper' is provided");
 
 		if (StringUtils.hasText(payloadExpression)) {
-			gatewayMethodMetadata.setPayloadExpression(
-					EXPRESSION_PARSER.parseExpression(embeddedValueResolver.resolveStringValue(payloadExpression)));
+			String expressionString = embeddedValueResolver.resolveStringValue(payloadExpression);
+			if (expressionString != null) {
+				gatewayMethodMetadata.setPayloadExpression(EXPRESSION_PARSER.parseExpression(expressionString));
+			}
 		}
 
 		List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
@@ -188,11 +190,7 @@ public class GatewayParser implements BeanDefinitionParser {
 			for (Element headerElement : invocationHeaders) {
 				String headerValue = headerElement.getAttribute("value");
 				String headerExpression = headerElement.getAttribute("expression");
-				Expression expression =
-						StringUtils.hasText(headerValue)
-								? new LiteralExpression(embeddedValueResolver.resolveStringValue(headerValue))
-								: EXPRESSION_PARSER.parseExpression(
-								embeddedValueResolver.resolveStringValue(headerExpression));
+				Expression expression = buildHeaderExpression(embeddedValueResolver, headerValue, headerExpression);
 
 				headerExpressions.put(headerElement.getAttribute(AbstractBeanDefinitionParser.NAME_ATTRIBUTE),
 						expression);
@@ -200,6 +198,19 @@ public class GatewayParser implements BeanDefinitionParser {
 			gatewayMethodMetadata.setHeaderExpressions(headerExpressions);
 		}
 		return gatewayMethodMetadata;
+	}
+
+	private static Expression buildHeaderExpression(EmbeddedValueResolver embeddedValueResolver, String headerValue,
+			String headerExpression) {
+
+		if (StringUtils.hasText(headerValue)) {
+			String resolvedValue = embeddedValueResolver.resolveStringValue(headerValue);
+			return resolvedValue != null ? new LiteralExpression(resolvedValue) : null;
+		}
+		else {
+			String resolvedValue = embeddedValueResolver.resolveStringValue(headerExpression);
+			return resolvedValue != null ? EXPRESSION_PARSER.parseExpression(resolvedValue) : null;
+		}
 	}
 
 

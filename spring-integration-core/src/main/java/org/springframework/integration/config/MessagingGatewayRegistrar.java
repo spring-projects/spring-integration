@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.EmbeddedValueResolver;
@@ -57,7 +56,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * The {@link ImportBeanDefinitionRegistrar} to parse {@link MessagingGateway} and its {@code service-interface}
- * and to register {@link BeanDefinition} {@link GatewayProxyFactoryBean}.
+ * and to register bean definition for {@link GatewayProxyFactoryBean}.
  *
  * @author Artem Bilan
  * @author Gary Russell
@@ -88,7 +87,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		}
 	}
 
-	public BeanDefinitionHolder gatewayProxyBeanDefinition(Map<String, Object> gatewayAttributes,
+	public BeanDefinitionHolder gatewayProxyBeanDefinition(Map<String, Object> gatewayAttributes, // NOSONAR - complexity
 			BeanDefinitionRegistry registry) {
 
 		String defaultPayloadExpression = (String) gatewayAttributes.get("defaultPayloadExpression");
@@ -116,7 +115,6 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		EmbeddedValueResolver embeddedValueResolver = new EmbeddedValueResolver(beanFactory);
 		Class<?> serviceInterface = getServiceInterface((String) gatewayAttributes.get("serviceInterface"), beanFactory);
 
-		@SuppressWarnings("unchecked")
 		AbstractBeanDefinition beanDefinition = new RootBeanDefinition(GatewayProxyFactoryBean.class,
 				() -> {
 					GatewayProxyFactoryBean proxyFactoryBean = new GatewayProxyFactoryBean(serviceInterface);
@@ -152,6 +150,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 						proxyFactoryBean.setGlobalMethodMetadata(globalMethodMetadata);
 					}
 
+					@SuppressWarnings("unchecked")
 					Map<String, AbstractBeanDefinition> methodDefinitions =
 							(Map<String, AbstractBeanDefinition>) gatewayAttributes.get("methods");
 
@@ -160,7 +159,8 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 								methodDefinitions.entrySet()
 										.stream()
 										.collect(Collectors.toMap(Entry::getKey,
-												entry -> (GatewayMethodMetadata) entry.getValue().getInstanceSupplier().get()));
+												entry -> (GatewayMethodMetadata) entry.getValue()
+														.getInstanceSupplier().get()));
 
 						proxyFactoryBean.setMethodMetadataMap(methodMetadataMap);
 					}
@@ -223,7 +223,9 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 
 		if (hasDefaultPayloadExpression) {
 			String actualPayloadExpression = embeddedValueResolver.resolveStringValue(defaultPayloadExpression);
-			gatewayMethodMetadata.setPayloadExpression(EXPRESSION_PARSER.parseExpression(actualPayloadExpression));
+			if (actualPayloadExpression != null) {
+				gatewayMethodMetadata.setPayloadExpression(EXPRESSION_PARSER.parseExpression(actualPayloadExpression));
+			}
 		}
 
 		if (hasDefaultHeaders) {
@@ -238,17 +240,25 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 							"is required on a gateway's header.");
 				}
 
-				Expression expression =
-						hasValue
-								? new LiteralExpression(embeddedValueResolver.resolveStringValue(headerValue))
-								: EXPRESSION_PARSER.parseExpression(
-								embeddedValueResolver.resolveStringValue(headerExpression));
-
+				Expression expression = buildHeaderExpression(embeddedValueResolver, headerValue, headerExpression);
 				headerExpressions.put((String) header.get("name"), expression);
 			}
 			gatewayMethodMetadata.setHeaderExpressions(headerExpressions);
 		}
 		return gatewayMethodMetadata;
+	}
+
+	private static Expression buildHeaderExpression(EmbeddedValueResolver embeddedValueResolver, String headerValue,
+			String headerExpression) {
+
+		if (StringUtils.hasText(headerValue)) {
+			String resolvedValue = embeddedValueResolver.resolveStringValue(headerValue);
+			return resolvedValue != null ? new LiteralExpression(resolvedValue) : null;
+		}
+		else {
+			String resolvedValue = embeddedValueResolver.resolveStringValue(headerExpression);
+			return resolvedValue != null ? EXPRESSION_PARSER.parseExpression(resolvedValue) : null;
+		}
 	}
 
 	/**

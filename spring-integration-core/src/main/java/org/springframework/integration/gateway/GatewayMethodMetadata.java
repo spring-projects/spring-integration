@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,10 +54,11 @@ public class GatewayMethodMetadata {
 		return this.payloadExpression;
 	}
 
-	public void setPayloadExpression(Expression payloadExpression) {
+	public void setPayloadExpression(@Nullable Expression payloadExpression) {
 		this.payloadExpression = payloadExpression;
 	}
 
+	@Nullable
 	public Map<String, Expression> getHeaderExpressions() {
 		return this.headerExpressions;
 	}
@@ -85,19 +86,21 @@ public class GatewayMethodMetadata {
 		this.replyChannelName = replyChannelName;
 	}
 
+	@Nullable
 	public String getRequestTimeout() {
 		return this.requestTimeout;
 	}
 
-	public void setRequestTimeout(String requestTimeout) {
+	public void setRequestTimeout(@Nullable String requestTimeout) {
 		this.requestTimeout = requestTimeout;
 	}
 
+	@Nullable
 	public String getReplyTimeout() {
 		return this.replyTimeout;
 	}
 
-	public void setReplyTimeout(String replyTimeout) {
+	public void setReplyTimeout(@Nullable String replyTimeout) {
 		this.replyTimeout = replyTimeout;
 	}
 

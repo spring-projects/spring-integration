@@ -80,40 +80,51 @@ public class IntegrationGraphControllerRegistrar implements ImportBeanDefinition
 		String path = (String) annotationAttributes.get("value");
 		String[] allowedOrigins = (String[]) annotationAttributes.get("allowedOrigins");
 		if (allowedOrigins != null && allowedOrigins.length > 0) {
-			AbstractBeanDefinition controllerCorsConfigurer = null;
-			if (HttpContextUtils.WEB_MVC_PRESENT) {
-				controllerCorsConfigurer = webMvcControllerCorsConfigurerBean(path, allowedOrigins);
-			}
-			else if (HttpContextUtils.WEB_FLUX_PRESENT) {
-				controllerCorsConfigurer = webFluxControllerCorsConfigurerBean(path, allowedOrigins);
-			}
-
-			if (controllerCorsConfigurer != null) {
-				BeanDefinitionReaderUtils.registerWithGeneratedName(controllerCorsConfigurer, registry);
-			}
-			else {
-				LOGGER.warn("Nor Spring MVC, neither WebFlux is present to configure CORS origins " +
-						"for Integration Graph Controller.");
-			}
+			registerControlerCorsConfigurer(registry, path, allowedOrigins);
 		}
 
 		if (!registry.containsBeanDefinition(HttpContextUtils.GRAPH_CONTROLLER_BEAN_NAME)) {
-			Map<String, Object> properties = annotationAttributes;
-			AbstractBeanDefinition controllerPropertiesPopulator =
-					BeanDefinitionBuilder.genericBeanDefinition(GraphControllerPropertiesPopulator.class,
-							() -> new GraphControllerPropertiesPopulator(properties))
-							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
-							.getBeanDefinition();
-			BeanDefinitionReaderUtils.registerWithGeneratedName(controllerPropertiesPopulator, registry);
+			registerIntegrationGraphController(registry, annotationAttributes);
+		}
+	}
 
-			BeanDefinition graphController =
-					new RootBeanDefinition(IntegrationGraphController.class, () ->
-							new IntegrationGraphController(
-									((BeanFactory) registry)
-											.getBean(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME,
-													IntegrationGraphServer.class)));
+	private static void registerIntegrationGraphController(BeanDefinitionRegistry registry,
+			Map<String, Object> properties) {
 
-			registry.registerBeanDefinition(HttpContextUtils.GRAPH_CONTROLLER_BEAN_NAME, graphController);
+		AbstractBeanDefinition controllerPropertiesPopulator =
+				BeanDefinitionBuilder.genericBeanDefinition(GraphControllerPropertiesPopulator.class,
+						() -> new GraphControllerPropertiesPopulator(properties))
+						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+						.getBeanDefinition();
+		BeanDefinitionReaderUtils.registerWithGeneratedName(controllerPropertiesPopulator, registry);
+
+		BeanDefinition graphController =
+				new RootBeanDefinition(IntegrationGraphController.class, () ->
+						new IntegrationGraphController(
+								((BeanFactory) registry)
+										.getBean(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME,
+												IntegrationGraphServer.class)));
+
+		registry.registerBeanDefinition(HttpContextUtils.GRAPH_CONTROLLER_BEAN_NAME, graphController);
+	}
+
+	private static void registerControlerCorsConfigurer(BeanDefinitionRegistry registry, String path,
+			String[] allowedOrigins) {
+
+		AbstractBeanDefinition controllerCorsConfigurer = null;
+		if (HttpContextUtils.WEB_MVC_PRESENT) {
+			controllerCorsConfigurer = webMvcControllerCorsConfigurerBean(path, allowedOrigins);
+		}
+		else if (HttpContextUtils.WEB_FLUX_PRESENT) {
+			controllerCorsConfigurer = webFluxControllerCorsConfigurerBean(path, allowedOrigins);
+		}
+
+		if (controllerCorsConfigurer != null) {
+			BeanDefinitionReaderUtils.registerWithGeneratedName(controllerCorsConfigurer, registry);
+		}
+		else {
+			LOGGER.warn("Nor Spring MVC, neither WebFlux is present to configure CORS origins " +
+					"for Integration Graph Controller.");
 		}
 	}
 
