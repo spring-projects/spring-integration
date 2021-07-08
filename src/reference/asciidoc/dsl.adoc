@@ -38,7 +38,7 @@ public class MyConfiguration {
 
     @Bean
     public IntegrationFlow myFlow() {
-        return IntegrationFlows.from(integerSource::getAndIncrement,
+        return IntegrationFlows.fromSupplier(integerSource()::getAndIncrement,
                                          c -> c.poller(Pollers.fixedRate(100)))
                     .channel("inputChannel")
                     .filter((Integer p) -> p > 0)
@@ -388,7 +388,7 @@ public IntegrationFlow pollingFlow() {
 ----
 ====
 
-For those cases that have no requirements to build `Message` objects directly, you can use the `IntegrationFlows.from()` variant that is based on the `java.util.function.Supplier` .
+For those cases that have no requirements to build `Message` objects directly, you can use a `IntegrationFlows.fromSupplier()` variant that is based on the `java.util.function.Supplier` .
 The result of the `Supplier.get()` is automatically wrapped in a `Message` (if it is not already a `Message`).
 
 [[java-dsl-routers]]
