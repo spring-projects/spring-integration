@@ -58,7 +58,6 @@ public class GatewayMethodMetadata {
 		this.payloadExpression = payloadExpression;
 	}
 
-	@Nullable
 	public Map<String, Expression> getHeaderExpressions() {
 		return this.headerExpressions;
 	}
