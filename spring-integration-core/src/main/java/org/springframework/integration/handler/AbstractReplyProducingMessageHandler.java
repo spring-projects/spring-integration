@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,8 +143,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			throw new ReplyRequiredException(message, "No reply produced by handler '" +
 					getComponentName() + "', and its 'requiresReply' property is set to true.");
 		}
-		else if (!isAsync() && logger.isDebugEnabled()) {
-			logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
+		else if (!isAsync()) {
+			logger.debug(() -> "handler '" + this + "' produced no reply for request Message: " + message);
 		}
 	}
 

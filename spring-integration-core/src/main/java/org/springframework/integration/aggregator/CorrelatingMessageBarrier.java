@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,9 +93,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		synchronized (lock) {
 			this.store.addMessagesToGroup(correlationKey, message);
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("Handled message for key [%s]: %s.", correlationKey, message));
-		}
+		logger.debug(() -> String.format("Handled message for key [%s]: %s.", correlationKey, message));
 	}
 
 	private Object getLock(Object correlationKey) {

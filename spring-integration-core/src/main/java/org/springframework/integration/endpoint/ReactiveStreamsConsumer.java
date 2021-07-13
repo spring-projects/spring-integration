@@ -89,8 +89,8 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		Assert.notNull(subscriber, "'subscriber' must not be null");
 		this.inputChannel = inputChannel;
 
-		if (inputChannel instanceof NullChannel && logger.isWarnEnabled()) {
-			logger.warn("The consuming from the NullChannel does not have any effects: " +
+		if (inputChannel instanceof NullChannel) {
+			logger.warn(() -> "The consuming from the NullChannel does not have any effects: " +
 					"it doesn't forward messages sent to it. A NullChannel is the end of the flow.");
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,8 @@ public abstract class AbstractReactiveMessageHandler extends MessageHandlerSuppo
 	@Override
 	public Mono<Void> handleMessage(final Message<?> message) {
 		Assert.notNull(message, "message must not be null");
-		if (isLoggingEnabled() && this.logger.isDebugEnabled()) {
-			this.logger.debug(this + " received message: " + message);
+		if (isLoggingEnabled()) {
+			this.logger.debug(() -> this + " received message: " + message);
 		}
 
 		final Message<?> messageToUse;

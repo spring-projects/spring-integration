@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -270,10 +270,8 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "file,jar:file");
 		}
 		catch (@SuppressWarnings("unused") IllegalArgumentException ex) {
-			if (logger.isInfoEnabled()) {
-				logger.info("The '" + XMLConstants.ACCESS_EXTERNAL_STYLESHEET + "' property is not supported by "
-						+ transformerFactory.getClass().getCanonicalName());
-			}
+			logger.info(() -> "The '" + XMLConstants.ACCESS_EXTERNAL_STYLESHEET + "' property is not supported by "
+					+ transformerFactory.getClass().getCanonicalName());
 		}
 		return transformerFactory;
 	}
@@ -395,12 +393,10 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 					transformer.setParameter(parameterName, value);
 				}
 				catch (Exception e) {
-					if (logger.isWarnEnabled()) {
-						logger.warn("Evaluation of header expression '"
-								+ expression.getExpressionString()
-								+ "' failed. The XSLT parameter '"
-								+ parameterName + "' will be skipped.");
-					}
+					logger.warn(() -> "Evaluation of header expression '"
+							+ expression.getExpressionString()
+							+ "' failed. The XSLT parameter '"
+							+ parameterName + "' will be skipped.");
 				}
 			}
 		}

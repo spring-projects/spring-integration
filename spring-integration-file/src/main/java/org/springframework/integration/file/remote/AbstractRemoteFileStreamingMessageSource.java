@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,10 +246,8 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	private void resetFilterIfNecessary(AbstractFileInfo<F> file) {
 		if (this.filter instanceof ResettableFileListFilter) {
-			if (this.logger.isInfoEnabled()) {
-				this.logger.info("Removing the remote file '" + file +
-						"' from the filter for a subsequent transfer attempt");
-			}
+			this.logger.info(() -> "Removing the remote file '" + file +
+					"' from the filter for a subsequent transfer attempt");
 			((ResettableFileListFilter<F>) this.filter).remove(file.getFileInfo());
 		}
 	}

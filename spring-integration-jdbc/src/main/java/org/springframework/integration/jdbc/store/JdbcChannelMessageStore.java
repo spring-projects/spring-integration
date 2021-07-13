@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -384,8 +384,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 			this.messageRowMapper = new MessageRowMapper(this.deserializer, this.lobHandler);
 		}
 
-		if (this.jdbcTemplate.getFetchSize() != 1 && LOGGER.isWarnEnabled()) {
-			LOGGER.warn("The jdbcTemplate's fetch size is not 1. This may cause FIFO issues with Oracle databases.");
+		if (this.jdbcTemplate.getFetchSize() != 1) {
+			LOGGER.warn(() -> "The jdbcTemplate's fetch size is not 1. This may cause FIFO issues with Oracle databases.");
 		}
 
 		if (this.preparedStatementSetter == null) {

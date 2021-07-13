@@ -177,9 +177,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 
 	private TcpConnectionSupport doObtain(boolean singleUse) {
 		TcpConnectionSupport connection;
-		if (logger.isDebugEnabled()) {
-			logger.debug("Opening new socket connection to " + getHost() + ":" + getPort());
-		}
+		logger.debug(() -> "Opening new socket connection to " + getHost() + ":" + getPort());
 
 		connection = buildNewConnection();
 		if (this.connectionTest != null && !this.connectionTest.test(connection)) {

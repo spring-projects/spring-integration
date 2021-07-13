@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,9 +137,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			Arrays.stream(destination)
 					.filter(this.destinations::add)
 					.forEach(d -> {
-						if (this.logger.isDebugEnabled()) {
-							logger.debug("Subscribe to destination '" + d + "'.");
-						}
+						logger.debug(() -> "Subscribe to destination '" + d + "'.");
 						subscribeDestination(d);
 					});
 		}
@@ -160,17 +158,13 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			Arrays.stream(destination)
 					.filter(this.destinations::remove)
 					.forEach(d -> {
-						if (this.logger.isDebugEnabled()) {
-							logger.debug("Removed '" + d + "' from subscriptions.");
-						}
+						logger.debug(() -> "Removed '" + d + "' from subscriptions.");
 						StompSession.Subscription subscription = this.subscriptions.get(d);
 						if (subscription != null) {
 							subscription.unsubscribe();
 						}
 						else {
-							if (this.logger.isDebugEnabled()) {
-								logger.debug("No subscription for destination '" + d + "'.");
-							}
+							logger.debug(() -> "No subscription for destination '" + d + "'.");
 						}
 					});
 		}
@@ -264,8 +258,8 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			}
 			this.subscriptions.put(destination, subscription);
 		}
-		else if (logger.isWarnEnabled()) {
-			logger.warn("The StompInboundChannelAdapter [" + getComponentName() +
+		else {
+			logger.warn(() -> "The StompInboundChannelAdapter [" + getComponentName() +
 					"] ins't connected to StompSession. Check the state of [" + this.stompSessionManager + "]");
 		}
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,8 +113,8 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
 		}
 
-		if (!shouldOverwrite && !this.shouldSkipNulls && logger.isWarnEnabled()) {
-			logger.warn(getComponentName() +
+		if (!shouldOverwrite && !this.shouldSkipNulls) {
+			logger.warn(() -> getComponentName() +
 					" is configured to not overwrite existing headers. 'shouldSkipNulls = false' will have no effect");
 		}
 	}
@@ -192,13 +192,13 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 							messageBuilder.setHeader((String) key, entry.getValue());
 						}
 					}
-					else if (logger.isDebugEnabled()) {
-						logger.debug("ignoring value for non-String key: " + key);
+					else {
+						logger.debug(() -> "ignoring value for non-String key: " + key);
 					}
 				}
 			}
-			else if (logger.isDebugEnabled()) {
-				logger.debug("expected a Map result from processor, but received: " + result);
+			else {
+				logger.debug(() -> "expected a Map result from processor, but received: " + result);
 			}
 		}
 	}

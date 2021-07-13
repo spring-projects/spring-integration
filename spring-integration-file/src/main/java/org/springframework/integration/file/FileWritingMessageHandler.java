@@ -588,8 +588,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 							+ "' timestamp on file: " + fileToReturn);
 				}
 			}
-			else if (this.logger.isWarnEnabled()) {
-				this.logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
+			else {
+				this.logger.warn(() -> "Could not set lastModified, header " + FileHeaders.SET_MODIFIED
 						+ " must be a Number, not " + (timestamp == null ? "null" : timestamp.getClass()));
 			}
 		}

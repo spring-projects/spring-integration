@@ -155,9 +155,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 				this.active = true;
 				doStart();
 				this.running = true;
-				if (logger.isInfoEnabled()) {
-					logger.info("started " + this);
-				}
+				logger.info(() -> "started " + this);
 			}
 		}
 		finally {
@@ -173,9 +171,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 				this.active = false;
 				doStop();
 				this.running = false;
-				if (logger.isInfoEnabled()) {
-					logger.info("stopped " + this);
-				}
+				logger.info(() -> "stopped " + this);
 			}
 		}
 		finally {
@@ -191,9 +187,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 				this.active = false;
 				doStop(callback);
 				this.running = false;
-				if (logger.isInfoEnabled()) {
-					logger.info("stopped " + this);
-				}
+				logger.info(() -> "stopped " + this);
 			}
 			else {
 				callback.run();
