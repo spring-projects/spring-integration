@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
@@ -37,6 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 4.0
  *
@@ -161,7 +163,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 				throw new MessagingException("Topic '" + topic + "' is already subscribed.");
 			}
 			this.topics.add(topik);
-			logger.debug(() -> "Added '" + topic + "' to subscriptions.");
+			logger.debug(LogMessage.format("Added '%s' to subscriptions.", topic));
 		}
 		finally {
 			this.topicLock.unlock();
@@ -228,7 +230,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		try {
 			for (String t : topic) {
 				if (this.topics.remove(new Topic(t, 0))) {
-					logger.debug(() -> "Removed '" + t + "' from subscriptions.");
+					logger.debug(LogMessage.format("Removed '%s' from subscriptions.", t));
 				}
 			}
 		}

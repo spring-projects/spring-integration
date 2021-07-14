@@ -23,6 +23,7 @@ import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.lang.Nullable;
@@ -39,6 +40,7 @@ import org.springframework.util.ClassUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author David Liu
+ * @author Trung Pham
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingHandler
 		implements BeanClassLoaderAware {
@@ -144,7 +146,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 					getComponentName() + "', and its 'requiresReply' property is set to true.");
 		}
 		else if (!isAsync()) {
-			logger.debug(() -> "handler '" + this + "' produced no reply for request Message: " + message);
+			logger.debug(LogMessage.format("handler '%s' produced no reply for request Message: %s", this, message));
 		}
 	}
 

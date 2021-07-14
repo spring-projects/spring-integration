@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Trung Pham
  *
  * @since 2.0
  */

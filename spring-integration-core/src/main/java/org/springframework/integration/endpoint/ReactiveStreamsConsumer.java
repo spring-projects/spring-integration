@@ -49,6 +49,7 @@ import reactor.core.publisher.Flux;
  * input channel and reactive consumption of messages from that channel.
  *
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 5.0
  */
@@ -90,7 +91,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		this.inputChannel = inputChannel;
 
 		if (inputChannel instanceof NullChannel) {
-			logger.warn(() -> "The consuming from the NullChannel does not have any effects: " +
+			logger.warn("The consuming from the NullChannel does not have any effects: " +
 					"it doesn't forward messages sent to it. A NullChannel is the end of the flow.");
 		}
 

@@ -28,6 +28,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -47,6 +48,7 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.1
  */
@@ -230,7 +232,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	private void doSetChannelMappings(Map<String, String> newChannelMappings) {
 		Map<String, String> oldChannelMappings = this.channelMappings;
 		this.channelMappings = newChannelMappings;
-		logger.debug(() -> "Channel mappings: " + oldChannelMappings + " replaced with: " + newChannelMappings);
+		logger.debug(LogMessage.format("Channel mappings: %s replaced with: %s", oldChannelMappings, newChannelMappings));
 	}
 
 	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {

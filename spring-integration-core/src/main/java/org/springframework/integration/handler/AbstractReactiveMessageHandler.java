@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.ReactiveMessageHandler;
@@ -28,6 +29,7 @@ import reactor.core.publisher.Mono;
  *
  * @author David Turanski
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 5.3
  */
@@ -38,7 +40,7 @@ public abstract class AbstractReactiveMessageHandler extends MessageHandlerSuppo
 	public Mono<Void> handleMessage(final Message<?> message) {
 		Assert.notNull(message, "message must not be null");
 		if (isLoggingEnabled()) {
-			this.logger.debug(() -> this + " received message: " + message);
+			this.logger.debug(LogMessage.format("%s received message: %s", this, message));
 		}
 
 		final Message<?> messageToUse;
@@ -49,8 +51,8 @@ public abstract class AbstractReactiveMessageHandler extends MessageHandlerSuppo
 			messageToUse = message;
 		}
 		return handleMessageInternal(messageToUse)
-				.doOnError((ex) -> this.logger.error(ex, () ->
-						"An error occurred in message handler [" + this + "] on message [" + messageToUse + "]"));
+				.doOnError((ex) -> this.logger.error(ex,
+						LogMessage.format("An error occurred in message handler [%s] on message [%s]", this, messageToUse)));
 	}
 
 	protected abstract Mono<Void> handleMessageInternal(Message<?> message);

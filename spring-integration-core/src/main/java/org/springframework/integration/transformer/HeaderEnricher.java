@@ -43,6 +43,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author David Turanski
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Trung Pham
  */
 public class HeaderEnricher extends IntegrationObjectSupport implements Transformer, IntegrationPattern {
 

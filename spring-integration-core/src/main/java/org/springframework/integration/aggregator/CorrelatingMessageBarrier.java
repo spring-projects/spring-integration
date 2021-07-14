@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.store.MessageGroup;
@@ -47,6 +48,7 @@ import org.springframework.messaging.Message;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @see AbstractCorrelatingMessageHandler
  */
@@ -93,7 +95,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		synchronized (lock) {
 			this.store.addMessagesToGroup(correlationKey, message);
 		}
-		logger.debug(() -> String.format("Handled message for key [%s]: %s.", correlationKey, message));
+		logger.debug(LogMessage.format("Handled message for key [%s]: %s.", correlationKey, message));
 	}
 
 	private Object getLock(Object correlationKey) {
@@ -117,9 +119,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 					if (messages.hasNext()) {
 						nextMessage = messages.next();
 						this.store.removeMessagesFromGroup(key, nextMessage);
-						if (logger.isDebugEnabled()) {
-							logger.debug(String.format("Released message for key [%s]: %s.", key, nextMessage));
-						}
+						logger.debug(LogMessage.format("Released message for key [%s]: %s.", key, nextMessage));
 					}
 					else {
 						remove(key);

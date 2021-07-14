@@ -84,6 +84,7 @@ import org.springframework.xml.transform.TransformerFactoryUtils;
  * @author Artem Bilan
  * @author Mike Bazos
  * @author Gary Russell
+ * @author Trung Pham
  */
 public class XsltPayloadTransformer extends AbstractXmlTransformer implements BeanClassLoaderAware {
 

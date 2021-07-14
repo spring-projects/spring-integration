@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.springframework.core.log.LogMessage;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
@@ -68,6 +69,7 @@ import org.springframework.util.NumberUtils;
  * @author Gary Russell
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.2
  */
@@ -464,8 +466,8 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	private boolean verifyAllMapValuesOfTypeNumber(Map<?, ?> map) {
 		for (Object value : map.values()) {
 			if (!(value instanceof Number)) {
-				this.logger.warn(() -> "failed to extract payload elements because '" +
-						value + "' is not of type Number");
+				this.logger.warn(LogMessage.format("failed to extract payload elements"
+						+ "because '%s' is not of type Number", value));
 				return false;
 			}
 		}

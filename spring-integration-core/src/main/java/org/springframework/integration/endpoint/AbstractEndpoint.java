@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Kris Jacyna
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  */
 @IntegrationManagedResource
 public abstract class AbstractEndpoint extends IntegrationObjectSupport

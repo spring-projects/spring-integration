@@ -78,6 +78,7 @@ import reactor.core.publisher.Sinks;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  */
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint

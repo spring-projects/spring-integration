@@ -107,6 +107,7 @@ import org.springframework.web.servlet.HandlerMapping;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Biju Kunjummen
+ * @author Trung Pham
  *
  * @since 2.0
  */

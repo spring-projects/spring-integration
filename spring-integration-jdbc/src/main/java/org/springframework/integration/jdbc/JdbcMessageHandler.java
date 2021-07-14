@@ -76,6 +76,7 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  *
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.0
  */

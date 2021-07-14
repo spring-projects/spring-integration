@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
@@ -36,6 +37,7 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  */
 public abstract class AbstractPollableChannel extends AbstractMessageChannel
 		implements PollableChannel, ExecutorChannelInterceptorAware {
@@ -99,10 +101,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 			else {
 				incrementReceiveCounter();
 				counted = true;
-
-				if (logger.isDebugEnabled()) {
-					logger.debug("postReceive on channel '" + this + "', message: " + message);
-				}
+				logger.debug(LogMessage.format("postReceive on channel '%s', message: %s", this, message));
 			}
 
 			if (interceptorStack != null && message != null) {

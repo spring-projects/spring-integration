@@ -34,6 +34,7 @@ import org.springframework.util.ErrorHandler;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  */
 public class PublishSubscribeChannel extends AbstractExecutorChannel implements BroadcastCapableChannel {
 

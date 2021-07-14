@@ -65,6 +65,7 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  */
 public class MessageHandlerChain extends AbstractMessageProducingHandler
 		implements CompositeMessageHandler, ManageableLifecycle {

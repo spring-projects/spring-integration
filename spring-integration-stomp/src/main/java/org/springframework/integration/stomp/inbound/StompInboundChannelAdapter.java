@@ -28,6 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.stomp.StompSessionManager;
@@ -63,6 +64,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Trung Pham
  *
  * @since 4.2
  */
@@ -137,7 +139,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			Arrays.stream(destination)
 					.filter(this.destinations::add)
 					.forEach(d -> {
-						logger.debug(() -> "Subscribe to destination '" + d + "'.");
+						logger.debug(LogMessage.format("Subscribe to destination '%s'.", d));
 						subscribeDestination(d);
 					});
 		}
@@ -158,13 +160,13 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			Arrays.stream(destination)
 					.filter(this.destinations::remove)
 					.forEach(d -> {
-						logger.debug(() -> "Removed '" + d + "' from subscriptions.");
+						logger.debug(LogMessage.format("Removed '%s' from subscriptions.", d));
 						StompSession.Subscription subscription = this.subscriptions.get(d);
 						if (subscription != null) {
 							subscription.unsubscribe();
 						}
 						else {
-							logger.debug(() -> "No subscription for destination '" + d + "'.");
+							logger.debug(LogMessage.format("No subscription for destination '%s'.", d));
 						}
 					});
 		}
@@ -251,7 +253,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 						eventPublisher.publishEvent(event);
 					}
 					else {
-						logger.error("The receipt [" + subscription.getReceiptId() + "] is lost for [" +
+						logger.error(() -> "The receipt [" + subscription.getReceiptId() + "] is lost for [" +
 								subscription.getSubscriptionId() + "] on destination [" + destination + "]");
 					}
 				});

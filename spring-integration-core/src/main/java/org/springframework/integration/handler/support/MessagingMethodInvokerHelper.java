@@ -118,6 +118,7 @@ import org.springframework.util.StringUtils;
  * @author Soby Chacko
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.0
  */

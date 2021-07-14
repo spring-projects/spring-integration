@@ -30,6 +30,7 @@ import org.springframework.messaging.MessagingException;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.2
  *

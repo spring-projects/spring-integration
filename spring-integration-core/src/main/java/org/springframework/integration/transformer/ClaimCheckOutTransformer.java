@@ -18,6 +18,7 @@ package org.springframework.integration.transformer;
 
 import java.util.UUID;
 
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.store.MessageStore;
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Nick Spacek
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.0
  */
@@ -76,7 +78,7 @@ public class ClaimCheckOutTransformer extends AbstractTransformer implements Int
 		Message<?> retrievedMessage;
 		if (this.removeMessage) {
 			retrievedMessage = this.messageStore.removeMessage(id);
-			logger.debug(() -> "Removed Message with claim-check '" + id + "' from the MessageStore.");
+			logger.debug(LogMessage.format("Removed Message with claim-check '%s' from the MessageStore.", id));
 		}
 		else {
 			retrievedMessage = this.messageStore.getMessage(id);

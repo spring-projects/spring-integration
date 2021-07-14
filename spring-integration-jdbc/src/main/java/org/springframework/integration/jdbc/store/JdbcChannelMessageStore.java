@@ -32,6 +32,7 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.core.log.LogMessage;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
@@ -80,6 +81,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Meherzad Lahewala
+ * @author Trung Pham
  *
  * @since 2.2
  */
@@ -385,7 +387,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		}
 
 		if (this.jdbcTemplate.getFetchSize() != 1) {
-			LOGGER.warn(() -> "The jdbcTemplate's fetch size is not 1. This may cause FIFO issues with Oracle databases.");
+			LOGGER.warn("The jdbcTemplate's fetch size is not 1. This may cause FIFO issues with Oracle databases.");
 		}
 
 		if (this.preparedStatementSetter == null) {
@@ -559,7 +561,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 				this.idCacheWriteLock.lock();
 				try {
 					boolean added = this.idCache.add(messageId);
-					LOGGER.debug(() -> String.format("Polled message with id '%s' added: '%s'.", messageId, added));
+					LOGGER.debug(() -> LogMessage.format("Polled message with id '%s' added: '%s'.", messageId, added));
 				}
 				finally {
 					this.idCacheWriteLock.unlock();
@@ -580,10 +582,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 		boolean result = updated != 0;
 		if (result) {
-			LOGGER.debug(() -> String.format("Message with id '%s' was deleted.", id));
+			LOGGER.debug(LogMessage.format("Message with id '%s' was deleted.", id));
 		}
 		else {
-			LOGGER.warn(() -> String.format("Message with id '%s' was not deleted.", id));
+			LOGGER.warn(LogMessage.format("Message with id '%s' was not deleted.", id));
 		}
 		return result;
 	}
@@ -598,7 +600,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param messageId The message identifier.
 	 */
 	public void removeFromIdCache(String messageId) {
-		LOGGER.debug(() -> "Removing Message Id: " + messageId);
+		LOGGER.debug(LogMessage.format("Removing Message Id: %s", messageId));
 		this.idCacheWriteLock.lock();
 		try {
 			this.idCache.remove(messageId);
