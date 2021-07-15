@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
  * @author Mark Fisher
@@ -133,7 +136,7 @@ public final class MessageHistory implements List<Properties>, Serializable {
 		return message;
 	}
 
-
+	@JsonCreator
 	private MessageHistory(List<Properties> components) {
 		Assert.notEmpty(components, "component list must not be empty");
 		this.components = components;
@@ -203,6 +206,21 @@ public final class MessageHistory implements List<Properties>, Serializable {
 	@Override
 	public int lastIndexOf(Object o) {
 		return this.components.lastIndexOf(o);
+	}
+
+	@Override public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof MessageHistory)) {
+			return false;
+		}
+		MessageHistory that = (MessageHistory) o;
+		return this.components.equals(that.components);
+	}
+
+	@Override public int hashCode() {
+		return Objects.hash(this.components);
 	}
 
 	@Override
