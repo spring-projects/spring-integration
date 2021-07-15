@@ -122,9 +122,9 @@ public class TcpNioClientConnectionFactory extends
 		boolean connected = socketChannel.finishConnect();
 		long timeLeft = getConnectTimeout().toMillis();
 		while (!connected && timeLeft > 0) {
-			Thread.sleep(50); // NOSONAR Magic #
+			Thread.sleep(5); // NOSONAR Magic #
 			connected = socketChannel.finishConnect();
-			timeLeft -= 50; // NOSONAR Magic #
+			timeLeft -= 5; // NOSONAR Magic #
 		}
 		if (!connected) {
 			throw new IOException("Not connected after connectTimeout");
