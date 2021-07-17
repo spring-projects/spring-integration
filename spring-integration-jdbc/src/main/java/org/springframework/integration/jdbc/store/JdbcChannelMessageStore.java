@@ -561,7 +561,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 				this.idCacheWriteLock.lock();
 				try {
 					boolean added = this.idCache.add(messageId);
-					LOGGER.debug(() -> LogMessage.format("Polled message with id '%s' added: '%s'.", messageId, added));
+					LOGGER.debug(LogMessage.format("Polled message with id '%s' added: '%s'.", messageId, added));
 				}
 				finally {
 					this.idCacheWriteLock.unlock();
@@ -600,7 +600,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param messageId The message identifier.
 	 */
 	public void removeFromIdCache(String messageId) {
-		LOGGER.debug(LogMessage.format("Removing Message Id: %s", messageId));
+		LOGGER.debug(() -> "Removing Message Id: " + messageId);
 		this.idCacheWriteLock.lock();
 		try {
 			this.idCache.remove(messageId);
