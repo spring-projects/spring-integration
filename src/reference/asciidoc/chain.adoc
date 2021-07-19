@@ -130,6 +130,7 @@ You can access them from the `BeanFactory` by using the appropriate bean name, a
 
 TIP: It is useful to provide an explicit `id` attribute on `<chain>` elements to simplify the identification of sub-components in logs and to provide access to them from the `BeanFactory` etc.
 
+[[chain-gateway]]
 ==== Calling a Chain from within a Chain
 
 Sometimes, you need to make a nested call to another chain from within a chain and then come back and continue execution within the original chain.
