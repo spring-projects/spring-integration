@@ -602,17 +602,17 @@ Also see <<java-dsl-class-cast>>.
 [[java-dsl-gateway]]
 === Operator gateway()
 
-The `gateway()` operator of `IntegrationFlow` definition is a special service activator implementation to call some other endpoint or integration flow via their input channel and wait for reply from there.
-Technically it plays the same role as a nested `<gateway>` component for `<chain>` definition (see <<./chain.adoc#chain-gateway,Calling a Chain from within a Chain>>) and allows to make a code flow much cleaner and more straightforward.
-And logically and from business perspective it is a messaging gateway to let to distribute and reuse functionality between different parts of the target integration solution (see <<./gateway.adoc#gateway,Messaging Gateways>>).
+The `gateway()` operator in an `IntegrationFlow` definition is a special service activator implementation, to call some other endpoint or integration flow via its input channel and wait for reply.
+Technically it plays the same role as a nested `<gateway>` component in a `<chain>` definition (see <<./chain.adoc#chain-gateway,Calling a Chain from within a Chain>>) and allows a flow  to be cleaner and more straightforward.
+Logically, and from business perspective, it is a messaging gateway to allow the distribution and reuse of functionality between different parts of the target integration solution (see <<./gateway.adoc#gateway,Messaging Gateways>>).
 This operator has several overloads for different goals:
 
-- `gateway(String requestChannel)` to call some endpoint's input channel by its name;
-- `gateway(MessageChannel requestChannel)` to call some endpoint's input channel by its direct injection;
-- `gateway(IntegrationFlow flow)` to call the input channel of the provided `IntegrationFlow`.
+- `gateway(String requestChannel)` to send a message to some endpoint's input channel by its name;
+- `gateway(MessageChannel requestChannel)` to send a message to some endpoint's input channel by its direct injection;
+- `gateway(IntegrationFlow flow)` to send a message to the input channel of the provided `IntegrationFlow`.
 
-All of them have a variant with the second `Consumer<GatewayEndpointSpec>` argument to configure the target `GatewayMessageHandler` and respective `AbstractEndpoint`.
-Also the `IntegrationFlow`-based has a power that it allows to call existing `IntegrationFlow` bean or declare the flow as a sub-flow via an in-place lambda for an `IntegrationFlow` functional interface or have it extracted in a `private` method cleaner code style:
+All of these have a variant with the second `Consumer<GatewayEndpointSpec>` argument to configure the target `GatewayMessageHandler` and respective `AbstractEndpoint`.
+Also the `IntegrationFlow`-based methods allows calling existing `IntegrationFlow` bean or declare the flow as a sub-flow via an in-place lambda for an `IntegrationFlow` functional interface or have it extracted in a `private` method cleaner code style:
 
 ====
 [source,java]
@@ -633,6 +633,9 @@ private static IntegrationFlow subFlow() {
 }
 ----
 ====
+
+IMPORTANT: If the downstream flow does not always return a reply, you should set the `requestTimeout` to 0 to prevent hanging the calling thread indefinitely.
+In that case, the flow will end at that point and the thread released for further work.
 
 [[java-dsl-log]]
 === Operator log()
