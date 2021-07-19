@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Trung Pham
  */
 public class MailReceivingMessageSource extends AbstractMessageSource<Object> {
 
@@ -64,9 +66,7 @@ public class MailReceivingMessageSource extends AbstractMessageSource<Object> {
 				mailMessage = this.mailQueue.poll();
 			}
 			if (mailMessage != null) {
-				if (this.logger.isDebugEnabled()) {
-					this.logger.debug("received mail message [" + mailMessage + "]");
-				}
+				this.logger.debug(LogMessage.format("received mail message [%s]", mailMessage));
 				return mailMessage;
 			}
 		}

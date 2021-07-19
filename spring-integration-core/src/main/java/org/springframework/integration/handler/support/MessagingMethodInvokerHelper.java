@@ -118,6 +118,7 @@ import org.springframework.util.StringUtils;
  * @author Soby Chacko
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.0
  */
@@ -830,8 +831,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 					|| Lifecycle.class.isAssignableFrom(declaringClass))
 				&& ReflectionUtils.findMethod(Pausable.class, pausableMethod.getName(),
 						pausableMethod.getParameterTypes()) != null;
-		if (pausable && this.logger.isTraceEnabled()) {
-			this.logger.trace(pausableMethod + " is not considered a candidate method unless explicitly requested");
+		if (pausable) {
+			this.logger.trace(() -> pausableMethod + " is not considered a candidate method unless explicitly requested");
 		}
 		return pausable;
 	}

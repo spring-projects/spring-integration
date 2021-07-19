@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,6 +76,7 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  *
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.0
  */
@@ -172,8 +173,8 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		List<? extends Map<String, Object>> keys = executeUpdateQuery(message, this.keysGenerated);
-		if (!keys.isEmpty() && logger.isDebugEnabled()) {
-			logger.debug("Generated keys: " + keys);
+		if (!keys.isEmpty()) {
+			logger.debug(() -> "Generated keys: " + keys);
 		}
 	}
 

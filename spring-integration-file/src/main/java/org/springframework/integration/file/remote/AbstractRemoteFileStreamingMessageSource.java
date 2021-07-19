@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.core.log.LogMessage;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -51,6 +52,7 @@ import org.springframework.util.ObjectUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Lukas Gemela
+ * @author Trung Pham
  *
  * @since 4.3
  *
@@ -246,10 +248,8 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	private void resetFilterIfNecessary(AbstractFileInfo<F> file) {
 		if (this.filter instanceof ResettableFileListFilter) {
-			if (this.logger.isInfoEnabled()) {
-				this.logger.info("Removing the remote file '" + file +
-						"' from the filter for a subsequent transfer attempt");
-			}
+			this.logger.info(LogMessage.format("Removing the remote file '%s' from"
+					+ "the filterfor a subsequent transfer attempt", file));
 			((ResettableFileListFilter<F>) this.filter).remove(file.getFileInfo());
 		}
 	}

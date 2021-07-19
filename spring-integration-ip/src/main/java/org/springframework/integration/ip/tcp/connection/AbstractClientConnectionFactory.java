@@ -34,6 +34,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.0
  *
@@ -177,9 +178,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 
 	private TcpConnectionSupport doObtain(boolean singleUse) {
 		TcpConnectionSupport connection;
-		if (logger.isDebugEnabled()) {
-			logger.debug("Opening new socket connection to " + getHost() + ":" + getPort());
-		}
+		logger.debug(() -> "Opening new socket connection to " + getHost() + ":" + getPort());
 
 		connection = buildNewConnection();
 		if (this.connectionTest != null && !this.connectionTest.test(connection)) {

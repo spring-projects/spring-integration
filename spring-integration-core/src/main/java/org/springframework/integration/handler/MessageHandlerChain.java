@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,7 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  */
 public class MessageHandlerChain extends AbstractMessageProducingHandler
 		implements CompositeMessageHandler, ManageableLifecycle {
@@ -182,9 +183,7 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 			if (!this.running) {
 				doStart();
 				this.running = true;
-				if (logger.isInfoEnabled()) {
-					logger.info("started " + this);
-				}
+				logger.info(() -> "started " + this);
 			}
 		}
 		finally {
@@ -199,9 +198,7 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 			if (this.running) {
 				doStop();
 				this.running = false;
-				if (logger.isInfoEnabled()) {
-					logger.info("stopped " + this);
-				}
+				logger.info(() -> "stopped " + this);
 			}
 		}
 		finally {

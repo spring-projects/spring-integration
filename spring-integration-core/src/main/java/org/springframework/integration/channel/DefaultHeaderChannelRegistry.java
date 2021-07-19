@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 3.0
  *
@@ -166,9 +167,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 			String name = this.uuid + id.incrementAndGet();
 			this.channels.put(name, new MessageChannelWrapper((MessageChannel) channel,
 					System.currentTimeMillis() + timeToLive));
-			if (logger.isDebugEnabled()) {
-				logger.debug("Registered " + channel + " as " + name);
-			}
+			logger.debug(() -> "Registered " + channel + " as " + name);
 			return name;
 		}
 		else {
@@ -187,8 +186,8 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 			else {
 				messageChannelWrapper = this.channels.get(name);
 			}
-			if (logger.isDebugEnabled() && messageChannelWrapper != null) {
-				logger.debug("Retrieved " + messageChannelWrapper.getChannel() + " with " + name);
+			if (messageChannelWrapper != null) {
+				logger.debug(() -> "Retrieved " + messageChannelWrapper.getChannel() + " with " + name);
 			}
 
 			return messageChannelWrapper == null ? null : messageChannelWrapper.getChannel();
@@ -211,17 +210,13 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	@Override
 	public synchronized void run() {
-		if (logger.isTraceEnabled()) {
-			logger.trace("Reaper started; channels size=" + this.channels.size());
-		}
+		logger.trace(() -> "Reaper started; channels size=" + this.channels.size());
 		Iterator<Entry<String, MessageChannelWrapper>> iterator = this.channels.entrySet().iterator();
 		long now = System.currentTimeMillis();
 		while (iterator.hasNext()) {
 			Entry<String, MessageChannelWrapper> entry = iterator.next();
 			if (entry.getValue().getExpireAt() < now) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Expiring " + entry.getKey() + " (" + entry.getValue().getChannel() + ")");
-				}
+				logger.debug(() -> "Expiring " + entry.getKey() + " (" + entry.getValue().getChannel() + ")");
 				iterator.remove();
 			}
 		}
@@ -229,9 +224,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 				getTaskScheduler()
 						.schedule(this, new Date(System.currentTimeMillis() + this.reaperDelay));
 
-		if (logger.isTraceEnabled()) {
-			logger.trace("Reaper completed; channels size=" + this.channels.size());
-		}
+		logger.trace(() -> "Reaper completed; channels size=" + this.channels.size());
 	}
 
 

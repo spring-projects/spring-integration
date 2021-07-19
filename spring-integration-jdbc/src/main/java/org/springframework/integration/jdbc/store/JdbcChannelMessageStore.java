@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.core.log.LogMessage;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
@@ -80,6 +81,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Meherzad Lahewala
+ * @author Trung Pham
  *
  * @since 2.2
  */
@@ -384,7 +386,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 			this.messageRowMapper = new MessageRowMapper(this.deserializer, this.lobHandler);
 		}
 
-		if (this.jdbcTemplate.getFetchSize() != 1 && LOGGER.isWarnEnabled()) {
+		if (this.jdbcTemplate.getFetchSize() != 1) {
 			LOGGER.warn("The jdbcTemplate's fetch size is not 1. This may cause FIFO issues with Oracle databases.");
 		}
 
@@ -559,7 +561,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 				this.idCacheWriteLock.lock();
 				try {
 					boolean added = this.idCache.add(messageId);
-					LOGGER.debug(() -> String.format("Polled message with id '%s' added: '%s'.", messageId, added));
+					LOGGER.debug(LogMessage.format("Polled message with id '%s' added: '%s'.", messageId, added));
 				}
 				finally {
 					this.idCacheWriteLock.unlock();
@@ -580,10 +582,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 		boolean result = updated != 0;
 		if (result) {
-			LOGGER.debug(() -> String.format("Message with id '%s' was deleted.", id));
+			LOGGER.debug(LogMessage.format("Message with id '%s' was deleted.", id));
 		}
 		else {
-			LOGGER.warn(() -> String.format("Message with id '%s' was not deleted.", id));
+			LOGGER.warn(LogMessage.format("Message with id '%s' was not deleted.", id));
 		}
 		return result;
 	}

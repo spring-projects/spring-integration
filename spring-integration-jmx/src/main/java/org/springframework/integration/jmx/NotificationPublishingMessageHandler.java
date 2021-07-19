@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.0
  */
@@ -124,9 +125,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 		}
 		if (exporter != null) {
 			exporter.registerManagedResource(this.delegate, this.objectName);
-			if (this.logger.isInfoEnabled()) {
-				this.logger.info("Registered JMX notification publisher as MBean with ObjectName: " + this.objectName);
-			}
+			this.logger.info(() -> "Registered JMX notification publisher as MBean with ObjectName: " + this.objectName);
 		}
 	}
 

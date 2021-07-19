@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.lang.Nullable;
@@ -39,6 +40,7 @@ import org.springframework.util.ClassUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author David Liu
+ * @author Trung Pham
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingHandler
 		implements BeanClassLoaderAware {
@@ -143,8 +145,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			throw new ReplyRequiredException(message, "No reply produced by handler '" +
 					getComponentName() + "', and its 'requiresReply' property is set to true.");
 		}
-		else if (!isAsync() && logger.isDebugEnabled()) {
-			logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
+		else if (!isAsync()) {
+			logger.debug(LogMessage.format("handler '%s' produced no reply for request Message: %s", this, message));
 		}
 	}
 

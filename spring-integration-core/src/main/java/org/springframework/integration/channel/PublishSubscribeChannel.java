@@ -34,6 +34,7 @@ import org.springframework.util.ErrorHandler;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  */
 public class PublishSubscribeChannel extends AbstractExecutorChannel implements BroadcastCapableChannel {
 
@@ -180,8 +181,8 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 			dispatcherToUse.setMinSubscribers(this.minSubscribers);
 			this.dispatcher = dispatcherToUse;
 		}
-		else if (this.errorHandler != null && this.logger.isWarnEnabled()) {
-			this.logger.warn("The 'errorHandler' is ignored for the '" + getComponentName() +
+		else if (this.errorHandler != null) {
+			this.logger.warn(() -> "The 'errorHandler' is ignored for the '" + getComponentName() +
 					"' (an 'executor' is not provided) and exceptions will be thrown " +
 					"directly within the sending Thread");
 		}

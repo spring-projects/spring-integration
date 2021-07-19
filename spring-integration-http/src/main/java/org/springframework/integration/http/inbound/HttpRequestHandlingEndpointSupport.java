@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,6 +107,7 @@ import org.springframework.web.servlet.HandlerMapping;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Biju Kunjummen
+ * @author Trung Pham
  *
  * @since 2.0
  */
@@ -226,17 +227,13 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			try {
 				MultipartResolver resolver = beanFactory.getBean(
 						DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Using MultipartResolver [" + resolver + "]");
-				}
+				logger.debug(() -> "Using MultipartResolver [" + resolver + "]");
 				this.multipartResolver = resolver;
 			}
 			catch (NoSuchBeanDefinitionException e) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Unable to locate MultipartResolver with name '"
-							+ DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME
-							+ "': no multipart request handling will be supported.");
-				}
+				logger.debug(() -> "Unable to locate MultipartResolver with name '"
+						+ DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME
+						+ "': no multipart request handling will be supported.");
 			}
 		}
 		if (this.messageConverters.size() == 0 || (this.mergeWithDefaultConverters && !this.convertersMerged)) {
@@ -397,27 +394,21 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 				(Map<?, ?>) servletRequest.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 
 		if (!CollectionUtils.isEmpty(pathVariables)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Mapped path variables: " + pathVariables);
-			}
+			logger.debug(() -> "Mapped path variables: " + pathVariables);
 			evaluationContext.setVariable("pathVariables", pathVariables);
 		}
 
 		Map<?, ?> matrixVariables = (Map<?, ?>) servletRequest.getAttribute(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE);
 
 		if (!CollectionUtils.isEmpty(matrixVariables)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Mapped matrix variables: " + matrixVariables);
-			}
+			logger.debug(() -> "Mapped matrix variables: " + matrixVariables);
 			evaluationContext.setVariable("matrixVariables", matrixVariables);
 		}
 		return evaluationContext;
 	}
 
 	private Message<?> createServiceUnavailableResponse() {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Endpoint is stopped; returning status " + HttpStatus.SERVICE_UNAVAILABLE);
-		}
+		logger.debug(() -> "Endpoint is stopped; returning status " + HttpStatus.SERVICE_UNAVAILABLE);
 		return getMessageBuilderFactory()
 				.withPayload("Endpoint is stopped")
 				.setHeader(HttpHeaders.STATUS_CODE, HttpStatus.SERVICE_UNAVAILABLE)

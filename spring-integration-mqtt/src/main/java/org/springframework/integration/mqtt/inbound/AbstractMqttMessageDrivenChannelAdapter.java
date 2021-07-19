@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
@@ -37,6 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 4.0
  *
@@ -161,9 +163,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 				throw new MessagingException("Topic '" + topic + "' is already subscribed.");
 			}
 			this.topics.add(topik);
-			if (this.logger.isDebugEnabled()) {
-				logger.debug("Added '" + topic + "' to subscriptions.");
-			}
+			logger.debug(LogMessage.format("Added '%s' to subscriptions.", topic));
 		}
 		finally {
 			this.topicLock.unlock();
@@ -229,8 +229,8 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		this.topicLock.lock();
 		try {
 			for (String t : topic) {
-				if (this.topics.remove(new Topic(t, 0)) && this.logger.isDebugEnabled()) {
-					logger.debug("Removed '" + t + "' from subscriptions.");
+				if (this.topics.remove(new Topic(t, 0))) {
+					logger.debug(LogMessage.format("Removed '%s' from subscriptions.", t));
 				}
 			}
 		}

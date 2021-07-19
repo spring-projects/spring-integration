@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.stomp.StompSessionManager;
@@ -63,6 +64,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Trung Pham
  *
  * @since 4.2
  */
@@ -137,9 +139,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			Arrays.stream(destination)
 					.filter(this.destinations::add)
 					.forEach(d -> {
-						if (this.logger.isDebugEnabled()) {
-							logger.debug("Subscribe to destination '" + d + "'.");
-						}
+						logger.debug(LogMessage.format("Subscribe to destination '%s'.", d));
 						subscribeDestination(d);
 					});
 		}
@@ -160,17 +160,13 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			Arrays.stream(destination)
 					.filter(this.destinations::remove)
 					.forEach(d -> {
-						if (this.logger.isDebugEnabled()) {
-							logger.debug("Removed '" + d + "' from subscriptions.");
-						}
+						logger.debug(LogMessage.format("Removed '%s' from subscriptions.", d));
 						StompSession.Subscription subscription = this.subscriptions.get(d);
 						if (subscription != null) {
 							subscription.unsubscribe();
 						}
 						else {
-							if (this.logger.isDebugEnabled()) {
-								logger.debug("No subscription for destination '" + d + "'.");
-							}
+							logger.debug(LogMessage.format("No subscription for destination '%s'.", d));
 						}
 					});
 		}
@@ -257,15 +253,15 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 						eventPublisher.publishEvent(event);
 					}
 					else {
-						logger.error("The receipt [" + subscription.getReceiptId() + "] is lost for [" +
+						logger.error(() -> "The receipt [" + subscription.getReceiptId() + "] is lost for [" +
 								subscription.getSubscriptionId() + "] on destination [" + destination + "]");
 					}
 				});
 			}
 			this.subscriptions.put(destination, subscription);
 		}
-		else if (logger.isWarnEnabled()) {
-			logger.warn("The StompInboundChannelAdapter [" + getComponentName() +
+		else {
+			logger.warn(() -> "The StompInboundChannelAdapter [" + getComponentName() +
 					"] ins't connected to StompSession. Check the state of [" + this.stompSessionManager + "]");
 		}
 	}

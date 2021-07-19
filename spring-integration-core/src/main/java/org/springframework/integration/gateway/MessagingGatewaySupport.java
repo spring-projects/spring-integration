@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,7 @@ import reactor.core.publisher.Sinks;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  */
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint
@@ -529,9 +530,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			}
 		}
 		catch (Throwable ex) { // NOSONAR (catch throwable)
-			if (logger.isDebugEnabled()) {
-				logger.debug("failure occurred in gateway sendAndReceive: " + ex.getMessage());
-			}
+			logger.debug(() -> "failure occurred in gateway sendAndReceive: " + ex.getMessage());
 			reply = ex;
 			if (sample != null) {
 				sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
@@ -708,9 +707,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	private Mono<Message<?>> handleSendError(Message<?> requestMessage, Throwable exception) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("failure occurred in gateway sendAndReceiveReactive: " + exception.getMessage());
-		}
+		logger.debug(() -> "failure occurred in gateway sendAndReceiveReactive: " + exception.getMessage());
 		MessageChannel channel = getErrorChannel();
 		if (channel != null) {
 			ErrorMessage errorMessage = buildErrorMessage(requestMessage, exception);
