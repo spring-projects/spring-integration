@@ -537,18 +537,18 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		boolean noOutput = true;
 		try {
 			lock.lockInterruptibly();
+			try {
+				noOutput = processMessageForGroup(message, correlationKey, groupIdUuid, lock);
+			}
+			finally {
+				if (noOutput || !this.releaseLockBeforeSend) {
+					lock.unlock();
+				}
+			}
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new MessageHandlingException(message, "Interrupted getting lock in the [" + this + ']', e);
-		}
-		try {
-			noOutput = processMessageForGroup(message, correlationKey, groupIdUuid, lock);
-		}
-		finally {
-			if (noOutput || !this.releaseLockBeforeSend) {
-				lock.unlock();
-			}
 		}
 	}
 

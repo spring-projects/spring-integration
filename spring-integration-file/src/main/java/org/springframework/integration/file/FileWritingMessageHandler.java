@@ -600,7 +600,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * Retrieves the File instance from the {@link FileHeaders#ORIGINAL_FILE}
 	 * header if available. If the value is not a File instance or a String
-	 * representation of a file path, this will return <code>null</code>.
+	 * representation of a file path, this will return {@code null}.
 	 */
 	private File retrieveOriginalFileFromHeader(Message<?> message) {
 		Object value = message.getHeaders().get(FileHeaders.ORIGINAL_FILE);
@@ -1076,14 +1076,14 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				catch (IOException e) {
 					// ignore
 				}
+				finally {
+					this.lock.unlock();
+				}
 				return true;
 			}
 			catch (InterruptedException e1) {
 				Thread.currentThread().interrupt();
 				return false;
-			}
-			finally {
-				this.lock.unlock();
 			}
 		}
 
@@ -1175,6 +1175,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		@Override
 		public boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite,
 				Message<?> triggerMessage) {
+
 			Pattern pattern;
 			if (triggerMessage.getPayload() instanceof String) {
 				pattern = Pattern.compile((String) triggerMessage.getPayload());
