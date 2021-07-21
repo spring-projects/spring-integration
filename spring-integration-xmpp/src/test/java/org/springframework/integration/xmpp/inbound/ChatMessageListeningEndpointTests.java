@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import java.io.StringReader;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -35,16 +35,20 @@ import java.util.concurrent.TimeUnit;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.MessageBuilder;
+import org.jivesoftware.smack.packet.StanzaBuilder;
+import org.jivesoftware.smack.packet.StreamOpen;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smack.util.PacketParserUtils;
+import org.jivesoftware.smack.xml.XmlPullParser;
+import org.jivesoftware.smack.xml.XmlPullParserException;
 import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
 import org.junit.jupiter.api.Test;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.xmlpull.v1.XmlPullParser;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -143,10 +147,11 @@ public class ChatMessageListeningEndpointTests {
 		endpoint.setErrorChannel(errorChannel);
 		endpoint.afterPropertiesSet();
 		StanzaListener listener = (StanzaListener) TestUtils.getPropertyValue(endpoint, "stanzaListener");
-		Message smackMessage = new Message(JidCreate.from("kermit@frog.com"));
+		MessageBuilder smackMessage = StanzaBuilder.buildMessage();
+		smackMessage.to(JidCreate.from("kermit@frog.com"));
 		smackMessage.setBody("hello");
 		smackMessage.setThread("1234");
-		listener.processStanza(smackMessage);
+		listener.processStanza(smackMessage.build());
 
 		ErrorMessage msg =
 				(ErrorMessage) errorChannel.receive();
@@ -167,12 +172,11 @@ public class ChatMessageListeningEndpointTests {
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
-		Message smackMessage = new Message();
+		MessageBuilder smackMessage = StanzaBuilder.buildMessage();
 		smackMessage.setBody("foo");
 
 		XmlPullParser xmlPullParser =
-				PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML(null).toString()));
-		xmlPullParser.next();
+				PacketParserUtils.getParserFor(smackMessage.build().toXML().toString());
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 
 		org.springframework.messaging.Message<?> receive = inputChannel.receive(10000);
@@ -196,9 +200,8 @@ public class ChatMessageListeningEndpointTests {
 
 		endpoint.setPayloadExpression(null);
 
-		smackMessage = new Message();
-		xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML(null).toString()));
-		xmlPullParser.next();
+		Message message = StanzaBuilder.buildMessage().build();
+		xmlPullParser = PacketParserUtils.getParserFor(message.toXML().toString());
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 
 		ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
@@ -208,7 +211,7 @@ public class ChatMessageListeningEndpointTests {
 		verify(logger).info(argumentCaptor.capture());
 
 		assertThat(argumentCaptor.getValue())
-				.isEqualTo("The XMPP Message [" + smackMessage + "] with empty body is ignored.");
+				.isEqualTo("The XMPP Message [" + message + "] with empty body is ignored.");
 
 		endpoint.stop();
 	}
@@ -225,7 +228,7 @@ public class ChatMessageListeningEndpointTests {
 				"      }\n" +
 				"}";
 		GcmPacketExtension packetExtension = new GcmPacketExtension(data);
-		Message smackMessage = new Message();
+		MessageBuilder smackMessage = StanzaBuilder.buildMessage();
 		smackMessage.addExtension(packetExtension);
 
 		TestXMPPConnection testXMPPConnection = new TestXMPPConnection();
@@ -241,8 +244,7 @@ public class ChatMessageListeningEndpointTests {
 		endpoint.start();
 
 		XmlPullParser xmlPullParser =
-				PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML(null).toString()));
-		xmlPullParser.next();
+				PacketParserUtils.getParserFor(smackMessage.build().toXML().toString());
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 
 		org.springframework.messaging.Message<?> receive = inputChannel.receive(10000);
@@ -255,12 +257,24 @@ public class ChatMessageListeningEndpointTests {
 
 	private static class TestXMPPConnection extends XMPPTCPConnection {
 
+
 		TestXMPPConnection() throws XmppStringprepException {
-			super(XMPPTCPConnectionConfiguration.builder().setXmppDomain("/foo").build());
+			super(XMPPTCPConnectionConfiguration.builder().setXmppDomain("example.org").build());
+
+			StreamOpen streamOpen = new StreamOpen("example.org");
+			XmlPullParser parser;
+			try {
+				parser = PacketParserUtils.getParserFor(streamOpen.toXML().toString());
+			}
+			catch (XmlPullParserException | IOException e) {
+				throw new AssertionError(e);
+			}
+			onStreamOpen(parser);
 		}
 
 		@Override
-		protected void parseAndProcessStanza(XmlPullParser parser) throws Exception {
+		protected void parseAndProcessStanza(XmlPullParser parser)
+				throws XmlPullParserException, IOException, InterruptedException {
 			super.parseAndProcessStanza(parser);
 		}
 

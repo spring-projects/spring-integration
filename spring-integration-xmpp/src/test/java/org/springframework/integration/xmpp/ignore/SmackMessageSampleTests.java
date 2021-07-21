@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.xmpp.ignore;
 
+import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -41,9 +41,10 @@ public class SmackMessageSampleTests {
 
 		MessageChannel xmppInput = ac.getBean("xmppInput", MessageChannel.class);
 
-		org.jivesoftware.smack.packet.Message smackMessage =
-				new org.jivesoftware.smack.packet.Message(JidCreate.from("springintegration@gmail.com"));
-		smackMessage.setBody("Message sent as Smack Message");
+		org.jivesoftware.smack.packet.Message smackMessage = StanzaBuilder.buildMessage()
+				.to("springintegration@gmail.com")
+				.setBody("Message sent as Smack Message")
+				.build();
 
 		Message<org.jivesoftware.smack.packet.Message> message = new GenericMessage<>(smackMessage);
 

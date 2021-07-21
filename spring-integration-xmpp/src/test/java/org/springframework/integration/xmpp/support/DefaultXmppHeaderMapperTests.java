@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.MessageBuilder;
+import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 import org.junit.Test;
-import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 import org.springframework.integration.xmpp.XmppHeaders;
@@ -51,7 +52,7 @@ public class DefaultXmppHeaderMapperTests {
 		headerMap.put(XmppHeaders.SUBJECT, "test.subject");
 		headerMap.put(XmppHeaders.TYPE, "headline");
 		MessageHeaders headers = new MessageHeaders(headerMap);
-		Message target = new Message();
+		MessageBuilder target = StanzaBuilder.buildMessage();
 		mapper.fromHeadersToRequest(headers, target);
 
 		// "standard" XMPP headers
@@ -84,7 +85,7 @@ public class DefaultXmppHeaderMapperTests {
 		headerMap.put(XmppHeaders.SUBJECT, "test.subject");
 		headerMap.put(XmppHeaders.TYPE, "headline");
 		MessageHeaders headers = new MessageHeaders(headerMap);
-		Message target = new Message();
+		MessageBuilder target = StanzaBuilder.buildMessage();
 		mapper.fromHeadersToRequest(headers, target);
 
 		// "standard" XMPP headers not included
@@ -94,7 +95,7 @@ public class DefaultXmppHeaderMapperTests {
 		Object from = target.getFrom();
 		assertThat(from).isNull();
 		assertThat(target.getSubject()).isNull();
-		assertThat(target.getType()).isEqualTo(Message.Type.normal);
+		assertThat(target.getType()).isNull();
 
 		// user-defined headers are included if in the list
 		assertThat(JivePropertiesManager.getProperty(target, "userDefined1")).isEqualTo("foo");
@@ -111,10 +112,12 @@ public class DefaultXmppHeaderMapperTests {
 	@Test
 	public void toHeadersStandardOnly() throws XmppStringprepException {
 		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
-		Message source = new Message(JidCreate.from("test.to"), Message.Type.headline);
-		source.setFrom(JidCreate.from("test.from"));
-		source.setSubject("test.subject");
-		source.setThread("test.thread");
+		MessageBuilder source = StanzaBuilder.buildMessage()
+				.ofType(Message.Type.headline)
+				.to("test.to")
+				.from("test.from")
+				.setSubject("test.subject")
+				.setThread("test.thread");
 		JivePropertiesManager.addProperty(source, "userDefined1", "foo");
 		JivePropertiesManager.addProperty(source, "userDefined2", "bar");
 		Map<String, Object> headers = mapper.toHeadersFromRequest(source);
@@ -131,10 +134,12 @@ public class DefaultXmppHeaderMapperTests {
 	public void toHeadersUserDefinedOnly() throws XmppStringprepException {
 		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
 		mapper.setReplyHeaderNames("userDefined*");
-		Message source = new Message(JidCreate.from("test.to"), Message.Type.headline);
-		source.setFrom(JidCreate.from("test.from"));
-		source.setSubject("test.subject");
-		source.setThread("test.thread");
+		MessageBuilder source = StanzaBuilder.buildMessage()
+				.ofType(Message.Type.headline)
+				.to("test.to")
+				.from("test.from")
+				.setSubject("test.subject")
+				.setThread("test.thread");
 		JivePropertiesManager.addProperty(source, "userDefined1", "foo");
 		JivePropertiesManager.addProperty(source, "userDefined2", "bar");
 		Map<String, Object> headers = mapper.toHeadersFromReply(source);

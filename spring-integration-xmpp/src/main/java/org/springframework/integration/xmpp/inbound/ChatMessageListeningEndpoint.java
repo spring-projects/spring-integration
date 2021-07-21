@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,8 +124,9 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 		public void processStanza(Stanza packet) {
 			if (packet instanceof org.jivesoftware.smack.packet.Message) {
 				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
+				// TODO: Remove asBuilder if we redesign RequestReplyHeaderMapper.
 				Map<String, ?> mappedHeaders =
-						ChatMessageListeningEndpoint.this.headerMapper.toHeadersFromRequest(xmppMessage);
+						ChatMessageListeningEndpoint.this.headerMapper.toHeadersFromRequest(xmppMessage.asBuilder());
 
 				Object messageBody = xmppMessage.getBody();
 

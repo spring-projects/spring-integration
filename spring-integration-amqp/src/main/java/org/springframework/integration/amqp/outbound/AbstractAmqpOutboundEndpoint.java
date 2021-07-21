@@ -420,7 +420,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		endpointInit();
 
 		if (this.headerMapper instanceof AbstractHeaderMapper) {
-			((AbstractHeaderMapper<?>) this.headerMapper).setBeanClassLoader(getBeanClassLoader());
+			((AbstractHeaderMapper<?, ?>) this.headerMapper).setBeanClassLoader(getBeanClassLoader());
 		}
 	}
 

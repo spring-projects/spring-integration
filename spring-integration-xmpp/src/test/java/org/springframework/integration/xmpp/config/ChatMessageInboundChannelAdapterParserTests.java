@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ import java.util.Map;
 
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.MessageBuilder;
+import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -102,12 +103,12 @@ public class ChatMessageInboundChannelAdapterParserTests {
 
 		StanzaListener stanzaListener = TestUtils.getPropertyValue(adapter, "stanzaListener", StanzaListener.class);
 
-		Message message = new Message();
+		MessageBuilder message = StanzaBuilder.buildMessage();
 		message.setBody("hello");
-		message.setTo(JidCreate.from("oleg"));
+		message.to(JidCreate.from("oleg"));
 		JivePropertiesManager.addProperty(message, "foo", "foo");
 		JivePropertiesManager.addProperty(message, "bar", "bar");
-		stanzaListener.processStanza(message);
+		stanzaListener.processStanza(message.build());
 		org.springframework.messaging.Message<?> siMessage = xmppInbound.receive(0);
 		assertThat(siMessage.getHeaders().get("foo")).isEqualTo("foo");
 		assertThat(siMessage.getHeaders().get("xmpp_to")).isEqualTo("oleg");

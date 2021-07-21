@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,18 @@
 
 package org.springframework.integration.xmpp.outbound;
 
-import java.io.StringReader;
 import java.util.regex.Pattern;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.MessageBuilder;
+import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smack.provider.ExtensionElementProvider;
 import org.jivesoftware.smack.util.PacketParserUtils;
+import org.jivesoftware.smack.xml.XmlPullParser;
+import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
-import org.xmlpull.v1.XmlPullParser;
 
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareMessageHandler;
@@ -85,27 +87,30 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
+		org.jivesoftware.smack.packet.Message xmppMessage;
 		Assert.isTrue(isInitialized(),
 				() -> getComponentName() + "#" + getComponentType() + " must be initialized");
 		try {
 			Object payload = message.getPayload();
-			org.jivesoftware.smack.packet.Message xmppMessage;
+			MessageBuilder xmppMessageBuilder;
 			if (payload instanceof org.jivesoftware.smack.packet.Message) {
 				xmppMessage = (org.jivesoftware.smack.packet.Message) payload;
+				xmppMessageBuilder = xmppMessage.asBuilder();
 			}
 			else {
 				String to = message.getHeaders().get(XmppHeaders.TO, String.class);
 				Assert.state(StringUtils.hasText(to), () -> "The '" + XmppHeaders.TO + "' header must not be null");
-				xmppMessage = buildXmppMessage(payload, to);
+				xmppMessageBuilder = buildXmppMessage(payload, to);
 			}
 
 			if (this.headerMapper != null) {
-				this.headerMapper.fromHeadersToRequest(message.getHeaders(), xmppMessage);
+				this.headerMapper.fromHeadersToRequest(message.getHeaders(), xmppMessageBuilder);
 			}
 			XMPPConnection xmppConnection = getXmppConnection();
 			if (!xmppConnection.isConnected() && xmppConnection instanceof AbstractXMPPConnection) {
 				((AbstractXMPPConnection) xmppConnection).connect();
 			}
+			xmppMessage = xmppMessageBuilder.build();
 			xmppConnection.sendStanza(xmppMessage);
 		}
 		catch (InterruptedException e) {
@@ -117,14 +122,16 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 		}
 	}
 
-	private org.jivesoftware.smack.packet.Message buildXmppMessage(Object payload, String to)
+	private MessageBuilder buildXmppMessage(Object payload, String to)
 			throws Exception { // NOSONAR Smack throws it
 
-		org.jivesoftware.smack.packet.Message xmppMessage;
-		xmppMessage = new org.jivesoftware.smack.packet.Message(JidCreate.from(to));
+		Jid toJid = JidCreate.from(to);
+		MessageBuilder xmppMessageBuilder = StanzaBuilder.buildMessage()
+				.to(toJid);
 
 		if (payload instanceof ExtensionElement) {
-			xmppMessage.addExtension((ExtensionElement) payload);
+			ExtensionElement extensionElement = (ExtensionElement) payload;
+			xmppMessageBuilder.addExtension(extensionElement);
 		}
 		else if (payload instanceof String) {
 			if (this.extensionProvider != null) {
@@ -135,13 +142,13 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 					// if the target content isn't XML.
 					data = "<root>" + data + "</root>";
 				}
-				XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(data));
-				xmlPullParser.next();
+				XmlPullParser xmlPullParser = PacketParserUtils.getParserFor(data);
 				ExtensionElement extension = this.extensionProvider.parse(xmlPullParser);
-				xmppMessage.addExtension(extension);
+				xmppMessageBuilder.addExtension(extension);
 			}
 			else {
-				xmppMessage.setBody((String) payload);
+				String body = (String) payload;
+				xmppMessageBuilder.setBody(body);
 			}
 		}
 		else {
@@ -151,7 +158,7 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 							"are supported. Received [" + payload.getClass().getName() +
 							"]. Consider adding a Transformer prior to this adapter.");
 		}
-		return xmppMessage;
+		return xmppMessageBuilder;
 	}
 
 }

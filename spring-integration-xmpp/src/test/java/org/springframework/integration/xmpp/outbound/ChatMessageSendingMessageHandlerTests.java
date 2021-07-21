@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
 import org.jivesoftware.smackx.gcm.provider.GcmExtensionProvider;
 import org.junit.Test;
-import org.jxmpp.jid.impl.JidCreate;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -111,28 +111,43 @@ public class ChatMessageSendingMessageHandlerTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		org.jivesoftware.smack.packet.Message smackMessage =
-				new org.jivesoftware.smack.packet.Message(JidCreate.from("kermit@frog.com"));
-		smackMessage.setBody("Test Message");
+		org.jivesoftware.smack.packet.Message smackMessage = StanzaBuilder.buildMessage()
+				.to("kermit@frog.com")
+				.setBody("Test Message")
+				.build();
 
 
 		Message<?> message = MessageBuilder.withPayload(smackMessage).build();
 		// first Message new
 		handler.handleMessage(message);
 
-		verify(connection, times(1)).sendStanza(smackMessage);
+		verify(connection).isConnected();
+		verify(connection).sendStanza(Mockito.argThat((org.jivesoftware.smack.packet.Message m) -> {
+			boolean bodyMatches = "Test Message".equals(m.getBody());
+			boolean toMatches = m.getTo().toString().equals("kermit@frog.com");
+			return bodyMatches && toMatches;
+		}));
 
 		// assuming we know thread ID although currently we do not provide this capability
-		smackMessage = new org.jivesoftware.smack.packet.Message(JidCreate.from("kermit@frog.com"));
-		smackMessage.setBody("Hello Kitty");
-		smackMessage.setThread("123");
+		smackMessage = StanzaBuilder.buildMessage()
+				.ofType(org.jivesoftware.smack.packet.Message.Type.normal)
+				.to("kermit@frog.com")
+				.setBody("Hello Kitty")
+				.setThread("123")
+				.build();
 		message = MessageBuilder.withPayload(smackMessage).build();
 
 		reset(connection);
 		handler.handleMessage(message);
 
 		// in threaded conversation we need to look for existing chat
-		verify(connection, times(1)).sendStanza(smackMessage);
+		verify(connection).isConnected();
+		verify(connection).sendStanza(Mockito.argThat((org.jivesoftware.smack.packet.Message m) -> {
+			boolean bodyMatches = "Hello Kitty".equals(m.getBody());
+			boolean toMatches = "kermit@frog.com".equals(m.getTo().toString());
+			boolean threadMatches = "123".equals(m.getThread());
+			return bodyMatches && toMatches && threadMatches;
+		}));
 	}
 
 	@Test
