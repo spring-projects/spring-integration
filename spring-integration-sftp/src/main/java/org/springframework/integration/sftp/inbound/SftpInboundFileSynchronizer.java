@@ -56,7 +56,7 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 
 	@Override
 	protected long getModified(LsEntry file) {
-		return (long) file.getAttrs().getMTime() * 1000;
+		return (long) file.getAttrs().getMTime() * 1000; // NOSONAR magic number
 	}
 
 	@Override

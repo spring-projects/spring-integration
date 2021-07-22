@@ -82,7 +82,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private Expression remoteTimeoutExpression = new ValueExpression<>(DEFAULT_REMOTE_TIMEOUT);
 
-	private long requestTimeout = 10000;
+	private long requestTimeout = 10000; // NOSONAR magic number
 
 	private EvaluationContext evaluationContext = new StandardEvaluationContext();
 

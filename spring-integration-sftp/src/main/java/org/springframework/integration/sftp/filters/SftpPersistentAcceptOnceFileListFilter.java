@@ -39,7 +39,7 @@ public class SftpPersistentAcceptOnceFileListFilter extends AbstractPersistentAc
 
 	@Override
 	protected long modified(LsEntry file) {
-		return ((long) file.getAttrs().getMTime()) * 1000;
+		return ((long) file.getAttrs().getMTime()) * 1000; // NOSONAR magic number
 	}
 
 	@Override

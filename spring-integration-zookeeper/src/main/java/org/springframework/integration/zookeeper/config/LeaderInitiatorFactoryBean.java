@@ -53,7 +53,7 @@ public class LeaderInitiatorFactoryBean
 
 	private boolean autoStartup = true;
 
-	private int phase = Integer.MAX_VALUE - 1000;
+	private int phase = Integer.MAX_VALUE - 1000; // NOSONAR magic number
 
 	private ApplicationEventPublisher applicationEventPublisher;
 

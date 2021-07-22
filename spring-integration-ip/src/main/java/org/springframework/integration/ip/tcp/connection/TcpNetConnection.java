@@ -107,7 +107,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			if (this.socketOutputStream == null) {
 				int writeBufferSize = this.socket.getSendBufferSize();
 				this.socketOutputStream = new BufferedOutputStream(this.socket.getOutputStream(),
-						writeBufferSize > 0 ? writeBufferSize : 8192);
+						writeBufferSize > 0 ? writeBufferSize : 8192); // NOSONAR magic number
 			}
 			Object object = getMapper().fromMessage(message);
 			Assert.state(object != null, "Mapper mapped the message to 'null'.");

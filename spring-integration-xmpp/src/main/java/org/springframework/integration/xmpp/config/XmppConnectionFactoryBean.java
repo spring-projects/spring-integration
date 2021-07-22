@@ -61,7 +61,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	private String host;
 
-	private int port = 5222;
+	private int port = 5222; // NOSONAR magic number
 
 	private Roster.SubscriptionMode subscriptionMode = Roster.getDefaultSubscriptionMode();
 

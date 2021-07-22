@@ -374,7 +374,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			int result = 1;
 			result = prime * result + getOuterType().hashCode();
 			result = prime * result + ((this.lockKey == null) ? 0 : this.lockKey.hashCode());
-			result = prime * result + (int) (this.lockedAt ^ (this.lockedAt >>> 32));
+			result = prime * result + (int) (this.lockedAt ^ (this.lockedAt >>> 32)); // NOSONAR magic number
 			result = prime * result + RedisLockRegistry.this.clientId.hashCode();
 			return result;
 		}

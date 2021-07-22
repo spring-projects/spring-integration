@@ -140,7 +140,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	/**
 	 * @see SmartLifecycle which is an extension of org.springframework.context.Phased
 	 */
-	private int phase = Integer.MAX_VALUE - 1000;
+	private int phase = Integer.MAX_VALUE - 1000; // NOSONAR magic number
 
 	/**
 	 * Time in milliseconds to wait in between attempts to acquire the lock, if it is not

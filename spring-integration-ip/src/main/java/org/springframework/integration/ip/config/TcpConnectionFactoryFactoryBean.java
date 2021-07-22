@@ -96,7 +96,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private boolean singleUse;
 
-	private int backlog = 5;
+	private int backlog = 5; // NOSONAR magic number
 
 	private TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
 

@@ -57,7 +57,7 @@ public class TcpReceivingChannelAdapter
 
 	private volatile boolean isClientMode;
 
-	private volatile long retryInterval = 60000;
+	private volatile long retryInterval = 60000; // NOSONAR magic number
 
 	private volatile ScheduledFuture<?> scheduledFuture;
 

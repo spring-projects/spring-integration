@@ -52,7 +52,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 	private int port = FTP.DEFAULT_PORT;
 
-	private int bufferSize = 2048; //see https://issues.apache.org/jira/browse/NET-207
+	private int bufferSize = 2048; // NOSONAR magic number. See https://issues.apache.org/jira/browse/NET-207
 
 	private int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
 

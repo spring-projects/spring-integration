@@ -48,7 +48,7 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 	/**
 	 * @see SmartLifecycle
 	 */
-	private int phase = Integer.MIN_VALUE + 1000;
+	private int phase = Integer.MIN_VALUE + 1000; // NOSONAR magic number
 
 	/**
 	 * @see SmartLifecycle
@@ -62,7 +62,7 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 	 * @param connectionString list of servers to connect to
 	 */
 	public CuratorFrameworkFactoryBean(String connectionString) {
-		this(connectionString, new ExponentialBackoffRetry(1000, 3));
+		this(connectionString, new ExponentialBackoffRetry(1000, 3)); // NOSONAR magic number
 	}
 
 	/**

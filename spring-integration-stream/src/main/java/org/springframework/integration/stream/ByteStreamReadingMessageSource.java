@@ -33,7 +33,7 @@ public class ByteStreamReadingMessageSource extends AbstractMessageSource<byte[]
 
 	private final BufferedInputStream stream;
 
-	private int bytesPerMessage = 1024;
+	private int bytesPerMessage = 1024; // NOSONAR magic number
 
 	private boolean shouldTruncate = true;
 

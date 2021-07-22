@@ -271,8 +271,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	 */
 	public void init() {
 		if (this.decoded == null) {
-			this.decoded = allocateEncryptionBuffer(2048);
-			this.encoded = allocateEncryptionBuffer(2048);
+			this.decoded = allocateEncryptionBuffer(2048); // NOSONAR magic number
+			this.encoded = allocateEncryptionBuffer(2048); // NOSONAR magic number
 			initializeEngine();
 		}
 	}
