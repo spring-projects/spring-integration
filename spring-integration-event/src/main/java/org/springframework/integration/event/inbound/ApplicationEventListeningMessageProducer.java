@@ -55,7 +55,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	private volatile long stoppedAt;
 
 	public ApplicationEventListeningMessageProducer() {
-		setPhase(Integer.MAX_VALUE / 2 - 1000);
+		setPhase(Integer.MAX_VALUE / 2 - 1000); // NOSONAR magic number
 	}
 
 	/**
@@ -131,7 +131,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	}
 
 	private boolean stoppedRecently() {
-		return this.stoppedAt > System.currentTimeMillis() - 5000;
+		return this.stoppedAt > System.currentTimeMillis() - 5000; // NOSONAR magic number
 	}
 
 	@Override

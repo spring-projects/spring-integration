@@ -518,7 +518,7 @@ public class UnicastSendingMessageHandler extends
 		try {
 			this.ackThreadRunning = true;
 			this.ackLatch.countDown();
-			DatagramPacket ackPack = new DatagramPacket(new byte[100], 100);
+			DatagramPacket ackPack = new DatagramPacket(new byte[100], 100); // NOSONAR magic number
 			while (true) {
 				getSocket().receive(ackPack);
 				String id = new String(ackPack.getData(), ackPack.getOffset(), ackPack.getLength());

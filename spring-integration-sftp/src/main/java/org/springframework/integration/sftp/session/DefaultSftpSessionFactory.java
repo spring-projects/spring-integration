@@ -76,7 +76,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	private String host;
 
-	private int port = 22; // the default
+	private int port = 22; // NOSONAR magic number. The default
 
 	private String user;
 
@@ -419,7 +419,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				"either a password or a private key is required");
 
 		if (this.port <= 0) {
-			this.port = 22;
+			this.port = 22; // NOSONAR magic number
 		}
 		if (this.knownHosts != null) {
 			this.jsch.setKnownHosts(this.knownHosts.getInputStream());

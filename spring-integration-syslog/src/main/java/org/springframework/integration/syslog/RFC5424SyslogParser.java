@@ -99,8 +99,8 @@ public class RFC5424SyslogParser {
 				message = "";
 			}
 
-			int severity = pri & 0x7;
-			int facility = pri >> 3;
+			int severity = pri & 0x7; // NOSONAR magic number
+			int facility = pri >> 3; // NOSONAR magic number
 			map.put(SyslogHeaders.FACILITY, facility);
 			map.put(SyslogHeaders.SEVERITY, severity);
 			map.put(SyslogHeaders.SEVERITY_TEXT, Severity.parseInt(severity).label());
@@ -239,7 +239,7 @@ public class RFC5424SyslogParser {
 		public int readInt() {
 			int val = 0;
 			while (isDigit()) {
-				val = (val * 10) + getInt();
+				val = (val * 10) + getInt(); // NOSONAR magic number
 			}
 			return val;
 		}
@@ -248,8 +248,8 @@ public class RFC5424SyslogParser {
 			int val = 0;
 			int order = 0;
 			while (isDigit()) {
-				val = (val * 10) + getInt();
-				order *= 10;
+				val = (val * 10) + getInt(); // NOSONAR magic number
+				order *= 10; // NOSONAR magic number
 			}
 			return (double) val / order;
 
@@ -289,7 +289,7 @@ public class RFC5424SyslogParser {
 			int c;
 			while (true) {
 				c = getc();
-				if (c >= 33 && c <= 127) {
+				if (c >= 33 && c <= 127) { // NOSONAR magic number
 					sb.append((char) c);
 				}
 				else {
@@ -339,19 +339,19 @@ public class RFC5424SyslogParser {
 		}
 
 		public static Severity parseInt(int syslogSeverity) {
-			if (syslogSeverity == 7) {
+			if (syslogSeverity == 7) { // NOSONAR magic number
 				return DEBUG;
 			}
-			if (syslogSeverity == 6) {
+			if (syslogSeverity == 6) { // NOSONAR magic number
 				return INFO;
 			}
-			if (syslogSeverity == 5) {
+			if (syslogSeverity == 5) { // NOSONAR magic number
 				return NOTICE;
 			}
-			if (syslogSeverity == 4) {
+			if (syslogSeverity == 4) { // NOSONAR magic number
 				return WARN;
 			}
-			if (syslogSeverity == 3) {
+			if (syslogSeverity == 3) { // NOSONAR magic number
 				return ERROR;
 			}
 			if (syslogSeverity == 2) {

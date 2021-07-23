@@ -101,14 +101,14 @@ public class RFC6587SyslogDeserializer implements Deserializer<Map<String, ?>> {
 	}
 
 	private boolean isDigit(int peek) {
-		return peek >= 0x30 && peek <= 0x39;
+		return peek >= 0x30 && peek <= 0x39; // NOSONAR magic number
 	}
 
 	private int calculateLength(DataInputStream stream, int peek) throws IOException {
-		int length = peek & 0xf;
+		int length = peek & 0xf; // NOSONAR magic number
 		int c = stream.read();
 		while (isDigit(c)) {
-			length = length * 10 + (c & 0xf);
+			length = length * 10 + (c & 0xf); // NOSONAR magic number
 			c = stream.read();
 		}
 		return length;

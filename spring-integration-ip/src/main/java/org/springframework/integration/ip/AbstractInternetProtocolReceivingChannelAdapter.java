@@ -47,7 +47,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	private int soReceiveBufferSize = -1;
 
-	private int receiveBufferSize = 2048;
+	private int receiveBufferSize = 2048; // NOSONAR magic number
 
 	private String localAddress;
 
@@ -55,7 +55,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	private boolean taskExecutorSet;
 
-	private int poolSize = 5;
+	private int poolSize = 5; // NOSONAR magic number
 
 	private volatile boolean listening;
 

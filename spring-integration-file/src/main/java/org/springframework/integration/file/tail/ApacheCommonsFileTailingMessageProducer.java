@@ -31,7 +31,7 @@ import org.apache.commons.io.input.TailerListener;
 public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageProducerSupport
 		implements TailerListener {
 
-	private long pollingDelay = 1000;
+	private long pollingDelay = 1000; // NOSONAR magic number
 
 	private boolean end = true;
 

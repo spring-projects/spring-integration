@@ -63,7 +63,7 @@ public class ByteArraySingleTerminatorSerializer extends AbstractPooledBufferByt
 				buffer[n++] = (byte) bite;
 				int maxMessageSize = getMaxMessageSize();
 				if (n >= maxMessageSize) {
-					throw new IOException("Terminator '0x" + Integer.toHexString(this.terminator & 0xff)
+					throw new IOException("Terminator '0x" + Integer.toHexString(this.terminator & 0xff) // NOSONAR magic number
 							+ "' not found before max message length: "
 							+ maxMessageSize);
 				}

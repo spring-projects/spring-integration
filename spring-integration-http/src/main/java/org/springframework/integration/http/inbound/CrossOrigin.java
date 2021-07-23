@@ -44,7 +44,7 @@ public class CrossOrigin {
 
 	private Boolean allowCredentials = true;
 
-	private long maxAge = 1800;
+	private long maxAge = 1800; // NOSONAR magic number
 
 	public void setOrigin(String... origin) {
 		this.origin = Arrays.copyOf(origin, origin.length);

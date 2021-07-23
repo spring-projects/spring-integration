@@ -112,21 +112,21 @@ public class ChannelMessageStorePreparedStatementSetter {
 
 		preparedStatement.setString(1, messageId);
 		preparedStatement.setString(2, groupKey);
-		preparedStatement.setString(3, region);
-		preparedStatement.setLong(4, createdDate);
+		preparedStatement.setString(3, region); // NOSONAR magic number
+		preparedStatement.setLong(4, createdDate); // NOSONAR magic number
 
 		Integer priority = requestMessage.getHeaders().get(IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
 
 		if (priorityEnabled && priority != null) {
-			preparedStatement.setInt(5, priority);
+			preparedStatement.setInt(5, priority); // NOSONAR magic number
 		}
 		else {
-			preparedStatement.setNull(5, Types.NUMERIC);
+			preparedStatement.setNull(5, Types.NUMERIC); // NOSONAR magic number
 		}
 
 		if (this.serializer != null) {
 			byte[] messageBytes = this.serializer.convert(requestMessage);
-			this.lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
+			this.lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes); // NOSONAR magic number
 		}
 	}
 

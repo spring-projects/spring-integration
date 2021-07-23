@@ -93,7 +93,7 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 		Assert.isInstanceOf(String.class, groupId);
 		String key = (String) groupId;
 		Integer priority = new IntegrationMessageHeaderAccessor(message).getPriority();
-		if (priority != null && priority < 10 && priority >= 0) {
+		if (priority != null && priority < 10 && priority >= 0) { // NOSONAR magic number
 			key = key + ":" + priority;
 		}
 		return super.addMessageToGroup(key, message);
