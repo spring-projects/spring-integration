@@ -573,10 +573,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				ExecutorService executorService = (ExecutorService) this.taskExecutor;
 				executorService.shutdown();
 				try {
-					if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+					if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) { // NOSONAR magic number
 						logger.debug("Forcing executor shutdown");
 						executorService.shutdownNow();
-						if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+						if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) { // NOSONAR magic number
 							logger.debug("Executor failed to shutdown");
 						}
 					}

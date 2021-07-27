@@ -201,7 +201,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		CountDownLatch connectLatch = addStompSessionCallback(currentEpoch);
 
 		try {
-			if (!connectLatch.await(30, TimeUnit.SECONDS)) {
+			if (!connectLatch.await(30, TimeUnit.SECONDS)) { // NOSONAR magic number
 				this.logger.error("No response to connection attempt");
 				if (currentEpoch == this.epoch.get()) {
 					scheduleReconnect(null);
