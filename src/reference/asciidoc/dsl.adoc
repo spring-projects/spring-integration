@@ -1257,7 +1257,7 @@ In this case, the message handler for the first flow can be referenced with bean
 
 NOTE: An `id` attribute is required when you usE `useFlowIdAsPrefix()`.
 
-[[java-dsl-gateway]]
+[[integration-flow-as-gateway]]
 === `IntegrationFlow` as a Gateway
 
 The `IntegrationFlow` can start from the service interface that provides a `GatewayProxyFactoryBean` component, as the following example shows:
