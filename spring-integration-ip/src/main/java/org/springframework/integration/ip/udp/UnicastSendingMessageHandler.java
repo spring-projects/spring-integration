@@ -326,7 +326,7 @@ public class UnicastSendingMessageHandler extends
 					this.ackLatch = new CountDownLatch(1);
 					this.taskExecutor.execute(this);
 					try {
-						this.ackLatch.await(10000, TimeUnit.MILLISECONDS);
+						this.ackLatch.await(10000, TimeUnit.MILLISECONDS); // NOSONAR magic number
 					}
 					catch (@SuppressWarnings("unused") InterruptedException e) {
 						Thread.currentThread().interrupt();

@@ -347,7 +347,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		}
 		this.jdbcTemplate.batchUpdate(getQuery(Query.CREATE_GROUP_TO_MESSAGE),
 				Arrays.asList(messages),
-				100,
+				100, // NOSONAR magic number
 				(ps, messageToAdd) -> {
 					String messageId = getKey(messageToAdd.getHeaders().getId());
 					if (logger.isDebugEnabled()) {

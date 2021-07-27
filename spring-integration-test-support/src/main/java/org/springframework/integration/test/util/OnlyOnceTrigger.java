@@ -86,7 +86,7 @@ public class OnlyOnceTrigger implements Trigger {
 
 	public void await() {
 		try {
-			if (!this.latch.await(10000, TimeUnit.MILLISECONDS)) {
+			if (!this.latch.await(10000, TimeUnit.MILLISECONDS)) { // NOSONAR magic number
 				throw new IllegalStateException("test latch.await() did not count down");
 			}
 		}
