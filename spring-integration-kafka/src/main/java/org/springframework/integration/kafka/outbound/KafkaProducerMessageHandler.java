@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -508,9 +507,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			sendFuture = gatewayFuture.getSendFuture();
 		}
 		else {
-			if (this.transactional
-					&& TransactionSynchronizationManager.getResource(this.kafkaTemplate.getProducerFactory()) == null
-					&& !this.allowNonTransactional) {
+			if (this.transactional && !this.kafkaTemplate.inTransaction() && !this.allowNonTransactional) {
 				sendFuture = this.kafkaTemplate.executeInTransaction(template -> template.send(producerRecord));
 			}
 			else {
