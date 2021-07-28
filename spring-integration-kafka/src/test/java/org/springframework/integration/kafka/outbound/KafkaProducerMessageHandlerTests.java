@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,11 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.support.AbstractPlatformTransactionManager;
+import org.springframework.transaction.support.DefaultTransactionStatus;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
 
@@ -598,6 +603,37 @@ class KafkaProducerMessageHandlerTests {
 		assertThat(txId.get()).isEqualTo("overridden.tx.id.");
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	void testTransactionSynch() {
+		Producer producer = mock(Producer.class);
+		ProducerFactory pf = mock(ProducerFactory.class);
+		given(pf.transactionCapable()).willReturn(true);
+		given(pf.createProducer(isNull())).willReturn(producer);
+		ListenableFuture future = mock(ListenableFuture.class);
+		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		KafkaTemplate template = new KafkaTemplate(pf);
+		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
+		handler.setTopicExpression(new LiteralExpression("bar"));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		handler.start();
+		try {
+			new TransactionTemplate(new SomeOtherTransactionManager()).executeWithoutResult(status -> {
+				handler.handleMessage(new GenericMessage<>("foo"));
+				throw new IllegalStateException("test");
+			});
+		}
+		catch (IllegalStateException ex) {
+		}
+		handler.stop();
+		verify(producer).beginTransaction();
+		verify(producer).send(any(ProducerRecord.class), any(Callback.class));
+		verify(producer).abortTransaction();
+		verify(producer).close(any());
+		verifyNoMoreInteractions(producer);
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void testConsumeAndProduceTransactionTxIdOverride() throws Exception {
@@ -745,6 +781,28 @@ class KafkaProducerMessageHandlerTests {
 		inOrder.verify(producer).send(any(ProducerRecord.class), any(Callback.class));
 		inOrder.verify(producer, never()).flush();
 		handler.stop();
+	}
+
+	@SuppressWarnings("serial")
+	static class SomeOtherTransactionManager extends AbstractPlatformTransactionManager {
+
+		@Override
+		protected Object doGetTransaction() throws TransactionException {
+			return new Object();
+		}
+
+		@Override
+		protected void doBegin(Object transaction, TransactionDefinition definition) throws TransactionException {
+		}
+
+		@Override
+		protected void doCommit(DefaultTransactionStatus status) throws TransactionException {
+		}
+
+		@Override
+		protected void doRollback(DefaultTransactionStatus status) throws TransactionException {
+		}
+
 	}
 
 }
