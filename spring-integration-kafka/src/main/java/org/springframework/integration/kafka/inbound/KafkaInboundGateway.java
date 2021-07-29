@@ -41,7 +41,6 @@ import org.springframework.kafka.listener.ConsumerSeekAware;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
-import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.ConversionException;
@@ -130,7 +129,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	/**
 	 * Specify a {@link RetryTemplate} instance to wrap
 	 * {@link KafkaInboundGateway.IntegrationRecordMessageListener} into
-	 * {@link RetryingMessageListenerAdapter}.
+	 * {@code RetryingMessageListenerAdapter}.
 	 * @param retryTemplate the {@link RetryTemplate} to use.
 	 */
 	public void setRetryTemplate(RetryTemplate retryTemplate) {
@@ -174,12 +173,14 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	protected void onInit() {
 		super.onInit();
 		MessageListener<K, V> kafkaListener = this.listener;
 		if (this.retryTemplate != null) {
 			kafkaListener =
-					new RetryingMessageListenerAdapter<>(kafkaListener, this.retryTemplate, this.recoveryCallback);
+					new org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter<>(kafkaListener,
+							this.retryTemplate, this.recoveryCallback);
 			this.retryTemplate.registerListener(this.listener);
 		}
 		ContainerProperties containerProperties = this.messageListenerContainer.getContainerProperties();
