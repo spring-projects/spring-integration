@@ -98,12 +98,23 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this(listenerContainer, new RabbitTemplate(listenerContainer.getConnectionFactory()), false);
 	}
 
+	// TODO Remove in 6.0
+	/**
+	 * Construct {@link AmqpInboundGateway} based on the provided {@link AbstractMessageListenerContainer}
+	 * to receive request messages and {@link AmqpTemplate} to send replies.
+	 * @param listenerContainer the {@link MessageListenerContainer} to receive AMQP messages.
+	 * @param amqpTemplate the {@link AmqpTemplate} to send reply messages.
+	 * @since 4.2
+	 */
+	public AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
+		this((MessageListenerContainer) listenerContainer, amqpTemplate);
+	}
+
 	/**
 	 * Construct {@link AmqpInboundGateway} based on the provided {@link MessageListenerContainer}
 	 * to receive request messages and {@link AmqpTemplate} to send replies.
 	 * @param listenerContainer the {@link MessageListenerContainer} to receive AMQP messages.
 	 * @param amqpTemplate the {@link AmqpTemplate} to send reply messages.
-	 * @since 4.2
 	 */
 	public AmqpInboundGateway(MessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
 		this(listenerContainer, amqpTemplate, true);
