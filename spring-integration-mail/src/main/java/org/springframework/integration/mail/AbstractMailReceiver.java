@@ -552,12 +552,13 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					filteredMessages.add(message);
 				}
 				else if (this.logger.isDebugEnabled()) {
-					try {
+					if (message.isExpunged()) {
+						this.logger.debug("Expunged message received and will not be further processed.");
+					}
+					else {
 						String subject = message.getSubject();
 						this.logger.debug("Fetched email with subject '" + subject
 										  + "' will be discarded by the matching filter and will not be flagged as SEEN.");
-					} catch (Exception e) {
-						this.logger.debug("Fetched email will be discarded by the matching filter and will not be flagged as SEEN.");
 					}
 				}
 			}
