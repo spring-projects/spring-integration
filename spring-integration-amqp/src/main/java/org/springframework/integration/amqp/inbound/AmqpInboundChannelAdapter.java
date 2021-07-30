@@ -123,6 +123,11 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	private BatchMode batchMode = BatchMode.MESSAGES;
 
+	// TODO Remove in 6.0
+	public AmqpInboundChannelAdapter(AbstractMessageListenerContainer listenerContainer) {
+		this((MessageListenerContainer) listenerContainer);
+	}
+
 	/**
 	 * Construct an instance using the provided container.
 	 * @param listenerContainer the container.
