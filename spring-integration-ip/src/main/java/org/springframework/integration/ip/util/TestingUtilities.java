@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,13 +122,13 @@ public final class TestingUtilities {
 		int n = 0;
 		while (serverConnectionFactory.isListening()) {
 			try {
-				Thread.sleep(delay);
+				Thread.sleep(100); // NOSONAR magic number
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new IllegalStateException(e);
 			}
-			if (n++ > 200) { // NOSONAR magic number
+			if (n++ > delay) {
 				throw new IllegalStateException("Server didn't stop listening.");
 			}
 		}
