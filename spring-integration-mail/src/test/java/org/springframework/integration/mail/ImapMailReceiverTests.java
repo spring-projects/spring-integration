@@ -28,6 +28,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -39,6 +40,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -334,6 +336,53 @@ public class ImapMailReceiverTests {
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, never()).setFlag(Flag.SEEN, true);
 		verify(receiver, times(0)).deleteMessages(Mockito.any());
+	}
+
+	@Test
+	public void receiveAndDebugIsDisabledNotLogFiltered() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+
+		LogAccessor logger = spy(TestUtils.getPropertyValue(receiver, "logger", LogAccessor.class));
+		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
+		when(logger.isDebugEnabled()).thenReturn(false);
+
+		Message msg1 = mock(MimeMessage.class);
+		Message msg2 = mock(MimeMessage.class);
+		Expression selectorExpression = new SpelExpressionParser().parseExpression("false");
+		receiver.setSelectorExpression(selectorExpression);
+		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
+		verify(logger, times(2)).isDebugEnabled();
+		verify(msg1, never()).isExpunged();
+		verify(msg2, never()).isExpunged();
+		verify(msg1, never()).getSubject();
+		verify(msg2, never()).getSubject();
+		verify(logger, never()).debug(Mockito.startsWith("Expunged message received"));
+		verify(logger, never()).debug(org.mockito.ArgumentMatchers.<Supplier<String>>contains("will be discarded by the matching filter"));
+	}
+
+	@Test
+	public void receiveExpungedAndNotExpungedLogFiltered() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+
+		LogAccessor logger = spy(TestUtils.getPropertyValue(receiver, "logger", LogAccessor.class));
+		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
+		when(logger.isDebugEnabled()).thenReturn(true);
+
+		Message msg1 = mock(MimeMessage.class);
+		Message msg2 = mock(MimeMessage.class);
+		given(msg1.isExpunged()).willReturn(true);
+		given(msg1.getSubject()).willReturn("msg1");
+		given(msg2.getSubject()).willReturn("msg2");
+		Expression selectorExpression = new SpelExpressionParser().parseExpression("false");
+		receiver.setSelectorExpression(selectorExpression);
+		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
+		verify(logger, times(2)).isDebugEnabled();
+		verify(msg1, times(1)).isExpunged();
+		verify(msg2, times(1)).isExpunged();
+		verify(msg1, never()).getSubject();
+		verify(msg2, times(1)).getSubject();
+		verify(logger, times(1)).debug(Mockito.startsWith("Expunged message received"));
+		verify(logger, times(1)).debug(org.mockito.ArgumentMatchers.<Supplier<String>>contains("'msg2' will be discarded by the matching filter"));
 	}
 
 
