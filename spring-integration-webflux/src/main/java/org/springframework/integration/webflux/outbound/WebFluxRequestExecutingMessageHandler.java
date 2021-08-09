@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.webflux.outbound;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.reactivestreams.Publisher;
@@ -25,7 +24,6 @@ import org.reactivestreams.Publisher;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpEntity;
@@ -41,7 +39,6 @@ import org.springframework.integration.http.outbound.AbstractHttpRequestExecutin
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-import org.springframework.util.MimeType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyExtractors;
@@ -49,7 +46,6 @@ import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import reactor.core.publisher.Flux;
@@ -62,6 +58,7 @@ import reactor.core.publisher.Mono;
  * @author Shiliang Li
  * @author Artem Bilan
  * @author Gary Russell
+ * @author David Graff
  *
  * @since 5.0
  *
@@ -299,32 +296,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 	private Mono<ClientResponse> exchangeForResponseMono(WebClient.RequestBodySpec requestSpec) {
 		return requestSpec.retrieve()
-				.onStatus(HttpStatus::isError, response -> {
-					HttpStatus httpStatus = response.statusCode();
-					return response.body(BodyExtractors.toDataBuffers())
-							.reduce(DataBuffer::write)
-							.map(dataBuffer -> {
-								byte[] bytes = new byte[dataBuffer.readableByteCount()];
-								dataBuffer.read(bytes);
-								DataBufferUtils.release(dataBuffer);
-								return bytes;
-							})
-							.defaultIfEmpty(new byte[0])
-							.map(bodyBytes -> {
-										throw new WebClientResponseException(
-												"ClientResponse has erroneous status code: "
-														+ httpStatus.value() + " "
-														+ httpStatus.getReasonPhrase(),
-												httpStatus.value(),
-												httpStatus.getReasonPhrase(),
-												response.headers().asHttpHeaders(),
-												bodyBytes,
-												response.headers().contentType()
-														.map(MimeType::getCharset)
-														.orElse(StandardCharsets.ISO_8859_1));
-									}
-							);
-				})
+				.onStatus(HttpStatus::isError, ClientResponse::createException)
 				.toEntityList(DataBuffer.class)
 				.map((entity) ->
 						ClientResponse.create(entity.getStatusCode())
