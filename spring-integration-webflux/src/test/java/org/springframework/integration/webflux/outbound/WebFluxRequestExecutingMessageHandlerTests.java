@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.webflux.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,7 @@ import reactor.test.StepVerifier;
 /**
  * @author Shiliang Li
  * @author Artem Bilan
+ * @author David Graff
  *
  * @since 5.0
  */
@@ -108,6 +110,8 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		assertThat(errorMessage).isNotNull();
 		assertThat(errorMessage).isInstanceOf(ErrorMessage.class);
 		Throwable throwable = (Throwable) errorMessage.getPayload();
+		assertThat(throwable).isInstanceOf(MessageHandlingException.class);
+		assertThat(throwable.getCause()).isInstanceOf(WebClientResponseException.Unauthorized.class);
 		assertThat(throwable.getMessage()).contains("401 Unauthorized");
 	}
 
@@ -173,7 +177,8 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		assertThat(payload).isInstanceOf(MessageHandlingException.class);
 
 		Exception exception = (Exception) payload;
-		assertThat(exception.getCause()).isInstanceOf(WebClientResponseException.class);
+		assertThat(exception).isInstanceOf(MessageHandlingException.class);
+		assertThat(exception.getCause()).isInstanceOf(WebClientResponseException.ServiceUnavailable.class);
 		assertThat(exception.getMessage()).contains("503 Service Unavailable");
 
 		Message<?> replyMessage = errorChannel.receive(10);
@@ -273,4 +278,57 @@ class WebFluxRequestExecutingMessageHandlerTests {
 				.verifyComplete();
 	}
 
+
+	@Test
+	void testClientHttpResponseErrorAsReply() {
+		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
+			response.setStatusCode(HttpStatus.NOT_FOUND);
+			response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+			DataBufferFactory bufferFactory = response.bufferFactory();
+
+			Flux<DataBuffer> data =
+					Flux.just(
+						bufferFactory.wrap("{".getBytes(StandardCharsets.UTF_8)),
+						bufferFactory.wrap("  \"error\": \"Not Found\",".getBytes(StandardCharsets.UTF_8)),
+						bufferFactory.wrap("  \"message\": \"404 NOT_FOUND\",".getBytes(StandardCharsets.UTF_8)),
+						bufferFactory.wrap("  \"path\": \"/spring-integration\",".getBytes(StandardCharsets.UTF_8)),
+						bufferFactory.wrap("  \"status\": 404,".getBytes(StandardCharsets.UTF_8)),
+						bufferFactory.wrap("  \"timestamp\": \"1970-01-01T00:00:00.000+00:00\",".getBytes(StandardCharsets.UTF_8)),
+						bufferFactory.wrap("  \"trace\": \"some really\nlong\ntrace\",".getBytes(StandardCharsets.UTF_8)),
+						bufferFactory.wrap("}".getBytes(StandardCharsets.UTF_8))
+					);
+
+			return response.writeWith(data)
+					.then(Mono.defer(response::setComplete));
+		});
+
+		WebClient webClient = WebClient.builder()
+										.clientConnector(httpConnector)
+										.build();
+
+		String destinationUri = "https://www.springsource.org/spring-integration";
+		WebFluxRequestExecutingMessageHandler reactiveHandler =
+							new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
+
+		QueueChannel replyChannel = new QueueChannel();
+		QueueChannel errorChannel = new QueueChannel();
+		reactiveHandler.setOutputChannel(replyChannel);
+		reactiveHandler.setBodyExtractor(new ClientHttpResponseBodyExtractor());
+
+		final Message<?> message =
+							MessageBuilder.withPayload("hello, world")
+											.setErrorChannel(errorChannel)
+											.build();
+		reactiveHandler.handleMessage(message);
+
+		Message<?> errorMessage = errorChannel.receive(10_000);
+
+		assertThat(errorMessage).isNotNull();
+		assertThat(errorMessage).isInstanceOf(ErrorMessage.class);
+		final Throwable throwable = (Throwable) errorMessage.getPayload();
+		assertThat(throwable).isInstanceOf(MessageHandlingException.class);
+		assertThat(throwable.getCause()).isInstanceOf(WebClientResponseException.NotFound.class);
+		assertThat(throwable.getMessage()).contains("404 Not Found");
+	}
 }

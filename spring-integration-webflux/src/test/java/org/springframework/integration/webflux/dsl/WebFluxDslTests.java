@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.security.Principal;
 import java.time.Duration;
 import java.util.Collections;
-
-import javax.annotation.Resource;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -118,7 +116,8 @@ public class WebFluxDslTests {
 	@Qualifier("webFluxWithReplyPayloadToFlux.handler")
 	private WebFluxRequestExecutingMessageHandler webFluxWithReplyPayloadToFlux;
 
-	@Resource(name = "httpReactiveProxyFlow.webflux:outbound-gateway#0")
+	@Autowired
+	@Qualifier("httpReactiveProxyFlow.webflux:outbound-gateway#0")
 	private WebFluxRequestExecutingMessageHandler httpReactiveProxyFlow;
 
 	@Autowired
