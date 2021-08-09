@@ -91,6 +91,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import reactor.core.publisher.Flux;
@@ -418,8 +419,12 @@ public class WebFluxDslTests {
 									.id("webFluxWithReplyPayloadToFlux")
 									.customizeMonoReply(
 											(message, mono) ->
-													mono.timeout(Duration.ofMillis(100))
-															.retry()));
+													mono.
+															timeout(Duration.ofMillis(100))
+															.retry()
+															.onErrorResume(
+																	WebClientResponseException.NotFound.class,
+																	ex -> Mono.just("Not Found"))));
 		}
 
 		@Bean

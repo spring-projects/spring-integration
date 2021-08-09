@@ -201,12 +201,16 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	/**
 	 * Specify a {@link BiFunction} for customizing {@link Mono} replies via {@link ReactiveRequestHandlerAdvice}.
 	 * @param replyCustomizer the {@link BiFunction} to propagate into {@link ReactiveRequestHandlerAdvice}.
+	 * @param <T> inbound reply payload.
+	 * @param <V> outbound reply payload.
 	 * @return the spec.
 	 * @since 5.3
 	 * @see ReactiveRequestHandlerAdvice
 	 */
-	public S customizeMonoReply(BiFunction<Message<?>, Mono<?>, Publisher<?>> replyCustomizer) {
-		return advice(new ReactiveRequestHandlerAdvice(replyCustomizer));
+	@SuppressWarnings({ "unchecked", "rawtypes"})
+	public <T, V> S customizeMonoReply(BiFunction<Message<?>, Mono<T>, Publisher<V>> replyCustomizer) {
+		return advice(new ReactiveRequestHandlerAdvice(
+				(BiFunction<Message<?>, Mono<?>, Publisher<?>>) (BiFunction) replyCustomizer));
 	}
 
 	/**
