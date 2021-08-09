@@ -305,11 +305,11 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		WebClient webClient = WebClient.builder()
 										.clientConnector(httpConnector)
 										.build();
-		
+
 		String destinationUri = "https://www.springsource.org/spring-integration";
 		WebFluxRequestExecutingMessageHandler reactiveHandler =
-		new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
-		
+							new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
+
 		QueueChannel replyChannel = new QueueChannel();
 		QueueChannel errorChannel = new QueueChannel();
 		reactiveHandler.setOutputChannel(replyChannel);
@@ -325,7 +325,7 @@ class WebFluxRequestExecutingMessageHandlerTests {
 
 		assertThat(errorMessage).isNotNull();
 		assertThat(errorMessage).isInstanceOf(ErrorMessage.class);
-		final Throwable throwable = (Throwable)errorMessage.getPayload();
+		final Throwable throwable = (Throwable) errorMessage.getPayload();
 		assertThat(throwable).isInstanceOf(MessageHandlingException.class);
 		assertThat(throwable.getCause()).isInstanceOf(WebClientResponseException.NotFound.class);
 		assertThat(throwable.getMessage()).contains("404 Not Found");
