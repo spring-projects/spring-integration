@@ -16,7 +16,7 @@ plugins {
 	id 'io.spring.nohttp' version '0.0.8' apply false
 	id 'org.ajoberstar.grgit' version '4.1.0'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'com.jfrog.artifactory' version '4.24.14' apply false
+	id 'com.jfrog.artifactory' version '4.24.15' apply false
 	id 'org.jetbrains.dokka' version '0.10.1'
 	id 'org.asciidoctor.jvm.pdf' version '3.3.2'
 	id 'org.asciidoctor.jvm.gems' version '3.3.2'
@@ -60,11 +60,11 @@ ext {
 	derbyVersion = '10.14.2.0'
 	ftpServerVersion = '1.1.1'
 	googleJsr305Version = '3.0.2'
-	greenmailVersion = '1.6.4'
+	greenmailVersion = '1.6.5'
 	groovyVersion = '3.0.8'
 	hamcrestVersion = '2.2'
-	hazelcastVersion = '4.2.1'
-	hibernateVersion = '5.5.4.Final'
+	hazelcastVersion = '4.2.2'
+	hibernateVersion = '5.5.6.Final'
 	hsqldbVersion = '2.6.0'
 	h2Version = '1.4.200'
 	jacksonVersion = '2.12.4'
@@ -83,9 +83,9 @@ ext {
     lettuceVersion = '6.1.4.RELEASE'
 	log4jVersion = '2.14.1'
 	mailVersion = '1.6.7'
-	micrometerVersion = '1.7.2'
+	micrometerVersion = '1.7.3'
 	mockitoVersion = '3.11.2'
-	mongoDriverVersion = '4.3.0'
+	mongoDriverVersion = '4.3.1'
 	mysqlVersion = '8.0.26'
 	pahoMqttClientVersion = '1.2.5'
 	postgresVersion = '42.2.23'
@@ -99,13 +99,13 @@ ext {
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.10'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.3'
-	springKafkaVersion = '2.7.4'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.4'
+	springKafkaVersion = '2.7.6'
 	springRetryVersion = '1.3.1'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.1'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.2'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.9'
 	springWsVersion = '3.1.1'
-	tomcatVersion = '9.0.50'
+	tomcatVersion = '9.0.52'
 	xmlUnitVersion = '2.8.2'
 	xstreamVersion = '1.4.17'
 
@@ -342,7 +342,7 @@ configure(javaProjects) { subproject ->
 
 	checkstyle {
 		configDirectory.set(rootProject.file('src/checkstyle'))
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.44'
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.45.1'
 	}
 
 	jar {
