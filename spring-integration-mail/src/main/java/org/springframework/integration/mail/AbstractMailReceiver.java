@@ -65,6 +65,7 @@ import org.springframework.util.MimeTypeUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Dominik Simmen
+ * @author Yuxin Wang
  */
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean {
 
@@ -413,7 +414,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 		this.logger.debug(() -> "found " + messagesToProcess.length + " new messages");
 		if (messagesToProcess.length > 0) {
-			fetchMessages(messages);
+			fetchMessages(messagesToProcess);
 		}
 
 		this.logger.debug(() -> "Received " + messagesToProcess.length + " messages");
