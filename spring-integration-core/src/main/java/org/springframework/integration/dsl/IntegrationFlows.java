@@ -335,6 +335,7 @@ public final class IntegrationFlows {
 	 * @param publisher the {@link Publisher} to subscribe to.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
+	@SuppressWarnings("overloads")
 	public static IntegrationFlowBuilder from(Publisher<? extends Message<?>> publisher) {
 		FluxMessageChannel reactiveChannel = new FluxMessageChannel();
 		reactiveChannel.subscribeTo(publisher);
@@ -346,6 +347,7 @@ public final class IntegrationFlows {
 	 * @param other the {@link IntegrationFlow} to composition from.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
+	@SuppressWarnings("overloads")
 	public static IntegrationFlowBuilder from(IntegrationFlow other) {
 		Map<Object, String> integrationComponents = other.getIntegrationComponents();
 		Assert.notNull(integrationComponents, () ->

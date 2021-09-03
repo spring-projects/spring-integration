@@ -121,7 +121,7 @@ public class IntegrationFlowCompositionTests {
 
 	@Test
 	void testInvalidStartFlowForComposition() {
-		IntegrationFlow startFlow = f -> f.handle(m -> {});
+		IntegrationFlow startFlow = f -> f.handle(m -> { });
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> IntegrationFlows.from(startFlow))
