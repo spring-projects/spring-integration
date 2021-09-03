@@ -21,17 +21,23 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FluxMessageChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototype;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -334,6 +340,38 @@ public final class IntegrationFlows {
 		return from((MessageChannel) reactiveChannel);
 	}
 
+	/**
+	 * Start the flow with a composition from the {@link IntegrationFlow}.
+	 * @param other the {@link IntegrationFlow} to composition from.
+	 * @return new {@link IntegrationFlowBuilder}.
+	 */
+	public static IntegrationFlowBuilder from(IntegrationFlow other) {
+		Object lastIntegrationComponentFromOther =
+				other.getIntegrationComponents().keySet().stream().reduce((prev, next) -> next).orElse(null);
+		if (lastIntegrationComponentFromOther instanceof MessageChannel) {
+			return from((MessageChannel) lastIntegrationComponentFromOther);
+		}
+		else if (lastIntegrationComponentFromOther instanceof ConsumerEndpointFactoryBean) {
+			MessageHandler handler = ((ConsumerEndpointFactoryBean) lastIntegrationComponentFromOther).getHandler();
+			handler = extractProxyTarget(handler);
+			if (handler instanceof AbstractMessageProducingHandler) {
+				return buildFlowFromOutputChannel((AbstractMessageProducingHandler) handler);
+			}
+		}
+		throw new BeanCreationException("The 'IntegrationFlow' to start from must end with " +
+				"a 'MessageChannel' or reply-producing endpoint to let the result from that flow to be " +
+				"processed in this instance. The provided flow ends with: " + lastIntegrationComponentFromOther);
+	}
+
+	private static IntegrationFlowBuilder buildFlowFromOutputChannel(AbstractMessageProducingHandler handler) {
+		MessageChannel outputChannel = handler.getOutputChannel();
+		if (outputChannel == null) {
+			outputChannel = new PublishSubscribeChannel();
+			handler.setOutputChannel(outputChannel);
+		}
+		return from(outputChannel);
+	}
+
 	private static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway,
 			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
 
@@ -358,6 +396,20 @@ public final class IntegrationFlows {
 					.addComponents(((ComponentsRegistration) spec).getComponentsToRegister());
 		}
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> T extractProxyTarget(T target) {
+		if (!(target instanceof Advised)) {
+			return target;
+		}
+		Advised advised = (Advised) target;
+		try {
+			return (T) extractProxyTarget(advised.getTargetSource().getTarget());
+		}
+		catch (Exception e) {
+			throw new BeanCreationException("Could not extract target", e);
+		}
 	}
 
 	private IntegrationFlows() {

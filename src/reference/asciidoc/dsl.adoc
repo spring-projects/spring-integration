@@ -1378,3 +1378,8 @@ public IntegrationFlow customFlowDefinition() {
 }
 ----
 ====
+
+[[integration-flows-composition]]
+=== Integration Flows Composition
+
+TBD

@@ -47,6 +47,12 @@ See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 The `MessageGroup` abstraction can be supplied with a `condition` to evaluate later on to make a decision for the group.
 See <<./message-store.adoc#message-group-condition,Message Group Condition>> for more information.
 
+[[x5.5-integration-flows-composition]]
+==== Integration Flows Composition
+The new `IntegrationFlows.from(IntegrationFlow)` factory has been added to let to start the current `IntegrationFlow` from existing one.
+On the other side, the `IntegrationFlowDefinition` has added a `to(IntegrationFlow)` terminal operator to continue the current flow in some other existing.
+See <<./dsl.adoc#integration-flows-composition,Integration Flows Composition>> for more information.
+
 [[x5.5-amqp]]
 ==== AMQP Changes
 
