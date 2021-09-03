@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -346,8 +347,12 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(IntegrationFlow other) {
+		Map<Object, String> integrationComponents = other.getIntegrationComponents();
+		Assert.notNull(integrationComponents, () ->
+				"The provided integration flow to compose from '" + other +
+						"' must be declared as a bean in the application context");
 		Object lastIntegrationComponentFromOther =
-				other.getIntegrationComponents().keySet().stream().reduce((prev, next) -> next).orElse(null);
+				integrationComponents.keySet().stream().reduce((prev, next) -> next).orElse(null);
 		if (lastIntegrationComponentFromOther instanceof MessageChannel) {
 			return from((MessageChannel) lastIntegrationComponentFromOther);
 		}
@@ -357,6 +362,7 @@ public final class IntegrationFlows {
 			if (handler instanceof AbstractMessageProducingHandler) {
 				return buildFlowFromOutputChannel((AbstractMessageProducingHandler) handler);
 			}
+			lastIntegrationComponentFromOther = handler; // for the exception message below
 		}
 		throw new BeanCreationException("The 'IntegrationFlow' to start from must end with " +
 				"a 'MessageChannel' or reply-producing endpoint to let the result from that flow to be " +

@@ -17,9 +17,12 @@
 package org.springframework.integration.dsl.composition;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +33,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -47,7 +51,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 public class IntegrationFlowCompositionTests {
 
 	@Autowired
-	IntegrationFlow templateFlow;
+	IntegrationFlowContext integrationFlowContext;
 
 	@Autowired
 	@Qualifier("mainFlow.input")
@@ -113,6 +117,24 @@ public class IntegrationFlowCompositionTests {
 		assertThat(receive).isNotNull()
 				.extracting(Message::getPayload)
 				.isEqualTo("start, and first flow, and middle flow, and last flow");
+	}
+
+	@Test
+	void testInvalidStartFlowForComposition() {
+		IntegrationFlow startFlow = f -> f.handle(m -> {});
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> IntegrationFlows.from(startFlow))
+				.withMessageContaining("must be declared as a bean in the application context");
+
+		IntegrationFlowContext.IntegrationFlowRegistration startRegistration =
+				this.integrationFlowContext.registration(startFlow).register();
+
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> IntegrationFlows.from(startRegistration.getIntegrationFlow()))
+				.withMessageContaining("The 'IntegrationFlow' to start from must end with " +
+						"a 'MessageChannel' or reply-producing endpoint");
+
 	}
 
 	@Configuration
