@@ -344,8 +344,9 @@ public final class IntegrationFlows {
 
 	/**
 	 * Start the flow with a composition from the {@link IntegrationFlow}.
-	 * @param other the {@link IntegrationFlow} to composition from.
+	 * @param other the {@link IntegrationFlow} from which to compose.
 	 * @return new {@link IntegrationFlowBuilder}.
+	 * @since 5.5.4
 	 */
 	@SuppressWarnings("overloads")
 	public static IntegrationFlowBuilder from(IntegrationFlow other) {
