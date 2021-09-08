@@ -1382,12 +1382,12 @@ public IntegrationFlow customFlowDefinition() {
 [[integration-flows-composition]]
 === Integration Flows Composition
 
-With a `MessageChannel` abstraction as a first class citizen in Spring Integration the composition of integration flows was always assumed.
+With the `MessageChannel` abstraction as a first class citizen in Spring Integration, the composition of integration flows was always assumed.
 The input channel of any endpoint in the flow can be used to send messages from any other endpoint and not only from the one which has this channel as an output.
-Furthermore, with a `@MessagingGateway` contract, Content Enricher components, composite endpoints like a `<chain>`, and now with `IntegrationFlow` beans (e.g. `IntegrationFlowAdapter`), it is straightforward enough to distribute a business logic between shorter, reusable parts.
-Only what is needed for the final composition is a knowledge about a `MessageChannel` to send to or receive from.
+Furthermore, with a `@MessagingGateway` contract, Content Enricher components, composite endpoints like a `<chain>`, and now with `IntegrationFlow` beans (e.g. `IntegrationFlowAdapter`), it is straightforward enough to distribute the business logic between shorter, reusable parts.
+All that is needed for the final composition is knowledge about a `MessageChannel` to send to or receive from.
 
-Starting with version `5.5.4`, to abstract more from `MessageChannel` and hide implementation details from end-user, the `IntegrationFlows` introduces a `from(IntegrationFlow)` factory method to allow starting the current `IntegrationFlow` from the output of an existing flow:
+Starting with version `5.5.4`, to abstract more from `MessageChannel` and hide implementation details from the end-user, the `IntegrationFlows` introduces the `from(IntegrationFlow)` factory method to allow starting the current `IntegrationFlow` from the output of an existing flow:
 
 ====
 [source,java]
@@ -1431,5 +1431,5 @@ IntegrationFlow otherFlow() {
 ====
 
 The composition in the middle of the flow is simply achievable with an existing `gateway(IntegrationFlow)` EIP-method.
-This way we can build flows any complexity composing them from more simpler, reusable logical blocks.
-For example, you may have some library of `IntegrationFlow` beans as dependency and there is just enough to have their configuration classes imported to the final project and autowired for your `IntegrationFlow` definitions.
+This way we can build flows with any complexity by composing them from simpler, reusable logical blocks.
+For example, you may add a library of `IntegrationFlow` beans as a dependency and it is just enough to have their configuration classes imported to the final project and autowired for your `IntegrationFlow` definitions.
