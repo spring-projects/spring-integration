@@ -137,6 +137,10 @@ public class ConsumerEndpointFactoryBean
 		}
 	}
 
+	public MessageHandler getHandler() {
+		return this.handler;
+	}
+
 	public void setInputChannel(MessageChannel inputChannel) {
 		this.inputChannel = inputChannel;
 	}

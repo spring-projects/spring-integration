@@ -2918,6 +2918,18 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
+	 * Finish this flow with delegation to other {@link IntegrationFlow} instance.
+	 * @param other the {@link IntegrationFlow} to compose with.
+	 * @return The {@link IntegrationFlow} instance based on this definition.
+	 * @since 5.5.4
+	 */
+	public IntegrationFlow to(IntegrationFlow other) {
+		MessageChannel otherFlowInputChannel = obtainInputChannelFromFlow(other);
+		return channel(otherFlowInputChannel)
+				.get();
+	}
+
+	/**
 	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.
 	 * @param <T> the expected {@code payload} type
 	 * @return the Reactive Streams {@link Publisher}
