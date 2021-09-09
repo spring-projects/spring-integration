@@ -84,6 +84,8 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private boolean manualAcks;
 
+	private ApplicationEventPublisher applicationEventPublisher;
+
 	private volatile IMqttClient client;
 
 	private volatile ScheduledFuture<?> reconnectFuture;
@@ -93,8 +95,6 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	private volatile boolean cleanSession;
 
 	private volatile ConsumerStopAction consumerStopAction;
-
-	private ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * Use this constructor for a single url (although it may be overridden if the server
@@ -311,15 +311,17 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 			}
 			logger.error(ex, () -> "Error connecting or subscribing to " + Arrays.toString(topics));
-			this.client.disconnectForcibly(this.disconnectCompletionTimeout);
-			try {
-				this.client.setCallback(null);
-				this.client.close();
+			if (this.client != null) { // Could be reset during event handling before
+				this.client.disconnectForcibly(this.disconnectCompletionTimeout);
+				try {
+					this.client.setCallback(null);
+					this.client.close();
+				}
+				catch (MqttException e1) {
+					// NOSONAR
+				}
+				this.client = null;
 			}
-			catch (MqttException e1) {
-				// NOSONAR
-			}
-			this.client = null;
 			throw ex;
 		}
 		finally {
@@ -355,25 +357,27 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private synchronized void scheduleReconnect() {
 		cancelReconnect();
-		try {
-			this.reconnectFuture = getTaskScheduler().schedule(() -> {
-				try {
-					logger.debug("Attempting reconnect");
-					synchronized (MqttPahoMessageDrivenChannelAdapter.this) {
-						if (!MqttPahoMessageDrivenChannelAdapter.this.connected) {
-							connectAndSubscribe();
-							MqttPahoMessageDrivenChannelAdapter.this.reconnectFuture = null;
+		if (isActive()) {
+			try {
+				this.reconnectFuture = getTaskScheduler().schedule(() -> {
+					try {
+						logger.debug("Attempting reconnect");
+						synchronized (MqttPahoMessageDrivenChannelAdapter.this) {
+							if (!MqttPahoMessageDrivenChannelAdapter.this.connected) {
+								connectAndSubscribe();
+								MqttPahoMessageDrivenChannelAdapter.this.reconnectFuture = null;
+							}
 						}
 					}
-				}
-				catch (MqttException ex) {
-					logger.error(ex, "Exception while connecting and subscribing");
-					scheduleReconnect();
-				}
-			}, new Date(System.currentTimeMillis() + this.recoveryInterval));
-		}
-		catch (Exception ex) {
-			logger.error(ex, "Failed to schedule reconnect");
+					catch (MqttException ex) {
+						logger.error(ex, "Exception while connecting and subscribing");
+						scheduleReconnect();
+					}
+				}, new Date(System.currentTimeMillis() + this.recoveryInterval));
+			}
+			catch (Exception ex) {
+				logger.error(ex, "Failed to schedule reconnect");
+			}
 		}
 	}
 
@@ -412,7 +416,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 				sendMessage(message);
 			}
 			catch (RuntimeException ex) {
-				logger.error(ex, () -> "Unhandled exception for " + message.toString());
+				logger.error(ex, () -> "Unhandled exception for " + message);
 				throw ex;
 			}
 		}
