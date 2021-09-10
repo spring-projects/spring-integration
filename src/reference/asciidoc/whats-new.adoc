@@ -104,6 +104,6 @@ See <<./web-sockets.adoc#web-sockets,WebSockets Support>> for more information.
 [[x5.5-jpa]]
 ==== JPA Changes
 
-The `JpaOutboundGateway` supports now an `Iterable` message payload for a `PersistMode.DELETE`.
+The `JpaOutboundGateway` now supports an `Iterable` message payload for a `PersistMode.DELETE`.
 
 See <<./jpa.adoc#jpa-outbound-channel-adapter,Outbound Channel Adapter>> for more information.
