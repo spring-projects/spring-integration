@@ -55,6 +55,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * The base {@link AbstractMessageHandler} implementation for the {@link MessageProducer}.
@@ -362,7 +363,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			else {
 				reactiveReply = Mono.from((Publisher<?>) reply);
 			}
-			reactiveReply.subscribe(settableListenableFuture::set, settableListenableFuture::setException);
+			reactiveReply
+					.publishOn(Schedulers.boundedElastic())
+					.subscribe(settableListenableFuture::set, settableListenableFuture::setException);
 			future = settableListenableFuture;
 		}
 		future.addCallback(new ReplyFutureCallback(requestMessage, replyChannel));
