@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@
 package org.springframework.integration.jpa.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.jpa.test.JpaTestUtils;
@@ -31,8 +31,7 @@ import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.MessagingException;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -43,8 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @since 2.2
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @Transactional
 @DirtiesContext
 public class JpaOutboundGatewayTests {
@@ -55,65 +53,49 @@ public class JpaOutboundGatewayTests {
 	@Autowired
 	JdbcTemplate jdbcTemplate;
 
-	@After
+	@AfterEach
 	public void cleanUp() {
 		this.jdbcTemplate.execute("delete from Student where rollNumber > 1003");
 	}
 
 	@Test
 	public void getStudent() {
-		final StudentDomain student = studentService.getStudent(1001L);
+		StudentDomain student = studentService.getStudent(1001L);
 		assertThat(student).isNotNull();
 	}
 
 	@Test
 	public void getAllStudentsStartingFromGivenRecord() {
 		List<?> students = studentService.getAllStudentsFromGivenRecord(1);
-		assertThat(students).isNotNull();
-		assertThat(students.size()).isEqualTo(2);
+		assertThat(students).isNotNull().hasSize(2);
 	}
 
 	@Test
 	public void getAllStudentsWithMaxNumberOfRecords() {
 		List<?> students = studentService.getStudents(1);
-		assertThat(students).isNotNull();
-		assertThat(students.size()).isEqualTo(1);
+		assertThat(students).isNotNull().hasSize(1);
 	}
 
 
 	@Test
 	public void deleteNonExistingStudent() {
-
 		StudentDomain student = JpaTestUtils.getTestStudent();
 		student.setRollNumber(3424234234L);
-
-		try {
-			studentService.deleteStudent(student);
-			fail("IllegalArgumentException is expected");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).startsWith("Removing a detached instance");
-		}
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> studentService.deleteStudent(student))
+				.withMessageStartingWith("Removing a detached instance");
 	}
 
 	@Test
 	public void getStudentWithException() {
-		try {
-			studentService.getStudentWithException(1001L);
-			fail("MessageHandlingException is expected");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getMessage())
-					.isEqualTo("The Jpa operation returned more than 1 result for expectSingleResult mode.");
-		}
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> studentService.getStudentWithException(1001L))
+				.withMessage("The Jpa operation returned more than 1 result for expectSingleResult mode.");
 	}
 
 	@Test
 	public void getStudentStudentWithPositionalParameters() {
-
 		StudentDomain student = studentService.getStudentWithParameters("First Two");
-
 		assertThat(student.getFirstName()).isEqualTo("First Two");
 		assertThat(student.getLastName()).isEqualTo("Last Two");
 	}
@@ -121,31 +103,27 @@ public class JpaOutboundGatewayTests {
 	@Test
 	public void getAllStudents() {
 		List<StudentDomain> students = studentService.getAllStudents();
-		assertThat(students).isNotNull();
-		assertThat(students.size()).isEqualTo(3);
+		assertThat(students).isNotNull().hasSize(3);
 	}
 
 	@Test
 	@Transactional
 	public void persistStudent() {
-
-		final StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
+		StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
 		assertThat(studentToPersist.getRollNumber()).isNull();
 
-		final StudentDomain persistedStudent = studentService.persistStudent(studentToPersist);
+		StudentDomain persistedStudent = studentService.persistStudent(studentToPersist);
 		assertThat(persistedStudent).isNotNull();
 		assertThat(persistedStudent.getRollNumber()).isNotNull();
-
 	}
 
 	@Test
 	@Transactional
 	public void persistStudentUsingMerge() {
-
-		final StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
+		StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
 		assertThat(studentToPersist.getRollNumber()).isNull();
 
-		final StudentDomain persistedStudent = studentService.persistStudentUsingMerge(studentToPersist);
+		StudentDomain persistedStudent = studentService.persistStudentUsingMerge(studentToPersist);
 		assertThat(persistedStudent).isNotNull();
 		assertThat(persistedStudent.getRollNumber()).isNotNull();
 
@@ -153,18 +131,17 @@ public class JpaOutboundGatewayTests {
 
 	@Test
 	public void testRetrievingGatewayInsideChain() {
-		final StudentDomain student = studentService.getStudent2(1001L);
+		StudentDomain student = studentService.getStudent2(1001L);
 		assertThat(student).isNotNull();
 	}
 
 	@Test
 	@Transactional
 	public void testUpdatingGatewayInsideChain() {
-
-		final StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
+		StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
 		assertThat(studentToPersist.getRollNumber()).isNull();
 
-		final StudentDomain persistedStudent = studentService.persistStudent2(studentToPersist);
+		StudentDomain persistedStudent = studentService.persistStudent2(studentToPersist);
 		assertThat(persistedStudent).isNotNull();
 		assertThat(persistedStudent.getRollNumber()).isNotNull();
 
@@ -173,7 +150,17 @@ public class JpaOutboundGatewayTests {
 	@Test
 	public void testJpaRepositoryAsService() {
 		List<StudentDomain> students = this.studentService.getStudentsUsingJpaRepository("F");
-		assertThat(students.size()).isEqualTo(2);
+		assertThat(students).hasSize(2);
+	}
+
+
+	@Test
+	@Transactional
+	public void testDeleteMany() {
+		List<StudentDomain> allStudents = this.studentService.getAllStudents();
+		assertThat(allStudents).hasSize(3);
+		this.studentService.deleteStudents(allStudents);
+		assertThat(this.studentService.getAllStudents()).isNull();
 	}
 
 }

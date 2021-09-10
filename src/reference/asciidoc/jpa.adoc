@@ -501,6 +501,8 @@ NOTE: As of Spring Integration 3.0, payloads to `PERSIST` or `MERGE` can also be
 In that case, each object returned by the `Iterable` is treated as an entity and persisted or merged using the underlying `EntityManager`.
 Null values returned by the iterator are ignored.
 
+NOTE: Starting with version 5.5.4, the `JpaOutboundGateway` with a `PersistMode.DELETE` can accept an `Iterable` payload to perform batch removal persistent operation for the provided entities.
+
 [[jpa-using-jpaql]]
 ==== Using JPA Query Language (JPA QL)
 
