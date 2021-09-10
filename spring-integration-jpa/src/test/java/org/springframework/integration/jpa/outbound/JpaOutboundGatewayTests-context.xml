@@ -24,6 +24,7 @@
 	<int:gateway default-reply-channel="studentReplyChannel"
 			service-interface="org.springframework.integration.jpa.outbound.StudentService" default-reply-timeout="3000">
 		<int:method name="deleteStudent"            request-channel="deleteStudentChannel" />
+		<int:method name="deleteStudents"            request-channel="deleteStudentChannel" />
 		<int:method name="getStudent"               request-channel="getStudentChannel"    />
 		<int:method name="getStudentWithException"  request-channel="getStudentEndpointWithExceptionChannel"/>
 		<int:method name="getStudentWithParameters" request-channel="getStudentWithParametersChannel"/>

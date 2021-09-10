@@ -100,3 +100,10 @@ See <<./mongodb.adoc#mongodb,MongoDb Support>> for more information.
 The WebSocket channel adapters based on `ServerWebSocketContainer` can now be registered and removed at runtime.
 
 See <<./web-sockets.adoc#web-sockets,WebSockets Support>> for more information.
+
+[[x5.5-jpa]]
+==== JPA Changes
+
+The `JpaOutboundGateway` now supports an `Iterable` message payload for a `PersistMode.DELETE`.
+
+See <<./jpa.adoc#jpa-outbound-channel-adapter,Outbound Channel Adapter>> for more information.

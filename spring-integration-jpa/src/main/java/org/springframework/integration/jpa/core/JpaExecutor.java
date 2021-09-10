@@ -190,11 +190,9 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @param nativeQuery The provided SQL query must neither be null nor empty.
 	 */
 	public void setNativeQuery(String nativeQuery) {
-
 		Assert.isTrue(this.namedQuery == null && this.jpaQuery == null, "You can define only one of the "
 				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 		Assert.hasText(nativeQuery, "nativeQuery must neither be null nor empty.");
-
 		this.nativeQuery = nativeQuery;
 	}
 
@@ -204,10 +202,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @param namedQuery Must neither be null nor empty
 	 */
 	public void setNamedQuery(String namedQuery) {
-
 		Assert.isTrue(this.jpaQuery == null && this.nativeQuery == null, "You can define only one of the "
 				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
-
 		Assert.hasText(namedQuery, "namedQuery must neither be null nor empty.");
 		this.namedQuery = namedQuery;
 	}
@@ -453,7 +449,12 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			case MERGE:
 				return this.jpaOperations.merge(payload, this.flushSize, this.clearOnFlush); // NOSONAR
 			case DELETE:
-				this.jpaOperations.delete(payload);
+				if (payload instanceof Iterable) {
+					this.jpaOperations.deleteInBatch((Iterable<?>) payload);
+				}
+				else {
+					this.jpaOperations.delete(payload);
+				}
 				if (this.flush) {
 					this.jpaOperations.flush();
 				}
