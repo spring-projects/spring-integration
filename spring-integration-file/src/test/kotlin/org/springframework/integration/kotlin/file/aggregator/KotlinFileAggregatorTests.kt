@@ -42,6 +42,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import org.springframework.util.FileCopyUtils
 import java.io.File
 import java.io.FileOutputStream
+import java.util.*
 
 /**
  * @author Artem Bilan
@@ -106,7 +107,7 @@ class KotlinFileAggregatorTests {
 				split(Files.splitter().markers().firstLineAsHeader("firstLine"))
 				channel { executor(taskExecutor) }
 				filter<Any>({ it !is FileMarker }) { discardChannel("aggregatorChannel") }
-				transform(String::toUpperCase)
+				transform(String::uppercase)
 				channel("aggregatorChannel")
 				aggregate(FileAggregator())
 				channel { queue("resultChannel") }
