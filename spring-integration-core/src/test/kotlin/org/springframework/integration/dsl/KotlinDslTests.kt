@@ -245,7 +245,7 @@ class KotlinDslTests {
 		fun functionFlow() =
 			integrationFlow<Function<ByteArray, String>>({ beanName("functionGateway") }) {
 				transform(Transformers.objectToString()) { id("objectToStringTransformer") }
-				transform<String> { it.toUpperCase() }
+				transform<String> { it.uppercase() }
 				split<Message<*>> { it.payload }
 				split<String>({ it }) { id("splitterEndpoint") }
 				resequence()
@@ -312,7 +312,7 @@ class KotlinDslTests {
 					channel { queue("wireTapChannel") }
 				}
 				delay("delayGroup") { defaultDelay(100) }
-				transform<String> { it.toUpperCase() }
+				transform<String> { it.uppercase() }
 			}
 
 

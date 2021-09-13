@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.4.32'
+	ext.kotlinVersion = '1.5.30'
 	repositories {
 		mavenCentral()
 		maven { url 'https://plugins.gradle.org/m2' }
@@ -199,12 +199,13 @@ configure(javaProjects) { subproject ->
 
 	compileTestJava {
 		sourceCompatibility = 11
+		targetCompatibility = 11
 		options.encoding = 'UTF-8'
 	}
 
 	compileKotlin {
 		kotlinOptions {
-			languageVersion = '1.3'
+			apiVersion = '1.3'
 			jvmTarget = '1.8'
 			freeCompilerArgs = ['-Xjsr305=strict']
 //			allWarningsAsErrors = true TODO bring it back after upgrading to Kotlin 1.5 language version
@@ -212,7 +213,7 @@ configure(javaProjects) { subproject ->
 	}
 	compileTestKotlin {
 		kotlinOptions {
-			jvmTarget = '1.8'
+			jvmTarget = '11'
 		}
 	}
 
@@ -263,7 +264,7 @@ configure(javaProjects) { subproject ->
 
 	// enable all compiler warnings; individual projects may customize further
 	ext.xLintArg = '-Xlint:all,-options,-processing'
-	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
+	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg, '-parameters']
 
 	task updateCopyrights {
 		onlyIf { !System.getenv('GITHUB_ACTION') && !System.getenv('bamboo_buildKey') }
