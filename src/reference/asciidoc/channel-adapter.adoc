@@ -124,6 +124,8 @@ However, if you are sure that your method can return null and you need to poll f
 ====
 
 Starting with version 5.5, a `0` value for `max-messages-per-poll` has a special meaning - skip the `MessageSource.receive()` call altogether, which may be considered as pausing for this inbound channel adapter until the `maxMessagesPerPoll` is changed to a non-zero value at a later time, e.g. via a Control Bus.
+
+Also see <<./endpoint.adoc#global-default-poller>> for more information.
 =====
 
 [[channel-adapter-namespace-outbound]]
@@ -175,7 +177,6 @@ fun outboundChannelAdapterFlow(myPojo: MyPojo) =
 If the channel being adapted is a `PollableChannel`, you must provide a poller sub-element (the `@Poller` sub-annotation on the `@ServiceActivator`), as the following example shows:
 
 ====
-----
 [source, java, role="primary"]
 .Java
 ----

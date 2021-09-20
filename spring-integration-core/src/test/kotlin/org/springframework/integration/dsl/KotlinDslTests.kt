@@ -258,7 +258,7 @@ class KotlinDslTests {
 		@Bean
 		fun functionFlow2() =
 			integrationFlow<Function<*, *>> {
-				transform<String> { it.toLowerCase() }
+				transform<String> { it.lowercase() }
 				filter(UnexpiredMessageSelector())
 				route<Message<*>, Any?>({ null }) { defaultOutputToParentFlow() }
 				route<Message<*>> { m -> m.headers.replyChannel }

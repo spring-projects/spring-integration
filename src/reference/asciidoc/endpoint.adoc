@@ -95,18 +95,17 @@ The following example shows how to set the trigger:
 ----
 PollingConsumer consumer = new PollingConsumer(channel, handler);
 
-consumer.setTrigger(new IntervalTrigger(30, TimeUnit.SECONDS));
+consumer.setTrigger(new PeriodicTrigger(30, TimeUnit.SECONDS));
 ----
 ====
 
-Spring Integration currently provides two implementations of the `Trigger` interface: `IntervalTrigger` and `CronTrigger`.
-The `IntervalTrigger` is typically defined with a simple interval (in milliseconds) but also supports an `initialDelay` property and a boolean `fixedRate` property (the default is `false` -- that is, no fixed delay).
+The `PeriodicTrigger` is typically defined with a simple interval (in milliseconds) but also supports an `initialDelay` property and a boolean `fixedRate` property (the default is `false` -- that is, no fixed delay).
 The following example sets both properties:
 
 ====
 [source,java]
 ----
-IntervalTrigger trigger = new IntervalTrigger(1000);
+PeriodicTrigger trigger = new PeriodicTrigger(1000);
 trigger.setInitialDelay(5000);
 trigger.setFixedRate(true);
 ----
@@ -316,22 +315,87 @@ It is also possible to create top-level pollers, in which case only a `ref` attr
 NOTE: The `ref` attribute is allowed only on the inner poller definitions.
 Defining this attribute on a top-level poller results in a configuration exception being thrown during initialization of the application context.
 
-====== Global Default Pollers
+[[global-default-poller]]
+====== Global Default Poller
 
 To simplify the configuration even further, you can define a global default poller.
-A single top-level poller within an `ApplicationContext` may have the `default` attribute set to `true`.
-In that case, any endpoint with a `PollableChannel` for its input channel, that is defined within the same `ApplicationContext`, and has no explicitly configured `poller` sub-element uses that default.
+A single top-level poller component in XML DSL may have the `default` attribute set to `true`.
+For Java configuration a `PollerMetadata` bean with the `PollerMetadata.DEFAULT_POLLER` name must be declared in this case.
+In that case, any endpoint with a `PollableChannel` for its input channel, that is defined within the same `ApplicationContext`, and has no explicitly configured `poller` uses that default.
 The following example shows such a poller and a transformer that uses it:
 
-[source,xml]
+
+====
+[source, java, role="primary"]
+.Java DSL
 ----
-<int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="3000"/>
+@Bean(name = PollerMetadata.DEFAULT_POLLER)
+public PollerMetadata defaultPoller() {
+    PollerMetadata pollerMetadata = new PollerMetadata();
+    pollerMetadata.setMaxMessagesPerPoll(5);
+    pollerMetadata.setTrigger(new PeriodicTrigger(3000));
+    return pollerMetadata;
+}
+
+// No 'poller' attribute because there is a default global poller
+@Bean
+public IntegrationFlow transformFlow(MyTransformer transformer) {
+    return IntegrationFlows.from(MessageChannels.queue("pollable"))
+                           .transform(transformer) // No 'poller' attribute because there is a default global poller
+                           .channel("output")
+                           .get();
+}
+----
+[source, java, role="secondary"]
+.Java
+----
+@Bean(PollerMetadata.DEFAULT_POLLER)
+public PollerMetadata defaultPoller() {
+    PollerMetadata pollerMetadata = new PollerMetadata();
+    pollerMetadata.setMaxMessagesPerPoll(5);
+    pollerMetadata.setTrigger(new PeriodicTrigger(3000));
+    return pollerMetadata;
+}
+
+@Bean
+public QueueChannel pollable() {
+   return new QueueChannel();
+}
+// No 'poller' attribute because there is a default global poller
+@Transformer(inputChannel = "pollable", outputChannel = "output")
+public Object transform(Object payload) {
+    ...
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean(PollerMetadata.DEFAULT_POLLER)
+fun defaultPoller() =
+    PollerMetadata()
+        .also {
+            it.maxMessagesPerPoll = 5
+            it.trigger = PeriodicTrigger(3000)
+        }
+
+@Bean
+fun convertFlow() =
+    integrationFlow(MessageChannels.queue("pollable")) {
+    	transform(transformer) // No 'poller' attribute because there is a default global poller
+    	channel("output")
+    }
+----
+[source, xml, role="secondary"]
+.XML
+----
+<int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-delay="3000"/>
 
 <!-- No <poller/> sub-element is necessary, because there is a default -->
 <int:transformer input-channel="pollable"
                  ref="transformer"
                  output-channel="output"/>
 ----
+====
 
 [[transaction-support]]
 ====== Transaction Support
@@ -412,7 +476,7 @@ You should also keep in mind that the `task-executor` attribute can provide a re
 The `executor` element shown earlier is provided for convenience.
 
 As mentioned earlier in the <<endpoint-pollingconsumer,background section for polling consumers>>, you can also configure a polling consumer in such a way as to emulate event-driven behavior.
-With a long `receive-timeout` and a short `interval-trigger`, you can ensure a very timely reaction to arriving messages even on a polled message source.
+With a long receive timeout and a short interval in the trigger, you can ensure a very timely reaction to arriving messages even on a polled message source.
 Note that this applies only  to sources that have a blocking wait call with a timeout.
 For example, the file poller does not block.
 Each `receive()` call returns immediately and either contains new files or not.
