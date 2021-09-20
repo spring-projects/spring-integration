@@ -63,9 +63,9 @@ import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -245,6 +245,8 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
+	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
+			disabledReason = "Timing is too short for CI")
 	public void testCleanup() throws Exception {
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0);
 		factory.setApplicationEventPublisher(nullPublisher);
@@ -816,7 +818,8 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
-	@Disabled("Timing is too short for CI")
+	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
+			disabledReason = "Timing is too short for CI")
 	public void testNoDelayOnClose() throws Exception {
 		TcpNioServerConnectionFactory cf = new TcpNioServerConnectionFactory(0);
 		final CountDownLatch reading = new CountDownLatch(1);
@@ -831,9 +834,7 @@ public class TcpNioConnectionTests {
 		});
 		cf.registerListener(m -> false);
 		final CountDownLatch listening = new CountDownLatch(1);
-		cf.setApplicationEventPublisher(e -> {
-			listening.countDown();
-		});
+		cf.setApplicationEventPublisher(e -> listening.countDown());
 		cf.afterPropertiesSet();
 		cf.start();
 		assertThat(listening.await(10, TimeUnit.SECONDS)).isTrue();
