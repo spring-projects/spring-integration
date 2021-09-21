@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.5.30'
+	ext.kotlinVersion = '1.5.31'
 	repositories {
 		mavenCentral()
 		maven { url 'https://plugins.gradle.org/m2' }
@@ -13,10 +13,10 @@ buildscript {
 
 plugins {
 	id 'org.sonarqube' version '2.8'
-	id 'io.spring.nohttp' version '0.0.8' apply false
+	id 'io.spring.nohttp' version '0.0.10' apply false
 	id 'org.ajoberstar.grgit' version '4.1.0'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'com.jfrog.artifactory' version '4.24.15' apply false
+	id 'com.jfrog.artifactory' version '4.24.18' apply false
 	id 'org.jetbrains.dokka' version '0.10.1'
 	id 'org.asciidoctor.jvm.pdf' version '3.3.2'
 	id 'org.asciidoctor.jvm.gems' version '3.3.2'
@@ -46,14 +46,14 @@ ext {
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.16.2'
+	activeMqVersion = '5.16.3'
 	apacheSshdVersion = '2.7.0'
 	aspectjVersion = '1.9.7'
-	assertjVersion = '3.20.2'
-	assertkVersion = '0.24'
+	assertjVersion = '3.21.0'
+	assertkVersion = '0.25'
 	avroVersion = '1.10.2'
 	awaitilityVersion = '4.1.0'
-	commonsDbcp2Version = '2.8.0'
+	commonsDbcp2Version = '2.9.0'
 	commonsIoVersion = '2.11.0'
 	commonsNetVersion = '3.8.0'
 	curatorVersion = '4.3.0'
@@ -61,13 +61,13 @@ ext {
 	ftpServerVersion = '1.1.1'
 	googleJsr305Version = '3.0.2'
 	greenmailVersion = '1.6.5'
-	groovyVersion = '3.0.8'
+	groovyVersion = '3.0.9'
 	hamcrestVersion = '2.2'
 	hazelcastVersion = '4.2.2'
-	hibernateVersion = '5.5.6.Final'
+	hibernateVersion = '5.5.7.Final'
 	hsqldbVersion = '2.6.0'
 	h2Version = '1.4.200'
-	jacksonVersion = '2.12.4'
+	jacksonVersion = '2.12.5'
 	javaxActivationVersion = '1.2.0'
 	jaxbVersion = '2.3.4'
 	jeroMqVersion = '0.5.2'
@@ -80,12 +80,12 @@ ext {
 	junitJupiterVersion = '5.7.2'
 	jythonVersion = '2.7.2'
 	kryoShadedVersion = '4.0.2'
-    lettuceVersion = '6.1.4.RELEASE'
+    lettuceVersion = '6.1.5.RELEASE'
 	log4jVersion = '2.14.1'
 	mailVersion = '1.6.7'
-	micrometerVersion = '1.7.3'
-	mockitoVersion = '3.11.2'
-	mongoDriverVersion = '4.3.1'
+	micrometerVersion = '1.7.4'
+	mockitoVersion = '3.12.4'
+	mongoDriverVersion = '4.3.2'
 	mysqlVersion = '8.0.26'
 	pahoMqttClientVersion = '1.2.5'
 	postgresVersion = '42.2.23'
@@ -99,11 +99,11 @@ ext {
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.10'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.4'
-	springKafkaVersion = '2.7.6'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.5'
+	springKafkaVersion = '2.7.7'
 	springRetryVersion = '1.3.1'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.2'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.9'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.10'
 	springWsVersion = '3.1.1'
 	tomcatVersion = '9.0.52'
 	xmlUnitVersion = '2.8.2'
