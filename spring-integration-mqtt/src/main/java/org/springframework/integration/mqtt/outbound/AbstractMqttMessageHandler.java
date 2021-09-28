@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,8 +117,8 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	 * Set the qos expression; default "headers['mqtt_qos']".
 	 * Only applies if a message converter is not provided.
 	 * @param qosExpression the expression.
-	 * @see #setConverter(MessageConverter)
 	 * @since 5.0
+	 * @see #setConverter(MessageConverter)
 	 */
 	public void setQosExpression(Expression qosExpression) {
 		Assert.notNull(qosExpression, "'qosExpression' cannot be null");
@@ -129,8 +129,8 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	 * Set the qos expression; default "headers['mqtt_qos']".
 	 * Only applies if a message converter is not provided.
 	 * @param qosExpression the expression.
-	 * @see #setConverter(MessageConverter)
 	 * @since 5.0
+	 * @see #setConverter(MessageConverter)
 	 */
 	public void setQosExpressionString(String qosExpression) {
 		Assert.hasText(qosExpression, "'qosExpression' must not be null or empty");
@@ -152,8 +152,8 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	 * Set the retained expression; default "headers['mqtt_retained']".
 	 * Only applies if a message converter is not provided.
 	 * @param retainedExpression the expression.
-	 * @see #setConverter(MessageConverter)
 	 * @since 5.0
+	 * @see #setConverter(MessageConverter)
 	 */
 	public void setRetainedExpression(Expression retainedExpression) {
 		Assert.notNull(retainedExpression, "'qosExpression' cannot be null");
@@ -164,8 +164,8 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	 * Set the retained expression; default "headers['mqtt_retained']".
 	 * Only applies if a message converter is not provided.
 	 * @param retainedExpression the expression.
-	 * @see #setConverter(MessageConverter)
 	 * @since 5.0
+	 * @see #setConverter(MessageConverter)
 	 */
 	public void setRetainedExpressionString(String retainedExpression) {
 		Assert.hasText(retainedExpression, "'qosExpression' must not be null or empty");

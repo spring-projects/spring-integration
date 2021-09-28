@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ package org.springframework.integration.file.remote;
  * {@code RemoteFileTemplate} callback with the underlying client instance providing
  * access to lower level methods.
  *
- * @author Gary Russell
- *
  * @param <C> The type of the underlying client object.
  * @param <T> The return type of the callback method.
- * @since 4.1
  *
+ * @author Gary Russell
+ *
+ * @since 4.1
  */
 @FunctionalInterface
 public interface ClientCallback<C, T> {

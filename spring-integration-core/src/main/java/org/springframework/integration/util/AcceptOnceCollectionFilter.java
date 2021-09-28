@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,10 @@ import java.util.List;
  * An implementation of {@link CollectionFilter} that remembers the elements passed in
  * the previous invocation in order to avoid returning those elements more than once.
  *
+ * @param <T> the collection element type.
+ *
  * @author Mark Fisher
+ *
  * @since 2.1
  */
 public class AcceptOnceCollectionFilter<T> implements CollectionFilter<T> {
@@ -33,7 +36,7 @@ public class AcceptOnceCollectionFilter<T> implements CollectionFilter<T> {
 	private volatile Collection<T> lastSeenElements = Collections.emptyList();
 
 	public synchronized Collection<T> filter(Collection<T> unfilteredElements) {
-		List<T> filteredElements = new ArrayList<T>();
+		List<T> filteredElements = new ArrayList<>();
 		for (T element : unfilteredElements) {
 			if (!this.lastSeenElements.contains(element)) {
 				filteredElements.add(element);

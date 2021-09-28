@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@ import org.springframework.util.StringUtils;
  *   <li>matching on method name, if available</li>
  *   <li>exclusion of void-returning methods if 'requiresReply' is true</li>
  *   <li>limiting to annotated methods if at least one is present</li>
- * </ol>
- * <p>
+ * </ol>.
  *
  * @author Mark Fisher
+ *
  * @since 2.0
  */
 public class AnnotatedMethodFilter implements MethodFilter {
@@ -54,8 +54,8 @@ public class AnnotatedMethodFilter implements MethodFilter {
 
 
 	public List<Method> filter(List<Method> methods) {
-		List<Method> annotatedCandidates = new ArrayList<Method>();
-		List<Method> fallbackCandidates = new ArrayList<Method>();
+		List<Method> annotatedCandidates = new ArrayList<>();
+		List<Method> fallbackCandidates = new ArrayList<>();
 		for (Method method : methods) {
 			if (method.isBridge()) {
 				continue;

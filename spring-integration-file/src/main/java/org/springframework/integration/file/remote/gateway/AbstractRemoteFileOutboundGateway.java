@@ -67,6 +67,8 @@ import org.springframework.util.StringUtils;
 /**
  * Base class for Outbound Gateways that perform remote file operations.
  *
+ * @param <F> the file type.
+ *
  * @author Gary Russell
  * @author Artem Bilan
  *
@@ -481,8 +483,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	/**
 	 * String setter for Spring XML convenience.
 	 * @param chmod permissions as an octal string e.g "600";
-	 * @see #setChmod(int)
 	 * @since 4.3
+	 * @see #setChmod(int)
 	 */
 	public void setChmodOctal(String chmod) {
 		Assert.notNull(chmod, "'chmod' cannot be null");
@@ -1429,7 +1431,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		EXCEPTION_WHEN_EMPTY("-x"),
 
 		/**
-		 * (-R) Recursive (ls, mget)
+		 * (-R) Recursive (ls, mget).
 		 */
 		RECURSIVE("-R"),
 

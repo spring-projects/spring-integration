@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,8 +98,8 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	/**
 	 * @param errorChannel the error channel.
 	 * @return the enricher spec.
-	 * @see ContentEnricher#setErrorChannel(MessageChannel)
 	 * @since 5.0.1
+	 * @see ContentEnricher#setErrorChannel(MessageChannel)
 	 */
 	public EnricherSpec errorChannel(MessageChannel errorChannel) {
 		this.handler.setErrorChannel(errorChannel);
@@ -109,8 +109,8 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	/**
 	 * @param errorChannel the name of the error channel bean.
 	 * @return the enricher spec.
-	 * @see ContentEnricher#setErrorChannelName(String)
 	 * @since 5.0.1
+	 * @see ContentEnricher#setErrorChannelName(String)
 	 */
 	public EnricherSpec errorChannel(String errorChannel) {
 		this.handler.setErrorChannelName(errorChannel);

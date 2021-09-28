@@ -896,7 +896,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * {@code
 	 *  .handle(Amqp.outboundAdapter(this.amqpTemplate).routingKeyExpression("headers.routingKey"))
 	 * }
-	 * </pre>
+	 * </pre>.
 	 * @param messageHandlerSpec the {@link MessageHandlerSpec} to configure protocol specific
 	 * {@link MessageHandler}.
 	 * @param <H> the target {@link MessageHandler} type.
@@ -1747,7 +1747,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
-	 * A short-cut for the {@code aggregate((aggregator) -> aggregator.processor(aggregatorProcessor))}
+	 * A short-cut for the {@code aggregate((aggregator) -> aggregator.processor(aggregatorProcessor))}.
 	 * @param aggregatorProcessor the POJO representing aggregation strategies.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @since 5.5

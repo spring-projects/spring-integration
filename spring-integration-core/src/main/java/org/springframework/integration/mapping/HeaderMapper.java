@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import org.springframework.messaging.MessageHeaders;
  * types of objects. This would typically be used by adapters where the "other type"
  * has a concept of headers or properties (HTTP, JMS, AMQP, etc).
  *
- * @author Mark Fisher
- *
  * @param <T> type of the instance to and from which headers will be mapped.
+ *
+ * @author Mark Fisher
  */
 public interface HeaderMapper<T> {
 

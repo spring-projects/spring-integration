@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 	private volatile boolean initialized = false;
 
 	/**
-	 * Construct this instance using a provided {@link ReactiveMongoDatabaseFactory}
+	 * Construct this instance using a provided {@link ReactiveMongoDatabaseFactory}.
 	 * @param mongoDbFactory The reactive mongoDatabase factory.
 	 */
 	public ReactiveMongoDbStoringMessageHandler(ReactiveMongoDatabaseFactory mongoDbFactory) {
@@ -65,7 +65,7 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 
 	/**
 	 * Construct this instance using a fully created and initialized instance of provided
-	 * {@link ReactiveMongoOperations}
+	 * {@link ReactiveMongoOperations}.
 	 * @param mongoTemplate The ReactiveMongoOperations implementation.
 	 */
 	public ReactiveMongoDbStoringMessageHandler(ReactiveMongoOperations mongoTemplate) {

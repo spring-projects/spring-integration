@@ -161,10 +161,6 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 		return false;
 	}
 
-	/**
-	 * SmartLifecycle implementation (delegates to the {@link #handlers})
-	 */
-
 	@Override
 	public final boolean isRunning() {
 		this.lifecycleLock.lock();

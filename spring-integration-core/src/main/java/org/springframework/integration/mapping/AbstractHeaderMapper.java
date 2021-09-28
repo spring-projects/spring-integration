@@ -43,6 +43,8 @@ import org.springframework.util.StringUtils;
 /**
  * Abstract base class for {@link RequestReplyHeaderMapper} implementations.
  *
+ * @param <T> the target headers container type.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Stephane Nicoll

@@ -338,9 +338,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		return replyBuilder.copyHeaders(headers);
 	}
 
-	/**
-	 * Convert Set-Cookie to Cookie
-	 */
 	private void doConvertSetCookie(Map<String, Object> headers) {
 		String keyName = null;
 		for (String key : headers.keySet()) {
@@ -464,7 +461,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		return true;
 	}
 
-	/**
+	/*
 	 * If all keys are Strings, and some values are not Strings we'll consider
 	 * the Map to be multipart/form-data
 	 */

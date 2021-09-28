@@ -191,8 +191,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * <b>Required if {@link #setAllowUnknownKeys(boolean) allowUnknownKeys} is
 	 * false (default).</b>
 	 * @param knownHosts The known hosts.
-	 * @see JSch#setKnownHosts(String)
 	 * @deprecated since 5.2.5 in favor of {@link #setKnownHostsResource(Resource)}
+	 * @see JSch#setKnownHosts(String)
 	 */
 	@Deprecated
 	public void setKnownHosts(String knownHosts) {
@@ -203,8 +203,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * Specifies the filename that will be used for a host key repository.
 	 * The file has the same format as OpenSSH's known_hosts file.
 	 * @param knownHosts the resource for known hosts.
-	 * @see JSch#setKnownHosts(java.io.InputStream)
 	 * @since 5.2.5
+	 * @see JSch#setKnownHosts(java.io.InputStream)
 	 */
 	public void setKnownHostsResource(Resource knownHosts) {
 		this.knownHosts = knownHosts;
@@ -351,8 +351,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * {@link #setPrivateKeyPassphrase(String) passphrase} are not allowed because those values
 	 * will be obtained from the {@link UserInfo}.</b>
 	 * @param userInfo the UserInfo.
-	 * @see com.jcraft.jsch.Session#setUserInfo(com.jcraft.jsch.UserInfo)
 	 * @since 4.1.7
+	 * @see com.jcraft.jsch.Session#setUserInfo(com.jcraft.jsch.UserInfo)
 	 */
 	public void setUserInfo(UserInfo userInfo) {
 		this.userInfo = userInfo;
@@ -371,7 +371,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	}
 
 	/**
-	 * Set the connect timeout.
+	 * Set the connection timeout.
 	 * @param timeout the timeout to set.
 	 * @since 5.2
 	 */

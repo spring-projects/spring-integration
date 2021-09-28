@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,11 @@ import org.springframework.messaging.Message;
 /**
  * Strategy for performing operations on remote files.
  *
- * @author Gary Russell
- * @since 3.0
+ * @param <F> the file type.
  *
+ * @author Gary Russell
+ *
+ * @since 3.0
  */
 public interface RemoteFileOperations<F> {
 

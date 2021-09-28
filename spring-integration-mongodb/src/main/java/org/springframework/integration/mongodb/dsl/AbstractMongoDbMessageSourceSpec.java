@@ -30,6 +30,9 @@ import org.springframework.integration.mongodb.inbound.AbstractMongoDbMessageSou
 /**
  * A {@link MessageSourceSpec} extension for common MongoDB sources options.
  *
+ * @param <S> target spec type.
+ * @param <H> target message source type.
+ *
  * @author Artem Bilan
  *
  * @since 5.5
@@ -39,7 +42,7 @@ public class AbstractMongoDbMessageSourceSpec<S extends AbstractMongoDbMessageSo
 		extends MessageSourceSpec<S, H> {
 
 	/**
-	 * Allow you to set the type of the entityClass that will be passed to the the MongoDB query method.
+	 * Allow you to set the type of the entityClass that will be passed to the MongoDB query method.
 	 * Default is {@link com.mongodb.DBObject}.
 	 * @param entityClass The entity class.
 	 * @return the spec

@@ -81,8 +81,8 @@ public class FileInboundChannelAdapterSpec
 	 * {@link RecursiveDirectoryScanner} or stay with a default one.
 	 * @param recursive to set or not a {@link RecursiveDirectoryScanner}.
 	 * @return the spec.
-	 * @see org.springframework.integration.file.RecursiveDirectoryScanner
 	 * @since 5.5
+	 * @see org.springframework.integration.file.RecursiveDirectoryScanner
 	 */
 	public FileInboundChannelAdapterSpec recursive(boolean recursive) {
 		if (recursive) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.util.Assert;
  * looking up the respective JDBC Type (int-value).
  *
  * @author Gunnar Hillert
+ *
  * @since 2.1
  *
  */
@@ -67,9 +68,8 @@ public enum JdbcTypesEnum {
 	NCLOB(Types.NCLOB),
 	SQLXML(Types.SQLXML);
 
-	private int code;
+	private final int code;
 
-	/** Constructor */
 	JdbcTypesEnum(int code) {
 		this.code = code;
 	}
@@ -77,7 +77,6 @@ public enum JdbcTypesEnum {
 	/**
 	 * Get the numerical representation of the JDBC Type enum. The numerical value
 	 * matches exactly the equivalent value in {@link Types}
-	 *
 	 * @return The numerical representation of the constant.
 	 */
 	public int getCode() {
@@ -85,24 +84,20 @@ public enum JdbcTypesEnum {
 	}
 
 	/**
-	 * Retrieves the matching enum constant for a provided String representation
+	 * Retrieve the matching enum constant for a provided String representation
 	 * of the SQL Types. The provided name must match exactly the identifier as
 	 * used to declare the enum constant.
-	 *
 	 * @param sqlTypeAsString Name of the enum to convert. Must be not null and not empty.
 	 * @return The enumeration that matches. Returns Null of no match was found.
 	 *
 	 */
 	public static JdbcTypesEnum convertToJdbcTypesEnum(String sqlTypeAsString) {
-
 		Assert.hasText(sqlTypeAsString, "Parameter sqlTypeAsString, must not be null nor empty");
-
 		for (JdbcTypesEnum jdbcType : JdbcTypesEnum.values()) {
 			if (jdbcType.name().equalsIgnoreCase(sqlTypeAsString)) {
 				return jdbcType;
 			}
 		}
-
 		return null;
 	}
 }

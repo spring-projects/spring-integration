@@ -49,7 +49,7 @@ public final class IntegrationConfigUtils {
 	}
 
 	/**
-	 * Register a {@link SpelFunctionFactoryBean} for the provided method signature
+	 * Register a {@link SpelFunctionFactoryBean} for the provided method signature.
 	 * @param registry the registry for bean to register
 	 * @param functionId the bean name
 	 * @param aClass the class for function

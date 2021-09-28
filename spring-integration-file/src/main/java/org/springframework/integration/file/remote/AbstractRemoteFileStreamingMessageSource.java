@@ -49,6 +49,8 @@ import org.springframework.util.ObjectUtils;
  * A message source that produces a message with an {@link InputStream} payload
  * referencing a remote file.
  *
+ * @param <F> The target protocol file type.
+ *
  * @author Gary Russell
  * @author Artem Bilan
  * @author Lukas Gemela
@@ -110,7 +112,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	}
 
 	/**
-	 * Set the remote file separator; default '/'
+	 * Set the remote file separator; default '/'.
 	 * @param remoteFileSeparator the remote file separator.
 	 */
 	public void setRemoteFileSeparator(String remoteFileSeparator) {

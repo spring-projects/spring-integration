@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,12 @@ import org.springframework.messaging.MessagingException;
 /**
  * A simple strategy callback class that allows you to provide
  * a code that needs to be executed under {@link Lock} provided by
- * {@link LockRegistry}
+ * {@link LockRegistry}.
  * A typical usage would be to provide implementation of {@link #whileLocked()} method and
- * then call {@link #doWhileLocked()}
+ * then call {@link #doWhileLocked()}.
  *
  * @author Oleg Zhurakousky
+ *
  * @since 2.2
  *
  */
@@ -64,7 +65,6 @@ public abstract class WhileLockedProcessor {
 	/**
 	 * Override this method to provide the behavior that needs to be executed
 	 * while under the lock.
-	 *
 	 * @throws IOException Any IOException.
 	 */
 	protected abstract void whileLocked() throws IOException;

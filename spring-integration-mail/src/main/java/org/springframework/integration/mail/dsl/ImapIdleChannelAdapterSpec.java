@@ -374,8 +374,8 @@ public class ImapIdleChannelAdapterSpec
 	 * Seconds; default 120 (2 minutes).
 	 * @param interval the interval.
 	 * @return the spec.
-	 * @see ImapMailReceiver#setCancelIdleInterval(long)
 	 * @since 5.2
+	 * @see ImapMailReceiver#setCancelIdleInterval(long)
 	 */
 	public ImapIdleChannelAdapterSpec cancelIdleInterval(long interval) {
 		assertReceiver();
@@ -387,8 +387,8 @@ public class ImapIdleChannelAdapterSpec
 	 * Determine how the content is rendered.
 	 * @param simpleContent true for simple content.
 	 * @return the spec.
-	 * @see ImapMailReceiver#setSimpleContent(boolean)
 	 * @since 5.5
+	 * @see ImapMailReceiver#setSimpleContent(boolean)
 	 */
 	public ImapIdleChannelAdapterSpec simpleContent(boolean simpleContent) {
 		assertReceiver();

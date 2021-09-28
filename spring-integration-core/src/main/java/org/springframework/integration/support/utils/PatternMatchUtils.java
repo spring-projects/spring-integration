@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ public final class PatternMatchUtils {
 	 * @param str the string to match.
 	 * @param patterns the patterns.
 	 * @return true for positive match; false for negative; null if no pattern matches.
-	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String[], String)
 	 * @since 5.0.5
+	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String[], String)
 	 */
 	public static Boolean smartMatchIgnoreCase(String str, String... patterns) {
 		if (patterns != null) {

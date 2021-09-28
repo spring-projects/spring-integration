@@ -204,7 +204,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	}
 
 	/**
-	 * Returns true if all factories are running
+	 * Return true if all factories are running.
 	 */
 	@Override
 	public boolean isRunning() {

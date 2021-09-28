@@ -117,9 +117,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	/**
-	 * @see #setAsync(boolean)
 	 * @return true if this handler supports async replies.
 	 * @since 4.3
+	 * @see #setAsync(boolean)
 	 */
 	protected boolean isAsync() {
 		return this.async;

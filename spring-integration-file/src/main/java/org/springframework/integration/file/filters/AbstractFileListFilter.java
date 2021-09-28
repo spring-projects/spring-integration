@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.util.List;
  * A convenience base class for any {@link FileListFilter} whose criteria can be
  * evaluated against each File in isolation. If the entire List of files is
  * required for evaluation, implement the FileListFilter interface directly.
+ *
+ * @param <F> the target protocol file type.
  *
  * @author Mark Fisher
  * @author Iwein Fuld

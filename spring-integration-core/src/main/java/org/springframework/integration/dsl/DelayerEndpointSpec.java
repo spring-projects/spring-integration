@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,9 +111,9 @@ public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpe
 	 * within the transaction.
 	 * @param channel the channel.
 	 * @return the endpoint spec.
+	 * @since 5.0.8
 	 * @see #maxAttempts(int)
 	 * @see #retryDelay(long)
-	 * @since 5.0.8
 	 */
 	public DelayerEndpointSpec delayedMessageErrorChannel(MessageChannel channel) {
 		this.handler.setDelayedMessageErrorChannel(channel);
@@ -129,9 +129,9 @@ public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpe
 	 * within the transaction.
 	 * @param channel the channel name.
 	 * @return the endpoint spec.
+	 * @since 5.0.8
 	 * @see #maxAttempts(int)
 	 * @see #retryDelay(long)
-	 * @since 5.0.8
 	 */
 	public DelayerEndpointSpec delayedMessageErrorChannel(String channel) {
 		this.handler.setDelayedMessageErrorChannelName(channel);
@@ -143,8 +143,8 @@ public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpe
 	 * Default {@value DelayHandler#DEFAULT_MAX_ATTEMPTS}.
 	 * @param maxAttempts the max attempts.
 	 * @return the endpoint spec.
-	 * @see #retryDelay(long)
 	 * @since 5.0.8
+	 * @see #retryDelay(long)
 	 */
 	public DelayerEndpointSpec maxAttempts(int maxAttempts) {
 		this.handler.setMaxAttempts(maxAttempts);
@@ -156,8 +156,8 @@ public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpe
 	 * Default {@value DelayHandler#DEFAULT_RETRY_DELAY}.
 	 * @param retryDelay the retry delay.
 	 * @return the endpoint spec.
-	 * @see #maxAttempts(int)
 	 * @since 5.0.8
+	 * @see #maxAttempts(int)
 	 */
 	public DelayerEndpointSpec retryDelay(long retryDelay) {
 		this.handler.setRetryDelay(retryDelay);
@@ -184,8 +184,8 @@ public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpe
 	 * {@link org.springframework.messaging.MessageHandler}.
 	 * @param transactionInterceptor the {@link TransactionInterceptor} to use.
 	 * @return the spec.
-	 * @see TransactionInterceptorBuilder
 	 * @since 5.0.8
+	 * @see TransactionInterceptorBuilder
 	 */
 	public DelayerEndpointSpec transactionalRelease(TransactionInterceptor transactionInterceptor) {
 		return delayedAdvice(transactionInterceptor);

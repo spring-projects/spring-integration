@@ -27,7 +27,7 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.mongodb.inbound.MongoDbChangeStreamMessageProducer;
 
 /**
- * Factory class for building MongoDb components
+ * Factory class for building MongoDb components.
  *
  * @author Xavier Padro
  * @author Artem Bilan

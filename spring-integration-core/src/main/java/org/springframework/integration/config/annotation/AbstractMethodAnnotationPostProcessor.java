@@ -97,6 +97,8 @@ import reactor.core.publisher.Flux;
 /**
  * Base class for Method-level annotation post-processors.
  *
+ * @param <T> the target annotation type.
+ *
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell

@@ -150,8 +150,8 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * {@link #setKey(String)} method instead of this one (they are mutually exclusive).
 	 * If neither setter is called, the default expression will be 'headers.{@link RedisHeaders#KEY}'.
 	 * @param keyExpression The key expression.
-	 * @see #setKey(String)
 	 * @since 5.0
+	 * @see #setKey(String)
 	 */
 	public void setKeyExpressionString(String keyExpression) {
 		Assert.hasText(keyExpression, "'keyExpression' must not be empty");

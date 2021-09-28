@@ -73,7 +73,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 
 
 	/**
-	 * Set the CorrelationStrategy to be used to determine the correlation key for incoming messages
+	 * Set the CorrelationStrategy to be used to determine the correlation key for incoming messages.
 	 * @param correlationStrategy The correlation strategy.
 	 */
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {

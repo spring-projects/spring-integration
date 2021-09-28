@@ -457,7 +457,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 
 		/**
-		 * Sender blocks here until the reply is received, or we time out
+		 * Sender blocks here until the reply is received, or we time out.
 		 * @return The return message or null if we time out
 		 */
 		Message<?> getReply() {

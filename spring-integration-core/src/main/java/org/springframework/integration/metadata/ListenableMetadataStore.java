@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,20 +22,19 @@ package org.springframework.integration.metadata;
  * invoked when changes occur in the metadata store.
  *
  * @author Marius Bogoevici
+ *
  * @since 4.2
  */
 public interface ListenableMetadataStore extends ConcurrentMetadataStore {
 
 	/**
-	 * Registers a listener with the metadata store
-	 *
+	 * Register a listener with the metadata store.
 	 * @param callback the callback to be registered
 	 */
 	void addListener(MetadataStoreListener callback);
 
 	/**
-	 * Unregisters a listener
-	 *
+	 * Unregister a listener.
 	 * @param callback the callback to be unregistered
 	 */
 	void removeListener(MetadataStoreListener callback);

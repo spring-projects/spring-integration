@@ -67,7 +67,7 @@ public @interface Router {
 	String defaultOutputChannel() default "";
 
 	/**
-	 * The 'key=value' pairs to represent channelMapping entries
+	 * The 'key=value' pairs to represent channelMapping entries.
 	 * @return the channelMappings.
 	 * @see org.springframework.integration.router.AbstractMappingMessageRouter#setChannelMapping(String, String)
 	 */

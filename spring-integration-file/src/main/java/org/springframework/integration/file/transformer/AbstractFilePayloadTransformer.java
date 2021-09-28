@@ -37,14 +37,16 @@ import org.springframework.util.Assert;
 /**
  * Base class for transformers that convert a File payload.
  *
+ * @param <T> the expected payload type.
+ *
  * @author Mark Fisher
  * @author Artem Bilan
  */
 public abstract class AbstractFilePayloadTransformer<T> implements Transformer, BeanFactoryAware {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
 
-	private volatile boolean deleteFiles;
+	private boolean deleteFiles;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 

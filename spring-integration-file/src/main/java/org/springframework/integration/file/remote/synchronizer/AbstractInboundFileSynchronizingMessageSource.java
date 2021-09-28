@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,8 @@ import org.springframework.util.Assert;
  * {@link AbstractInboundFileSynchronizer}. The synchronizer must
  * handle the work of actually connecting to the remote file system and
  * delivering new {@link File}s.
+ *
+ * @param <F> the target system file type.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
@@ -287,7 +289,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 
 	/**
 	 * The {@link FileReadingMessageSource} extension to increase visibility
-	 * for the {@link FileReadingMessageSource#doReceive()}
+	 * for the {@link FileReadingMessageSource#doReceive()}.
 	 */
 	private static final class LocalFileReadingMessageSource extends FileReadingMessageSource {
 

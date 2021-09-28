@@ -27,7 +27,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.mongodb.inbound.MongoDbMessageSource;
 
 /**
- * Parser for MongoDb store inbound adapters
+ * Parser for MongoDb store inbound adapters.
  *
  * @author Amol Nayak
  * @author Oleg Zhurakousky

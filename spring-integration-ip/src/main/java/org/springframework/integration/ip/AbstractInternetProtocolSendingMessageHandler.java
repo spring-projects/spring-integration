@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,8 +53,8 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 
 
 	/**
-	 * @see java.net.DatagramSocket#setSoTimeout(int)
 	 * @param timeout The timeout.
+	 * @see java.net.DatagramSocket#setSoTimeout(int)
 	 */
 	@Override
 	public void setSoTimeout(int timeout) {
@@ -62,16 +62,16 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	}
 
 	/**
-	 * @see java.net.DatagramSocket#setReceiveBufferSize(int)
 	 * @param size The receive buffer size.
+	 * @see java.net.DatagramSocket#setReceiveBufferSize(int)
 	 */
 	@Override
 	public void setSoReceiveBufferSize(int size) {
 	}
 
 	/**
-	 * @see java.net.DatagramSocket#setSendBufferSize(int)
 	 * @param size The send buffer size.
+	 * @see java.net.DatagramSocket#setSendBufferSize(int)
 	 */
 	@Override
 	public void setSoSendBufferSize(int size) {

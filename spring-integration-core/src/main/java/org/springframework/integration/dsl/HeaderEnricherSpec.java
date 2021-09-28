@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -352,8 +352,8 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param correlationIdFunction the function.
 	 * @param <P> the payload type.
 	 * @return the header enricher spec.
-	 * @see FunctionExpression
 	 * @since 5.2
+	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec correlationIdFunction(Function<Message<P>, Object> correlationIdFunction) {
 		return correlationIdFunction(correlationIdFunction, null);
@@ -366,8 +366,8 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param overwrite true to overwrite an existing header.
 	 * @param <P> the payload type.
 	 * @return the header enricher spec.
-	 * @see FunctionExpression
 	 * @since 5.2
+	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec correlationIdFunction(Function<Message<P>, ?> correlationIdFunction,
 			Boolean overwrite) {
@@ -430,8 +430,8 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param replyChannelFunction the function.
 	 * @param <P> the payload type.
 	 * @return the header enricher spec.
-	 * @see FunctionExpression
 	 * @since 5.2
+	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec replyChannelFunction(Function<Message<P>, Object> replyChannelFunction) {
 		return replyChannelFunction(replyChannelFunction, null);
@@ -444,8 +444,8 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param overwrite true to overwrite an existing header.
 	 * @param <P> the payload type.
 	 * @return the header enricher spec.
-	 * @see FunctionExpression
 	 * @since 5.2
+	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec replyChannelFunction(Function<Message<P>, ?> replyChannelFunction,
 			Boolean overwrite) {
@@ -508,8 +508,8 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param errorChannelFunction the function.
 	 * @param <P> the payload type.
 	 * @return the header enricher spec.
-	 * @see FunctionExpression
 	 * @since 5.2
+	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec errorChannelFunction(Function<Message<P>, Object> errorChannelFunction) {
 		return errorChannelFunction(errorChannelFunction, null);
@@ -522,8 +522,8 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param overwrite true to overwrite an existing header.
 	 * @param <P> the payload type.
 	 * @return the header enricher spec.
-	 * @see FunctionExpression
 	 * @since 5.2
+	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec errorChannelFunction(Function<Message<P>, ?> errorChannelFunction,
 			Boolean overwrite) {
@@ -586,8 +586,8 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param priorityFunction the function.
 	 * @param <P> the payload type.
 	 * @return the header enricher spec.
-	 * @see FunctionExpression
 	 * @since 5.2
+	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec priorityFunction(Function<Message<P>, Object> priorityFunction) {
 		return priorityFunction(priorityFunction, null);
@@ -600,8 +600,8 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param overwrite true to overwrite an existing header.
 	 * @param <P> the payload type.
 	 * @return the header enricher spec.
-	 * @see FunctionExpression
 	 * @since 5.2
+	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec priorityFunction(Function<Message<P>, ?> priorityFunction, Boolean overwrite) {
 		return headerFunction(IntegrationMessageHeaderAccessor.PRIORITY, priorityFunction, overwrite);
@@ -664,8 +664,8 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param expirationDateFunction the function.
 	 * @param <P> the payload type.
 	 * @return the header enricher spec.
-	 * @see FunctionExpression
 	 * @since 5.2
+	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec expirationDateFunction(Function<Message<P>, Object> expirationDateFunction) {
 		return expirationDateFunction(expirationDateFunction, null);
@@ -678,8 +678,8 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param overwrite true to overwrite an existing header.
 	 * @param <P> the payload type.
 	 * @return the header enricher spec.
-	 * @see FunctionExpression
 	 * @since 5.2
+	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec expirationDateFunction(Function<Message<P>, ?> expirationDateFunction,
 			Boolean overwrite) {

@@ -120,7 +120,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	private boolean subscriptionShared;
 
-	/**
+	/*
 	 * This value differs from the container implementations' default (which is AUTO_ACKNOWLEDGE)
 	 */
 	private int sessionAcknowledgeMode = Session.SESSION_TRANSACTED;

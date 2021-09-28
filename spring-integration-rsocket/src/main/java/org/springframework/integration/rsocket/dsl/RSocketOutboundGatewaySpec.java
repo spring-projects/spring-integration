@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,8 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	 * Configure an {@link RSocketInteractionModel} for the RSocket request type.
 	 * @param interactionModel the {@link RSocketInteractionModel} to use.
 	 * @return the spec
-	 * @see RSocketOutboundGateway#setInteractionModel(RSocketInteractionModel)
 	 * @since 5.2.2
+	 * @see RSocketOutboundGateway#setInteractionModel(RSocketInteractionModel)
 	 */
 	public RSocketOutboundGatewaySpec interactionModel(RSocketInteractionModel interactionModel) {
 		return interactionModel(new ValueExpression<>(interactionModel));
@@ -75,8 +75,8 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	 * @param interactionModelFunction the {@code Function} to use.
 	 * @param <P> the expected request message payload type.
 	 * @return the spec
-	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
 	 * @since 5.2.2
+	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
 	 */
 	public <P> RSocketOutboundGatewaySpec interactionModel(Function<Message<P>, ?> interactionModelFunction) {
 		return interactionModel(new FunctionExpression<>(interactionModelFunction));
@@ -87,8 +87,8 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	 * for the RSocket request type at runtime against a request message.
 	 * @param interactionModelExpression the SpEL expression to use.
 	 * @return the spec
-	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
 	 * @since 5.2.2
+	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
 	 */
 	public RSocketOutboundGatewaySpec interactionModel(String interactionModelExpression) {
 		return interactionModel(PARSER.parseExpression(interactionModelExpression));
@@ -99,8 +99,8 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	 * for the RSocket request type at runtime against a request message.
 	 * @param interactionModelExpression the SpEL expression to use.
 	 * @return the spec
-	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
 	 * @since 5.2.2
+	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
 	 */
 	public RSocketOutboundGatewaySpec interactionModel(Expression interactionModelExpression) {
 		this.target.setInteractionModelExpression(interactionModelExpression);

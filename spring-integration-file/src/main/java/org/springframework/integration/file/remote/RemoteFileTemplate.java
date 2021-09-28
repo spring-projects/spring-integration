@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,8 @@ import org.springframework.util.StringUtils;
 /**
  * A general abstraction for dealing with remote files.
  *
+ * @param <F> the file type.
+ *
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Josh Long
@@ -65,7 +67,7 @@ import org.springframework.util.StringUtils;
  */
 public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, InitializingBean, BeanFactoryAware {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
 
 	/**
 	 * The {@link SessionFactory} for acquiring remote file Sessions.

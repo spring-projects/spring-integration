@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.jpa.config.xml;
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
 
 /**
- * The namespace handler for the JPA namespace
+ * The namespace handler for the JPA namespace.
  *
  * @author Amol Nayak
  * @author Gunnar Hillert

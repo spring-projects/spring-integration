@@ -64,7 +64,7 @@ import org.springframework.util.ReflectionUtils;
 public class ContentEnricher extends AbstractReplyProducingMessageHandler implements ManageableLifecycle {
 
 	/**
-	 * Customized SpelExpressionParser to allow to specify nested properties when parent is null
+	 * Customized SpelExpressionParser to allow to specify nested properties when parent is null.
 	 */
 	private static final SpelExpressionParser SPEL_PARSER =
 			new SpelExpressionParser(new SpelParserConfiguration(true, true));

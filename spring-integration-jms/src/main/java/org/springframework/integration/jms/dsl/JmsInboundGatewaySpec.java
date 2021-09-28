@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,8 +212,8 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		/**
 		 * @param destination the destination
 		 * @return the spec.
-		 * @see JmsListenerContainerSpec#destination(Destination)
 		 * @deprecated since 5.5 in favor of {@link #requestDestination(Destination)}
+		 * @see JmsListenerContainerSpec#destination(Destination)
 		 */
 		@Deprecated
 		public JmsInboundGatewayListenerContainerSpec<S, C> destination(Destination destination) {
@@ -224,8 +224,8 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		 * Specify a request destination for incoming messages.
 		 * @param requestDestination the destination
 		 * @return the spec.
-		 * @see JmsListenerContainerSpec#destination(Destination)
 		 * @since 5.5
+		 * @see JmsListenerContainerSpec#destination(Destination)
 		 */
 		public JmsInboundGatewayListenerContainerSpec<S, C> requestDestination(Destination requestDestination) {
 			this.spec.destination(requestDestination);
@@ -235,8 +235,8 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		/**
 		 * @param destinationName the destinationName
 		 * @return the spec.
-		 * @see JmsListenerContainerSpec#destination(String)
 		 * @deprecated since 5.5 in favor of {@link #requestDestination(String)}
+		 * @see JmsListenerContainerSpec#destination(String)
 		 */
 		@Deprecated
 		public JmsInboundGatewayListenerContainerSpec<S, C> destination(String destinationName) {
@@ -247,8 +247,8 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		 * Specify a request destination for incoming messages.
 		 * @param requestDestinationName the destination name
 		 * @return the spec.
-		 * @see JmsListenerContainerSpec#destination(String)
 		 * @since 5.5
+		 * @see JmsListenerContainerSpec#destination(String)
 		 */
 		public JmsInboundGatewayListenerContainerSpec<S, C> requestDestination(String requestDestinationName) {
 			this.spec.destination(requestDestinationName);

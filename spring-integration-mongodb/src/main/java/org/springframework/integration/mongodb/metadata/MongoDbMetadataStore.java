@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 
 	/**
 	 * Configure the MongoDbMetadataStore by provided {@link MongoDatabaseFactory} and
-	 * collection name
+	 * collection name.
 	 * @param factory the mongodb factory
 	 * @param collectionName the collection name where it persists the data
 	 */

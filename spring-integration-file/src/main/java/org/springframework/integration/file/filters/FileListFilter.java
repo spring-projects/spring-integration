@@ -22,6 +22,8 @@ import java.util.List;
  * Strategy interface for filtering a group of files. This is a generic filter intended
  * to work with either local files or references to remote files.
  *
+ * @param <F> The type that will be filtered.
+ *
  * @author Iwein Fuld
  * @author Josh Long
  * @author Gary Russell

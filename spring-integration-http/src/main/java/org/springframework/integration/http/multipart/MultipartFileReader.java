@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * Strategy for reading {@link MultipartFile} content.
  *
+ * @param <T> the expected file content type.
+ *
  * @author Mark Fisher
  *
  * @since 2.0
@@ -30,8 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface MultipartFileReader<T> {
 
 	/**
-	 * Reads {@link MultipartFile} content.
-	 *
+	 * Read {@link MultipartFile} content.
 	 * @param multipartFile The multipart file.
 	 * @return The result of reading the file.
 	 * @throws IOException Any IOException.

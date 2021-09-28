@@ -99,7 +99,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 
 	/**
 	 * Provides a way to set custom {@link SearchTermStrategy} to compile a {@link SearchTerm}
-	 * to be applied when retrieving mail
+	 * to be applied when retrieving mail.
 	 * @param searchTermStrategy The search term strategy implementation.
 	 */
 	public void setSearchTermStrategy(SearchTermStrategy searchTermStrategy) {

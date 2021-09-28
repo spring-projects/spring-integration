@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,8 +87,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	 * @param amqpTemplate the template.
 	 * @param outboundMapper the outbound mapper.
 	 * @param inboundMapper the inbound mapper.
-	 * @see #setExtractPayload(boolean)
 	 * @since 4.3
+	 * @see #setExtractPayload(boolean)
 	 */
 	protected AbstractSubscribableAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, AmqpHeaderMapper outboundMapper, AmqpHeaderMapper inboundMapper) {
@@ -120,8 +120,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	 * @param isPubSub true for a pub/sub channel.
 	 * @param outboundMapper the outbound mapper.
 	 * @param inboundMapper the inbound mapper.
-	 * @see #setExtractPayload(boolean)
 	 * @since 4.3
+	 * @see #setExtractPayload(boolean)
 	 */
 	protected AbstractSubscribableAmqpChannel(String channelName,
 			AbstractMessageListenerContainer container,

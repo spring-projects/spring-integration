@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Utility class used by mongo parsers
+ * Utility class used by mongo parsers.
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -40,7 +40,7 @@ final class MongoParserUtils {
 
 	/**
 	 * Will parse and validate
-	 * 'mongodb-template', 'mongodb-factory', 'collection-name', 'collection-name-expression' and 'mongo-converter'
+	 * 'mongodb-template', 'mongodb-factory', 'collection-name', 'collection-name-expression' and 'mongo-converter'.
 	 * @param element the element to parse
 	 * @param parserContext the context for parsing
 	 * @param builder the bean definition builder

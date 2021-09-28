@@ -72,9 +72,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	private static final IdGenerator ID_GENERATOR = new AlternativeJdkIdGenerator();
 
-	/**
-	 * Logger that is available to subclasses
-	 */
 	protected final LogAccessor logger = new LogAccessor(getClass()); // NOSONAR protected
 
 	private final ConversionService defaultConversionService = DefaultConversionService.getSharedInstance();
@@ -292,10 +289,10 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	/**
-	 * @see IntegrationContextUtils#getIntegrationProperties(BeanFactory)
 	 * @return The global integration properties.
 	 * @deprecated since version 5.5 in favor of {@link #getIntegrationProperty(String, Class)};
 	 * will be replaced with {@link IntegrationProperties} variant in the next major version.
+	 * @see IntegrationContextUtils#getIntegrationProperties(BeanFactory)
 	 */
 	@Deprecated
 	protected Properties getIntegrationProperties() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ public interface JpaOperations {
 			int maxNumberOfResults);
 
 	/**
-	 * Executes the provided query to return a list of results
+	 * Execute the provided query to return a list of results.
 	 * @param query The query.
 	 * @param source the Parameter source for this query to be executed, if none then set as null
 	 * @return The list of found entities.
@@ -140,7 +140,7 @@ public interface JpaOperations {
 	List<?> getResultListForQuery(String query, ParameterSource source, int firstResult, int maxNumberOfResults);
 
 	/**
-	 * Executes the provided query to return a single element
+	 * Execute the provided query to return a single element.
 	 * @param query Must not be empty
 	 * @param source the Parameter source for this query to be executed, if none then set as null
 	 * @return Will always return a result. If no object was found in the database an exception is raised.

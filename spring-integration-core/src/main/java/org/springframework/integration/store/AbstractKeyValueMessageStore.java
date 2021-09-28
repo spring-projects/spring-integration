@@ -31,7 +31,7 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * Base class for implementations of Key/Value style {@link MessageGroupStore} and {@link MessageStore}
+ * Base class for implementations of Key/Value style {@link MessageGroupStore} and {@link MessageStore}.
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell

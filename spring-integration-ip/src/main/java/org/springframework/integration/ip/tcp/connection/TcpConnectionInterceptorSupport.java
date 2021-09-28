@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,7 +179,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	/**
-	 * Returns the underlying connection (or next interceptor)
+	 * Return the underlying connection (or next interceptor).
 	 * @return the connection
 	 */
 	public TcpConnectionSupport getTheConnection() {
@@ -187,7 +187,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	/**
-	 * Sets the underlying connection (or next interceptor)
+	 * Set the underlying connection (or next interceptor).
 	 * @param theConnection the connection
 	 */
 	public void setTheConnection(TcpConnectionSupport theConnection) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ import org.springframework.messaging.Message;
  * of a {@link Message}. If the return value is itself a Message, it will be
  * used as the result. Otherwise, the return value will be used as the payload
  * of the result Message.
+ *
+ * @param <T> inbound payload type.
+ * @param <U> outbound payload type.
  *
  * @author Mark Fisher
  */

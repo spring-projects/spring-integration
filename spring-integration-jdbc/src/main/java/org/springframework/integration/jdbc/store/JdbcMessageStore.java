@@ -592,7 +592,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	/**
 	 * To be used to get a reference to JdbcOperations
-	 * in case this class is subclassed
+	 * in case this class is subclassed.
 	 * @return the JdbcOperations implementation
 	 */
 	protected JdbcOperations getJdbcOperations() {

@@ -173,7 +173,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 
 	/**
 	 * Optionally specify a custom scanner, for example the
-	 * {@link WatchServiceDirectoryScanner}
+	 * {@link WatchServiceDirectoryScanner}.
 	 * @param scanner scanner implementation
 	 */
 	public void setScanner(DirectoryScanner scanner) {

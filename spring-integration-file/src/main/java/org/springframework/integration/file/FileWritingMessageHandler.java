@@ -323,8 +323,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * {@code flushInterval} and {@code flushInterval * 1.33} with an average of
 	 * {@code flushInterval * 1.167}.
 	 * @param flushInterval the interval.
-	 * @see #setFlushWhenIdle(boolean)
 	 * @since 4.3
+	 * @see #setFlushWhenIdle(boolean)
 	 */
 	public void setFlushInterval(long flushInterval) {
 		this.flushInterval = flushInterval;
@@ -336,9 +336,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * write to a previously flushed or new file.
 	 * @param flushWhenIdle false to flush on the interval after the first write
 	 * to a closed file.
+	 * @since 4.3.7
 	 * @see #setFlushInterval(long)
 	 * @see #setBufferSize(int)
-	 * @since 4.3.7
 	 */
 	public void setFlushWhenIdle(boolean flushWhenIdle) {
 		this.flushWhenIdle = flushWhenIdle;
@@ -372,8 +372,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * String setter for Spring XML convenience.
 	 * @param chmod permissions as an octal string e.g "600";
-	 * @see #setChmod(int)
 	 * @since 5.0
+	 * @see #setChmod(int)
 	 */
 	public void setChmodOctal(String chmod) {
 		Assert.notNull(chmod, "'chmod' cannot be null");
@@ -1144,8 +1144,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}
 	 * an implementation of this interface is called for each file that has pending data
 	 * to flush when a trigger message is received.
-	 * @see FileWritingMessageHandler#trigger(Message)
 	 * @since 4.3
+	 * @see FileWritingMessageHandler#trigger(Message)
 	 *
 	 */
 	@FunctionalInterface

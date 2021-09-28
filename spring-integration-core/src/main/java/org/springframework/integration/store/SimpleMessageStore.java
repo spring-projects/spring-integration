@@ -90,13 +90,13 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	/**
-	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity and the timeout in millisecond
+	 * Create a SimpleMessageStore with a maximum size limited by the given capacity and the timeout in millisecond
 	 * to wait for the empty slot in the store.
 	 * @param individualCapacity The message capacity.
 	 * @param groupCapacity      The capacity of each group.
 	 * @param upperBoundTimeout  The time to wait if the store is at max capacity.
-	 * @see #SimpleMessageStore(int, int)
 	 * @since 4.3
+	 * @see #SimpleMessageStore(int, int)
 	 */
 	public SimpleMessageStore(int individualCapacity, int groupCapacity, long upperBoundTimeout) {
 		this(individualCapacity, groupCapacity, upperBoundTimeout, new DefaultLockRegistry());
@@ -145,14 +145,14 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	/**
-	 * Creates a SimpleMessageStore with unlimited capacity
+	 * Create a SimpleMessageStore with unlimited capacity.
 	 */
 	public SimpleMessageStore() {
 		this(0);
 	}
 
 	/**
-	 * Set to false to disable copying the group in {@link #getMessageGroup(Object)}.
+	 * Set as false to disable copying the group in {@link #getMessageGroup(Object)}.
 	 * Starting with 4.1, this is false by default.
 	 * @param copyOnGet True to copy, false to not.
 	 * @since 4.0.1

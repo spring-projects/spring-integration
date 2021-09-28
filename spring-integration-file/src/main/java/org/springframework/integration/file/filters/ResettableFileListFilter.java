@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,16 @@ package org.springframework.integration.file.filters;
 /**
  * A {@link FileListFilter} that can be reset by removing a specific file from its
  * state.
- * @author Gary Russell
- * @since 4.1.7
+ * @param <F> The type that will be filtered.
  *
+ * @author Gary Russell
+ *
+ * @since 4.1.7
  */
 public interface ResettableFileListFilter<F> extends FileListFilter<F> {
 
 	/**
-	 * Remove the specified file from the filter so it will pass on the next attempt.
+	 * Remove the specified file from the filter, so it will pass on the next attempt.
 	 * @param f the element to remove.
 	 * @return true if the file was removed as a result of this call.
 	 */

@@ -58,7 +58,7 @@ public interface MessageGroup {
 	boolean remove(Message<?> messageToRemove);
 
 	/**
-	 * Return all available Messages from the group at the time of invocation
+	 * Return all available Messages from the group at the time of invocation.
 	 * @return The messages.
 	 */
 	Collection<Message<?>> getMessages();

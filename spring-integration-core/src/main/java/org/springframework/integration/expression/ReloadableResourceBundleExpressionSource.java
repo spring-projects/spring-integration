@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,17 +76,17 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 
 
 	/**
-	 * Cache to hold filename lists per Locale
+	 * Cache to hold filename lists per Locale.
 	 */
 	private final Map<String, Map<Locale, List<String>>> cachedFilenames = new HashMap<>();
 
 	/**
-	 * Cache to hold already loaded properties per filename
+	 * Cache to hold already loaded properties per filename.
 	 */
 	private final Map<String, PropertiesHolder> cachedProperties = new HashMap<>();
 
 	/**
-	 * Cache to hold merged loaded properties per locale
+	 * Cache to hold merged loaded properties per locale.
 	 */
 	private final Map<Locale, PropertiesHolder> cachedMergedProperties = new HashMap<>();
 

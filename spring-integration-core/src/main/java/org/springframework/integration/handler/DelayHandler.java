@@ -227,9 +227,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * If there is a transaction advice on the release task, the error flow is called
 	 * within the transaction.
 	 * @param delayedMessageErrorChannel the channel.
+	 * @since 5.0.8
 	 * @see #setMaxAttempts(int)
 	 * @see #setRetryDelay(long)
-	 * @since 5.0.8
 	 */
 	public void setDelayedMessageErrorChannel(MessageChannel delayedMessageErrorChannel) {
 		this.delayedMessageErrorChannel = delayedMessageErrorChannel;
@@ -242,9 +242,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * If there is a transaction advice on the release task, the error flow is called
 	 * within the transaction.
 	 * @param delayedMessageErrorChannelName the channel name.
+	 * @since 5.0.8
 	 * @see #setMaxAttempts(int)
 	 * @see #setRetryDelay(long)
-	 * @since 5.0.8
 	 */
 	public void setDelayedMessageErrorChannelName(String delayedMessageErrorChannelName) {
 		this.delayedMessageErrorChannelName = delayedMessageErrorChannelName;
@@ -254,8 +254,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * Set the maximum number of release attempts for when message release fails. Default
 	 * {@value #DEFAULT_MAX_ATTEMPTS}.
 	 * @param maxAttempts the max attempts.
-	 * @see #setRetryDelay(long)
 	 * @since 5.0.8
+	 * @see #setRetryDelay(long)
 	 */
 	public void setMaxAttempts(int maxAttempts) {
 		this.maxAttempts = maxAttempts;
@@ -265,8 +265,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * Set an additional delay to apply when retrying after a release failure. Default
 	 * {@value #DEFAULT_RETRY_DELAY}.
 	 * @param retryDelay the retry delay.
-	 * @see #setMaxAttempts(int)
 	 * @since 5.0.8
+	 * @see #setMaxAttempts(int)
 	 */
 	public void setRetryDelay(long retryDelay) {
 		this.retryDelay = retryDelay;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.inbound.JpaPollingChannelAdapter;
 
 /**
- * The JPA Inbound Channel adapter parser
+ * The JPA Inbound Channel adapter parser.
  *
  * @author Amol Nayak
  * @author Gunnar Hillert

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,12 @@ import org.springframework.util.Assert;
 /**
  * Base class for FTP SessionFactory implementations.
  *
+ * @param <T> The {@link FTPClient} type
+ *
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ *
  * @since 2.0
  */
 public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements SessionFactory<FTPFile> {
@@ -74,7 +77,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	 * <li>{@link org.apache.commons.net.ftp.FTP#EBCDIC_FILE_TYPE}</li>
 	 * <li>{@link org.apache.commons.net.ftp.FTP#BINARY_FILE_TYPE} (DEFAULT)</li>
 	 * <li>{@link org.apache.commons.net.ftp.FTP#LOCAL_FILE_TYPE}</li>
-	 * </ul>
+	 * </ul>.
 	 * @param fileType The file type.
 	 */
 	public void setFileType(int fileType) {
@@ -232,8 +235,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 	/**
 	 * Will handle additional initialization after client.connect() method was invoked,
-	 * but before any action on the client has been taken
-	 *
+	 * but before any action on the client has been taken.
 	 * @param t The client.
 	 * @throws IOException Any IOException
 	 */

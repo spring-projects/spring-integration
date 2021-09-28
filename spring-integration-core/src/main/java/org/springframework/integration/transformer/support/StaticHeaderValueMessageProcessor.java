@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@ package org.springframework.integration.transformer.support;
 import org.springframework.messaging.Message;
 
 /**
+ * @param <T> the value type.
+ *
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public class StaticHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T> {
@@ -31,7 +34,9 @@ public class StaticHeaderValueMessageProcessor<T> extends AbstractHeaderValueMes
 		this.value = value;
 	}
 
+	@Override
 	public T processMessage(Message<?> message) {
 		return this.value;
 	}
+
 }

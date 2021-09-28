@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,22 +43,22 @@ public abstract class FileHeaders {
 	public static final String SET_MODIFIED = PREFIX + "setModified";
 
 	/**
-	 * Record is a file marker (START/END)
+	 * Record is a file marker (START/END).
 	 */
 	public static final String MARKER = PREFIX + "marker";
 
 	/**
-	 * The line count for END marker message after splitting
+	 * The line count for END marker message after splitting.
 	 */
 	public static final String LINE_COUNT = PREFIX + "lineCount";
 
 	/**
-	 * A remote file information representation
+	 * A remote file information representation.
 	 */
 	public static final String REMOTE_FILE_INFO = PREFIX + "remoteFileInfo";
 
 	/**
-	 * A remote host/port the file has been polled from
+	 * A remote host/port the file has been polled from.
 	 */
 	public static final String REMOTE_HOST_PORT = PREFIX + "remoteHostPort";
 

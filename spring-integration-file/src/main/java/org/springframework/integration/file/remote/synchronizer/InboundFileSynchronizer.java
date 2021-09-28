@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,19 +23,20 @@ import java.io.File;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ *
  * @since 2.0
  */
 @FunctionalInterface
 public interface InboundFileSynchronizer {
 
 	/**
-	 * Synchronize all available files to the local directory;
+	 * Synchronize all available files to the local directory.
 	 * @param localDirectory the directory.
 	 */
 	void synchronizeToLocalDirectory(File localDirectory);
 
 	/**
-	 * Synchronize up to maxFetchSize files to the local directory;
+	 * Synchronize up to maxFetchSize files to the local directory.
 	 * @param localDirectory the directory.
 	 * @param maxFetchSize the maximum files to fetch.
 	 */

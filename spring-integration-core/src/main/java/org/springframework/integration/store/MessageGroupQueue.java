@@ -350,7 +350,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	/**
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
-	 * IllegalMonitorStateException may be thrown
+	 * IllegalMonitorStateException may be thrown.
 	 * @return a message // TODO @Nullable
 	 */
 	protected Message<?> doPoll() {
@@ -361,7 +361,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	/**
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
-	 * IllegalMonitorStateException may be thrown
+	 * IllegalMonitorStateException may be thrown.
 	 * @param message the message to offer.
 	 * @return true if offered.
 	 */

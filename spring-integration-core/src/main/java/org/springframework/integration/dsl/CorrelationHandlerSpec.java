@@ -340,8 +340,8 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * @param expireTimeout the timeout in milliseconds to use.
 	 * @return the endpoint spec.
 	 * @since 5.4
-	 * @see AbstractCorrelatingMessageHandler#setExpireTimeout(long)
 	 * @deprecated since 5.5 in favor of {@link #expireTimeout(long)}
+	 * @see AbstractCorrelatingMessageHandler#setExpireTimeout(long)
 	 */
 	@Deprecated
 	public S setExpireTimeout(long expireTimeout) {
@@ -365,8 +365,8 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * @param expireDuration the duration for scheduled purge task.
 	 * @return the endpoint spec.
 	 * @since 5.4
-	 * @see AbstractCorrelatingMessageHandler#setExpireDuration(Duration)
 	 * @deprecated since 5.5 in favor of {@link #expireDuration(Duration)}
+	 * @see AbstractCorrelatingMessageHandler#setExpireDuration(Duration)
 	 */
 	@Deprecated
 	public S setExpireDuration(Duration expireDuration) {

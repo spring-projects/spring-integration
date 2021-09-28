@@ -115,7 +115,7 @@ public final class IntegrationUtils {
 	}
 
 	/**
-	 * Utility method for null-safe conversion from String to byte[]
+	 * Utility method for null-safe conversion from String to byte[].
 	 * @param value the String to be converted
 	 * @param encoding the encoding
 	 * @return the byte[] corresponding to the given String and encoding, null if provided String argument was null
@@ -131,7 +131,7 @@ public final class IntegrationUtils {
 	}
 
 	/**
-	 * Utility method for null-safe conversion from byte[] to String
+	 * Utility method for null-safe conversion from byte[] to String.
 	 * @param bytes the byte[] to be converted
 	 * @param encoding the encoding
 	 * @return the String corresponding to the given byte[] and encoding, null if provided byte[] argument was null

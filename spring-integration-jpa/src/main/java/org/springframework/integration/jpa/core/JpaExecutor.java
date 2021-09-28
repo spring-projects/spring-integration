@@ -50,7 +50,7 @@ import org.springframework.util.CollectionUtils;
  *     <li>Sql Native Query</li>
  *     <li>JpQl Named Query</li>
  *     <li>Sql Native Named Query</li>
- * </ul>
+ * </ul>.
  *
  * When objects are being retrieved, it also possibly to:
  *
@@ -330,7 +330,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	/**
 	 * Set the expression that will be evaluated to get the {@code primaryKey} for
-	 * {@link javax.persistence.EntityManager#find(Class, Object)}
+	 * {@link javax.persistence.EntityManager#find(Class, Object)}.
 	 * @param idExpression the SpEL expression for entity {@code primaryKey}.
 	 * @since 4.0
 	 */

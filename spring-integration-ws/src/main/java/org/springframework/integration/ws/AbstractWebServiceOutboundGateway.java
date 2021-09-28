@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,9 +118,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	 * Specify whether the URI should be encoded after any <code>uriVariables</code>
 	 * are expanded and before sending the request. The default value is <code>true</code>.
 	 * @param encodeUri true if the URI should be encoded.
-	 * @see org.springframework.web.util.UriComponentsBuilder
 	 * @since 4.1
 	 * @deprecated since 5.3 in favor of {@link #setEncodingMode}
+	 * @see org.springframework.web.util.UriComponentsBuilder
 	 */
 	@Deprecated
 	public void setEncodeUri(boolean encodeUri) {
@@ -132,7 +132,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	/**
 	 * Set the encoding mode to use.
-	 * By default this is set to {@link DefaultUriBuilderFactory.EncodingMode#TEMPLATE_AND_VALUES}.
+	 * By default, this is set to {@link DefaultUriBuilderFactory.EncodingMode#TEMPLATE_AND_VALUES}.
 	 * @param encodingMode the mode to use for uri encoding
 	 * @since 5.3
 	 */

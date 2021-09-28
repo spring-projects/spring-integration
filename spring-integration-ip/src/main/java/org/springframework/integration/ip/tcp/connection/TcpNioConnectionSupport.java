@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.springframework.lang.Nullable;
 public interface TcpNioConnectionSupport {
 
 	/**
-	 * Create a new {@link TcpNioConnection} object wrapping the {@link SocketChannel}
+	 * Create a new {@link TcpNioConnection} object wrapping the {@link SocketChannel}.
 	 * @param socketChannel the SocketChannel.
 	 * @param server true if this connection is a server connection.
 	 * @param lookupHost true if hostname lookup should be performed, otherwise the connection will

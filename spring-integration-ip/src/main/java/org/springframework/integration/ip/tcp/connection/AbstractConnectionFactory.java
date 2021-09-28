@@ -494,8 +494,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * @return the handshake timeout.
-	 * @see #setSslHandshakeTimeout(int)
 	 * @since 4.3.6
+	 * @see #setSslHandshakeTimeout(int)
 	 */
 	@Nullable
 	protected Integer getSslHandshakeTimeout() {
