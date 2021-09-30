@@ -138,6 +138,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private Duration closeTimeout = Duration.ofSeconds(DEFAULT_CLOSE_TIMEOUT);
 
+	public boolean newAssignment;
+
 	private volatile Consumer<K, V> consumer;
 
 	private volatile boolean pausing;
@@ -145,6 +147,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	private volatile boolean paused;
 
 	private volatile Iterator<ConsumerRecord<K, V>> recordsIterator;
+
+	private volatile boolean stopped;
 
 	/**
 	 * Construct an instance with the supplied parameters. Fetching multiple
@@ -386,12 +390,14 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	@Override
 	public synchronized void start() {
 		this.running = true;
+		this.stopped = false;
 	}
 
 	@Override
 	public synchronized void stop() {
 		stopConsumer();
 		this.running = false;
+		this.stopped = true;
 	}
 
 	@Override
@@ -411,6 +417,10 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	@Override
 	protected synchronized Object doReceive() {
+		if (this.stopped) {
+			this.logger.debug("Message source is stopped; no records will be returned");
+			return null;
+		}
 		if (this.consumer == null) {
 			createConsumer();
 			this.running = true;
@@ -511,14 +521,27 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 		else {
 			synchronized (this.consumerMonitor) {
-				ConsumerRecords<K, V> records = this.consumer
-						.poll(this.assignedPartitions.isEmpty() ? this.assignTimeout : this.pollTimeout);
-				if (records == null || records.count() == 0) {
+				try {
+					ConsumerRecords<K, V> records = this.consumer
+							.poll(this.assignedPartitions.isEmpty() ? this.assignTimeout : this.pollTimeout);
+					this.logger.debug(() -> records == null
+							? "Received null"
+							: "Received " + records.count() + " records");
+					if (records == null || records.count() == 0) {
+						return null;
+					}
+					this.remainingCount.set(records.count());
+					this.recordsIterator = records.iterator();
+					return nextRecord();
+				}
+				catch (WakeupException ex) {
+					this.logger.debug("Woken");
+					if (this.newAssignment) {
+						this.newAssignment = false;
+						return pollRecord();
+					}
 					return null;
 				}
-				this.remainingCount.set(records.count());
-				this.recordsIterator = records.iterator();
-				return nextRecord();
 			}
 		}
 	}
@@ -632,6 +655,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 					this.providedRebalanceListener.onPartitionsAssigned(partitions);
 				}
 			}
+			KafkaMessageSource.this.consumer.wakeup();
+			KafkaMessageSource.this.newAssignment = true;
 		}
 
 	}
