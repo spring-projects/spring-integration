@@ -19,11 +19,12 @@ package org.springframework.integration.mqtt.outbound;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.expression.Expression;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.support.management.ManageableLifecycle;
@@ -41,7 +42,18 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler implements ManageableLifecycle {
+public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler
+		implements ManageableLifecycle, ApplicationEventPublisherAware {
+
+	/**
+	 * The default disconnect completion timeout in milliseconds.
+	 */
+	public static final long DISCONNECT_COMPLETION_TIMEOUT = 5_000L;
+
+	/**
+	 * The default completion timeout in milliseconds.
+	 */
+	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
 
 	private static final MessageProcessor<String> DEFAULT_TOPIC_PROCESSOR =
 			(message) -> message.getHeaders().get(MqttHeaders.TOPIC, String.class);
@@ -51,6 +63,10 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	private final String url;
 
 	private final String clientId;
+
+	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
+
+	private long disconnectCompletionTimeout = DISCONNECT_COMPLETION_TIMEOUT;
 
 	private String defaultTopic;
 
@@ -66,12 +82,23 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	private MessageConverter converter;
 
+	private ApplicationEventPublisher applicationEventPublisher;
+
 	private int clientInstance;
 
 	public AbstractMqttMessageHandler(@Nullable String url, String clientId) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
 		this.url = url;
 		this.clientId = clientId;
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	protected ApplicationEventPublisher getApplicationEventPublisher() {
+		return this.applicationEventPublisher;
 	}
 
 	/**
@@ -81,6 +108,10 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	 */
 	public void setDefaultTopic(String defaultTopic) {
 		this.defaultTopic = defaultTopic;
+	}
+
+	protected String getDefaultTopic() {
+		return this.defaultTopic;
 	}
 
 	/**
@@ -103,6 +134,10 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		this.topicProcessor = new ExpressionEvaluatingMessageProcessor<>(topicExpression);
 	}
 
+	protected MessageProcessor<String> getTopicProcessor() {
+		return this.topicProcessor;
+	}
+
 	/**
 	 * Set the qos for messages if the {@link #setQosExpression(Expression) qosExpression}
 	 * evaluates to null. Only applies if a message converter is not provided.
@@ -111,6 +146,10 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	 */
 	public void setDefaultQos(int defaultQos) {
 		this.defaultQos = defaultQos;
+	}
+
+	protected int getDefaultQos() {
+		return this.defaultQos;
 	}
 
 	/**
@@ -137,6 +176,10 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		this.qosProcessor = new ExpressionEvaluatingMessageProcessor<>(qosExpression);
 	}
 
+	protected MessageProcessor<Integer> getQosProcessor() {
+		return this.qosProcessor;
+	}
+
 	/**
 	 * Set the retained boolean for messages if the
 	 * {@link #setRetainedExpression(Expression) retainedExpression} evaluates to null.
@@ -146,6 +189,10 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	 */
 	public void setDefaultRetained(boolean defaultRetained) {
 		this.defaultRetained = defaultRetained;
+	}
+
+	protected boolean getDefaultRetained() {
+		return this.defaultRetained;
 	}
 
 	/**
@@ -170,6 +217,10 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	public void setRetainedExpressionString(String retainedExpression) {
 		Assert.hasText(retainedExpression, "'qosExpression' must not be null or empty");
 		this.retainedProcessor = new ExpressionEvaluatingMessageProcessor<>(retainedExpression);
+	}
+
+	protected MessageProcessor<Boolean> getRetainedProcessor() {
+		return this.retainedProcessor;
 	}
 
 	/**
@@ -213,6 +264,34 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		this.clientInstance++; //NOSONAR - false positive - called from synchronized block
 	}
 
+	/**
+	 * Set the completion timeout for async operations. Not settable using the namespace.
+	 * Default {@value #DEFAULT_COMPLETION_TIMEOUT} milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 4.1
+	 */
+	public void setCompletionTimeout(long completionTimeout) {
+		this.completionTimeout = completionTimeout; // NOSONAR (sync)
+	}
+
+	protected long getCompletionTimeout() {
+		return this.completionTimeout;
+	}
+
+	/**
+	 * Set the completion timeout when disconnecting. Not settable using the namespace.
+	 * Default {@value #DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 5.1.10
+	 */
+	public void setDisconnectCompletionTimeout(long completionTimeout) {
+		this.disconnectCompletionTimeout = completionTimeout; // NOSONAR (sync)
+	}
+
+	protected long getDisconnectCompletionTimeout() {
+		return this.disconnectCompletionTimeout;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -224,14 +303,6 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		}
 		if (this.retainedProcessor instanceof BeanFactoryAware && getBeanFactory() != null) {
 			((BeanFactoryAware) this.retainedProcessor).setBeanFactory(getBeanFactory());
-		}
-		if (this.converter == null) {
-			DefaultPahoMessageConverter defaultConverter = new DefaultPahoMessageConverter(this.defaultQos,
-					this.qosProcessor, this.defaultRetained, this.retainedProcessor);
-			if (getBeanFactory() != null) {
-				defaultConverter.setBeanFactory(getBeanFactory());
-			}
-			this.converter = defaultConverter;
 		}
 	}
 

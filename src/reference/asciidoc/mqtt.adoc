@@ -417,3 +417,8 @@ String beanName = source.getBeanName();
 MqttConnectOptions options = source.getConnectionInfo();
 ----
 ====
+
+[[mqtt-v5]]
+=== MQTT v5 Support
+
+TODO
