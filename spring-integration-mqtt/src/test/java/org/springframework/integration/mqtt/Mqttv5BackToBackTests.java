@@ -31,6 +31,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
@@ -93,7 +95,12 @@ public class Mqttv5BackToBackTests {
 		assertThat(receive.getPayload()).isEqualTo(testPayload);
 		assertThat(receive.getHeaders())
 				.containsEntry("foo", "bar")
-				.containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain");
+				.containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain")
+				.containsKey(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK);
+
+		receive.getHeaders()
+				.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, SimpleAcknowledgment.class)
+				.acknowledge();
 
 		assertThat(this.config.events)
 				.isNotEmpty()
@@ -160,6 +167,7 @@ public class Mqttv5BackToBackTests {
 					new Mqttv5PahoMessageDrivenChannelAdapter("tcp://localhost:1883", "mqttv5SIin", "siTest");
 			messageProducer.setPayloadType(String.class);
 			messageProducer.setMessageConverter(mqttStringToBytesConverter());
+			messageProducer.setManualAcks(true);
 
 			return IntegrationFlows.from(
 							messageProducer)

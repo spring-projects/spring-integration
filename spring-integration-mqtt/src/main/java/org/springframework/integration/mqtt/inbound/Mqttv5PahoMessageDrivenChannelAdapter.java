@@ -23,6 +23,7 @@ import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.MqttCallback;
+import org.eclipse.paho.mqttv5.client.MqttClientPersistence;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.client.MqttDisconnectResponse;
 import org.eclipse.paho.mqttv5.common.MqttException;
@@ -31,6 +32,7 @@ import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.HeaderMapper;
@@ -41,6 +43,7 @@ import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.support.MqttHeaderMapper;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
@@ -73,6 +76,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 
 	private IMqttAsyncClient mqttClient;
 
+	@Nullable
+	private MqttClientPersistence persistence;
+
 	private SmartMessageConverter messageConverter;
 
 	private Class<?> payloadType = byte[].class;
@@ -101,6 +107,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	@Override
 	public MqttConnectionOptions getConnectionInfo() {
 		return this.connectionOptions;
+	}
+
+	public void setPersistence(@Nullable MqttClientPersistence persistence) {
+		this.persistence = persistence;
 	}
 
 	@Override
@@ -132,7 +142,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	protected void onInit() {
 		super.onInit();
 		try {
-			this.mqttClient = new MqttAsyncClient(getUrl(), getClientId());
+			this.mqttClient = new MqttAsyncClient(getUrl(), getClientId(), this.persistence);
 			this.mqttClient.setCallback(this);
 			this.mqttClient.setManualAcks(isManualAcks());
 		}
@@ -227,6 +237,11 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 		headers.put(MqttHeaders.DUPLICATE, mqttMessage.isDuplicate());
 		headers.put(MqttHeaders.RECEIVED_RETAINED, mqttMessage.isRetained());
 		headers.put(MqttHeaders.RECEIVED_TOPIC, topic);
+
+		if (isManualAcks()) {
+			headers.put(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
+					new AcknowledgmentImpl(mqttMessage.getId(), mqttMessage.getQos(), this.mqttClient));
+		}
 
 		Object payload =
 				MqttMessage.class.isAssignableFrom(this.payloadType)
