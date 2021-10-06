@@ -188,7 +188,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	 * @param completionTimeout The timeout.
 	 * @since 4.1
 	 */
-	public synchronized void setCompletionTimeout(long completionTimeout) {
+	public void setCompletionTimeout(long completionTimeout) {
 		this.completionTimeout = completionTimeout;
 	}
 

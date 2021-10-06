@@ -251,6 +251,7 @@ configure(javaProjects) { subproject ->
 		testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
 		testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 		testImplementation 'io.projectreactor:reactor-test'
+		testImplementation 'org.testcontainers:junit-jupiter:1.16.0'
 
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

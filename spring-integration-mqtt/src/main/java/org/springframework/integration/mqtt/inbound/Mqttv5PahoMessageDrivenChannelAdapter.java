@@ -54,7 +54,7 @@ import org.springframework.util.Assert;
 /**
  * The {@link AbstractMqttMessageDrivenChannelAdapter} implementation for MQTT v5.
  *
- * The {@link MqttProperties} are mapped via provided {@link HeaderMapper};
+ * The {@link MqttProperties} are mapped via the provided {@link HeaderMapper};
  * meanwhile the regular {@link MqttMessage} properties are always mapped into headers.
  *
  * It is recommended to have the {@link MqttConnectionOptions#setAutomaticReconnect(boolean)}

@@ -12,14 +12,10 @@ jobs:
     services:
 
       rabbitmq:
-        image: rabbitmq:management
+        image: cyrilix/rabbitmq-mqtt
         ports:
           - 5672:5672
           - 15672:15672
-
-      mosquitto:
-        image: eclipse-mosquitto
-        ports:
           - 1883:1883
 
       mongodb:

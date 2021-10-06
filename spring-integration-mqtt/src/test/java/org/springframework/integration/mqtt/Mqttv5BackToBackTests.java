@@ -22,9 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -52,7 +50,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.converter.AbstractMessageConverter;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -61,12 +59,9 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @since 4.0
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class Mqttv5BackToBackTests {
-
-	@ClassRule
-	public static final BrokerRunning brokerRunning = BrokerRunning.isRunning(1883);
+public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 
 	@Autowired
 	@Qualifier("mqttOutFlow.input")
@@ -114,6 +109,8 @@ public class Mqttv5BackToBackTests {
 	@EnableIntegration
 	public static class Config {
 
+		private static final String MQTT_URL = "tcp://localhost:" + MOSQUITTO_CONTAINER.getFirstMappedPort();
+
 		List<MqttIntegrationEvent> events = new ArrayList<>();
 
 		@EventListener
@@ -150,7 +147,7 @@ public class Mqttv5BackToBackTests {
 		@Bean
 		public IntegrationFlow mqttOutFlow() {
 			Mqttv5PahoMessageHandler messageHandler =
-					new Mqttv5PahoMessageHandler("tcp://localhost:1883", "mqttv5SIout");
+					new Mqttv5PahoMessageHandler(MQTT_URL, "mqttv5SIout");
 			MqttHeaderMapper mqttHeaderMapper = new MqttHeaderMapper();
 			mqttHeaderMapper.setOutboundHeaderNames("foo", MessageHeaders.CONTENT_TYPE);
 			messageHandler.setHeaderMapper(mqttHeaderMapper);
@@ -164,7 +161,7 @@ public class Mqttv5BackToBackTests {
 		@Bean
 		public IntegrationFlow mqttInFlow() {
 			Mqttv5PahoMessageDrivenChannelAdapter messageProducer =
-					new Mqttv5PahoMessageDrivenChannelAdapter("tcp://localhost:1883", "mqttv5SIin", "siTest");
+					new Mqttv5PahoMessageDrivenChannelAdapter(MQTT_URL, "mqttv5SIin", "siTest");
 			messageProducer.setPayloadType(String.class);
 			messageProducer.setMessageConverter(mqttStringToBytesConverter());
 			messageProducer.setManualAcks(true);
