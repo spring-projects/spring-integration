@@ -73,6 +73,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
+import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler.ProducerRecordCreator;
 import org.springframework.integration.kafka.support.KafkaIntegrationHeaders;
 import org.springframework.integration.kafka.support.KafkaSendFailureException;
 import org.springframework.integration.support.MessageBuilder;
@@ -90,6 +91,7 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.kafka.support.TransactionSupport;
+import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.kafka.transaction.KafkaTransactionManager;
@@ -780,6 +782,39 @@ class KafkaProducerMessageHandlerTests {
 		InOrder inOrder = inOrder(producer);
 		inOrder.verify(producer).send(any(ProducerRecord.class), any(Callback.class));
 		inOrder.verify(producer, never()).flush();
+		handler.stop();
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	void conversion() {
+		ProducerFactory pf = mock(ProducerFactory.class);
+		Producer producer = mock(Producer.class);
+		given(pf.createProducer()).willReturn(producer);
+		ListenableFuture future = mock(ListenableFuture.class);
+		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		KafkaTemplate template = new KafkaTemplate(pf);
+		RecordMessageConverter converter = mock(RecordMessageConverter.class);
+		ProducerRecord recordFromConverter = mock(ProducerRecord.class);
+		given(converter.fromMessage(any(), any())).willReturn(recordFromConverter);
+		template.setMessageConverter(converter);
+		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
+		handler.setTopicExpression(new LiteralExpression("bar"));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		ProducerRecordCreator creator = mock(ProducerRecordCreator.class);
+		ProducerRecord recordFromCreator = mock(ProducerRecord.class);
+		given(creator.create(any(), any(), any(), any(), any(), any(), any())).willReturn(recordFromCreator);
+		handler.setProducerRecordCreator(creator);
+		handler.afterPropertiesSet();
+		handler.start();
+		handler.handleMessage(new GenericMessage<>("foo"));
+		ArgumentCaptor<ProducerRecord> captor = ArgumentCaptor.forClass(ProducerRecord.class);
+		verify(producer).send(captor.capture(), any(Callback.class));
+		assertThat(captor.getValue()).isSameAs(recordFromCreator);
+		handler.setUseTemplateConverter(true);
+		handler.handleMessage(new GenericMessage<>("foo"));
+		verify(producer, times(2)).send(captor.capture(), any(Callback.class));
+		assertThat(captor.getValue()).isSameAs(recordFromConverter);
 		handler.stop();
 	}
 

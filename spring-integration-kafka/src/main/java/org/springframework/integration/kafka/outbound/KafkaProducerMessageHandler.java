@@ -163,6 +163,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private int timeoutBuffer = DEFAULT_TIMEOUT_BUFFER;
 
+	private boolean useTemplateConverter;
+
 	private volatile byte[] singleReplyTopic;
 
 	public KafkaProducerMessageHandler(final KafkaTemplate<K, V> kafkaTemplate) {
@@ -383,8 +385,10 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	}
 
 	/**
-	 * Set a {@link ProducerRecordCreator} to create the {@link ProducerRecord}.
+	 * Set a {@link ProducerRecordCreator} to create the {@link ProducerRecord}. Ignored
+	 * if {@link #setUseTemplateConverter(boolean) useTemplateConverter} is true.
 	 * @param producerRecordCreator the creator.
+	 * @see #setUseTemplateConverter(boolean)
 	 */
 	public void setProducerRecordCreator(ProducerRecordCreator<K, V> producerRecordCreator) {
 		Assert.notNull(producerRecordCreator, "'producerRecordCreator' cannot be null");
@@ -400,6 +404,18 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 */
 	public void setTimeoutBuffer(int timeoutBuffer) {
 		this.timeoutBuffer = timeoutBuffer;
+	}
+
+	/**
+	 * Set to true to use the template's message converter to create the
+	 * {@link ProducerRecord} instead of the
+	 * {@link #setProducerRecordCreator(ProducerRecordCreator) producerRecordCreator}.
+	 * @param useTemplateConverter true to use the converter.
+	 * @since 5.5.5
+	 * @see #setProducerRecordCreator(ProducerRecordCreator)
+	 */
+	public void setUseTemplateConverter(boolean useTemplateConverter) {
+		this.useTemplateConverter = useTemplateConverter;
 	}
 
 	@Override
@@ -540,6 +556,9 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 				: messageHeaders.get(KafkaHeaders.TOPIC, String.class);
 		if (topic == null) {
 			topic = this.kafkaTemplate.getDefaultTopic();
+		}
+		if (this.useTemplateConverter) {
+			return (ProducerRecord<K, V>) this.kafkaTemplate.getMessageConverter().fromMessage(message, topic);
 		}
 
 		Assert.state(StringUtils.hasText(topic), "The 'topic' can not be empty or null");
