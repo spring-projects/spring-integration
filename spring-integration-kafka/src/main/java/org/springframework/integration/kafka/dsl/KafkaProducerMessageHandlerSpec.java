@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.apache.kafka.clients.producer.ProducerRecord;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.ComponentsRegistration;
@@ -28,6 +30,7 @@ import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
+import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler.ProducerRecordCreator;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.KafkaHeaderMapper;
@@ -372,6 +375,31 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	 */
 	public S futuresChannel(String futuresChannel) {
 		this.target.setFuturesChannelName(futuresChannel);
+		return _this();
+	}
+
+	/**
+	 * Set a {@link ProducerRecordCreator} to create the {@link ProducerRecord}. Ignored
+	 * if {@link #useTemplateConverter(boolean) useTemplateConverter} is true.
+	 * @param creator the creator.
+	 * @return the spec.
+	 * @since 5.5.5
+	 */
+	public S producerRecordCreator(ProducerRecordCreator<K, V> creator) {
+		this.target.setProducerRecordCreator(creator);
+		return _this();
+	}
+
+	/**
+	 * Set to true to use the template's message converter to create the
+	 * {@link ProducerRecord} instead of the
+	 * {@link #producerRecordCreator(ProducerRecordCreator) producerRecordCreator}.
+	 * @param use true to use the converter.
+	 * @return the spec.
+	 * @since 5.5.5
+	 */
+	public S useTemplateConverter(boolean use) {
+		this.target.setUseTemplateConverter(use);
 		return _this();
 	}
 
