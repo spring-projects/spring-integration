@@ -424,20 +424,20 @@ MqttConnectOptions options = source.getConnectionInfo();
 [[mqtt-v5]]
 === MQTT v5 Support
 
-Starting with version 5.5.5, `spring-integration-mqtt` module provides channel adapter implementations for MQTT v5 protocol.
-The `org.eclipse.paho:org.eclipse.paho.mqttv5.client` is `optional` dependency, so has to be included explicitly in the target project.
+Starting with version 5.5.5, the `spring-integration-mqtt` module provides channel adapter implementations for the MQTT v5 protocol.
+The `org.eclipse.paho:org.eclipse.paho.mqttv5.client` is an `optional` dependency, so has to be included explicitly in the target project.
 
-Since MQTT v5 protocol supports extra arbitrary properties in MQTT message, the `MqttHeaderMapper` implementation has been introduced to map to/from headers on publish and receive operations.
-By default (`*` pattern) it maps all the received `PUBLISH` frame properties (including user properties).
-On the outbound side it maps these subset of headers for `PUBLISH` frame: `contentType`, `mqtt_messageExpiryInterval`, `mqtt_responseTopic`, `mqtt_correlationData`.
+Since the MQTT v5 protocol supports extra arbitrary properties in an MQTT message, the `MqttHeaderMapper` implementation has been introduced to map to/from headers on publish and receive operations.
+By default (via the `*` pattern) it maps all the received `PUBLISH` frame properties (including user properties).
+On the outbound side it maps this subset of headers for `PUBLISH` frame: `contentType`, `mqtt_messageExpiryInterval`, `mqtt_responseTopic`, `mqtt_correlationData`.
 
-The outbound channel adapter for MQTT v5 protocol is present as an `Mqttv5PahoMessageHandler`.
+The outbound channel adapter for the MQTT v5 protocol is present as an `Mqttv5PahoMessageHandler`.
 It requires a `clientId` and MQTT broker URL or `MqttConnectionOptions` reference.
-It does support a `MqttClientPersistence` option, can be `async` and can emit `MqttIntegrationEvent` objects in that case (see `asyncEvents` option).
-If request message payload is an `org.eclipse.paho.mqttv5.common.MqttMessage`, it is published as is via internal `IMqttAsyncClient`.
-If the payload is `byte[]` it is used as is for target `MqttMessage` payload to publish.
+It supports a `MqttClientPersistence` option, can be `async` and can emit `MqttIntegrationEvent` objects in that case (see `asyncEvents` option).
+If a request message payload is an `org.eclipse.paho.mqttv5.common.MqttMessage`, it is published as is via the internal `IMqttAsyncClient`.
+If the payload is `byte[]` it is used as is for the target `MqttMessage` payload to publish.
 If the payload is a `String` it is converted to `byte[]` to publish.
-The rest use-cases are delegated to the provided `MessageConverter` which is a `IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME` `ConfigurableCompositeMessageConverter` bean from the application context.
+The remaining use-cases are delegated to the provided `MessageConverter` which is a `IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME` `ConfigurableCompositeMessageConverter` bean from the application context.
 Note: the provided `HeaderMapper<MqttProperties>` is not used when the requested message payload is already an `MqttMessage`.
 The following Java DSL configuration sample demonstrates how to use this channel adapter in the integration flow:
 
@@ -459,13 +459,13 @@ public IntegrationFlow mqttOutFlow() {
 ----
 ====
 
-IMPORTANT: The `org.springframework.integration.mqtt.support.MqttMessageConverter` cannot be used with the `Mqttv5PahoMessageHandler` since its contract is aimed only for MQTT v3 protocol.
+IMPORTANT: The `org.springframework.integration.mqtt.support.MqttMessageConverter` cannot be used with the `Mqttv5PahoMessageHandler` since its contract is aimed only for the MQTT v3 protocol.
 
 See more information in the `Mqttv5PahoMessageHandler` javadocs and its superclass.
 
-The inbound channel adapter for MQTT v5 protocol is present as an `Mqttv5PahoMessageDrivenChannelAdapter`.
-It requires a `clientId` and MQTT broker URL or `MqttConnectionOptions` reference, plus topics to subscribe and consume.
-It does support a `MqttClientPersistence` option, which is in-memory by default.
+The inbound channel adapter for the MQTT v5 protocol is present as an `Mqttv5PahoMessageDrivenChannelAdapter`.
+It requires a `clientId` and MQTT broker URL or `MqttConnectionOptions` reference, plus topics to which to subscribe and consume from.
+It supports a `MqttClientPersistence` option, which is in-memory by default.
 The expected `payloadType` (`byte[]` by default) can be configured and it is propagated to the provided `SmartMessageConverter` for conversion from `byte[]` of the received `MqttMessage`.
 If the `manualAck` option is set, then an `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` header is added to the message to produce as an instance of `SimpleAcknowledgment`.
 The `HeaderMapper<MqttProperties>` is used to map `PUBLISH` frame properties (including user properties) into the target message headers.
@@ -492,6 +492,6 @@ public IntegrationFlow mqttInFlow() {
 ----
 ====
 
-IMPORTANT: The `org.springframework.integration.mqtt.support.MqttMessageConverter` cannot be used with the `Mqttv5PahoMessageDrivenChannelAdapter` since its contract is aimed only for MQTT v3 protocol.
+IMPORTANT: The `org.springframework.integration.mqtt.support.MqttMessageConverter` cannot be used with the `Mqttv5PahoMessageDrivenChannelAdapter` since its contract is aimed only for the MQTT v3 protocol.
 
 See more information in the `Mqttv5PahoMessageDrivenChannelAdapter` javadocs and its superclass.
