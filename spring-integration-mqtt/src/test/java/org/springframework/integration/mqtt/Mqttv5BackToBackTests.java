@@ -109,8 +109,6 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 	@EnableIntegration
 	public static class Config {
 
-		private static final String MQTT_URL = "tcp://localhost:" + MOSQUITTO_CONTAINER.getFirstMappedPort();
-
 		List<MqttIntegrationEvent> events = new ArrayList<>();
 
 		@EventListener
@@ -147,7 +145,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 		@Bean
 		public IntegrationFlow mqttOutFlow() {
 			Mqttv5PahoMessageHandler messageHandler =
-					new Mqttv5PahoMessageHandler(MQTT_URL, "mqttv5SIout");
+					new Mqttv5PahoMessageHandler(MosquittoContainerTest.mqttUrl(), "mqttv5SIout");
 			MqttHeaderMapper mqttHeaderMapper = new MqttHeaderMapper();
 			mqttHeaderMapper.setOutboundHeaderNames("foo", MessageHeaders.CONTENT_TYPE);
 			messageHandler.setHeaderMapper(mqttHeaderMapper);
@@ -161,7 +159,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 		@Bean
 		public IntegrationFlow mqttInFlow() {
 			Mqttv5PahoMessageDrivenChannelAdapter messageProducer =
-					new Mqttv5PahoMessageDrivenChannelAdapter(MQTT_URL, "mqttv5SIin", "siTest");
+					new Mqttv5PahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(), "mqttv5SIin", "siTest");
 			messageProducer.setPayloadType(String.class);
 			messageProducer.setMessageConverter(mqttStringToBytesConverter());
 			messageProducer.setManualAcks(true);

@@ -36,4 +36,9 @@ public interface MosquittoContainerTest {
 					.withReuse(true)
 					.withExposedPorts(1883);
 
+
+	static String mqttUrl() {
+		return "tcp://localhost:" + MOSQUITTO_CONTAINER.getFirstMappedPort();
+	}
+
 }
