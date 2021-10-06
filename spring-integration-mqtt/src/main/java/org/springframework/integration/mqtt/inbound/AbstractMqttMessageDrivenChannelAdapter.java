@@ -21,9 +21,10 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -45,7 +46,13 @@ import org.springframework.util.Assert;
  */
 @ManagedResource
 @IntegrationManagedResource
-public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessageProducerSupport {
+public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessageProducerSupport
+		implements ApplicationEventPublisherAware {
+
+	/**
+	 * The default completion timeout in milliseconds.
+	 */
+	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
 
 	private final String url;
 
@@ -53,7 +60,13 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 
 	private final Set<Topic> topics;
 
-	private volatile MqttMessageConverter converter;
+	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
+
+	private boolean manualAcks;
+
+	private ApplicationEventPublisher applicationEventPublisher;
+
+	private MqttMessageConverter converter;
 
 	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
 
@@ -147,6 +160,42 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		return "mqtt:inbound-channel-adapter";
 	}
 
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher; // NOSONAR (inconsistent synchronization)
+	}
+
+	protected ApplicationEventPublisher getApplicationEventPublisher() {
+		return this.applicationEventPublisher;
+	}
+
+	/**
+	 * Set the acknowledgment mode to manual.
+	 * @param manualAcks true for manual acks.
+	 * @since 5.3
+	 */
+	public void setManualAcks(boolean manualAcks) {
+		this.manualAcks = manualAcks;
+	}
+
+	protected boolean isManualAcks() {
+		return this.manualAcks;
+	}
+
+	/**
+	 * Set the completion timeout for operations. Not settable using the namespace.
+	 * Default {@value #DEFAULT_COMPLETION_TIMEOUT} milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 4.1
+	 */
+	public void setCompletionTimeout(long completionTimeout) {
+		this.completionTimeout = completionTimeout;
+	}
+
+	protected long getCompletionTimeout() {
+		return this.completionTimeout;
+	}
+
 	/**
 	 * Add a topic to the subscribed list.
 	 * @param topic The topic.
@@ -238,18 +287,6 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 			this.topicLock.unlock();
 		}
 	}
-
-	@Override
-	protected void onInit() {
-		super.onInit();
-		if (this.converter == null) {
-			DefaultPahoMessageConverter pahoMessageConverter = new DefaultPahoMessageConverter();
-			pahoMessageConverter.setBeanFactory(getBeanFactory());
-			this.converter = pahoMessageConverter;
-
-		}
-	}
-
 
 	/**
 	 * @since 4.1

@@ -251,6 +251,7 @@ configure(javaProjects) { subproject ->
 		testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
 		testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 		testImplementation 'io.projectreactor:reactor-test'
+		testImplementation 'org.testcontainers:junit-jupiter:1.16.0'
 
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -680,6 +681,7 @@ project('spring-integration-mqtt') {
 	dependencies {
 		api project(':spring-integration-core')
 		api "org.eclipse.paho:org.eclipse.paho.client.mqttv3:$pahoMqttClientVersion"
+		optionalApi "org.eclipse.paho:org.eclipse.paho.mqttv5.client:$pahoMqttClientVersion"
 
 		testImplementation project(':spring-integration-jmx')
 		testImplementation 'com.fasterxml.jackson.core:jackson-databind'

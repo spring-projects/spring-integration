@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,19 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
+import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.mqtt.support.MqttUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -51,30 +52,13 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
-		implements MqttCallback, MqttPahoComponent, ApplicationEventPublisherAware {
-
-	/**
-	 * The default completion timeout in milliseconds.
-	 */
-	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
-
-	/**
-	 * The default disconnect completion timeout in milliseconds.
-	 */
-	public static final long DISCONNECT_COMPLETION_TIMEOUT = 5_000L;
-
-	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
-
-	private long disconnectCompletionTimeout = DISCONNECT_COMPLETION_TIMEOUT;
+public class MqttPahoMessageHandler extends AbstractMqttMessageHandler implements MqttCallback, MqttPahoComponent {
 
 	private final MqttPahoClientFactory clientFactory;
 
 	private boolean async;
 
 	private boolean asyncEvents;
-
-	private ApplicationEventPublisher applicationEventPublisher;
 
 	private volatile IMqttAsyncClient client;
 
@@ -135,31 +119,6 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		this.asyncEvents = asyncEvents;
 	}
 
-	/**
-	 * Set the completion timeout for async operations. Not settable using the namespace.
-	 * Default {@value #DEFAULT_COMPLETION_TIMEOUT} milliseconds.
-	 * @param completionTimeout The timeout.
-	 * @since 4.1
-	 */
-	public void setCompletionTimeout(long completionTimeout) {
-		this.completionTimeout = completionTimeout; // NOSONAR (sync)
-	}
-
-	/**
-	 * Set the completion timeout when disconnecting. Not settable using the namespace.
-	 * Default {@value #DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
-	 * @param completionTimeout The timeout.
-	 * @since 5.1.10
-	 */
-	public void setDisconnectCompletionTimeout(long completionTimeout) {
-		this.disconnectCompletionTimeout = completionTimeout; // NOSONAR (sync)
-	}
-
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
-	}
-
 	@Override
 	public MqttConnectOptions getConnectionInfo() {
 		MqttConnectOptions options = this.clientFactory.getConnectionOptions();
@@ -176,8 +135,18 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	@Override
 	protected void onInit() {
 		super.onInit();
-		Assert.state(getConverter() instanceof MqttMessageConverter,
-				"MessageConverter must be an MqttMessageConverter");
+		MessageConverter converter = getConverter();
+		if (converter == null) {
+			DefaultPahoMessageConverter defaultConverter = new DefaultPahoMessageConverter(getDefaultQos(),
+					getQosProcessor(), getDefaultRetained(), getRetainedProcessor());
+			if (getBeanFactory() != null) {
+				defaultConverter.setBeanFactory(getBeanFactory());
+			}
+			setConverter(defaultConverter);
+		}
+		else {
+			Assert.state(converter instanceof MqttMessageConverter, "MessageConverter must be an MqttMessageConverter");
+		}
 	}
 
 	@Override
@@ -189,7 +158,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		try {
 			IMqttAsyncClient theClient = this.client;
 			if (theClient != null) {
-				theClient.disconnect().waitForCompletion(this.disconnectCompletionTimeout);
+				theClient.disconnect().waitForCompletion(getDisconnectCompletionTimeout());
 				theClient.close();
 				this.client = null;
 			}
@@ -213,7 +182,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 				this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
 				incrementClientInstance();
 				this.client.setCallback(this);
-				this.client.connect(connectionOptions).waitForCompletion(this.completionTimeout);
+				this.client.connect(connectionOptions).waitForCompletion(getCompletionTimeout());
 				logger.debug("Client connected");
 			}
 			catch (MqttException e) {
@@ -221,8 +190,9 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 					this.client.close();
 					this.client = null;
 				}
-				if (this.applicationEventPublisher != null) {
-					this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
+				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+				if (applicationEventPublisher != null) {
+					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
 				}
 				throw new MessagingException("Failed to connect", e);
 			}
@@ -236,11 +206,12 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		try {
 			IMqttDeliveryToken token = checkConnection()
 					.publish(topic, (MqttMessage) mqttMessage);
+			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 			if (!this.async) {
-				token.waitForCompletion(this.completionTimeout); // NOSONAR (sync)
+				token.waitForCompletion(getCompletionTimeout()); // NOSONAR (sync)
 			}
-			else if (this.asyncEvents && this.applicationEventPublisher != null) {
-				this.applicationEventPublisher.publishEvent(
+			else if (this.asyncEvents && applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(
 						new MqttMessageSentEvent(this, message, topic, token.getMessageId(), getClientId(),
 								getClientInstance()));
 			}
@@ -251,8 +222,9 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	}
 
 	private void sendDeliveryComplete(IMqttDeliveryToken token) {
-		if (this.async && this.asyncEvents && this.applicationEventPublisher != null) {
-			this.applicationEventPublisher.publishEvent(
+		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+		if (this.async && this.asyncEvents && applicationEventPublisher != null) {
+			applicationEventPublisher.publishEvent(
 					new MqttMessageDeliveredEvent(this, token.getMessageId(), getClientId(),
 							getClientInstance()));
 		}
@@ -270,8 +242,9 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 				// NOSONAR
 			}
 			this.client = null;
-			if (this.applicationEventPublisher != null) {
-				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
+			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
 			}
 		}
 	}

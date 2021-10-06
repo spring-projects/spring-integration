@@ -29,7 +29,6 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.mqtt.core.ConsumerStopAction;
@@ -38,6 +37,7 @@ import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
+import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -60,12 +60,7 @@ import org.springframework.util.Assert;
  *
  */
 public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter
-		implements MqttCallback, MqttPahoComponent, ApplicationEventPublisherAware {
-
-	/**
-	 * The default completion timeout in milliseconds.
-	 */
-	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
+		implements MqttCallback, MqttPahoComponent {
 
 	/**
 	 * The default disconnect completion timeout in milliseconds.
@@ -78,13 +73,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
-	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
-
 	private long disconnectCompletionTimeout = DISCONNECT_COMPLETION_TIMEOUT;
-
-	private boolean manualAcks;
-
-	private ApplicationEventPublisher applicationEventPublisher;
 
 	private volatile IMqttClient client;
 
@@ -140,16 +129,6 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	/**
-	 * Set the completion timeout for operations. Not settable using the namespace.
-	 * Default {@value #DEFAULT_COMPLETION_TIMEOUT} milliseconds.
-	 * @param completionTimeout The timeout.
-	 * @since 4.1
-	 */
-	public synchronized void setCompletionTimeout(long completionTimeout) {
-		this.completionTimeout = completionTimeout;
-	}
-
-	/**
 	 * Set the completion timeout when disconnecting. Not settable using the namespace.
 	 * Default {@value #DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
 	 * @param completionTimeout The timeout.
@@ -169,23 +148,6 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this.recoveryInterval = recoveryInterval;
 	}
 
-	/**
-	 * Set the acknowledgment mode to manual.
-	 * @param manualAcks true for manual acks.
-	 * @since 5.3
-	 */
-	public void setManualAcks(boolean manualAcks) {
-		this.manualAcks = manualAcks;
-	}
-
-	/**
-	 * @since 4.2.2
-	 */
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher; // NOSONAR (inconsistent synchronization)
-	}
-
 	@Override
 	public MqttConnectOptions getConnectionInfo() {
 		MqttConnectOptions options = this.clientFactory.getConnectionOptions();
@@ -197,6 +159,17 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			}
 		}
 		return options;
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		if (getConverter() == null) {
+			DefaultPahoMessageConverter pahoMessageConverter = new DefaultPahoMessageConverter();
+			pahoMessageConverter.setBeanFactory(getBeanFactory());
+			setConverter(pahoMessageConverter);
+
+		}
 	}
 
 	@Override
@@ -293,22 +266,26 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this.client = this.clientFactory.getClientInstance(getUrl(), getClientId());
 		this.client.setCallback(this);
 		if (this.client instanceof MqttClient) {
-			((MqttClient) this.client).setTimeToWait(this.completionTimeout);
+			((MqttClient) this.client).setTimeToWait(getCompletionTimeout());
 		}
 
 		this.topicLock.lock();
 		String[] topics = getTopic();
+		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		try {
 			this.client.connect(connectionOptions);
-			this.client.setManualAcks(this.manualAcks);
-			int[] requestedQos = getQos();
-			int[] grantedQos = Arrays.copyOf(requestedQos, requestedQos.length);
-			this.client.subscribe(topics, grantedQos);
-			warnInvalidQosForSubscription(topics, requestedQos, grantedQos);
+			this.client.setManualAcks(isManualAcks());
+			if (topics.length > 0) {
+				int[] requestedQos = getQos();
+				int[] grantedQos = Arrays.copyOf(requestedQos, requestedQos.length);
+				this.client.subscribe(topics, grantedQos);
+				warnInvalidQosForSubscription(topics, requestedQos, grantedQos);
+			}
 		}
 		catch (MqttException ex) {
-			if (this.applicationEventPublisher != null) {
-				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 			}
 			logger.error(ex, () -> "Error connecting or subscribing to " + Arrays.toString(topics));
 			if (this.client != null) { // Could be reset during event handling before
@@ -331,8 +308,8 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			this.connected = true;
 			String message = "Connected and subscribed to " + Arrays.toString(topics);
 			logger.debug(message);
-			if (this.applicationEventPublisher != null) {
-				this.applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
 			}
 		}
 	}
@@ -397,8 +374,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			}
 			this.client = null;
 			scheduleReconnect();
-			if (this.applicationEventPublisher != null) {
-				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
+			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
 			}
 		}
 	}
@@ -407,7 +385,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	public void messageArrived(String topic, MqttMessage mqttMessage) {
 		AbstractIntegrationMessageBuilder<?> builder = toMessageBuilder(topic, mqttMessage);
 		if (builder != null) {
-			if (this.manualAcks) {
+			if (isManualAcks()) {
 				builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
 						new AcknowledgmentImpl(mqttMessage.getId(), mqttMessage.getQos(), this.client));
 			}
@@ -458,7 +436,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	/**
-	 * Used to complete message arrival when {@link #manualAcks} is true.
+	 * Used to complete message arrival when {@link #isManualAcks()} is true.
 	 *
 	 * @since 5.3
 	 */
