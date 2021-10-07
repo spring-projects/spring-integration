@@ -17,6 +17,7 @@
 package org.springframework.integration.mqtt.support;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +62,9 @@ public class MqttHeaderMapper implements HeaderMapper<MqttProperties> {
 	 */
 	public void setInboundHeaderNames(String... inboundHeaderNames) {
 		Assert.notNull(inboundHeaderNames, "'inboundHeaderNames' must not be null");
-		this.inboundHeaderNames = inboundHeaderNames;
+		String[] copy = Arrays.copyOf(inboundHeaderNames, inboundHeaderNames.length);
+		Arrays.sort(copy);
+		this.inboundHeaderNames = copy;
 	}
 
 	/**
@@ -73,7 +76,9 @@ public class MqttHeaderMapper implements HeaderMapper<MqttProperties> {
 	 */
 	public void setOutboundHeaderNames(String... outboundHeaderNames) {
 		Assert.notNull(outboundHeaderNames, "'outboundHeaderNames' must not be null");
-		this.outboundHeaderNames = outboundHeaderNames;
+		String[] copy = Arrays.copyOf(outboundHeaderNames, outboundHeaderNames.length);
+		Arrays.sort(copy);
+		this.outboundHeaderNames = copy;
 	}
 
 	@Override

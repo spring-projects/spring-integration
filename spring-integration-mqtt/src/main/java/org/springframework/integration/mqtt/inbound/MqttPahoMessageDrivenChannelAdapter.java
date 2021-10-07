@@ -254,7 +254,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 	}
 
-	private synchronized void connectAndSubscribe() throws MqttException {
+	private synchronized void connectAndSubscribe() throws MqttException { // NOSONAR
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 		this.cleanSession = connectionOptions.isCleanSession();
 		this.consumerStopAction = this.clientFactory.getConsumerStopAction();

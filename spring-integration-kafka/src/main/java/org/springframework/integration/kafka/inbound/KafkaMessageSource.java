@@ -138,8 +138,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private Duration closeTimeout = Duration.ofSeconds(DEFAULT_CLOSE_TIMEOUT);
 
-	public boolean newAssignment;
-
 	private volatile Consumer<K, V> consumer;
 
 	private volatile boolean pausing;
@@ -149,6 +147,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	private volatile Iterator<ConsumerRecord<K, V>> recordsIterator;
 
 	private volatile boolean stopped;
+
+	public volatile boolean newAssignment; // NOSONAR - direct access from inner
 
 	/**
 	 * Construct an instance with the supplied parameters. Fetching multiple
@@ -415,7 +415,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		return this.paused;
 	}
 
-	@Override
+	@Override // NOSONAR - not so complex
 	protected synchronized Object doReceive() {
 		if (this.stopped) {
 			this.logger.debug("Message source is stopped; no records will be returned");
