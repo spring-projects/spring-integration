@@ -71,13 +71,9 @@ public class WebFluxIntegrationConfigurationInitializer implements IntegrationCo
 
 			BeanDefinitionBuilder requestMappingBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(WebFluxIntegrationRequestMappingHandlerMapping.class,
-							() -> {
-								WebFluxIntegrationRequestMappingHandlerMapping mapping =
-										new WebFluxIntegrationRequestMappingHandlerMapping();
-								mapping.setOrder(0);
-								return mapping;
-							});
-			requestMappingBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+									WebFluxIntegrationRequestMappingHandlerMapping::new)
+							.addPropertyValue("order", 0)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(WebFluxContextUtils.HANDLER_MAPPING_BEAN_NAME,
 					requestMappingBuilder.getBeanDefinition());
 

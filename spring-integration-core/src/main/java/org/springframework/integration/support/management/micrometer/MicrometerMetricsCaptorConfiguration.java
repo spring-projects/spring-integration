@@ -17,9 +17,11 @@
 package org.springframework.integration.support.management.micrometer;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.context.annotation.Role;
 import org.springframework.util.ClassUtils;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -45,6 +47,7 @@ public class MicrometerMetricsCaptorConfiguration {
 			ClassUtils.isPresent("io.micrometer.core.instrument.MeterRegistry", null);
 
 	@Bean(name = MicrometerMetricsCaptor.MICROMETER_CAPTOR_NAME)
+	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public MicrometerMetricsCaptor micrometerMetricsCaptor(ObjectProvider<MeterRegistry> meterRegistries) {
 		if (meterRegistries.stream().findAny().isPresent()) {
 			return new MicrometerMetricsCaptor(meterRegistries);

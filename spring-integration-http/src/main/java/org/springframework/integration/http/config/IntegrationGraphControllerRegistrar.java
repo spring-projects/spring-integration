@@ -32,7 +32,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -80,35 +79,39 @@ public class IntegrationGraphControllerRegistrar implements ImportBeanDefinition
 		String path = (String) annotationAttributes.get("value");
 		String[] allowedOrigins = (String[]) annotationAttributes.get("allowedOrigins");
 		if (allowedOrigins != null && allowedOrigins.length > 0) {
-			registerControlerCorsConfigurer(registry, path, allowedOrigins);
+			registerControllerCorsConfigurer(registry, path, allowedOrigins);
 		}
 
 		if (!registry.containsBeanDefinition(HttpContextUtils.GRAPH_CONTROLLER_BEAN_NAME)) {
-			registerIntegrationGraphController(registry, annotationAttributes);
+			registerIntegrationGraphController(registry, (String) annotationAttributes.get(AnnotationUtils.VALUE));
 		}
 	}
 
 	private static void registerIntegrationGraphController(BeanDefinitionRegistry registry,
-			Map<String, Object> properties) {
+			String graphControllerPath) {
 
 		AbstractBeanDefinition controllerPropertiesPopulator =
 				BeanDefinitionBuilder.genericBeanDefinition(GraphControllerPropertiesPopulator.class,
-						() -> new GraphControllerPropertiesPopulator(properties))
+								() -> new GraphControllerPropertiesPopulator(graphControllerPath))
+						.addConstructorArgValue(graphControllerPath)
 						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
 						.getBeanDefinition();
 		BeanDefinitionReaderUtils.registerWithGeneratedName(controllerPropertiesPopulator, registry);
 
 		BeanDefinition graphController =
-				new RootBeanDefinition(IntegrationGraphController.class, () ->
-						new IntegrationGraphController(
-								((BeanFactory) registry)
-										.getBean(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME,
-												IntegrationGraphServer.class)));
+				BeanDefinitionBuilder.rootBeanDefinition(IntegrationGraphController.class,
+								() ->
+										new IntegrationGraphController(
+												((BeanFactory) registry)
+														.getBean(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME,
+																IntegrationGraphServer.class)))
+						.addConstructorArgReference(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME)
+						.getBeanDefinition();
 
 		registry.registerBeanDefinition(HttpContextUtils.GRAPH_CONTROLLER_BEAN_NAME, graphController);
 	}
 
-	private static void registerControlerCorsConfigurer(BeanDefinitionRegistry registry, String path,
+	private static void registerControllerCorsConfigurer(BeanDefinitionRegistry registry, String path,
 			String[] allowedOrigins) {
 
 		AbstractBeanDefinition controllerCorsConfigurer = null;
@@ -129,26 +132,27 @@ public class IntegrationGraphControllerRegistrar implements ImportBeanDefinition
 	}
 
 	private static AbstractBeanDefinition webMvcControllerCorsConfigurerBean(String path, String[] allowedOrigins) {
-		GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-		beanDefinition.setBeanClass(WebMvcIntegrationGraphCorsConfigurer.class);
-		beanDefinition.setInstanceSupplier(() -> new WebMvcIntegrationGraphCorsConfigurer(path, allowedOrigins));
-		return beanDefinition;
+		return BeanDefinitionBuilder.genericBeanDefinition(WebMvcIntegrationGraphCorsConfigurer.class,
+						() -> new WebMvcIntegrationGraphCorsConfigurer(path, allowedOrigins))
+				.addConstructorArgValue(path)
+				.addConstructorArgValue(allowedOrigins)
+				.getBeanDefinition();
 	}
 
 	private static AbstractBeanDefinition webFluxControllerCorsConfigurerBean(String path, String[] allowedOrigins) {
-		GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-		beanDefinition.setBeanClass(WebFluxIntegrationGraphCorsConfigurer.class);
-		beanDefinition.setInstanceSupplier(() -> new WebFluxIntegrationGraphCorsConfigurer(path, allowedOrigins));
-		return beanDefinition;
+		return BeanDefinitionBuilder.genericBeanDefinition(WebFluxIntegrationGraphCorsConfigurer.class,
+						() -> new WebFluxIntegrationGraphCorsConfigurer(path, allowedOrigins))
+				.addConstructorArgValue(path)
+				.addConstructorArgValue(allowedOrigins)
+				.getBeanDefinition();
 	}
 
-	private static final class GraphControllerPropertiesPopulator
+	static final class GraphControllerPropertiesPopulator
 			implements BeanFactoryPostProcessor, EnvironmentAware {
 
 		private final Map<String, Object> properties = new HashMap<>();
 
-		private GraphControllerPropertiesPopulator(Map<String, Object> annotationAttributes) {
-			Object graphControllerPath = annotationAttributes.get(AnnotationUtils.VALUE);
+		GraphControllerPropertiesPopulator(String graphControllerPath) {
 			this.properties.put(HttpContextUtils.GRAPH_CONTROLLER_PATH_PROPERTY, graphControllerPath);
 		}
 

@@ -63,13 +63,9 @@ public class HttpIntegrationConfigurationInitializer implements IntegrationConfi
 				!registry.containsBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
 			BeanDefinitionBuilder requestMappingBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(IntegrationRequestMappingHandlerMapping.class,
-							() -> {
-								IntegrationRequestMappingHandlerMapping mapping =
-										new IntegrationRequestMappingHandlerMapping();
-								mapping.setOrder(0);
-								return mapping;
-							});
-			requestMappingBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+									IntegrationRequestMappingHandlerMapping::new)
+							.addPropertyValue("order", 0)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME,
 					requestMappingBuilder.getBeanDefinition());
 		}

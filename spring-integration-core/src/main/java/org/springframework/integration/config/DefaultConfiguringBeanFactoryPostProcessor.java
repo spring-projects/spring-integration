@@ -16,12 +16,9 @@
 
 package org.springframework.integration.config;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
@@ -39,8 +36,8 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.core.log.LogAccessor;
@@ -67,14 +64,9 @@ import org.springframework.integration.support.converter.ConfigurableCompositeMe
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
-import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ErrorHandler;
-import org.springframework.util.StringUtils;
 
 /**
  * A {@link BeanFactoryPostProcessor} implementation that registers bean definitions
@@ -224,7 +216,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	/**
 	 * Register an error channel in the application context.
 	 * The bean name is defined by the constant {@link IntegrationContextUtils#ERROR_CHANNEL_BEAN_NAME}.
-	 * Also a {@link IntegrationContextUtils#ERROR_LOGGER_BEAN_NAME} is registered as a subscriber for this
+	 * Also, a {@link IntegrationContextUtils#ERROR_LOGGER_BEAN_NAME} is registered as a subscriber for this
 	 * error channel.
 	 */
 	private void registerErrorChannel() {
@@ -234,22 +226,26 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 					"Therefore, a default PublishSubscribeChannel will be created.");
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME,
-					new RootBeanDefinition(PublishSubscribeChannel.class, this::createErrorChannel));
+					BeanDefinitionBuilder.rootBeanDefinition(PublishSubscribeChannel.class, this::createErrorChannel)
+							.addConstructorArgValue(IntegrationProperties.getExpressionFor(
+									IntegrationProperties.ERROR_CHANNEL_REQUIRE_SUBSCRIBERS))
+							.addPropertyValue("ignoreFailures", IntegrationProperties.getExpressionFor(
+									IntegrationProperties.ERROR_CHANNEL_IGNORE_FAILURES))
+							.getBeanDefinition());
 
 			String errorLoggerBeanName =
 					IntegrationContextUtils.ERROR_LOGGER_BEAN_NAME + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
 			this.registry.registerBeanDefinition(errorLoggerBeanName,
-					new RootBeanDefinition(LoggingHandler.class, () -> new LoggingHandler(LoggingHandler.Level.ERROR)));
+					BeanDefinitionBuilder.genericBeanDefinition(LoggingHandler.class,
+									() -> new LoggingHandler(LoggingHandler.Level.ERROR))
+							.addConstructorArgValue(LoggingHandler.Level.ERROR)
+							.getBeanDefinition());
 
 			BeanDefinitionBuilder loggingEndpointBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class,
-							() -> {
-								ConsumerEndpointFactoryBean endpointFactoryBean = new ConsumerEndpointFactoryBean();
-								endpointFactoryBean.setInputChannelName(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
-								endpointFactoryBean.setHandler(this.beanFactory.getBean(errorLoggerBeanName,
-										MessageHandler.class));
-								return endpointFactoryBean;
-							});
+									ConsumerEndpointFactoryBean::new)
+							.addPropertyValue("inputChannelName", IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)
+							.addPropertyReference("handler", errorLoggerBeanName);
 
 			BeanComponentDefinition componentDefinition =
 					new BeanComponentDefinition(loggingEndpointBuilder.getBeanDefinition(),
@@ -263,12 +259,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 		String requireSubscribers =
 				integrationProperties.getProperty(IntegrationProperties.ERROR_CHANNEL_REQUIRE_SUBSCRIBERS);
 
-		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel(Boolean.parseBoolean(requireSubscribers));
-
-		String ignoreFailures = integrationProperties.getProperty(IntegrationProperties.ERROR_CHANNEL_IGNORE_FAILURES);
-		errorChannel.setIgnoreFailures(Boolean.parseBoolean(ignoreFailures));
-
-		return errorChannel;
+		return new PublishSubscribeChannel(Boolean.parseBoolean(requireSubscribers));
 	}
 
 	/**
@@ -279,7 +270,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 		if (!this.registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)) {
 			BeanDefinitionBuilder integrationEvaluationContextBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(IntegrationEvaluationContextFactoryBean.class,
-							IntegrationEvaluationContextFactoryBean::new)
+									IntegrationEvaluationContextFactoryBean::new)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
@@ -291,7 +282,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 
 			BeanDefinitionBuilder integrationEvaluationContextBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(IntegrationSimpleEvaluationContextFactoryBean.class,
-							IntegrationSimpleEvaluationContextFactoryBean::new)
+									IntegrationSimpleEvaluationContextFactoryBean::new)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME,
@@ -326,23 +317,18 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 			LOGGER.info(() -> "No bean named '" + IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME +
 					"' has been explicitly defined. " +
 					"Therefore, a default ThreadPoolTaskScheduler will be created.");
-			this.registry.registerBeanDefinition(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME,
-					new RootBeanDefinition(ThreadPoolTaskScheduler.class, this::createTaskScheduler));
+			BeanDefinition scheduler =
+					BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskScheduler.class,
+									ThreadPoolTaskScheduler::new)
+							.addPropertyValue("poolSize", IntegrationProperties.getExpressionFor(
+									IntegrationProperties.TASK_SCHEDULER_POOL_SIZE))
+							.addPropertyValue("threadNamePrefix", "task-scheduler-")
+							.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy())
+							.addPropertyReference("errorHandler",
+									ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)
+							.getBeanDefinition();
+			this.registry.registerBeanDefinition(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, scheduler);
 		}
-	}
-
-	private ThreadPoolTaskScheduler createTaskScheduler() {
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.setThreadNamePrefix("task-scheduler-");
-		taskScheduler.setRejectedExecutionHandler(new CallerRunsPolicy());
-		taskScheduler.setErrorHandler(
-				this.beanFactory.getBean(ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME, ErrorHandler.class));
-
-		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
-		String poolSize = integrationProperties.getProperty(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE);
-		taskScheduler.setPoolSize(Integer.parseInt(poolSize));
-
-		return taskScheduler;
 	}
 
 	/**
@@ -351,27 +337,16 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	private void registerIntegrationProperties() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)) {
 			ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver(this.classLoader);
-			try {
-				Resource[] resources =
-						resourceResolver.getResources("classpath*:META-INF/spring.integration.properties");
+			// TODO Revise in favor of 'IntegrationProperties' instance in the next 6.0 version
+			BeanDefinitionBuilder integrationPropertiesBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(PropertiesFactoryBean.class,
+									PropertiesFactoryBean::new)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+							.addPropertyValue("properties", IntegrationProperties.defaults())
+							.addPropertyValue("locations", "classpath*:META-INF/spring.integration.properties");
 
-				// TODO Revise in favor of 'IntegrationProperties' instance in the next 6.0 version
-				BeanDefinitionBuilder integrationPropertiesBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(PropertiesFactoryBean.class,
-								() -> {
-									PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
-									propertiesFactoryBean.setProperties(IntegrationProperties.defaults());
-									propertiesFactoryBean.setLocations(resources);
-									return propertiesFactoryBean;
-								})
-								.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-
-				this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME,
-						integrationPropertiesBuilder.getBeanDefinition());
-			}
-			catch (IOException ex) {
-				LOGGER.warn(ex, "Cannot load 'spring.integration.properties' Resources.");
-			}
+			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME,
+					integrationPropertiesBuilder.getBeanDefinition());
 		}
 	}
 
@@ -437,17 +412,13 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerMessageBuilderFactory() {
 		if (!this.beanFactory.containsBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME)) {
-			this.registry.registerBeanDefinition(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
-					new RootBeanDefinition(DefaultMessageBuilderFactory.class, this::createDefaultMessageBuilderFactory));
+			BeanDefinitionBuilder mbfBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(DefaultMessageBuilderFactory.class, DefaultMessageBuilderFactory::new)
+					.addPropertyValue("readOnlyHeaders",
+							IntegrationProperties.getExpressionFor(IntegrationProperties.READ_ONLY_HEADERS));
+			this.registry.registerBeanDefinition(
+					IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME, mbfBuilder.getBeanDefinition());
 		}
-	}
-
-	private DefaultMessageBuilderFactory createDefaultMessageBuilderFactory() {
-		DefaultMessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
-		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
-		String readOnlyHeaders = integrationProperties.getProperty(IntegrationProperties.READ_ONLY_HEADERS);
-		messageBuilderFactory.setReadOnlyHeaders(StringUtils.commaDelimitedListToStringArray(readOnlyHeaders));
-		return messageBuilderFactory;
 	}
 
 	/**
@@ -471,7 +442,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 				IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME)) {
 			BeanDefinitionBuilder builder =
 					BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorProcessor.class,
-							GlobalChannelInterceptorProcessor::new)
+									GlobalChannelInterceptorProcessor::new)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME,
@@ -507,59 +478,48 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 
 	private void registerMessageHandlerMethodFactory() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME)) {
+			BeanDefinitionBuilder messageHandlerMethodFactoryBuilder =
+					createMessageHandlerMethodFactoryBeanDefinition(false);
 			this.registry.registerBeanDefinition(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME,
-					new RootBeanDefinition(DefaultMessageHandlerMethodFactory.class,
-							() -> createMessageHandlerMethodFactory(false)));
+					messageHandlerMethodFactoryBuilder.getBeanDefinition());
 		}
 	}
 
 	private void registerListMessageHandlerMethodFactory() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME)) {
+			BeanDefinitionBuilder messageHandlerMethodFactoryBuilder =
+					createMessageHandlerMethodFactoryBeanDefinition(true);
 			this.registry.registerBeanDefinition(IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME,
-					new RootBeanDefinition(DefaultMessageHandlerMethodFactory.class,
-							() -> createMessageHandlerMethodFactory(true)));
+					messageHandlerMethodFactoryBuilder.getBeanDefinition());
 		}
 	}
 
-	private DefaultMessageHandlerMethodFactory createMessageHandlerMethodFactory(boolean listCapable) {
-		DefaultMessageHandlerMethodFactory methodFactory = new DefaultMessageHandlerMethodFactory();
-		methodFactory.setMessageConverter(
-				this.beanFactory.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
-						MessageConverter.class));
-		methodFactory.setCustomArgumentResolvers(buildArgumentResolvers(listCapable));
-		return methodFactory;
+	private static BeanDefinitionBuilder createMessageHandlerMethodFactoryBeanDefinition(boolean listCapable) {
+		return BeanDefinitionBuilder.genericBeanDefinition(DefaultMessageHandlerMethodFactory.class,
+						DefaultMessageHandlerMethodFactory::new)
+				.addPropertyReference("messageConverter",
+						IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)
+				.addPropertyValue("customArgumentResolvers", buildArgumentResolvers(listCapable));
 	}
 
-	private List<HandlerMethodArgumentResolver> buildArgumentResolvers(boolean listCapable) {
-		List<HandlerMethodArgumentResolver> resolvers = new LinkedList<>();
-		MessageConverter messageConverter =
-				this.beanFactory.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
-						MessageConverter.class);
-
-		PayloadExpressionArgumentResolver payloadExpressionArgumentResolver = new PayloadExpressionArgumentResolver();
-		payloadExpressionArgumentResolver.setBeanFactory(this.beanFactory);
-		payloadExpressionArgumentResolver.afterPropertiesSet();
-		resolvers.add(payloadExpressionArgumentResolver);
-
-		resolvers.add(new NullAwarePayloadArgumentResolver(messageConverter));
-
-		PayloadsArgumentResolver payloadsArgumentResolver = new PayloadsArgumentResolver();
-		payloadsArgumentResolver.setBeanFactory(this.beanFactory);
-		payloadsArgumentResolver.afterPropertiesSet();
-		resolvers.add(payloadsArgumentResolver);
+	private static ManagedList<BeanDefinition> buildArgumentResolvers(boolean listCapable) {
+		ManagedList<BeanDefinition> resolvers = new ManagedList<>();
+		resolvers.add(new RootBeanDefinition(PayloadExpressionArgumentResolver.class));
+		BeanDefinitionBuilder builder =
+				BeanDefinitionBuilder.genericBeanDefinition(NullAwarePayloadArgumentResolver.class);
+		builder.addConstructorArgReference(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
+		// TODO Validator ?
+		resolvers.add(builder.getBeanDefinition());
+		resolvers.add(new RootBeanDefinition(PayloadsArgumentResolver.class));
 
 		if (listCapable) {
-			CollectionArgumentResolver collectionArgumentResolver = new CollectionArgumentResolver(true);
-			collectionArgumentResolver.setBeanFactory(this.beanFactory);
-			collectionArgumentResolver.afterPropertiesSet();
-			resolvers.add(collectionArgumentResolver);
+			resolvers.add(
+					BeanDefinitionBuilder.genericBeanDefinition(CollectionArgumentResolver.class)
+							.addConstructorArgValue(true)
+							.getBeanDefinition());
 		}
 
-		MapArgumentResolver mapArgumentResolver = new MapArgumentResolver();
-		mapArgumentResolver.setBeanFactory(this.beanFactory);
-		mapArgumentResolver.afterPropertiesSet();
-		resolvers.add(mapArgumentResolver);
-
+		resolvers.add(new RootBeanDefinition(MapArgumentResolver.class));
 		return resolvers;
 	}
 

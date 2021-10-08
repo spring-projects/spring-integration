@@ -83,12 +83,14 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 	private void registerEnableWebSocketIfNecessary(BeanDefinitionRegistry registry) {
 		if (SERVLET_PRESENT) {
 			if (!registry.containsBeanDefinition("defaultSockJsTaskScheduler")) {
-				ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-				taskScheduler.setThreadNamePrefix("SockJS-");
-				taskScheduler.setPoolSize(Runtime.getRuntime().availableProcessors());
-				taskScheduler.setRemoveOnCancelPolicy(true);
-				registry.registerBeanDefinition("defaultSockJsTaskScheduler",
-						new RootBeanDefinition(ThreadPoolTaskScheduler.class, () -> taskScheduler));
+
+				BeanDefinitionBuilder beanDefinitionBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskScheduler.class,
+										ThreadPoolTaskScheduler::new)
+								.addPropertyValue("threadNamePrefix", "SockJS-")
+								.addPropertyValue("poolSize", Runtime.getRuntime().availableProcessors())
+								.addPropertyValue("removeOnCancelPolicy", true);
+				registry.registerBeanDefinition("defaultSockJsTaskScheduler", beanDefinitionBuilder.getBeanDefinition());
 			}
 
 			if (!registry.containsBeanDefinition(DelegatingWebSocketConfiguration.class.getName()) &&
@@ -98,20 +100,18 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 						new RootBeanDefinition(IntegrationServletWebSocketHandlerRegistry.class,
 								IntegrationServletWebSocketHandlerRegistry::new));
 
-				BeanDefinitionReaderUtils.registerWithGeneratedName(
-						new RootBeanDefinition(IntegrationDynamicWebSocketHandlerMapping.class,
-								() -> {
-									IntegrationDynamicWebSocketHandlerMapping dynamicWebSocketHandlerMapping =
-											new IntegrationDynamicWebSocketHandlerMapping();
-									dynamicWebSocketHandlerMapping.setPatternParser(new PathPatternParser());
-									dynamicWebSocketHandlerMapping.setOrder(0);
-									return dynamicWebSocketHandlerMapping;
-								}),
-						registry);
+				BeanDefinitionBuilder beanDefinitionBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(IntegrationDynamicWebSocketHandlerMapping.class,
+										IntegrationDynamicWebSocketHandlerMapping::new)
+								.addPropertyValue("patternParser", new PathPatternParser())
+								.addPropertyValue("order", 0);
+				BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinitionBuilder.getBeanDefinition(), registry);
 
 				BeanDefinitionBuilder enableWebSocketBuilder =
 						BeanDefinitionBuilder.genericBeanDefinition(WebSocketHandlerMappingFactoryBean.class,
-								() -> createWebSocketHandlerMapping((BeanFactory) registry))
+										WebSocketHandlerMappingFactoryBean::new)
+								.addPropertyReference("registry", "integrationServletWebSocketHandlerRegistry")
+								.addPropertyReference("sockJsTaskScheduler", "defaultSockJsTaskScheduler")
 								.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 				registry.registerBeanDefinition(WEB_SOCKET_HANDLER_MAPPING_BEAN_NAME,
@@ -120,21 +120,19 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 		}
 	}
 
-	private static WebSocketHandlerMappingFactoryBean createWebSocketHandlerMapping(BeanFactory beanFactory) {
-		WebSocketHandlerMappingFactoryBean mappingFactoryBean = new WebSocketHandlerMappingFactoryBean();
-		mappingFactoryBean.registry =
-				beanFactory.getBean("integrationServletWebSocketHandlerRegistry",
-						IntegrationServletWebSocketHandlerRegistry.class);
-		mappingFactoryBean.sockJsTaskScheduler =
-				beanFactory.getBean("defaultSockJsTaskScheduler", ThreadPoolTaskScheduler.class);
-		return mappingFactoryBean;
-	}
-
-	private static class WebSocketHandlerMappingFactoryBean extends AbstractFactoryBean<HandlerMapping> {
+	static class WebSocketHandlerMappingFactoryBean extends AbstractFactoryBean<HandlerMapping> {
 
 		private IntegrationServletWebSocketHandlerRegistry registry;
 
 		private ThreadPoolTaskScheduler sockJsTaskScheduler;
+
+		public void setRegistry(IntegrationServletWebSocketHandlerRegistry registry) {
+			this.registry = registry;
+		}
+
+		public void setSockJsTaskScheduler(ThreadPoolTaskScheduler sockJsTaskScheduler) {
+			this.sockJsTaskScheduler = sockJsTaskScheduler;
+		}
 
 		@Override
 		protected HandlerMapping createInstance() {

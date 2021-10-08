@@ -59,8 +59,12 @@ public final class IntegrationConfigUtils {
 	public static void registerSpelFunctionBean(BeanDefinitionRegistry registry, String functionId, Class<?> aClass,
 			String methodSignature) {
 
-		registry.registerBeanDefinition(functionId, new RootBeanDefinition(SpelFunctionFactoryBean.class,
-				() -> new SpelFunctionFactoryBean(aClass, methodSignature)));
+		BeanDefinitionBuilder builder =
+				BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class,
+								() -> new SpelFunctionFactoryBean(aClass, methodSignature))
+						.addConstructorArgValue(aClass)
+						.addConstructorArgValue(methodSignature);
+		registry.registerBeanDefinition(functionId, builder.getBeanDefinition());
 	}
 
 	public static void autoCreateDirectChannel(String channelName, BeanDefinitionRegistry registry) {

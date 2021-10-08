@@ -18,21 +18,15 @@ package org.springframework.integration.config;
 
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -43,8 +37,6 @@ import org.springframework.util.StringUtils;
  */
 public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 
-	private static final Log LOGGER = LogFactory.getLog(PublisherRegistrar.class);
-
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		if (registry.containsBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME)) {
@@ -54,59 +46,26 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 		Map<String, Object> annotationAttributes =
 				importingClassMetadata.getAnnotationAttributes(EnablePublisher.class.getName());
 
-		ConfigurableBeanFactory beanFactory;
-		if (registry instanceof ConfigurableBeanFactory) {
-			beanFactory = (ConfigurableBeanFactory) registry;
-		}
-		else if (registry instanceof ConfigurableApplicationContext) {
-			beanFactory = ((ConfigurableApplicationContext) registry).getBeanFactory();
-		}
-		else {
-			beanFactory = null;
-		}
-
-		BeanDefinitionBuilder builder =
-				BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class,
-						() -> createPublisherAnnotationBeanPostProcessor(annotationAttributes, beanFactory))
-						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-
-		registry.registerBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME,
-				builder.getBeanDefinition());
-	}
-
-	private PublisherAnnotationBeanPostProcessor createPublisherAnnotationBeanPostProcessor(
-			@Nullable Map<String, Object> annotationAttributes, @Nullable ConfigurableBeanFactory beanFactory) {
-
-		PublisherAnnotationBeanPostProcessor postProcessor = new PublisherAnnotationBeanPostProcessor();
 		String defaultChannel =
 				annotationAttributes == null
 						? (String) AnnotationUtils.getDefaultValue(EnablePublisher.class)
 						: (String) annotationAttributes.get("defaultChannel");
-		if (StringUtils.hasText(defaultChannel)) {
-			if (beanFactory != null) {
-				defaultChannel = beanFactory.resolveEmbeddedValue(defaultChannel);
-			}
-			postProcessor.setDefaultChannelName(defaultChannel);
-			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("Setting '@Publisher' default-output-channel to '" + defaultChannel + "'.");
-			}
-		}
-		if (annotationAttributes != null) {
-			String proxyTargetClass = annotationAttributes.get("proxyTargetClass").toString();
-			if (beanFactory != null) {
-				proxyTargetClass = beanFactory.resolveEmbeddedValue(proxyTargetClass);
-			}
-			postProcessor.setProxyTargetClass(Boolean.parseBoolean(proxyTargetClass));
 
-			String order = annotationAttributes.get("order").toString();
-			if (beanFactory != null) {
-				order = beanFactory.resolveEmbeddedValue(order);
-			}
-			if (StringUtils.hasText(order)) {
-				postProcessor.setOrder(Integer.parseInt(order));
-			}
+		BeanDefinitionBuilder builder =
+				BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class,
+								PublisherAnnotationBeanPostProcessor::new)
+						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+		if (StringUtils.hasText(defaultChannel)) {
+			builder.addPropertyValue("defaultChannelName", defaultChannel);
 		}
-		return postProcessor;
+
+		if (annotationAttributes != null) {
+			builder.addPropertyValue("proxyTargetClass", annotationAttributes.get("proxyTargetClass"))
+					.addPropertyValue("order", annotationAttributes.get("order"));
+		}
+		registry.registerBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME,
+				builder.getBeanDefinition());
 	}
 
 }

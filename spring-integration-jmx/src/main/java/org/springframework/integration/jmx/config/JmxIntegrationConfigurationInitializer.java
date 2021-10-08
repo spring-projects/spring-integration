@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.integration.monitor.IntegrationMBeanExporter;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 public class JmxIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
@@ -36,14 +37,15 @@ public class JmxIntegrationConfigurationInitializer implements IntegrationConfig
 
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		this.registerMBeanExporterHelperIfNecessary(beanFactory);
+		registerMBeanExporterHelperIfNecessary(beanFactory);
 	}
 
-	private void registerMBeanExporterHelperIfNecessary(ConfigurableListableBeanFactory beanFactory) {
+	private static void registerMBeanExporterHelperIfNecessary(ConfigurableListableBeanFactory beanFactory) {
 		if (!beanFactory.containsBean(MBEAN_EXPORTER_HELPER_BEAN_NAME)
 				&& beanFactory.getBeanNamesForType(IntegrationMBeanExporter.class, false, false).length > 0) {
+
 			((BeanDefinitionRegistry) beanFactory).registerBeanDefinition(MBEAN_EXPORTER_HELPER_BEAN_NAME,
-					new RootBeanDefinition(MBeanExporterHelper.class));
+					new RootBeanDefinition(MBeanExporterHelper.class, MBeanExporterHelper::new));
 		}
 	}
 

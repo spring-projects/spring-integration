@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-jpa="http://www.springframework.org/schema/integration/jpa"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jpa="http://www.springframework.org/schema/integration/jpa"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/jpa https://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd">
+		http://www.springframework.org/schema/integration/jpa https://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
 	<import resource="classpath:/hibernateJpa-context.xml" />
 
@@ -86,9 +88,14 @@
 		request-channel="in"
 		reply-channel="out"
 		reply-timeout="100">
-		<int-jpa:transactional/>
+<!--		<int-jpa:transactional/>-->
 		<int-jpa:request-handler-advice-chain>
-			<ref bean="jpaFooAdvice"/>
+<!--			<ref bean="jpaFooAdvice"/>-->
+			<tx:advice>
+				<tx:attributes>
+					<tx:method name="*"/>
+				</tx:attributes>
+			</tx:advice>
 		</int-jpa:request-handler-advice-chain>
 	</int-jpa:updating-outbound-gateway>
 

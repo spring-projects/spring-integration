@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
  * to Consumer Endpoints are present.
  *
  * @author Artem Bilan
+ *
  * @since 4.1
  */
 public class IdempotentReceiverAutoProxyCreatorInitializer implements IntegrationConfigurationInitializer {
@@ -58,7 +59,7 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 
-		List<Map<String, String>> idempotentEndpointsMapping = new ManagedList<Map<String, String>>();
+		List<Map<String, String>> idempotentEndpointsMapping = new ManagedList<>();
 
 		for (String beanName : registry.getBeanDefinitionNames()) {
 			BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
@@ -69,7 +70,7 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 				String mapping = (String) value;
 				String[] endpoints = StringUtils.tokenizeToStringArray(mapping, ",");
 				for (String endpoint : endpoints) {
-					Map<String, String> idempotentEndpoint = new ManagedMap<String, String>();
+					Map<String, String> idempotentEndpoint = new ManagedMap<>();
 					idempotentEndpoint.put(beanName,
 							beanFactory.resolveEmbeddedValue(endpoint) + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX);
 					idempotentEndpointsMapping.add(idempotentEndpoint);
@@ -81,9 +82,11 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 		}
 
 		if (!idempotentEndpointsMapping.isEmpty()) {
-			BeanDefinition bd = BeanDefinitionBuilder.rootBeanDefinition(IdempotentReceiverAutoProxyCreator.class)
-					.addPropertyValue("idempotentEndpointsMapping", idempotentEndpointsMapping)
-					.getBeanDefinition();
+			BeanDefinition bd =
+					BeanDefinitionBuilder.rootBeanDefinition(IdempotentReceiverAutoProxyCreator.class,
+									IdempotentReceiverAutoProxyCreator::new)
+							.addPropertyValue("idempotentEndpointsMapping", idempotentEndpointsMapping)
+							.getBeanDefinition();
 			registry.registerBeanDefinition(IDEMPOTENT_RECEIVER_AUTO_PROXY_CREATOR_BEAN_NAME, bd);
 		}
 	}
@@ -91,6 +94,7 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 	private void annotated(ConfigurableListableBeanFactory beanFactory,
 			List<Map<String, String>> idempotentEndpointsMapping, String beanName, BeanDefinition beanDefinition)
 			throws LinkageError {
+
 		if (beanDefinition.getSource() instanceof MethodMetadata) {
 			MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
 			String annotationType = IdempotentReceiver.class.getName();
@@ -127,7 +131,7 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 
 					String[] interceptors = (String[]) value;
 					for (String interceptor : interceptors) {
-						Map<String, String> idempotentEndpoint = new ManagedMap<String, String>();
+						Map<String, String> idempotentEndpoint = new ManagedMap<>();
 						idempotentEndpoint.put(interceptor, endpoint);
 						idempotentEndpointsMapping.add(idempotentEndpoint);
 					}

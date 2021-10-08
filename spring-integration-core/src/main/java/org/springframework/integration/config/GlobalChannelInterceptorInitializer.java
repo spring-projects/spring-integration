@@ -16,18 +16,15 @@
 
 package org.springframework.integration.config;
 
-import java.util.Arrays;
 import java.util.Map;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanExpressionContext;
-import org.springframework.beans.factory.config.BeanExpressionResolver;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
@@ -50,13 +47,10 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 
 	private ConfigurableListableBeanFactory beanFactory;
 
-	private BeanExpressionContext beanExpressionContext;
-
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
-		this.beanExpressionContext = new BeanExpressionContext(beanFactory, null);
 		for (String beanName : registry.getBeanDefinitionNames()) {
 			BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
 			if (beanDefinition instanceof AnnotatedBeanDefinition) {
@@ -71,44 +65,22 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 				}
 
 				if (!CollectionUtils.isEmpty(annotationAttributes)) {
-					Map<String, Object> attributes = annotationAttributes;
-					RootBeanDefinition channelInterceptorWrapper =
-							new RootBeanDefinition(GlobalChannelInterceptorWrapper.class,
-									() -> createGlobalChannelInterceptorWrapper(beanName, attributes));
+					BeanDefinitionBuilder builder =
+							BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorWrapper.class,
+											() -> createGlobalChannelInterceptorWrapper(beanName))
+									.addConstructorArgReference(beanName)
+									.addPropertyValue("patterns", annotationAttributes.get("patterns"))
+									.addPropertyValue("order", annotationAttributes.get("order"));
 
-					BeanDefinitionReaderUtils.registerWithGeneratedName(channelInterceptorWrapper, registry);
+					BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), registry);
 				}
 			}
 		}
 	}
 
-	private GlobalChannelInterceptorWrapper createGlobalChannelInterceptorWrapper(String interceptorBeanName,
-			Map<String, Object> annotationAttributes) {
-
+	private GlobalChannelInterceptorWrapper createGlobalChannelInterceptorWrapper(String interceptorBeanName) {
 		ChannelInterceptor interceptor = this.beanFactory.getBean(interceptorBeanName, ChannelInterceptor.class);
-		GlobalChannelInterceptorWrapper interceptorWrapper = new GlobalChannelInterceptorWrapper(interceptor);
-		String[] patterns =
-				Arrays.stream((String[]) annotationAttributes.get("patterns"))
-						.map(this::resolveEmbeddedValue)
-						.toArray(String[]::new);
-		interceptorWrapper.setPatterns(patterns);
-		interceptorWrapper.setOrder((Integer) annotationAttributes.get("order"));
-		return interceptorWrapper;
-	}
-
-	private String resolveEmbeddedValue(String value) {
-		String valueToReturn = this.beanFactory.resolveEmbeddedValue(value);
-		if (valueToReturn == null || !(valueToReturn.startsWith("#{") && value.endsWith("}"))) {
-			return valueToReturn;
-		}
-
-		BeanExpressionResolver beanExpressionResolver = this.beanFactory.getBeanExpressionResolver();
-		if (beanExpressionResolver != null) {
-			Object result = beanExpressionResolver.evaluate(valueToReturn, this.beanExpressionContext);
-			return result != null ? result.toString() : null;
-		}
-
-		return null;
+		return new GlobalChannelInterceptorWrapper(interceptor);
 	}
 
 }
