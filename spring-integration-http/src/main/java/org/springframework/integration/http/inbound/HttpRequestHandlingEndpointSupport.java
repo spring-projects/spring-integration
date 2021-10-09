@@ -386,7 +386,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 		if (!ObjectUtils.isEmpty(requestCookies)) {
 			Map<String, Cookie> cookies =
 					Arrays.stream(requestCookies)
-							.collect(Collectors.toMap(Cookie::getName, Function.identity()));
+							.collect(Collectors.toMap(Cookie::getName, Function.identity(), (c1, c2) -> c1));
 			evaluationContext.setVariable("cookies", cookies);
 		}
 

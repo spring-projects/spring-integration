@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.http.Cookie;
+
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
@@ -377,6 +379,41 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		Object reply = modelAndView.getModel().get("reply");
 		assertThat(reply).isNotNull();
 		assertThat(reply).isEqualTo("HELLO");
+	}
+	
+	@Test
+	public void handleRequestDuplicateCookies() {
+		DirectChannel requestChannel = new DirectChannel();		
+		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return requestMessage.getPayload().toString();
+			}
+		});
+
+		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
+		controller.setErrorsKey("errors");
+		controller.setRequestChannel(requestChannel);
+		controller.setViewName("foo");
+		controller.setReplyKey("cookiesReply");
+		controller.setExtractReplyPayload(true);
+		controller.setPayloadExpression(new SpelExpressionParser().parseExpression("#cookies['c1']?.value"));
+		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.afterPropertiesSet();
+		controller.start();
+		
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContent("hello".getBytes());
+		request.addHeader("Content-Type", "text/plain");
+		request.setCookies(new Cookie[] {new Cookie("c1", "first"), new Cookie("c1", "last")});
+		
+		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		ModelAndView modelAndView = controller.handleRequest(request, response);
+		assertThat(modelAndView.getModelMap()).doesNotContainKey("errors");
+		assertThat(modelAndView.getModelMap()).containsKey("cookiesReply");
+		assertThat(modelAndView.getModelMap()).containsEntry("cookiesReply", "first");
 	}
 
 
