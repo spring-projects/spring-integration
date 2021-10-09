@@ -19,11 +19,8 @@ package org.springframework.integration.http.inbound;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -361,10 +358,13 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 		Cookie[] requestCookies = servletRequest.getCookies();
 		if (!ObjectUtils.isEmpty(requestCookies)) {
-			Map<String, Cookie> cookies =
-					Arrays.stream(requestCookies)
-							.collect(Collectors.toMap(Cookie::getName, Function.identity()));
-			evaluationContext.setVariable("cookies", cookies);
+
+			MultiValueMap<String, Cookie> cookies = new LinkedMultiValueMap<>(requestCookies.length);
+			for (Cookie requestCookie : requestCookies) {
+				cookies.add(requestCookie.getName(), requestCookie);
+			}
+			// TODO no toSingleValueMap() in the next major version
+			evaluationContext.setVariable("cookies", cookies.toSingleValueMap());
 		}
 
 		Map<?, ?> pathVariables =
