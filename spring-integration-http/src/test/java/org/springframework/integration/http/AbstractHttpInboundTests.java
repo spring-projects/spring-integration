@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.http;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -25,16 +25,17 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public abstract class AbstractHttpInboundTests {
 
-	@Before
+	@BeforeEach
 	public void setupHttpInbound() {
 		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new MockHttpServletRequest()));
 	}
 
-	@After
+	@AfterEach
 	public void tearDownHttpInbound() {
 		RequestContextHolder.resetRequestAttributes();
 	}

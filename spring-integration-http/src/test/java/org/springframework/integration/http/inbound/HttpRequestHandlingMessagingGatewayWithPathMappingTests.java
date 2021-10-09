@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,9 @@ package org.springframework.integration.http.inbound;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import java.io.IOException;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.ExpressionParser;
@@ -52,7 +51,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 
 
 	@Test
-	public void withoutExpression() throws IOException {
+	public void withoutExpression() {
 		DirectChannel echoChannel = new DirectChannel();
 		echoChannel.subscribe(message -> {
 			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
@@ -78,8 +77,6 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 
 		gateway.setRequestChannel(echoChannel);
 
-		MockHttpServletResponse response = new MockHttpServletResponse();
-
 		RequestEntity<Object> httpEntity = prepareRequestEntity(body, new ServletServerHttpRequest(request));
 
 		Object result = gateway.doHandleRequest(request, httpEntity);
@@ -89,7 +86,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 	}
 
 	@Test
-	public void withPayloadExpressionPointingToPathVariable() throws Exception {
+	public void withPayloadExpressionPointingToPathVariable() {
 		DirectChannel echoChannel = new DirectChannel();
 		echoChannel.subscribe(message -> {
 			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
@@ -132,7 +129,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void withoutPayloadExpressionPointingToUriVariables() throws Exception {
+	public void withoutPayloadExpressionPointingToUriVariables() {
 
 		DirectChannel echoChannel = new DirectChannel();
 		echoChannel.subscribe(message -> {
