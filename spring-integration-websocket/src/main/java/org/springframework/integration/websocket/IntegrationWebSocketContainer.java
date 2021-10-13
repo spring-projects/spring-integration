@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 	}
 
 	public void setMessageListener(WebSocketListener messageListener) {
-		Assert.state(this.messageListener == null || this.messageListener == messageListener,
+		Assert.state(this.messageListener == null || this.messageListener.equals(messageListener),
 				"'messageListener' is already configured");
 		this.messageListener = messageListener;
 	}
@@ -102,6 +102,10 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 		for (String protocol : protocols) {
 			this.supportedProtocols.add(protocol.toLowerCase());
 		}
+	}
+
+	public WebSocketHandler getWebSocketHandler() {
+		return this.webSocketHandler;
 	}
 
 	public List<String> getSubProtocols() {
@@ -119,7 +123,7 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 
 	public WebSocketSession getSession(String sessionId) {
 		WebSocketSession session = this.sessions.get(sessionId);
-		Assert.notNull(session, "Session not found for id '" + sessionId + "'");
+		Assert.notNull(session, () -> "Session not found for id '" + sessionId + "'");
 		return session;
 	}
 
@@ -139,8 +143,8 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 				try {
 					session.close(CloseStatus.GOING_AWAY);
 				}
-				catch (Exception e) {
-					this.logger.error("Failed to close session id '" + session.getId() + "': " + e.getMessage());
+				catch (Exception ex) {
+					this.logger.error("Failed to close session id '" + session.getId() + "': " + ex.getMessage());
 				}
 			}
 		}

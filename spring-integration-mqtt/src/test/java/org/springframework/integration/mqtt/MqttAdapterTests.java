@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
@@ -53,7 +54,6 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.assertj.core.api.Condition;
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
-import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -65,6 +65,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttToken;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.internal.stubbing.answers.CallsRealMethods;
 
@@ -89,9 +90,13 @@ import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannel
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaderAccessor;
+import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -106,7 +111,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class MqttAdapterTests {
 
-	private IMqttToken alwaysComplete;
+	private final IMqttToken alwaysComplete;
 
 	{
 		ProxyFactoryBean pfb = new ProxyFactoryBean();
@@ -198,12 +203,12 @@ public class MqttAdapterTests {
 			return deliveryToken;
 		}).given(client).publish(anyString(), any(MqttMessage.class));
 
-		handler.handleMessage(new GenericMessage<String>("Hello, world!"));
+		handler.handleMessage(new GenericMessage<>("Hello, world!"));
 
 		verify(client, times(1)).connect(any(MqttConnectOptions.class));
 		assertThat(connectCalled.get()).isTrue();
 		AtomicReference<Object> failed = new AtomicReference<>();
-		handler.setApplicationEventPublisher(event -> failed.set(event));
+		handler.setApplicationEventPublisher(failed::set);
 		handler.connectionLost(new IllegalStateException());
 		assertThat(failed.get()).isInstanceOf(MqttConnectionFailedEvent.class);
 		handler.stop();
@@ -258,7 +263,7 @@ public class MqttAdapterTests {
 			return null;
 		}).given(client).connect(any(MqttConnectOptions.class));
 
-		final AtomicReference<MqttCallback> callback = new AtomicReference<MqttCallback>();
+		final AtomicReference<MqttCallback> callback = new AtomicReference<>();
 		willAnswer(invocation -> {
 			callback.set(invocation.getArgument(0));
 			return null;
@@ -271,12 +276,14 @@ public class MqttAdapterTests {
 		adapter.setManualAcks(true);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
-		final BlockingQueue<MqttIntegrationEvent> events = new LinkedBlockingQueue<MqttIntegrationEvent>();
+		final BlockingQueue<MqttIntegrationEvent> events = new LinkedBlockingQueue<>();
 		willAnswer(invocation -> {
 			events.add(invocation.getArgument(0));
 			return null;
@@ -303,6 +310,35 @@ public class MqttAdapterTests {
 		MqttIntegrationEvent event = events.poll(10, TimeUnit.SECONDS);
 		assertThat(event).isInstanceOf(MqttSubscribedEvent.class);
 		assertThat(((MqttSubscribedEvent) event).getMessage()).isEqualTo("Connected and subscribed to [baz, fix]");
+
+		adapter.setConverter(new MqttMessageConverter() {
+
+			@Override
+			public AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage) {
+				return null;
+			}
+
+			@Override
+			public Object fromMessage(Message<?> message, Class<?> targetClass) {
+				return null;
+			}
+
+			@Override
+			public Message<?> toMessage(Object payload, MessageHeaders headers) {
+				return null;
+			}
+
+		});
+
+		callback.get().messageArrived("baz", message);
+
+		ErrorMessage errorMessage = (ErrorMessage) errorChannel.receive(0);
+		assertThat(errorMessage).isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(IllegalStateException.class);
+		IllegalStateException exception = (IllegalStateException) errorMessage.getPayload();
+		assertThat(exception).hasMessage("'MqttMessageConverter' returned 'null'");
+		assertThat(errorMessage.getOriginalMessage().getPayload()).isSameAs(message);
 
 		// lose connection and make first reconnect fail
 		failConnection.set(true);
@@ -426,7 +462,7 @@ public class MqttAdapterTests {
 		// the following assertion should be equalTo, but leq to protect against a slow CI server
 		assertThat(attemptingReconnectCount.get()).isLessThanOrEqualTo(2);
 		AtomicReference<Object> failed = new AtomicReference<>();
-		adapter.setApplicationEventPublisher(event -> failed.set(event));
+		adapter.setApplicationEventPublisher(failed::set);
 		adapter.connectionLost(new IllegalStateException());
 		assertThat(failed.get()).isInstanceOf(MqttConnectionFailedEvent.class);
 		adapter.stop();
@@ -458,8 +494,7 @@ public class MqttAdapterTests {
 		new DirectFieldAccessor(client).setPropertyValue("aClient", aClient);
 		willAnswer(new CallsRealMethods()).given(client).connect(any(MqttConnectOptions.class));
 		willAnswer(new CallsRealMethods()).given(client).subscribe(any(String[].class), any(int[].class));
-		willAnswer(new CallsRealMethods()).given(client).subscribe(any(String[].class), any(int[].class),
-				(IMqttMessageListener[]) isNull());
+		willAnswer(new CallsRealMethods()).given(client).subscribe(any(String[].class), any(int[].class), isNull());
 		willReturn(alwaysComplete).given(aClient).connect(any(MqttConnectOptions.class), any(), any());
 
 		IMqttToken token = mock(IMqttToken.class);
@@ -507,8 +542,7 @@ public class MqttAdapterTests {
 		new DirectFieldAccessor(client).setPropertyValue("aClient", aClient);
 		willAnswer(new CallsRealMethods()).given(client).connect(any(MqttConnectOptions.class));
 		willAnswer(new CallsRealMethods()).given(client).subscribe(any(String[].class), any(int[].class));
-		willAnswer(new CallsRealMethods()).given(client).subscribe(any(String[].class), any(int[].class),
-				(IMqttMessageListener[]) isNull());
+		willAnswer(new CallsRealMethods()).given(client).subscribe(any(String[].class), any(int[].class), isNull());
 		willReturn(alwaysComplete).given(aClient).connect(any(MqttConnectOptions.class), any(), any());
 
 		IMqttToken token = mock(IMqttToken.class);
@@ -539,8 +573,51 @@ public class MqttAdapterTests {
 		verify(client).disconnectForcibly(5_000L);
 	}
 
+	@Test
+	public void testNoNPEOnReconnectAndStopRaceCondition() throws Exception {
+		final IMqttClient client = mock(IMqttClient.class);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null, ConsumerStopAction.UNSUBSCRIBE_NEVER);
+		adapter.setRecoveryInterval(10);
+
+		MqttException mqttException = new MqttException(MqttException.REASON_CODE_SUBSCRIBE_FAILED);
+
+		willThrow(mqttException)
+				.given(client)
+				.subscribe(any(), ArgumentMatchers.<int[]>any());
+
+		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
+		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
+		CountDownLatch exceptionLatch = new CountDownLatch(1);
+		ArgumentCaptor<MqttException> mqttExceptionArgumentCaptor = ArgumentCaptor.forClass(MqttException.class);
+		willAnswer(i -> {
+			exceptionLatch.countDown();
+			return null;
+		})
+				.given(logger)
+				.error(mqttExceptionArgumentCaptor.capture(), eq("Exception while connecting and subscribing"));
+
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+
+		adapter.setApplicationEventPublisher(event -> {
+			if (event instanceof MqttConnectionFailedEvent) {
+				adapter.destroy();
+			}
+		});
+		adapter.start();
+
+		assertThat(exceptionLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(mqttExceptionArgumentCaptor.getValue())
+				.isNotNull()
+				.isSameAs(mqttException);
+
+		taskScheduler.destroy();
+	}
+
 	private MqttPahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttClient client, Boolean cleanSession,
-			ConsumerStopAction action) throws MqttException {
+			ConsumerStopAction action) {
+
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory() {
 
 			@Override
@@ -567,11 +644,11 @@ public class MqttAdapterTests {
 		return adapter;
 	}
 
-	private MqttPahoMessageHandler buildAdapterOut(final IMqttAsyncClient client) throws MqttException {
+	private MqttPahoMessageHandler buildAdapterOut(final IMqttAsyncClient client) {
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory() {
 
 			@Override
-			public IMqttAsyncClient getAsyncClientInstance(String uri, String clientId) throws MqttException {
+			public IMqttAsyncClient getAsyncClientInstance(String uri, String clientId) {
 				return client;
 			}
 

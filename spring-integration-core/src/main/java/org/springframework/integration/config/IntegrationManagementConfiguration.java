@@ -65,12 +65,11 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 	@Bean(name = IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public IntegrationManagementConfigurer managementConfigurer(ObjectProvider<MetricsCaptor> metricsCaptorProvider) {
-
 		IntegrationManagementConfigurer configurer = new IntegrationManagementConfigurer();
 		configurer.setDefaultLoggingEnabled(
 				Boolean.parseBoolean(this.environment.resolvePlaceholders(
 						(String) this.attributes.get("defaultLoggingEnabled"))));
-		configurer.setMetricsCaptor(metricsCaptorProvider.getIfUnique());
+		configurer.setMetricsCaptorProvider(metricsCaptorProvider);
 		return configurer;
 	}
 

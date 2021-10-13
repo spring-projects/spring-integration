@@ -19,13 +19,8 @@ Exception logging (debug or otherwise) is not affected by this setting.
 The following listing shows the available options for controlling logging:
 
 ====
-[source, xml]
-----
-<int:management default-logging-enabled="true"/> <1>
-
-----
-
-[source, java]
+[source, java, role="primary"]
+.Java
 ----
 @Configuration
 @EnableIntegration
@@ -36,12 +31,16 @@ public static class ContextConfiguration {
 ...
 }
 ----
-====
-
+[source, xml, role="secondary"]
+.XML
+----
+<int:management default-logging-enabled="true"/> <1>
+----
 <1> Set to `false` to disable all logging in the main message flow, regardless of the log system category settings.
 Set to 'true' to enable debug logging (if also enabled by the logging subsystem).
 Only applied if you have not explicitly configured the setting in a bean definition.
 The default is `true`.
+====
 
 IMPORTANT: `defaultLoggingEnabled` is applied only if you have not explicitly configured the corresponding setting in a bean definition.
 
@@ -104,7 +103,7 @@ In addition, there are three `Gauge` Meters:
 * `spring.integration.sources`: The number of `MessageSources` in the application.
 
 It is possible to customize the names and tags of `Meters` created by integration components by providing a subclass of `MicrometerMetricsCaptor`.
-The https://github.com/spring-projects/spring-integration/blob/master/spring-integration-core/src/test/java/org/springframework/integration/support/management/micrometer/MicrometerCustomMetricsTests.java[MicrometerCustomMetricsTests] test case shows a simple example of how to do that.
+The https://github.com/spring-projects/spring-integration/blob/main/spring-integration-core/src/test/java/org/springframework/integration/support/management/micrometer/MicrometerCustomMetricsTests.java[MicrometerCustomMetricsTests] test case shows a simple example of how to do that.
 You can also further customize the meters by overloading the `build()` methods on builder subclasses.
 
 Starting with version 5.1.13, the `QueueChannel` exposes Micrometer gauges for queue size and remaining capacity:
@@ -151,3 +150,7 @@ registry.config().meterFilter(MeterFilter.deny(id ->
         "noMeters".equals(id.getTag("name"))));
 ----
 ====
+
+==== Spring Integration JMX Support
+
+Also see <<./jmx.adoc#jmx,JMX Support>>.

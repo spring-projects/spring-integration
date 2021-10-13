@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -93,7 +94,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 				}
 				if ("gateway".equals(child.getLocalName())) {
 					BeanDefinitionBuilder gwBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-							IntegrationConfigUtils.BASE_PACKAGE + ".gateway.RequestReplyMessageHandlerAdapter");
+							IntegrationContextUtils.BASE_PACKAGE + ".gateway.RequestReplyMessageHandlerAdapter");
 					gwBuilder.addConstructorArgValue(childBeanMetadata);
 					handlerList.add(gwBuilder.getBeanDefinition());
 				}

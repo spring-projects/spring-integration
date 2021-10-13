@@ -19,8 +19,6 @@ package org.springframework.integration.redis.inbound;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
-import org.jetbrains.annotations.Nullable;
-
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -39,6 +37,7 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
@@ -80,8 +79,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
 	private boolean extractPayload = true;
-
-	private volatile boolean active;
 
 	private volatile boolean listening;
 
@@ -173,7 +170,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 
 	private void handlePopException(Exception e) {
 		this.listening = false;
-		if (this.active) {
+		if (isActive()) {
 			logger.error(e, () ->
 					"Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
 							+ " milliseconds.");
@@ -196,7 +193,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		}
 		String uuid;
 		if (value != null) {
-			if (!this.active) {
+			if (!isActive()) {
 				this.boundListOperations.rightPush(value);
 				return;
 			}
@@ -219,7 +216,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 
 	@SuppressWarnings("unchecked")
 	private void getRequestSendAndProduceReply(byte[] value, String uuid) {
-		if (!this.active) {
+		if (!isActive()) {
 			this.template.boundListOps(uuid).rightPush(value);
 			byte[] serialized = StringRedisSerializer.UTF_8.serialize(uuid);
 			if (serialized != null) {
@@ -297,10 +294,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	@Override
 	protected void doStart() {
 		super.doStart();
-		if (!this.active) {
-			this.active = true;
-			this.restart();
-		}
+		restart();
 	}
 
 	/**
@@ -341,7 +335,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	@Override
 	protected void doStop() {
 		super.doStop();
-		this.active = false;
 		this.listening = false;
 	}
 
@@ -383,13 +376,13 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		@Override
 		public void run() {
 			try {
-				while (RedisQueueInboundGateway.this.active) {
+				while (isActive()) {
 					RedisQueueInboundGateway.this.listening = true;
 					receiveAndReply();
 				}
 			}
 			finally {
-				if (RedisQueueInboundGateway.this.active) {
+				if (isActive()) {
 					restart();
 				}
 				else if (RedisQueueInboundGateway.this.stopCallback != null) {

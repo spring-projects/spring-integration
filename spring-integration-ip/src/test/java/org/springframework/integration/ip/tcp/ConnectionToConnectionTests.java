@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,7 @@ public class ConnectionToConnectionTests {
 	@SuppressWarnings("unchecked")
 	private void testConnectGuts(AbstractClientConnectionFactory client, AbstractServerConnectionFactory server,
 			String gatewayName, boolean expectExceptionOnClose) throws Exception {
+
 		TestingUtilities.waitListening(server, null);
 		client.setPort(server.getPort());
 		client.start();

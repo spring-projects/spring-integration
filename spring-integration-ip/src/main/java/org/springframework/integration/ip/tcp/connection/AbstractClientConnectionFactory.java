@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
@@ -33,6 +34,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.0
  *
@@ -53,7 +55,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	private volatile TcpConnectionSupport theConnection;
 
 	/**
-	 * Constructs a factory that will established connections to the host and port.
+	 * Construct a factory that will established connections to the host and port.
 	 * @param host The host.
 	 * @param port The port.
 	 */
@@ -108,7 +110,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	}
 
 	/**
-	 * Obtains a connection - if {@link #setSingleUse(boolean)} was called with
+	 * Obtain a connection - if {@link #setSingleUse(boolean)} was called with
 	 * true, a new connection is returned; otherwise a single connection is
 	 * reused for all requests while the connection remains open.
 	 * @throws InterruptedException if interrupted.
@@ -158,7 +160,6 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 					return connection;
 				}
 			}
-
 			return doObtain(singleUse);
 		}
 		catch (RuntimeException e) {
@@ -177,9 +178,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 
 	private TcpConnectionSupport doObtain(boolean singleUse) {
 		TcpConnectionSupport connection;
-		if (logger.isDebugEnabled()) {
-			logger.debug("Opening new socket connection to " + getHost() + ":" + getPort());
-		}
+		logger.debug(() -> "Opening new socket connection to " + getHost() + ":" + getPort());
 
 		connection = buildNewConnection();
 		if (this.connectionTest != null && !this.connectionTest.test(connection)) {
@@ -190,7 +189,6 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		if (!singleUse) {
 			setTheConnection(connection);
 		}
-		connection.publishConnectionOpenEvent();
 		return connection;
 	}
 
@@ -200,7 +198,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	}
 
 	/**
-	 * Transfers attributes such as (de)serializers, singleUse etc to a new connection.
+	 * Transfer attributes such as (de)serializers, singleUse etc to a new connection.
 	 * When the connection factory has a reference to a TCPListener (to read
 	 * responses), or for single use connections, the connection is executed.
 	 * Single use connections need to read from the connection in order to
@@ -245,11 +243,10 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	/**
 	 * Force close the connection and null the field if it's
 	 * a shared connection.
-	 *
 	 * @param connection The connection.
 	 */
 	public void forceClose(TcpConnection connection) {
-		if (this.theConnection == connection) {
+		if (Objects.equals(this.theConnection, connection)) {
 			this.theConnection = null;
 		}
 		connection.close();

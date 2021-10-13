@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	   xmlns:task="http://www.springframework.org/schema/task" xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task https://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/integration/jms https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+
+	<int:gateway id="multiOutGateway" default-request-channel="outGatewayInChannel"/>
+
+	<int:channel id="outGatewayInChannel">
+		<int:dispatcher task-executor="executor"/>
+	</int:channel>
+
+	<int-jms:outbound-gateway request-channel="outGatewayInChannel"
+		receive-timeout="20000"
+		connection-factory="jmsConnectionFactory"
+		request-destination-name="multiOutGatewayTempQueue"
+		correlation-key="JMSCorrelationID"/>
+
+	<int-jms:inbound-gateway request-channel="jmsInChannel"
+						     request-destination-name="multiOutGatewayTempQueue"
+							 connection-factory="jmsConnectionFactory"
+							 concurrent-consumers="10"
+							 reply-timeout="20000"/>
+
+	<int:channel id="jmsInChannel">
+		<int:dispatcher task-executor="executor"/>
+	</int:channel>
+
+	<int:service-activator input-channel="jmsInChannel">
+		<bean class="org.springframework.integration.jms.request_reply.RequestReplyScenariosWithTempReplyQueuesTests.MyRandomlySlowService"/>
+	</int:service-activator>
+
+	<util:constant id="jmsConnectionFactory"
+				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.connectionFactory"/>
+
+	<task:executor id="executor" pool-size="20"/>
+
+</beans>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,27 @@ package org.springframework.integration.file.remote.synchronizer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.integration.file.HeadDirectoryScanner;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.ChainFileListFilter;
@@ -78,8 +84,10 @@ public class AbstractRemoteFileSynchronizerTests {
 			}
 
 			@Override
-			protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, String remoteFile,
+			protected boolean copyFileToLocalDirectory(String remoteDirectoryPath,
+					EvaluationContext localFileEvaluationContext, String remoteFile,
 					File localDirectory, Session<String> session) throws IOException {
+
 				if ("bar".equals(remoteFile) && failWhenCopyingBar.getAndSet(false)) {
 					throw new IOException("fail");
 				}
@@ -209,13 +217,60 @@ public class AbstractRemoteFileSynchronizerTests {
 		assertThat(count.get()).isEqualTo(1);
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testScannerAndWatchServiceConflict() {
 		final AtomicInteger count = new AtomicInteger();
 		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(count);
 		source.setUseWatchService(true);
 		source.setScanner(new HeadDirectoryScanner(1));
-		source.afterPropertiesSet();
+		assertThatIllegalStateException()
+				.isThrownBy(source::afterPropertiesSet);
+	}
+
+	@Test
+	public void testRemoteDirectoryRefreshedOnEachSynchronization(@TempDir File localDir) {
+		AbstractInboundFileSynchronizer<String> sync =
+				new AbstractInboundFileSynchronizer<String>(new StringSessionFactory()) {
+
+					@Override
+					protected boolean isFile(String file) {
+						return true;
+					}
+
+					@Override
+					protected String getFilename(String file) {
+						return file;
+					}
+
+					@Override
+					protected long getModified(String file) {
+						return 0;
+					}
+
+					@Override
+					protected String protocol() {
+						return "mock";
+					}
+
+				};
+
+		Queue<String> remoteDirs = new LinkedList<>();
+		remoteDirs.add("dir1");
+		remoteDirs.add("dir2");
+		sync.setRemoteDirectoryExpression(new SupplierExpression<>(remoteDirs::poll));
+		sync.setLocalFilenameGeneratorExpressionString("#remoteDirectory+'/'+#root");
+		sync.setBeanFactory(mock(BeanFactory.class));
+		sync.afterPropertiesSet();
+
+		sync.synchronizeToLocalDirectory(localDir);
+		sync.synchronizeToLocalDirectory(localDir);
+
+		/*Files.find(localDir.toPath(),
+				Integer.MAX_VALUE,
+				(filePath, fileAttr) -> fileAttr.isRegularFile())
+				.forEach(System.out::println);*/
+
+		assertThat(localDir.list()).contains("dir1", "dir2");
 	}
 
 	private AbstractInboundFileSynchronizingMessageSource<String> createSource(AtomicInteger count) {
@@ -267,8 +322,10 @@ public class AbstractRemoteFileSynchronizerTests {
 			}
 
 			@Override
-			protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, String remoteFile,
+			protected boolean copyFileToLocalDirectory(String remoteDirectoryPath,
+					EvaluationContext localFileEvaluationContext, String remoteFile,
 					File localDirectory, Session<String> session) {
+
 				count.incrementAndGet();
 				return true;
 			}
@@ -301,7 +358,7 @@ public class AbstractRemoteFileSynchronizerTests {
 
 		@Override
 		public String[] list(String path) {
-			return new String[] { "foo", "bar", "baz" };
+			return new String[]{ "foo", "bar", "baz" };
 		}
 
 		@Override
@@ -366,7 +423,7 @@ public class AbstractRemoteFileSynchronizerTests {
 
 		@Override
 		public String getHostPort() {
-			return null;
+			return "mock:6666";
 		}
 
 	}

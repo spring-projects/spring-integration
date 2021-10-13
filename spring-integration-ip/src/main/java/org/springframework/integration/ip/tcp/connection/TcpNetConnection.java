@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2020 the original author or authors.
+ * Copyright 2001-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			if (this.socketOutputStream == null) {
 				int writeBufferSize = this.socket.getSendBufferSize();
 				this.socketOutputStream = new BufferedOutputStream(this.socket.getOutputStream(),
-						writeBufferSize > 0 ? writeBufferSize : 8192);
+						writeBufferSize > 0 ? writeBufferSize : 8192); // NOSONAR magic number
 			}
 			Object object = getMapper().fromMessage(message);
 			Assert.state(object != null, "Mapper mapped the message to 'null'.");
@@ -189,9 +189,10 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	 */
 	@Override
 	public void run() {
-		if (logger.isDebugEnabled()) {
-			logger.debug(getConnectionId() + " Reading...");
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug(getConnectionId() + " Reading...");
 		}
+		publishConnectionOpenEvent();
 		while (true) {
 			if (!receiveAndProcessMessage()) {
 				break;

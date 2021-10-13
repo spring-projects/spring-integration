@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +133,7 @@ public class CharacterStreamReadingMessageSource extends AbstractMessageSource<S
 	 * Create a source that reads from {@link System#in}. EOF will not be detected.
 	 * @return the stream.
 	 */
-	public static final CharacterStreamReadingMessageSource stdin() {
+	public static CharacterStreamReadingMessageSource stdin() {
 		return new CharacterStreamReadingMessageSource(new InputStreamReader(System.in));
 	}
 
@@ -142,7 +142,7 @@ public class CharacterStreamReadingMessageSource extends AbstractMessageSource<S
 	 * @param charsetName the charset to use when converting bytes to String.
 	 * @return the stream.
 	 */
-	public static final CharacterStreamReadingMessageSource stdin(String charsetName) {
+	public static CharacterStreamReadingMessageSource stdin(String charsetName) {
 		try {
 			return new CharacterStreamReadingMessageSource(new InputStreamReader(System.in, charsetName));
 		}
@@ -155,10 +155,10 @@ public class CharacterStreamReadingMessageSource extends AbstractMessageSource<S
 	 * Create a source that reads from {@link System#in}. EOF will be detected and the application
 	 * context closed.
 	 * @return the stream.
-	 * @see CharacterStreamReadingMessageSource#CharacterStreamReadingMessageSource(Reader, int, boolean)
 	 * @since 5.0
+	 * @see CharacterStreamReadingMessageSource#CharacterStreamReadingMessageSource(Reader, int, boolean)
 	 */
-	public static final CharacterStreamReadingMessageSource stdinPipe() {
+	public static CharacterStreamReadingMessageSource stdinPipe() {
 		return new CharacterStreamReadingMessageSource(new InputStreamReader(System.in), -1, true);
 	}
 
@@ -167,10 +167,10 @@ public class CharacterStreamReadingMessageSource extends AbstractMessageSource<S
 	 * context closed.
 	 * @param charsetName the charset to use when converting bytes to String.
 	 * @return the stream.
-	 * @see CharacterStreamReadingMessageSource#CharacterStreamReadingMessageSource(Reader, int, boolean)
 	 * @since 5.0
+	 * @see CharacterStreamReadingMessageSource#CharacterStreamReadingMessageSource(Reader, int, boolean)
 	 */
-	public static final CharacterStreamReadingMessageSource stdinPipe(String charsetName) {
+	public static CharacterStreamReadingMessageSource stdinPipe(String charsetName) {
 		try {
 			return new CharacterStreamReadingMessageSource(new InputStreamReader(System.in, charsetName), -1, true);
 		}

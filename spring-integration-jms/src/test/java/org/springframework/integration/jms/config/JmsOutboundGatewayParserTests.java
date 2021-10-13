@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.jms.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +29,7 @@ import javax.jms.Destination;
 import javax.jms.Queue;
 import javax.jms.Session;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.NotReadablePropertyException;
@@ -106,7 +106,7 @@ public class JmsOutboundGatewayParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("advised");
 		JmsOutboundGateway gateway = TestUtils.getPropertyValue(endpoint, "handler", JmsOutboundGateway.class);
 		assertThat(TestUtils.getPropertyValue(gateway, "async", Boolean.class)).isFalse();
-		gateway.handleMessage(new GenericMessage<String>("foo"));
+		gateway.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 		assertThat(TestUtils.getPropertyValue(gateway, "replyContainer.sessionAcknowledgeMode")).isEqualTo(3);
 		context.close();
@@ -169,15 +169,17 @@ public class JmsOutboundGatewayParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("jmsGatewayDestExpression");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
-		ExpressionEvaluatingMessageProcessor<?> processor = TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor",
-				ExpressionEvaluatingMessageProcessor.class);
+		ExpressionEvaluatingMessageProcessor<?> processor =
+				TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor",
+						ExpressionEvaluatingMessageProcessor.class);
 		Expression expression = TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor.expression",
 				Expression.class);
 		assertThat(expression.getExpressionString()).isEqualTo("payload");
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		assertThat(processor.processMessage(message)).isEqualTo("foo");
 
-		Method method = JmsOutboundGateway.class.getDeclaredMethod("determineReplyDestination", Message.class, Session.class);
+		Method method =
+				JmsOutboundGateway.class.getDeclaredMethod("determineReplyDestination", Message.class, Session.class);
 		method.setAccessible(true);
 
 		Session session = mock(Session.class);
@@ -195,8 +197,9 @@ public class JmsOutboundGatewayParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("jmsGatewayDestExpressionBeanRef");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
-		ExpressionEvaluatingMessageProcessor<?> processor = TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor",
-				ExpressionEvaluatingMessageProcessor.class);
+		ExpressionEvaluatingMessageProcessor<?> processor =
+				TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor",
+						ExpressionEvaluatingMessageProcessor.class);
 		Expression expression = TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor.expression",
 				Expression.class);
 		assertThat(expression.getExpressionString()).isEqualTo("@replyQueue");
@@ -206,22 +209,16 @@ public class JmsOutboundGatewayParserTests {
 
 	@Test
 	public void gatewayWithDestAndDestExpression() {
-		try {
-			new ClassPathXmlApplicationContext(
-				"jmsOutboundGatewayReplyDestOptions-fail.xml", this.getClass()).close();
-			fail("Exception expected");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage().startsWith("Configuration problem: Only one of the " +
-					"'replyQueue', 'reply-destination-name', or 'reply-destination-expression' attributes is allowed" +
-					"."))
-					.isTrue();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("jmsOutboundGatewayReplyDestOptions-fail.xml", getClass()))
+				.withMessageStartingWith("Configuration problem: Only one of the " +
+						"'replyQueue', 'reply-destination-name', or 'reply-destination-expression' " +
+						"attributes is allowed.");
 	}
 
 	@Test
 	public void gatewayMaintainsReplyChannelAndInboundHistory() {
-		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"gatewayMaintainsReplyChannel.xml", this.getClass());
 		SampleGateway gateway = context.getBean("gateway", SampleGateway.class);

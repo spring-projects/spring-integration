@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,23 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class PollerMetadata {
 
+	/**
+	 * The constant for unlimited number of message to poll in one cycle.
+	 */
 	public static final int MAX_MESSAGES_UNBOUNDED = Integer.MIN_VALUE;
 
+	/**
+	 * The default receive timeout as one second.
+	 */
+	public static final long DEFAULT_RECEIVE_TIMEOUT = 1000;
+
+	/**
+	 * The bean name for global default poller.
+	 */
 	public static final String DEFAULT_POLLER_METADATA_BEAN_NAME =
 			"org.springframework.integration.context.defaultPollerMetadata";
 
@@ -44,21 +56,21 @@ public class PollerMetadata {
 	 */
 	public static final String DEFAULT_POLLER = DEFAULT_POLLER_METADATA_BEAN_NAME;
 
-	private volatile Trigger trigger;
+	private Trigger trigger;
 
-	private volatile long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED;
+	private long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED;
 
-	private volatile long receiveTimeout = 1000;
+	private long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
-	private volatile ErrorHandler errorHandler;
+	private ErrorHandler errorHandler;
 
-	private volatile List<Advice> adviceChain;
+	private List<Advice> adviceChain;
 
-	private volatile Executor taskExecutor;
+	private Executor taskExecutor;
 
-	private volatile long sendTimeout;
+	private long sendTimeout;
 
-	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
+	private TransactionSynchronizationFactory transactionSynchronizationFactory;
 
 
 	public void setTransactionSynchronizationFactory(
@@ -91,11 +103,8 @@ public class PollerMetadata {
 	 * Set the maximum number of messages to receive for each poll.
 	 * A non-positive value indicates that polling should repeat as long
 	 * as non-null messages are being received and successfully sent.
-	 *
 	 * <p>The default is unbounded.
-	 *
 	 * @param maxMessagesPerPoll The maxMessagesPerPoll to set.
-	 *
 	 * @see #MAX_MESSAGES_UNBOUNDED
 	 */
 	public void setMaxMessagesPerPoll(long maxMessagesPerPoll) {

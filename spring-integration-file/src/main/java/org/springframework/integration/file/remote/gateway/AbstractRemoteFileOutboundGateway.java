@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.PartialSuccessException;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -65,6 +66,8 @@ import org.springframework.util.StringUtils;
 
 /**
  * Base class for Outbound Gateways that perform remote file operations.
+ *
+ * @param <F> the file type.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -96,6 +99,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * A {@link FileListFilter} that runs against the <em>remote</em> file system view.
 	 */
 	private FileListFilter<F> filter;
+
+	private boolean filterAfterEnhancement;
 
 	/**
 	 * A {@link FileListFilter} that runs against the <em>local</em> file system view when
@@ -402,6 +407,15 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	public void setFilter(FileListFilter<F> filter) {
 		this.filter = filter;
+		this.filterAfterEnhancement = filter != null
+				&& filter.isForRecursion()
+				&& filter.supportsSingleFileFiltering()
+				&& this.options.contains(Option.RECURSIVE);
+		if (filter != null && !filter.isForRecursion()) {
+			this.logger.warn("When using recursion, you will normally want to set the filter's "
+					+ "'forRecursion' property; otherwise files added deep into the "
+					+ "directory tree may not be detected");
+		}
 	}
 
 	/**
@@ -469,8 +483,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	/**
 	 * String setter for Spring XML convenience.
 	 * @param chmod permissions as an octal string e.g "600";
-	 * @see #setChmod(int)
 	 * @since 4.3
+	 * @see #setChmod(int)
 	 */
 	public void setChmodOctal(String chmod) {
 		Assert.notNull(chmod, "'chmod' cannot be null");
@@ -586,38 +600,36 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	private Object doLs(Message<?> requestMessage) {
-		String dir = this.fileNameProcessor != null
-				? this.fileNameProcessor.processMessage(requestMessage)
-				: null;
-		if (dir != null && !dir.endsWith(this.remoteFileTemplate.getRemoteFileSeparator())) {
-			dir += this.remoteFileTemplate.getRemoteFileSeparator();
-		}
-		final String fullDir = dir;
+		String dir = obtainRemoteDir(requestMessage);
 		return this.remoteFileTemplate.execute(session -> {
-			List<?> payload = ls(requestMessage, session, fullDir);
+			List<?> payload = ls(requestMessage, session, dir);
 			return getMessageBuilderFactory()
 					.withPayload(payload)
-					.setHeader(FileHeaders.REMOTE_DIRECTORY, fullDir)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
 					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
 		});
 
 	}
 
 	private Object doNlst(Message<?> requestMessage) {
+		String dir = obtainRemoteDir(requestMessage);
+		return this.remoteFileTemplate.execute(session -> {
+			List<?> payload = nlst(requestMessage, session, dir);
+			return getMessageBuilderFactory()
+					.withPayload(payload)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
+					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
+		});
+	}
+
+	private String obtainRemoteDir(Message<?> requestMessage) {
 		String dir = this.fileNameProcessor != null
 				? this.fileNameProcessor.processMessage(requestMessage)
 				: null;
 		if (dir != null && !dir.endsWith(this.remoteFileTemplate.getRemoteFileSeparator())) {
 			dir += this.remoteFileTemplate.getRemoteFileSeparator();
 		}
-		final String fullDir = dir;
-		return this.remoteFileTemplate.execute(session -> {
-			List<?> payload = nlst(requestMessage, session, fullDir);
-			return getMessageBuilderFactory()
-					.withPayload(payload)
-					.setHeader(FileHeaders.REMOTE_DIRECTORY, fullDir)
-					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
-		});
+		return dir;
 	}
 
 	/**
@@ -945,12 +957,19 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		List<F> lsFiles = new ArrayList<>();
 		String remoteDirectory = buildRemotePath(directory, subDirectory);
 
-		F[] files = session.list(remoteDirectory);
-		boolean recursion = this.options.contains(Option.RECURSIVE);
+		F[] list = session.list(remoteDirectory);
+		List<F> files;
+		if (!this.filterAfterEnhancement) {
+			files = filterFiles(list);
+		}
+		else {
+			files = Arrays.asList(list);
+		}
 		if (!ObjectUtils.isEmpty(files)) {
-			for (F file : filterFiles(files)) {
+			for (F file : files) {
 				if (file != null) {
-					processFile(session, directory, subDirectory, lsFiles, recursion, file);
+					processFile(session, directory, subDirectory, lsFiles, this.options.contains(Option.RECURSIVE),
+							file);
 				}
 			}
 		}
@@ -963,7 +982,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			remotePath = (parent + child);
 		}
 		else if (StringUtils.hasText(child)) {
-			remotePath = "." + this.remoteFileTemplate.getRemoteFileSeparator() + child;
+			remotePath = '.' + this.remoteFileTemplate.getRemoteFileSeparator() + child;
 		}
 		return remotePath;
 	}
@@ -972,22 +991,46 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
 	}
 
-	private void processFile(Session<F> session, String directory, String subDirectory, List<F> lsFiles,
-			boolean recursion, F file) throws IOException {
+	protected final F filterFile(F file) {
+		if (this.filter.accept(file)) {
+			return file;
+		}
+		else {
+			return null;
+		}
+	}
 
-		if (this.options.contains(Option.SUBDIRS) || !isDirectory(file)) {
-			if (recursion && StringUtils.hasText(subDirectory)) {
-				lsFiles.add(enhanceNameWithSubDirectory(file, subDirectory));
-			}
-			else {
-				lsFiles.add(file);
-			}
+	private void processFile(Session<F> session, String directory, String subDirectory, // NOSONAR - complexity
+			List<F> lsFiles, boolean recursion, F file) throws IOException {
+
+		F fileToAdd = file;
+		if (recursion && StringUtils.hasText(subDirectory)) {
+			fileToAdd = enhanceNameWithSubDirectory(file, subDirectory);
 		}
-		String fileName = getFilename(file);
-		if (recursion && isDirectory(file) && !(".".equals(fileName)) && !("..".equals(fileName))) {
+		if (this.filterAfterEnhancement && !this.filter.accept(fileToAdd)) {
+			return;
+		}
+		String fileName = getFilename(fileToAdd);
+		final boolean isDirectory = isDirectory(file);
+		boolean isDots = hasDots(fileName);
+		if ((this.options.contains(Option.SUBDIRS) || !isDirectory)
+				&& (!isDots || this.options.contains(Option.ALL))) {
+
+			lsFiles.add(fileToAdd);
+		}
+
+		if (recursion && isDirectory && !isDots) {
 			lsFiles.addAll(listFilesInRemoteDir(session, directory,
-					subDirectory + fileName + this.remoteFileTemplate.getRemoteFileSeparator()));
+					fileName + this.remoteFileTemplate.getRemoteFileSeparator()));
 		}
+	}
+
+	private boolean hasDots(String fileName) {
+		String fileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
+		return ".".equals(fileName)
+				|| "..".equals(fileName)
+				|| fileName.endsWith(fileSeparator + ".")
+				|| fileName.endsWith(fileSeparator + "..");
 	}
 
 	protected final List<File> filterMputFiles(File[] files) {
@@ -1055,7 +1098,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			try {
 				session.read(remoteFilePath, outputStream);
 			}
-			catch (Exception e) {
+			catch (Exception ex) {
 				/* Some operation systems acquire exclusive file-lock during file processing
 				   and the file can't be deleted without closing streams before.
 				*/
@@ -1064,12 +1107,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					this.logger.warn(() -> "Failed to delete tempFile " + tempFile);
 				}
 
-				if (e instanceof RuntimeException) {
-					throw (RuntimeException) e;
-				}
-				else {
-					throw new MessagingException("Failure occurred while copying from remote to local directory", e);
-				}
+				throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+						() -> "Failure occurred while copying from remote to local directory", ex);
 			}
 			finally {
 				try {
@@ -1085,6 +1124,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			if ((this.options.contains(Option.PRESERVE_TIMESTAMP)
 					|| FileExistsMode.REPLACE_IF_MODIFIED.equals(existsMode))
 					&& (!localFile.setLastModified(getModified(fileInfo)))) {
+
 				logger.warn(() -> "Failed to set lastModified on " + localFile);
 			}
 			if (this.options.contains(Option.DELETE)) {
@@ -1092,8 +1132,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				if (!result) {
 					logger.error("Failed to delete: " + remoteFilePath);
 				}
-				else if (logger.isDebugEnabled()) {
-					logger.debug(remoteFilePath + " deleted");
+				else {
+					logger.debug(() -> remoteFilePath + " deleted");
 				}
 			}
 		}
@@ -1391,7 +1431,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		EXCEPTION_WHEN_EMPTY("-x"),
 
 		/**
-		 * (-R) Recursive (ls, mget)
+		 * (-R) Recursive (ls, mget).
 		 */
 		RECURSIVE("-R"),
 

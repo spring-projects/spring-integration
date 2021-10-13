@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
+import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler.ProducerRecordCreator;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.KafkaHeaderMapper;
@@ -236,8 +237,8 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	}
 
 	/**
-	 * Configure a SpEL expression to determine whether or not to flush the producer after
-	 * a send. By default the producer is flushed if a header {@code kafka_flush} has a
+	 * Configure a SpEL expression to determine whether to flush the producer after
+	 * a send. By default, the producer is flushed if a header {@code kafka_flush} has a
 	 * value {@link Boolean#TRUE}.
 	 * @param flushExpression the timestamp expression to use.
 	 * @return the spec.
@@ -248,8 +249,8 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 
 	/**
 	 * Configure a {@link Function} that will be invoked at runtime to determine whether
-	 * or not to flush the producer after a send. By default the producer is flushed if a
-	 * header {@code kafka_flush} has a value {@link Boolean#TRUE}. Typically used with a
+	 * to flush the producer after send. By default, the producer is flushed if a
+	 * header {@code kafka_flush} has a value {@link Boolean#TRUE}. Typically, used with a
 	 * Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
@@ -265,8 +266,8 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	}
 
 	/**
-	 * Configure an {@link Expression} to determine whether or not to flush the producer
-	 * after a send. By default the producer is flushed if a header {@code kafka_flush}
+	 * Configure an {@link Expression} to determine whether to flush the producer
+	 * after a send. By default, the producer is flushed if a header {@code kafka_flush}
 	 * has a value {@link Boolean#TRUE}.
 	 * @param flushExpression the timestamp expression to use.
 	 * @return the spec.
@@ -290,7 +291,7 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 
 	/**
 	 * Specify a timeout in milliseconds how long {@link KafkaProducerMessageHandler}
-	 * should wait wait for send operation results. Defaults to 10 seconds.
+	 * should wait for send operation results. Defaults to 10 seconds.
 	 * @param sendTimeout the timeout to wait for result fo send operation.
 	 * @return the spec.
 	 */
@@ -376,12 +377,38 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	}
 
 	/**
+	 * Set a {@link ProducerRecordCreator} to create the {@link org.apache.kafka.clients.producer.ProducerRecord}.
+	 * Ignored if {@link #useTemplateConverter(boolean) useTemplateConverter} is true.
+	 * @param creator the creator.
+	 * @return the spec.
+	 * @since 5.5.5
+	 */
+	public S producerRecordCreator(ProducerRecordCreator<K, V> creator) {
+		this.target.setProducerRecordCreator(creator);
+		return _this();
+	}
+
+	/**
+	 * Set to true to use the template's message converter to create the
+	 * {@link org.apache.kafka.clients.producer.ProducerRecord} instead of the
+	 * {@link #producerRecordCreator(ProducerRecordCreator) producerRecordCreator}.
+	 * @param use true to use the converter.
+	 * @return the spec.
+	 * @since 5.5.5
+	 */
+	public S useTemplateConverter(boolean use) {
+		this.target.setUseTemplateConverter(use);
+		return _this();
+	}
+
+	/**
 	 * A {@link KafkaTemplate}-based {@link KafkaProducerMessageHandlerSpec} extension.
 	 *
 	 * @param <K> the key type.
 	 * @param <V> the value type.
 	 */
-	public static class KafkaProducerMessageHandlerTemplateSpec<K, V> extends KafkaProducerMessageHandlerSpec<K, V, KafkaProducerMessageHandlerTemplateSpec<K, V>>
+	public static class KafkaProducerMessageHandlerTemplateSpec<K, V>
+			extends KafkaProducerMessageHandlerSpec<K, V, KafkaProducerMessageHandlerTemplateSpec<K, V>>
 			implements ComponentsRegistration {
 
 		private final KafkaTemplateSpec<K, V> kafkaTemplateSpec;
@@ -400,6 +427,7 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 		 */
 		public KafkaProducerMessageHandlerTemplateSpec<K, V> configureKafkaTemplate(
 				Consumer<KafkaTemplateSpec<K, V>> configurer) {
+
 			Assert.notNull(configurer, "The 'configurer' cannot be null");
 			configurer.accept(this.kafkaTemplateSpec);
 			return _this();

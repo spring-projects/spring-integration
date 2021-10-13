@@ -1,5 +1,5 @@
 require "java"
-include_class 'java.util.Date'
+java_import 'java.util.Date'
 #payload and headers a global variable
 if payload
   payload = payload+" modified #{Date.new}"

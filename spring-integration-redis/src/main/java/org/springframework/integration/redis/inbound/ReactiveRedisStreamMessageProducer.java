@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@
 package org.springframework.integration.redis.inbound;
 
 import java.time.Duration;
+import java.util.function.Function;
 
+import org.reactivestreams.Publisher;
+
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -25,6 +29,7 @@ import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveStreamOperations;
+import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.stream.StreamReceiver;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -61,12 +66,14 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private final String streamKey;
 
-	private ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
-
-	private StreamReceiver.StreamReceiverOptions<String, ?> streamReceiverOptions =
+	private final StreamReceiver.StreamReceiverOptionsBuilder<String, ?> streamReceiverOptionsBuilder =
 			StreamReceiver.StreamReceiverOptions.builder()
 					.pollTimeout(Duration.ZERO)
-					.build();
+					.onErrorResume(this::handleReceiverError);
+
+	private ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
+
+	private StreamReceiver.StreamReceiverOptions<String, ?> streamReceiverOptions;
 
 	private StreamReceiver<String, ?> streamReceiver;
 
@@ -83,6 +90,8 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	private String consumerName;
 
 	private boolean createConsumerGroup;
+
+	private boolean receiverBuilderOptionSet;
 
 	public ReactiveRedisStreamMessageProducer(ReactiveRedisConnectionFactory reactiveConnectionFactory,
 			String streamKey) {
@@ -105,7 +114,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Configure this channel adapter to extract or not the message payload.
+	 * Configure this channel adapter to extract or not value from the {@link Record}.
 	 * @param extractPayload default true
 	 */
 	public void setExtractPayload(boolean extractPayload) {
@@ -152,12 +161,103 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	 * It provides a way to set the polling timeout and the serialization context.
 	 * By default the polling timeout is set to infinite and
 	 * {@link org.springframework.data.redis.serializer.StringRedisSerializer} is used.
+	 * Mutually exclusive with 'pollTimeout', 'batchSize', 'onErrorResume', 'serializer', 'targetType', 'objectMapper'.
 	 * @param streamReceiverOptions the desired receiver options
 	 * */
 	public void setStreamReceiverOptions(
 			@Nullable StreamReceiver.StreamReceiverOptions<String, ?> streamReceiverOptions) {
 
+		Assert.isTrue(!this.receiverBuilderOptionSet,
+				"The 'streamReceiverOptions' is mutually exclusive with 'pollTimeout', 'batchSize', " +
+						"'onErrorResume', 'serializer', 'targetType', 'objectMapper'");
 		this.streamReceiverOptions = streamReceiverOptions;
+	}
+
+	private void assertStreamReceiverOptions(String property) {
+		Assert.isNull(this.streamReceiverOptions,
+				() -> "'" + property + "' cannot be set when 'StreamReceiver.StreamReceiverOptions' is provided.");
+	}
+
+	/**
+	 * Configure a poll timeout for the BLOCK option during reading.
+	 * Mutually exclusive with {@link #setStreamReceiverOptions(StreamReceiver.StreamReceiverOptions)}.
+	 * @param pollTimeout the timeout for polling.
+	 * @since 5.5
+	 * @see org.springframework.data.redis.stream.StreamReceiver.StreamReceiverOptionsBuilder#pollTimeout(Duration)
+	 */
+	public void setPollTimeout(Duration pollTimeout) {
+		assertStreamReceiverOptions("pollTimeout");
+		this.streamReceiverOptionsBuilder.pollTimeout(pollTimeout);
+		this.receiverBuilderOptionSet = true;
+	}
+
+	/**
+	 * Configure a batch size for the COUNT option during reading.
+	 * Mutually exclusive with {@link #setStreamReceiverOptions(StreamReceiver.StreamReceiverOptions)}.
+	 * @param recordsPerPoll must be greater zero.
+	 * @since 5.5
+	 * @see org.springframework.data.redis.stream.StreamReceiver.StreamReceiverOptionsBuilder#batchSize(int)
+	 */
+	public void setBatchSize(int recordsPerPoll) {
+		assertStreamReceiverOptions("batchSize");
+		this.streamReceiverOptionsBuilder.batchSize(recordsPerPoll);
+		this.receiverBuilderOptionSet = true;
+	}
+
+	/**
+	 * Configure a resume Function to resume the main sequence when polling the stream fails.
+	 * Mutually exclusive with {@link #setStreamReceiverOptions(StreamReceiver.StreamReceiverOptions)}.
+	 * By default this function extract the failed {@link Record} and sends an
+	 * {@link org.springframework.messaging.support.ErrorMessage} to the provided {@link #setErrorChannel}.
+	 * The failed message for this record may have a {@link IntegrationMessageHeaderAccessor#ACKNOWLEDGMENT_CALLBACK}
+	 * header when manual acknowledgment is configured for this message producer.
+	 * @param resumeFunction must not be null.
+	 * @since 5.5
+	 * @see org.springframework.data.redis.stream.StreamReceiver.StreamReceiverOptionsBuilder#onErrorResume(Function)
+	 */
+	public void setOnErrorResume(Function<? super Throwable, ? extends Publisher<Void>> resumeFunction) {
+		assertStreamReceiverOptions("onErrorResume");
+		this.streamReceiverOptionsBuilder.onErrorResume(resumeFunction);
+		this.receiverBuilderOptionSet = true;
+	}
+
+	/**
+	 * Configure a key, hash key and hash value serializer.
+	 * Mutually exclusive with {@link #setStreamReceiverOptions(StreamReceiver.StreamReceiverOptions)}.
+	 * @param pair must not be null.
+	 * @since 5.5
+	 * @see StreamReceiver.StreamReceiverOptionsBuilder#serializer(RedisSerializationContext)
+	 */
+	public void setSerializer(RedisSerializationContext.SerializationPair<?> pair) {
+		assertStreamReceiverOptions("serializer");
+		this.streamReceiverOptionsBuilder.serializer(pair);
+		this.receiverBuilderOptionSet = true;
+	}
+
+	/**
+	 * Configure a hash target type. Changes the emitted Record type to ObjectRecord.
+	 * Mutually exclusive with {@link #setStreamReceiverOptions(StreamReceiver.StreamReceiverOptions)}.
+	 * @param targetType must not be null.
+	 * @since 5.5
+	 * @see StreamReceiver.StreamReceiverOptionsBuilder#targetType(Class)
+	 */
+	public void setTargetType(Class<?> targetType) {
+		assertStreamReceiverOptions("targetType");
+		this.streamReceiverOptionsBuilder.targetType(targetType);
+		this.receiverBuilderOptionSet = true;
+	}
+
+	/**
+	 * Configure a hash mapper.
+	 * Mutually exclusive with {@link #setStreamReceiverOptions(StreamReceiver.StreamReceiverOptions)}.
+	 * @param hashMapper must not be null.
+	 * @since 5.5
+	 * @see StreamReceiver.StreamReceiverOptionsBuilder#objectMapper(HashMapper)
+	 */
+	public void setObjectMapper(HashMapper<?, ?, ?> hashMapper) {
+		assertStreamReceiverOptions("objectMapper");
+		this.streamReceiverOptionsBuilder.objectMapper(hashMapper);
+		this.receiverBuilderOptionSet = true;
 	}
 
 	@Override
@@ -168,8 +268,11 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	@Override
 	protected void onInit() {
 		super.onInit();
+		if (this.streamReceiverOptions == null) {
+			this.streamReceiverOptions = this.streamReceiverOptionsBuilder.build();
+		}
 		this.streamReceiver = StreamReceiver.create(this.reactiveConnectionFactory, this.streamReceiverOptions);
-		if (StringUtils.hasText(this.consumerName) && StringUtils.isEmpty(this.consumerGroup)) {
+		if (StringUtils.hasText(this.consumerName) && !StringUtils.hasText(this.consumerGroup)) {
 			this.consumerGroup = getBeanName();
 		}
 		ReactiveRedisTemplate<String, ?> reactiveRedisTemplate =
@@ -179,13 +282,11 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	@Override
 	protected void doStart() {
-		super.doStart();
-
 		StreamOffset<String> offset = StreamOffset.create(this.streamKey, this.readOffset);
 
 		Flux<? extends Record<String, ?>> events;
 
-		if (StringUtils.isEmpty(this.consumerName)) {
+		if (!StringUtils.hasText(this.consumerName)) {
 			events = this.streamReceiver.receive(offset);
 		}
 		else {
@@ -213,17 +314,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 		}
 
 		Flux<? extends Message<?>> messageFlux =
-				events.map((record) -> buildMessageFromRecord(record, this.extractPayload))
-						.onErrorContinue((ex, record) -> {
-							@SuppressWarnings("unchecked")
-							Message<?> failedMessage = buildMessageFromRecord((Record<String, ?>) record, false);
-							MessagingException conversionException =
-									new MessageConversionException(failedMessage,
-											"Cannot deserialize Redis Stream Record", ex);
-							if (!sendErrorMessageIfNecessary(null, conversionException)) {
-								logger.getLog().error(conversionException);
-							}
-						});
+				events.map((record) -> buildMessageFromRecord(record, this.extractPayload));
 		subscribeToPublisher(messageFlux);
 	}
 
@@ -245,6 +336,24 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 		}
 
 		return builder.build();
+	}
+
+	private <T> Publisher<T> handleReceiverError(Throwable error) {
+		Message<?> failedMessage = null;
+		if (error instanceof ConversionFailedException) {
+			@SuppressWarnings("unchecked")
+			Record<String, ?> record = (Record<String, ?>) ((ConversionFailedException) error).getValue();
+			if (record != null) {
+				failedMessage = buildMessageFromRecord(record, false);
+			}
+		}
+		MessagingException conversionException =
+				new MessageConversionException(failedMessage, // NOSONAR
+						"Cannot deserialize Redis Stream Record", error);
+		if (!sendErrorMessageIfNecessary(null, conversionException)) {
+			logger.getLog().error(conversionException);
+		}
+		return Mono.empty();
 	}
 
 }

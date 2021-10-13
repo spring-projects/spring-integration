@@ -59,11 +59,57 @@
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
+							  request-channel="inboundLSRecursive"
+							  command="ls"
+							  expression="payload"
+							  command-options="-R -dirs"
+							  mode="REPLACE_IF_MODIFIED"
+							  filter="dotStarDotTxtFilter"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
+							  reply-channel="output"/>
+
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
+							  request-channel="inboundLSRecursiveALL"
+							  command="ls"
+							  expression="payload"
+							  command-options="-a -R -dirs"
+							  mode="REPLACE_IF_MODIFIED"
+							  filter="dotStarDotTxtFilter"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
+							  reply-channel="output"/>
+
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
+							  request-channel="inboundLSRecursiveNoDirs"
+							  command="ls"
+							  expression="payload"
+							  command-options="-R"
+							  mode="REPLACE_IF_MODIFIED"
+							  filter="persistentFilter"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
+							  reply-channel="output"/>
+
 	<bean id="dotStarDotTxtFilter"
 				class="org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter">
 		<constructor-arg value="^.*\.txt$" />
 		<property name="alwaysAcceptDirectories" value="true" />
 	</bean>
+
+	<bean id="persistentFilter" class="org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter">
+		<constructor-arg ref="store"/>
+		<constructor-arg value="test"/>
+		<property name="forRecursion" value="true"/>
+		<property name="flushOnUpdate" value="true"/>
+	</bean>
+
+	<bean id="store" class="org.springframework.integration.metadata.PropertiesPersistingMetadataStore">
+		<property name="baseDirectory"
+			value="#{T(org.springframework.integration.file.remote.RemoteFileTestSupport).getScratchTempFolder().absolutePath}"/>
+	</bean>
+
 
 	<int:channel id="inboundMGetRecursiveFiltered"/>
 

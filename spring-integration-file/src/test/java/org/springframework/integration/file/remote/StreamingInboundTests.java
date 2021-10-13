@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -345,19 +345,19 @@ public class StreamingInboundTests {
 			}
 			try {
 				Session<String> session = mock(Session.class);
-				willReturn(new String[] { "/foo/foo", "/foo/bar" }).given(session).list("/foo");
+				willReturn(new String[]{ "/foo/foo", "/foo/bar" }).given(session).list("/foo");
 				ByteArrayInputStream foo = new ByteArrayInputStream("foo\nbar".getBytes());
 				ByteArrayInputStream bar = new ByteArrayInputStream("baz\nqux".getBytes());
 				willReturn(foo).given(session).readRaw("/foo/foo");
 				willReturn(bar).given(session).readRaw("/foo/bar");
 
-				willReturn(new String[] { "/bar/foo", "/bar/bar" }).given(session).list("/bar");
+				willReturn(new String[]{ "/bar/foo", "/bar/bar" }).given(session).list("/bar");
 				ByteArrayInputStream foo2 = new ByteArrayInputStream("foo\r\nbar".getBytes());
 				ByteArrayInputStream bar2 = new ByteArrayInputStream("baz\r\nqux".getBytes());
 				willReturn(foo2).given(session).readRaw("/bar/foo");
 				willReturn(bar2).given(session).readRaw("/bar/bar");
 
-				willReturn(new String[] { "/bad/file1", "/bad/file2" }).given(session).list("/bad");
+				willReturn(new String[]{ "/bad/file1", "/bad/file2" }).given(session).list("/bad");
 				willThrow(new IOException("No file")).given(session).readRaw("/bad/file1");
 				willThrow(new IOException("No file")).given(session).readRaw("/bad/file2");
 

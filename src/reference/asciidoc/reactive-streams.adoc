@@ -62,9 +62,13 @@ A consumer for the `FluxMessageChannel` must be a `org.reactivestreams.Subscribe
 Fortunately, all of the `MessageHandler` implementations in Spring Integration also implement a `CoreSubscriber` from project Reactor.
 And thanks to a `ReactiveStreamsConsumer` implementation in between, the whole integration flow configuration is left transparent for target developers.
 In this case, the flow behavior is changed from an imperative push model to a reactive pull model.
-A `ReactiveStreamsConsumer` can also be used to turn any `MessageChannel` into a reactive source using `MessageChannelReactiveUtils`, making an integration flow partially reactive.
+A `ReactiveStreamsConsumer` can also be used to turn any `MessageChannel` into a reactive source using `IntegrationReactiveUtils`, making an integration flow partially reactive.
 
 See <<./channel.adoc#flux-message-channel,`FluxMessageChannel`>> for more information.
+
+Starting with version 5.5, the `ConsumerEndpointSpec` introduces a `reactive()` option to make the endpoint in the flow as a `ReactiveStreamsConsumer` independently of the input channel.
+The optional `Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>>` can be provided to customise a source `Flux` from the input channel via `Flux.transform()` operation, e.g. with the `publishOn()`, `doOnNext()`, `retry()` etc.
+This functionality is represented as a `@Reactive` sub-annotation for all the messaging annotation (`@ServiceActivator`, `@Splitter` etc.) via their `reactive()` attribute.
 
 === Source Polling Channel Adapter
 
@@ -73,6 +77,7 @@ A polling trigger is built from the provided options and used for periodic sched
 When an `outputChannel` is a `ReactiveStreamsSubscribableChannel`, the same `Trigger` is used to determine the next time for execution, but instead of scheduling tasks, the `SourcePollingChannelAdapter` creates a `Flux<Message<?>>` based on the `Flux.generate()` for the `nextExecutionTime` values and `Mono.delay()` for a duration from the previous step.
 A `Flux.flatMapMany()` is used then to poll `maxMessagesPerPoll` and sink them into an output `Flux`.
 This generator `Flux` is subscribed by the provided `ReactiveStreamsSubscribableChannel` honoring a back-pressure downstream.
+Starting with version 5.5, when `maxMessagesPerPoll == 0`, the source is not called at all, and `flatMapMany()` is completed immediately via a `Mono.empty()` result until the `maxMessagesPerPoll` is changed to non-zero value at a later time, e.g. via a Control Bus.
 This way, any `MessageSource` implementation can be turned into a reactive hot source.
 
 See <<./polling-consumer.adoc#polling-consumer,Polling Consumer>> for more information.
@@ -157,6 +162,6 @@ A returned reactive type can be subscribed immediately if we are in one-way, fir
 
 Currently Spring Integration provides channel adapter (or gateway) implementations for <<./webflux.adoc#webflux,WebFlux>>, <<./rsocket.adoc#rsocket,RSocket>>, <<./mongodb.adoc#mongodb,MongoDb>> and <<./r2dbc.adoc#r2dbc,R2DBC>>.
 The <<./redis.adoc#redis-stream-outbound,Redis Stream Channel Adapters>> are also reactive and uses `ReactiveStreamOperations` from Spring Data.
-Also an https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-cassandra[Apache Cassandra Extension] provides a `MessageHandler` implementation for the Cassandra reactive driver.
+Also an https://github.com/spring-projects/spring-integration-extensions/tree/main/spring-integration-cassandra[Apache Cassandra Extension] provides a `MessageHandler` implementation for the Cassandra reactive driver.
 More reactive channel adapters are coming, for example for Apache Kafka in <<./kafka.adoc#kafka,Kafka>> based on the `ReactiveKafkaProducerTemplate` and `ReactiveKafkaConsumerTemplate` from https://spring.io/projects/spring-kafka[Spring for Apache Kafka] etc.
 For many other non-reactive channel adapters thread pools are recommended to avoid blocking during reactive stream processing.

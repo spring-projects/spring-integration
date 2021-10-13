@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public class JpaRetrievingOutboundGatewaySpec extends JpaBaseOutboundEndpointSpe
 
 	/**
 	 * Specify a SpEL expression that will be evaluated to get the {@code primaryKey} for
-	 * {@link javax.persistence.EntityManager#find(Class, Object)}
+	 * {@link javax.persistence.EntityManager#find(Class, Object)}.
 	 * @param idExpression the SpEL expression for entity {@code primaryKey}.
 	 * @return the spec
 	 */
@@ -91,7 +91,7 @@ public class JpaRetrievingOutboundGatewaySpec extends JpaBaseOutboundEndpointSpe
 
 	/**
 	 * Specify a SpEL expression that will be evaluated to get the {@code primaryKey} for
-	 * {@link javax.persistence.EntityManager#find(Class, Object)}
+	 * {@link javax.persistence.EntityManager#find(Class, Object)}.
 	 * @param idExpression the SpEL expression for entity {@code primaryKey}.
 	 * @return the spec
 	 */

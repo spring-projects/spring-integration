@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,14 @@ import javax.mail.Message.RecipientType;
 
 import org.springframework.integration.mail.MailHeaders;
 import org.springframework.messaging.MessagingException;
-import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Utilities for handling mail messages.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
@@ -47,27 +49,19 @@ public final class MailUtils {
 	 * @return the map.
 	 */
 	public static Map<String, Object> extractStandardHeaders(Message source) {
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		try {
-			headers.put(MailHeaders.FROM, convertToString(source.getFrom()));
+			headers.put(MailHeaders.FROM, StringUtils.arrayToCommaDelimitedString(source.getFrom()));
 			headers.put(MailHeaders.BCC, convertToStringArray(source.getRecipients(RecipientType.BCC)));
 			headers.put(MailHeaders.CC, convertToStringArray(source.getRecipients(RecipientType.CC)));
 			headers.put(MailHeaders.TO, convertToStringArray(source.getRecipients(RecipientType.TO)));
-			headers.put(MailHeaders.REPLY_TO, convertToString(source.getReplyTo()));
+			headers.put(MailHeaders.REPLY_TO, StringUtils.arrayToCommaDelimitedString(source.getReplyTo()));
 			headers.put(MailHeaders.SUBJECT, source.getSubject());
 			return headers;
 		}
-		catch (Exception e) {
-			throw new MessagingException("conversion of MailMessage headers failed", e);
+		catch (Exception ex) {
+			throw new MessagingException("conversion of MailMessage headers failed", ex);
 		}
-	}
-
-	private static String convertToString(Address[] addresses) {
-		if (addresses == null || addresses.length == 0) {
-			return null;
-		}
-		Assert.state(addresses.length == 1, "expected a single value but received an Array");
-		return addresses[0].toString();
 	}
 
 	private static String[] convertToStringArray(Address[] addresses) {

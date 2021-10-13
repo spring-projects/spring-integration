@@ -1,4 +1,4 @@
 /**
- * Provides Kafka Components support for Spring Integration Java DSL.
+ * Provides Spring Integration Java DSL Components support for Apache Kafka.
  */
 package org.springframework.integration.kafka.dsl;

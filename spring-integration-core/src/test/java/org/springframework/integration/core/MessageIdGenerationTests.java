@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,13 @@ import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
@@ -42,150 +43,107 @@ import org.springframework.util.StopWatch;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class MessageIdGenerationTests {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
 	@Test
-	public void testCustomIdGenerationWithParentRegistrar() throws Exception {
-		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
-		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), parent);
-
-		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
-		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
-		inputChannel.send(new GenericMessage<Integer>(0));
-		verify(idGenerator, atLeastOnce()).generateId();
-		child.close();
-		parent.close();
-		this.assertDestroy();
+	public void testCustomIdGenerationWithParentRegistrar() {
+		try (ClassPathXmlApplicationContext parent =
+				new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", getClass());
+				ClassPathXmlApplicationContext child =
+						new ClassPathXmlApplicationContext(new String[]{ "MessageIdGenerationTests-context.xml" },
+								getClass(), parent)) {
+			IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
+			MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
+			inputChannel.send(new GenericMessage<>(0));
+			verify(idGenerator, atLeastOnce()).generateId();
+		}
+		assertDestroy();
 	}
 
 	@Test
-	public void testCustomIdGenerationWithParentChildIndependentCreation() throws Exception {
-		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
-		GenericXmlApplicationContext child = new GenericXmlApplicationContext();
-		child.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context.xml");
-		child.setParent(parent);
-		child.refresh();
+	public void testCustomIdGenerationWithParentChildIndependentCreation() {
+		try (ClassPathXmlApplicationContext parent =
+				new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", getClass());
+				GenericXmlApplicationContext child = new GenericXmlApplicationContext()) {
 
-		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
-		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
-		inputChannel.send(new GenericMessage<Integer>(0));
-		verify(idGenerator, atLeastOnce()).generateId();
-		child.close();
-		parent.close();
-		this.assertDestroy();
+			child.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context.xml");
+			child.setParent(parent);
+			child.refresh();
+
+			IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
+			MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
+			inputChannel.send(new GenericMessage<>(0));
+			verify(idGenerator, atLeastOnce()).generateId();
+		}
+		assertDestroy();
 	}
 
 	@Test
-	public void testCustomIdGenerationWithParentRegistrarClosed() throws Exception {
-		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
-		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), parent);
+	public void testCustomIdGenerationWithChildRegistrar() {
+		try (ClassPathXmlApplicationContext parent =
+				new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", getClass());
+				ClassPathXmlApplicationContext child =
+						new ClassPathXmlApplicationContext(
+								new String[]{ "MessageIdGenerationTests-context-withGenerator.xml" },
+								getClass(), parent)) {
 
-		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
-		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
-		inputChannel.send(new GenericMessage<Integer>(0));
-		verify(idGenerator, atLeastOnce()).generateId();
-		parent.close();
-		child.close();
-		this.assertDestroy();
+			IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
+			Mockito.reset(idGenerator);
+			MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
+			inputChannel.send(new GenericMessage<>(0));
+			verify(idGenerator, atLeastOnce()).generateId();
+		}
+		assertDestroy();
 	}
 
 	@Test
-	public void testCustomIdGenerationWithChildRegistrar() throws Exception {
-		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
-		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-withGenerator.xml"}, this.getClass(), parent);
-
-		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
-		Mockito.reset(idGenerator);
-		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
-		inputChannel.send(new GenericMessage<Integer>(0));
-		verify(idGenerator, atLeastOnce()).generateId();
-		child.close();
-		parent.close();
-		this.assertDestroy();
-	}
-
-	@Test
-	public void testCustomIdGenerationWithChildRegistrarClosed() throws Exception {
-		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
-		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-withGenerator.xml"}, this.getClass(), parent);
-
-		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
-		Mockito.reset(idGenerator);
-		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
-		inputChannel.send(new GenericMessage<Integer>(0));
-		verify(idGenerator, atLeastOnce()).generateId();
-		child.close();
-		parent.close();
-		this.assertDestroy();
-	}
-
-	// similar to the last test, but should not fail because child AC is closed before second child AC is started
-	@Test
-	public void testCustomIdGenerationWithParentChildIndependentCreationChildrenRegistrarsOneAtTheTime() throws Exception {
-		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
-
-		GenericXmlApplicationContext childA = new GenericXmlApplicationContext();
-		childA.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context-withGenerator.xml");
-		childA.setParent(parent);
-		childA.refresh();
-
-		childA.close();
-
-		GenericXmlApplicationContext childB = new GenericXmlApplicationContext();
-		childB.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context-withGenerator.xml");
-		childB.setParent(parent);
-		childB.refresh();
-
-		parent.close();
-		childB.close();
-		this.assertDestroy();
-	}
-
-	@Test
-	@Ignore
+	@Disabled
 	public void performanceTest() {
 		int times = 1000000;
 		StopWatch watch = new StopWatch();
 		watch.start();
 		for (int i = 0; i < times; i++) {
-			new GenericMessage<Integer>(0);
+			new GenericMessage<>(0);
 		}
 		watch.stop();
 		double defaultGeneratorElapsedTime = watch.getTotalTimeSeconds();
 
 		Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 		ReflectionUtils.makeAccessible(idGeneratorField);
-		ReflectionUtils.setField(idGeneratorField, null, (IdGenerator) () -> TimeBasedUUIDGenerator.generateId());
+		ReflectionUtils.setField(idGeneratorField, null, (IdGenerator) TimeBasedUUIDGenerator::generateId);
 		watch = new StopWatch();
 		watch.start();
 		for (int i = 0; i < times; i++) {
-			new GenericMessage<Integer>(0);
+			new GenericMessage<>(0);
 		}
 		watch.stop();
-		double timebasedGeneratorElapsedTime = watch.getTotalTimeSeconds();
+		double timeBasedGeneratorElapsedTime = watch.getTotalTimeSeconds();
 
 		logger.info("Generated " + times + " messages using default UUID generator " +
 				"in " + defaultGeneratorElapsedTime + " seconds");
-		logger.info("Generated " + times + " messages using Timebased UUID generator " +
-				"in " + timebasedGeneratorElapsedTime + " seconds");
+		logger.info("Generated " + times + " messages using time-based UUID generator " +
+				"in " + timeBasedGeneratorElapsedTime + " seconds");
 
-		logger.info("Time-based ID generator is " + defaultGeneratorElapsedTime / timebasedGeneratorElapsedTime + " times faster");
+		logger.info("Time-based ID generator is " + defaultGeneratorElapsedTime / timeBasedGeneratorElapsedTime +
+				" times faster");
 	}
 
-	private void assertDestroy() throws Exception {
-		Field idGenField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
-		ReflectionUtils.makeAccessible(idGenField);
-		assertThat(idGenField.get(null)).as("the idGenerator field has not been properly reset to null").isNull();
+	private void assertDestroy() {
+		assertThat(TestUtils.getPropertyValue(new MessageHeaders(null), "idGenerator")).isNull();
 	}
 
 
 	public static class SampleIdGenerator implements IdGenerator {
+
 		@Override
 		public UUID generateId() {
 			return UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());
 		}
+
 	}
+
 }

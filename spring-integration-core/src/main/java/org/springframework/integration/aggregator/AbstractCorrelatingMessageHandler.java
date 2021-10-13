@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
+import java.util.function.BiFunction;
 
 import org.aopalliance.aop.Advice;
 
@@ -157,6 +158,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private boolean releaseLockBeforeSend;
 
 	private volatile boolean running;
+
+	private BiFunction<Message<?>, String, String> groupConditionSupplier;
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
@@ -361,6 +364,17 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.expireDuration = expireDuration;
 	}
 
+	/**
+	 * Configure a {@link BiFunction} to supply a group condition from a message to be added to the group.
+	 * The {@code null} result from the function will reset a condition set before.
+	 * @param conditionSupplier the function to supply a group condition from a message to be added to the group.
+	 * @since 5.5
+	 * @see GroupConditionProvider
+	 */
+	public void setGroupConditionSupplier(BiFunction<Message<?>, String, String> conditionSupplier) {
+		this.groupConditionSupplier = conditionSupplier;
+	}
+
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
@@ -407,6 +421,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		 */
 		this.lockRegistrySet = true;
 		this.forceReleaseProcessor = createGroupTimeoutProcessor();
+
+		if (this.releaseStrategy instanceof GroupConditionProvider) {
+			this.groupConditionSupplier = ((GroupConditionProvider) this.releaseStrategy).getGroupConditionSupplier();
+		}
 	}
 
 	private MessageGroupProcessor createGroupTimeoutProcessor() {
@@ -439,6 +457,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	protected ReleaseStrategy getReleaseStrategy() {
 		return this.releaseStrategy;
+	}
+
+	@Nullable
+	protected BiFunction<Message<?>, String, String> getGroupConditionSupplier() {
+		return this.groupConditionSupplier;
 	}
 
 	@Override
@@ -514,18 +537,18 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		boolean noOutput = true;
 		try {
 			lock.lockInterruptibly();
+			try {
+				noOutput = processMessageForGroup(message, correlationKey, groupIdUuid, lock);
+			}
+			finally {
+				if (noOutput || !this.releaseLockBeforeSend) {
+					lock.unlock();
+				}
+			}
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new MessageHandlingException(message, "Interrupted getting lock in the [" + this + ']', e);
-		}
-		try {
-			noOutput = processMessageForGroup(message, correlationKey, groupIdUuid, lock);
-		}
-		finally {
-			if (noOutput || !this.releaseLockBeforeSend) {
-				lock.unlock();
-			}
 		}
 	}
 
@@ -541,6 +564,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			MessageGroup messageGroupToLog = messageGroup;
 			this.logger.trace(() -> "Adding message to group [ " + messageGroupToLog + "]");
 			messageGroup = store(correlationKey, message);
+
+			setGroupConditionIfAny(message, messageGroup);
 
 			if (this.releaseStrategy.canRelease(messageGroup)) {
 				Collection<Message<?>> completedMessages = null;
@@ -576,6 +601,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				this.logger.debug(() ->
 						"Cancel 'ScheduledFuture' for MessageGroup with Correlation Key [ " + correlationKey + "].");
 			}
+		}
+	}
+
+	private void setGroupConditionIfAny(Message<?> message, MessageGroup messageGroup) {
+		if (this.groupConditionSupplier != null) {
+			String condition = this.groupConditionSupplier.apply(message, messageGroup.getCondition());
+			this.messageStore.setGroupCondition(messageGroup.getGroupId(), condition);
+			messageGroup.setCondition(condition);
 		}
 	}
 
@@ -626,16 +659,24 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	private void scheduleGroupToForceComplete(MessageGroup messageGroup) {
-		final Long groupTimeout = obtainGroupTimeout(messageGroup);
+		Object groupTimeout = obtainGroupTimeout(messageGroup);
 		/*
 		 * When 'groupTimeout' is evaluated to 'null' we do nothing.
 		 * The 'MessageGroupStoreReaper' can be used to 'forceComplete' message groups.
 		 */
 		if (groupTimeout != null) {
-			if (groupTimeout > 0) {
-				final Object groupId = messageGroup.getGroupId();
-				final long timestamp = messageGroup.getTimestamp();
-				final long lastModified = messageGroup.getLastModified();
+			Date startTime = null;
+			if (groupTimeout instanceof Date) {
+				startTime = (Date) groupTimeout;
+			}
+			else if ((Long) groupTimeout > 0) {
+				startTime = new Date(System.currentTimeMillis() + (Long) groupTimeout);
+			}
+
+			if (startTime != null) {
+				Object groupId = messageGroup.getGroupId();
+				long timestamp = messageGroup.getTimestamp();
+				long lastModified = messageGroup.getLastModified();
 				ScheduledFuture<?> scheduledFuture =
 						getTaskScheduler()
 								.schedule(() -> {
@@ -643,14 +684,12 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 										processForceRelease(groupId, timestamp, lastModified);
 									}
 									catch (MessageDeliveryException ex) {
-										if (AbstractCorrelatingMessageHandler.this.logger.isWarnEnabled()) {
-											AbstractCorrelatingMessageHandler.this.logger.warn(ex,
-													() -> "The MessageGroup [" + groupId
-															+ "] is rescheduled by the reason of:");
-										}
+											logger.warn(ex, () ->
+													"The MessageGroup [" + groupId +
+															"] is rescheduled by the reason of: ");
 										scheduleGroupToForceComplete(groupId);
 									}
-								}, new Date(System.currentTimeMillis() + groupTimeout));
+								}, startTime);
 
 				this.logger.debug(() -> "Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
 				this.expireGroupScheduledFutures.put(UUIDConverter.getUUID(groupId), scheduledFuture);
@@ -905,9 +944,22 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				"The expected collection of Messages contains non-Message element: " + commonElementType);
 	}
 
-	protected Long obtainGroupTimeout(MessageGroup group) {
-		return this.groupTimeoutExpression != null
-				? this.groupTimeoutExpression.getValue(this.evaluationContext, group, Long.class) : null;
+	protected Object obtainGroupTimeout(MessageGroup group) {
+		if (this.groupTimeoutExpression != null) {
+			Object timeout = this.groupTimeoutExpression.getValue(this.evaluationContext, group);
+			if (timeout instanceof Date) {
+				return timeout;
+			}
+			else if (timeout != null) {
+				try {
+					return Long.parseLong(timeout.toString());
+				}
+				catch (NumberFormatException ex) {
+					throw new IllegalStateException("Error evaluating 'groupTimeoutExpression'", ex);
+				}
+			}
+		}
+		return null;
 	}
 
 	@Override

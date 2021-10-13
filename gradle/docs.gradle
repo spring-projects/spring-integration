@@ -1,0 +1,126 @@
+ext {
+	docResourcesVersion = '0.2.5'
+	blockSwitchVersion = '0.5.0'
+}
+
+configurations {
+	docs
+	asciidoctorExt
+}
+
+dependencies {
+	docs "io.spring.docresources:spring-doc-resources:${docResourcesVersion}@zip"
+	asciidoctorExt "io.spring.asciidoctor:spring-asciidoctor-extensions-block-switch:$blockSwitchVersion"
+}
+
+task prepareAsciidocBuild(type: Sync) {
+	dependsOn configurations.docs
+	from {
+		configurations.docs.collect { zipTree(it) }
+	}
+	from 'src/reference/asciidoc/'
+	into "$buildDir/asciidoc"
+}
+
+task checkAsciidocLinks {
+	dependsOn prepareAsciidocBuild
+	inputs.dir("$buildDir/asciidoc")
+	doLast {
+		def errors = new ArrayList<>();
+		errors.add('*** Anchor reference errors found:')
+		inputs.files.filter{ f -> f.path.endsWith('.adoc') }.each { file ->
+			def doc = file.text
+			def anchors = new HashSet<>()
+			def matcher = (doc =~ /\[\[([^]]+)]]/)
+			while (matcher.find()) {
+				anchors.add(matcher.group(1))
+			}
+			matcher = (doc =~ /<<([^>]+)>>/)
+			while (matcher.find()) {
+				def anchor = matcher.group(1);
+				def hasComma = anchor.contains(',')
+				if (!anchor.startsWith('./')) {
+					if (hasComma) {
+						anchor = anchor.substring(0, anchor.indexOf(","));
+					}
+					if (!anchors.contains(anchor)) {
+						errors.add("\nAnchor '$anchor' not found in '${file.name}', " +
+								"if in another file, it needs to be qualified with './fileName.adoc#'")
+					}
+				}
+				else {
+					if (!hasComma) {
+						errors.add("\nExternal anchor '$anchor' in '${file.name}' should have a textual description (,...)")
+					}
+				}
+			}
+		}
+		if (errors.size() > 1) {
+			throw new InvalidUserDataException(errors.toString())
+		}
+	}
+}
+
+asciidoctorPdf {
+	dependsOn checkAsciidocLinks
+	baseDirFollowsSourceFile()
+	configurations 'asciidoctorExt'
+
+	asciidoctorj {
+		sourceDir "$buildDir/asciidoc"
+		inputs.dir(sourceDir)
+		sources {
+			include 'index-single.adoc'
+		}
+		options doctype: 'book'
+		attributes 'icons': 'font',
+				'sectanchors': '',
+				'sectnums': '',
+				'toc': '',
+				'source-highlighter' : 'coderay',
+				revnumber: project.version,
+				'project-version': project.version
+	}
+}
+
+asciidoctorj {
+	version = '2.4.2'
+	options doctype: 'book', eruby: 'erubis'
+	attributes 'docinfo': 'shared',
+			stylesdir: 'css/',
+			stylesheet: 'stylesheet.css',
+			'linkcss': true,
+			'icons': 'font',
+			'sectanchors': '',
+			'source-highlighter': 'highlight.js',
+			'highlightjsdir': 'js/highlight',
+			'highlightjs-theme': 'github',
+			'idprefix': '',
+			'idseparator': '-',
+			'allow-uri-read': '',
+			'toc': 'left',
+			'toclevels': '4',
+			revnumber: project.version,
+			'project-version': project.version
+}
+
+asciidoctor {
+	dependsOn asciidoctorPdf
+	baseDirFollowsSourceFile()
+	configurations 'asciidoctorExt'
+	sourceDir "$buildDir/asciidoc"
+	inputs.dir(sourceDir)
+	resources {
+		from(sourceDir) {
+			include 'images/*', 'css/**', 'js/**'
+		}
+	}
+
+}
+
+task reference(dependsOn: asciidoctor) {
+	group = 'Documentation'
+	description = 'Generate the reference documentation'
+}
+
+reference.onlyIf { "$System.env.NO_REFERENCE_TASK" != 'true' || project.hasProperty('ignoreEnvToStopReference') }

@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
@@ -202,7 +201,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		CountDownLatch connectLatch = addStompSessionCallback(currentEpoch);
 
 		try {
-			if (!connectLatch.await(30, TimeUnit.SECONDS)) {
+			if (!connectLatch.await(30, TimeUnit.SECONDS)) { // NOSONAR magic number
 				this.logger.error("No response to connection attempt");
 				if (currentEpoch == this.epoch.get()) {
 					scheduleReconnect(null);
@@ -215,7 +214,6 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		}
 	}
 
-	@NotNull
 	private CountDownLatch addStompSessionCallback(int currentEpoch) {
 		CountDownLatch connectLatch = new CountDownLatch(1);
 		this.stompSessionListenableFuture.addCallback(

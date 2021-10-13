@@ -6,8 +6,8 @@ Spring Integration's file support extends the Spring Integration core with a ded
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,9 +15,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-file:{project-version}"
 ----
@@ -77,6 +76,13 @@ When used with a shared data store (such as `Redis` with the `RedisMetadataStore
 
 Since version 4.1.5, this filter has a new property (`flushOnUpdate`), which causes it to flush the metadata store on every update (if the store implements `Flushable`).
 ====
+
+The persistent file list filters now have a boolean property `forRecursion`.
+Setting this property to `true`, also sets `alwaysAcceptDirectories`, which means that the recursive operation on the outbound gateways (`ls` and `mget`) will now always traverse the full directory tree each time.
+This is to solve a problem where changes deep in the directory tree were not detected.
+In addition, `forRecursion=true` causes the full path to files to be used as the metadata store keys; this solves a problem where the filter did not work properly if a file with the same name appears multiple times in different directories.
+IMPORTANT: This means that existing keys in a persistent metadata store will not be found for files beneath the top level directory.
+For this reason, the property is `false` by default; this may change in a future release.
 
 The following example configures a `FileReadingMessageSource` with a filter:
 
@@ -208,6 +214,8 @@ The root directory (`DirectoryScanner.listFiles(File)`) argument is excluded fro
 All other sub-directories inclusions and exclusions are based on the target `FileListFilter` implementation.
 For example, the `SimplePatternFileListFilter` filters out directories by default.
 See https://docs.spring.io/spring-integration/api/org/springframework/integration/file/filters/AbstractDirectoryAwareFileListFilter.html[`AbstractDirectoryAwareFileListFilter`] and its implementations for more information.
+
+NOTE: Starting with version 5.5, the `FileInboundChannelAdapterSpec` of the Java DSL has a convenient `recursive(boolean)` option to use a `RecursiveDirectoryScanner` in the target `FileReadingMessageSource` instead of the default one.
 
 [[file-namespace-support]]
 ==== Namespace Support
@@ -355,7 +363,7 @@ Otherwise, the files from those events are treated the same way.
 
 The `ResettableFileListFilter` implementations pick up the `ENTRY_DELETE` events.
 Consequently, their files are provided for the `remove()` operation.
-When this event is enabled, filters such as the `AcceptOnceFileListFilter` have the file removed
+When this event is enabled, filters such as the `AcceptOnceFileListFilter` have the file removed.
 As a result, if a file with the same name appears, it passes the filter and is sent as a message.
 
 For this purpose, the `watch-events` property (`FileReadingMessageSource.setWatchEvents(WatchEventType... watchEvents)`) has been introduced.
@@ -982,10 +990,77 @@ However, it is only practical for relatively short files.
 Inbound payloads can be `File`, `String` (a `File` path), `InputStream`, or `Reader`.
 Other payload types are emitted unchanged.
 
-The following listing shows all the possible attributes for `<int-file:splitter>`:
+The following listing shows possible ways to configure a `FileSplitter`:
 
 ====
-[source, xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@SpringBootApplication
+public class FileSplitterApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(FileSplitterApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public IntegrationFlow fileSplitterFlow() {
+        return IntegrationFlows
+            .from(Files.inboundAdapter(tmpDir.getRoot())
+                 .filter(new ChainFileListFilter<File>()
+                        .addFilter(new AcceptOnceFileListFilter<>())
+                        .addFilter(new ExpressionFileListFilter<>(
+                             new FunctionExpression<File>(f -> "foo.tmp".equals(f.getName()))))))
+            .split(Files.splitter()
+                     .markers()
+                     .charset(StandardCharsets.US_ASCII)
+                     .firstLineAsHeader("fileHeader")
+                     .applySequence(true))
+            .channel(c -> c.queue("fileSplittingResultChannel"))
+            .get();
+    }
+
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun fileSplitterFlow() =
+    integrationFlow(
+        Files.inboundAdapter(tmpDir.getRoot())
+            .filter(
+                ChainFileListFilter<File?>()
+                    .addFilter(AcceptOnceFileListFilter())
+                    .addFilter(ExpressionFileListFilter(FunctionExpression { f: File? -> "foo.tmp" == f!!.name }))
+            )
+    ) {
+        split(
+            Files.splitter()
+                .markers()
+                .charset(StandardCharsets.US_ASCII)
+                .firstLineAsHeader("fileHeader")
+                .applySequence(true)
+        )
+        channel { queue("fileSplittingResultChannel") }
+    }
+----
+[source, java, role="secondary"]
+.Java
+----
+@Splitter(inputChannel="toSplitter")
+@Bean
+public MessageHandler fileSplitter() {
+    FileSplitter splitter = new FileSplitter(true, true);
+    splitter.setApplySequence(true);
+    splitter.setOutputChannel(outputChannel);
+    return splitter;
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int-file:splitter id="splitter" <1>
     iterator=""                  <2>
@@ -1054,67 +1129,13 @@ When `markersJson` is true, the markers are represented as a JSON string (using 
 
 Version 5.0 introduced the `firstLineAsHeader` option to specify that the first line of content is a header (such as column names in a CSV file).
 The argument passed to this property is the header name under which the first line is carried as a header in the messages emitted for the remaining lines.
-This line is not included in the sequence header (if `applySequence` is true) nor in the `lineCount` associated with `FileMarker.END` .
+This line is not included in the sequence header (if `applySequence` is true) nor in the `lineCount` associated with `FileMarker.END`.
+NOTE: Starting with version 5.5, the lineCount` is also included as a `FileHeaders.LINE_COUNT` into headers of the `FileMarker.END` message, since the `FileMarker` could be serialized into JSON.
 If a file contains only the header line, the file is treated as empty and, therefore, only `FileMarker` instances are emitted during splitting (if markers are enabled -- otherwise, no messages are emitted).
 By default (if no header name is set), the first line is considered to be data and becomes the payload of the first emitted message.
 
 If you need more complex logic about header extraction from the file content (not first line, not the whole content of the line, not one particular header, and so on), consider using  <<./content-enrichment.adoc#header-enricher,header enricher>> ahead of the `FileSplitter`.
 Note that the lines that have been moved to the headers might be filtered downstream from the normal content process.
-
-==== Configuring with Java Configuration
-
-The following Spring Boot application shows an example of how to configure a file splitter with Java configuration:
-
-====
-[source, java]
-----
-@Splitter(inputChannel="toSplitter")
-@Bean
-public MessageHandler fileSplitter() {
-    FileSplitter splitter = new FileSplitter(true, true);
-    splitter.setApplySequence(true);
-    splitter.setOutputChannel(outputChannel);
-    return splitter;
-}
-----
-====
-
-==== Configuring with the Java DSL
-
-The following Spring Boot application shows an example of how to configure a file splitter with the Java DSL:
-
-====
-[source, java]
-----
-@SpringBootApplication
-public class FileSplitterApplication {
-
-    public static void main(String[] args) {
-        new SpringApplicationBuilder(FileSplitterApplication.class)
-            .web(false)
-            .run(args);
-    }
-
-    @Bean
-    public IntegrationFlow fileSplitterFlow() {
-        return IntegrationFlows
-            .from(Files.inboundAdapter(tmpDir.getRoot())
-                 .filter(new ChainFileListFilter<File>()
-                        .addFilter(new AcceptOnceFileListFilter<>())
-                        .addFilter(new ExpressionFileListFilter<>(
-                             new FunctionExpression<File>(f -> "foo.tmp".equals(f.getName()))))))
-            .split(Files.splitter()
-                     .markers()
-                     .charset(StandardCharsets.US_ASCII)
-                     .firstLineAsHeader("fileHeader")
-                     .applySequence(true))
-            .channel(c -> c.queue("fileSplittingResultChannel"))
-            .get();
-    }
-
-}
-----
-====
 
 [[idempotent-file-splitter]]
 ==== Idempotent Downstream Processing a Split File
@@ -1160,6 +1181,85 @@ public IntegrationFlow flow() {
 ----
 ====
 
+[[file-aggregator]]
+=== File Aggregator
+
+Starting with version 5.5, a `FileAggregator` is introduced to cover other side of `FileSplitter` use-case when START/END markers are enabled.
+For convenience the `FileAggregator` implements all three sequence details strategies:
+
+- The `HeaderAttributeCorrelationStrategy` with the `FileHeaders.FILENAME` attribute is used for correlation key calculation.
+When markers are enabled on the `FileSplitter`, it does not populate sequence details headers, since START/END marker messages are also included into the sequence size.
+The `FileHeaders.FILENAME` is still populated for each line emitted, including START/END marker messages.
+
+- The `FileMarkerReleaseStrategy` - checks for `FileSplitter.FileMarker.Mark.END` message in the group and then compare a `FileHeaders.LINE_COUNT` header value with the group size minus `2` - `FileSplitter.FileMarker` instances.
+It also implements a convenient `GroupConditionProvider` contact for `conditionSupplier` function to be used in the `AbstractCorrelatingMessageHandler`.
+See <<./message-store.adoc#message-group-condition, Message Group Condition>> for more information.
+
+- The `FileAggregatingMessageGroupProcessor` just removes `FileSplitter.FileMarker` messages from the group and collect the rest of messages into a list payload to produce.
+
+The following listing shows possible ways to configure a `FileAggregator`:
+
+====
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow fileSplitterAggregatorFlow(TaskExecutor taskExecutor) {
+    return f -> f
+            .split(Files.splitter()
+                    .markers()
+                    .firstLineAsHeader("firstLine"))
+            .channel(c -> c.executor(taskExecutor))
+            .filter(payload -> !(payload instanceof FileSplitter.FileMarker),
+                    e -> e.discardChannel("aggregatorChannel"))
+            .<String, String>transform(String::toUpperCase)
+            .channel("aggregatorChannel")
+            .aggregate(new FileAggregator())
+            .channel(c -> c.queue("resultChannel"));
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun fileSplitterAggregatorFlow(taskExecutor: TaskExecutor?) =
+    integrationFlow {
+        split(Files.splitter().markers().firstLineAsHeader("firstLine"))
+        channel { executor(taskExecutor) }
+        filter<Any>({ it !is FileMarker }) { discardChannel("aggregatorChannel") }
+        transform(String::toUpperCase)
+        channel("aggregatorChannel")
+        aggregate(FileAggregator())
+        channel { queue("resultChannel") }
+    }
+----
+[source, java, role="secondary"]
+.Java
+----
+@serviceActivator(inputChannel="toAggregateFile")
+@Bean
+public AggregatorFactoryBean fileAggregator() {
+    AggregatorFactoryBean aggregator = new AggregatorFactoryBean();
+    aggregator.setProcessorBean(new FileAggregator());
+    aggregator.setOutputChannel(outputChannel);
+    return aggregator;
+}
+----
+[source, xml, role="secondary"]
+.XML
+----
+<int:chain input-channel="input" output-channel="output">
+    <int-file:splitter markers="true"/>
+    <int:aggregator>
+        <bean class="org.springframework.integration.file.aggregator.FileAggregator"/>
+    </int:aggregator>
+</int:chain>
+----
+====
+
+If default behavior of the `FileAggregator` does not satisfy the target logic, it is recommended to configure an aggregator endpoint with individual strategies.
+See `FileAggregator` JavaDocs for more information.
+
 [[remote-persistent-flf]]
 === Remote Persistent File List Filters
 
@@ -1189,3 +1289,10 @@ If a filter returns `true` in `supportsSingleFileFiltering`, it **must** impleme
 If a remote filter does not support single file filtering (such as the `AbstractMarkerFilePresentFileListFilter`), the adapters revert to the previous behavior.
 
 If multiple filters are in used (using a `CompositeFileListFilter` or `ChainFileListFilter`), then **all** of the delegate filters must support single file filtering in order for the composite filter to support it.
+
+The persistent file list filters now have a boolean property `forRecursion`.
+Setting this property to `true`, also sets `alwaysAcceptDirectories`, which means that the recursive operation on the outbound gateways (`ls` and `mget`) will now always traverse the full directory tree each time.
+This is to solve a problem where changes deep in the directory tree were not detected.
+In addition, `forRecursion=true` causes the full path to files to be used as the metadata store keys; this solves a problem where the filter did not work properly if a file with the same name appears multiple times in different directories.
+IMPORTANT: This means that existing keys in a persistent metadata store will not be found for files beneath the top level directory.
+For this reason, the property is `false` by default; this may change in a future release.

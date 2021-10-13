@@ -142,6 +142,4 @@ List<LineItem> extractItems(Order order) {
 ----
 ====
 
-See also <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Using Annotations>>.
-
-See also <<./dsl.adoc#java-dsl-splitters,Splitters>> in the Java DSL chapter.
+See also <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Using Annotations>>, <<./dsl.adoc#java-dsl-splitters,Splitters>> and <<./file.adoc#file-splitter, File Splitter>>.

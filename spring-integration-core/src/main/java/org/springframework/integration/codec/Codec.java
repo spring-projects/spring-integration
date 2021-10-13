@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import java.io.OutputStream;
  */
 public interface Codec {
 	/**
-	 * Encode (encode) an object to an OutputStream
+	 * Encode (encode) an object to an OutputStream.
 	 * @param object the object to encode
 	 * @param outputStream the OutputStream
 	 * @throws IOException if the operation fails
@@ -36,7 +36,7 @@ public interface Codec {
 	void encode(Object object, OutputStream outputStream) throws IOException;
 
 	/**
-	 * Encode an object to a byte array
+	 * Encode an object to a byte array.
 	 * @param object the object to encode
 	 * @return the bytes
 	 * @throws IOException if the operation fails
@@ -44,7 +44,7 @@ public interface Codec {
 	byte[] encode(Object object) throws IOException;
 
 	/**
-	 * Decode an object of a given type
+	 * Decode an object of a given type.
 	 * @param inputStream the input stream containing the encoded object
 	 * @param type the object's class
 	 * @param <T> the object's type
@@ -54,7 +54,7 @@ public interface Codec {
 	<T> T decode(InputStream inputStream, Class<T> type) throws IOException;
 
 	/**
-	 * Decode an object of a given type
+	 * Decode an object of a given type.
 	 * @param bytes the byte array containing the encoded object
 	 * @param type the object's class
 	 * @param <T> the object's type

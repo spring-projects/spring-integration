@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ import org.springframework.util.Assert;
  * A {@link SessionFactory} implementation that caches Sessions for reuse without
  * requiring reconnection each time the Session is retrieved from the factory.
  * This implementation wraps and delegates to a target SessionFactory instance.
+ *
+ * @param <F> the target system file type.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
@@ -68,10 +70,10 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 * no sessions are available in the cache, and the size limit has been reached,
 	 * calling threads will block until a session is available.
 	 * <p> Do not cache a {@link DelegatingSessionFactory}, cache each delegate therein instead.
-	 * @see #setSessionWaitTimeout(long)
-	 * @see #setPoolSize(int)
 	 * @param sessionFactory The underlying session factory.
 	 * @param sessionCacheSize The maximum cache size.
+	 * @see #setSessionWaitTimeout(long)
+	 * @see #setPoolSize(int)
 	 */
 	public CachingSessionFactory(SessionFactory<F> sessionFactory, int sessionCacheSize) {
 		Assert.isTrue(!(sessionFactory instanceof DelegatingSessionFactory),

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * The base {@link AbstractMessageHandler} implementation for the {@link MessageProducer}.
@@ -116,9 +117,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	/**
-	 * @see #setAsync(boolean)
 	 * @return true if this handler supports async replies.
 	 * @since 4.3
+	 * @see #setAsync(boolean)
 	 */
 	protected boolean isAsync() {
 		return this.async;
@@ -162,7 +163,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 
 		if (headerPatterns.contains("*")) {
-			this.notPropagatedHeaders = new String[] { "*" };
+			this.notPropagatedHeaders = new String[]{ "*" };
 			this.noHeadersPropagation = true;
 		}
 
@@ -362,7 +363,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			else {
 				reactiveReply = Mono.from((Publisher<?>) reply);
 			}
-			reactiveReply.subscribe(settableListenableFuture::set, settableListenableFuture::setException);
+			reactiveReply
+					.publishOn(Schedulers.boundedElastic())
+					.subscribe(settableListenableFuture::set, settableListenableFuture::setException);
 			future = settableListenableFuture;
 		}
 		future.addCallback(new ReplyFutureCallback(requestMessage, replyChannel));
@@ -411,15 +414,19 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			if (this.noHeadersPropagation || !shouldCopyRequestHeaders()) {
 				return (Message<?>) output;
 			}
-			builder = this.getMessageBuilderFactory().fromMessage((Message<?>) output);
+			builder = getMessageBuilderFactory().fromMessage((Message<?>) output);
 		}
 		else if (output instanceof AbstractIntegrationMessageBuilder) {
 			builder = (AbstractIntegrationMessageBuilder<?>) output;
 		}
 		else {
-			builder = this.getMessageBuilderFactory().withPayload(output);
+			builder = getMessageBuilderFactory().withPayload(output);
 		}
-		if (!this.noHeadersPropagation && shouldCopyRequestHeaders()) {
+		if (!this.noHeadersPropagation &&
+				(shouldCopyRequestHeaders() ||
+						(!(output instanceof Message<?>) &&
+								!(output instanceof AbstractIntegrationMessageBuilder<?>)))) {
+
 			builder.filterAndCopyHeadersIfAbsent(requestHeaders,
 					this.selectiveHeaderPropagation ? this.notPropagatedHeaders : null);
 		}

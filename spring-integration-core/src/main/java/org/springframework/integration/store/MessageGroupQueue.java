@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.0
  *
@@ -118,7 +120,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	@Override
 	public Iterator<Message<?>> iterator() {
-		return getMessages().iterator();
+		return stream().iterator();
 	}
 
 	/**
@@ -164,29 +166,24 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	@Override
 	public Message<?> peek() {
-		Message<?> message = null;
-		final Lock lock = this.storeLock;
 		try {
-			lock.lockInterruptibly();
-			try {
-				Collection<Message<?>> messages = getMessages();
-				if (!messages.isEmpty()) {
-					message = messages.iterator().next();
-				}
+			this.storeLock.lockInterruptibly();
+			try (Stream<Message<?>> messageStream = stream()) {
+				return messageStream.findFirst().orElse(null); // NOSONAR
 			}
 			finally {
-				lock.unlock();
+				this.storeLock.unlock();
 			}
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
-		return message;
+		return null;
 	}
 
 	@Override
 	public Message<?> poll(long timeout, TimeUnit unit) throws InterruptedException {
-		Message<?> message = null;
+		Message<?> message;
 		long timeoutInNanos = unit.toNanos(timeout);
 		final Lock lock = this.storeLock;
 		lock.lockInterruptibly();
@@ -325,7 +322,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	@Override
 	public Message<?> take() throws InterruptedException {
-		Message<?> message = null;
+		Message<?> message;
 		final Lock lock = this.storeLock;
 		lock.lockInterruptibly();
 
@@ -346,9 +343,14 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		return this.messageGroupStore.getMessageGroup(this.groupId).getMessages();
 	}
 
+	@Override
+	public Stream<Message<?>> stream() {
+		return this.messageGroupStore.getMessageGroup(this.groupId).streamMessages();
+	}
+
 	/**
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
-	 * IllegalMonitorStateException may be thrown
+	 * IllegalMonitorStateException may be thrown.
 	 * @return a message // TODO @Nullable
 	 */
 	protected Message<?> doPoll() {
@@ -359,7 +361,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	/**
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
-	 * IllegalMonitorStateException may be thrown
+	 * IllegalMonitorStateException may be thrown.
 	 * @param message the message to offer.
 	 * @return true if offered.
 	 */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,7 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -43,7 +41,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -52,12 +50,9 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @since 4.0
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class DownstreamExceptionTests {
-
-	@ClassRule
-	public static final BrokerRunning brokerRunning = BrokerRunning.isRunning(1883);
+public class DownstreamExceptionTests implements MosquittoContainerTest {
 
 	@Autowired
 	private Service service;
@@ -84,7 +79,7 @@ public class DownstreamExceptionTests {
 			return null;
 		}).when(logger).error(any(Throwable.class), any(Supplier.class));
 		new DirectFieldAccessor(noErrorChannel).setPropertyValue("logger", logger);
-		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(MosquittoContainerTest.mqttUrl(), "si-test-out");
 		adapter.setDefaultTopic("mqtt-fooEx1");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
@@ -106,7 +101,7 @@ public class DownstreamExceptionTests {
 	public void testWithErrorChannel() throws Exception {
 		assertThat(TestUtils.getPropertyValue(this.withErrorChannel, "errorChannel")).isSameAs(this.errors);
 		service.n = 0;
-		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(MosquittoContainerTest.mqttUrl(), "si-test-out");
 		adapter.setDefaultTopic("mqtt-fooEx2");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();

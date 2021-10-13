@@ -474,8 +474,6 @@ IMPORTANT: https://docs.spring.io/spring-boot/docs/current/reference/html/execut
 So, with a Spring Boot application, nothing more is needed if you use its default executable jar format.
 
 Even if you do not use Spring Boot, you can still use the tooling provided by Boot to enhance the shade plugin by adding transformers for the above mentioned files.
-
-You may wish to consult the current https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-starters/spring-boot-starter-parent/pom.xml[spring-boot-starter-parent pom] to see the current settings that boot uses.
 The following example shows how to configure the plugin:
 
 .pom.xml
@@ -561,7 +559,7 @@ We cannot update it to the current schema because that will break any applicatio
 For subsequent versions, the unversioned schema is resolved from the classpath and obtained from the jar.
 Please refer to github:
 
-https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config
+https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config
 ====
 
 The affected modules are

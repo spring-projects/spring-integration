@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,10 @@ import org.zeromq.ZMsg;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.FluxMessageChannel;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.support.GenericMessage;
 
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 /**
@@ -67,8 +69,14 @@ public class ZeroMqMessageProducerTests {
 		messageProducer.setMessageMapper((object, headers) -> new GenericMessage<>(new String(object)));
 		messageProducer.setConsumeDelay(Duration.ofMillis(10));
 		messageProducer.setBeanFactory(mock(BeanFactory.class));
+		messageProducer.setSocketConfigurer(s -> s.setZapDomain("global"));
 		messageProducer.afterPropertiesSet();
 		messageProducer.start();
+
+		@SuppressWarnings("unchecked")
+		Mono<ZMQ.Socket> socketMono = TestUtils.getPropertyValue(messageProducer, "socketMono", Mono.class);
+		ZMQ.Socket socketInUse = socketMono.block(Duration.ofSeconds(10));
+		assertThat(socketInUse.getZapDomain()).isEqualTo("global");
 
 		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.PAIR);
 
@@ -86,10 +94,11 @@ public class ZeroMqMessageProducerTests {
 	}
 
 	@Test
-	void testMessageProducerForPubSubReceiveRaw() throws InterruptedException {
+	void testMessageProducerForPubSubReceiveRaw() {
 		String socketAddress = "inproc://messageProducer.test";
-		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.PUB);
+		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.XPUB);
 		socket.bind(socketAddress);
+		socket.setReceiveTimeOut(10_000);
 
 		FluxMessageChannel outputChannel = new FluxMessageChannel();
 
@@ -118,8 +127,7 @@ public class ZeroMqMessageProducerTests {
 		messageProducer.afterPropertiesSet();
 		messageProducer.start();
 
-		// Give it some time to connect and subscribe
-		Thread.sleep(2000);
+		assertThat(socket.recv()).isNotNull();
 
 		ZMsg msg = ZMsg.newStringMsg("test");
 		msg.wrap(new ZFrame("testTopic"));
@@ -127,8 +135,7 @@ public class ZeroMqMessageProducerTests {
 
 		messageProducer.subscribeToTopics("other");
 
-		// Give it some time to connect and subscribe
-		Thread.sleep(2000);
+		assertThat(socket.recv()).isNotNull();
 
 		msg = ZMsg.newStringMsg("test");
 		msg.wrap(new ZFrame("otherTopic"));

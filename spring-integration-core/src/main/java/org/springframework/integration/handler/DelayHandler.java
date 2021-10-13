@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import org.aopalliance.aop.Advice;
 
@@ -51,6 +52,8 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -224,9 +227,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * If there is a transaction advice on the release task, the error flow is called
 	 * within the transaction.
 	 * @param delayedMessageErrorChannel the channel.
+	 * @since 5.0.8
 	 * @see #setMaxAttempts(int)
 	 * @see #setRetryDelay(long)
-	 * @since 5.0.8
 	 */
 	public void setDelayedMessageErrorChannel(MessageChannel delayedMessageErrorChannel) {
 		this.delayedMessageErrorChannel = delayedMessageErrorChannel;
@@ -239,9 +242,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * If there is a transaction advice on the release task, the error flow is called
 	 * within the transaction.
 	 * @param delayedMessageErrorChannelName the channel name.
+	 * @since 5.0.8
 	 * @see #setMaxAttempts(int)
 	 * @see #setRetryDelay(long)
-	 * @since 5.0.8
 	 */
 	public void setDelayedMessageErrorChannelName(String delayedMessageErrorChannelName) {
 		this.delayedMessageErrorChannelName = delayedMessageErrorChannelName;
@@ -251,8 +254,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * Set the maximum number of release attempts for when message release fails. Default
 	 * {@value #DEFAULT_MAX_ATTEMPTS}.
 	 * @param maxAttempts the max attempts.
-	 * @see #setRetryDelay(long)
 	 * @since 5.0.8
+	 * @see #setRetryDelay(long)
 	 */
 	public void setMaxAttempts(int maxAttempts) {
 		this.maxAttempts = maxAttempts;
@@ -262,8 +265,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * Set an additional delay to apply when retrying after a release failure. Default
 	 * {@value #DEFAULT_RETRY_DELAY}.
 	 * @param retryDelay the retry delay.
-	 * @see #setMaxAttempts(int)
 	 * @since 5.0.8
+	 * @see #setMaxAttempts(int)
 	 */
 	public void setRetryDelay(long retryDelay) {
 		this.retryDelay = retryDelay;
@@ -321,7 +324,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Checks if 'requestMessage' wasn't delayed before ({@link #releaseMessageAfterDelay}
+	 * Check if 'requestMessage' wasn't delayed before ({@link #releaseMessageAfterDelay}
 	 * and {@link DelayHandler.DelayedMessageWrapper}). Than determine 'delay' for
 	 * 'requestMessage' ({@link #determineDelayForMessage}) and if {@code delay > 0}
 	 * schedules 'releaseMessage' task after 'delay'.
@@ -440,7 +443,24 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			};
 		}
 
-		getTaskScheduler().schedule(releaseTask, new Date(messageWrapper.getRequestDate() + delay));
+		Date startTime = new Date(messageWrapper.getRequestDate() + delay);
+
+		if (TransactionSynchronizationManager.isSynchronizationActive() &&
+				TransactionSynchronizationManager.isActualTransactionActive()) {
+
+			TransactionSynchronizationManager.registerSynchronization(
+					new TransactionSynchronization() {
+
+						@Override
+						public void afterCommit() {
+							getTaskScheduler().schedule(releaseTask, startTime);
+						}
+
+					});
+		}
+		else {
+			getTaskScheduler().schedule(releaseTask, startTime);
+		}
 	}
 
 	private Message<?> getMessageById(UUID messageId) {
@@ -562,9 +582,10 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	@Override
 	public synchronized void reschedulePersistedMessages() {
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
-		for (final Message<?> message : messageGroup.getMessages()) {
-			getTaskScheduler()
-					.schedule(() -> {
+		try (Stream<Message<?>> messageStream = messageGroup.streamMessages()) {
+			TaskScheduler taskScheduler = getTaskScheduler();
+			messageStream.forEach((message) -> // NOSONAR
+					taskScheduler.schedule(() -> {
 						// This is fine to keep the reference to the message,
 						// because the scheduled task is performed immediately.
 						long delay = determineDelayForMessage(message);
@@ -574,12 +595,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 						else {
 							releaseMessage(message);
 						}
-					}, new Date());
+					}, new Date()));
 		}
 	}
 
 	/**
-	 * Handles {@link ContextRefreshedEvent} to invoke
+	 * Handle {@link ContextRefreshedEvent} to invoke
 	 * {@link #reschedulePersistedMessages} as late as possible after application context
 	 * startup. Also it checks {@link #initialized} to ignore other
 	 * {@link ContextRefreshedEvent}s which may be published in the 'parent-child'

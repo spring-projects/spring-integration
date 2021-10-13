@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -716,6 +716,14 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun resequence(resequencer: ResequencerSpec.() -> Unit = {}) {
 		this.delegate.resequence(resequencer)
+	}
+
+	/**
+	 * A short-cut for the `aggregate { processor(aggregatorProcessor) }`
+	 * @since 5.5
+	 */
+	fun aggregate(aggregator: Any) {
+		this.delegate.aggregate(aggregator)
 	}
 
 	/**

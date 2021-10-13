@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -235,13 +235,14 @@ public abstract class ClassUtils {
 	}
 
 	/**
-	 * Check if class is Java lambda.
+	 * Check if class is Java or Kotlin lambda.
 	 * @param aClass the {@link Class} to check.
-	 * @return true if class is a Java lambda.
+	 * @return true if class is a Java or Kotlin lambda.
 	 * @since 5.2
 	 */
 	public static boolean isLambda(Class<?> aClass) {
-		return aClass.isSynthetic() && !aClass.isAnonymousClass() && !aClass.isLocalClass();
+		return (aClass.isSynthetic() && !aClass.isAnonymousClass() && !aClass.isLocalClass())
+				|| aClass.getName().contains("$inlined$"); // for Kotlin lambdas
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.catalina.Context;
+import org.apache.catalina.Wrapper;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.websocket.server.WsContextListener;
 
@@ -31,6 +32,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 /**
  * @author Rossen Stoyanchev
  * @author Artem Bilan
+ *
  * @since 4.1
  */
 public class TomcatWebSocketTestServer implements InitializingBean, DisposableBean {
@@ -48,8 +50,10 @@ public class TomcatWebSocketTestServer implements InitializingBean, DisposableBe
 
 		Context context = this.tomcatServer.addContext("", System.getProperty("java.io.tmpdir"));
 		context.addApplicationListener(WsContextListener.class.getName());
-		Tomcat.addServlet(context, "dispatcherServlet", new DispatcherServlet(this.serverContext))
-				.setAsyncSupported(true);
+		Wrapper dispatcherServlet =
+				Tomcat.addServlet(context, "dispatcherServlet", new DispatcherServlet(this.serverContext));
+		dispatcherServlet.setAsyncSupported(true);
+		dispatcherServlet.setLoadOnStartup(1);
 		context.addServletMappingDecoded("/", "dispatcherServlet");
 	}
 
@@ -81,6 +85,7 @@ public class TomcatWebSocketTestServer implements InitializingBean, DisposableBe
 
 	@Override
 	public void destroy() throws Exception {
+		this.serverContext.close();
 		this.tomcatServer.stop();
 	}
 

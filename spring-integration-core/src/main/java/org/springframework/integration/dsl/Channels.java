@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,20 +98,36 @@ public final class Channels {
 		return MessageChannels.rendezvous(id);
 	}
 
-	public PublishSubscribeChannelSpec<?>  publishSubscribe() {
+	public PublishSubscribeChannelSpec<?> publishSubscribe() {
 		return MessageChannels.publishSubscribe();
+	}
+
+	public PublishSubscribeChannelSpec<?> publishSubscribe(boolean requireSubscribers) {
+		return MessageChannels.publishSubscribe(requireSubscribers);
 	}
 
 	public PublishSubscribeChannelSpec<?> publishSubscribe(Executor executor) {
 		return MessageChannels.publishSubscribe(executor);
 	}
 
+	public PublishSubscribeChannelSpec<?> publishSubscribe(Executor executor, boolean requireSubscribers) {
+		return MessageChannels.publishSubscribe(executor, requireSubscribers);
+	}
+
 	public PublishSubscribeChannelSpec<?> publishSubscribe(String id, Executor executor) {
 		return MessageChannels.publishSubscribe(id, executor);
 	}
 
+	public PublishSubscribeChannelSpec<?> publishSubscribe(String id, Executor executor, boolean requireSubscribers) {
+		return MessageChannels.publishSubscribe(id, executor, requireSubscribers);
+	}
+
 	public PublishSubscribeChannelSpec<?> publishSubscribe(String id) {
 		return MessageChannels.publishSubscribe(id);
+	}
+
+	public PublishSubscribeChannelSpec<?> publishSubscribe(String id, boolean requireSubscribers) {
+		return MessageChannels.publishSubscribe(id, requireSubscribers);
 	}
 
 	public ExecutorChannelSpec executor(Executor executor) {

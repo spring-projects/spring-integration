@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,11 +103,6 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	private Expression remoteDirectoryExpression;
 
 	/**
-	 * The current evaluation of the expression.
-	 */
-	private String evaluatedRemoteDirectory;
-
-	/**
 	 * An {@link FileListFilter} that runs against the <em>remote</em> file system view.
 	 */
 	@Nullable
@@ -203,7 +198,6 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 */
 	public void setRemoteDirectory(String remoteDirectory) {
 		this.remoteDirectoryExpression = new LiteralExpression(remoteDirectory);
-		evaluateRemoteDirectory();
 	}
 
 	/**
@@ -229,7 +223,6 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	protected final void doSetRemoteDirectoryExpression(Expression expression) {
 		Assert.notNull(expression, "'remoteDirectoryExpression' must not be null");
 		this.remoteDirectoryExpression = expression;
-		evaluateRemoteDirectory();
 	}
 
 	/**
@@ -298,7 +291,6 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		if (this.evaluationContext == null) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		}
-		evaluateRemoteDirectory();
 		if (!StringUtils.hasText(this.metadataStorePrefix)) {
 			this.metadataStorePrefix = this.name;
 		}
@@ -341,26 +333,27 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			}
 			return;
 		}
+		String remoteDirectory = this.remoteDirectoryExpression.getValue(this.evaluationContext, String.class);
 		if (this.logger.isTraceEnabled()) {
-			this.logger.trace("Synchronizing " + this.evaluatedRemoteDirectory + " to " + localDirectory);
+			this.logger.trace("Synchronizing " + remoteDirectory + " to " + localDirectory);
 		}
 		try {
 			int transferred = this.remoteFileTemplate.execute(session ->
-					transferFilesFromRemoteToLocal(localDirectory, maxFetchSize, session));
+					transferFilesFromRemoteToLocal(remoteDirectory, localDirectory, maxFetchSize, session));
 			if (this.logger.isDebugEnabled()) {
-				this.logger.debug(transferred + " files transferred from '" + this.evaluatedRemoteDirectory + "'");
+				this.logger.debug(transferred + " files transferred from '" + remoteDirectory + "'");
 			}
 		}
 		catch (Exception e) {
 			throw new MessagingException("Problem occurred while synchronizing '"
-					+ this.evaluatedRemoteDirectory + "' to local directory", e);
+					+ remoteDirectory + "' to local directory", e);
 		}
 	}
 
-	private Integer transferFilesFromRemoteToLocal(File localDirectory, int maxFetchSize, Session<F> session)
-			throws IOException {
+	private Integer transferFilesFromRemoteToLocal(String remoteDirectory, File localDirectory,
+			int maxFetchSize, Session<F> session) throws IOException {
 
-		F[] files = session.list(this.evaluatedRemoteDirectory);
+		F[] files = session.list(remoteDirectory);
 		if (!ObjectUtils.isEmpty(files)) {
 			files = FileUtils.purgeUnwantedElements(files, e -> !isFile(e), this.comparator);
 		}
@@ -371,6 +364,12 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 			int copied = filteredFiles.size();
 			int accepted = 0;
+
+			EvaluationContext localFileEvaluationContext = null;
+			if (this.localFilenameGeneratorExpression != null) {
+				localFileEvaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+				localFileEvaluationContext.setVariable("remoteDirectory", remoteDirectory);
+			}
 
 			for (F file : filteredFiles) {
 				if (filteringOneByOne) {
@@ -383,7 +382,9 @@ public abstract class AbstractInboundFileSynchronizer<F>
 						copied--;
 					}
 				}
-				copied = copyIfNotNull(localDirectory, session, filteringOneByOne, filteredFiles, copied, file);
+				copied =
+						copyIfNotNull(remoteDirectory, localDirectory, localFileEvaluationContext, session,
+								filteringOneByOne, filteredFiles, copied, file);
 			}
 			return copied;
 		}
@@ -392,13 +393,16 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 	}
 
-	private int copyIfNotNull(File localDirectory, Session<F> session, boolean filteringOneByOne, List<F> filteredFiles,
-			int copied, @Nullable F file) throws IOException {
+	private int copyIfNotNull(String remoteDirectory, File localDirectory,
+			@Nullable EvaluationContext localFileEvaluationContext, Session<F> session, boolean filteringOneByOne,
+			List<F> filteredFiles, int copied, @Nullable F file) throws IOException {
 
 		boolean renamedFailed = false;
 		try {
-			if (file != null && !copyFileToLocalDirectory(this.evaluatedRemoteDirectory, file,
-					localDirectory, session)) {
+			if (file != null &&
+					!copyFileToLocalDirectory(remoteDirectory, localFileEvaluationContext, file, localDirectory,
+							session)) {
+
 				renamedFailed = true;
 			}
 		}
@@ -440,11 +444,12 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 	}
 
-	protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, // NOSONAR
-			File localDirectory, Session<F> session) throws IOException {
+	protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, // NOSONAR
+			@Nullable EvaluationContext localFileEvaluationContext, F remoteFile, File localDirectory,
+			Session<F> session) throws IOException {
 
 		String remoteFileName = getFilename(remoteFile);
-		String localFileName = generateLocalFileName(remoteFileName);
+		String localFileName = generateLocalFileName(remoteFileName, localFileEvaluationContext);
 		String remoteFilePath = remoteDirectoryPath != null
 				? (remoteDirectoryPath + this.remoteFileSeparator + remoteFileName)
 				: remoteFileName;
@@ -567,20 +572,14 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		return renamed;
 	}
 
-	private String generateLocalFileName(String remoteFileName) {
+	private String generateLocalFileName(String remoteFileName,
+			@Nullable EvaluationContext localFileEvaluationContext) {
+
 		if (this.localFilenameGeneratorExpression != null) {
-			return this.localFilenameGeneratorExpression.getValue(this.evaluationContext, remoteFileName,
+			return this.localFilenameGeneratorExpression.getValue(localFileEvaluationContext, remoteFileName,
 					String.class);
 		}
 		return remoteFileName;
-	}
-
-	protected void evaluateRemoteDirectory() {
-		if (this.evaluationContext != null) {
-			this.evaluatedRemoteDirectory = this.remoteDirectoryExpression.getValue(this.evaluationContext,
-					String.class);
-			this.evaluationContext.setVariable("remoteDirectory", this.evaluatedRemoteDirectory);
-		}
 	}
 
 	/**

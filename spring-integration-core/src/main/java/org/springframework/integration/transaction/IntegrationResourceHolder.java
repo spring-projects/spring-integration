@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,11 @@ import org.springframework.transaction.support.ResourceHolder;
 
 /**
  * An implementation of the {@link ResourceHolder} which holds an instance of the current Message
- * and the synchronization resource
+ * and the synchronization resource.
  *
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ *
  * @since 2.2
  *
  */
@@ -40,7 +41,7 @@ public class IntegrationResourceHolder implements ResourceHolder {
 
 	private volatile Message<?> message;
 
-	private final Map<String, Object> attributes = new HashMap<String, Object>();
+	private final Map<String, Object> attributes = new HashMap<>();
 
 	public void setMessage(Message<?> message) {
 		this.message = message;
@@ -51,8 +52,7 @@ public class IntegrationResourceHolder implements ResourceHolder {
 	}
 
 	/**
-	 * Adds attribute to this {@link ResourceHolder} instance
-	 *
+	 * Add attribute to this {@link ResourceHolder} instance.
 	 * @param key The key.
 	 * @param value The value.
 	 */
@@ -63,7 +63,6 @@ public class IntegrationResourceHolder implements ResourceHolder {
 	/**
 	 * Will return an immutable Map of current attributes.
 	 * If you need to add an attribute, use the {@link #addAttribute(String, Object)} method.
-	 *
 	 * @return the immutable map.
 	 */
 	public Map<String, Object> getAttributes() {

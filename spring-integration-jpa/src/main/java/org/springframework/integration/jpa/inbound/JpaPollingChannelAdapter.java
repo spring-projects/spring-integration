@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  *     <li>Sql Native Query</li>
  *     <li>JpQl Named Query</li>
  *     <li>Sql Native Named Query</li>
- * </ul>
+ * </ul>.
  *
  * After the objects have been polled, it also possibly to either:
  *
@@ -64,7 +64,7 @@ public class JpaPollingChannelAdapter extends AbstractMessageSource<Object> {
 	}
 
 	/**
-	 * Check for mandatory attributes
+	 * Check for mandatory attributes.
 	 */
 	@Override
 	protected void onInit() {

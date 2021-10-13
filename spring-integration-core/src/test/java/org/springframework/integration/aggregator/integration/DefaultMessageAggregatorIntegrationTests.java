@@ -19,21 +19,18 @@ package org.springframework.integration.aggregator.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Alex Peters
@@ -41,8 +38,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
+@DirtiesContext
 public class DefaultMessageAggregatorIntegrationTests {
 
 	@Autowired
@@ -53,26 +50,24 @@ public class DefaultMessageAggregatorIntegrationTests {
 	@Qualifier("output")
 	private PollableChannel output;
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(timeout = 10000)
+	@Test
 	public void testAggregation() {
 		for (int i = 0; i < 5; i++) {
-			Map<String, Object> headers = stubHeaders(i, 5, 1);
-			this.input.send(new GenericMessage<>(i, headers));
+			this.input.send(prepareSequenceMessage(i, 5, 1));
 		}
-		Object payload = this.output.receive().getPayload();
-		assertThat(payload).isInstanceOf(List.class);
-		assertThat(((List) payload).containsAll(Arrays.asList(0, 1, 2, 3, 4)))
-				.as(payload + " doesn't contain all of {0,1,2,3,4}").isTrue();
+		Object payload = this.output.receive(20_000).getPayload();
+		assertThat(payload).isInstanceOf(List.class)
+				.asList()
+				.containsAll(Arrays.asList(0, 1, 2, 3, 4));
 	}
 
 
-	private Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correllationId) {
-		Map<String, Object> headers = new HashMap<>();
-		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
-		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
-		headers.put(IntegrationMessageHeaderAccessor.CORRELATION_ID, correllationId);
-		return headers;
+	private static Message<?> prepareSequenceMessage(int sequenceNumber, int sequenceSize, int correlationId) {
+		return MessageBuilder.withPayload(sequenceNumber)
+				.setSequenceNumber(sequenceNumber)
+				.setSequenceSize(sequenceSize)
+				.setCorrelationId(correlationId)
+				.build();
 	}
 
 }

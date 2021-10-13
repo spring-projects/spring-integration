@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,34 +28,31 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
-import org.springframework.integration.jms.config.ActiveMqTestUtils;
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
  * @author Ali Moghadam
  */
+@LongRunningTest
 public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests {
 
 	private final ExecutorService executor = Executors.newFixedThreadPool(30);
 
 	private static final Log logger = LogFactory.getLog(PipelineJmsTests.class);
 
-	@Rule
-	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
-
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.executor.shutdownNow();
 	}
@@ -160,7 +157,6 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	}
 
 	public int test(String contextConfig, final int offset) throws Exception {
-		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(contextConfig, this.getClass());
 		final AtomicInteger successCounter = new AtomicInteger();
 		final AtomicInteger timeoutCounter = new AtomicInteger();
@@ -173,7 +169,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 				final int y = i;
 				executor.execute(() -> {
 					try {
-						assertThat(gateway.exchange(new GenericMessage<Integer>(y)).getPayload()).isEqualTo(y + offset);
+						assertThat(gateway.exchange(new GenericMessage<>(y)).getPayload()).isEqualTo(y + offset);
 						successCounter.incrementAndGet();
 					}
 					catch (MessageTimeoutException e) {
@@ -210,7 +206,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 
 	public static class Capture {
 
-		private final BlockingQueue<String> messages = new LinkedBlockingQueue<String>();
+		private final BlockingQueue<String> messages = new LinkedBlockingQueue<>();
 
 		public Message<?> capture(Message<?> message) {
 			messages.add("\n[" + Thread.currentThread().getName() + "] " + message);

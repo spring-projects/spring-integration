@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,6 +107,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Tony Falabella
  * @author Alen Turkovic
+ * @author Trung Pham
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler
 		implements ManageableLifecycle, MessageTriggerAction {
@@ -322,8 +323,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * {@code flushInterval} and {@code flushInterval * 1.33} with an average of
 	 * {@code flushInterval * 1.167}.
 	 * @param flushInterval the interval.
-	 * @see #setFlushWhenIdle(boolean)
 	 * @since 4.3
+	 * @see #setFlushWhenIdle(boolean)
 	 */
 	public void setFlushInterval(long flushInterval) {
 		this.flushInterval = flushInterval;
@@ -335,9 +336,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * write to a previously flushed or new file.
 	 * @param flushWhenIdle false to flush on the interval after the first write
 	 * to a closed file.
+	 * @since 4.3.7
 	 * @see #setFlushInterval(long)
 	 * @see #setBufferSize(int)
-	 * @since 4.3.7
 	 */
 	public void setFlushWhenIdle(boolean flushWhenIdle) {
 		this.flushWhenIdle = flushWhenIdle;
@@ -371,8 +372,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * String setter for Spring XML convenience.
 	 * @param chmod permissions as an octal string e.g "600";
-	 * @see #setChmod(int)
 	 * @since 5.0
+	 * @see #setChmod(int)
 	 */
 	public void setChmodOctal(String chmod) {
 		Assert.notNull(chmod, "'chmod' cannot be null");
@@ -588,8 +589,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 							+ "' timestamp on file: " + fileToReturn);
 				}
 			}
-			else if (this.logger.isWarnEnabled()) {
-				this.logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
+			else {
+				this.logger.warn(() -> "Could not set lastModified, header " + FileHeaders.SET_MODIFIED
 						+ " must be a Number, not " + (timestamp == null ? "null" : timestamp.getClass()));
 			}
 		}
@@ -599,7 +600,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * Retrieves the File instance from the {@link FileHeaders#ORIGINAL_FILE}
 	 * header if available. If the value is not a File instance or a String
-	 * representation of a file path, this will return <code>null</code>.
+	 * representation of a file path, this will return {@code null}.
 	 */
 	private File retrieveOriginalFileFromHeader(Message<?> message) {
 		Object value = message.getHeaders().get(FileHeaders.ORIGINAL_FILE);
@@ -660,7 +661,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 				byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 				int bytesRead;
-				while ((bytesRead = inputStream.read(buffer)) != -1) {
+				while ((bytesRead = inputStream.read(buffer)) != -1) { // NOSONAR
 					outputStream.write(buffer, 0, bytesRead);
 				}
 				if (this.appendNewLine) {
@@ -680,7 +681,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			bos = state != null ? state.stream : createOutputStream(fileToWriteTo, true);
 			byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 			int bytesRead = -1;
-			while ((bytesRead = inputStream.read(buffer)) != -1) {
+			while ((bytesRead = inputStream.read(buffer)) != -1) { // NOSONAR
 				bos.write(buffer, 0, bytesRead);
 			}
 			if (FileWritingMessageHandler.this.appendNewLine) {
@@ -1075,14 +1076,14 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				catch (IOException e) {
 					// ignore
 				}
+				finally {
+					this.lock.unlock();
+				}
 				return true;
 			}
 			catch (InterruptedException e1) {
 				Thread.currentThread().interrupt();
 				return false;
-			}
-			finally {
-				this.lock.unlock();
 			}
 		}
 
@@ -1143,8 +1144,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}
 	 * an implementation of this interface is called for each file that has pending data
 	 * to flush when a trigger message is received.
-	 * @see FileWritingMessageHandler#trigger(Message)
 	 * @since 4.3
+	 * @see FileWritingMessageHandler#trigger(Message)
 	 *
 	 */
 	@FunctionalInterface
@@ -1174,6 +1175,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		@Override
 		public boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite,
 				Message<?> triggerMessage) {
+
 			Pattern pattern;
 			if (triggerMessage.getPayload() instanceof String) {
 				pattern = Pattern.compile((String) triggerMessage.getPayload());

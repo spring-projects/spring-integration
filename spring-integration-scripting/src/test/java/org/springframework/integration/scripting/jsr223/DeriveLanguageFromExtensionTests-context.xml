@@ -7,7 +7,6 @@
 
 	<int-script:script location="foo.rb"/>
 	<int-script:script location="foo.groovy"/>
-	<int-script:script location="foo.js"/>
 	<int-script:script location="foo.py"/>
 	<int-script:script location="foo.kts"/>
 </beans>

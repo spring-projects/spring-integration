@@ -1,9 +1,30 @@
 [[kafka]]
-== Spring for Apache Kafka Support
+== Apache Kafka Support
 
 === Overview
 
 Spring Integration for Apache Kafka is based on the https://projects.spring.io/spring-kafka/[Spring for Apache Kafka project].
+
+You need to include this dependency into your project:
+
+====
+[source, xml, subs="normal", role="primary"]
+.Maven
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-kafka</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+[source, groovy, subs="normal", role="secondary"]
+.Gradle
+----
+compile "org.springframework.integration:spring-integration-kafka:{project-version}"
+----
+====
+
 It provides the following components:
 
 * <<kafka-outbound>>
@@ -16,15 +37,14 @@ It provides the following components:
 [[kafka-outbound]]
 === Outbound Channel Adapter
 
-The Outbound channel adapter is used to publish messages from a Spring Integration channel to Kafka topics.
-The channel is defined in the application context and then wired into the application that sends messages to Kafka.
-Sender applications can publish to Kafka by using Spring Integration messages, which are internally converted to Kafka messages by the outbound channel adapter, as follows:
+The Outbound channel adapter is used to publish messages from a Spring Integration channel to Apache Kafka topics.
+The channel is defined in the application context and then wired into the application that sends messages to Apache Kafka.
+Sender applications can publish to Apache Kafka by using Spring Integration messages, which are internally converted to Kafka records by the outbound channel adapter, as follows:
 
-* The payload of the Spring Integration message is used to populate the payload of the Kafka message.
-* By default, the `kafka_messageKey` header of the Spring Integration message is used to populate the key of the Kafka message.
+* The payload of the Spring Integration message is used to populate the payload of the Kafka record.
+* By default, the `kafka_messageKey` header of the Spring Integration message is used to populate the key of the Kafka record.
 
-You can customize the target topic and partition for publishing the message through the `kafka_topic`
-and `kafka_partitionId` headers, respectively.
+You can customize the target topic and partition for publishing the message through the `kafka_topic` and `kafka_partitionId` headers, respectively.
 
 In addition, the `<int-kafka:outbound-channel-adapter>` provides the ability to extract the key, target topic, and target partition by applying SpEL expressions on the outbound message.
 To that end, it supports three mutually exclusive pairs of attributes:
@@ -79,7 +99,7 @@ IMPORTANT: That timeout is 120 seconds by default so you may wish to reduce it t
 
 ==== Java Configuration
 
-The following example shows how to configure the Kafka outbound channel adapter with Java:
+The following example shows how to configure the outbound channel adapter for Apache Kafka with Java:
 
 ====
 [source, java]
@@ -113,7 +133,7 @@ public ProducerFactory<String, String> producerFactory() {
 
 ==== Java DSL Configuration
 
-The following example shows how to configure the Kafka outbound channel adapter Spring Integration Java DSL:
+The following example shows how to configure the outbound channel adapter for Apache Kafka with Spring Integration Java DSL:
 
 ====
 [source, java]
@@ -199,7 +219,7 @@ The following example shows how to configure the Kafka outbound channel adapter 
 
 The `KafkaMessageDrivenChannelAdapter` (`<int-kafka:message-driven-channel-adapter>`) uses a `spring-kafka` `KafkaMessageListenerContainer` or `ConcurrentListenerContainer`.
 
-Starting with spring-integration-kafka version 2.1, the `mode` attribute is available.
+Also the `mode` attribute is available.
 It can accept values of `record` or `batch` (default: `record`).
 For `record` mode, each message payload is converted from a single `ConsumerRecord`.
 For `batch` mode, the payload is a list of objects that are converted from all the `ConsumerRecord` instances returned by the consumer poll.
@@ -282,7 +302,7 @@ public IntegrationFlow topic1ListenerFromKafkaFlow() {
 ----
 ====
 
-Starting with Spring for Apache Kafka version 2.2 (Spring Integration Kafka 3.1), you can also use the container factory that is used for `@KafkaListener` annotations to create `ConcurrentMessageListenerContainer` instances for other purposes.
+Starting with Spring for Apache Kafka version 2.2, you can also use the container factory that is used for `@KafkaListener` annotations to create `ConcurrentMessageListenerContainer` instances for other purposes.
 See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] for an example.
 
 With the Java DSL, the container does not have to be configured as a `@Bean`, because the DSL registers the container as a bean.
@@ -352,7 +372,7 @@ The following example shows how to configure a message-driven channel adapter wi
 [[kafka-inbound-pollable]]
 === Inbound Channel Adapter
 
-Introduced in version 3.0.1, the `KafkaMessageSource` provides a pollable channel adapter implementation.
+The `KafkaMessageSource` provides a pollable channel adapter implementation.
 
 ==== Java Configuration
 
@@ -374,7 +394,7 @@ Refer to the javadocs for available properties.
 
 [[max-poll-records]]
 By default, `max.poll.records` must be either explicitly set in the consumer factory, or it will be forced to 1 if the consumer factory is a `DefaultKafkaConsumerFactory`.
-Starting with version 3.2, you can set the property `allowMultiFetch` to `true` to override this behavior.
+You can set the property `allowMultiFetch` to `true` to override this behavior.
 
 IMPORTANT: You must poll the consumer within `max.poll.interval.ms` to avoid a rebalance.
 If you set `allowMultiFetch` to `true` you must process all the retrieved records, and poll again, within `max.poll.interval.ms`.
@@ -429,7 +449,7 @@ If your code invokes the gateway behind a synchronous https://docs.spring.io/spr
 IMPORTANT: The gateway does not accept requests until the reply container has been assigned its topics and partitions.
 It is suggested that you add a `ConsumerRebalanceListener` to the template's reply container properties and wait for the `onPartitionsAssigned` call before sending messages to the gateway.
 
-Starting with version 5.4, the `KafkaProducerMessageHandler` `sendTimeoutExpression` default has changed from 10 seconds to the `delivery.timeout.ms` Kafka producer property `+ 5000` so that the actual Kafka error after a timeout is propagated to the application, instead of a timeout generated by this framework.
+The `KafkaProducerMessageHandler` `sendTimeoutExpression` default is `delivery.timeout.ms` Kafka producer property `+ 5000` so that the actual Kafka error after a timeout is propagated to the application, instead of a timeout generated by this framework.
 This has been changed for consistency because you may get unexpected behavior (Spring may timeout the send, while it is actually, eventually, successful).
 IMPORTANT: That timeout is 120 seconds by default so you may wish to reduce it to get more timely failures.
 
@@ -451,7 +471,7 @@ public KafkaProducerMessageHandler<String, String> outGateway(
 
 Refer to the javadocs for available properties.
 
-Notice that the same class as the <<kafka-outbound,outbound channel adapter>> is used, the only difference being that the Kafka template passed into the constructor is a `ReplyingKafkaTemplate`.
+Notice that the same class as the <<kafka-outbound,outbound channel adapter>> is used, the only difference being that the `KafkaTemplate` passed into the constructor is a `ReplyingKafkaTemplate`.
 See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation]  for more information.
 
 The outbound topic, partition, key, and so on are determined in the same way as the outbound adapter.
@@ -585,7 +605,7 @@ public IntegrationFlow serverGateway() {
 ----
 ====
 
-Starting with Spring for Apache Kafka version 2.2 (Spring Integration Kafka 3.1), you can also use the container factory that is used for `@KafkaListener` annotations to create `ConcurrentMessageListenerContainer` instances for other purposes.
+Starting with Spring for Apache Kafka version 2.2, you can also use the container factory that is used for `@KafkaListener` annotations to create `ConcurrentMessageListenerContainer` instances for other purposes.
 See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] and <<kafka-inbound>> for examples.
 
 ==== XML Configuration
@@ -614,9 +634,9 @@ See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring 
 See the XML schema for a description of each property.
 
 [[kafka-channels]]
-=== Channels Backed by Kafka Topics
+=== Channels Backed by Apache Kafka Topics
 
-Spring Integration for Apache Kafka version 3.3 (still under development) introduces channels backed by a Kafka topic for persistence.
+Spring Integration has `MessageChannel` implementations backed by an Apache Kafka topic for persistence.
 
 Each channel requires a `KafkaTemplate` for the sending side and either a listener container factory (for subscribable channels) or a `KafkaMessageSource` for a pollable channel.
 
@@ -664,7 +684,7 @@ public IntegrationFlow flowWithPollable(KafkaTemplate<Integer, String> template,
 
     return IntegrationFlows.from(...)
             ...
-            .channel(Kafka.pollableChannel(template, source, "someTopic3").greoupId("group3"))
+            .channel(Kafka.pollableChannel(template, source, "someTopic3").groupId("group3"))
             .handle(...,  e -> e.poller(...))
             ...
             .get();
@@ -786,10 +806,10 @@ public KafkaMessageDrivenChannelAdapter<String, String>
 === Null Payloads and Log Compaction 'Tombstone' Records
 
 Spring Messaging `Message<?>` objects cannot have `null` payloads.
-When you use the Kafka endpoints, `null` payloads (also known as tombstone records) are represented by a payload of type `KafkaNull`.
+When you use the endpoints for Apache Kafka, `null` payloads (also known as tombstone records) are represented by a payload of type `KafkaNull`.
 See See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] for more information.
 
-Starting with version 3.1 of Spring Integration Kafka, such records can now be received by Spring Integration POJO methods with a true `null` value instead.
+The POJO methods for Spring Integration endpoints can use a true `null` value instead instead of `KafkaNull`.
 To do so, mark the parameter with `@Payload(required = false)`.
 The following example shows how to do so:
 

@@ -16,7 +16,8 @@
 			id="adapter" topics="foo" topic-patterns="f*, b*" channel="receiveChannel" error-channel="testErrorChannel"
 			message-converter="testConverter"
 			serializer="serializer"
-			task-executor="executor"/>
+			task-executor="executor"
+			auto-startup="false"/>
 
 	<bean id="executor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
 		<property name="corePoolSize" value="5"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.router;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -98,13 +99,8 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 	public void setRecipients(List<Recipient> recipients) {
 		Assert.notEmpty(recipients, "'recipients' must not be empty");
 		Queue<Recipient> newRecipients = new ConcurrentLinkedQueue<>(recipients);
-
 		newRecipients.forEach(this::setupRecipient);
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Channel Recipients: " + this.recipients + " replaced with: " + newRecipients);
-		}
-
+		logger.debug(() -> "Channel Recipients: " + this.recipients + " replaced with: " + newRecipients);
 		this.recipients = newRecipients;
 	}
 
@@ -126,10 +122,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 				addRecipient(next.getKey(), (MessageSelector) null, newRecipients);
 			}
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Channel Recipients: " + this.recipients + " replaced with: " + newRecipients);
-		}
-
+		logger.debug(() -> "Channel Recipients: " + this.recipients + " replaced with: " + newRecipients);
 		this.recipients = newRecipients;
 	}
 
@@ -193,7 +186,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 		int counter = 0;
 		MessageChannel channel = getChannelResolver().resolveDestination(channelName);
 		for (Iterator<Recipient> it = this.recipients.iterator(); it.hasNext(); ) {
-			if (it.next().getChannel() == channel) {
+			if (channel.equals(it.next().getChannel())) {
 				it.remove();
 				counter++;
 			}
@@ -236,9 +229,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 				addRecipient(key);
 			}
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Channel Recipients:" + originalRecipients + " replaced with:" + this.recipients);
-		}
+		logger.debug(() -> "Channel Recipients: " + originalRecipients + " replaced with: " + this.recipients);
 	}
 
 	@Override
@@ -259,10 +250,13 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
-		return this.recipients.stream()
-				.filter(recipient -> recipient.accept(message))
-				.map(Recipient::getChannel)
-				.collect(Collectors.toList());
+		List<MessageChannel> result = new ArrayList<>();
+		for (Recipient recipient : this.recipients) {
+			if (recipient.accept(message)) {
+				result.add(recipient.getChannel());
+			}
+		}
+		return result;
 	}
 
 

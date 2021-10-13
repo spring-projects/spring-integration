@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
@@ -37,23 +37,30 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-public class JmsMessageHistoryTests {
+@SpringJUnitConfig
+@DirtiesContext
+public class JmsMessageHistoryTests extends ActiveMQMultiContextTests {
+
+	@Autowired
+	SampleGateway sampleGateway;
+
+	@Autowired
+	PollableChannel jmsInputChannel;
 
 	@Test
-	public void testInboundAdapter() throws Exception {
-		ActiveMqTestUtils.prepare();
-		ConfigurableApplicationContext applicationContext =
-				new ClassPathXmlApplicationContext("MessageHistoryTests-context.xml", JmsMessageHistoryTests.class);
-		SampleGateway gateway = applicationContext.getBean("sampleGateway", SampleGateway.class);
-		PollableChannel jmsInputChannel = applicationContext.getBean("jmsInputChannel", PollableChannel.class);
-		gateway.send("hello");
-		Message<?> message = jmsInputChannel.receive(5000);
+	public void testInboundAdapter() {
+		sampleGateway.send("hello");
+		Message<?> message = this.jmsInputChannel.receive(5000);
 		Iterator<Properties> historyIterator = message.getHeaders()
 				.get(MessageHistory.HEADER_NAME, MessageHistory.class)
 				.iterator();
@@ -63,7 +70,6 @@ public class JmsMessageHistoryTests {
 		Properties event2 = historyIterator.next();
 		assertThat(event2.getProperty(MessageHistory.TYPE_PROPERTY)).isEqualTo("channel");
 		assertThat(event2.getProperty(MessageHistory.NAME_PROPERTY)).isEqualTo("jmsInputChannel");
-		applicationContext.close();
 	}
 
 

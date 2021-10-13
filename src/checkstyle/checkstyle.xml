@@ -78,6 +78,7 @@
 		<module name="AvoidStaticImport">
 			<property name="excludes"
 					  value="org.assertj.core.api.Assertions.*,
+					  org.xmlunit.assertj3.XmlAssert.*,
 				org.assertj.core.api.Assumptions.*,
 				org.awaitility.Awaitility.*,
 				org.mockito.Mockito.*,
@@ -110,31 +111,28 @@
 		</module>
 
 		<!-- Javadoc Comments -->
-		<!-- 		<module name="JavadocType"> -->
-		<!-- 			<property name="scope" value="package"/> -->
-		<!-- 			<property name="authorFormat" value=".+\s.+"/> -->
-		<!-- 		</module> -->
-		<!-- 		<module name="JavadocMethod"> -->
-		<!-- 			<property name="allowMissingJavadoc" value="true" /> -->
-		<!-- 		</module> -->
-		<!-- 		<module name="JavadocVariable"> -->
-		<!-- 			<property name="scope" value="public"/> -->
-		<!-- 		</module> -->
-		<!-- 		<module name="JavadocStyle"> -->
-		<!-- 			<property name="checkEmptyJavadoc" value="true"/> -->
-		<!-- 		</module> -->
-		<!-- 		<module name="NonEmptyAtclauseDescription" /> -->
-		<!-- 		<module name="JavadocTagContinuationIndentation"> -->
-		<!-- 			<property name="offset" value="0"/> -->
-		<!-- 		</module> -->
-		<!-- 		<module name="AtclauseOrder"> -->
-		<!-- 			<property name="target" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF"/> -->
-		<!--     		<property name="tagOrder" value="@param, @author, @since, @see, @version, @serial, @deprecated"/> -->
-		<!-- 		</module> -->
-		<!--  		<module name="AtclauseOrder"> -->
-		<!-- 			<property name="target" value="METHOD_DEF, CTOR_DEF, VARIABLE_DEF"/> -->
-		<!--     		<property name="tagOrder" value="@param, @return, @throws, @since, @deprecated, @see"/> -->
-		<!-- 		</module> -->
+		<module name="JavadocType">
+			<property name="scope" value="package"/>
+		</module>
+		<!--<module name="JavadocVariable">
+			<property name="scope" value="public"/>
+			<property name="ignoreNamePattern" value="[A-Z_0-9]*"/>
+		</module>-->
+		<!--<module name="JavadocStyle">
+			<property name="checkEmptyJavadoc" value="false"/>
+		</module>-->
+		<module name="NonEmptyAtclauseDescription"/>
+		<module name="JavadocTagContinuationIndentation">
+			<property name="offset" value="0"/>
+		</module>
+		<module name="AtclauseOrder">
+			<property name="target" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF"/>
+			<property name="tagOrder" value="@param, @author, @since, @see, @version, @serial, @deprecated"/>
+		</module>
+		<module name="AtclauseOrder">
+			<property name="target" value="METHOD_DEF, CTOR_DEF, VARIABLE_DEF"/>
+			<property name="tagOrder" value="@param, @return, @throws, @since, @deprecated, @see"/>
+		</module>
 
 		<!-- Miscellaneous -->
 		<module name="CommentsIndentation">

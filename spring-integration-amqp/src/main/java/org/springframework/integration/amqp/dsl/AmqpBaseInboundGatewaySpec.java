@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.amqp.dsl;
 
 import org.springframework.amqp.rabbit.batch.BatchingStrategy;
+import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
@@ -173,6 +174,18 @@ public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 	 */
 	public S replyHeadersMappedLast(boolean replyHeadersMappedLast) {
 		this.target.setReplyHeadersMappedLast(replyHeadersMappedLast);
+		return _this();
+	}
+
+	/**
+	 * Set a {@link MessageRecoverer} when using retry within the adapter.
+	 * @param messageRecoverer the callback.
+	 * @return the spec.
+	 * @since 5.5
+	 * @see org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter#setMessageRecoverer(MessageRecoverer)
+	 */
+	public S messageRecoverer(MessageRecoverer messageRecoverer) {
+		this.target.setMessageRecoverer(messageRecoverer);
 		return _this();
 	}
 

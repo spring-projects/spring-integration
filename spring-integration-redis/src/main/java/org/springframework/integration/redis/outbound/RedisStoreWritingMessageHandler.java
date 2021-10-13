@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2019 the original author or authors.
+ * Copyright 2007-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.springframework.core.log.LogMessage;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
@@ -68,6 +69,7 @@ import org.springframework.util.NumberUtils;
  * @author Gary Russell
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 2.2
  */
@@ -148,8 +150,8 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * {@link #setKey(String)} method instead of this one (they are mutually exclusive).
 	 * If neither setter is called, the default expression will be 'headers.{@link RedisHeaders#KEY}'.
 	 * @param keyExpression The key expression.
-	 * @see #setKey(String)
 	 * @since 5.0
+	 * @see #setKey(String)
 	 */
 	public void setKeyExpressionString(String keyExpression) {
 		Assert.hasText(keyExpression, "'keyExpression' must not be empty");
@@ -464,10 +466,8 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	private boolean verifyAllMapValuesOfTypeNumber(Map<?, ?> map) {
 		for (Object value : map.values()) {
 			if (!(value instanceof Number)) {
-				if (this.logger.isWarnEnabled()) {
-					this.logger.warn("failed to extract payload elements because '" +
-							value + "' is not of type Number");
-				}
+				this.logger.warn(LogMessage.format("failed to extract payload elements"
+						+ "because '%s' is not of type Number", value));
 				return false;
 			}
 		}

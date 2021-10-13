@@ -95,18 +95,17 @@ The following example shows how to set the trigger:
 ----
 PollingConsumer consumer = new PollingConsumer(channel, handler);
 
-consumer.setTrigger(new IntervalTrigger(30, TimeUnit.SECONDS));
+consumer.setTrigger(new PeriodicTrigger(30, TimeUnit.SECONDS));
 ----
 ====
 
-Spring Integration currently provides two implementations of the `Trigger` interface: `IntervalTrigger` and `CronTrigger`.
-The `IntervalTrigger` is typically defined with a simple interval (in milliseconds) but also supports an `initialDelay` property and a boolean `fixedRate` property (the default is `false` -- that is, no fixed delay).
+The `PeriodicTrigger` is typically defined with a simple interval (in milliseconds) but also supports an `initialDelay` property and a boolean `fixedRate` property (the default is `false` -- that is, no fixed delay).
 The following example sets both properties:
 
 ====
 [source,java]
 ----
-IntervalTrigger trigger = new IntervalTrigger(1000);
+PeriodicTrigger trigger = new PeriodicTrigger(1000);
 trigger.setInitialDelay(5000);
 trigger.setFixedRate(true);
 ----
@@ -141,9 +140,11 @@ consumer.setReceiveTimeout(5000);
 ====
 
 The `maxMessagesPerPoll` property specifies the maximum number of messages to receive within a given poll operation.
-This means that the poller continues calling receive() without waiting, until either `null` is returned or the maximum value is reached.
+This means that the poller continues calling `receive()` without waiting, until either `null` is returned or the maximum value is reached.
 For example, if a poller has a ten-second interval trigger and a `maxMessagesPerPoll` setting of `25`, and it is polling a channel that has 100 messages in its queue, all 100 messages can be retrieved within 40 seconds.
 It grabs 25, waits ten seconds, grabs the next 25, and so on.
+If `maxMessagesPerPoll` is configured with a negative value, then `MessageSource.receive()` is called within a single polling cycle until it returns `null`.
+Starting with version 5.5, a `0` value has a special meaning - skip the `MessageSource.receive()` call altogether, which may be considered as pausing for this polling endpoint until the `maxMessagesPerPoll` is changed to a n non-zero value at a later time, e.g. via a Control Bus.
 
 The `receiveTimeout` property specifies the amount of time the poller should wait if no messages are available when it invokes the receive operation.
 For example, consider two options that seem similar on the surface but are actually quite different: The first has an interval trigger of 5 seconds and a receive timeout of 50 milliseconds, while the second has an interval trigger of 50 milliseconds and a receive timeout of 5 seconds.
@@ -314,22 +315,87 @@ It is also possible to create top-level pollers, in which case only a `ref` attr
 NOTE: The `ref` attribute is allowed only on the inner poller definitions.
 Defining this attribute on a top-level poller results in a configuration exception being thrown during initialization of the application context.
 
-====== Global Default Pollers
+[[global-default-poller]]
+====== Global Default Poller
 
 To simplify the configuration even further, you can define a global default poller.
-A single top-level poller within an `ApplicationContext` may have the `default` attribute set to `true`.
-In that case, any endpoint with a `PollableChannel` for its input channel, that is defined within the same `ApplicationContext`, and has no explicitly configured `poller` sub-element uses that default.
+A single top-level poller component in XML DSL may have the `default` attribute set to `true`.
+For Java configuration a `PollerMetadata` bean with the `PollerMetadata.DEFAULT_POLLER` name must be declared in this case.
+In that case, any endpoint with a `PollableChannel` for its input channel, that is defined within the same `ApplicationContext`, and has no explicitly configured `poller` uses that default.
 The following example shows such a poller and a transformer that uses it:
 
-[source,xml]
+
+====
+[source, java, role="primary"]
+.Java DSL
 ----
-<int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="3000"/>
+@Bean(name = PollerMetadata.DEFAULT_POLLER)
+public PollerMetadata defaultPoller() {
+    PollerMetadata pollerMetadata = new PollerMetadata();
+    pollerMetadata.setMaxMessagesPerPoll(5);
+    pollerMetadata.setTrigger(new PeriodicTrigger(3000));
+    return pollerMetadata;
+}
+
+// No 'poller' attribute because there is a default global poller
+@Bean
+public IntegrationFlow transformFlow(MyTransformer transformer) {
+    return IntegrationFlows.from(MessageChannels.queue("pollable"))
+                           .transform(transformer) // No 'poller' attribute because there is a default global poller
+                           .channel("output")
+                           .get();
+}
+----
+[source, java, role="secondary"]
+.Java
+----
+@Bean(PollerMetadata.DEFAULT_POLLER)
+public PollerMetadata defaultPoller() {
+    PollerMetadata pollerMetadata = new PollerMetadata();
+    pollerMetadata.setMaxMessagesPerPoll(5);
+    pollerMetadata.setTrigger(new PeriodicTrigger(3000));
+    return pollerMetadata;
+}
+
+@Bean
+public QueueChannel pollable() {
+   return new QueueChannel();
+}
+// No 'poller' attribute because there is a default global poller
+@Transformer(inputChannel = "pollable", outputChannel = "output")
+public Object transform(Object payload) {
+    ...
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean(PollerMetadata.DEFAULT_POLLER)
+fun defaultPoller() =
+    PollerMetadata()
+        .also {
+            it.maxMessagesPerPoll = 5
+            it.trigger = PeriodicTrigger(3000)
+        }
+
+@Bean
+fun convertFlow() =
+    integrationFlow(MessageChannels.queue("pollable")) {
+    	transform(transformer) // No 'poller' attribute because there is a default global poller
+    	channel("output")
+    }
+----
+[source, xml, role="secondary"]
+.XML
+----
+<int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-delay="3000"/>
 
 <!-- No <poller/> sub-element is necessary, because there is a default -->
 <int:transformer input-channel="pollable"
                  ref="transformer"
                  output-channel="output"/>
 ----
+====
 
 [[transaction-support]]
 ====== Transaction Support
@@ -355,7 +421,7 @@ For more information, see <<./transactions.adoc#transaction-poller,Poller Transa
 ===== AOP Advice chains
 
 Since Spring transaction support depends on the proxy mechanism with `TransactionInterceptor` (AOP Advice) handling transactional behavior of the message flow initiated by the poller, you must sometimes provide extra advices to handle other cross cutting behavior associated with the poller.
-For that, the `poller` defines an `advice-chain` element that lets you add more advices in a class that implements the `MethodInterceptor` interface.
+For that, the `poller` defines an `advice-chain` element that lets you add more advices in a class that implements the `MethodInterceptor` interface.
 The following example shows how to define an `advice-chain` for a `poller`:
 
 ====
@@ -410,10 +476,10 @@ You should also keep in mind that the `task-executor` attribute can provide a re
 The `executor` element shown earlier is provided for convenience.
 
 As mentioned earlier in the <<endpoint-pollingconsumer,background section for polling consumers>>, you can also configure a polling consumer in such a way as to emulate event-driven behavior.
-With a long `receive-timeout` and a short `interval-trigger`, you can ensure a very timely reaction to arriving messages even on a polled message source.
+With a long receive timeout and a short interval in the trigger, you can ensure a very timely reaction to arriving messages even on a polled message source.
 Note that this applies only  to sources that have a blocking wait call with a timeout.
 For example, the file poller does not block.
-Each receive() call returns immediately and either contains new files or not.
+Each `receive()` call returns immediately and either contains new files or not.
 Therefore, even if a poller contains a long `receive-timeout`, that value would never be used in such a scenario.
 On the other hand, when using Spring Integration's own queue-based channels, the timeout value does have a chance to participate.
 The following example shows how a polling consumer can receive messages nearly instantaneously:
@@ -446,7 +512,7 @@ The `period` property is used with each call to `nextExecutionTime` to schedule 
 To use this custom trigger within pollers, declare the bean definition of the custom trigger in your application context and inject the dependency into your poller configuration by using the `trigger` attribute, which references the custom trigger bean instance.
 You can now obtain a reference to the trigger bean and change the polling interval between polls.
 
-For an example, see the https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate[Spring Integration Samples] project.
+For an example, see the https://github.com/SpringSource/spring-integration-samples/tree/main/intermediate[Spring Integration Samples] project.
 It contains a sample called `dynamic-poller`, which uses a custom trigger and demonstrates the ability to change the polling interval at runtime.
 
 The sample provides a custom trigger that implements the https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/scheduling/Trigger.html[`org.springframework.scheduling.Trigger`] interface.
@@ -459,8 +525,8 @@ It is not possible to force a trigger to fire before its currently configured ne
 [[payload-type-conversion]]
 ==== Payload Type Conversion
 
-Throughout this reference manual, you can also see specific configuration and implementation examples of various endpoints that accept a message or any arbitrary `Object` as an input parameter.
-In the case of an `Object`, such a parameter is mapped to a message payload or part of the payload or header (when using the Spring Expression Language).
+Throughout this reference manual, you can also see specific configuration and implementation examples of various endpoints that accept a message or any arbitrary `Object` as an input parameter.
+In the case of an `Object`, such a parameter is mapped to a message payload or part of the payload or header (when using the Spring Expression Language).
 However, the type of input parameter of the endpoint method sometimes does not match the type of the payload or its part.
 In this scenario, we need to perform type conversion.
 Spring Integration provides a convenient way for registering type converters (by using the Spring `ConversionService`) within its own instance of a conversion service bean named `integrationConversionService`.
@@ -595,10 +661,10 @@ In this case, only the regular class-to-class conversion mentioned above in the 
 ==== Asynchronous Polling
 
 If you want the polling to be asynchronous, a poller can optionally specify a `task-executor` attribute that points to an existing instance of any `TaskExecutor` bean (Spring 3.0 provides a convenient namespace configuration through the `task` namespace).
-However, there are certain things you must understand when configuring a poller with a `TaskExecutor`. 
+However, there are certain things you must understand when configuring a poller with a `TaskExecutor`.
 
 The problem is that there are two configurations in place, the poller and the `TaskExecutor`.
-They must be in tune with each other.
+They must be in tune with each other.
 Otherwise, you might end up creating an artificial memory leak.
 
 Consider the following configuration:
@@ -611,7 +677,7 @@ Consider the following configuration:
 </int:channel>
 
 <int:service-activator input-channel="publishChannel" ref="myService">
-	<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50" />
+	<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50" />
 </int:service-activator>
 
 <task:executor id="taskExecutor" pool-size="20" />

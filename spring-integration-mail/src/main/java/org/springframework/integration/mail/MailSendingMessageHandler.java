@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,12 +43,13 @@ import org.springframework.util.StringUtils;
  * header is required. Otherwise, a String type is expected, and its content
  * will be used as the text within a {@link SimpleMailMessage}.
  *
- * @see MailHeaders
  *
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
+ * @see MailHeaders
  */
 public class MailSendingMessageHandler extends AbstractMessageHandler {
 

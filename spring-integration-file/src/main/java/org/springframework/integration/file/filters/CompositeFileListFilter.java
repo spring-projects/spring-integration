@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,8 @@ public class CompositeFileListFilter<F>
 
 	private boolean allSupportAccept = true;
 
+	private boolean oneIsForRecursion;
+
 
 	public CompositeFileListFilter() {
 		this.fileFilters = new LinkedHashSet<>();
@@ -63,9 +65,14 @@ public class CompositeFileListFilter<F>
 
 	public CompositeFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
 		this.fileFilters = new LinkedHashSet<>(fileFilters);
-		this.allSupportAccept = fileFilters.stream().allMatch(FileListFilter<F>::supportsSingleFileFiltering);
+		this.allSupportAccept = fileFilters.stream().allMatch(FileListFilter::supportsSingleFileFiltering);
+		this.oneIsForRecursion = fileFilters.stream().anyMatch(FileListFilter::isForRecursion);
 	}
 
+	@Override
+	public boolean isForRecursion() {
+		return this.oneIsForRecursion;
+	}
 
 	@Override
 	public void close() throws IOException {
@@ -77,7 +84,6 @@ public class CompositeFileListFilter<F>
 	}
 
 	public CompositeFileListFilter<F> addFilter(FileListFilter<F> filter) {
-		this.allSupportAccept &= filter.supportsSingleFileFiltering();
 		return addFilters(Collections.singletonList(filter));
 	}
 
@@ -94,14 +100,11 @@ public class CompositeFileListFilter<F>
 	}
 
 	/**
-	 * Not thread safe. Only a single thread may add filters at a time.
-	 * <p>
 	 * Add the new filters to this CompositeFileListFilter while maintaining the existing filters.
-	 *
 	 * @param filtersToAdd a list of filters to add
 	 * @return this CompositeFileListFilter instance with the added filters
 	 */
-	public CompositeFileListFilter<F> addFilters(Collection<? extends FileListFilter<F>> filtersToAdd) {
+	public synchronized CompositeFileListFilter<F> addFilters(Collection<? extends FileListFilter<F>> filtersToAdd) {
 		for (FileListFilter<F> elf : filtersToAdd) {
 			if (elf instanceof DiscardAwareFileListFilter) {
 				((DiscardAwareFileListFilter<F>) elf).addDiscardCallback(this.discardCallback);
@@ -114,11 +117,10 @@ public class CompositeFileListFilter<F>
 					throw new IllegalStateException(e);
 				}
 			}
+			this.allSupportAccept = this.allSupportAccept && elf.supportsSingleFileFiltering();
+			this.oneIsForRecursion |= elf.isForRecursion();
 		}
 		this.fileFilters.addAll(filtersToAdd);
-		if (this.allSupportAccept) {
-			this.allSupportAccept = filtersToAdd.stream().allMatch(FileListFilter<F>::supportsSingleFileFiltering);
-		}
 		return this;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.xmlunit.assertj3.XmlAssert.assertThat;
 
 import java.util.Properties;
 
@@ -25,8 +25,8 @@ import javax.xml.transform.OutputKeys;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.sax.SAXResult;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.messaging.MessagingException;
@@ -42,21 +42,21 @@ public class ResultToStringTransformerTests {
 
 	private ResultToStringTransformer transformer;
 
-	private String doc = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><order><orderItem>test</orderItem></order>";
+	private static final String doc = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><order><orderItem>test</orderItem></order>";
 
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		transformer = new ResultToStringTransformer();
 	}
 
 	@Test
 	public void testWithDomResult() throws Exception {
-		DOMResult result = XmlTestUtil.getDomResultForString(this.doc);
+		DOMResult result = XmlTestUtil.getDomResultForString(doc);
 		Object transformed = transformer.transformResult(result);
 		assertThat(transformed).isInstanceOf(String.class);
 		String transformedString = (String) transformed;
-		assertThat(transformedString).isXmlEqualTo(this.doc);
+		assertThat(transformedString).and(doc).areIdentical();
 	}
 
 	@Test
@@ -78,7 +78,7 @@ public class ResultToStringTransformerTests {
 		Object transformed = transformer.transformResult(result);
 		assertThat(transformed).isInstanceOf(String.class);
 		String transformedString = (String) transformed;
-		assertThat(transformedString).isXmlEqualTo(this.doc);
+		assertThat(transformedString).and(doc).areIdentical();
 	}
 
 	@Test

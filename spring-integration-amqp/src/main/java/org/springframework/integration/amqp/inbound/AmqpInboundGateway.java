@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,9 @@ import org.springframework.amqp.rabbit.batch.BatchingStrategy;
 import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
+import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
@@ -67,7 +69,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
-	private final AbstractMessageListenerContainer messageListenerContainer;
+	private final MessageListenerContainer messageListenerContainer;
+
+	private final AbstractMessageListenerContainer abstractListenerContainer;
 
 	private final AmqpTemplate amqpTemplate;
 
@@ -83,7 +87,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private RetryTemplate retryTemplate;
 
-	private RecoveryCallback<? extends Object> recoveryCallback;
+	private RecoveryCallback<?> recoveryCallback;
+
+	private MessageRecoverer messageRecoverer;
 
 	private BatchingStrategy batchingStrategy = new SimpleBatchingStrategy(0, 0, 0L);
 
@@ -95,18 +101,29 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this(listenerContainer, new RabbitTemplate(listenerContainer.getConnectionFactory()), false);
 	}
 
+	// TODO Remove in 6.0
 	/**
 	 * Construct {@link AmqpInboundGateway} based on the provided {@link AbstractMessageListenerContainer}
 	 * to receive request messages and {@link AmqpTemplate} to send replies.
-	 * @param listenerContainer the {@link AbstractMessageListenerContainer} to receive AMQP messages.
+	 * @param listenerContainer the {@link MessageListenerContainer} to receive AMQP messages.
 	 * @param amqpTemplate the {@link AmqpTemplate} to send reply messages.
 	 * @since 4.2
 	 */
 	public AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
+		this((MessageListenerContainer) listenerContainer, amqpTemplate);
+	}
+
+	/**
+	 * Construct {@link AmqpInboundGateway} based on the provided {@link MessageListenerContainer}
+	 * to receive request messages and {@link AmqpTemplate} to send replies.
+	 * @param listenerContainer the {@link MessageListenerContainer} to receive AMQP messages.
+	 * @param amqpTemplate the {@link AmqpTemplate} to send reply messages.
+	 */
+	public AmqpInboundGateway(MessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
 		this(listenerContainer, amqpTemplate, true);
 	}
 
-	private AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate,
+	private AmqpInboundGateway(MessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate,
 			boolean amqpTemplateExplicitlySet) {
 		Assert.notNull(listenerContainer, "listenerContainer must not be null");
 		Assert.notNull(amqpTemplate, "'amqpTemplate' must not be null");
@@ -122,6 +139,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			this.templateMessageConverter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 		}
 		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
+		this.abstractListenerContainer = listenerContainer instanceof AbstractMessageListenerContainer
+				? (AbstractMessageListenerContainer) listenerContainer
+				: null;
 	}
 
 
@@ -181,12 +201,23 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	/**
 	 * Set a {@link RecoveryCallback} when using retry within the gateway.
+	 * Mutually exclusive with {@link #setMessageRecoverer(MessageRecoverer)}.
 	 * @param recoveryCallback the callback.
 	 * @since 4.3.10
 	 * @see #setRetryTemplate(RetryTemplate)
 	 */
 	public void setRecoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
 		this.recoveryCallback = recoveryCallback;
+	}
+
+	/**
+	 * Configure a {@link MessageRecoverer} for retry operations.
+	 * A more AMQP-specific convenience instead of {@link #setRecoveryCallback(RecoveryCallback)}.
+	 * @param messageRecoverer the {@link MessageRecoverer} to use.
+	 * @since 5.5
+	 */
+	public void setMessageRecoverer(MessageRecoverer messageRecoverer) {
+		this.messageRecoverer = messageRecoverer;
 	}
 
 	/**
@@ -239,9 +270,10 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			Assert.state(getErrorChannel() == null, "Cannot have an 'errorChannel' property when a 'RetryTemplate' is "
 					+ "provided; use an 'ErrorMessageSendingRecoverer' in the 'recoveryCallback' property to "
 					+ "send an error message when retries are exhausted");
+			setupRecoveryCallbackIfAny();
 		}
 		Listener messageListener = new Listener();
-		this.messageListenerContainer.setMessageListener(messageListener);
+		this.messageListenerContainer.setupMessageListener(messageListener);
 		this.messageListenerContainer.afterPropertiesSet();
 		if (!this.amqpTemplateExplicitlySet) {
 			((RabbitTemplate) this.amqpTemplate).afterPropertiesSet();
@@ -251,6 +283,21 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			logger.warn("Usually, when using a RetryTemplate you should use an ErrorMessageSendingRecoverer and not "
 					+ "provide an errorChannel. Using an errorChannel could defeat retry and will receive an error "
 					+ "message for each delivery attempt.");
+		}
+	}
+
+	private void setupRecoveryCallbackIfAny() {
+		Assert.state(this.recoveryCallback == null || this.messageRecoverer == null,
+				"Only one of 'recoveryCallback' or 'messageRecoverer' may be provided, but not both");
+		if (this.messageRecoverer != null) {
+				this.recoveryCallback =
+						context -> {
+							Message messageToRecover =
+									(Message) RetrySynchronizationManager.getContext()
+											.getAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
+							this.messageRecoverer.recover(messageToRecover, context.getLastThrowable());
+							return null;
+						};
 		}
 	}
 
@@ -336,8 +383,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		private org.springframework.messaging.Message<Object> convert(Message message, Channel channel) {
 			Map<String, Object> headers;
 			Object payload;
-			boolean isManualAck =
-					AmqpInboundGateway.this.messageListenerContainer.getAcknowledgeMode() == AcknowledgeMode.MANUAL;
+			boolean isManualAck = AmqpInboundGateway.this.abstractListenerContainer == null
+					? false
+					: AcknowledgeMode.MANUAL == AmqpInboundGateway.this.abstractListenerContainer.getAcknowledgeMode();
 			try {
 				if (AmqpInboundGateway.this.batchingStrategy.canDebatch(message.getMessageProperties())) {
 					List<Object> payloads = new ArrayList<>();

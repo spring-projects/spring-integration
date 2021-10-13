@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,32 +102,32 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	/**
-	 * @see SimplePool#getPoolSize()
 	 * @return the pool size.
+	 * @see SimplePool#getPoolSize()
 	 */
 	public int getPoolSize() {
 		return this.pool.getPoolSize();
 	}
 
 	/**
-	 * @see SimplePool#getIdleCount()
 	 * @return the idle count.
+	 * @see SimplePool#getIdleCount()
 	 */
 	public int getIdleCount() {
 		return this.pool.getIdleCount();
 	}
 
 	/**
-	 * @see SimplePool#getActiveCount()
 	 * @return the active count.
+	 * @see SimplePool#getActiveCount()
 	 */
 	public int getActiveCount() {
 		return this.pool.getActiveCount();
 	}
 
 	/**
-	 * @see SimplePool#getAllocatedCount()
 	 * @return the allocated count.
+	 * @see SimplePool#getAllocatedCount()
 	 */
 	public int getAllocatedCount() {
 		return this.pool.getAllocatedCount();

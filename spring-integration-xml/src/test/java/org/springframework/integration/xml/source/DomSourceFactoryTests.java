@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,17 @@
 
 package org.springframework.integration.xml.source;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.xmlunit.assertj3.XmlAssert.assertThat;
 
 import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -47,13 +45,10 @@ public class DomSourceFactoryTests {
 
 	private static Document doc;
 
-	private static Transformer transformer;
-
-	@BeforeClass
+	@BeforeAll
 	public static void setUp() throws Exception {
 		StringReader reader = new StringReader(docContent);
 		doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(reader));
-		transformer = TransformerFactory.newInstance().newTransformer();
 	}
 
 	@Test
@@ -61,7 +56,7 @@ public class DomSourceFactoryTests {
 		Source source = sourceFactory.createSource(doc);
 		assertThat(source).isNotNull();
 		assertThat(source).isInstanceOf(DOMSource.class);
-		assertThat(XmlTestUtil.sourceToString(source)).isXmlEqualTo(docContent);
+		assertThat(XmlTestUtil.sourceToString(source)).and(docContent).areIdentical();
 	}
 
 	@Test
@@ -69,7 +64,7 @@ public class DomSourceFactoryTests {
 		Source source = sourceFactory.createSource(docContent);
 		assertThat(source).isNotNull();
 		assertThat(source).isInstanceOf(DOMSource.class);
-		assertThat(XmlTestUtil.sourceToString(source)).isXmlEqualTo(docContent);
+		assertThat(XmlTestUtil.sourceToString(source)).and(docContent).areIdentical();
 	}
 
 	@Test

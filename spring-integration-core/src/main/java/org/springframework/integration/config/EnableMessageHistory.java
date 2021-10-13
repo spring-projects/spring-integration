@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,11 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 
 /**
- * Enables {@link org.springframework.integration.history.MessageHistory} for Integration components.
+ * Enables {@link org.springframework.integration.history.MessageHistory}
+ * for Spring Integration components.
  *
  * @author Artem Bilan
+ *
  * @since 4.0
  */
 @Target(ElementType.TYPE)
@@ -36,6 +38,11 @@ import org.springframework.context.annotation.Import;
 @Import(MessageHistoryRegistrar.class)
 public @interface EnableMessageHistory {
 
+	/**
+	 * The list of component name patterns to track (e.g. {@code "inputChannel", "out*", "*Channel", "*Service"}).
+	 * By default all Spring Integration components are tracked.
+	 * @return the list of component name patterns to track
+	 */
 	String[] value() default "*";
 
 }

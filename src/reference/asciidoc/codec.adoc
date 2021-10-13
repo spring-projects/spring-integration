@@ -29,8 +29,7 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 ==== `CodecMessageConverter`
 
 Certain endpoints (such as TCP and Redis) have no concept of message headers.
-They support the use of a `MessageConverter`, and the `CodecMessageConverter` can be used to convert a message to or from a `byte[]` for
-transmission.
+They support the use of a `MessageConverter`, and the `CodecMessageConverter` can be used to convert a message to or from a `byte[]` for transmission.
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/codec/CodecMessageConverter.html[Javadoc] for more information.
 
@@ -91,7 +90,7 @@ You can override these framework defaults by configuring the registrars mentione
 ====== Using a Custom Kryo Serializer
 
 If you need custom serialization, see the https://github.com/EsotericSoftware/kryo[Kryo] documentation, because you need to use the native API to do the customization.
-For an example, see the https://github.com/spring-projects/spring-integration/blob/master/spring-integration-core/src/main/java/org/springframework/integration/codec/kryo/MessageCodec.java[`MessageCodec`] implementation.
+For an example, see the https://github.com/spring-projects/spring-integration/blob/main/spring-integration-core/src/main/java/org/springframework/integration/codec/kryo/MessageCodec.java[`MessageCodec`] implementation.
 
 ====== Implementing KryoSerializable
 

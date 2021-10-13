@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public class StompSessionManagerTests {
 					throw new RuntimeException("intentional");
 				}
 				else {
-					SettableListenableFuture<StompSession> future = new SettableListenableFuture<StompSession>();
+					SettableListenableFuture<StompSession> future = new SettableListenableFuture<>();
 					StompSession stompSession = mock(StompSession.class);
 					future.set(stompSession);
 					handler.afterConnected(stompSession, getConnectHeaders());
@@ -66,7 +66,7 @@ public class StompSessionManagerTests {
 
 		sessionManager.start();
 
-		final SettableListenableFuture<StompSession> stompSessionFuture = new SettableListenableFuture<StompSession>();
+		final SettableListenableFuture<StompSession> stompSessionFuture = new SettableListenableFuture<>();
 		sessionManager.connect(new StompSessionHandlerAdapter() {
 
 			@Override

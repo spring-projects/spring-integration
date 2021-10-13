@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration/sftp https://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
 
 	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
-		<property name="host" value="loclahost"/>
+		<property name="host" value="localhost"/>
 		<property name="knownHostsResource"
 						value="#{ new org.springframework.core.io.ByteArrayResource('local, foo.com, bar.foo'.bytes)}"/>
 		<property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftp_rsa"/>

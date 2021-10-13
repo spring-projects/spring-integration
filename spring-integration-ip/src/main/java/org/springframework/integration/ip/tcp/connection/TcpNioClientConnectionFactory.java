@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,11 +98,15 @@ public class TcpNioClientConnectionFactory extends
 				((TcpNioSSLConnection) connection).setHandshakeTimeout(sslHandshakeTimeout);
 			}
 			TcpConnectionSupport wrappedConnection = wrapConnection(connection);
+			if (!wrappedConnection.equals(connection)) {
+				connection.setSenders(getSenders());
+			}
 			initializeConnection(wrappedConnection, socketChannel.socket());
 			if (getSoTimeout() > 0) {
 				connection.setLastRead(System.currentTimeMillis());
 			}
 			this.channelMap.put(socketChannel, connection);
+			wrappedConnection.publishConnectionOpenEvent();
 			this.newChannels.add(socketChannel);
 			this.selector.wakeup();
 			return wrappedConnection;
@@ -122,9 +126,9 @@ public class TcpNioClientConnectionFactory extends
 		boolean connected = socketChannel.finishConnect();
 		long timeLeft = getConnectTimeout().toMillis();
 		while (!connected && timeLeft > 0) {
-			Thread.sleep(50); // NOSONAR Magic #
+			Thread.sleep(5); // NOSONAR Magic #
 			connected = socketChannel.finishConnect();
-			timeLeft -= 50; // NOSONAR Magic #
+			timeLeft -= 5; // NOSONAR Magic #
 		}
 		if (!connected) {
 			throw new IOException("Not connected after connectTimeout");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.jpa.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,8 +25,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,8 +43,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -58,11 +56,10 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2.2
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @Rollback
 @Transactional("transactionManager")
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class JpaPollingChannelAdapterTests {
 
 	@Autowired
@@ -90,7 +87,6 @@ public class JpaPollingChannelAdapterTests {
 	 * to retrieve a list of records from the database.
 	 */
 	@Test
-	@DirtiesContext
 	public void testWithEntityClass() throws Exception {
 		testTrigger.reset();
 		//~~~~SETUP~~~~~
@@ -259,7 +255,6 @@ public class JpaPollingChannelAdapterTests {
 	 * will be deleted after the polling.
 	 */
 	@Test
-	@DirtiesContext
 	public void testWithJpaQueryAndDelete() throws Exception {
 		testTrigger.reset();
 
@@ -297,30 +292,11 @@ public class JpaPollingChannelAdapterTests {
 
 		assertThat(students.size()).isEqualTo(3);
 
-		Long studentCount = waitForDeletes(students);
-
-		assertThat(studentCount).isEqualTo(Long.valueOf(0));
-	}
-
-	private Long waitForDeletes(Collection<?> students) throws InterruptedException {
-		Long studentCount = (long) students.size();
-
-		int n = 0;
-
-		while (studentCount > 0) {
-			studentCount = entityManager.createQuery("select count(*) from Student", Long.class).getSingleResult();
-			if (studentCount > 0) {
-				Thread.sleep(100);
-				if (n++ > 100) {
-					fail("Failed to delete after poll");
-				}
-			}
-		}
-		return studentCount;
+		await().until(() -> entityManager.createQuery("select count(*) from Student", Long.class).getSingleResult(),
+				(count) -> count == 0);
 	}
 
 	@Test
-	@DirtiesContext
 	public void testWithJpaQueryButNoResultsAndDelete() throws Exception {
 		testTrigger.reset();
 
@@ -355,7 +331,6 @@ public class JpaPollingChannelAdapterTests {
 	 * will be deleted after the polling.
 	 */
 	@Test
-	@DirtiesContext
 	public void testWithJpaQueryAndDeletePerRow() throws Exception {
 		testTrigger.reset();
 
@@ -389,10 +364,8 @@ public class JpaPollingChannelAdapterTests {
 
 		assertThat(students.size()).isEqualTo(3);
 
-		Long studentCount = waitForDeletes(students);
-
-		assertThat(studentCount).isEqualTo(Long.valueOf(0));
-
+		await().until(() -> entityManager.createQuery("select count(*) from Student", Long.class).getSingleResult(),
+				(count) -> count == 0);
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.support.json;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -248,18 +249,18 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 		if (buffer.remaining() > 4) { // NOSONAR
 			int headersLen = buffer.getInt();
 			if (headersLen >= 0 && headersLen < buffer.remaining() - 4) { // NOSONAR
-				buffer.position(headersLen + 4); // NOSONAR
+				((Buffer) buffer).position(headersLen + 4); // NOSONAR
 				int payloadLen = buffer.getInt();
 				if (payloadLen != buffer.remaining()) {
 					return null;
 				}
 				else {
-					buffer.position(4); // NOSONAR
+					((Buffer) buffer).position(4); // NOSONAR
 					@SuppressWarnings("unchecked")
 					Map<String, Object> headers = this.objectMapper.readValue(bytes, buffer.position(), headersLen,
 							Map.class);
 
-					buffer.position(buffer.position() + headersLen);
+					((Buffer) buffer).position(buffer.position() + headersLen);
 					buffer.getInt();
 					Object payload;
 					byte[] payloadBytes = new byte[payloadLen];

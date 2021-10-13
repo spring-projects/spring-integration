@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 
 	/**
 	 * Construct this instance using a fully created and initialized instance of provided
-	 * {@link R2dbcEntityOperations}
+	 * {@link R2dbcEntityOperations}.
 	 * @param r2dbcEntityOperations The R2dbcEntityOperations implementation.
 	 */
 	@SuppressWarnings("deprecation")
@@ -84,27 +84,52 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 	}
 
 
+	/**
+	 * Set a {@link R2dbcMessageHandler.Type} for query to execute.
+	 * @param type the {@link R2dbcMessageHandler.Type} to use.
+	 */
 	public void setQueryType(R2dbcMessageHandler.Type type) {
 		setQueryTypeExpression(new ValueExpression<>(type));
 	}
 
+	/**
+	 * Set a SpEL expression to evaluate a {@link R2dbcMessageHandler.Type} for query to execute.
+	 * @param queryTypeExpression the expression to use.
+	 */
 	public void setQueryTypeExpression(Expression queryTypeExpression) {
 		Assert.notNull(queryTypeExpression, "'queryTypeExpression' must not be null");
 		this.queryTypeExpression = queryTypeExpression;
 	}
 
+	/**
+	 * Specify a table in the target database to execute the query.
+	 * @param tableName the name of the table to use.
+	 */
 	public void setTableName(String tableName) {
 		setTableNameExpression(new LiteralExpression(tableName));
 	}
 
+	/**
+	 * Set a SpEL expression to evaluate a table name at runtime against request message.
+	 * @param tableNameExpression the expression to use.
+	 */
 	public void setTableNameExpression(Expression tableNameExpression) {
 		this.tableNameExpression = tableNameExpression;
 	}
 
+	/**
+	 * Set a SpEL expression to evaluate a {@link Map} for name-value pairs to bind as parameters
+	 * into a query.
+	 * @param valuesExpression the expression to use.
+	 */
 	public void setValuesExpression(Expression valuesExpression) {
 		this.valuesExpression = valuesExpression;
 	}
 
+	/**
+	 * Set a SpEL expression to evaluate a {@link Criteria} for query to execute.
+	 * @param criteriaExpression the expression to use.
+	 */
 	public void setCriteriaExpression(Expression criteriaExpression) {
 		this.criteriaExpression = criteriaExpression;
 	}

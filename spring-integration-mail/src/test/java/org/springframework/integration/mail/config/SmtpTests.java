@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,36 +18,45 @@ package org.springframework.integration.mail.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import javax.mail.Message.RecipientType;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.mail.MailHeaders;
 import org.springframework.integration.mail.MailSendingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.mail.TestMailServer;
-import org.springframework.integration.test.mail.TestMailServer.SmtpServer;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.ServerSetup;
+import com.icegreen.greenmail.util.ServerSetupTest;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ * @author Alexander Pinske
+ *
  * @since 5.0
  *
  */
 public class SmtpTests {
 
-	private static final SmtpServer smtpServer = TestMailServer.smtp(0);
+	private static GreenMail smtpServer;
 
-	@BeforeClass
-	public static void setup() throws InterruptedException {
-		int n = 0;
-		while (n++ < 100 && (!smtpServer.isListening())) {
-			Thread.sleep(100);
-		}
-		assertThat(n < 100).isTrue();
+	@BeforeAll
+	public static void setup() {
+		ServerSetup smtp = ServerSetupTest.SMTP.dynamicPort();
+		smtp.setServerStartupTimeout(10000);
+		smtpServer = new GreenMail(smtp);
+		smtpServer.setUser("user", "pw");
+		smtpServer.start();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown() {
 		smtpServer.stop();
 	}
@@ -56,30 +65,25 @@ public class SmtpTests {
 	public void testSmtp() throws Exception {
 		JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 		mailSender.setHost("localhost");
-		mailSender.setPort(smtpServer.getPort());
+		mailSender.setPort(smtpServer.getSmtp().getPort());
 		mailSender.setUsername("user");
 		mailSender.setPassword("pw");
 		MailSendingMessageHandler handler = new MailSendingMessageHandler(mailSender);
 
 		handler.handleMessage(MessageBuilder.withPayload("foo")
-				.setHeader(MailHeaders.TO, new String[] {"bar@baz"})
+				.setHeader(MailHeaders.TO, new String[]{ "bar@baz" })
 				.setHeader(MailHeaders.FROM, "foo@bar")
 				.setHeader(MailHeaders.SUBJECT, "foo")
 				.build());
 
-		int n = 0;
-		while (n++ < 100 && smtpServer.getMessages().size() == 0) {
-			Thread.sleep(100);
-		}
+		assertThat(smtpServer.waitForIncomingEmail(10000, 1)).isTrue();
 
-		assertThat(smtpServer.getMessages().size() > 0).isTrue();
-		String message = smtpServer.getMessages().get(0);
-		assertThat(message).endsWith("foo\n");
-		assertThat(message).contains("foo@bar");
-		assertThat(message).contains("bar@baz");
-		assertThat(message).contains("user:user");
-		assertThat(message).contains("password:pw");
-
+		assertThat(smtpServer.getReceivedMessages().length > 0).isTrue();
+		MimeMessage message = smtpServer.getReceivedMessages()[0];
+		assertThat(message.getFrom()).containsOnly(new InternetAddress("foo@bar"));
+		assertThat(message.getRecipients(RecipientType.TO)).containsOnly(new InternetAddress("bar@baz"));
+		assertThat(message.getSubject()).isEqualTo("foo");
+		assertThat(message.getContent()).asString().isEqualTo("foo\r\n");
 	}
 
 }

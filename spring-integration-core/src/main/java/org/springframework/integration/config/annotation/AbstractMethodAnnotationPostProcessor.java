@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.annotation.IdempotentReceiver;
 import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.Reactive;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.config.IntegrationConfigUtils;
@@ -75,12 +76,14 @@ import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.util.ClassUtils;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.lang.Nullable;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.handler.annotation.ValueConstants;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -89,8 +92,12 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import reactor.core.publisher.Flux;
+
 /**
  * Base class for Method-level annotation post-processors.
+ *
+ * @param <T> the target annotation type.
  *
  * @author Mark Fisher
  * @author Artem Bilan
@@ -98,6 +105,8 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation>
 		implements MethodAnnotationPostProcessor<T> {
+
+	private static final String UNCHECKED = "unchecked";
 
 	private static final String INPUT_CHANNEL_ATTRIBUTE = "inputChannel";
 
@@ -119,7 +128,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final Disposables disposables; // NOSONAR
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public AbstractMethodAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		this.messageHandlerAttributes.add(SEND_TIMEOUT_ATTRIBUTE);
@@ -140,7 +149,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 		this.disposables = disposablesBean;
 	}
-
 
 	@Override
 	public Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations) {
@@ -198,7 +206,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return handlerBean;
 	}
 
-
 	private void orderable(Method method, MessageHandler handler) {
 		if (handler instanceof Orderable) {
 			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
@@ -207,7 +214,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 	}
-
 
 	private void producerOrRouter(List<Annotation> annotations, MessageHandler handler) {
 		if (handler instanceof AbstractMessageProducingHandler || handler instanceof AbstractMessageRouter) {
@@ -226,7 +232,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 	}
-
 
 	private MessageHandler annotated(Method method, MessageHandler handlerArg) {
 		MessageHandler handler = handlerArg;
@@ -255,7 +260,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 		return handler;
 	}
-
 
 	private MessageHandler adviceChain(String beanName, List<Annotation> annotations, MessageHandler handlerArg) {
 		MessageHandler handler = handlerArg;
@@ -291,7 +295,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		boolean createEndpoint = StringUtils.hasText(inputChannel);
 		if (!createEndpoint && beanAnnotationAware()) {
 			boolean isBean = AnnotatedElementUtils.isAnnotated(method, Bean.class.getName());
-			Assert.isTrue(!isBean, "A channel name in '" + getInputChannelAttribute() + "' is required when " +
+			Assert.isTrue(!isBean, () -> "A channel name in '" + getInputChannelAttribute() + "' is required when " +
 					this.annotationType + " is used on '@Bean' methods.");
 		}
 		return createEndpoint;
@@ -325,7 +329,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					Collections.addAll(adviceChain, (Advice[]) adviceChainBean);
 				}
 				else if (adviceChainBean instanceof Collection) {
-					@SuppressWarnings("unchecked")
+					@SuppressWarnings(UNCHECKED)
 					Collection<Advice> adviceChainEntries = (Collection<Advice>) adviceChainBean;
 					adviceChain.addAll(adviceChainEntries);
 				}
@@ -362,7 +366,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					throw e;
 				}
 			}
-			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
+			Assert.notNull(inputChannel, () -> "failed to resolve inputChannel '" + inputChannelName + "'");
 
 			endpoint = doCreateEndpoint(handler, inputChannel, annotations);
 		}
@@ -371,35 +375,66 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel,
 			List<Annotation> annotations) {
-		AbstractEndpoint endpoint;
-		if (inputChannel instanceof PollableChannel) {
-			PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
-			configurePollingEndpoint(pollingConsumer, annotations);
-			endpoint = pollingConsumer;
+
+		Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
+		Reactive reactive = MessagingAnnotationUtils.resolveAttribute(annotations, "reactive", Reactive.class);
+		boolean reactiveProvided = reactive != null && !ValueConstants.DEFAULT_NONE.equals(reactive.value());
+
+		Assert.state(!reactiveProvided || ObjectUtils.isEmpty(pollers),
+				"The 'poller' and 'reactive' are mutually exclusive.");
+
+		if (inputChannel instanceof Publisher || handler instanceof ReactiveMessageHandlerAdapter || reactiveProvided) {
+			return reactiveStreamsConsumer(inputChannel, handler, reactiveProvided ? reactive : null);
+		}
+		else if (inputChannel instanceof SubscribableChannel) {
+			Assert.state(ObjectUtils.isEmpty(pollers), () ->
+					"A '@Poller' should not be specified for Annotation-based " +
+							"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
+			return new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
+		}
+		else if (inputChannel instanceof PollableChannel) {
+			return pollingConsumer(inputChannel, handler, pollers);
 		}
 		else {
-			Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
-			Assert.state(ObjectUtils.isEmpty(pollers), "A '@Poller' should not be specified for Annotation-based " +
-					"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
-			if (inputChannel instanceof Publisher) {
-				if (handler instanceof ReactiveMessageHandlerAdapter) {
-					endpoint = new ReactiveStreamsConsumer(inputChannel,
-							((ReactiveMessageHandlerAdapter) handler).getDelegate());
-				}
-				else {
-					endpoint = new ReactiveStreamsConsumer(inputChannel, handler);
-				}
-			}
-			else {
-				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
-			}
+			throw new IllegalArgumentException("Unsupported 'inputChannel' type: '"
+					+ inputChannel.getClass().getName() + "'. " +
+					"Must be one of 'SubscribableChannel', 'PollableChannel' or 'ReactiveStreamsSubscribableChannel'");
 		}
-		return endpoint;
 	}
 
-	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, List<Annotation> annotations) {
+	private ReactiveStreamsConsumer reactiveStreamsConsumer(MessageChannel channel, MessageHandler handler,
+			Reactive reactive) {
+
+		ReactiveStreamsConsumer reactiveStreamsConsumer;
+		if (handler instanceof ReactiveMessageHandlerAdapter) {
+			reactiveStreamsConsumer = new ReactiveStreamsConsumer(channel,
+					((ReactiveMessageHandlerAdapter) handler).getDelegate());
+		}
+		else {
+			reactiveStreamsConsumer = new ReactiveStreamsConsumer(channel, handler);
+		}
+
+		if (reactive != null) {
+			String functionBeanName = reactive.value();
+			if (StringUtils.hasText(functionBeanName)) {
+				@SuppressWarnings(UNCHECKED)
+				Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>> reactiveCustomizer =
+						this.beanFactory.getBean(functionBeanName, Function.class);
+				reactiveStreamsConsumer.setReactiveCustomizer(reactiveCustomizer);
+			}
+		}
+
+		return reactiveStreamsConsumer;
+	}
+
+	private PollingConsumer pollingConsumer(MessageChannel inputChannel, MessageHandler handler, Poller[] pollers) {
+		PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
+		configurePollingEndpoint(pollingConsumer, pollers);
+		return pollingConsumer;
+	}
+
+	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, Poller[] pollers) {
 		PollerMetadata pollerMetadata;
-		Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
 		if (!ObjectUtils.isEmpty(pollers)) {
 			Assert.state(pollers.length == 1,
 					"The 'poller' for an Annotation-based endpoint can have only one '@Poller'.");
@@ -480,9 +515,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return pollerMetadata;
 	}
 
-
 	private void trigger(String triggerRef, String fixedDelayValue, String fixedRateValue, String cron,
 			PollerMetadata pollerMetadata) {
+
 		Trigger trigger = null;
 		if (StringUtils.hasText(triggerRef)) {
 			Assert.state(!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue)
@@ -516,7 +551,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			name = baseName;
 			int count = 1;
 			while (this.beanFactory.containsBean(name)) {
-				name = baseName + "#" + (++count);
+				name = baseName + '#' + (++count);
 			}
 		}
 		return name + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
@@ -545,7 +580,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return id;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	protected <H> H extractTypeIfPossible(@Nullable Object targetObject, Class<H> expectedType) {
 		if (targetObject == null) {
 			return null;

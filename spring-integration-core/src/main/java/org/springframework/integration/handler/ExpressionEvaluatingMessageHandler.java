@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,22 +26,23 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
- * @see MethodInvokingMessageHandler
+ *
  * @since 2.1
+ *
+ * @see MethodInvokingMessageHandler
  */
 public class ExpressionEvaluatingMessageHandler extends AbstractMessageHandler {
 
-	private volatile ExpressionEvaluatingMessageProcessor<Void> processor;
+	private final ExpressionEvaluatingMessageProcessor<Void> processor;
 
-	private volatile String componentType;
+	private String componentType;
 
 
 	public ExpressionEvaluatingMessageHandler(Expression expression) {
 		Assert.notNull(expression, "'expression' must not be null");
-		this.processor = new ExpressionEvaluatingMessageProcessor<Void>(expression, Void.class);
+		this.processor = new ExpressionEvaluatingMessageProcessor<>(expression, Void.class);
 		setPrimaryExpression(expression);
 	}
-
 
 	public void setComponentType(String componentType) {
 		this.componentType = componentType;

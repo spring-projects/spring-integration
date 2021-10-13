@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	   xmlns:jms="http://www.springframework.org/schema/jms"
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/jms https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+		http://www.springframework.org/schema/jms https://www.springframework.org/schema/jms/spring-jms.xsd
+		http://www.springframework.org/schema/task https://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+	
+	<int:gateway id="sampleGateway" 
+				 service-interface="org.springframework.integration.jms.config.ExceptionHandlingSiConsumerTests$SampleGateway"
+				 default-request-channel="outbound-channel">
+	</int:gateway>
+
+	<int:channel id="outbound-channel"/>
+	
+	<int-jms:outbound-gateway request-channel="outbound-channel" request-destination="requestQueueC"/>
+	 
+                     
+    <int-jms:inbound-gateway request-destination="requestQueueB" 
+                             request-channel="jmsinputchannel"
+                             error-channel="errorTransformationChannel"/>
+                             
+    <int-jms:inbound-gateway request-destination="requestQueueA" 
+                             request-channel="jmsinputchannel"/>
+                             
+    <int-jms:inbound-gateway request-destination="requestQueueC" 
+                             request-channel="jmsinputchannel"
+                             error-channel="errorTransformationChannel"/>
+	
+	<int:transformer input-channel="errorTransformationChannel">
+    	<bean id="errorTransformer" class="org.springframework.integration.jms.config.ExceptionHandlingSiConsumerTests$SampleErrorTransformer"/>
+    </int:transformer>
+                    
+    <int:channel id="jmsinputchannel"/> 
+      
+    <int:router input-channel="jmsinputchannel" expression="payload"/>
+    
+    
+    
+    <int:service-activator input-channel="echoWithExceptionChannel" method="echoWithException">
+    	<bean class="org.springframework.integration.jms.config.ExceptionHandlingSiConsumerTests$SampleService"/>
+    </int:service-activator>
+
+    
+    <int:service-activator input-channel="echoChannel" method="echo">
+    	<bean class="org.springframework.integration.jms.config.ExceptionHandlingSiConsumerTests$SampleService"/>
+    </int:service-activator>                      
+                     
+    <bean id="requestQueueA" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="request.queue.a"/>
+	</bean>
+
+	<bean id="replyQueueA" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="reply.queue.a"/>
+	</bean>
+	
+	<bean id="requestQueueB" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="request.queue.b"/>
+	</bean>
+
+	<bean id="replyQueueB" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="reply.queue.b"/>
+	</bean>
+	
+	<bean id="requestQueueC" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="request.queue.c"/>
+	</bean>
+
+	<util:constant id="jmsConnectionFactory"
+				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.connectionFactory"/>
+
+</beans>

@@ -1,4 +1,4 @@
 /**
- * Root package of the Kafka Module.
+ * Root package of the Apache Kafka Module.
  */
 package org.springframework.integration.kafka;

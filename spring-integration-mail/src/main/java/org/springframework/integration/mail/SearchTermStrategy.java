@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,20 +21,19 @@ import javax.mail.Folder;
 import javax.mail.search.SearchTerm;
 
 /**
- * Strategy to be used to generate a {@link SearchTerm}
- *
- * See {@link ImapMailReceiver}
+ * Strategy to be used to generate a {@link SearchTerm}.
  *
  * @author Oleg Zhurakousky
+ *
  * @since 2.2
  *
+ * @see ImapMailReceiver
  */
 @FunctionalInterface
 public interface SearchTermStrategy {
 
 	/**
-	 * Will generate an instance of the {@link SearchTerm}
-	 *
+	 * Will generate an instance of the {@link SearchTerm}.
 	 * @param supportedFlags The supported flags.
 	 * @param folder The folder.
 	 * @return The search term.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,19 +45,16 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
  *
  * @since 5.1.2
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class MqttDslTests {
-
-	@ClassRule
-	public static final BrokerRunning brokerRunning = BrokerRunning.isRunning(1883);
+public class MqttDslTests implements MosquittoContainerTest {
 
 	@Autowired
 	@Qualifier("mqttOutFlow.input")
@@ -107,7 +102,7 @@ public class MqttDslTests {
 		public DefaultMqttPahoClientFactory pahoClientFactory() {
 			DefaultMqttPahoClientFactory pahoClientFactory = new DefaultMqttPahoClientFactory();
 			MqttConnectOptions connectionOptions = new MqttConnectOptions();
-			connectionOptions.setServerURIs(new String[] { "tcp://localhost:1883" });
+			connectionOptions.setServerURIs(new String[]{ MosquittoContainerTest.mqttUrl() });
 			pahoClientFactory.setConnectionOptions(connectionOptions);
 			return pahoClientFactory;
 		}
@@ -120,8 +115,8 @@ public class MqttDslTests {
 		@Bean
 		public IntegrationFlow mqttInFlow() {
 			return IntegrationFlows.from(
-					new MqttPahoMessageDrivenChannelAdapter("jmxTestIn",
-							pahoClientFactory(), "jmxTests"))
+							new MqttPahoMessageDrivenChannelAdapter("jmxTestIn",
+									pahoClientFactory(), "jmxTests"))
 					.channel(c -> c.queue("fromMqttChannel"))
 					.get();
 		}

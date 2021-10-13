@@ -29,7 +29,7 @@ This name contains a random component to avoid `ObjectName` collisions if multip
 For this reason, if you wish to invoke the method programmatically, we recommend that you provide the exporter with an `id` attribute so that you can easily access it in the application context.
 
 Finally, the operation can be invoked by using the `<control-bus>` element.
-See the https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/monitoring[monitoring Spring Integration sample application] for details.
+See the https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/monitoring[monitoring Spring Integration sample application] for details.
 
 NOTE: The algorithm described earlier was improved in version 4.1.
 Previously, all task executors and schedulers were stopped.

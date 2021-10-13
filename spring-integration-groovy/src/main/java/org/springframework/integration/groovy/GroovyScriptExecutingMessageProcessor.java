@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,9 +118,9 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	 * should be customised for the {@link CompileStatic} hint for the provided script.
 	 * <p> More compiler options can be provided via {@link #setCompilerConfiguration(CompilerConfiguration)}
 	 * overriding this flag.
-	 * @param compileStatic the compile static {@code boolean} flag.
-	 * @see CompileStatic
+	 * @param compileStatic the compile-static {@code boolean} flag.
 	 * @since 4.3
+	 * @see CompileStatic
 	 */
 	public void setCompileStatic(boolean compileStatic) {
 		this.compileStatic = compileStatic;
@@ -131,9 +131,9 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	 * For example the {@link CompileStatic} and {@link org.codehaus.groovy.control.customizers.ImportCustomizer}
 	 * are the most popular options.
 	 * @param compilerConfiguration the Groovy script compiler options to use.
+	 * @since 4.3
 	 * @see CompileStatic
 	 * @see GroovyClassLoader
-	 * @since 4.3
 	 */
 	public void setCompilerConfiguration(CompilerConfiguration compilerConfiguration) {
 		this.compilerConfiguration = compilerConfiguration;

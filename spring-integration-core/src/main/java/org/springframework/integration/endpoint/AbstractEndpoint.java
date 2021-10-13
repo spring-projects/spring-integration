@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,18 +44,11 @@ import org.springframework.util.StringUtils;
  * @author Kris Jacyna
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Trung Pham
  */
 @IntegrationManagedResource
 public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		implements ManageableSmartLifecycle, DisposableBean {
-
-	private boolean autoStartupSetExplicitly;
-
-	private volatile boolean autoStartup = true;
-
-	private volatile int phase = 0;
-
-	private volatile boolean running;
 
 	protected final ReentrantLock lifecycleLock = new ReentrantLock(); // NOSONAR
 
@@ -64,6 +57,16 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 	private String role;
 
 	private SmartLifecycleRoleController roleController;
+
+	private boolean autoStartup = true;
+
+	private boolean autoStartupSetExplicitly;
+
+	private int phase = 0;
+
+	private volatile boolean running;
+
+	private volatile boolean active;
 
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
@@ -115,13 +118,14 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 				this.roleController.addLifecycleToRole(this.role, this);
 			}
 			catch (@SuppressWarnings("unused") NoSuchBeanDefinitionException e) {
-					this.logger.trace("No LifecycleRoleController in the context");
-				}
+				this.logger.trace("No LifecycleRoleController in the context");
+			}
 		}
 	}
 
 	@Override
 	public void destroy() {
+		stop();
 		if (this.roleController != null) {
 			this.roleController.removeLifecycle(this);
 		}
@@ -141,13 +145,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 
 	@Override
 	public final boolean isRunning() {
-		this.lifecycleLock.lock();
-		try {
-			return this.running;
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
+		return this.running;
 	}
 
 	@Override
@@ -155,11 +153,10 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		this.lifecycleLock.lock();
 		try {
 			if (!this.running) {
+				this.active = true;
 				doStart();
 				this.running = true;
-				if (logger.isInfoEnabled()) {
-					logger.info("started " + this);
-				}
+				logger.info(() -> "started " + this);
 			}
 		}
 		finally {
@@ -172,11 +169,10 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		this.lifecycleLock.lock();
 		try {
 			if (this.running) {
+				this.active = false;
 				doStop();
 				this.running = false;
-				if (logger.isInfoEnabled()) {
-					logger.info("stopped " + this);
-				}
+				logger.info(() -> "stopped " + this);
 			}
 		}
 		finally {
@@ -189,11 +185,10 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		this.lifecycleLock.lock();
 		try {
 			if (this.running) {
+				this.active = false;
 				doStop(callback);
 				this.running = false;
-				if (logger.isInfoEnabled()) {
-					logger.info("stopped " + this);
-				}
+				logger.info(() -> "stopped " + this);
 			}
 			else {
 				callback.run();
@@ -211,6 +206,10 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 	protected void doStop(Runnable callback) {
 		doStop();
 		callback.run();
+	}
+
+	public boolean isActive() {
+		return this.active;
 	}
 
 	/**

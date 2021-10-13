@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,7 +155,7 @@ public final class Amqp {
 	}
 
 	/**
-	 * Create an initial AmqpInboundPolledChannelAdapterSpec
+	 * Create an initial AmqpInboundPolledChannelAdapterSpec.
 	 * @param connectionFactory the connectionFactory.
 	 * @param queue the queue.
 	 * @return the AmqpInboundPolledChannelAdapterSpec.
@@ -168,7 +168,7 @@ public final class Amqp {
 	}
 
 	/**
-	 * Create an initial AmqpInboundPolledChannelAdapterSpec
+	 * Create an initial AmqpInboundPolledChannelAdapterSpec.
 	 * @param connectionFactory the connectionFactory.
 	 * @param ackCallbackFactory the ackCallbackFactory
 	 * @param queue the queue.

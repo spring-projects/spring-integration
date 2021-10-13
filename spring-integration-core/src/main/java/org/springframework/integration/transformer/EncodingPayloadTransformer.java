@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,11 @@ import org.springframework.util.Assert;
  * {@link AbstractPayloadTransformer} that delegates to a codec to encode the
  * payload into a byte[].
  *
- * @author Gary Russell
- * @since 4.2
+ * @param <T> inbound payload type.
  *
+ * @author Gary Russell
+ *
+ * @since 4.2
  */
 public class EncodingPayloadTransformer<T> extends AbstractPayloadTransformer<T, byte[]> {
 

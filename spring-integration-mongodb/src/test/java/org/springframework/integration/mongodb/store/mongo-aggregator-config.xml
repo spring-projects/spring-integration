@@ -3,12 +3,21 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	   xmlns:util="http://www.springframework.org/schema/util"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/data/mongo https://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
+		http://www.springframework.org/schema/data/mongo https://www.springframework.org/schema/data/mongo/spring-mongo.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<int:aggregator input-channel="inputChannel" output-channel="outputChannel" message-store="mongoStore"
-					release-strategy-expression="size() == 10"/>
+					release-strategy="releaseStrategy"
+					group-condition-supplier="conditionSupplier"/>
+
+	<util:constant id="releaseStrategy"
+				   static-field="org.springframework.integration.mongodb.store.MongoDbMessageGroupStoreTests.RELEASE_STRATEGY"/>
+
+	<util:constant id="conditionSupplier"
+				   static-field="org.springframework.integration.mongodb.store.MongoDbMessageGroupStoreTests.CONDITION_SUPPLIER"/>
 
 	<mongo:auditing/>
 

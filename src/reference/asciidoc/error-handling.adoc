@@ -34,7 +34,16 @@ However, you can define your own if you want to control the settings.
 The following example shows how to define an error channel in XML configuration backed by a queue with a capacity of `500`:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java
+----
+@Bean
+QueueChannel errorChannel() {
+    return new QueueChannel(500);
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:channel id="errorChannel">
     <int:queue capacity="500"/>
@@ -48,6 +57,9 @@ The most important thing to understand here is that the messaging-based error ha
 This does not apply to exceptions thrown by a handler that operates within the same thread as the sender (for example, through a `DirectChannel` as described earlier in this section).
 
 NOTE: When exceptions occur in a scheduled poller task's execution, those exceptions are wrapped in `ErrorMessage` instances and sent to the 'errorChannel' as well.
+This is done via a `MessagePublishingErrorHandler` injected into the global `taskScheduler` bean.
+It is recommended to use that `MessagePublishingErrorHandler` for any custom `taskScheduler` if the error handling still has to be done using standard 'errorChannel' integration flow logic.
+A registered `integrationMessagePublishingErrorHandler` bean can be used in this case.
 
 To enable global error handling, register a handler on that channel.
 For example, you can configure Spring Integration's `ErrorMessageExceptionTypeRouter` as the handler of an endpoint that is subscribed to the 'errorChannel'.
@@ -70,3 +82,8 @@ With Java & Annotation configuration, a resource is a `@Configuration` class and
 In most case the target integration flow solution is based on the out-of-the-box components and their configuration options.
 When an exception happens at runtime, there is no any end-user code involved in stack trace because an execution is against beans, not their configuration.
 Including a resource and source of the bean definition helps to determine possible configuration mistakes and provides better developer experience.
+
+Starting with version 5.4.3, the default error channel is configured with the property `requireSubscribers = true` to not silently ignore messages when there are no subscribers on this channel (e.g. when application context is stopped).
+In this case a `MessageDispatchingException` is thrown which may lend on the client callback of the inbound channel adapter to negatively acknowledge (or roll back) an original message in the source system for redelivery or other future consideration.
+To restore the previous behavior (ignore non dispatched error messages), the global integration property `spring.integration.channels.error.requireSubscribers` must be set to `false`.
+See <<./configuration.adoc#global-properties,Global Properties>> and <<./channel.adoc#channel-configuration-pubsubchannel,`PublishSubscribeChannel` Configuration>> (if you configure a global `errorChannel` manually) for more information.

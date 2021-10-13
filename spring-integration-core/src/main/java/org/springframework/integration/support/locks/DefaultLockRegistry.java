@@ -44,7 +44,7 @@ public final class DefaultLockRegistry implements LockRegistry {
 	 * mask 0xFF with 256 locks.
 	 */
 	public DefaultLockRegistry() {
-		this(0xFF);
+		this(0xFF); // NOSONAR magic number
 	}
 
 	/**
@@ -60,7 +60,7 @@ public final class DefaultLockRegistry implements LockRegistry {
 	 */
 	public DefaultLockRegistry(int mask) {
 		String bits = Integer.toBinaryString(mask);
-		Assert.isTrue(bits.length() < 32 && (mask == 0 || bits.lastIndexOf('0') < bits.indexOf('1')), "Mask must be a power of 2 - 1");
+		Assert.isTrue(bits.length() < 32 && (mask == 0 || bits.lastIndexOf('0') < bits.indexOf('1')), "Mask must be a power of 2 - 1"); // NOSONAR magic number
 		this.mask = mask;
 		int arraySize = this.mask + 1;
 		this.lockTable = new ReentrantLock[arraySize];

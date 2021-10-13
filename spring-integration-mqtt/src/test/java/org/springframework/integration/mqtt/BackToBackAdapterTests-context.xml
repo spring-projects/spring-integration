@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-mqtt="http://www.springframework.org/schema/integration/mqtt"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-mqtt="http://www.springframework.org/schema/integration/mqtt"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/mqtt https://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd">
+		http://www.springframework.org/schema/integration/mqtt https://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<int-mqtt:outbound-channel-adapter id="out" client-id="multiOut"
 		client-factory="multiUriClientFactory"
@@ -19,10 +21,14 @@
 		<int:queue />
 	</int:channel>
 
+	<bean id="mqtt_url" class="java.lang.String">
+		<constructor-arg value="#{T(org.springframework.integration.mqtt.MosquittoContainerTest).mqttUrl()}"/>
+	</bean>
+
 	<bean id="multiUriClientFactory" class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
 		<property name="connectionOptions">
 			<bean class="org.eclipse.paho.client.mqttv3.MqttConnectOptions">
-				<property name="serverURIs" value="tcp://localhost:1883,tcp://localhost:1883"/>
+				<property name="serverURIs" value="#{mqtt_url},#{mqtt_url}"/>
 			</bean>
 		</property>
 	</bean>

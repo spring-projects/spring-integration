@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -38,13 +39,13 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.BatchMessageListener;
 import org.springframework.kafka.listener.ConsumerSeekAware;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.adapter.BatchMessagingMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.FilteringBatchMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
-import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.BatchMessageConverter;
@@ -94,7 +95,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	private RetryTemplate retryTemplate;
 
-	private RecoveryCallback<? extends Object> recoveryCallback;
+	private RecoveryCallback<?> recoveryCallback;
 
 	private boolean filterInRetry;
 
@@ -192,7 +193,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	/**
 	 * Specify a {@link RetryTemplate} instance to wrap
 	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
-	 * {@link RetryingMessageListenerAdapter}.
+	 * {@code RetryingMessageListenerAdapter}.
 	 * @param retryTemplate the {@link RetryTemplate} to use.
 	 * @since 2.0.1
 	 */
@@ -210,18 +211,18 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * @param recoveryCallback the recovery callback.
 	 * @since 2.0.1
 	 */
-	public void setRecoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
+	public void setRecoveryCallback(RecoveryCallback<?> recoveryCallback) {
 		this.recoveryCallback = recoveryCallback;
 	}
 
 	/**
 	 * The {@code boolean} flag to specify the order how
-	 * {@link RetryingMessageListenerAdapter} and
+	 * {@code RetryingMessageListenerAdapter} and
 	 * {@link FilteringMessageListenerAdapter} are wrapped to each other,
 	 * if both of them are present.
 	 * Does not make sense if only one of {@link RetryTemplate} or
 	 * {@link RecordFilterStrategy} is present, or any.
-	 * @param filterInRetry the order for {@link RetryingMessageListenerAdapter} and
+	 * @param filterInRetry the order for {@code RetryingMessageListenerAdapter} and
 	 * {@link FilteringMessageListenerAdapter} wrapping. Defaults to {@code false}.
 	 * @since 2.0.1
 	 */
@@ -272,6 +273,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	protected void onInit() {
 		super.onInit();
 
@@ -280,6 +282,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 					+ "provided; use an 'ErrorMessageSendingRecoverer' in the 'recoveryCallback' property to "
 					+ "send an error message when retries are exhausted");
 		}
+		ContainerProperties containerProperties = this.messageListenerContainer.getContainerProperties();
 		if (this.mode.equals(ListenerMode.record)) {
 			MessageListener<K, V> listener = this.recordListener;
 
@@ -289,14 +292,14 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			if (doFilterInRetry) {
 				listener = new FilteringMessageListenerAdapter<>(listener, this.recordFilterStrategy,
 						this.ackDiscarded);
-				listener = new RetryingMessageListenerAdapter<>(listener, this.retryTemplate,
-						this.recoveryCallback);
+				listener = new org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter<>(listener,
+						this.retryTemplate, this.recoveryCallback);
 				this.retryTemplate.registerListener(this.recordListener);
 			}
 			else {
 				if (this.retryTemplate != null) {
-					listener = new RetryingMessageListenerAdapter<>(listener, this.retryTemplate,
-							this.recoveryCallback);
+					listener = new org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter<>(listener,
+							this.retryTemplate, this.recoveryCallback);
 					this.retryTemplate.registerListener(this.recordListener);
 				}
 				if (this.recordFilterStrategy != null) {
@@ -304,7 +307,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 							this.ackDiscarded);
 				}
 			}
-			this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
+			containerProperties.setMessageListener(listener);
 		}
 		else {
 			BatchMessageListener<K, V> listener = this.batchListener;
@@ -313,10 +316,9 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				listener = new FilteringBatchMessageListenerAdapter<>(listener, this.recordFilterStrategy,
 						this.ackDiscarded);
 			}
-			this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
+			containerProperties.setMessageListener(listener);
 		}
-		this.containerDeliveryAttemptPresent = this.messageListenerContainer.getContainerProperties()
-				.isDeliveryAttemptHeader();
+		this.containerDeliveryAttemptPresent = containerProperties.isDeliveryAttemptHeader();
 	}
 
 	@Override
@@ -402,7 +404,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			}
 		}
 		else {
-			KafkaMessageDrivenChannelAdapter.this.logger.debug("Converter returned a null message for: "
+			KafkaMessageDrivenChannelAdapter.this.logger.debug(() -> "Converter returned a null message for: "
 					+ kafkaConsumedObject);
 		}
 	}
@@ -430,7 +432,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			implements RetryListener {
 
 		IntegrationRecordMessageListener() {
-			super(null, null);
+			super(null, null); // NOSONAR - out of use
 		}
 
 		@Override
@@ -448,7 +450,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				setAttributesIfNecessary(record, message);
 			}
 			catch (RuntimeException e) {
-				RuntimeException exception = new ConversionException("Failed to convert to message for: " + record, e);
+				RuntimeException exception = new ConversionException("Failed to convert to message", record, e);
 				sendErrorMessageIfNecessary(null, exception);
 			}
 
@@ -520,7 +522,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			implements RetryListener {
 
 		IntegrationBatchMessageListener() {
-			super(null, null);
+			super(null, null); // NOSONAR - out if use
 		}
 
 		@Override
@@ -540,7 +542,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				setAttributesIfNecessary(records, message);
 			}
 			catch (RuntimeException e) {
-				Exception exception = new ConversionException("Failed to convert to message for: " + records, e);
+				Exception exception = new ConversionException("Failed to convert to message",
+						records.stream().collect(Collectors.toList()), e);
 				MessageChannel errorChannel = getErrorChannel();
 				if (errorChannel != null) {
 					getMessagingTemplate().send(errorChannel, new ErrorMessage(exception));

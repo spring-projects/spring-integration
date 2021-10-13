@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,17 +28,18 @@ import java.util.Properties;
 
 import javax.mail.Folder;
 import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0.6
  *
  */
@@ -49,9 +50,10 @@ public class MailReceiverTests {
 		AbstractMailReceiver receiver = new AbstractMailReceiver() {
 
 			@Override
-			protected Message[] searchForNewMessages() throws MessagingException {
+			protected Message[] searchForNewMessages() {
 				return null;
 			}
+
 		};
 		Properties props = new Properties();
 		Session session = Session.getInstance(props);

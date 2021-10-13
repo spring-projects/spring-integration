@@ -11,4 +11,6 @@
 	<suppress files="CachingSessionFactory" checks="FinalClass"/> <!-- Tests spy -->
 	<suppress files="[\\/]test[\\/]" checks="Javadoc*"/>
 	<suppress files="[\\/]test[\\/]" checks="EqualsHashCode"/>
+	<suppress files="[\\/]test[\\/]" checks="Atclause*"/>
+	<suppress files="[\\/]test[\\/]" checks="InterfaceIsType"/>
 </suppressions>

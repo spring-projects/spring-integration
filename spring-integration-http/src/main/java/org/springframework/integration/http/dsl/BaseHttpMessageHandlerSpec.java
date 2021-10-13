@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,19 +64,6 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 
 	protected S expectReply(boolean expectReply) {
 		this.target.setExpectReply(expectReply);
-		return _this();
-	}
-
-	/**
-	 * Specify whether the real URI should be encoded after <code>uriVariables</code>
-	 * expanding and before send request via underlying implementation. The default value is <code>true</code>.
-	 * @param encodeUri true if the URI should be encoded.
-	 * @return the spec
-	 * @deprecated since 5.3 in favor of {@link #encodingMode}
-	 */
-	@Deprecated
-	public S encodeUri(boolean encodeUri) {
-		this.target.setEncodeUri(encodeUri);
 		return _this();
 	}
 
@@ -314,11 +301,25 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 	/**
 	 * Set to {@code true} if you wish {@code Set-Cookie} header in response to be
 	 * transferred as {@code Cookie} header in subsequent interaction for a message.
+	 * Defaults to false.
 	 * @param transferCookies the transferCookies to set.
 	 * @return the current Spec.
 	 */
 	public S transferCookies(boolean transferCookies) {
 		this.target.setTransferCookies(transferCookies);
+		return _this();
+	}
+
+	/**
+	 * The flag to extract a body of the {@link org.springframework.http.ResponseEntity}
+	 * for reply message payload. Defaults to true.
+	 * @param extractResponseBody produce a reply message with a whole
+	 * {@link org.springframework.http.ResponseEntity} or just its body.
+	 * @return the current Spec.
+	 * @since 5.5
+	 */
+	public S extractResponseBody(boolean extractResponseBody) {
+		this.target.setExtractResponseBody(extractResponseBody);
 		return _this();
 	}
 

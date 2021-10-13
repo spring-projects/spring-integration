@@ -150,7 +150,6 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	@Override
 	protected void doStart() {
-		super.doStart();
 		if (this.idleEventInterval > 0) {
 			this.idleEventScheduledFuture = getTaskScheduler().scheduleWithFixedDelay(() -> {
 				long now = System.currentTimeMillis();
@@ -167,7 +166,6 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	@Override
 	protected void doStop() {
-		super.doStop();
 		if (this.idleEventScheduledFuture != null) {
 			this.idleEventScheduledFuture.cancel(true);
 		}

@@ -33,6 +33,7 @@ Examples of such tools include the following:
 * Gemfire and Hazelcast can be run as real-data grid nodes in the tests.
 * The Curator Framework provides a `TestingServer` for Zookeeper interaction.
 * Apache Kafka provides admin tools to embed a Kafka Broker in the tests.
+* The GreenMail is an open source, intuitive and easy-to-use test suite of email servers for testing purposes.
 
 Most of these tools and libraries are used in Spring Integration tests.
 Also, from the GitHub https://github.com/spring-projects/spring-integration[repository] (in the `test` directory of each module), you can discover ideas for how to build your own tests for integration solutions.
@@ -97,7 +98,7 @@ private UdpSyslogReceivingChannelAdapter adapter;
 
 @Autowired
 private PollableChannel sysLogs;
-...
+
 @Test
 public void testSimplestUdp() throws Exception {
     int port = TestUtils.getPropertyValue(adapter1, "udpAdapter.port", Integer.class);
@@ -145,7 +146,7 @@ PollerMetadata poller;
 
 @Autowired
 OnlyOnceTrigger testTrigger;
-...
+
 @Test
 @DirtiesContext
 public void testWithEntityClass() throws Exception {
@@ -363,7 +364,7 @@ assertEquals("FOO", receive.getPayload());
 Unlike the Mockito `MessageSource` mock object, the `MockMessageHandler` is a regular `AbstractMessageProducingHandler` extension with a chain API to stub handling for incoming messages.
 The `MockMessageHandler` provides `handleNext(Consumer<Message<?>>)` to specify a one-way stub for the next request message.
 It is used to mock message handlers that do not produce replies.
-`handleNextAndReply(Function<Message<?>, ?>)` is provided for performing the same stub logic for the next request message and producing a reply for it.
+The `handleNextAndReply(Function<Message<?>, ?>)` is provided for performing the same stub logic for the next request message and producing a reply for it.
 They can be chained to simulate any arbitrary request-reply scenarios for all expected request messages variants.
 These consumers and functions are applied to the incoming messages, one at a time from the stack, until the last, which is then used for all remaining messages.
 The behavior is similar to the Mockito `Answer` or `doReturn()` API.

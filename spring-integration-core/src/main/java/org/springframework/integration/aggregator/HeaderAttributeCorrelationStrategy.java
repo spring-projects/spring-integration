@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,24 @@
 package org.springframework.integration.aggregator;
 
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
- * Default implementation of {@link CorrelationStrategy}. Uses a header
- * attribute to determine the correlation key value.
+ * Default implementation of {@link CorrelationStrategy}.
+ * Uses a provided header attribute to determine the correlation key value.
  *
  * @author Marius Bogoevici
+ * @author Artem Bilan
  */
 public class HeaderAttributeCorrelationStrategy implements CorrelationStrategy {
 
-	private String attributeName;
+	private final String attributeName;
 
 
 	public HeaderAttributeCorrelationStrategy(String attributeName) {
+		Assert.hasText(attributeName, "the 'attributeName' must not be empty");
 		this.attributeName = attributeName;
 	}
-
 
 	public Object getCorrelationKey(Message<?> message) {
 		return message.getHeaders().get(this.attributeName);

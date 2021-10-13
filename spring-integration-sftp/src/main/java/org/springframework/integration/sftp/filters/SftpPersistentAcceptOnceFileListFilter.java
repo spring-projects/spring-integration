@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  *
  * @author Gary Russell
  * @author David Liu
+ *
  * @since 3.0
  *
  */
@@ -38,12 +39,17 @@ public class SftpPersistentAcceptOnceFileListFilter extends AbstractPersistentAc
 
 	@Override
 	protected long modified(LsEntry file) {
-		return ((long) file.getAttrs().getMTime()) * 1000;
+		return ((long) file.getAttrs().getMTime()) * 1000; // NOSONAR magic number
 	}
 
 	@Override
 	protected String fileName(LsEntry file) {
 		return file.getFilename();
+	}
+
+	@Override
+	protected boolean isDirectory(LsEntry file) {
+		return file.getAttrs().isDir();
 	}
 
 }

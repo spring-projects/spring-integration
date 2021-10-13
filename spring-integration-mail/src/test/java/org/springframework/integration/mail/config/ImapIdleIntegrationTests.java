@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.mail.Folder;
 import javax.mail.Message;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
@@ -61,7 +61,7 @@ public class ImapIdleIntegrationTests {
 		receiver = spy(receiver);
 
 		doAnswer(invocation -> {
-			// ensures that waitFornewMessages call blocks after a first execution
+			// ensures that waitForNewMessages call blocks after a first execution
 			// to emulate the behavior of IDLE
 			if (block.get()) {
 				Thread.sleep(5000);
@@ -71,7 +71,7 @@ public class ImapIdleIntegrationTests {
 		}).when(receiver).waitForNewMessages();
 
 		Message m1 = mock(Message.class);
-		doReturn(new Message[]{m1}).when(receiver).receive();
+		doReturn(new Message[]{ m1 }).when(receiver).receive();
 
 		Folder folder = mock(Folder.class);
 		when(folder.isOpen()).thenReturn(true);
@@ -102,6 +102,7 @@ public class ImapIdleIntegrationTests {
 	public interface PostTransactionProcessor {
 
 		void process(Message mailMessage);
+
 	}
 
 }

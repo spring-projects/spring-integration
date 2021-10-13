@@ -16,26 +16,22 @@
 	</channel>
 
 	<router input-channel="referencedScriptInput">
-		<int-script:script lang="javascript" location="org/springframework/integration/scripting/config/jsr223/Jsr223RouterTests.js">
+		<int-script:script lang="groovy" location="org/springframework/integration/scripting/config/jsr223/Jsr223RouterTests.groovy">
 			<variable name="maxLen" value="3"/>
 		</int-script:script>
 	</router>
 
 	<router input-channel="inlineScriptInput">
-		<int-script:script lang="javascript"><![CDATA[
-			(function(){
-				return payload.length > 5 ? "longStrings" : "shortStrings";
-			})();
-		]]></int-script:script>
+		<int-script:script lang="groovy">
+				payload.length() > 5 ? 'longStrings' : 'shortStrings'
+		</int-script:script>
 	</router>
 
 	<chain input-channel="scriptRouterWithinChainInput">
 		<router>
-			<int-script:script lang="javascript"><![CDATA[
-			(function(){
-				return payload.length > 5 ? "longStrings" : "shortStrings";
-			})();
-		]]></int-script:script>
+			<int-script:script lang="groovy">
+				payload.length() > 5 ? 'longStrings' : 'shortStrings'
+			</int-script:script>
 		</router>
 	</chain>
 

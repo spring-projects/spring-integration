@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.springframework.util.PatternMatchUtils;
 /**
  * Gemfire implementation of the key/value style
  * {@link org.springframework.integration.store.MessageStore} and
- * {@link org.springframework.integration.store.MessageGroupStore}
+ * {@link org.springframework.integration.store.MessageGroupStore}.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -56,7 +56,7 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore {
 	}
 
 	/**
-	 * Construct a {@link GemfireMessageStore} instance based on the provided
+	 * Construct a {@link GemfireMessageStore} instance based on the provided.
 	 * @param messageStoreRegion the region to use.
 	 * @param prefix the key prefix to use, allowing the same region to be used for
 	 * multiple stores.

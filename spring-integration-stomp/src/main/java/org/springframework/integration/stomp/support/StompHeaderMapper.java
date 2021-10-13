@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,65 +128,89 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 	}
 
 	private void setStompHeader(StompHeaders target, String name, Object value) {
-		if (StompHeaders.CONTENT_LENGTH.equals(name)) {
-			if (value instanceof Number) {
-				target.setContentLength(((Number) value).longValue());
-			}
-			else if (value instanceof String) {
-				target.setContentLength(Long.parseLong((String) value));
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected Number or String value for 'content-length' header value, but received: " + clazz);
-			}
-		}
-		else if (StompHeaders.CONTENT_TYPE.equals(name) || MessageHeaders.CONTENT_TYPE.equals(name)) {
-			MimeType contentType = target.getContentType();
-			if (contentType == null || StompHeaders.CONTENT_TYPE.equals(name)) {
-				if (value instanceof MediaType) {
-					target.setContentType((MediaType) value);
-				}
-				else if (value instanceof String) {
-					target.setContentType(MediaType.parseMediaType((String) value));
+		switch (name) {
+			case StompHeaders.CONTENT_LENGTH:
+				setContentLength(target, value);
+				break;
+
+			case StompHeaders.CONTENT_TYPE:
+			case MessageHeaders.CONTENT_TYPE:
+				setContentType(target, name, value);
+				break;
+
+			case StompHeaders.DESTINATION:
+			case IntegrationStompHeaders.DESTINATION:
+				setDestination(target, value);
+				break;
+
+			case StompHeaders.RECEIPT:
+			case IntegrationStompHeaders.RECEIPT:
+				setReceipt(target, value);
+				break;
+
+			default:
+				if (value instanceof String) {
+					target.set(name, (String) value);
 				}
 				else {
 					Class<?> clazz = (value != null) ? value.getClass() : null;
 					throw new IllegalArgumentException(
-							"Expected MediaType or String value for 'content-type' header value, but received: "
-									+ clazz);
+							"Expected String value for any generic STOMP header value, but received: " + clazz);
 				}
-			}
 		}
-		else if (StompHeaders.DESTINATION.equals(name) || IntegrationStompHeaders.DESTINATION.equals(name)) {
-			if (value instanceof String) {
-				target.setDestination((String) value);
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected String value for 'destination' header value, but received: " + clazz);
-			}
+	}
+
+	private static void setContentLength(StompHeaders target, Object value) {
+		if (value instanceof Number) {
+			target.setContentLength(((Number) value).longValue());
 		}
-		else if (StompHeaders.RECEIPT.equals(name) || IntegrationStompHeaders.RECEIPT.equals(name)) {
-			if (value instanceof String) {
-				target.setReceipt((String) value);
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected String value for 'receipt' header value, but received: " + clazz);
-			}
+		else if (value instanceof String) {
+			target.setContentLength(Long.parseLong((String) value));
 		}
 		else {
-			if (value instanceof String) {
-				target.set(name, (String) value);
+			Class<?> clazz = (value != null) ? value.getClass() : null;
+			throw new IllegalArgumentException(
+					"Expected Number or String value for 'content-length' header value, but received: " + clazz);
+		}
+	}
+
+	private static void setContentType(StompHeaders target, String name, Object value) {
+		MimeType contentType = target.getContentType();
+		if (contentType == null || StompHeaders.CONTENT_TYPE.equals(name)) {
+			if (value instanceof MediaType) {
+				target.setContentType((MediaType) value);
+			}
+			else if (value instanceof String) {
+				target.setContentType(MediaType.parseMediaType((String) value));
 			}
 			else {
 				Class<?> clazz = (value != null) ? value.getClass() : null;
 				throw new IllegalArgumentException(
-						"Expected String value for any generic STOMP header value, but received: " + clazz);
+						"Expected MediaType or String value for 'content-type' header value, but received: "
+								+ clazz);
 			}
+		}
+	}
+
+	private static void setReceipt(StompHeaders target, Object value) {
+		if (value instanceof String) {
+			target.setReceipt((String) value);
+		}
+		else {
+			Class<?> clazz = (value != null) ? value.getClass() : null;
+			throw new IllegalArgumentException(
+					"Expected String value for 'receipt' header value, but received: " + clazz);
+		}
+	}
+
+	private static void setDestination(StompHeaders target, Object value) {
+		if (value instanceof String) {
+			target.setDestination((String) value);
+		}
+		else {
+			Class<?> clazz = (value != null) ? value.getClass() : null;
+			throw new IllegalArgumentException(
+					"Expected String value for 'destination' header value, but received: " + clazz);
 		}
 	}
 
@@ -211,7 +235,7 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 	}
 
 
-	private boolean shouldMapHeader(String headerName, String[] patterns) {
+	private static boolean shouldMapHeader(String headerName, String[] patterns) {
 		if (patterns != null && patterns.length > 0) {
 			for (String pattern : patterns) {
 				if (PatternMatchUtils.simpleMatch(pattern, headerName)) {

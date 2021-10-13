@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.websocket.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -25,8 +25,7 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -69,8 +68,7 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
@@ -95,8 +93,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
  *
  * @since 4.1
  */
-@ContextConfiguration(classes = WebSocketServerTests.ClientConfig.class)
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig(classes = WebSocketServerTests.ClientConfig.class)
 @DirtiesContext
 public class WebSocketServerTests {
 
@@ -167,15 +164,10 @@ public class WebSocketServerTests {
 		webSocketInboundChannelAdapter.setUseBroker(true);
 		webSocketInboundChannelAdapter.setBeanFactory(Mockito.mock(BeanFactory.class));
 		webSocketInboundChannelAdapter.setApplicationContext(Mockito.mock(ApplicationContext.class));
-		try {
-			webSocketInboundChannelAdapter.afterPropertiesSet();
-			fail("IllegalStateException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalStateException.class);
-			assertThat(e.getMessage()).contains("WebSocket Broker Relay isn't present in the application context;");
-		}
 
+		assertThatIllegalStateException()
+				.isThrownBy(webSocketInboundChannelAdapter::afterPropertiesSet)
+				.withMessageContaining("WebSocket Broker Relay isn't present in the application context;");
 	}
 
 	@Configuration
@@ -271,7 +263,7 @@ public class WebSocketServerTests {
 			return new ServerWebSocketContainer("/ws")
 					.setHandshakeHandler(handshakeHandler())
 					.setDecoratorFactories(testWebSocketHandlerDecoratorFactory())
-					.setAllowedOrigins("https://www.example.com/")
+					.setAllowedOrigins("https://www.example.com")
 					.withSockJs();
 		}
 
@@ -319,7 +311,6 @@ public class WebSocketServerTests {
 		}
 
 		@Bean
-		@SuppressWarnings("unchecked")
 		public ApplicationListener<ApplicationEvent> webSocketEventListener() {
 			ApplicationEventListeningMessageProducer producer = new ApplicationEventListeningMessageProducer();
 			producer.setEventTypes(PayloadApplicationEvent.class);

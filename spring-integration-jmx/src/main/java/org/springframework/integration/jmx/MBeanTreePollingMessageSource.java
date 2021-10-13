@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  *
  * @author Stuart Williams
  * @author Gary Russell
+ *
  * @since 3.0
  *
  */
@@ -61,15 +62,11 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 		return "jmx:tree-polling-channel-adapter";
 	}
 
-	/**
-	 * Provides the mapped tree object
-	 */
 	@Override
 	protected Object doReceive() {
 		Assert.notNull(this.server, "MBeanServer is required");
-
 		try {
-			Map<String, Object> beans = new HashMap<String, Object>();
+			Map<String, Object> beans = new HashMap<>();
 			Set<ObjectInstance> results = this.server.queryMBeans(this.queryName, this.queryExpression);
 
 			for (ObjectInstance instance : results) {
@@ -87,7 +84,6 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 
 	/**
 	 * Provide the MBeanServer where the JMX MBean has been registered.
-	 *
 	 * @param server The MBean server connection.
 	 */
 	public void setServer(MBeanServerConnection server) {
@@ -133,4 +129,5 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 	public void setQueryExpressionReference(QueryExp queryExpression) {
 		this.queryExpression = queryExpression;
 	}
+
 }

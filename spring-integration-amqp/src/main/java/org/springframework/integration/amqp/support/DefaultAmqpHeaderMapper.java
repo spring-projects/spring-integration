@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -340,9 +340,9 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	/**
 	 * Construct a default inbound header mapper.
 	 * @return the mapper.
+	 * @since 4.3
 	 * @see #inboundRequestHeaders()
 	 * @see #inboundReplyHeaders()
-	 * @since 4.3
 	 */
 	public static DefaultAmqpHeaderMapper inboundMapper() {
 		return new DefaultAmqpHeaderMapper(inboundRequestHeaders(), inboundReplyHeaders());
@@ -351,9 +351,9 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	/**
 	 * Construct a default outbound header mapper.
 	 * @return the mapper.
+	 * @since 4.3
 	 * @see #outboundRequestHeaders()
 	 * @see #outboundReplyHeaders()
-	 * @since 4.3
 	 */
 	public static DefaultAmqpHeaderMapper outboundMapper() {
 		return new DefaultAmqpHeaderMapper(outboundRequestHeaders(), outboundReplyHeaders());

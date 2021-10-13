@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.stomp.outbound.StompMessageHandler;
 import org.springframework.integration.support.converter.PassThruMessageConverter;
-import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -63,7 +62,6 @@ import org.springframework.util.SocketUtils;
  *
  * @since 4.2
  */
-@LogLevels(level = "trace", categories = { "reactor.netty.tcp", "io.netty" })
 public class StompServerIntegrationTests {
 
 	private static BrokerService activeMQBroker;
@@ -77,6 +75,7 @@ public class StompServerIntegrationTests {
 		activeMQBroker.addConnector("stomp://127.0.0.1:" + port);
 		activeMQBroker.setPersistent(false);
 		activeMQBroker.setUseJmx(false);
+		activeMQBroker.setEnableStatistics(false);
 		activeMQBroker.getSystemUsage().getMemoryUsage().setLimit(1024 * 1024 * 5);
 		activeMQBroker.getSystemUsage().getTempUsage().setLimit(1024 * 1024 * 5);
 		activeMQBroker.start();

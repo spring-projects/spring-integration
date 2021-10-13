@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,10 @@ import java.util.stream.Collectors;
  * Since they look at multiple files, they cannot be used for late filtering in the
  * streaming message source.
  *
+ * @param <F> the target protocol file type.
+ *
  * @author Gary Russell
+ *
  * @since 5.0
  *
  */
@@ -87,7 +90,7 @@ public abstract class AbstractMarkerFilePresentFileListFilter<F> implements File
 	 * function returns "foo.txt.complete", this filter will only pass "foo.txt" if
 	 * "foo.txt.complete" is present. The function returns the name of the marker file to
 	 * match, or {@code null} for never match. Due to type erasure, we cannot provide a
-	 * constructor taking {@code Map<Filter, suffix}. For convenience, you can use
+	 * constructor taking {@code Map<Filter, Function>}. For convenience, you can use
 	 * {@link #defaultFileNameFunction(String)} to use the default function used by the
 	 * {@link #AbstractMarkerFilePresentFileListFilter(FileListFilter, String)}
 	 * constructor.

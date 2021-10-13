@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,7 +197,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		try {
 			return this.argsMapper.toMessage(new MethodArgsHolder(this.method, arguments), headers);
 		}
-		catch (MessagingException e) { // NOSONAR fto avoid if..else
+		catch (MessagingException e) { // NOSONAR to avoid if..else
 			throw e;
 		}
 		catch (Exception e) {
@@ -334,8 +334,9 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			}
 
 			Assert.isTrue(messageOrPayload != null,
-					() -> "unable to determine a Message or payload parameter on method ["
-							+ GatewayMethodInboundMessageMapper.this.method + "]");
+					() -> "The 'payload' (or 'Message') for gateway [" + GatewayMethodInboundMessageMapper.this.method +
+							"] method call cannot be determined (must not be 'null') from the provided arguments: " +
+							Arrays.toString(arguments));
 			populateSendAndReplyTimeoutHeaders(methodInvocationEvaluationContext, holder, headersToPopulate);
 			return buildMessage(holder, headersToPopulate, messageOrPayload, methodInvocationEvaluationContext);
 		}

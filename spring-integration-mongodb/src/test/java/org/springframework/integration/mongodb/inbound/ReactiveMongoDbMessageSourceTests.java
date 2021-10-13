@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.FluxMessageChannel;
@@ -91,7 +92,7 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	@SuppressWarnings("unchecked")
 	public void validateSuccessfulQueryWithSingleElementFluxOfDbObject() {
-		ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory = this.prepareReactiveMongoFactory();
+		ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory = prepareReactiveMongoFactory();
 
 		ReactiveMongoTemplate template = new ReactiveMongoTemplate(reactiveMongoDatabaseFactory);
 		waitFor(template.save(createPerson(), "data"));
@@ -111,7 +112,7 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	@SuppressWarnings("unchecked")
 	public void validateSuccessfulQueryWithSingleElementFluxOfPerson() {
-		ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory = this.prepareReactiveMongoFactory();
+		ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory = prepareReactiveMongoFactory();
 
 		ReactiveMongoTemplate template = new ReactiveMongoTemplate(reactiveMongoDatabaseFactory);
 		waitFor(template.save(createPerson(), "data"));
@@ -183,6 +184,7 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 		StepVerifier.create(output)
 				.assertNext(
 						message -> assertThat(((Person) message.getPayload()).getName()).isEqualTo("Oleg"))
+				.expectNoEvent(Duration.ofMillis(100))
 				.thenCancel()
 				.verify(Duration.ofSeconds(10));
 
@@ -247,9 +249,10 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 		public IntegrationFlow pollingFlow() {
 			return IntegrationFlows
 					.from(MongoDb.reactiveInboundChannelAdapter(
-							MongoDbAvailableTests.REACTIVE_MONGO_DATABASE_FACTORY, "{'name' : 'Oleg'}")
+							REACTIVE_MONGO_DATABASE_FACTORY, "{'name' : 'Oleg'}")
+									.update(Update.update("name", "DONE"))
 									.entityClass(Person.class),
-							c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
+							c -> c.poller(Pollers.fixedDelay(100)))
 					.split()
 					.channel(c -> c.flux("output"))
 					.get();

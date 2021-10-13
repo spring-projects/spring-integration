@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ package org.springframework.integration.file.remote;
  * {@code RemoteFileTemplate} callback with the underlying client instance providing
  * access to lower level methods where no result is returned.
  *
+ * @param <C> The type of the underlying client object.
+ *
  * @author Gary Russell
  * @author Artem Bilan
  *
- * @param <C> The type of the underlying client object.
  * @since 4.1
- *
  */
 @FunctionalInterface
 public interface ClientCallbackWithoutResult<C> extends ClientCallback<C, Object> {

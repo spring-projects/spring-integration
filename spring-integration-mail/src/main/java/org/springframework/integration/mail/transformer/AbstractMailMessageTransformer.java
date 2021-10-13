@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import org.springframework.messaging.Message;
 /**
  * Base class for Transformers that convert from a JavaMail Message to a
  * Spring Integration Message.
+ *
+ * @param <T> the target payload type.
  *
  * @author Mark Fisher
  * @author Gary Russell
@@ -88,7 +90,7 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer,
 			throws Exception; // NOSONAR
 
 
-	private Map<String, Object> extractHeaderMapFromMailMessage(javax.mail.Message mailMessage) {
+	private static Map<String, Object> extractHeaderMapFromMailMessage(javax.mail.Message mailMessage) {
 		return MailUtils.extractStandardHeaders(mailMessage);
 	}
 

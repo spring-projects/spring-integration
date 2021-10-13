@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,12 @@ package org.springframework.integration.context;
 
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -26,7 +31,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
@@ -40,8 +44,11 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Pierre Lakreb
  */
 public abstract class IntegrationContextUtils {
+
+	public static final String BASE_PACKAGE = "org.springframework.integration";
 
 	public static final String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
 
@@ -73,13 +80,13 @@ public abstract class IntegrationContextUtils {
 			"DefaultConfiguringBeanFactoryPostProcessor";
 
 	public static final String MESSAGING_ANNOTATION_POSTPROCESSOR_NAME =
-			IntegrationConfigUtils.BASE_PACKAGE + ".internalMessagingAnnotationPostProcessor";
+			BASE_PACKAGE + ".internalMessagingAnnotationPostProcessor";
 
 	public static final String PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME =
-			IntegrationConfigUtils.BASE_PACKAGE + ".internalPublisherAnnotationBeanPostProcessor";
+			BASE_PACKAGE + ".internalPublisherAnnotationBeanPostProcessor";
 
 	public static final String INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME =
-			"IntegrationConfigurationBeanFactoryPostProcessor";
+			"integrationConfigurationBeanFactoryPostProcessor";
 
 	public static final String INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME = "messageHistoryConfigurer";
 
@@ -91,8 +98,7 @@ public abstract class IntegrationContextUtils {
 
 	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME = "globalChannelInterceptorProcessor";
 
-	public static final String TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME =
-			"toStringFriendlyJsonNodeToStringConverter";
+	public static final String JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER = "jsonNodeWrapperToJsonNodeConverter";
 
 	public static final String INTEGRATION_LIFECYCLE_ROLE_CONTROLLER = "integrationLifecycleRoleController";
 
@@ -109,6 +115,8 @@ public abstract class IntegrationContextUtils {
 	public static final String MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationMessageHandlerMethodFactory";
 
 	public static final String LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationListMessageHandlerMethodFactory";
+
+	private static final Log LOGGER = LogFactory.getLog(IntegrationContextUtils.class);
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
@@ -173,15 +181,16 @@ public abstract class IntegrationContextUtils {
 		return beanFactory.getBean(beanName, type);
 	}
 
+	// TODO Revise in favor of 'IntegrationProperties' instance in the next 6.0 version
+
 	/**
 	 * @param beanFactory The bean factory.
 	 * @return the global {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME}
 	 *         bean from provided {@code #beanFactory}, which represents the merged
-	 *         properties values from all 'META-INF/spring.integration.default.properties'
-	 *         and 'META-INF/spring.integration.properties'.
-	 *         Or user-defined {@link Properties} bean.
+	 *         properties values from all 'META-INF/spring.integration.properties'.
+	 *         Or user-defined {@link IntegrationProperties} bean.
 	 *         May return only {@link IntegrationProperties#defaults()} if there is no
-	 *         {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME} bean within
+	 *         {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME} bean in the
 	 *         provided {@code #beanFactory} or provided {@code #beanFactory} is null.
 	 */
 	public static Properties getIntegrationProperties(BeanFactory beanFactory) {
@@ -191,8 +200,7 @@ public abstract class IntegrationContextUtils {
 			if (properties == null) {
 				Properties propertiesToRegister = new Properties();
 				propertiesToRegister.putAll(IntegrationProperties.defaults());
-				Properties userProperties =
-						getBeanOfType(beanFactory, INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Properties.class);
+				Properties userProperties = obtainUserProperties(beanFactory);
 				if (userProperties != null) {
 					propertiesToRegister.putAll(userProperties);
 				}
@@ -213,6 +221,32 @@ public abstract class IntegrationContextUtils {
 			properties.putAll(IntegrationProperties.defaults());
 		}
 		return properties;
+	}
+
+	@Nullable
+	private static Properties obtainUserProperties(BeanFactory beanFactory) {
+		Object userProperties = getBeanOfType(beanFactory, INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Object.class);
+		if (userProperties instanceof Properties) {
+			if (BeanDefinition.ROLE_INFRASTRUCTURE !=
+					((BeanDefinitionRegistry) beanFactory)
+							.getBeanDefinition(INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)
+							.getRole()) {
+
+				LOGGER.warn("The 'integrationGlobalProperties' bean must be declared as an instance of " +
+						"'org.springframework.integration.context.IntegrationProperties'. " +
+						"A 'java.util.Properties' support as a bean is deprecated for " +
+						"'integrationGlobalProperties' since version 5.5.");
+			}
+			return (Properties) userProperties;
+		}
+		else if (userProperties instanceof IntegrationProperties) {
+			return ((IntegrationProperties) userProperties).toProperties();
+		}
+		else if (userProperties != null) {
+			throw new BeanNotOfRequiredTypeException(INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME,
+					IntegrationProperties.class, userProperties.getClass());
+		}
+		return null;
 	}
 
 	/**

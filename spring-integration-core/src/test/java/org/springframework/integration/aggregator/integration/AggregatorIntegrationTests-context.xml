@@ -47,7 +47,7 @@
 
 	<aggregator input-channel="groupTimeoutExpressionAggregatorInput" output-channel="output" discard-channel="discard"
 				send-partial-result-on-expiry="true"
-				group-timeout-expression="size() ge 2 ? 100 : null"
+				group-timeout-expression="size() ge 2 ? new java.util.Date(timestamp + 200) : null"
 			    release-strategy-expression="messages[0].headers.sequenceNumber == messages[0].headers.sequenceSize"/>
 
 	<aggregator input-channel="zeroGroupTimeoutExpressionAggregatorInput" output-channel="output" discard-channel="discard"

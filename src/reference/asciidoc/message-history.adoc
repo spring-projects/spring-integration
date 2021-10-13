@@ -12,10 +12,16 @@ Spring integration provides a simple way to configure your message flows to main
 [[message-history-config]]
 ==== Message History Configuration
 
-To enable message history, you need only define the `message-history` element in your configuration, as shown in the following example:
+To enable message history, you need only define the `message-history` element (or `@EnableMessageHistory`) in your configuration, as shown in the following example:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+----
+@Configuration
+@EnableIntegration
+@EnableMessageHistory
+----
+[source, xml, role="secondary"]
 ----
 <int:message-history/>
 ----
@@ -28,29 +34,45 @@ Its value a `List<Properties>`.
 Consider the following configuration example:
 
 ====
-[source,xml]
+[source, java, role="primary"]
 ----
-<int:gateway id="sampleGateway" 
+@MessagingGateway(defaultRequestChannel = "bridgeInChannel")
+public interface SampleGateway {
+   ...
+}
+
+@Bean
+@Transformer(inputChannel = "enricherChannel", outputChannel="filterChannel")
+HeaderEnricher sampleEnricher() {
+    HeaderEnricher enricher =
+           new HeaderEnricher(Collections.singletonMap("baz", new StaticHeaderValueMessageProcessor("baz")));
+    return enricher;
+}
+----
+[source, xml, role="secondary"]
+----
+<int:gateway id="sampleGateway"
     service-interface="org.springframework.integration.history.sample.SampleGateway"
     default-request-channel="bridgeInChannel"/>
 
-<int:chain id="sampleChain" input-channel="chainChannel" output-channel="filterChannel">
-  <int:header-enricher>
-    <int:header name="baz" value="baz"/>
-  </int:header-enricher>
-</int:chain>
+<int:header-enricher id="sampleEnricher" input-channel="enricherChannel" output-channel="filterChannel">
+    <int:header name="baz" value="baz"/>
+</int:header-enricher>
 ----
 ====
 
 The preceding configuration produces a simple message history structure, with output similar to the following:
-[source,java]
+
+====
+[source]
 ----
 [{name=sampleGateway, type=gateway, timestamp=1283281668091},
- {name=sampleChain, type=chain, timestamp=1283281668094}]
+ {name=sampleEnricher, type=header-enricher, timestamp=1283281668094}]
 ----
+====
 
 To get access to message history, you need only access the `MessageHistory` header.
-The folloiwng example shows how to do so:
+The following example shows how to do so:
 
 ====
 [source,java]
@@ -71,7 +93,13 @@ To limit the history to certain components based on their names, you can provide
 The following example shows how to do so:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+----
+@Configuration
+@EnableIntegration
+@EnableMessageHistory("*Gateway", "sample*", "aName")
+----
+[source, xml, role="secondary"]
 ----
 <int:message-history tracked-components="*Gateway, sample*, aName"/>
 ----
@@ -79,14 +107,13 @@ The following example shows how to do so:
 
 In the preceding example, message history is maintained only for the components that end with 'Gateway', start with 'sample', or match the name, 'aName', exactly.
 
-Starting with version 4.0, you can also use the `@EnableMessageHistory` annotation in a `@Configuration` class.
 In addition, the `MessageHistoryConfigurer` bean is now exposed as a JMX MBean by the `IntegrationMBeanExporter` (see <<./jmx.adoc#jmx-mbean-exporter,MBean Exporter>>), letting you change the patterns at runtime.
 Note, however, that the bean must be stopped (turning off message history) in order to change the patterns.
 This feature might be useful to temporarily turn on history to analyze a system.
 The MBean's object name is `<domain>:name=messageHistoryConfigurer,type=MessageHistoryConfigurer`.
 
-IMPORTANT: If multiple beans (declared by `@EnableMessageHistory` and `<message-history/>`) exist, they must all have identical component name patterns (when trimmed and sorted).
-Do not use a generic `<bean/>` definition for the `MessageHistoryConfigurer`.
+IMPORTANT: Only one `@EnableMessageHistory` (or `<message-history/>`) must be declared in the application context as single source for components tracking configuration.
+Do not use a generic bean definition for the `MessageHistoryConfigurer`.
 
 NOTE: By definition, the message history header is immutable (you cannot re-write history).
 Therefore, when writing message history values, the components either create new messages (when the component is an origin) or they copy the history from a request message, modifying it and setting the new list on a reply message.

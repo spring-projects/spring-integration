@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,15 @@ import org.springframework.util.Assert;
  * Files are deemed as already 'seen' if they exist in the store and have the
  * same modified time as the current file.
  *
+ * @param <F> the file type.
+ *
  * @author Gary Russell
  * @author Artem Bilan
  *
  * @since 3.0
  *
  */
-public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends AbstractFileListFilter<F>
+public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends AbstractDirectoryAwareFileListFilter<F>
 		implements ReversibleFileListFilter<F>, ResettableFileListFilter<F>, Closeable {
 
 	protected final ConcurrentMetadataStore store; // NOSONAR
@@ -73,6 +75,9 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 
 	@Override
 	public boolean accept(F file) {
+		if (alwaysAccept(file)) {
+			return true;
+		}
 		String key = buildKey(file);
 		String newValue = value(file);
 		String oldValue = this.store.putIfAbsent(key, newValue);
@@ -173,6 +178,11 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 				// store's responsibility to log
 			}
 		}
+	}
+
+	@Override
+	protected boolean isDirectory(F file) {
+		return false;
 	}
 
 	protected abstract long modified(F file);

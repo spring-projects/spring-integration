@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,15 @@
 package org.springframework.integration.dsl.transformers;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,6 +42,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.integration.support.MessageBuilder;
@@ -54,7 +53,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
@@ -63,7 +62,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class TransformerTests {
 
@@ -224,15 +223,11 @@ public class TransformerTests {
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("FooBar");
 
-		try {
-			this.pojoTransformFlowInput.send(message);
-			fail("MessageRejectedException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageRejectedException.class);
-			assertThat(e.getMessage()).contains("IdempotentReceiver");
-			assertThat(e.getMessage()).contains("rejected duplicate Message");
-		}
+
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> this.pojoTransformFlowInput.send(message))
+				.withMessageContaining("IdempotentReceiver")
+				.withMessageContaining("rejected duplicate Message");
 
 		assertThat(this.idempotentDiscardChannel.receive(10000)).isNotNull();
 		assertThat(this.adviceChannel.receive(10000)).isNotNull();
@@ -264,6 +259,22 @@ public class TransformerTests {
 
 		assertThat(testPojo.getName()).isEqualTo("Baz");
 		assertThat(testPojo.getDate()).isEqualTo(date);
+	}
+
+	@Autowired
+	@Qualifier("transformFlowWithError.input")
+	private MessageChannel transformFlowWithErrorInput;
+
+	@Test
+	public void testFailedTransformWithRequestHeadersCopy() {
+		QueueChannel replyChannel = new QueueChannel();
+		this.transformFlowWithErrorInput.send(MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build());
+
+		final Message<?> receive = replyChannel.receive(10_000);
+
+		assertThat(receive).isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("transform failed");
 	}
 
 	@Configuration
@@ -437,6 +448,24 @@ public class TransformerTests {
 					.convert(TestPojo.class);
 		}
 
+		@Bean
+		public ExpressionEvaluatingRequestHandlerAdvice expressionAdvice() {
+			ExpressionEvaluatingRequestHandlerAdvice handlerAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
+			handlerAdvice.setOnFailureExpressionString("'transform failed'");
+			handlerAdvice.setReturnFailureExpressionResult(true);
+			return handlerAdvice;
+		}
+
+		@Bean
+		public IntegrationFlow transformFlowWithError() {
+			return f -> f
+					.transform(p -> {
+								throw new RuntimeException("intentional");
+							},
+							e -> e.advice(expressionAdvice()))
+					.logAndReply();
+		}
+
 	}
 
 	private static final class TestPojo {
@@ -479,7 +508,7 @@ public class TransformerTests {
 		}
 
 		@Override
-		public byte[] encode(Object object) throws IOException {
+		public byte[] encode(Object object) {
 			return "foo".getBytes();
 		}
 
@@ -488,11 +517,11 @@ public class TransformerTests {
 			return null;
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
+		@SuppressWarnings("unchecked")
 		public <T> T decode(byte[] bytes, Class<T> type) {
-			return (T) (type.equals(String.class) ? new String(bytes) :
-					type.equals(Integer.class) ? Integer.valueOf(42) : Integer.valueOf(43));
+			return (T) (String.class.isAssignableFrom(type) ? new String(bytes) :
+					Integer.class.isAssignableFrom(type) ? Integer.valueOf(42) : Integer.valueOf(43));
 		}
 
 	}

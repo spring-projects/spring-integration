@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -249,10 +249,10 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * @param outboundHeaderNames The outbound header names.
 	 */
 	public void setOutboundHeaderNames(String... outboundHeaderNames) {
-		if (HTTP_REQUEST_HEADER_NAMES == outboundHeaderNames) {
+		if (Arrays.equals(HTTP_REQUEST_HEADER_NAMES, outboundHeaderNames)) {
 			this.isDefaultOutboundMapper = true;
 		}
-		else if (HTTP_RESPONSE_HEADER_NAMES == outboundHeaderNames) {
+		else if (Arrays.equals(HTTP_RESPONSE_HEADER_NAMES, outboundHeaderNames)) {
 			this.isDefaultInboundMapper = true;
 		}
 		this.outboundHeaderNames =

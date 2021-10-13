@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,11 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.Topic;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.integration.support.MessageBuilderFactory;
@@ -44,17 +44,16 @@ import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class JmsChannelParserTests {
+public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	private MessageChannel queueReferenceChannel;
@@ -125,7 +124,8 @@ public class JmsChannelParserTests {
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) queueReferenceChannel;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
+		AbstractMessageListenerContainer container =
+				(AbstractMessageListenerContainer) accessor.getPropertyValue("container");
 		assertThat(jmsTemplate.getDefaultDestination()).isEqualTo(queue);
 		assertThat(container.getDestination()).isEqualTo(queue);
 		assertThat(TestUtils.getPropertyValue(jmsTemplate, "explicitQosEnabled")).isEqualTo(true);
@@ -150,6 +150,8 @@ public class JmsChannelParserTests {
 		assertThat(TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue())
 				.isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(container, "taskExecutor.threadNamePrefix"))
+				.isEqualTo("queueNameChannel.container-");
 	}
 
 	@Test
@@ -336,10 +338,12 @@ public class JmsChannelParserTests {
 			}
 			return pubSubDomain ? topic : queue;
 		}
+
 	}
 
 
 	static class TestInterceptor implements ChannelInterceptor {
+
 	}
 
 	static class CustomTestMessageListenerContainer extends DefaultMessageListenerContainer {

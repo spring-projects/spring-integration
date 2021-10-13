@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -148,7 +147,6 @@ public final class StoredProcParserUtils {
 		}
 	}
 
-	@NotNull
 	private static BeanDefinitionBuilder createParameterBeanDefinitionBuilder(Element storedProcComponent,
 			ParserContext parserContext, String direction, String returnType) {
 

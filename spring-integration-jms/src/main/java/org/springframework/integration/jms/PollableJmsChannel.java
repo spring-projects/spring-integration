@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,8 +74,8 @@ public class PollableJmsChannel extends AbstractJmsChannel
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
 		try {
-			if (isLoggingEnabled() && logger.isTraceEnabled()) {
-				logger.trace("preReceive on channel '" + this + "'");
+			if (isLoggingEnabled()) {
+				logger.trace(() -> "preReceive on channel '" + this + "'");
 			}
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<>();
@@ -84,35 +84,13 @@ public class PollableJmsChannel extends AbstractJmsChannel
 					return null;
 				}
 			}
-			Object object;
-			if (this.messageSelector == null) {
-				object = getJmsTemplate().receiveAndConvert();
-			}
-			else {
-				object = getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
-			}
 
-			Message<?> message = null;
-			if (object == null) {
-				if (isLoggingEnabled() && logger.isTraceEnabled()) {
-					logger.trace("postReceive on channel '" + this + "', message is null");
-				}
-			}
-			else {
+			Message<?> message = receiveAndConvertToMessage();
+			if (message != null) {
 				incrementReceiveCounter();
 				counted = true;
-				if (object instanceof Message<?>) {
-					message = (Message<?>) object;
-				}
-				else {
-					message = getMessageBuilderFactory()
-							.withPayload(object)
-							.build();
-				}
-				if (isLoggingEnabled() && logger.isDebugEnabled()) {
-					logger.debug("postReceive on channel '" + this + "', message: " + message);
-				}
 			}
+
 			if (interceptorStack != null && message != null) {
 				message = interceptorList.postReceive(message, this);
 			}
@@ -125,6 +103,39 @@ public class PollableJmsChannel extends AbstractJmsChannel
 			}
 			interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
 			throw ex;
+		}
+	}
+
+	@Nullable
+	private Message<?> receiveAndConvertToMessage() {
+		Object object;
+		if (this.messageSelector == null) {
+			object = getJmsTemplate().receiveAndConvert();
+		}
+		else {
+			object = getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
+		}
+
+		if (object == null) {
+			if (isLoggingEnabled()) {
+				logger.trace(() -> "postReceive on channel '" + this + "', message is null");
+			}
+			return null;
+		}
+		else {
+			Message<?> message;
+			if (object instanceof Message<?>) {
+				message = (Message<?>) object;
+			}
+			else {
+				message = getMessageBuilderFactory()
+						.withPayload(object)
+						.build();
+			}
+			if (isLoggingEnabled()) {
+				logger.debug(() -> "postReceive on channel '" + this + "', message: " + message);
+			}
+			return message;
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,24 @@ package org.springframework.integration.util;
 
 /**
  * Represents a pool of items.
+ *
+ * @param <T> pool element type.
+ *
  * @author Gary Russell
+ *
  * @since 2.2
  *
  */
 public interface Pool<T> {
 
 	/**
-	 * Obtains an item from the pool.
+	 * Obtain an item from the pool.
 	 * @return the item.
 	 */
 	T getItem();
 
 	/**
-	 * Releases an item back into the pool. This must be an item that
+	 * Release an item back into the pool. This must be an item that
 	 * was previously retrieved using {@link #getItem()}.
 	 * @param t the item.
 	 * @throws IllegalArgumentException when a "foreign" object
@@ -40,34 +44,34 @@ public interface Pool<T> {
 	void releaseItem(T t);
 
 	/**
-	 * Removes all idle items from the pool.
+	 * Remove all idle items from the pool.
 	 */
 	void removeAllIdleItems();
 
 	/**
-	 * Returns the current size (limit) of the pool.
+	 * Return the current size (limit) of the pool.
 	 * @return the size.
 	 */
 	int getPoolSize();
 
 	/**
-	 * Returns the number of items that have been allocated
+	 * Return the number of items that have been allocated
 	 * but are not currently in use.
 	 * @return The number of items.
 	 */
 	int getIdleCount();
 
 	/**
-	 * Returns the number of allocated items that are currently
+	 * Return the number of allocated items that are currently
 	 * checked out of the pool.
 	 * @return The number of items.
 	 */
 	int getActiveCount();
 
 	/**
-	 * Returns the current count of allocated items (in use and
+	 * Return the current count of allocated items (in use and
 	 * idle). May be less than the pool size, and reflects the
-	 * high water mark of pool usage.
+	 * high watermark of pool usage.
 	 * @return the number of items.
 	 */
 	int getAllocatedCount();

@@ -15,13 +15,13 @@ This section details the compatible https://www.oracle.com/technetwork/java/java
 [[supported-java-versions]]
 === Compatible Java Versions
 
-For Spring Integration 5.2.x, the minimum compatible Java version is Java SE 8.
+For Spring Integration 5.5.x, the minimum compatible Java version is Java SE 8.
 Older versions of Java are not supported.
 
 [[supported-spring-versions]]
 === Compatible Versions of the Spring Framework
 
-Spring Integration 5.2.x requires Spring Framework 5.2 or later.
+Spring Integration 5.5.x requires Spring Framework 5.3 or later.
 
 [[code-conventions]]
 == Code Conventions
@@ -67,6 +67,4 @@ Be aware, though, that SpringSource Tool Suite™ (STS) uses the same namespace 
 [[guide-conventions]]
 == Conventions in This Guide
 
-In some cases, to aid formatting when specifying long fully qualified class names, we shorten
-`org.springframework` to `o.s` and `org.springframework.integration` to `o.s.i`, such as with
-`o.s.i.transaction.TransactionSynchronizationFactory`.
+In some cases, to aid formatting when specifying long fully qualified class names, we shorten `org.springframework` to `o.s` and `org.springframework.integration` to `o.s.i`, such as with `o.s.i.transaction.TransactionSynchronizationFactory`.

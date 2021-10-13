@@ -7,8 +7,6 @@
 		http://www.springframework.org/schema/task https://www.springframework.org/schema/task/spring-task.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<annotation-config />
-
 	<channel id="input">
 		<queue capacity="5" />
 	</channel>

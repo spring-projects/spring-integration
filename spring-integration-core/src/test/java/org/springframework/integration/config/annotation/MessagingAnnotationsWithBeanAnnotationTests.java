@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
-import javax.annotation.Resource;
 
 import org.junit.jupiter.api.Test;
 
@@ -50,6 +50,7 @@ import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.Reactive;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
@@ -83,6 +84,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
@@ -105,7 +107,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	@Autowired
 	private PollableChannel discardChannel;
 
-	@Resource(name = "collector")
+	@Autowired
 	private List<Message<?>> collector;
 
 	@Autowired(required = false)
@@ -147,10 +149,12 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	@Autowired
 	private MessageChannel messageConsumerServiceChannel;
 
+	@Autowired
+	private CountDownLatch reactiveCustomizerLatch;
+
 	@Test
-	public void testMessagingAnnotationsFlow() {
+	public void testMessagingAnnotationsFlow() throws InterruptedException {
 		Stream.of(this.sourcePollingChannelAdapters).forEach(AbstractEndpoint::start);
-		//this.sourcePollingChannelAdapter.start();
 		for (int i = 0; i < 10; i++) {
 			Message<?> receive = this.discardChannel.receive(10000);
 			assertThat(receive).isNotNull();
@@ -166,6 +170,9 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 							"'messagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.filter.filter.handler'");
 
 		}
+
+		assertThat(reactiveCustomizerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
 		for (Message<?> message : this.collector) {
 			assertThat(((Integer) message.getPayload()) % 2).isNotEqualTo(0);
 			MessageHistory messageHistory = MessageHistory.read(message);
@@ -338,7 +345,17 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		}
 
 		@Bean
-		@Splitter(inputChannel = "splitterChannel")
+		public CountDownLatch reactiveCustomizerLatch() {
+			return new CountDownLatch(10);
+		}
+
+		@Bean
+		public Function<Flux<?>, Flux<?>> reactiveCustomizer(CountDownLatch reactiveCustomizerLatch) {
+			return flux -> flux.doOnNext(data -> reactiveCustomizerLatch.countDown());
+		}
+
+		@Bean
+		@Splitter(inputChannel = "splitterChannel", reactive = @Reactive("reactiveCustomizer"))
 		public MessageHandler splitter() {
 			DefaultMessageSplitter defaultMessageSplitter = new DefaultMessageSplitter();
 			defaultMessageSplitter.setOutputChannelName("serviceChannel");

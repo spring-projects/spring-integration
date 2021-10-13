@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
@@ -29,7 +30,9 @@ import org.springframework.util.Assert;
 import reactor.core.Disposable;
 import reactor.core.Disposables;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 /**
@@ -44,6 +47,8 @@ import reactor.core.scheduler.Schedulers;
  */
 public class FluxMessageChannel extends AbstractMessageChannel
 		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel {
+
+	private final Scheduler scheduler = Schedulers.boundedElastic();
 
 	private final Sinks.Many<Message<?>> sink = Sinks.many().multicast().onBackpressureBuffer(1, false);
 
@@ -98,7 +103,13 @@ public class FluxMessageChannel extends AbstractMessageChannel
 				.share()
 				.subscribe(subscriber);
 
-		this.subscribedSignal.tryEmitNext(this.sink.currentSubscriberCount() > 0);
+		this.upstreamSubscriptions.add(
+				Mono.fromCallable(() -> this.sink.currentSubscriberCount() > 0)
+						.filter(Boolean::booleanValue)
+						.doOnNext(this.subscribedSignal::tryEmitNext)
+						.repeatWhenEmpty((repeat) ->
+								this.active ? repeat.delayElements(Duration.ofMillis(100)) : repeat) // NOSONAR
+						.subscribe());
 	}
 
 	@Override
@@ -106,7 +117,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		this.upstreamSubscriptions.add(
 				Flux.from(publisher)
 						.delaySubscription(this.subscribedSignal.asFlux().filter(Boolean::booleanValue).next())
-						.publishOn(Schedulers.boundedElastic())
+						.publishOn(this.scheduler)
 						.doOnNext((message) -> {
 							try {
 								if (!send(message)) {
@@ -127,6 +138,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		this.upstreamSubscriptions.dispose();
 		this.subscribedSignal.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
 		this.sink.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
+		this.scheduler.dispose();
 		super.destroy();
 	}
 

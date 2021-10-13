@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.mqtt.support;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -57,9 +58,9 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 
 	private BytesMessageMapper bytesMessageMapper;
 
-	private volatile boolean payloadAsBytes = false;
+	private boolean payloadAsBytes = false;
 
-	private volatile BeanFactory beanFactory;
+	private BeanFactory beanFactory;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
@@ -82,7 +83,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	 * @param defaultRetained the default retained.
 	 */
 	public DefaultPahoMessageConverter(int defaultQos, boolean defaultRetained) {
-		this(defaultQos, defaultRetained, "UTF-8");
+		this(defaultQos, defaultRetained, StandardCharsets.UTF_8.name());
 	}
 
 	/**
@@ -124,7 +125,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	public DefaultPahoMessageConverter(int defaultQos, MessageProcessor<Integer> qosProcessor, boolean defaultRetained,
 			MessageProcessor<Boolean> retainedProcessor) {
 
-		this(defaultQos, qosProcessor, defaultRetained, retainedProcessor, "UTF-8");
+		this(defaultQos, qosProcessor, defaultRetained, retainedProcessor, StandardCharsets.UTF_8.name());
 	}
 
 	/**
@@ -202,11 +203,6 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 				() -> "This converter can only convert an 'MqttMessage'; received: "
 						+ mqttMessage.getClass().getName());
 		return toMessage(null, (MqttMessage) mqttMessage);
-	}
-
-	@Override
-	public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
-		return toMessageBuilder(topic, mqttMessage).build();
 	}
 
 	@Override

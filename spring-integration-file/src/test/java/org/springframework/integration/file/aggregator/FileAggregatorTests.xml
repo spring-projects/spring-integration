@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int-file="http://www.springframework.org/schema/integration/file"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:gfe="http://www.springframework.org/schema/geode"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	   http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+	   http://www.springframework.org/schema/integration/file https://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+	   http://www.springframework.org/schema/geode https://www.springframework.org/schema/geode/spring-geode.xsd">
+
+	<gfe:cache />
+
+	<gfe:local-region id="region1"/>
+
+	<bean id="gemfireMessageStore" class="org.springframework.integration.gemfire.store.GemfireMessageStore">
+		<constructor-arg ref="region1"/>
+	</bean>
+
+	<int:chain input-channel="input" output-channel="output">
+		<int-file:splitter markers="true"/>
+		<int:aggregator message-store="gemfireMessageStore">
+			<bean class="org.springframework.integration.file.aggregator.FileAggregator"/>
+		</int:aggregator>
+	</int:chain>
+
+	<int:channel id="output">
+		<int:queue/>
+	</int:channel>
+
+</beans>

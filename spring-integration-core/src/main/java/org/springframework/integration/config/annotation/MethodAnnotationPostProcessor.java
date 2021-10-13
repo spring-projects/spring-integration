@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.util.List;
 /**
  * Strategy interface for post-processing annotated methods.
  *
+ * @param <T> the target annotation type.
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
@@ -36,7 +38,7 @@ public interface MethodAnnotationPostProcessor<T extends Annotation> {
 	 * to create an {@link org.springframework.integration.endpoint.AbstractEndpoint}.
 	 * @param method the method to check if it is eligible to create an Endpoint
 	 * @param annotations the List of annotations to process
-	 * @return the {@code boolean} flag to determine whether or not to create an
+	 * @return the {@code boolean} flag to determine whether to create an
 	 * {@link org.springframework.integration.endpoint.AbstractEndpoint}
 	 * @since 4.0
 	 */

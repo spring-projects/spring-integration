@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.dsl;
+
+import java.util.Map;
 
 import org.springframework.messaging.MessageChannel;
 
@@ -89,6 +91,15 @@ public interface IntegrationFlow {
 	 * @since 5.0.4
 	 */
 	default MessageChannel getInputChannel() {
+		return null;
+	}
+
+	/**
+	 * Return a map of integration components managed by this flow (if any).
+	 * @return the map of integration components managed by this flow.
+	 * @since 5.5.4
+	 */
+	default Map<Object, String> getIntegrationComponents() {
 		return null;
 	}
 

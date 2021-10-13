@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,23 @@
 package org.springframework.integration.transformer.support;
 
 /**
+ * @param <T> inbound payload type.
+ *
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public abstract class AbstractHeaderValueMessageProcessor<T> implements HeaderValueMessageProcessor<T> {
 
 	// null indicates no explicit setting
-	private volatile Boolean overwrite = null;
+	private Boolean overwrite = null;
 
 	public void setOverwrite(Boolean overwrite) {
 		this.overwrite = overwrite;
 	}
 
+	@Override
 	public Boolean isOverwrite() {
 		return this.overwrite;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,6 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	protected final Object handleRequestMessage(Message<?> message) {
 		Object result = splitMessage(message);
 		// return null if 'null'
@@ -131,72 +130,90 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		boolean reactive = getOutputChannel() instanceof ReactiveStreamsSubscribableChannel;
 		setAsync(reactive);
 
-		Iterator<Object> iterator = null;
-		Flux<Object> flux = null;
 
-		final int sequenceSize;
+		if (reactive) {
+			return prepareFluxResult(message, result);
+		}
+		else {
+			return prepareIteratorResult(message, result);
+		}
+	}
 
+	@SuppressWarnings("unchecked")
+	private Flux<?> prepareFluxResult(Message<?> message, Object result) {
+		int sequenceSize = 1;
+		Flux<?> flux = Flux.just(result);
 		if (result instanceof Iterable<?>) {
 			Iterable<Object> iterable = (Iterable<Object>) result;
 			sequenceSize = obtainSizeIfPossible(iterable);
-			if (reactive) {
-				flux = Flux.fromIterable(iterable);
-			}
-			else {
-				iterator = iterable.iterator();
-			}
+			flux = Flux.fromIterable(iterable);
 		}
 		else if (result.getClass().isArray()) {
 			Object[] items = ObjectUtils.toObjectArray(result);
 			sequenceSize = items.length;
-			if (reactive) {
-				flux = Flux.fromArray(items);
-			}
-			else {
-				iterator = Arrays.asList(items).iterator();
-			}
+			flux = Flux.fromArray(items);
 		}
 		else if (result instanceof Iterator<?>) {
 			Iterator<Object> iter = (Iterator<Object>) result;
 			sequenceSize = obtainSizeIfPossible(iter);
-			if (reactive) {
-				flux = Flux.fromIterable(() -> iter);
-			}
-			else {
-				iterator = iter;
-			}
+			flux = Flux.fromIterable(() -> iter);
 		}
 		else if (result instanceof Stream<?>) {
 			Stream<Object> stream = ((Stream<Object>) result);
 			sequenceSize = 0;
-			if (reactive) {
-				flux = Flux.fromStream(stream);
-			}
-			else {
-				iterator = stream.iterator();
-			}
+			flux = Flux.fromStream(stream);
 		}
 		else if (result instanceof Publisher<?>) {
 			Publisher<Object> publisher = (Publisher<Object>) result;
 			sequenceSize = 0;
-			if (reactive) {
-				flux = Flux.from(publisher);
-			}
-			else {
-				iterator = Flux.from((Publisher<Object>) result).toIterable().iterator();
-			}
-		}
-		else {
-			sequenceSize = 1;
-			if (reactive) {
-				flux = Flux.just(result);
-			}
-			else {
-				iterator = Collections.singleton(result).iterator();
-			}
+			flux = Flux.from(publisher);
 		}
 
-		if (iterator != null && !iterator.hasNext()) {
+		Function<Object, ?> messageBuilderFunction = prepareMessageBuilderFunction(message, sequenceSize);
+
+		return flux
+				.map(messageBuilderFunction)
+				.switchIfEmpty(
+						Mono.defer(() -> {
+							MessageChannel discardingChannel = getDiscardChannel();
+							if (discardingChannel != null) {
+								this.messagingTemplate.send(discardingChannel, message);
+							}
+							return Mono.empty();
+						}));
+	}
+
+	@SuppressWarnings("unchecked")
+	private Iterator<?> prepareIteratorResult(Message<?> message, Object result) {
+		int sequenceSize = 1;
+		Iterator<?> iterator = Collections.singleton(result).iterator();
+
+		if (result instanceof Iterable<?>) {
+			Iterable<Object> iterable = (Iterable<Object>) result;
+			sequenceSize = obtainSizeIfPossible(iterable);
+			iterator = iterable.iterator();
+		}
+		else if (result.getClass().isArray()) {
+			Object[] items = ObjectUtils.toObjectArray(result);
+			sequenceSize = items.length;
+			iterator = Arrays.asList(items).iterator();
+		}
+		else if (result instanceof Iterator<?>) {
+			Iterator<Object> iter = (Iterator<Object>) result;
+			sequenceSize = obtainSizeIfPossible(iter);
+			iterator = iter;
+		}
+		else if (result instanceof Stream<?>) {
+			Stream<Object> stream = ((Stream<Object>) result);
+			sequenceSize = 0;
+			iterator = stream.iterator();
+		}
+		else if (result instanceof Publisher<?>) {
+			sequenceSize = 0;
+			iterator = Flux.from((Publisher<?>) result).toIterable().iterator();
+		}
+
+		if (!iterator.hasNext()) {
 			MessageChannel discardingChannel = getDiscardChannel();
 			if (discardingChannel != null) {
 				this.messagingTemplate.send(discardingChannel, message);
@@ -204,35 +221,25 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			return null;
 		}
 
+		Function<Object, ?> messageBuilderFunction = prepareMessageBuilderFunction(message, sequenceSize);
+
+		return new FunctionIterator<>(
+				result instanceof AutoCloseable && !result.equals(iterator) ? (AutoCloseable) result : null,
+				iterator, messageBuilderFunction);
+	}
+
+	private Function<Object, ?> prepareMessageBuilderFunction(Message<?> message, int sequenceSize) {
 		Map<String, Object> messageHeaders = message.getHeaders();
 		if (willAddHeaders(message)) {
 			messageHeaders = new HashMap<>(messageHeaders);
 			addHeaders(message, messageHeaders);
 		}
 
-		final Map<String, Object> headers = messageHeaders;
-		final Object correlationId = message.getHeaders().getId();
-		final AtomicInteger sequenceNumber = new AtomicInteger(1);
+		Map<String, Object> headers = messageHeaders;
+		Object correlationId = message.getHeaders().getId();
+		AtomicInteger sequenceNumber = new AtomicInteger(1);
 
-		Function<Object, AbstractIntegrationMessageBuilder<?>> messageBuilderFunction =
-				object -> createBuilder(object, headers, correlationId, sequenceNumber.getAndIncrement(), sequenceSize);
-
-		if (reactive) {
-			return flux
-					.map(messageBuilderFunction)
-					.switchIfEmpty(
-							Mono.defer(() -> {
-								MessageChannel discardingChannel = getDiscardChannel();
-								if (discardingChannel != null) {
-									this.messagingTemplate.send(discardingChannel, message);
-								}
-								return Mono.empty();
-							}));
-		}
-		else {
-			return new FunctionIterator<>(result instanceof AutoCloseable && !result.equals(iterator)
-					? (AutoCloseable) result : null, iterator, messageBuilderFunction);
-		}
+		return object -> createBuilder(object, headers, correlationId, sequenceNumber.getAndIncrement(), sequenceSize);
 	}
 
 	/**
@@ -349,7 +356,6 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			return object instanceof TreeNode;
 		}
 
-		@SuppressWarnings("unchecked")
 		private static int nodeSize(Object node) {
 			return ((TreeNode) node).size();
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,15 +48,15 @@ public final class TestingUtilities {
 
 		Long delay = delayArg;
 		if (delay == null) {
-			delay = 100L;
+			delay = 100L; // NOSONAR magic number
 		}
 		else {
-			delay = delay / 100;
+			delay = delay / 100; // NOSONAR magic number
 		}
 		int n = 0;
 		while (!serverConnectionFactory.isListening()) {
 			try {
-				Thread.sleep(100);
+				Thread.sleep(100); // NOSONAR magic number
 			}
 			catch (InterruptedException e1) {
 				Thread.currentThread().interrupt();
@@ -81,15 +81,15 @@ public final class TestingUtilities {
 
 		Long delay = delayArg;
 		if (delay == null) {
-			delay = 100L;
+			delay = 100L; // NOSONAR magic number
 		}
 		else {
-			delay = delay / 100;
+			delay = delay / 100; // NOSONAR magic number
 		}
 		int n = 0;
 		while (!adapter.isListening()) {
 			try {
-				Thread.sleep(100);
+				Thread.sleep(100); // NOSONAR magic number
 			}
 			catch (InterruptedException e1) {
 				Thread.currentThread().interrupt();
@@ -114,21 +114,21 @@ public final class TestingUtilities {
 
 		Long delay = delayArg;
 		if (delay == null) {
-			delay = 100L;
+			delay = 100L; // NOSONAR magic number
 		}
 		else {
-			delay = delay / 100;
+			delay = delay / 100; // NOSONAR magic number
 		}
 		int n = 0;
 		while (serverConnectionFactory.isListening()) {
 			try {
-				Thread.sleep(delay);
+				Thread.sleep(100); // NOSONAR magic number
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new IllegalStateException(e);
 			}
-			if (n++ > 200) {
+			if (n++ > delay) {
 				throw new IllegalStateException("Server didn't stop listening.");
 			}
 		}
@@ -146,12 +146,12 @@ public final class TestingUtilities {
 			throws InterruptedException {
 
 		int timer = 0;
-		while (timer < 10000) {
+		while (timer < 10000) { // NOSONAR magic number
 			if (factory.getOpenConnectionIds().size() == n) {
 				return;
 			}
-			Thread.sleep(100);
-			timer += 100;
+			Thread.sleep(100); // NOSONAR magic number
+			timer += 100; // NOSONAR magic number
 		}
 		throw new IllegalStateException("Connections=" + factory.getOpenConnectionIds().size() + "wanted=" + n);
 	}

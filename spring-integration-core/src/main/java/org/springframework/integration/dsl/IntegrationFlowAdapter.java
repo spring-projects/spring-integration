@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -77,6 +78,10 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, Managea
 	public MessageChannel getInputChannel() {
 		assertTargetIntegrationFlow();
 		return this.targetIntegrationFlow.getInputChannel();
+	}
+
+	@Override public Map<Object, String> getIntegrationComponents() {
+		return this.targetIntegrationFlow.getIntegrationComponents();
 	}
 
 	@Override

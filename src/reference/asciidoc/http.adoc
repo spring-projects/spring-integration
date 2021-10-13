@@ -8,8 +8,8 @@ See also <<./webflux.adoc#webflux,WebFlux Support>>.
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -17,9 +17,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-http:{project-version}"
 ----
@@ -53,7 +52,7 @@ For more information, see
 https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc[Web MVC framework], which is part of the Spring Framework Reference documentation.
 
 TIP: For a sample application and the corresponding configuration, see the https://github.com/spring-projects/spring-integration-samples[Spring Integration Samples] repository.
-It contains the https://github.com/spring-projects/spring-integration-samples/tree/master/basic/http[HTTP sample] application, which demonstrates Spring Integration's HTTP support.
+It contains the https://github.com/spring-projects/spring-integration-samples/tree/main/basic/http[HTTP sample] application, which demonstrates Spring Integration's HTTP support.
 
 The following example bean defines an HTTP inbound endpoint:
 
@@ -222,6 +221,9 @@ Further to the preceding note about empty response bodies, if a response does co
 The `expected-response-type` must be compatible with the (configured or default) `HttpMessageConverter` instances and the `Content-Type` header in the response.
 This can be an abstract class or even an interface (such as `java.io.Serializable` when you use Java serialization and `Content-Type: application/x-java-serialized-object`).
 =====
+
+Starting with version 5.5, the `HttpRequestExecutingMessageHandler` exposes an `extractResponseBody` flag (which is `true` by default) to return just the response body, or to return the whole `ResponseEntity` as the reply message payload, independently of the provided `expectedResponseType`.
+If a body is not present in the `ResponseEntity`, this flag is ignored and the whole `ResponseEntity` is returned.
 
 [[http-namespace]]
 === HTTP Namespace Support
@@ -1035,24 +1037,24 @@ This section wraps up our coverage of Spring Integration's HTTP support with a f
 
 This example shows how simple it is to send a multipart HTTP request with Spring's `RestTemplate` and receive it with a Spring Integration HTTP inbound adapter.
 We create a `MultiValueMap` and populate it with multipart data.
-The `RestTemplate` takes care of the rest (no pun intended) by converting it to a `MultipartHttpServletRequest`. 
+The `RestTemplate` takes care of the rest (no pun intended) by converting it to a `MultipartHttpServletRequest`.
 This particular client sends a multipart HTTP Request that contains the name of the company and an image file (the company logo).
 The following listing shows the example:
 
 ====
 [source,java]
 ----
-RestTemplate template = new RestTemplate();
-String uri = "http://localhost:8080/multipart-http/inboundAdapter.htm";
-Resource s2logo = 
-   new ClassPathResource("org/springframework/samples/multipart/spring09_logo.png");
-MultiValueMap map = new LinkedMultiValueMap();
-map.add("company", "SpringSource");
+RestTemplate template = new RestTemplate();
+String uri = "http://localhost:8080/multipart-http/inboundAdapter.htm";
+Resource s2logo =
+   new ClassPathResource("org/springframework/samples/multipart/spring09_logo.png");
+MultiValueMap map = new LinkedMultiValueMap();
+map.add("company", "SpringSource");
 map.add("company-logo", s2logo);
-HttpHeaders headers = new HttpHeaders();
-headers.setContentType(new MediaType("multipart", "form-data"));
-HttpEntity request = new HttpEntity(map, headers);
-ResponseEntity<?> httpResponse = template.exchange(uri, HttpMethod.POST, request, null);
+HttpHeaders headers = new HttpHeaders();
+headers.setContentType(new MediaType("multipart", "form-data"));
+HttpEntity request = new HttpEntity(map, headers);
+ResponseEntity<?> httpResponse = template.exchange(uri, HttpMethod.POST, request, null);
 ----
 ====
 
@@ -1079,7 +1081,7 @@ On the server side, we have the following configuration:
 ----
 ====
 
-The 'httpInboundAdapter' receives the request and converts it to a `Message` with a payload that is a `LinkedMultiValueMap`.
+The 'httpInboundAdapter' receives the request and converts it to a `Message` with a payload that is a `LinkedMultiValueMap`.
 We then parse that in the 'multipartReceiver' service-activator, as the following example shows:
 
 ====

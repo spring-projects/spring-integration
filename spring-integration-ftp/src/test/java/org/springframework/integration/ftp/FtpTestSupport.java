@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import java.util.HashMap;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.ftpserver.ConnectionConfigFactory;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.Authentication;
-import org.apache.ftpserver.ftplet.AuthenticationFailedException;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.User;
 import org.apache.ftpserver.ftplet.UserManager;
@@ -50,6 +50,7 @@ import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
  * @author Artem Bilan
  * @author Gary Russell
  * @author David Turanski
+ *
  * @since 4.3
  */
 public class FtpTestSupport extends RemoteFileTestSupport {
@@ -62,7 +63,10 @@ public class FtpTestSupport extends RemoteFileTestSupport {
 	public static void createServer() throws Exception {
 		FtpServerFactory serverFactory = new FtpServerFactory();
 		serverFactory.setUserManager(new TestUserManager(getRemoteTempFolder().getAbsolutePath()));
-
+		ConnectionConfigFactory connectionConfigFactory = new ConnectionConfigFactory();
+		connectionConfigFactory.setMaxLogins(1024);
+		connectionConfigFactory.setMaxAnonymousLogins(1024);
+		serverFactory.setConnectionConfig(connectionConfigFactory.createConnectionConfig());
 		ListenerFactory factory = new ListenerFactory();
 		factory.setPort(0);
 		serverFactory.addListener("default", factory.createListener());
@@ -79,7 +83,7 @@ public class FtpTestSupport extends RemoteFileTestSupport {
 
 
 	@AfterAll
-	public static void stopServer() throws Exception {
+	public static void stopServer() {
 		server.stop();
 	}
 
@@ -89,7 +93,7 @@ public class FtpTestSupport extends RemoteFileTestSupport {
 	}
 
 	public static SessionFactory<FTPFile> sessionFactory() {
-		return new CachingSessionFactory<FTPFile>(rawSessionFactory());
+		return new CachingSessionFactory<>(rawSessionFactory());
 	}
 
 	protected static DefaultFtpSessionFactory rawSessionFactory() {
@@ -121,13 +125,13 @@ public class FtpTestSupport extends RemoteFileTestSupport {
 
 
 		@Override
-		public User getUserByName(String s) throws FtpException {
+		public User getUserByName(String s) {
 			return this.testUser;
 		}
 
 		@Override
-		public String[] getAllUserNames() throws FtpException {
-			return new String[] { "TEST_USER" };
+		public String[] getAllUserNames() {
+			return new String[]{ "TEST_USER" };
 		}
 
 		@Override
@@ -135,26 +139,26 @@ public class FtpTestSupport extends RemoteFileTestSupport {
 		}
 
 		@Override
-		public void save(User user) throws FtpException {
+		public void save(User user) {
 		}
 
 		@Override
-		public boolean doesExist(String s) throws FtpException {
+		public boolean doesExist(String s) {
 			return true;
 		}
 
 		@Override
-		public User authenticate(Authentication authentication) throws AuthenticationFailedException {
+		public User authenticate(Authentication authentication) {
 			return this.testUser;
 		}
 
 		@Override
-		public String getAdminName() throws FtpException {
+		public String getAdminName() {
 			return "admin";
 		}
 
 		@Override
-		public boolean isAdmin(String s) throws FtpException {
+		public boolean isAdmin(String s) {
 			return s.equals("admin");
 		}
 

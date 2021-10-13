@@ -100,12 +100,9 @@ For this reason, you should either not perform such manipulation or set the `cop
 [[message-group-factory]]
 ==== Using `MessageGroupFactory`
 
-Starting with version 4.3, some `MessageGroupStore` implementations can be injected with a custom
-`MessageGroupFactory` strategy to create and customize the `MessageGroup` instances used by the `MessageGroupStore`.
-This defaults to a `SimpleMessageGroupFactory`, which produces `SimpleMessageGroup` instances based on the `GroupType.HASH_SET`
-(`LinkedHashSet`) internal collection.
-Other possible options are `SYNCHRONISED_SET` and `BLOCKING_QUEUE`, where the last one can be used to reinstate the
-previous `SimpleMessageGroup` behavior.
+Starting with version 4.3, some `MessageGroupStore` implementations can be injected with a custom `MessageGroupFactory` strategy to create and customize the `MessageGroup` instances used by the `MessageGroupStore`.
+This defaults to a `SimpleMessageGroupFactory`, which produces `SimpleMessageGroup` instances based on the `GroupType.HASH_SET` (`LinkedHashSet`) internal collection.
+Other possible options are `SYNCHRONISED_SET` and `BLOCKING_QUEUE`, where the last one can be used to reinstate the previous `SimpleMessageGroup` behavior.
 Also the `PERSISTENT` option is available.
 See the next section for more information.
 Starting with version 5.0.1, the `LIST` option is also available for when the order and uniqueness of messages in the group does not matter.
@@ -113,16 +110,12 @@ Starting with version 5.0.1, the `LIST` option is also available for when the or
 [[lazy-load-message-group]]
 ==== Persistent `MessageGroupStore` and Lazy-load
 
-Starting with version 4.3, all persistent `MessageGroupStore` instances retrieve `MessageGroup` instances and their `messages`
-from the store in the lazy-load manner.
-In most cases, it is useful for the correlation `MessageHandler` instances (see <<./aggregator.adoc#aggregator,Aggregator>> and <<./resequencer.adoc#resequencer,Resequencer>>),
-when it would add overhead to load entire the `MessageGroup` from the store on each correlation operation.
+Starting with version 4.3, all persistent `MessageGroupStore` instances retrieve `MessageGroup` instances and their `messages` from the store in the lazy-load manner.
+In most cases, it is useful for the correlation `MessageHandler` instances (see <<./aggregator.adoc#aggregator,Aggregator>> and <<./resequencer.adoc#resequencer,Resequencer>>), when it would add overhead to load entire the `MessageGroup` from the store on each correlation operation.
 
 You can use the `AbstractMessageGroupStore.setLazyLoadMessageGroups(false)` option to switch off the lazy-load behavior from the configuration.
 
-Our performance tests for lazy-load on MongoDB `MessageStore` (<<./mongodb.adoc#mongodb-message-store,MongoDB Message Store>>) and
-`<aggregator>` (<<./aggregator.adoc#aggregator,Aggregator>>)
-use a custom `release-strategy` similar to the following:
+Our performance tests for lazy-load on MongoDB `MessageStore` (<<./mongodb.adoc#mongodb-message-store,MongoDB Message Store>>) and `<aggregator>` (<<./aggregator.adoc#aggregator,Aggregator>>) use a custom `release-strategy` similar to the following:
 
 ====
 [source,xml]
@@ -149,3 +142,27 @@ ms     %     Task name
 ...
 ----
 ====
+
+However starting with version 5.5, all the persistent `MessageGroupStore` implementations provide a `streamMessagesForGroup(Object groupId)` contract based on the target database streaming API.
+This improves resources utilization when groups are very big in the store.
+Internally in the framework this new API is used in the <<./delayer.adoc#delayer,Delayer>> (for example) when it reschedules persisted messages on startup.
+A returned `Stream<Message<?>>` must be closed in the end of processing, e.g. via auto-close by the `try-with-resources`.
+Whenever a `PersistentMessageGroup` is used, its `streamMessages()` delegates to the `MessageGroupStore.streamMessagesForGroup()`.
+
+[[message-group-condition]]
+==== Message Group Condition
+
+Starting with version 5.5, the `MessageGroup` abstraction provides a `condition` string option.
+The value of this option can be anything that could be parsed later on for any reason to make a decision for the group.
+For example a `ReleaseStrategy` from a <<./aggregator.adoc#aggregator-api, correlation message handler>> may consult this property from the group instead of iterating all the messages in the group.
+The `MessageGroupStore` exposes a `setGroupCondition(Object groupId, String condition)` API.
+For this purpose a `setGroupConditionSupplier(BiFunction<Message<?>, String, String>)` option has been added to the `AbstractCorrelatingMessageHandler`.
+This function is evaluated against each message after it has been added to the group as well as the existing condition of the group.
+The implementation may decide to return a new value, the existing value, or reset the target condition to `null`.
+The value for a `condition` can be a JSON, SpEL expression, number or anything what can be serialized as a string and parsed afterwards.
+For example, the `FileMarkerReleaseStrategy` from the <<./file.adoc#file-aggregator, File Aggregator>> component, populates a condition into a group from the `FileHeaders.LINE_COUNT` header of the `FileSplitter.FileMarker.Mark.END` message and consults with it from its `canRelease()` comparing a group size with the value in this condition.
+This way it doesn't iterate all the messages in group to find a `FileSplitter.FileMarker.Mark.END` message with the `FileHeaders.LINE_COUNT` header.
+It also allows the end marker to arrive at the aggregator before all the other records; for example when processing a file in a multi-threaded environment.
+
+In addition, for configuration convenience, a `GroupConditionProvider` contract has been introduced.
+The `AbstractCorrelatingMessageHandler` checks if the provided `ReleaseStrategy` implements this interface and extracts a `conditionSupplier` for group condition evaluation logic.

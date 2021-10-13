@@ -457,14 +457,14 @@ This means that there might be a chance that a message that was initiated by a g
 Some service activator method might result in an exception, thus providing no reply (as we do not generate null messages).
 In other words, multiple scenarios can cause a reply message to never come.
 That is perfectly natural in messaging systems.
-However, think about the implication on the gateway method. The gateway's method input arguments were incorporated into a message and sent downstream.
+However, think about the implication on the gateway method. The gateway's method input arguments were incorporated into a message and sent downstream.
 The reply message would be converted to a return value of the gateway's method.
 So you might want to ensure that, for each gateway call, there is always a reply message.
 Otherwise, your gateway method might never return and hang indefinitely.
 One way to handle this situation is by using an asynchronous gateway (explained later in this section).
 Another way of handling it is to explicitly set the `reply-timeout` attribute.
 That way, the gateway does not hang any longer than the time specified by the `reply-timeout` and returns 'null' if that timeout does elapse.
-Finally, you might want to consider setting downstream flags, such as 'requires-reply', on a service-activator or 'throw-exceptions-on-rejection' on a filter. These options are discussed in more detail in the final section of this chapter.
+Finally, you might want to consider setting downstream flags, such as 'requires-reply', on a service-activator or 'throw-exceptions-on-rejection' on a filter. These options are discussed in more detail in the final section of this chapter.
 
 NOTE: If the downstream flow returns an `ErrorMessage`, its `payload` (a `Throwable`) is treated as a regular downstream error.
 If there is an `error-channel` configured, it is sent to the error flow.
@@ -474,7 +474,7 @@ The same applies to any message with a `Throwable` payload.
 This can be useful in asynchronous situations when when you need to propagate an `Exception` directly to the caller.
 To do so, you can either return an `Exception` (as the `reply` from some service) or throw it.
 Generally, even with an asynchronous flow, the framework takes care of propagating an exception thrown by the downstream flow back to the gateway.
-The https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/tcp-client-server-multiplex[TCP Client-Server Multiplex] sample demonstrates both techniques to return the exception to the caller.
+The https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/tcp-client-server-multiplex[TCP Client-Server Multiplex] sample demonstrates both techniques to return the exception to the caller.
 It emulates a socket IO error to the waiting thread by using an `aggregator` with `group-timeout` (see <<./aggregator.adoc#agg-and-group-to,Aggregator and Group Timeout>>) and a `MessagingTimeoutException` reply on the discard flow.
 
 [[gateway-timeouts]]
@@ -520,7 +520,7 @@ When configuring with XML, the timeout attributes can be a long value or a SpEL 
 As a pattern, the messaging gateway offers a nice way to hide messaging-specific code while still exposing the full capabilities of the messaging system.
 As <<gateway-proxy,described earlier>>, the `GatewayProxyFactoryBean` provides a convenient way to expose a proxy over a service-interface giving you POJO-based access to a messaging system (based on objects in your own domain, primitives/Strings, or other objects).
 However, when a gateway is exposed through simple POJO methods that return values, it implies that, for each request message (generated when the method is invoked), there must be a reply message (generated when the method has returned).
-Since messaging systems are naturally asynchronous, you may not always be able to guarantee the contract where "`for each request, there will always be be a reply`". Spring Integration 2.0 introduced support for an asynchronous gateway, which offers a convenient way to initiate flows when you may not know if a reply is expected or how long it takes for replies to arrive.
+Since messaging systems are naturally asynchronous, you may not always be able to guarantee the contract where "`for each request, there will always be be a reply`". Spring Integration 2.0 introduced support for an asynchronous gateway, which offers a convenient way to initiate flows when you may not know if a reply is expected or how long it takes for replies to arrive.
 
 To handle these types of scenarios, Spring Integration uses `java.util.concurrent.Future` instances to support an asynchronous gateway.
 
@@ -528,7 +528,7 @@ From the XML configuration, nothing changes, and you still define asynchronous g
 
 [source,xml]
 ----
-<int:gateway id="mathService" 
+<int:gateway id="mathService"
      service-interface="org.springframework.integration.sample.gateway.futures.MathServiceGateway"
      default-request-channel="requestChannel"/>
 ----
@@ -558,11 +558,11 @@ The following example shows how to use a `Future` that returns from an asynchron
 MathServiceGateway mathService = ac.getBean("mathService", MathServiceGateway.class);
 Future<Integer> result = mathService.multiplyByTwo(number);
 // do something else here since the reply might take a moment
-int finalResult =  result.get(1000, TimeUnit.SECONDS);
+int finalResult =  result.get(1000, TimeUnit.SECONDS);
 ----
 ====
 
-For a more detailed example, see the https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/async-gateway[async-gateway] sample in the Spring Integration samples.
+For a more detailed example, see the https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/async-gateway[async-gateway] sample in the Spring Integration samples.
 
 ===== `ListenableFuture`
 
@@ -810,16 +810,16 @@ The rest of this section covers various scenarios and how to make the gateway be
 Certain attributes can be configured to make synchronous gateway behavior more predictable, but some of them might not always work as you might expect.
 One of them is `reply-timeout` (at the method level or `default-reply-timeout` at the gateway level).
 We examine the `reply-timeout` attribute to see how it can and cannot influence the behavior of the synchronous gateway in various scenarios.
-We examine a single-threaded scenario (all components downstream are connected through a direct channel) and multi-threaded scenarios (for example, somewhere downstream you may have a pollable or executor channel that breaks the single-thread boundary).
+We examine a single-threaded scenario (all components downstream are connected through a direct channel) and multi-threaded scenarios (for example, somewhere downstream you may have a pollable or executor channel that breaks the single-thread boundary).
 
 [[long-running-process-downstream]]
 ===== Long-running Process Downstream
 
 Sync Gateway, single-threaded::
 If a component downstream is still running (perhaps because of an infinite loop or a slow service), setting a `reply-timeout` has no effect, and the gateway method call does not return until the downstream service exits (by returning or throwing an exception).
-Sync Gateway, multi-threaded::
-If a component downstream is still running (perhaps because of an infinite loop or a slow service) in a multi-threaded message flow, setting the `reply-timeout` has an effect by allowing gateway method invocation to return once the timeout has been reached, because the `GatewayProxyFactoryBean`  polls on the reply channel, waiting for a message until the timeout expires.
-However, if the timeout has been reached before the actual reply was produced, it could result in a 'null' return from the gateway method. 
+Sync Gateway, multi-threaded::
+If a component downstream is still running (perhaps because of an infinite loop or a slow service) in a multi-threaded message flow, setting the `reply-timeout` has an effect by allowing gateway method invocation to return once the timeout has been reached, because the `GatewayProxyFactoryBean`  polls on the reply channel, waiting for a message until the timeout expires.
+However, if the timeout has been reached before the actual reply was produced, it could result in a 'null' return from the gateway method.
 You should understand that the reply message (if produced) is sent to a reply channel after the gateway method invocation might have returned, so you must be aware of that and design your flow with it in mind.
 
 ===== Downstream Component Returns 'null'
@@ -867,4 +867,4 @@ At that time, the calling thread starts waiting for the reply.
 If the flow was completely synchronous, the reply is immediately available.
 For asynchronous flows, the thread waits for up to this time.
 
-See <<./dsl.adoc#java-dsl-gateway,`IntegrationFlow` as Gateway>> in the Java DSL chapter for options to define gateways through `IntegrationFlows`.
+See <<./dsl.adoc#integration-flow-as-gateway,`IntegrationFlow` as Gateway>> in the Java DSL chapter for options to define gateways through `IntegrationFlows`.

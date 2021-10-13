@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,89 +21,66 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
-@RunWith(MockitoJUnitRunner.class)
+@SpringJUnitConfig
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class MixedDispatcherConfigurationScenarioTests {
 
 	private static final int TOTAL_EXECUTIONS = 40;
 
-	private ExecutorService executor;
+	private final CountDownLatch allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 
-	private CountDownLatch allDone;
+	private final CountDownLatch start = new CountDownLatch(1);
 
-	private CountDownLatch start;
+	private final AtomicBoolean failed = new AtomicBoolean(false);
 
-	private AtomicBoolean failed;
-
-	@Mock
-	private List<Exception> exceptionRegistry;
-
-	private ConfigurableApplicationContext ac;
-
-	@Mock
-	private MessageHandler handlerA;
-
-	@Mock
-	private MessageHandler handlerB;
-
-	@Mock
-	private MessageHandler handlerC;
-
-	private final Message<?> message = new GenericMessage<String>("test");
-
+	private final Message<?> message = new GenericMessage<>("test");
 
 	@SuppressWarnings("unchecked")
-	@Before
-	public void initialize() throws Exception {
-		Mockito.reset(exceptionRegistry);
-		Mockito.reset(handlerA);
-		Mockito.reset(handlerB);
-		Mockito.reset(handlerC);
+	private final List<Exception> exceptionRegistry = mock(List.class);
 
-		ac = new ClassPathXmlApplicationContext("MixedDispatcherConfigurationScenarioTests-context.xml",
-				MixedDispatcherConfigurationScenarioTests.class);
-		executor = ac.getBean("taskExecutor", ExecutorService.class);
-		allDone = new CountDownLatch(TOTAL_EXECUTIONS);
-		start = new CountDownLatch(1);
-		failed = new AtomicBoolean(false);
-	}
+	private final MessageHandler handlerA = mock(MessageHandler.class);
 
-	@After
-	public void tearDown() {
-		this.executor.shutdownNow();
-		this.ac.close();
-	}
+	private final MessageHandler handlerB = mock(MessageHandler.class);
+
+	private final MessageHandler handlerC = mock(MessageHandler.class);
+
+	@Autowired
+	@Qualifier("taskExecutor")
+	private Executor executor;
+
+	@Autowired
+	private ConfigurableApplicationContext ac;
 
 	@Test
 	public void noFailoverNoLoadBalancing() {
@@ -159,9 +136,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 		start.countDown();
 		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
 
-		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
-
 		assertThat(failed.get()).as("not all messages were accepted").isTrue();
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(0)).handleMessage(message);
@@ -169,8 +143,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 	}
 
 	@Test
-	public void noFailoverNoLoadBalancingWithExecutorConcurrent()
-			throws Exception {
+	public void noFailoverNoLoadBalancingWithExecutorConcurrent() throws Exception {
 		final ExecutorChannel channel = (ExecutorChannel) ac.getBean("noLoadBalancerNoFailoverExecutor");
 		UnicastingDispatcher dispatcher = channel.getDispatcher();
 		dispatcher.addHandler(handlerA);
@@ -178,9 +151,9 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 		doAnswer(invocation -> {
 			RuntimeException e = new RuntimeException();
-			allDone.countDown();
 			failed.set(true);
 			exceptionRegistry.add(e);
+			allDone.countDown();
 			throw e;
 		}).when(handlerA).handleMessage(message);
 
@@ -199,9 +172,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();
 		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
-
-		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
 
 		assertThat(failed.get()).as("not all messages were accepted").isTrue();
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
@@ -281,9 +251,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 		start.countDown();
 		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
 
-		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
-
 		assertThat(failed.get()).as("not all messages were accepted").isTrue();
 		verify(handlerA, times(14)).handleMessage(message);
 		verify(handlerB, times(13)).handleMessage(message);
@@ -334,9 +301,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 		start.countDown();
 		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
 
-		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
-
 		assertThat(failed.get()).as("not all messages were accepted").isTrue();
 		verify(handlerA, times(14)).handleMessage(message);
 		verify(handlerB, times(13)).handleMessage(message);
@@ -346,8 +310,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 	@Test
 	public void failoverNoLoadBalancing() {
-		DirectChannel channel = (DirectChannel) ac
-				.getBean("noLoadBalancerFailover");
+		DirectChannel channel = ac.getBean("noLoadBalancerFailover", DirectChannel.class);
 		doThrow(new MessageRejectedException(message, null)).when(handlerA)
 				.handleMessage(message);
 		UnicastingDispatcher dispatcher = channel.getDispatcher();
@@ -376,10 +339,8 @@ public class MixedDispatcherConfigurationScenarioTests {
 	}
 
 	@Test
-	public void failoverNoLoadBalancingConcurrent()
-			throws Exception {
-		final DirectChannel channel = (DirectChannel) ac
-				.getBean("noLoadBalancerFailover");
+	public void failoverNoLoadBalancingConcurrent() throws Exception {
+		final DirectChannel channel = ac.getBean("noLoadBalancerFailover", DirectChannel.class);
 		doThrow(new MessageRejectedException(message, null)).when(handlerA).handleMessage(message);
 		UnicastingDispatcher dispatcher = channel.getDispatcher();
 		dispatcher.addHandler(handlerA);
@@ -414,9 +375,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();
 		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
-
-		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
 
 		assertThat(failed.get()).as("not all messages were accepted").isFalse();
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
@@ -458,9 +416,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();
 		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
-
-		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
 
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(TOTAL_EXECUTIONS)).handleMessage(message);

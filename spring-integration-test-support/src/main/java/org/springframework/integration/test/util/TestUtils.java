@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,7 +119,7 @@ public abstract class TestUtils {
 	public static TestApplicationContext createTestApplicationContext() {
 		TestApplicationContext context = new TestApplicationContext();
 		ErrorHandler errorHandler = new MessagePublishingErrorHandler(context);
-		ThreadPoolTaskScheduler scheduler = createTaskScheduler(10);
+		ThreadPoolTaskScheduler scheduler = createTaskScheduler(10); // NOSONAR
 		scheduler.setErrorHandler(errorHandler);
 		registerBean("taskScheduler", scheduler, context);
 		registerBean("integrationConversionService", new DefaultFormattingConversionService(), context);
@@ -255,15 +255,13 @@ public abstract class TestUtils {
 			boolean sent = false;
 			if (errorChannel != null) {
 				try {
-					sent = errorChannel.send(new ErrorMessage(throwable), 10000);
+					sent = errorChannel.send(new ErrorMessage(throwable), 10000); // NOSONAR
 				}
 				catch (Throwable errorDeliveryError) { //NOSONAR
 					// message will be logged only
-					if (logger.isWarnEnabled()) {
-						logger.warn("Error message was not delivered.", errorDeliveryError);
-					}
-					if (errorDeliveryError instanceof Error) {
-						throw ((Error) errorDeliveryError); // NOSONAR
+					logger.warn("Error message was not delivered.", errorDeliveryError);
+					if (errorDeliveryError instanceof Error) {  // NOSONAR
+						throw (Error) errorDeliveryError;
 					}
 				}
 			}

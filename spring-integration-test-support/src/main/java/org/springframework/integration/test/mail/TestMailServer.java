@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,10 @@ import org.springframework.util.Base64Utils;
  *
  * @since 5.0
  *
+ * @deprecated since 5.5 in favor of GreenMail library for mail testing.
+ *
  */
+@Deprecated
 public final class TestMailServer {
 
 	public static SmtpServer smtp(int port) {
@@ -95,8 +98,8 @@ public final class TestMailServer {
 				super(socket);
 			}
 
-			@Override
-			void doRun() {
+			@Override // NOSONAR
+			void doRun() { // NOSONAR
 				try {
 					write("220 foo SMTP");
 					while (!socket.isClosed()) {
@@ -254,7 +257,7 @@ public final class TestMailServer {
 			/**
 			 * Time to wait while IDLE before returning a result.
 			 */
-			private static final int IDLE_WAIT_TIME = 1000;
+			private static final int IDLE_WAIT_TIME = 500;
 
 			ImapHandler(Socket socket) {
 				super(socket);
@@ -391,7 +394,7 @@ public final class TestMailServer {
 						LOGGER.error(IO_EXCEPTION, e);
 					}
 				}
-			}
+			} // NOSONAR
 
 			void searchReply(String tag) throws IOException {
 				if (seen) {
@@ -489,7 +492,7 @@ public final class TestMailServer {
 					"To: Foo <foo@bar>\r\n"
 							+ "cc: a@b, c@d\r\n"
 							+ "bcc: e@f, g@h\r\n"
-							+ "From: Bar <bar@baz>\r\n"
+							+ "From: Bar <bar@baz>, Bar2 <bar2@baz>\r\n"
 							+ "Subject: Test Email\r\n"
 							+ "\r\n" + BODY;
 

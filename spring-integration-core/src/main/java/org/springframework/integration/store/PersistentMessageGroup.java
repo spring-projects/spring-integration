@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,19 @@ import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.3
  */
 class PersistentMessageGroup implements MessageGroup {
@@ -57,6 +61,16 @@ class PersistentMessageGroup implements MessageGroup {
 	@Override
 	public Collection<Message<?>> getMessages() {
 		return Collections.unmodifiableCollection(this.messages);
+	}
+
+	/**
+	 * The resulting {@link Stream} must be closed after use,
+	 * it can be declared as a resource in a {@code try-with-resources} statement.
+	 * @return the stream of messages in this group.
+	 */
+	@Override
+	public Stream<Message<?>> streamMessages() {
+		return this.messageGroupStore.streamMessagesForGroup(this.original.getGroupId());
 	}
 
 	@Override
@@ -163,6 +177,17 @@ class PersistentMessageGroup implements MessageGroup {
 	}
 
 	@Override
+	public void setCondition(String condition) {
+		this.original.setCondition(condition);
+	}
+
+	@Override
+	@Nullable
+	public String getCondition() {
+		return this.original.getCondition();
+	}
+
+	@Override
 	public void clear() {
 		this.original.clear();
 	}
@@ -222,6 +247,16 @@ class PersistentMessageGroup implements MessageGroup {
 		@Override
 		public int size() {
 			return PersistentMessageGroup.this.size();
+		}
+
+		@Override
+		public Spliterator<Message<?>> spliterator() {
+			return streamMessages().spliterator();
+		}
+
+		@Override
+		public Stream<Message<?>> stream() {
+			return streamMessages();
 		}
 
 	}

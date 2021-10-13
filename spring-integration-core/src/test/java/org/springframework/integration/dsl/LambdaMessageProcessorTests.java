@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,11 @@ package org.springframework.integration.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +36,7 @@ import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 
 /**
@@ -47,7 +45,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 public class LambdaMessageProcessorTests {
 
 	@Autowired
@@ -56,13 +54,8 @@ public class LambdaMessageProcessorTests {
 	@Test
 	@SuppressWarnings("divzero")
 	public void testException() {
-		try {
-			handle((m, h) -> 1 / 0);
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause()).isInstanceOf(ArithmeticException.class);
-		}
+		assertThatExceptionOfType(ArithmeticException.class)
+				.isThrownBy(() -> handle((m, h) -> 1 / 0));
 	}
 
 	@Test
@@ -88,9 +81,8 @@ public class LambdaMessageProcessorTests {
 				(GenericTransformer<Message<?>, Message<?>>) this::messageTransformer, null);
 		lmp.setBeanFactory(this.beanFactory);
 		GenericMessage<String> testMessage = new GenericMessage<>("foo");
-		assertThatExceptionOfType(IllegalStateException.class)
-				.isThrownBy(() -> lmp.processMessage(testMessage))
-				.withCauseInstanceOf(ClassCastException.class);
+		assertThatExceptionOfType(ClassCastException.class)
+				.isThrownBy(() -> lmp.processMessage(testMessage));
 	}
 
 	@Test

@@ -12,12 +12,6 @@
 	<!--INT-3853 -->
 	<context:property-placeholder location="classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties"/>
 
-	<message-history tracked-components="publishedChannel,input,annotationTestService*"/>
-
-	<annotation-config>
-		<enable-publisher default-publisher-channel="publishedChannel" proxy-target-class="true" order="2147483646"/>
-	</annotation-config>
-
 	<channel-interceptor pattern="none">
 		<wire-tap channel="bar" />
 	</channel-interceptor>

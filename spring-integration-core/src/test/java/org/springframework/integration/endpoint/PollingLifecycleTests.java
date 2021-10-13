@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -59,12 +59,12 @@ public class PollingLifecycleTests {
 
 	private final TestErrorHandler errorHandler = new TestErrorHandler();
 
-	@Before
+	@BeforeEach
 	public void init() {
 		this.taskScheduler.afterPropertiesSet();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.taskScheduler.destroy();
 	}
@@ -91,7 +91,7 @@ public class PollingLifecycleTests {
 		consumer.setBeanFactory(mock(BeanFactory.class));
 		consumer.afterPropertiesSet();
 		consumer.start();
-		assertThat(latch.await(2, TimeUnit.SECONDS)).isTrue();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		Mockito.verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 		consumer.stop();
 		Mockito.reset(handler);
@@ -102,8 +102,7 @@ public class PollingLifecycleTests {
 	}
 
 	@Test
-	public void ensurePollerTaskStopsForAdapter() throws Exception {
-		final CountDownLatch latch = new CountDownLatch(1);
+	public void ensurePollerTaskStopsForAdapter() {
 		QueueChannel channel = new QueueChannel();
 
 		SourcePollingChannelAdapterFactoryBean adapterFactory = new SourcePollingChannelAdapterFactoryBean();
@@ -116,7 +115,6 @@ public class PollingLifecycleTests {
 
 			@Override
 			public Message<String> receive() {
-				latch.countDown();
 				return new GenericMessage<>("hello");
 			}
 
@@ -128,8 +126,7 @@ public class PollingLifecycleTests {
 		adapter.setTaskScheduler(this.taskScheduler);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertThat(latch.await(20, TimeUnit.SECONDS)).isTrue();
-		assertThat(channel.receive(100)).isNotNull();
+		assertThat(channel.receive(10000)).isNotNull();
 		adapter.stop();
 		assertThat(channel.receive(10)).isNull();
 		Mockito.verify(source, times(1)).receive();

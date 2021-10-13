@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Iwein Fuld
@@ -56,7 +56,7 @@ public class CompositeFileListFilterTests {
 		List<File> returnedFiles = Collections.singletonList(fileMock);
 		when(fileFilterMock1.filterFiles(isA(File[].class))).thenReturn(returnedFiles);
 		when(fileFilterMock2.filterFiles(isA(File[].class))).thenReturn(returnedFiles);
-		assertThat(compositeFileFilter.filterFiles(new File[] { fileMock })).isEqualTo(returnedFiles);
+		assertThat(compositeFileFilter.filterFiles(new File[]{ fileMock })).isEqualTo(returnedFiles);
 		verify(fileFilterMock1).filterFiles(isA(File[].class));
 		verify(fileFilterMock2).filterFiles(isA(File[].class));
 		compositeFileFilter.close();
@@ -70,7 +70,7 @@ public class CompositeFileListFilterTests {
 		List<File> returnedFiles = Collections.singletonList(fileMock);
 		when(fileFilterMock1.filterFiles(isA(File[].class))).thenReturn(returnedFiles);
 		when(fileFilterMock2.filterFiles(isA(File[].class))).thenReturn(returnedFiles);
-		assertThat(compositeFileFilter.filterFiles(new File[] { fileMock })).isEqualTo(returnedFiles);
+		assertThat(compositeFileFilter.filterFiles(new File[]{ fileMock })).isEqualTo(returnedFiles);
 		verify(fileFilterMock1).filterFiles(isA(File[].class));
 		verify(fileFilterMock2).filterFiles(isA(File[].class));
 		compositeFileFilter.close();
@@ -84,7 +84,7 @@ public class CompositeFileListFilterTests {
 
 		when(fileFilterMock2.filterFiles(isA(File[].class))).thenReturn(new ArrayList<>());
 		when(fileFilterMock1.filterFiles(isA(File[].class))).thenReturn(new ArrayList<>());
-		assertThat(compositeFileFilter.filterFiles(new File[] { fileMock }).isEmpty()).isTrue();
+		assertThat(compositeFileFilter.filterFiles(new File[]{ fileMock }).isEmpty()).isTrue();
 		compositeFileFilter.close();
 	}
 
@@ -95,7 +95,7 @@ public class CompositeFileListFilterTests {
 		compositeFileFilter.addFilter(this.fileFilterMock2);
 		List<File> noFiles = new ArrayList<>();
 		when(this.fileFilterMock1.filterFiles(isA(File[].class))).thenReturn(noFiles);
-		assertThat(compositeFileFilter.filterFiles(new File[] { this.fileMock })).isEqualTo(noFiles);
+		assertThat(compositeFileFilter.filterFiles(new File[]{ this.fileMock })).isEqualTo(noFiles);
 
 		verify(fileFilterMock1).filterFiles(isA(File[].class));
 		verify(fileFilterMock2, never()).filterFiles(isA(File[].class));
@@ -108,17 +108,17 @@ public class CompositeFileListFilterTests {
 		CompositeFileListFilter<String> compo =
 				new CompositeFileListFilter<>(Collections.singletonList(new FileListFilter<String>() {
 
-			@Override
-			public List<String> filterFiles(String[] files) {
-				return Collections.emptyList();
-			}
+					@Override
+					public List<String> filterFiles(String[] files) {
+						return Collections.emptyList();
+					}
 
-			@Override
-			public boolean supportsSingleFileFiltering() {
-				return true;
-			}
+					@Override
+					public boolean supportsSingleFileFiltering() {
+						return true;
+					}
 
-		}));
+				}));
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> compo.accept("foo"));
 		compo.close();
 	}
@@ -128,25 +128,32 @@ public class CompositeFileListFilterTests {
 		CompositeFileListFilter<String> compo =
 				new CompositeFileListFilter<>(Collections.singletonList(new FileListFilter<String>() {
 
-			@Override
-			public List<String> filterFiles(String[] files) {
-				return Collections.emptyList();
-			}
+					@Override
+					public List<String> filterFiles(String[] files) {
+						return Collections.emptyList();
+					}
 
-			@Override
-			public boolean supportsSingleFileFiltering() {
-				return true;
-			}
+					@Override
+					public boolean supportsSingleFileFiltering() {
+						return true;
+					}
 
-			@Override
-			public boolean accept(String file) {
-				return true;
-			}
 
-		}));
+					@Override
+					public boolean isForRecursion() {
+						return true;
+					}
+
+					@Override
+					public boolean accept(String file) {
+						return true;
+					}
+
+				}));
 		assertThat(compo.accept("foo")).isTrue();
 		compo.addFilter(s -> null);
 		assertThat(compo.supportsSingleFileFiltering()).isFalse();
+		assertThat(compo.isForRecursion()).isTrue();
 		compo.close();
 	}
 
@@ -155,6 +162,7 @@ public class CompositeFileListFilterTests {
 		CompositeFileListFilter<String> compo =
 				new CompositeFileListFilter<>(Collections.singletonList(s -> null));
 		assertThat(compo.supportsSingleFileFiltering()).isFalse();
+		assertThat(compo.isForRecursion()).isFalse();
 		compo.close();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.file.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,10 +31,8 @@ import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
@@ -60,10 +58,10 @@ import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.expression.FunctionExpression;
-import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.RecursiveDirectoryScanner;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
@@ -82,7 +80,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -90,12 +88,12 @@ import org.springframework.util.FileCopyUtils;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class FileTests {
 
-	@ClassRule
-	public static final TemporaryFolder tmpDir = new TemporaryFolder();
+	@TempDir
+	static File tmpDir;
 
 	@Autowired
 	private ListableBeanFactory beanFactory;
@@ -144,14 +142,9 @@ public class FileTests {
 	@Test
 	public void testFileHandler() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(FileHeaders.FILENAME, "foo").build();
-		try {
-			this.fileFlow1Input.send(message);
-			fail("NullPointerException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageHandlingException.class);
-			assertThat(e.getCause()).isInstanceOf(NullPointerException.class);
-		}
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.fileFlow1Input.send(message))
+				.withCauseInstanceOf(NullPointerException.class);
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 		fileNameGenerator.setBeanFactory(this.beanFactory);
 		Object targetFileWritingMessageHandler = this.fileWritingMessageHandler;
@@ -167,7 +160,7 @@ public class FileTests {
 		dfa.setPropertyValue("fileNameGenerator", fileNameGenerator);
 		this.fileFlow1Input.send(message);
 
-		assertThat(new File(tmpDir.getRoot(), "foo").exists()).isTrue();
+		assertThat(new File(tmpDir, "foo").exists()).isTrue();
 
 		this.fileTriggerFlowInput.send(new GenericMessage<>("trigger"));
 		assertThat(this.flushPredicateCalled.await(10, TimeUnit.SECONDS)).isTrue();
@@ -175,10 +168,12 @@ public class FileTests {
 
 	@Test
 	public void testMessageProducerFlow() throws Exception {
-		FileOutputStream file = new FileOutputStream(new File(tmpDir.getRoot(), "TailTest"));
+		File tailTestFile = new File(tmpDir, "TailTest");
+		FileOutputStream file = new FileOutputStream(tailTestFile);
 		for (int i = 0; i < 50; i++) {
 			file.write((i + "\n").getBytes());
 		}
+		file.close();
 		this.tailer.start();
 		for (int i = 0; i < 50; i++) {
 			Message<?> message = this.tailChannel.receive(5000);
@@ -188,7 +183,10 @@ public class FileTests {
 		assertThat(this.tailChannel.receive(1)).isNull();
 
 		this.controlBus.send("@tailer.stop()");
-		file.close();
+
+		while (!tailTestFile.delete()) {
+			Thread.sleep(100);
+		}
 	}
 
 	@Autowired
@@ -203,10 +201,12 @@ public class FileTests {
 			if (even) {
 				evens.add(i);
 			}
-			FileOutputStream file = new FileOutputStream(new File(tmpDir.getRoot(), i + extension));
-			file.write(("" + i).getBytes());
-			file.flush();
-			file.close();
+			File tmpFile = new File(tmpDir, i + extension + ".tmp");
+			FileOutputStream stream = new FileOutputStream(tmpFile);
+			stream.write(("" + i).getBytes());
+			stream.flush();
+			stream.close();
+			tmpFile.renameTo(new File(tmpDir, i + extension));
 		}
 
 		Message<?> message = fileReadingResultChannel.receive(60000);
@@ -218,7 +218,7 @@ public class FileTests {
 		assertThat(result.size()).isEqualTo(25);
 		result.forEach(s -> assertThat(evens.contains(Integer.parseInt(s))).isTrue());
 
-		new File(tmpDir.getRoot(), "a.sitest").createNewFile();
+		new File(tmpDir, "a.sitest").createNewFile();
 		Message<?> receive = this.filePollingErrorChannel.receive(60000);
 		assertThat(receive).isNotNull();
 		assertThat(receive).isInstanceOf(ErrorMessage.class);
@@ -247,7 +247,7 @@ public class FileTests {
 
 	@Test
 	public void testFileSplitterFlow() throws Exception {
-		FileOutputStream file = new FileOutputStream(new File(tmpDir.getRoot(), "foo.tmp"));
+		FileOutputStream file = new FileOutputStream(new File(tmpDir, "foo.tmp"));
 		file.write(("HelloWorld\näöüß").getBytes(Charset.defaultCharset()));
 		file.flush();
 		file.close();
@@ -277,13 +277,13 @@ public class FileTests {
 
 	@Test
 	public void testDynamicFileFlows() throws Exception {
-		File newFolder1 = tmpDir.newFolder();
+		File newFolder1 = java.nio.file.Files.createTempDirectory(tmpDir.toPath(), "junit").toFile();
 		FileOutputStream file = new FileOutputStream(new File(newFolder1, "foo"));
 		file.write(("foo").getBytes());
 		file.flush();
 		file.close();
 
-		File newFolder2 = tmpDir.newFolder();
+		File newFolder2 = java.nio.file.Files.createTempDirectory(tmpDir.toPath(), "junit").toFile();
 		file = new FileOutputStream(new File(newFolder2, "bar"));
 		file.write(("bar").getBytes());
 		file.flush();
@@ -299,7 +299,12 @@ public class FileTests {
 		assertThat(receive).isNotNull();
 		payloads.add((String) receive.getPayload());
 
-		assertThat(payloads.toArray()).isEqualTo(new String[] { "bar", "foo" });
+		assertThat(payloads.toArray()).isEqualTo(new String[]{ "bar", "foo" });
+
+		assertThat(TestUtils.getPropertyValue(
+				this.beanFactory.getBean(newFolder1.getName() + ".adapter.source"),
+				"scanner"))
+				.isInstanceOf(RecursiveDirectoryScanner.class);
 	}
 
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
@@ -333,7 +338,7 @@ public class FileTests {
 		@Bean
 		public IntegrationFlow fileFlow1() {
 			return IntegrationFlows.from("fileFlow1Input")
-					.handle(Files.outboundAdapter("'file://" + tmpDir.getRoot().getAbsolutePath() + '\'')
+					.handle(Files.outboundAdapter("'file://" + tmpDir.getAbsolutePath() + '\'')
 									.fileNameGenerator(message -> null)
 									.fileExistsMode(FileExistsMode.APPEND_NO_FLUSH)
 									.flushInterval(60000)
@@ -349,7 +354,7 @@ public class FileTests {
 		@Bean
 		public IntegrationFlow tailFlow() {
 			return IntegrationFlows
-					.from(Files.tailAdapter(new File(tmpDir.getRoot(), "TailTest"))
+					.from(Files.tailAdapter(new File(tmpDir, "TailTest"))
 							.delay(500)
 							.end(false)
 							.id("tailer")
@@ -362,7 +367,7 @@ public class FileTests {
 		@Bean
 		public IntegrationFlow fileReadingFlow() {
 			return IntegrationFlows
-					.from(Files.inboundAdapter(tmpDir.getRoot())
+					.from(Files.inboundAdapter(tmpDir)
 									.patternFilter("*.sitest")
 									.useWatchService(true)
 									.watchEvents(FileReadingMessageSource.WatchEventType.CREATE,
@@ -387,7 +392,7 @@ public class FileTests {
 		public IntegrationFlow fileWritingFlow() {
 			return IntegrationFlows.from("fileWritingInput")
 					.enrichHeaders(h -> h.header(FileHeaders.FILENAME, "foo.write")
-							.header("directory", new File(tmpDir.getRoot(), "fileWritingFlow")))
+							.header("directory", new File(tmpDir, "fileWritingFlow")))
 					.handle(Files.outboundGateway(m -> m.getHeaders().get("directory"))
 							.preserveTimestamp(true)
 							.chmod(0777))
@@ -403,7 +408,7 @@ public class FileTests {
 			fileExpressionFileListFilter.setBeanFactory(beanFactory);
 
 			return IntegrationFlows
-					.from(Files.inboundAdapter(tmpDir.getRoot())
+					.from(Files.inboundAdapter(tmpDir)
 									.filter(new ChainFileListFilter<File>()
 											.addFilter(new AcceptOnceFileListFilter<>())
 											.addFilter(fileExpressionFileListFilter)),
@@ -437,8 +442,7 @@ public class FileTests {
 		void pollDirectories(File... directories) {
 			for (File directory : directories) {
 				StandardIntegrationFlow integrationFlow = IntegrationFlows
-						.from(Files.inboundAdapter(directory)
-										.scanner(new DefaultDirectoryScanner()),
+						.from(Files.inboundAdapter(directory).recursive(true),
 								e -> e.poller(p -> p.fixedDelay(1000))
 										.id(directory.getName() + ".adapter"))
 						.transform(Files.toStringTransformer(),

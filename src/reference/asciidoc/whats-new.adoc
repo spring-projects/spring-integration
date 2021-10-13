@@ -2,99 +2,114 @@
 = What's New?
 
 [[spring-integration-intro-new]]
-For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 5.4.
+For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 5.5.
 
 If you are interested in the changes and features that were introduced in earlier versions, see the <<./history.adoc#history,Change History>>.
 
 [[whats-new]]
 
-== What's New in Spring Integration 5.4?
+== What's New in Spring Integration 5.5?
 
-If you are interested in more details, see the Issue Tracker tickets that were resolved as part of the 5.4 development process.
+If you are interested in more details, see the Issue Tracker tickets that were resolved as part of the 5.5 development process.
 
-[[x5.4-new-components]]
+[[x5.5-new-components]]
 === New Components
 
-[[x5.4-sik]]
-==== Apache Kafka Channel Adapters
-The standalone https://projects.spring.io/spring-integration-kafka/[Spring Integration Kafka] project has been merged as a `spring-integration-kafka` module to this project.
+[[x5.5-file-aggregator]]
+==== File Aggregator
 
-The `KafkaProducerMessageHandler` `sendTimeoutExpression` default has changed.
+A `FileSplitter.FileMaker`-based implementation of `CorrelationStrategy`, `ReleaseStrategy` and `MessageGroupProcessor` as a `FileAggregator` component was introduced.
+See <<./file.adoc#file-aggregator, File Aggregator>> for more information.
 
-You can now access the `Future<?>` for underlying `send()` operations.
+[[x5.5-mqtt-v5]]
+==== MQTT v5 Support
 
-See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
+The `Mqttv5PahoMessageDrivenChannelAdapter` and `Mqttv5PahoMessageHandler` (including respective `MqttHeaderMapper`) were introduced to support MQTT v5 protocol communication.
+See <<./mqtt.adoc#mqtt-v5, MQTT v5 Support>> for more information.
 
-[[x5.4-r2dbc]]
-==== R2DBC Channel Adapters
-
-The Channel Adapters for R2DBC database interaction have been introduced.
-See <<./r2dbc.adoc#r2dbc,R2DBC Support>> for more information.
-
-[[x5.4-redis-stream]]
-==== Redis Stream Support
-
-The Channel Adapters for Redis Stream support have been introduced.
-See <<./redis.adoc#redis-stream-outbound,Redis Stream Outbound Channel Adapter>> for more information.
-
-[[x5.4-renewable-lock]]
-==== Renewable Lock Registry
-
-A Renewable lock registry has been introduced to allow renew lease of a distributed lock.
-See <<./jdbc.adoc#jdbc-lock-registry,JDBC implementation>> for more information.
-
-[[x5.4-zeromq]]
-==== ZeroMQ Support
-
-`ZeroMqChannel`, `ZeroMqMessageHandler` and `ZeroMqMessageProducer` have been introduced.
-See <<./zeromq.adoc#zeromq,ZeroMQ Support>> for more information.
-
-[[x5.4-general]]
+[[x5.5-general]]
 === General Changes
 
-The one-way messaging gateway (the `void` method return type) now sets a `nullChannel` explicitly into the `replyChannel` header to ignore any possible downstream replies.
-See <<./gateway.adoc#gateway-default-reply-channel,Setting the Default Reply Channel>> for more information.
+All the persistent `MessageGroupStore` implementation provide a `streamMessagesForGroup(Object groupId)` contract based on the target database streaming API.
+See <<./message-store.adoc#message-store,Message Store>> for more information.
 
-Also the gateway method invokers (`GatewayProxyFactoryBean.MethodInvocationGateway`) are now supplied with the managed bean name as a combination of gateway proxy bean name plus method signature.
-For example: `sampleGateway#echo(String)`.
-This effects message history and metrics exposed for the gateway method calls and also give fine-grained logs during start and close of application context.
+The `integrationGlobalProperties` bean (if declared) must be now an instance of `org.springframework.integration.context.IntegrationProperties` instead of `java.util.Properties`, which support is deprecated for backward compatibility.
+The `spring.integration.channels.error.requireSubscribers=true` global property is added to indicate that the global default `errorChannel` must be configured with the `requireSubscribers` option (or not).
+The `spring.integration.channels.error.ignoreFailures=true` global property is added to indicate that the global default `errorChannel` must ignore (or not) dispatching errors and pass the message to the next handler.
+See <<./configuration.adoc#global-properties,Global Properties>> for more information.
 
-The aggregator (and resequencer) can now expire orphaned groups (groups in a persistent store where no new messages arrive after an application restart).
-See <<./aggregator.adoc#aggregator-expiring-groups, Aggregator Expiring Groups>> for more information.
+An `AbstractPollingEndpoint` (source polling channel adapter and polling consumer) treats `maxMessagesPerPoll == 0` as to skip calling the source.
+It can be changed to different value later on, e.g. via a Control Bus.
+See <<./endpoint.adoc#endpoint-pollingconsumer,Polling Consumer>> for more information.
 
-The legacy metrics that were replaced by Micrometer meters have been removed.
+The `ConsumerEndpointFactoryBean` now accept a `reactiveCustomizer` `Function` to any input channel as reactive stream source and use a `ReactiveStreamsConsumer` underneath.
+This is covered as a `ConsumerEndpointSpec.reactive()` option in Java DSL and as a `@Reactive` nested annotation for the messaging annotations.
+See <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> for more information.
 
-The <<./barrier.adoc#barrier,Thread Barrier>> has now two separate timeout options: `requestTimeout` and `triggerTimeout`.
+The `groupTimeoutExpression` for a correlation message handler (an `Aggregator` and `Resequencer`) can now be evaluated to a `java.util.Date` for some fine-grained scheduling use-cases.
+Also the `BiFunction groupConditionSupplier` option is added to the `AbstractCorrelatingMessageHandler` to supply a `MessageGroup` condition against a message to be added to the group.
+See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 
-[[x5.4-tcp]]
-=== TCP/UDP Changes
+The `MessageGroup` abstraction can be supplied with a `condition` to evaluate later on to make a decision for the group.
+See <<./message-store.adoc#message-group-condition,Message Group Condition>> for more information.
 
-Connection factories now support multiple sending components (`TcpSender`); they remain limited to one receiving component (`TcpListener`).
-This allows, for example, an inbound gateway and outbound channel adapter to share the same factory, supporting both request/reply and arbitrary messaging from the server to the client.
-Shared factories should not be used with outbound gateways, unless single-use connections or the `ThreadAffinityClientConnectionFactory` are being used.
-See <<./ip.adoc#ip-collaborating-adapters,Collaborating Channel Adapters>> and <<./ip.adoc#tcp-gateways, TCP Gateways>> for more information.
+[[x5.5-integration-flows-composition]]
+==== Integration Flows Composition
 
-The UDP channel adapters can now be configured with a `SocketCustomizer` which allows the setting of socket properties that are not directly supported by the adapters.
-See <<./ip.adoc#udp-adapters,UDP Adapters>> for more information.
+The new `IntegrationFlows.from(IntegrationFlow)` factory method has been added to allow starting the current `IntegrationFlow` from the output of an existing flow.
+In addition, the `IntegrationFlowDefinition` has added a `to(IntegrationFlow)` terminal operator to continue the current flow at the input channel of some other flow.
+See <<./dsl.adoc#integration-flows-composition,Integration Flows Composition>> for more information.
 
-[[x5.4-rmi]]
-=== RMI Changes
+[[x5.5-amqp]]
+==== AMQP Changes
 
-The `spring-integration-rmi` module is deprecated with no replacement and is going to be removed in the next major version.
-See <<./rmi.adoc#rmi, RMI Support>> for more information.
+The `AmqpInboundChannelAdapter` and `AmqpInboundGateway` (and the respective Java DSL builders) now support an `org.springframework.amqp.rabbit.retry.MessageRecoverer` as an AMQP-specific alternative to the general purpose `RecoveryCallback`.
+See <<./amqp.adoc#amqp,AMQP Support>> for more information.
 
+[[x5.5-redis]]
+==== Redis Changes
 
-[[x5.4-amqp]]
-=== AMQP Changes
+The `ReactiveRedisStreamMessageProducer` has now setters for all the `StreamReceiver.StreamReceiverOptionsBuilder` options, including an `onErrorResume` function.
+See <<./redis.adoc#redis,Redis Support>> for more information.
 
-The outbound endpoints now have a new mechanism for handling publisher confirms and returns.
-See <<./amqp.adoc#alternative-confirms-returns,Alternative Mechanism for Publisher Confirms and Returns>> for more information.
+[[x5.5-http]]
+==== HTTP Changes
 
-A new `BatchMode.EXTRACT_PAYLOAD_WITH_HEADERS` is supported by the `AmqpInboundChannelAdapter`.
-See <<./amqp.adoc#amqp-inbound-channel-adapter,Inbound Channel Adapter>> for more information.
+The `HttpRequestExecutingMessageHandler` doesn't fallback to the `application/x-java-serialized-object` content type any more and lets the `RestTemplate` make the final decision for the request body conversion based on the `HttpMessageConverter` provided.
+It also has now an `extractResponseBody` flag (which is `true` by default) to return just the response body, or to return the whole `ResponseEntity` as the reply message payload, independently of the provided `expectedResponseType`.
+Same option is presented for the `WebFluxRequestExecutingMessageHandler`, too.
+See <<./http.adoc#http,HTTP Support>> for more information.
 
-[[x5.4-mail]]
-=== Mail Changes
+[[x5.5-file]]
+==== File/FTP/SFTP Changes
 
-The `AbstractMailReceiver` can now produce the `MimeMessage` as-is without eager fetching its content.
-See <<./mail.adoc#mail-inbound, Mail-receiving Channel Adapter>> for more information.
+The persistent file list filters now have a boolean property `forRecursion`.
+Setting this property to `true`, also sets `alwaysAcceptDirectories`, which means that the recursive operation on the outbound gateways (`ls` and `mget`) will now always traverse the full directory tree each time.
+This is to solve a problem where changes deep in the directory tree were not detected.
+In addition, `forRecursion=true` causes the full path to files to be used as the metadata store keys; this solves a problem where the filter did not work properly if a file with the same name appears multiple times in different directories.
+IMPORTANT: This means that existing keys in a persistent metadata store will not be found for files beneath the top level directory.
+For this reason, the property is `false` by default; this may change in a future release.
+
+The `FileInboundChannelAdapterSpec` has now a convenient `recursive(boolean)` option instead of requiring an explicit reference to the `RecursiveDirectoryScanner`.
+
+[[x5.5-mongodb]]
+==== MongoDb Changes
+
+The `MongoDbMessageSourceSpec` was added into MongoDd Java DSL.
+An `update` option is now exposed on both the `MongoDbMessageSource` and `ReactiveMongoDbMessageSource` implementations.
+
+See <<./mongodb.adoc#mongodb,MongoDb Support>> for more information.
+
+[[x5.5-websocket]]
+==== WebSockets Changes
+
+The WebSocket channel adapters based on `ServerWebSocketContainer` can now be registered and removed at runtime.
+
+See <<./web-sockets.adoc#web-sockets,WebSockets Support>> for more information.
+
+[[x5.5-jpa]]
+==== JPA Changes
+
+The `JpaOutboundGateway` now supports an `Iterable` message payload for a `PersistMode.DELETE`.
+
+See <<./jpa.adoc#jpa-outbound-channel-adapter,Outbound Channel Adapter>> for more information.

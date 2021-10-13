@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.aopalliance.aop.Advice;
@@ -36,6 +37,7 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -107,6 +109,8 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	}
 
 	/**
+	 * Specify a SpEL expression to evaluate the group timeout for scheduled expiration.
+	 * Must return {@link java.util.Date}, {@link java.lang.Long} or {@link String} as a long.
 	 * @param groupTimeoutExpression the group timeout expression string.
 	 * @return the handler spec.
 	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression
@@ -122,11 +126,12 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * based on the message group.
 	 * Usually used with a JDK8 lambda:
 	 * <p>{@code .groupTimeout(g -> g.size() * 2000L)}.
+	 * Must return {@link java.util.Date}, {@link java.lang.Long} or {@link String} a long.
 	 * @param groupTimeoutFunction a function invoked to resolve the group timeout in milliseconds.
 	 * @return the handler spec.
 	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression
 	 */
-	public S groupTimeout(Function<MessageGroup, Long> groupTimeoutFunction) {
+	public S groupTimeout(Function<MessageGroup, ?> groupTimeoutFunction) {
 		this.handler.setGroupTimeoutExpression(new FunctionExpression<>(groupTimeoutFunction));
 		return _this();
 	}
@@ -335,9 +340,22 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * @param expireTimeout the timeout in milliseconds to use.
 	 * @return the endpoint spec.
 	 * @since 5.4
+	 * @deprecated since 5.5 in favor of {@link #expireTimeout(long)}
 	 * @see AbstractCorrelatingMessageHandler#setExpireTimeout(long)
 	 */
+	@Deprecated
 	public S setExpireTimeout(long expireTimeout) {
+		return expireTimeout(expireTimeout);
+	}
+
+	/**
+	 * Configure a timeout for old groups in the store to purge.
+	 * @param expireTimeout the timeout in milliseconds to use.
+	 * @return the endpoint spec.
+	 * @since 5.5
+	 * @see AbstractCorrelatingMessageHandler#setExpireTimeout(long)
+	 */
+	public S expireTimeout(long expireTimeout) {
 		this.handler.setExpireTimeout(expireTimeout);
 		return _this();
 	}
@@ -347,10 +365,49 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * @param expireDuration the duration for scheduled purge task.
 	 * @return the endpoint spec.
 	 * @since 5.4
+	 * @deprecated since 5.5 in favor of {@link #expireDuration(Duration)}
 	 * @see AbstractCorrelatingMessageHandler#setExpireDuration(Duration)
 	 */
+	@Deprecated
 	public S setExpireDuration(Duration expireDuration) {
+		return expireDuration(expireDuration);
+	}
+
+	/**
+	 * Configure a {@link Duration} how often to run a scheduled purge task.
+	 * @param expireDuration the duration for scheduled purge task.
+	 * @return the endpoint spec.
+	 * @since 5.5
+	 * @see AbstractCorrelatingMessageHandler#setExpireDuration(Duration)
+	 */
+	public S expireDuration(Duration expireDuration) {
 		this.handler.setExpireDuration(expireDuration);
+		return _this();
+	}
+
+	/**
+	 * Set to true to release the message group lock before sending any output. See
+	 * "Avoiding Deadlocks" in the Aggregator section of the reference manual for more
+	 * information as to why this might be needed.
+	 * @param releaseLockBeforeSend true to release the lock.
+	 * @return the endpoint spec.
+	 * @since 5.5
+	 * @see AbstractCorrelatingMessageHandler#setReleaseLockBeforeSend(boolean)
+	 */
+	public S releaseLockBeforeSend(boolean releaseLockBeforeSend) {
+		this.handler.setReleaseLockBeforeSend(releaseLockBeforeSend);
+		return _this();
+	}
+
+	/**
+	 * Configure a {@link BiFunction} to supply a group condition from a message to be added to the group.
+	 * The {@code null} result from the function will reset a condition set before.
+	 * @param conditionSupplier the function to supply a group condition from a message to be added to the group.
+	 * @return the endpoint spec.
+	 * @since 5.5
+	 */
+	public S groupConditionSupplier(BiFunction<Message<?>, String, String> conditionSupplier) {
+		this.handler.setGroupConditionSupplier(conditionSupplier);
 		return _this();
 	}
 

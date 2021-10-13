@@ -17,10 +17,11 @@
 package org.springframework.integration.jms.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
 
-import javax.jms.ConnectionFactory;
+import javax.jms.MessageListener;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +29,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -40,12 +41,25 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.1
  *
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class JmsMessageDrivenEndpointTests {
+public class JmsMessageDrivenEndpointTests extends ActiveMQMultiContextTests {
+
+	@Test
+	public void testListenerIsAlreadyProvided() {
+		DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
+		container.setMessageListener(mock(MessageListener.class));
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new JmsMessageDrivenEndpoint(container, new ChannelPublishingJmsMessageListener()))
+				.withMessage("The listenerContainer provided to a JMS Inbound Endpoint must not have " +
+						"a MessageListener configured since the endpoint configures its own listener implementation.");
+	}
+
 
 	@Test
 	public void testStopStart(@Autowired JmsTemplate template,
@@ -63,32 +77,20 @@ public class JmsMessageDrivenEndpointTests {
 	@EnableIntegration
 	public static class Config {
 
-
-		@Bean
-		public ConnectionFactory cf() {
-			return new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
-		}
-
-		@Bean
-		public CachingConnectionFactory ccf() {
-			return new CachingConnectionFactory(cf());
-		}
-
 		@Bean
 		public JmsTemplate template() {
-			return new JmsTemplate(ccf());
+			return new JmsTemplate(connectionFactory);
 		}
 
 		@Bean
 		public JmsMessageDrivenEndpoint inbound() {
-			JmsMessageDrivenEndpoint endpoint = new JmsMessageDrivenEndpoint(container(), listener());
-			return endpoint;
+			return new JmsMessageDrivenEndpoint(container(), listener());
 		}
 
 		@Bean
 		public AbstractMessageListenerContainer container() {
 			DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
-			container.setConnectionFactory(cf());
+			container.setConnectionFactory(amqFactory);
 			container.setSessionTransacted(true);
 			container.setDestinationName("stop.start");
 			return container;

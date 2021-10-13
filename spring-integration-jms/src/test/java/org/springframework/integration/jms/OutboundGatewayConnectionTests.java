@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ import javax.jms.Destination;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.command.ActiveMQQueue;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -55,14 +55,15 @@ public class OutboundGatewayConnectionTests {
 
 	private final Destination replyQueue1 = new ActiveMQQueue("reply1");
 
-	@Test @Ignore // need a more reliable stop/start for AMQ
+	@Test
+	@Disabled("need a more reliable stop/start for AMQ")
 	public void testContainerWithDestBrokenConnection() throws Exception {
 		BeanFactory beanFactory = mock(BeanFactory.class);
 		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		BrokerService broker = new BrokerService();
@@ -84,7 +85,7 @@ public class OutboundGatewayConnectionTests {
 		exec.execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
 			}
 			finally {
 				latch2.countDown();
@@ -97,7 +98,7 @@ public class OutboundGatewayConnectionTests {
 		javax.jms.Message request = template.receive(requestQueue1);
 		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
+		template.send(request.getJMSReplyTo(), session -> jmsReply);
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reply.get()).isNotNull();
 

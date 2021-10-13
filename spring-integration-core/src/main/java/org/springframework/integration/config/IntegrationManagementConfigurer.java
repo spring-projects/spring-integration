@@ -17,17 +17,17 @@
 package org.springframework.integration.config;
 
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
@@ -53,7 +53,7 @@ import org.springframework.util.Assert;
  */
 public class IntegrationManagementConfigurer
 		implements SmartInitializingSingleton, ApplicationContextAware, BeanNameAware, BeanPostProcessor,
-		DisposableBean {
+		ApplicationListener<ContextClosedEvent> {
 
 	/**
 	 * Bean name of the configurer.
@@ -71,6 +71,8 @@ public class IntegrationManagementConfigurer
 	private volatile boolean singletonsInstantiated;
 
 	private MetricsCaptor metricsCaptor;
+
+	private ObjectProvider<MetricsCaptor> metricsCaptorProvider;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -109,44 +111,35 @@ public class IntegrationManagementConfigurer
 		this.metricsCaptor = metricsCaptor;
 	}
 
+	void setMetricsCaptorProvider(ObjectProvider<MetricsCaptor> metricsCaptorProvider) {
+		this.metricsCaptorProvider = metricsCaptorProvider;
+	}
+
+	@Nullable
+	MetricsCaptor obtainMetricsCaptor() {
+		if (this.metricsCaptor == null && this.metricsCaptorProvider != null) {
+			this.metricsCaptor = this.metricsCaptorProvider.getIfUnique();
+		}
+		return this.metricsCaptor;
+	}
+
 	@Override
 	public void afterSingletonsInstantiated() {
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
-		if (this.metricsCaptor != null) {
-			injectCaptor();
+
+		if (obtainMetricsCaptor() != null) {
 			registerComponentGauges();
 		}
-		Map<String, IntegrationManagement> managed = this.applicationContext
-				.getBeansOfType(IntegrationManagement.class);
-		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
-			IntegrationManagement bean = entry.getValue();
-			if (!getOverrides(bean).loggingConfigured) {
-				bean.setLoggingEnabled(this.defaultLoggingEnabled);
-			}
+
+		for (IntegrationManagement integrationManagement :
+				this.applicationContext.getBeansOfType(IntegrationManagement.class).values()) {
+
+			enhanceIntegrationManagement(integrationManagement);
 		}
+
 		this.singletonsInstantiated = true;
-	}
-
-	private void injectCaptor() {
-		Map<String, IntegrationManagement> managed =
-				this.applicationContext.getBeansOfType(IntegrationManagement.class);
-		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
-			IntegrationManagement bean = entry.getValue();
-			if (!getOverrides(bean).loggingConfigured) {
-				bean.setLoggingEnabled(this.defaultLoggingEnabled);
-			}
-			bean.registerMetricsCaptor(this.metricsCaptor);
-		}
-	}
-
-	@Override
-	public Object postProcessAfterInitialization(Object bean, String name) throws BeansException {
-		if (this.singletonsInstantiated && this.metricsCaptor != null && bean instanceof IntegrationManagement) {
-			((IntegrationManagement) bean).registerMetricsCaptor(this.metricsCaptor);
-		}
-		return bean;
 	}
 
 	private void registerComponentGauges() {
@@ -169,10 +162,28 @@ public class IntegrationManagementConfigurer
 						.build());
 	}
 
+	private void enhanceIntegrationManagement(IntegrationManagement integrationManagement) {
+		if (!getOverrides(integrationManagement).loggingConfigured) {
+			integrationManagement.setLoggingEnabled(this.defaultLoggingEnabled);
+		}
+		if (this.metricsCaptor != null) {
+			integrationManagement.registerMetricsCaptor(this.metricsCaptor);
+		}
+	}
+
 	@Override
-	public void destroy() {
-		this.gauges.forEach(MeterFacade::remove);
-		this.gauges.clear();
+	public Object postProcessAfterInitialization(Object bean, String name) throws BeansException {
+		if (this.singletonsInstantiated && bean instanceof IntegrationManagement) {
+			enhanceIntegrationManagement((IntegrationManagement) bean);
+		}
+		return bean;
+	}
+
+	@Override public void onApplicationEvent(ContextClosedEvent event) {
+		if (event.getApplicationContext().equals(this.applicationContext)) {
+			this.gauges.forEach(MeterFacade::remove);
+			this.gauges.clear();
+		}
 	}
 
 	private static ManagementOverrides getOverrides(IntegrationManagement bean) {

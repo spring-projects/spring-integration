@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package org.springframework.integration.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -32,12 +33,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -188,7 +191,9 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		taskScheduler.shutdown();
 
 		verifyNoInteractions(errorHandlerLogger);
-		verify(adapterLogger).debug(contains("Poll interrupted - during stop()?"));
+		verify(adapterLogger)
+				.debug(ArgumentMatchers.<Supplier<String>>argThat(logMessage ->
+						logMessage.get().contains("Poll interrupted - during stop()?")));
 	}
 
 	@Test
@@ -218,6 +223,47 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		assertThat(receive.getPayload()).isEqualTo(true);
 		pollingChannelAdapter.stop();
 	}
+
+	@Test
+	public void testZeroForMaxMessagesPerPoll() throws InterruptedException {
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+
+		SourcePollingChannelAdapter pollingChannelAdapter = new SourcePollingChannelAdapter();
+		pollingChannelAdapter.setTaskScheduler(taskScheduler);
+		pollingChannelAdapter.setSource(() -> new GenericMessage<>("test"));
+		pollingChannelAdapter.setTrigger(new PeriodicTrigger(1));
+		pollingChannelAdapter.setMaxMessagesPerPoll(0);
+		QueueChannel outputChannel = new QueueChannel();
+		pollingChannelAdapter.setOutputChannel(outputChannel);
+		pollingChannelAdapter.setBeanFactory(mock(BeanFactory.class));
+
+		LogAccessor logger = spy(TestUtils.getPropertyValue(pollingChannelAdapter, "logger", LogAccessor.class));
+		new DirectFieldAccessor(pollingChannelAdapter).setPropertyValue("logger", logger);
+
+		CountDownLatch logCalledLatch = new CountDownLatch(1);
+
+		willAnswer(invocation -> {
+			logCalledLatch.countDown();
+			return invocation.callRealMethod();
+		})
+				.given(logger)
+				.info(anyString());
+
+		pollingChannelAdapter.afterPropertiesSet();
+		pollingChannelAdapter.start();
+
+		assertThat(logCalledLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		verify(logger, atLeastOnce()).info("Polling disabled while 'maxMessagesPerPoll == 0'");
+
+		pollingChannelAdapter.setMaxMessagesPerPoll(1);
+
+		Message<?> receive = outputChannel.receive(10_000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("test");
+		pollingChannelAdapter.stop();
+	}
+
 
 	private static class LifecycleMessageSource implements MessageSource<Boolean>, Lifecycle {
 

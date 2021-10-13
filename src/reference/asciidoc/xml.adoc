@@ -494,12 +494,12 @@ Spring Integration provides two convenient ways to accomplish this, as the follo
 ----
 ====
 
-If message header names match one-to-one to parameter names, you can use the `xslt-param-headers` attribute.
+If message header names match one-to-one to parameter names, you can use the `xslt-param-headers` attribute.
 In it, you can use wildcards for simple pattern matching.
 It supports the following simple pattern styles: `xxx*`, `*xxx`, `*xxx*`, and `xxx*yyy`.
 
 You can also configure individual XSLT parameters by using the `<xslt-param/>` element.
-On that element, you can set the `expression` attribute or the `value` attribute.
+On that element, you can set the `expression` attribute or the `value` attribute.
 The `expression` attribute should be any valid SpEL expression with the `Message` being the root object of the expression evaluation context.
 The `value` attribute (as with any `value` in Spring beans) lets you specify simple scalar values.
 You can also use property placeholders (such as `${some.value}`).

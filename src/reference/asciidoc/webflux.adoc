@@ -6,8 +6,8 @@ The WebFlux Spring Integration module (`spring-integration-webflux`) allows for 
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,9 +15,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-webflux:{project-version}"
 ----
@@ -28,133 +27,6 @@ The `io.projectreactor.netty:reactor-netty` dependency must be included in case 
 The WebFlux support consists of the following gateway implementations: `WebFluxInboundEndpoint` and `WebFluxRequestExecutingMessageHandler`.
 The support is fully based on the Spring https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html#spring-webflux[WebFlux] and https://projectreactor.io/[Project Reactor] foundations.
 See <<./http.adoc#http,HTTP Support>> for more information, since many options are shared between reactive and regular HTTP components.
-
-[[webflux-inbound]]
-=== WebFlux Inbound Components
-
-Starting with version 5.0, the `WebFluxInboundEndpoint` implementation of `WebHandler` is provided.
-This component is similar to the MVC-based `HttpRequestHandlingEndpointSupport`, with which it shares some common options through the newly extracted `BaseHttpInboundEndpoint`.
-It is used in the Spring WebFlux reactive environment (instead of MVC).
-The following example shows a simple implementation of a WebFlux endpoint:
-
-====
-[source,java]
-----
-@Configuration
-@EnableWebFlux
-@EnableIntegration
-public class ReactiveHttpConfiguration {
-
-    @Bean
-    public WebFluxInboundEndpoint simpleInboundEndpoint() {
-        WebFluxInboundEndpoint endpoint = new WebFluxInboundEndpoint();
-        RequestMapping requestMapping = new RequestMapping();
-        requestMapping.setPathPatterns("/test");
-        endpoint.setRequestMapping(requestMapping);
-        endpoint.setRequestChannelName("serviceChannel");
-        return endpoint;
-    }
-
-    @ServiceActivator(inputChannel = "serviceChannel")
-    String service() {
-        return "It works!";
-    }
-
-}
-----
-====
-
-The configuration is similar to the `HttpRequestHandlingEndpointSupport` (mentioned prior to the example), except that we use `@EnableWebFlux` to add the WebFlux infrastructure to our integration application.
-Also, the `WebFluxInboundEndpoint` performs `sendAndReceive` operations to the downstream flow by using back-pressure, on-demand based capabilities, provided by the reactive HTTP server implementation.
-
-NOTE: The reply part is non-blocking as well and is based on the internal `FutureReplyChannel`, which is flat-mapped to a reply `Mono` for on-demand resolution.
-
-You can configure the `WebFluxInboundEndpoint` with a custom `ServerCodecConfigurer`, a `RequestedContentTypeResolver`, and even a `ReactiveAdapterRegistry`.
-The latter provides a mechanism you can use to return a reply as any reactive type: Reactor `Flux`, RxJava `Observable`, `Flowable`, and others.
-This way, we can implement https://en.wikipedia.org/wiki/Server-sent_events[Server Sent Events] scenarios with Spring Integration components, as the following example shows:
-
-====
-[source,java]
-----
-@Bean
-public IntegrationFlow sseFlow() {
-    return IntegrationFlows
-            .from(WebFlux.inboundGateway("/sse")
-                    .requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE)))
-            .handle((p, h) -> Flux.just("foo", "bar", "baz"))
-            .get();
-}
-----
-====
-
-See <<./http.adoc#http-request-mapping,Request Mapping Support>> and <<./http.adoc#http-cors,Cross-origin Resource Sharing (CORS) Support>> for more possible configuration options.
-
-When the request body is empty or `payloadExpression` returns `null`, the request params (`MultiValueMap<String, String>`) is used for a `payload` of the target message to process.
-
-[[webflux-validation]]
-==== Payload Validation
-
-Starting with version 5.2, the `WebFluxInboundEndpoint` can be configured with a `Validator`.
-Unlike the MVC validation in the <<./http.adoc#http-validation,HTTP Support>>, it is used to validate elements in the `Publisher` to which a request has been converted by the `HttpMessageReader`, before performing a fallback and `payloadExpression` functions.
-The Framework can't assume how complex the `Publisher` object can be after building the final payload.
-If there is a requirements to restrict validation visibility for exactly final payload (or its `Publisher` elements), the validation should go downstream instead of WebFlux endpoint.
-See more information in the Spring WebFlux https://docs.spring.io/spring/docs/5.1.8.RELEASE/spring-framework-reference/web-reactive.html#webflux-fn-handler-validation[documentation].
-An invalid payload is rejected with an `IntegrationWebExchangeBindException` (a `WebExchangeBindException` extension), containing all the validation `Errors`.
-See more in Spring Framework https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#validation[Reference Manual] about validation.
-
-[[webflux-outbound]]
-=== WebFlux Outbound Components
-
-The `WebFluxRequestExecutingMessageHandler` (starting with version 5.0) implementation is similar to `HttpRequestExecutingMessageHandler`.
-It uses a `WebClient` from the Spring Framework WebFlux module.
-To configure it, define a bean similar to the following:
-
-====
-[source,xml]
-----
-<bean id="httpReactiveOutbound"
-    class="org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler">
-     <constructor-arg value="http://localhost:8080/example" />
-     <property name="outputChannel" ref="responseChannel" />
-</bean>
-----
-====
-
-You can configure a `WebClient` instance to use, as the following example shows:
-
-====
-[source,xml]
-----
-<beans:bean id="webClient" class="org.springframework.web.reactive.function.client.WebClient"
-				factory-method="create"/>
-
-<bean id="httpReactiveOutbound"
-    class="org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler">
-     <constructor-arg value="http://localhost:8080/example" />
-     <constructor-arg re="webClient" />
-     <property name="outputChannel" ref="responseChannel" />
-</bean>
-----
-====
-
-The `WebClient` `exchange()` operation returns a `Mono<ClientResponse>`, which is mapped (by using several `Mono.map()` steps) to an `AbstractIntegrationMessageBuilder` as the output from the `WebFluxRequestExecutingMessageHandler`.
-Together with the `ReactiveChannel` as an `outputChannel`, the `Mono<ClientResponse>` evaluation is deferred until a downstream subscription is made.
-Otherwise, it is treated as an `async` mode, and the `Mono` response is adapted to a `SettableListenableFuture` for an asynchronous reply from the `WebFluxRequestExecutingMessageHandler`.
-The target payload of the output message depends on the `WebFluxRequestExecutingMessageHandler` configuration.
-The `setExpectedResponseType(Class<?>)` or `setExpectedResponseTypeExpression(Expression)` identifies the target type of the response body element conversion.
-If `replyPayloadToFlux` is set to `true`, the response body is converted to a `Flux` with the provided `expectedResponseType` for each element, and this `Flux` is sent as the payload downstream.
-Afterwards, you can use a <<./splitter.adoc#splitter,splitter>> to iterate over this `Flux` in a reactive manner.
-
-In addition a `BodyExtractor<?, ClientHttpResponse>` can be injected into the `WebFluxRequestExecutingMessageHandler` instead of the `expectedResponseType` and `replyPayloadToFlux` properties.
-It can be used for low-level access to the `ClientHttpResponse` and more control over body and HTTP headers conversion.
-Spring Integration provides `ClientHttpResponseBodyExtractor` as a identity function to produce (downstream) the whole `ClientHttpResponse` and any other possible custom logic.
-
-Starting with version 5.2, the `WebFluxRequestExecutingMessageHandler` supports reactive `Publisher`, `Resource`, and `MultiValueMap` types as the request message payload.
-A respective `BodyInserter` is used internally to be populated into the `WebClient.RequestBodySpec`.
-When the payload is a reactive `Publisher`, a configured `publisherElementType` or `publisherElementTypeExpression` can be used to determine a type for the publisher's element type.
-The expression must be resolved to a `Class<?>`, `String` which is resolved to the target `Class<?>` or `ParameterizedTypeReference`.
-
-See <<./http.adoc#http-outbound,HTTP Outbound Components>> for more possible configuration options.
 
 [[webflux-namespace]]
 === WebFlux Namespace Support
@@ -182,61 +54,221 @@ To include it in your configuration, add the following namespace declaration in 
 ----
 ====
 
-==== Inbound
+[[webflux-inbound]]
+=== WebFlux Inbound Components
 
-To configure Spring Integration WebFlux with XML, you need to use appropriate components from the `int-webflux` namespace: `inbound-channel-adapter` or `inbound-gateway`, corresponding to request and response requirements, respectively.
-The following example shows how to configure both an inbound channel adapter and an inbound gateway:
+Starting with version 5.0, the `WebFluxInboundEndpoint` implementation of `WebHandler` is provided.
+This component is similar to the MVC-based `HttpRequestHandlingEndpointSupport`, with which it shares some common options through the newly extracted `BaseHttpInboundEndpoint`.
+It is used in the Spring WebFlux reactive environment (instead of MVC).
+The following example shows a simple implementation of a WebFlux endpoint:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
 ----
-<inbound-channel-adapter id="reactiveFullConfig" channel="requests"
-                         path="test1"
-                         auto-startup="false"
-                         phase="101"
-                         request-payload-type="byte[]"
-                         error-channel="errorChannel"
-                         payload-expression="payload"
-                         supported-methods="PUT"
-                         status-code-expression="'202'"
-                         header-mapper="headerMapper"
-                         codec-configurer="codecConfigurer"
-                         reactive-adapter-registry="reactiveAdapterRegistry"
-                         requested-content-type-resolver="requestedContentTypeResolver">
-    <request-mapping headers="foo"/>
-    <cross-origin origin="foo"
-                  method="PUT"/>
-    <header name="foo" expression="'foo'"/>
-</inbound-channel-adapter>
+@Bean
+public IntegrationFlow inboundChannelAdapterFlow() {
+    return IntegrationFlows
+        .from(WebFlux.inboundChannelAdapter("/reactivePost")
+            .requestMapping(m -> m.methods(HttpMethod.POST))
+            .requestPayloadType(ResolvableType.forClassWithGenerics(Flux.class, String.class))
+            .statusCodeFunction(m -> HttpStatus.ACCEPTED))
+        .channel(c -> c.queue("storeChannel"))
+        .get();
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun inboundChannelAdapterFlow() =
+    integrationFlow(
+        WebFlux.inboundChannelAdapter("/reactivePost")
+            .apply {
+                requestMapping { m -> m.methods(HttpMethod.POST) }
+                requestPayloadType(ResolvableType.forClassWithGenerics(Flux::class.java, String::class.java))
+                statusCodeFunction { m -> HttpStatus.ACCEPTED }
+            })
+    {
+        channel { queue("storeChannel") }
+    }
+----
+[source, java, role="secondary"]
+.Java
+----
+@Configuration
+@EnableWebFlux
+@EnableIntegration
+public class ReactiveHttpConfiguration {
 
-<inbound-gateway id="reactiveFullConfig" request-channel="requests"
-                 path="test1"
-                 auto-startup="false"
-                 phase="101"
-                 request-payload-type="byte[]"
-                 error-channel="errorChannel"
-                 payload-expression="payload"
-                 supported-methods="PUT"
-                 reply-timeout-status-code-expression="'504'"
-                 header-mapper="headerMapper"
-                 codec-configurer="codecConfigurer"
-                 reactive-adapter-registry="reactiveAdapterRegistry"
-                 requested-content-type-resolver="requestedContentTypeResolver">
-    <request-mapping headers="foo"/>
-    <cross-origin origin="foo"
-                  method="PUT"/>
-    <header name="foo" expression="'foo'"/>
-</inbound-gateway>
+    @Bean
+    public WebFluxInboundEndpoint simpleInboundEndpoint() {
+        WebFluxInboundEndpoint endpoint = new WebFluxInboundEndpoint();
+        RequestMapping requestMapping = new RequestMapping();
+        requestMapping.setPathPatterns("/test");
+        endpoint.setRequestMapping(requestMapping);
+        endpoint.setRequestChannelName("serviceChannel");
+        return endpoint;
+    }
+
+    @ServiceActivator(inputChannel = "serviceChannel")
+    String service() {
+        return "It works!";
+    }
+
+}
+----
+[source, xml, role="secondary"]
+.XML
+----
+<int-webflux:inbound-gateway request-channel="requests" path="/sse">
+    <int-webflux:request-mapping produces="text/event-stream"/>
+</int-webflux:inbound-gateway>
 ----
 ====
 
-==== Outbound
+The configuration is similar to the `HttpRequestHandlingEndpointSupport` (mentioned prior to the example), except that we use `@EnableWebFlux` to add the WebFlux infrastructure to our integration application.
+Also, the `WebFluxInboundEndpoint` performs `sendAndReceive` operations to the downstream flow by using back-pressure, on-demand based capabilities, provided by the reactive HTTP server implementation.
 
-If you want to execute the HTTP request in a reactive, non-blocking way, you can use the `outbound-gateway` or `outbound-channel-adapter`.
-The following example shows how to configure both an outbound gateway and an outbound channel adapter:
+NOTE: The reply part is non-blocking as well and is based on the internal `FutureReplyChannel`, which is flat-mapped to a reply `Mono` for on-demand resolution.
+
+You can configure the `WebFluxInboundEndpoint` with a custom `ServerCodecConfigurer`, a `RequestedContentTypeResolver`, and even a `ReactiveAdapterRegistry`.
+The latter provides a mechanism you can use to return a reply as any reactive type: Reactor `Flux`, RxJava `Observable`, `Flowable`, and others.
+This way, we can implement https://en.wikipedia.org/wiki/Server-sent_events[Server Sent Events] scenarios with Spring Integration components, as the following example shows:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow sseFlow() {
+    return IntegrationFlows
+            .from(WebFlux.inboundGateway("/sse")
+                    .requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE)))
+            .handle((p, h) -> Flux.just("foo", "bar", "baz"))
+            .get();
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun sseFlow() =
+     integrationFlow(
+            WebFlux.inboundGateway("/sse")
+                       .requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE)))
+            {
+                 handle { (p, h) -> Flux.just("foo", "bar", "baz") }
+            }
+----
+[source, java, role="secondary"]
+.Java
+----
+@Bean
+public WebFluxInboundEndpoint webfluxInboundGateway() {
+    WebFluxInboundEndpoint endpoint = new WebFluxInboundEndpoint();
+    RequestMapping requestMapping = new RequestMapping();
+    requestMapping.setPathPatterns("/sse");
+    requestMapping.setProduces(MediaType.TEXT_EVENT_STREAM_VALUE);
+    endpoint.setRequestMapping(requestMapping);
+    endpoint.setRequestChannelName("requests");
+    return endpoint;
+}
+----
+[source, xml, role="secondary"]
+.XML
+----
+<int-webflux:inbound-channel-adapter id="reactiveFullConfig" channel="requests"
+                               path="test1"
+                               auto-startup="false"
+                               phase="101"
+                               request-payload-type="byte[]"
+                               error-channel="errorChannel"
+                               payload-expression="payload"
+                               supported-methods="PUT"
+                               status-code-expression="'202'"
+                               header-mapper="headerMapper"
+                               codec-configurer="codecConfigurer"
+                               reactive-adapter-registry="reactiveAdapterRegistry"
+                               requested-content-type-resolver="requestedContentTypeResolver">
+            <int-webflux:request-mapping headers="foo"/>
+            <int-webflux:cross-origin origin="foo" method="PUT"/>
+            <int-webflux:header name="foo" expression="'foo'"/>
+</int-webflux:inbound-channel-adapter>
+----
+====
+
+See <<./http.adoc#http-request-mapping,Request Mapping Support>> and <<./http.adoc#http-cors,Cross-origin Resource Sharing (CORS) Support>> for more possible configuration options.
+
+When the request body is empty or `payloadExpression` returns `null`, the request params (`MultiValueMap<String, String>`) is used for a `payload` of the target message to process.
+
+[[webflux-validation]]
+==== Payload Validation
+
+Starting with version 5.2, the `WebFluxInboundEndpoint` can be configured with a `Validator`.
+Unlike the MVC validation in the <<./http.adoc#http-validation,HTTP Support>>, it is used to validate elements in the `Publisher` to which a request has been converted by the `HttpMessageReader`, before performing a fallback and `payloadExpression` functions.
+The Framework can't assume how complex the `Publisher` object can be after building the final payload.
+If there is a requirements to restrict validation visibility for exactly final payload (or its `Publisher` elements), the validation should go downstream instead of WebFlux endpoint.
+See more information in the Spring WebFlux https://docs.spring.io/spring/docs/5.1.8.RELEASE/spring-framework-reference/web-reactive.html#webflux-fn-handler-validation[documentation].
+An invalid payload is rejected with an `IntegrationWebExchangeBindException` (a `WebExchangeBindException` extension), containing all the validation `Errors`.
+See more in Spring Framework https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#validation[Reference Manual] about validation.
+
+[[webflux-outbound]]
+=== WebFlux Outbound Components
+
+The `WebFluxRequestExecutingMessageHandler` (starting with version 5.0) implementation is similar to `HttpRequestExecutingMessageHandler`.
+It uses a `WebClient` from the Spring Framework WebFlux module.
+To configure it, define a bean similar to the following:
+
+====
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow outboundReactive() {
+    return f -> f
+        .handle(WebFlux.<MultiValueMap<String, String>>outboundGateway(m ->
+                UriComponentsBuilder.fromUriString("http://localhost:8080/foo")
+                        .queryParams(m.getPayload())
+                        .build()
+                        .toUri())
+                .httpMethod(HttpMethod.GET)
+                .expectedResponseType(String.class));
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun outboundReactive() =
+    integrationFlow {
+        handle(
+            WebFlux.outboundGateway<MultiValueMap<String, String>>({ m ->
+                UriComponentsBuilder.fromUriString("http://localhost:8080/foo")
+                    .queryParams(m.getPayload())
+                    .build()
+                    .toUri()
+            })
+                .httpMethod(HttpMethod.GET)
+                .expectedResponseType(String::class.java)
+        )
+    }
+----
+[source, java, role="secondary"]
+.Java
+----
+@ServiceActivator(inputChannel = "reactiveHttpOutRequest")
+@Bean
+public WebFluxRequestExecutingMessageHandler reactiveOutbound(WebClient client) {
+    WebFluxRequestExecutingMessageHandler handler =
+        new WebFluxRequestExecutingMessageHandler("http://localhost:8080/foo", client);
+    handler.setHttpMethod(HttpMethod.POST);
+    handler.setExpectedResponseType(String.class);
+    return handler;
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int-webflux:outbound-gateway id="reactiveExample1"
     request-channel="requests"
@@ -257,93 +289,30 @@ The following example shows how to configure both an outbound gateway and an out
     expected-response-type="java.lang.String"
     order="3"
     auto-startup="false"/>
-
 ----
 ====
 
-[[webflux-java-config]]
-=== Configuring WebFlux Endpoints with Java
+The `WebClient` `exchange()` operation returns a `Mono<ClientResponse>`, which is mapped (by using several `Mono.map()` steps) to an `AbstractIntegrationMessageBuilder` as the output from the `WebFluxRequestExecutingMessageHandler`.
+Together with the `ReactiveChannel` as an `outputChannel`, the `Mono<ClientResponse>` evaluation is deferred until a downstream subscription is made.
+Otherwise, it is treated as an `async` mode, and the `Mono` response is adapted to a `SettableListenableFuture` for an asynchronous reply from the `WebFluxRequestExecutingMessageHandler`.
+The target payload of the output message depends on the `WebFluxRequestExecutingMessageHandler` configuration.
+The `setExpectedResponseType(Class<?>)` or `setExpectedResponseTypeExpression(Expression)` identifies the target type of the response body element conversion.
+If `replyPayloadToFlux` is set to `true`, the response body is converted to a `Flux` with the provided `expectedResponseType` for each element, and this `Flux` is sent as the payload downstream.
+Afterwards, you can use a <<./splitter.adoc#splitter,splitter>> to iterate over this `Flux` in a reactive manner.
 
-The following example shows how to configure a WebFlux inbound endpoint with Java:
+In addition a `BodyExtractor<?, ClientHttpResponse>` can be injected into the `WebFluxRequestExecutingMessageHandler` instead of the `expectedResponseType` and `replyPayloadToFlux` properties.
+It can be used for low-level access to the `ClientHttpResponse` and more control over body and HTTP headers conversion.
+Spring Integration provides `ClientHttpResponseBodyExtractor` as a identity function to produce (downstream) the whole `ClientHttpResponse` and any other possible custom logic.
 
-====
-[source, java]
-----
-@Bean
-public WebFluxInboundEndpoint jsonInboundEndpoint() {
-    WebFluxInboundEndpoint endpoint = new WebFluxInboundEndpoint();
-    RequestMapping requestMapping = new RequestMapping();
-    requestMapping.setPathPatterns("/persons");
-    endpoint.setRequestMapping(requestMapping);
-    endpoint.setRequestChannel(fluxResultChannel());
-    return endpoint;
-}
+Starting with version 5.2, the `WebFluxRequestExecutingMessageHandler` supports reactive `Publisher`, `Resource`, and `MultiValueMap` types as the request message payload.
+A respective `BodyInserter` is used internally to be populated into the `WebClient.RequestBodySpec`.
+When the payload is a reactive `Publisher`, a configured `publisherElementType` or `publisherElementTypeExpression` can be used to determine a type for the publisher's element type.
+The expression must be resolved to a `Class<?>`, `String` which is resolved to the target `Class<?>` or `ParameterizedTypeReference`.
 
-@Bean
-public MessageChannel fluxResultChannel() {
-    return new FluxMessageChannel();
-}
+Starting with version 5.5, the `WebFluxRequestExecutingMessageHandler` exposes an `extractResponseBody` flag (which is `true` by default) to return just the response body, or to return the whole `ResponseEntity` as the reply message payload, independently of the provided `expectedResponseType` or `replyPayloadToFlux`.
+If a body is not present in the `ResponseEntity`, this flag is ignored and the whole `ResponseEntity` is returned.
 
-@ServiceActivator(inputChannel = "fluxResultChannel")
-Flux<Person> getPersons() {
-    return Flux.just(new Person("Jane"), new Person("Jason"), new Person("John"));
-}
-----
-====
-
-The following example shows how to configure a WebFlux inbound gateway with the Java DSL:
-
-====
-[source, java]
-----
-@Bean
-public IntegrationFlow inboundChannelAdapterFlow() {
-    return IntegrationFlows
-        .from(WebFlux.inboundChannelAdapter("/reactivePost")
-            .requestMapping(m -> m.methods(HttpMethod.POST))
-            .requestPayloadType(ResolvableType.forClassWithGenerics(Flux.class, String.class))
-            .statusCodeFunction(m -> HttpStatus.ACCEPTED))
-        .channel(c -> c.queue("storeChannel"))
-        .get();
-}
-----
-====
-
-The following example shows how to configure a WebFlux outbound gateway with Java:
-
-====
-[source, java]
-----
-@ServiceActivator(inputChannel = "reactiveHttpOutRequest")
-@Bean
-public WebFluxRequestExecutingMessageHandler reactiveOutbound(WebClient client) {
-    WebFluxRequestExecutingMessageHandler handler =
-        new WebFluxRequestExecutingMessageHandler("http://localhost:8080/foo", client);
-    handler.setHttpMethod(HttpMethod.POST);
-    handler.setExpectedResponseType(String.class);
-    return handler;
-}
-----
-====
-
-The following example shows how to configure a WebFlux outbound gateway with the Java DSL:
-
-====
-[source, java]
-----
-@Bean
-public IntegrationFlow outboundReactive() {
-    return f -> f
-        .handle(WebFlux.<MultiValueMap<String, String>>outboundGateway(m ->
-                UriComponentsBuilder.fromUriString("http://localhost:8080/foo")
-                        .queryParams(m.getPayload())
-                        .build()
-                        .toUri())
-                .httpMethod(HttpMethod.GET)
-                .expectedResponseType(String.class));
-}
-----
-====
+See <<./http.adoc#http-outbound,HTTP Outbound Components>> for more possible configuration options.
 
 [[webflux-header-mapping]]
 === WebFlux Header Mappings

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,6 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 	@After
 	public void tearDown() {
 		this.reactiveRedisStreamProducer.stop();
-		RedisAvailableRule.connectionFactory.resetConnection();
 	}
 
 	@Test
@@ -327,11 +326,8 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 		ReactiveRedisStreamMessageProducer reactiveErrorRedisStreamProducer() {
 			ReactiveRedisStreamMessageProducer messageProducer =
 					new ReactiveRedisStreamMessageProducer(RedisAvailableRule.connectionFactory, STREAM_KEY);
-			messageProducer.setStreamReceiverOptions(
-					StreamReceiver.StreamReceiverOptions.builder()
-							.pollTimeout(Duration.ofMillis(100))
-							.targetType(Date.class)
-							.build());
+			messageProducer.setTargetType(Date.class);
+			messageProducer.setPollTimeout(Duration.ofMillis(100));
 			messageProducer.setCreateConsumerGroup(true);
 			messageProducer.setAutoAck(false);
 			messageProducer.setConsumerName("testConsumer");

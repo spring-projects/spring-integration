@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * {@link MessageConverter#fromMessage(Message, Class)} and {@link MessageConverter#toMessage(Object, MessageHeaders)}
  * methods.
  * <p>
- * If {@link MessageConverter#fromMessage(Message, Class)} returns {@link String}, it is converted to {@link byte[]}
+ * If {@link MessageConverter#fromMessage(Message, Class)} returns {@link String}, it is converted to {@code byte[]}
  * using a {@link StandardCharsets#UTF_8} encoding.
  *
  * @author Artem Bilan

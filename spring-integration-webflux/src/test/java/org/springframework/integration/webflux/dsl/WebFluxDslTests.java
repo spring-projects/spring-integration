@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,9 @@ import java.security.Principal;
 import java.time.Duration;
 import java.util.Collections;
 
-import javax.annotation.Resource;
-
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 
@@ -40,9 +38,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -91,6 +91,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import reactor.core.publisher.Flux;
@@ -107,7 +108,6 @@ import reactor.test.StepVerifier;
  */
 @SpringJUnitWebConfig
 @DirtiesContext
-@Disabled
 public class WebFluxDslTests {
 
 	@Autowired
@@ -120,7 +120,8 @@ public class WebFluxDslTests {
 	@Qualifier("webFluxWithReplyPayloadToFlux.handler")
 	private WebFluxRequestExecutingMessageHandler webFluxWithReplyPayloadToFlux;
 
-	@Resource(name = "httpReactiveProxyFlow.webflux:outbound-gateway#0")
+	@Autowired
+	@Qualifier("httpReactiveProxyFlow.webflux:outbound-gateway#0")
 	private WebFluxRequestExecutingMessageHandler httpReactiveProxyFlow;
 
 	@Autowired
@@ -175,11 +176,14 @@ public class WebFluxDslTests {
 
 		Message<?> receive = replyChannel.receive(10_000);
 
-		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isInstanceOf(Flux.class);
+		assertThat(receive).isNotNull()
+				.extracting(Message::getPayload)
+				.asInstanceOf(InstanceOfAssertFactories.type(ResponseEntity.class))
+				.extracting(HttpEntity<Flux<String>>::getBody)
+				.isInstanceOf(Flux.class);
 
 		@SuppressWarnings("unchecked")
-		Flux<String> response = (Flux<String>) receive.getPayload();
+		Flux<String> response = ((ResponseEntity<Flux<String>>) receive.getPayload()).getBody();
 
 		StepVerifier.create(response)
 				.expectNext("FOO", "BAR")
@@ -413,13 +417,18 @@ public class WebFluxDslTests {
 					.handle(WebFlux.outboundGateway("https://www.springsource.org/spring-integration")
 									.httpMethod(HttpMethod.GET)
 									.replyPayloadToFlux(true)
-									.expectedResponseType(String.class),
+									.expectedResponseType(String.class)
+									.extractResponseBody(false),
 							e -> e
 									.id("webFluxWithReplyPayloadToFlux")
 									.customizeMonoReply(
 											(message, mono) ->
-													mono.timeout(Duration.ofMillis(100))
-															.retry()));
+													mono.
+															timeout(Duration.ofMillis(100))
+															.retry()
+															.onErrorResume(
+																	WebClientResponseException.NotFound.class,
+																	ex -> Mono.just("Not Found"))));
 		}
 
 		@Bean
@@ -481,7 +490,7 @@ public class WebFluxDslTests {
 					.from(WebFlux.inboundGateway("/sse")
 							.requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE))
 							.mappedResponseHeaders("*"))
-					.enrichHeaders(Collections.singletonMap("aHeader", new String[]{"foo", "bar", "baz"}))
+					.enrichHeaders(Collections.singletonMap("aHeader", new String[]{ "foo", "bar", "baz" }))
 					.handle((p, h) -> Flux.fromArray(h.get("aHeader", String[].class)))
 					.get();
 		}

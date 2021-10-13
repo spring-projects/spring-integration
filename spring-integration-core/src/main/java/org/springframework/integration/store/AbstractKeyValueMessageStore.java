@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * Base class for implementations of Key/Value style {@link MessageGroupStore} and {@link MessageStore}
+ * Base class for implementations of Key/Value style {@link MessageGroupStore} and {@link MessageStore}.
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -160,7 +161,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
-		Collection<?> messageIds = doListKeys(this.messagePrefix + "*");
+		Collection<?> messageIds = doListKeys(this.messagePrefix + '*');
 		return (messageIds != null) ? messageIds.size() : 0;
 	}
 
@@ -179,6 +180,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 					.create(this, groupId, metadata.getTimestamp(), metadata.isComplete());
 			messageGroup.setLastModified(metadata.getLastModified());
 			messageGroup.setLastReleasedMessageSequenceNumber(metadata.getLastReleasedMessageSequenceNumber());
+			messageGroup.setCondition(metadata.getCondition());
 			return messageGroup;
 		}
 		else {
@@ -294,6 +296,15 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
+	public void setGroupCondition(Object groupId, String condition) {
+		MessageGroupMetadata metadata = getGroupMetadata(groupId);
+		if (metadata != null) {
+			metadata.setCondition(condition);
+			doStore(this.groupPrefix + groupId, metadata);
+		}
+	}
+
+	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		MessageGroupMetadata metadata = getGroupMetadata(groupId);
@@ -347,10 +358,18 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
+	public Stream<Message<?>> streamMessagesForGroup(Object groupId) {
+		return getGroupMetadata(groupId)
+				.getMessageIds()
+				.stream()
+				.map(this::getMessage);
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public Iterator<MessageGroup> iterator() {
 		final Iterator<?> idIterator = normalizeKeys(
-				(Collection<String>) doListKeys(this.groupPrefix + "*"))
+				(Collection<String>) doListKeys(this.groupPrefix + '*'))
 				.iterator();
 		return new MessageGroupIterator(idIterator);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,15 +71,14 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Polled message source for kafka. Only one thread can poll for data (or
- * acknowledge a message) at a time.
+ * Polled message source for Apache Kafka.
+ * Only one thread can poll for data (or acknowledge a message) at a time.
  * <p>
  * NOTE: If the application acknowledges messages out of order, the acks
  * will be deferred until all messages prior to the offset are ack'd.
  * If multiple records are retrieved and an earlier offset is requeued, records
  * from the subsequent offsets will be redelivered - even if they were
- * processed successfully. Applications should therefore implement
- * idempotency.
+ * processed successfully. Applications should therefore implement idempotency.
  * <p>
  * Starting with version 3.1.2, this source implements {@link Pausable} which
  * allows you to pause and resume the {@link Consumer}. While the consumer is
@@ -146,6 +145,10 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	private volatile boolean paused;
 
 	private volatile Iterator<ConsumerRecord<K, V>> recordsIterator;
+
+	private volatile boolean stopped;
+
+	public volatile boolean newAssignment; // NOSONAR - direct access from inner
 
 	/**
 	 * Construct an instance with the supplied parameters. Fetching multiple
@@ -387,12 +390,14 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	@Override
 	public synchronized void start() {
 		this.running = true;
+		this.stopped = false;
 	}
 
 	@Override
 	public synchronized void stop() {
 		stopConsumer();
 		this.running = false;
+		this.stopped = true;
 	}
 
 	@Override
@@ -410,8 +415,12 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		return this.paused;
 	}
 
-	@Override
+	@Override // NOSONAR - not so complex
 	protected synchronized Object doReceive() {
+		if (this.stopped) {
+			this.logger.debug("Message source is stopped; no records will be returned");
+			return null;
+		}
 		if (this.consumer == null) {
 			createConsumer();
 			this.running = true;
@@ -440,7 +449,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 					this.consumerProperties.getClientId(), null, this.consumerProperties.getKafkaConsumerProperties());
 
 			ConsumerRebalanceListener rebalanceCallback =
-					new ItegrationConsumerRebalanceListener(this.consumerProperties.getConsumerRebalanceListener());
+					new IntegrationConsumerRebalanceListener(this.consumerProperties.getConsumerRebalanceListener());
 
 			Pattern topicPattern = this.consumerProperties.getTopicPattern();
 			TopicPartitionOffset[] partitions = this.consumerProperties.getTopicPartitions();
@@ -512,14 +521,27 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 		else {
 			synchronized (this.consumerMonitor) {
-				ConsumerRecords<K, V> records = this.consumer
-						.poll(this.assignedPartitions.isEmpty() ? this.assignTimeout : this.pollTimeout);
-				if (records == null || records.count() == 0) {
+				try {
+					ConsumerRecords<K, V> records = this.consumer
+							.poll(this.assignedPartitions.isEmpty() ? this.assignTimeout : this.pollTimeout);
+					this.logger.debug(() -> records == null
+							? "Received null"
+							: "Received " + records.count() + " records");
+					if (records == null || records.count() == 0) {
+						return null;
+					}
+					this.remainingCount.set(records.count());
+					this.recordsIterator = records.iterator();
+					return nextRecord();
+				}
+				catch (WakeupException ex) {
+					this.logger.debug("Woken");
+					if (this.newAssignment) {
+						this.newAssignment = false;
+						return pollRecord();
+					}
 					return null;
 				}
-				this.remainingCount.set(records.count());
-				this.recordsIterator = records.iterator();
-				return nextRecord();
 			}
 		}
 	}
@@ -580,13 +602,13 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 	}
 
-	private class ItegrationConsumerRebalanceListener implements ConsumerRebalanceListener {
+	private class IntegrationConsumerRebalanceListener implements ConsumerRebalanceListener {
 
 		private final ConsumerRebalanceListener providedRebalanceListener;
 
 		private final boolean isConsumerAware;
 
-		ItegrationConsumerRebalanceListener(ConsumerRebalanceListener providedRebalanceListener) {
+		IntegrationConsumerRebalanceListener(ConsumerRebalanceListener providedRebalanceListener) {
 			this.providedRebalanceListener = providedRebalanceListener;
 			this.isConsumerAware = providedRebalanceListener instanceof ConsumerAwareRebalanceListener;
 		}
@@ -594,9 +616,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		@Override
 		public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
 			KafkaMessageSource.this.assignedPartitions.removeAll(partitions);
-			if (KafkaMessageSource.this.logger.isInfoEnabled()) {
-				KafkaMessageSource.this.logger.info("Partitions revoked: " + partitions);
-			}
+			KafkaMessageSource.this.logger.info(() -> "Partitions revoked: " + partitions);
 			if (this.providedRebalanceListener != null) {
 				if (this.isConsumerAware) {
 					((ConsumerAwareRebalanceListener) this.providedRebalanceListener)
@@ -625,9 +645,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				KafkaMessageSource.this.logger.warn("Paused consumer resumed by Kafka due to rebalance; "
 						+ "consumer paused again, so the initial poll() will never return any records");
 			}
-			if (KafkaMessageSource.this.logger.isInfoEnabled()) {
-				KafkaMessageSource.this.logger.info("Partitions assigned: " + partitions);
-			}
+			KafkaMessageSource.this.logger.info(() -> "Partitions assigned: " + partitions);
 			if (this.providedRebalanceListener != null) {
 				if (this.isConsumerAware) {
 					((ConsumerAwareRebalanceListener) this.providedRebalanceListener)
@@ -637,6 +655,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 					this.providedRebalanceListener.onPartitionsAssigned(partitions);
 				}
 			}
+			KafkaMessageSource.this.consumer.wakeup();
+			KafkaMessageSource.this.newAssignment = true;
 		}
 
 	}
@@ -783,7 +803,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 						// see if there are any pending acks for higher offsets
 						List<KafkaAckInfo<K, V>> toCommit = new ArrayList<>();
 						for (KafkaAckInfo<K, V> info : candidates) {
-							if (info != this.ackInfo) {
+							if (!this.ackInfo.equals(info)) {
 								if (info.isAckDeferred()) {
 									toCommit.add(info);
 								}
@@ -828,9 +848,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 						}
 					}
 					else {
-						if (this.logger.isDebugEnabled()) {
-							this.logger.debug("Deferring commit offset; earlier messages are in flight.");
-						}
+						this.logger.debug("Deferring commit offset; earlier messages are in flight.");
 					}
 				}
 			}

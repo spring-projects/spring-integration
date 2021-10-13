@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,14 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	private final MultiValueMap<String, String> lazyLifecycles = new LinkedMultiValueMap<>();
 
 	private ApplicationContext applicationContext;
+
+	/**
+	 * Construct an instance without any lifecycle initially: can be added later on via
+	 * {@link #addLifecycleToRole(String, SmartLifecycle)}.
+	 * @since 5.5
+	 */
+	public SmartLifecycleRoleController() {
+	}
 
 	/**
 	 * Construct an instance with the provided lists of roles and lifecycles, which must be of equal length.

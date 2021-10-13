@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,17 +39,14 @@ import javax.jms.Session;
 import javax.jms.TemporaryQueue;
 import javax.jms.TextMessage;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.jms.JmsOutboundGateway.ReplyContainerProperties;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jms.JmsException;
@@ -70,11 +67,6 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	@Rule
-	public Log4j2LevelAdjuster adjuster =
-			Log4j2LevelAdjuster.trace()
-					.categories(true, "org.springframework.jms", "org.apache");
-
 	@Test
 	public void testContainerBeanNameWhenNoGatewayBeanName() {
 		JmsOutboundGateway gateway = new JmsOutboundGateway();
@@ -89,7 +81,6 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 						".replyListener");
 	}
 
-	@SuppressWarnings("serial")
 	@Test
 	public void testReplyContainerRecovery() throws Exception {
 		JmsOutboundGateway gateway = new JmsOutboundGateway();
@@ -98,7 +89,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.setRequestDestinationName("foo");
 		gateway.setUseReplyContainer(true);
 		ReplyContainerProperties replyContainerProperties = new ReplyContainerProperties();
-		final List<Throwable> errors = new ArrayList<Throwable>();
+		final List<Throwable> errors = new ArrayList<>();
 		ExecutorService exec = Executors.newFixedThreadPool(10);
 		ErrorHandlingTaskExecutor errorHandlingTaskExecutor =
 				new ErrorHandlingTaskExecutor(exec, t -> {
@@ -162,9 +153,8 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 	}
 
 	@Test
-	public void testConnectionBreakOnReplyMessageIdCorrelation() throws Exception {
-		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(
-				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+	public void testConnectionBreakOnReplyMessageIdCorrelation() {
+		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(ActiveMQMultiContextTests.amqFactory);
 		connectionFactory1.setCacheConsumers(false);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setConnectionFactory(connectionFactory1);
@@ -179,35 +169,38 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.afterPropertiesSet();
 		gateway.start();
 		ExecutorService exec = Executors.newSingleThreadExecutor();
-		exec.execute(() -> gateway.handleMessage(new GenericMessage<String>("foo")));
-		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
-				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(ActiveMQMultiContextTests.amqFactory);
 		connectionFactory2.setCacheConsumers(false);
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
 		template.setReceiveTimeout(10000);
 		template.afterPropertiesSet();
-		final Message request = template.receive(requestQ);
-		assertThat(request).isNotNull();
-		connectionFactory1.resetConnection();
-		MessageCreator reply = session -> {
-			TextMessage reply1 = session.createTextMessage("bar");
-			reply1.setJMSCorrelationID(request.getJMSMessageID());
-			return reply1;
-		};
-		template.send(replyQ, reply);
-		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
-		assertThat(received).isNotNull();
-		assertThat(received.getPayload()).isEqualTo("bar");
-		gateway.stop();
-		connectionFactory1.destroy();
-		connectionFactory2.destroy();
-		exec.shutdownNow();
+		try {
+			exec.execute(() -> gateway.handleMessage(new GenericMessage<>("foo")));
+			final Message request = template.receive(requestQ);
+			assertThat(request).isNotNull();
+			connectionFactory1.resetConnection();
+			MessageCreator reply =
+					session -> {
+						TextMessage reply1 = session.createTextMessage("bar");
+						reply1.setJMSCorrelationID(request.getJMSMessageID());
+						return reply1;
+					};
+			template.send(replyQ, reply);
+			org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
+			assertThat(received).isNotNull();
+			assertThat(received.getPayload()).isEqualTo("bar");
+		}
+		finally {
+			gateway.stop();
+			connectionFactory1.destroy();
+			connectionFactory2.destroy();
+			exec.shutdownNow();
+		}
 	}
 
 	@Test
-	public void testConnectionBreakOnReplyCustomCorrelation() throws Exception {
-		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(
-				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+	public void testConnectionBreakOnReplyCustomCorrelation() {
+		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(ActiveMQMultiContextTests.amqFactory);
 		connectionFactory1.setCacheConsumers(false);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setConnectionFactory(connectionFactory1);
@@ -223,31 +216,34 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.afterPropertiesSet();
 		gateway.start();
 		ExecutorService exec = Executors.newSingleThreadExecutor();
-		exec.execute(() -> gateway.handleMessage(new GenericMessage<String>("foo")));
-		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
-				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(ActiveMQMultiContextTests.amqFactory);
 		connectionFactory2.setCacheConsumers(false);
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
 		template.setReceiveTimeout(10000);
 		template.afterPropertiesSet();
-		final Message request = template.receive(requestQ);
-		assertThat(request).isNotNull();
-		connectionFactory1.resetConnection();
-		MessageCreator reply = session -> {
-			TextMessage reply1 = session.createTextMessage("bar");
-			reply1.setJMSCorrelationID(request.getJMSCorrelationID());
-			return reply1;
-		};
-		logger.debug("Sending reply to: " + replyQ);
-		template.send(replyQ, reply);
-		logger.debug("Sent reply to: " + replyQ);
-		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
-		assertThat(received).isNotNull();
-		assertThat(received.getPayload()).isEqualTo("bar");
-		gateway.stop();
-		connectionFactory1.destroy();
-		connectionFactory2.destroy();
-		exec.shutdownNow();
+		try {
+			exec.execute(() -> gateway.handleMessage(new GenericMessage<>("foo")));
+			Message request = template.receive(requestQ);
+			assertThat(request).isNotNull();
+			connectionFactory1.resetConnection();
+			MessageCreator reply = session -> {
+				TextMessage reply1 = session.createTextMessage("bar");
+				reply1.setJMSCorrelationID(request.getJMSCorrelationID());
+				return reply1;
+			};
+			logger.debug("Sending reply to: " + replyQ);
+			template.send(replyQ, reply);
+			logger.debug("Sent reply to: " + replyQ);
+			org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
+			assertThat(received).isNotNull();
+			assertThat(received.getPayload()).isEqualTo("bar");
+		}
+		finally {
+			gateway.stop();
+			connectionFactory1.destroy();
+			connectionFactory2.destroy();
+			exec.shutdownNow();
+		}
 	}
 
 }

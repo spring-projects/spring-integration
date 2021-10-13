@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.amqp.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -30,10 +32,13 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.amqp.core.AcknowledgeMode;
@@ -47,6 +52,7 @@ import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareBatchMessageListener;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
+import org.springframework.amqp.rabbit.retry.MessageBatchRecoverer;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -363,6 +369,39 @@ public class InboundEndpointTests {
 	}
 
 	@Test
+	public void testRetryWithMessageRecovererOnMessageAdapter() throws Exception {
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		adapter.setOutputChannel(new DirectChannel());
+		adapter.setRetryTemplate(new RetryTemplate());
+		AtomicReference<org.springframework.amqp.core.Message> recoveredMessage = new AtomicReference<>();
+		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
+		CountDownLatch recoveredLatch = new CountDownLatch(1);
+		adapter.setMessageRecoverer((message, cause) -> {
+			recoveredMessage.set(message);
+			recoveredError.set(cause);
+			recoveredLatch.countDown();
+		});
+		adapter.afterPropertiesSet();
+		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
+		org.springframework.amqp.core.Message amqpMessage =
+				org.springframework.amqp.core.MessageBuilder.withBody("foo".getBytes())
+						.andProperties(new MessageProperties())
+						.build();
+		listener.onMessage(amqpMessage, null);
+
+		assertThat(recoveredLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		assertThat(recoveredError.get())
+				.isInstanceOf(MessagingException.class)
+				.extracting(Throwable::getMessage, InstanceOfAssertFactories.STRING)
+				.contains("Dispatcher has no");
+
+		assertThat(recoveredMessage.get()).isSameAs(amqpMessage);
+	}
+
+	@Test
 	public void testRetryWithinOnMessageGateway() throws Exception {
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
@@ -388,6 +427,39 @@ public class InboundEndpointTests {
 						org.springframework.amqp.core.Message.class);
 		assertThat(amqpMessage).isNotNull();
 		assertThat(errors.receive(0)).isNull();
+	}
+
+	@Test
+	public void testRetryWithMessageRecovererOnMessageGateway() throws Exception {
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+		AmqpInboundGateway adapter = new AmqpInboundGateway(container);
+		adapter.setRequestChannel(new DirectChannel());
+		adapter.setRetryTemplate(new RetryTemplate());
+		AtomicReference<org.springframework.amqp.core.Message> recoveredMessage = new AtomicReference<>();
+		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
+		CountDownLatch recoveredLatch = new CountDownLatch(1);
+		adapter.setMessageRecoverer((message, cause) -> {
+			recoveredMessage.set(message);
+			recoveredError.set(cause);
+			recoveredLatch.countDown();
+		});
+		adapter.afterPropertiesSet();
+		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
+		org.springframework.amqp.core.Message amqpMessage =
+				org.springframework.amqp.core.MessageBuilder.withBody("foo".getBytes())
+						.andProperties(new MessageProperties())
+						.build();
+		listener.onMessage(amqpMessage, null);
+
+		assertThat(recoveredLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		assertThat(recoveredError.get())
+				.isInstanceOf(MessagingException.class)
+				.extracting(Throwable::getMessage, InstanceOfAssertFactories.STRING)
+				.contains("Dispatcher has no");
+
+		assertThat(recoveredMessage.get()).isSameAs(amqpMessage);
 	}
 
 	@SuppressWarnings({ "unchecked" })
@@ -443,7 +515,7 @@ public class InboundEndpointTests {
 
 	@SuppressWarnings({ "unchecked" })
 	@Test
-	public void testConsumerBatchExtract() throws Exception {
+	public void testConsumerBatchExtract() {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
 		container.setConsumerBatchEnabled(true);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
@@ -462,12 +534,12 @@ public class InboundEndpointTests {
 		assertThat(received).isNotNull();
 		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
 		assertThat(received.getHeaders().get(AmqpInboundChannelAdapter.CONSOLIDATED_HEADERS, List.class))
-			.hasSize(2);
+				.hasSize(2);
 	}
 
 	@SuppressWarnings({ "unchecked" })
 	@Test
-	public void testConsumerBatch() throws Exception {
+	public void testConsumerBatch() {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
 		container.setConsumerBatchEnabled(true);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
@@ -484,12 +556,37 @@ public class InboundEndpointTests {
 		Message<?> received = out.receive(0);
 		assertThat(received).isNotNull();
 		assertThat(((List<Message<String>>) received.getPayload()))
-			.extracting(message -> message.getPayload())
-			.contains("test1", "test2");
+				.extracting(message -> message.getPayload())
+				.contains("test1", "test2");
 	}
 
 	@Test
-	public void testAdapterConversionErrorConsumerBatchExtract() throws Exception {
+	public void testConsumerBatchAndWrongMessageRecoverer() {
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
+		container.setConsumerBatchEnabled(true);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		adapter.setRetryTemplate(new RetryTemplate());
+		adapter.setMessageRecoverer((message, cause) -> { });
+		assertThatIllegalArgumentException()
+				.isThrownBy(adapter::afterPropertiesSet)
+				.withMessageStartingWith("The 'messageRecoverer' must be an instance of MessageBatchRecoverer " +
+						"when consumer configured for batch mode");
+	}
+
+	@Test
+	public void testExclusiveRecover() {
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(mock(AbstractMessageListenerContainer.class));
+		adapter.setRetryTemplate(new RetryTemplate());
+		adapter.setMessageRecoverer((message, cause) -> { });
+		adapter.setRecoveryCallback(context -> null);
+		assertThatIllegalStateException()
+				.isThrownBy(adapter::afterPropertiesSet)
+				.withMessageStartingWith("Only one of 'recoveryCallback' or 'messageRecoverer' may be provided, " +
+						"but not both");
+	}
+
+	@Test
+	public void testAdapterConversionErrorConsumerBatchExtract() {
 		Connection connection = mock(Connection.class);
 		doAnswer(invocation -> mock(Channel.class)).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
@@ -546,7 +643,7 @@ public class InboundEndpointTests {
 	}
 
 	@Test
-	public void testAdapterConversionErrorConsumerBatch() throws Exception {
+	public void testAdapterConversionErrorConsumerBatch() {
 		Connection connection = mock(Connection.class);
 		doAnswer(invocation -> mock(Channel.class)).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
@@ -602,7 +699,7 @@ public class InboundEndpointTests {
 	}
 
 	@Test
-	public void testRetryWithinOnMessageAdapterConsumerBatch() throws Exception {
+	public void testRetryWithinOnMessageAdapterConsumerBatch() {
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		container.setConsumerBatchEnabled(true);
@@ -641,10 +738,49 @@ public class InboundEndpointTests {
 		List<Message<?>> msgs = (List<Message<?>>) payload.getFailedMessage().getPayload();
 		assertThat(msgs).hasSize(2);
 		assertThat(msgs).extracting(msg -> StaticMessageHeaderAccessor.getDeliveryAttempt(msg).get())
-			.contains(3, 3);
+				.contains(3, 3);
 		assertThat(msgs).extracting(msg -> msg.getHeaders().get(AmqpHeaders.DELIVERY_TAG, Long.class))
-			.contains(42L, 43L);
+				.contains(42L, 43L);
 		assertThat(errors.receive(0)).isNull();
+	}
+
+	@Test
+	public void testRetryWithMessageRecovererOnMessageAdapterConsumerBatch() throws InterruptedException {
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+		container.setConsumerBatchEnabled(true);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		adapter.setOutputChannel(new DirectChannel());
+		adapter.setRetryTemplate(new RetryTemplate());
+		AtomicReference<List<org.springframework.amqp.core.Message>> recoveredMessages = new AtomicReference<>();
+		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
+		CountDownLatch recoveredLatch = new CountDownLatch(1);
+		adapter.setMessageRecoverer((MessageBatchRecoverer) (messages, cause) -> {
+			recoveredMessages.set(messages);
+			recoveredError.set(cause);
+			recoveredLatch.countDown();
+		});
+		adapter.afterPropertiesSet();
+		ChannelAwareBatchMessageListener listener = (ChannelAwareBatchMessageListener) container.getMessageListener();
+		MessageProperties messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		messageProperties.setDeliveryTag(42L);
+		List<org.springframework.amqp.core.Message> messages = new ArrayList<>();
+		messages.add(new org.springframework.amqp.core.Message("test1".getBytes(), messageProperties));
+		messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		messageProperties.setDeliveryTag(43L);
+		messages.add(new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties));
+		listener.onMessageBatch(messages, null);
+
+		assertThat(recoveredLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		assertThat(recoveredError.get())
+				.isInstanceOf(MessagingException.class)
+				.extracting(Throwable::getMessage, InstanceOfAssertFactories.STRING)
+				.contains("Dispatcher has no");
+
+		assertThat(recoveredMessages.get()).isSameAs(messages);
 	}
 
 	public static class Foo {
@@ -673,7 +809,7 @@ public class InboundEndpointTests {
 
 			Foo foo = (Foo) o;
 
-			return !(bar != null ? !bar.equals(foo.bar) : foo.bar != null);
+			return Objects.equals(bar, foo.bar);
 
 		}
 

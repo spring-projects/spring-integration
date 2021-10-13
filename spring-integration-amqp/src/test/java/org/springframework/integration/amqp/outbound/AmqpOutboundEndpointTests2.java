@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit.jupiter.DisabledIf;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
@@ -86,12 +85,10 @@ public class AmqpOutboundEndpointTests2 {
 				.setHeader(AmqpHeaders.PUBLISH_CONFIRM_CORRELATION, corr)
 				.build());
 		assertThat(corr.getFuture().get(10, TimeUnit.SECONDS).isAck()).isTrue();
-		assertThat(corr.getReturnedMessage()).isNotNull();
+		assertThat(corr.getReturned()).isNotNull();
 	}
 
 	@Test
-	@DisabledIf("#{systemEnvironment['TRAVIS'] ?: false}")
-		// needs RabbitMQ 3.7
 	void testWithReject(@Autowired IntegrationFlow flow, @Autowired RabbitAdmin admin,
 			@Autowired RabbitTemplate template) {
 

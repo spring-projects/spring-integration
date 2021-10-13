@@ -75,8 +75,6 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	private long retryInterval = DEFAULT_RETRY_INTERVAL;
 
-	private volatile boolean active;
-
 	private volatile ClientModeConnectionManager clientModeConnectionManager;
 
 	private volatile ScheduledFuture<?> scheduledFuture;
@@ -206,8 +204,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	protected void onInit() {
 		super.onInit();
 		if (this.isClientMode) {
-			Assert.notNull(this.clientConnectionFactory,
-					"For client-mode, connection factory must be type='client'");
+			Assert.notNull(this.clientConnectionFactory, "For client-mode, connection factory must be type='client'");
 			Assert.isTrue(!this.clientConnectionFactory.isSingleUse(),
 					"For client-mode, connection factory must have single-use='false'");
 		}
@@ -216,40 +213,34 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	@Override // protected by super#lifecycleLock
 	protected void doStart() {
 		super.doStart();
-		if (!this.active) {
-			this.active = true;
-			this.shuttingDown = false;
-			if (this.serverConnectionFactory != null) {
-				this.serverConnectionFactory.start();
-			}
-			if (this.clientConnectionFactory != null) {
-				this.clientConnectionFactory.start();
-			}
-			if (this.isClientMode) {
-				ClientModeConnectionManager manager =
-						new ClientModeConnectionManager(this.clientConnectionFactory);
-				this.clientModeConnectionManager = manager;
-				Assert.state(getTaskScheduler() != null, "Client mode requires a task scheduler");
-				this.scheduledFuture = getTaskScheduler().scheduleAtFixedRate(manager, this.retryInterval);
-			}
+		this.shuttingDown = false;
+		if (this.serverConnectionFactory != null) {
+			this.serverConnectionFactory.start();
+		}
+		if (this.clientConnectionFactory != null) {
+			this.clientConnectionFactory.start();
+		}
+		if (this.isClientMode) {
+			ClientModeConnectionManager manager =
+					new ClientModeConnectionManager(this.clientConnectionFactory);
+			this.clientModeConnectionManager = manager;
+			Assert.state(getTaskScheduler() != null, "Client mode requires a task scheduler");
+			this.scheduledFuture = getTaskScheduler().scheduleAtFixedRate(manager, this.retryInterval);
 		}
 	}
 
 	@Override // protected by super#lifecycleLock
 	protected void doStop() {
 		super.doStop();
-		if (this.active) {
-			this.active = false;
-			if (this.scheduledFuture != null) {
-				this.scheduledFuture.cancel(true);
-			}
-			this.clientModeConnectionManager = null;
-			if (this.clientConnectionFactory != null) {
-				this.clientConnectionFactory.stop();
-			}
-			if (this.serverConnectionFactory != null) {
-				this.serverConnectionFactory.stop();
-			}
+		if (this.scheduledFuture != null) {
+			this.scheduledFuture.cancel(true);
+		}
+		this.clientModeConnectionManager = null;
+		if (this.clientConnectionFactory != null) {
+			this.clientConnectionFactory.stop();
+		}
+		if (this.serverConnectionFactory != null) {
+			this.serverConnectionFactory.stop();
 		}
 	}
 
@@ -297,7 +288,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	@Override
 	public void retryConnection() {
-		if (this.active && this.isClientMode && this.clientModeConnectionManager != null) {
+		if (isActive() && this.isClientMode && this.clientModeConnectionManager != null) {
 			this.clientModeConnectionManager.run();
 		}
 	}

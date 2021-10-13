@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2020 the original author or authors.
+ * Copyright 2001-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private Expression remoteTimeoutExpression = new ValueExpression<>(DEFAULT_REMOTE_TIMEOUT);
 
-	private long requestTimeout = 10000;
+	private long requestTimeout = 10000; // NOSONAR magic number
 
 	private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
@@ -288,7 +288,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			logger.debug(() -> "Remote Timeout on " + connectionId);
 			// The connection is dirty - force it closed.
 			this.connectionFactory.forceClose(connection);
-			throw new MessageTimeoutException(requestMessage, "Timed out waiting for response");
+			String component = getComponentName();
+			throw new MessageTimeoutException(requestMessage, "Timed out waiting for response"
+					+ (component == null ? "" : "; component: " + component));
 		}
 		logger.debug(() -> "Response " + replyMessage);
 		return replyMessage;
@@ -455,7 +457,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 
 		/**
-		 * Sender blocks here until the reply is received, or we time out
+		 * Sender blocks here until the reply is received, or we time out.
 		 * @return The return message or null if we time out
 		 */
 		Message<?> getReply() {

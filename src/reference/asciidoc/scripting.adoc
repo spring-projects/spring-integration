@@ -2,14 +2,17 @@
 === Scripting Support
 
 Spring Integration 2.1 added support for the https://www.jcp.org/en/jsr/detail?id=223[JSR223 Scripting for Java specification], introduced in Java version 6.
-It lets you use scripts written in any supported language (including Ruby, JRuby, Javascript, Groovy and Kotlin) to provide the logic for various integration components, similar to the way the Spring Expression Language (SpEL) is used in Spring Integration.
+It lets you use scripts written in any supported language (including Ruby, JRuby, Groovy and Kotlin) to provide the logic for various integration components, similar to the way the Spring Expression Language (SpEL) is used in Spring Integration.
 For more information about JSR223, see the https://docs.oracle.com/javase/8/docs/technotes/guides/scripting/prog_guide/api.html[documentation].
+
+NOTE: Starting with Java 11, the Nashorn JavaScript Engine has been deprecated with possible removal in Java 15.
+It is recommended to reconsider in favor of other scripting language from now on.
 
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -17,9 +20,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-scripting:{project-version}"
 ----
@@ -30,8 +32,29 @@ In addition you need to add a script engine implementation, e.g. JRuby, Jython.
 Starting with version 5.2, Spring Integration provides a Kotlin Jsr223 support.
 You need to add these dependencies into your project to make it working:
 
+
 ====
-[source, groovy]
+[source, xml, subs="normal", role="primary"]
+.Maven
+----
+<dependency>
+    <groupId>org.jetbrains.kotlin</groupId>
+    <artifactId>kotlin-script-util</artifactId>
+    <scope>runtime</scope>
+</dependency>
+<dependency>
+    <groupId>org.jetbrains.kotlin</groupId>
+    <artifactId>kotlin-compiler-embeddable</artifactId>
+    <scope>runtime</scope>
+</dependency>
+<dependency>
+    <groupId>org.jetbrains.kotlin</groupId>
+    <artifactId>kotlin-scripting-compiler-embeddable</artifactId>
+    <scope>runtime</scope>
+</dependency>
+----
+[source, groovy, subs="normal", role="secondary"]
+.Gradle
 ----
 runtime 'org.jetbrains.kotlin:kotlin-script-util'
 runtime 'org.jetbrains.kotlin:kotlin-compiler-embeddable'
@@ -41,10 +64,7 @@ runtime 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable'
 
 The `KotlinScriptExecutor` is selected by the provided `kotlin` language indicator or script file comes with the `.kts` extension.
 
-IMPORTANT: Note that this feature requires Java 6 or higher.
-
 In order to use a JVM scripting language, a JSR223 implementation for that language must be included in your class path.
-Java 6 natively supports Javascript.
 The https://groovy-lang.org/[Groovy] and https://www.jruby.org[JRuby] projects provide JSR233 support in their standard distributions.
 
 IMPORTANT: Various JSR223 language implementations have been developed by third parties.
@@ -56,14 +76,32 @@ However, this section is relevant as well.
 [[scripting-config]]
 ==== Script Configuration
 
-Depending on the complexity of your integration requirements, scripts may be provided inline as CDATA in XML configuration or as a reference to a Spring resource that contains the script.
-To enable scripting support, Spring Integration defines a `ScriptExecutingMessageProcessor`, which binds the message payload to a variable named `payload` and the message headers to a `headers` variable, both accessible within the script execution context.
+Depending on the complexity of your integration requirements, scripts may be provided inline as CDATA in XML configuration or as a reference to a Spring resource that contains the script.
+To enable scripting support, Spring Integration defines a `ScriptExecutingMessageProcessor`, which binds the message payload to a variable named `payload` and the message headers to a `headers` variable, both accessible within the script execution context.
 All you need to do is write a script that uses these variables.
 The following pair of examples show sample configurations that create filters:
 
-.Filter
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow scriptFilter() {
+    return f -> f.filter(Scripts.processor("some/path/to/ruby/script/RubyFilterTests.rb"));
+}
+...
+@Bean
+public Resource scriptResource() {
+	return new ByteArrayResource("headers.type == 'good'".getBytes());
+}
+
+@Bean
+public IntegrationFlow scriptFilter() {
+	return f -> f.filter(Scripts.processor(scriptResource()).lang("groovy"));
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:filter input-channel="referencedScriptInput">
    <int-script:script location="some/path/to/ruby/script/RubyFilterTests.rb"/>
@@ -80,7 +118,7 @@ The following pair of examples show sample configurations that create filters:
 ====
 
 As the preceding examples show, the script can be included inline or can be included by reference to a resource location (by using the `location` attribute).
-Additionally, the `lang` attribute corresponds to the language name (or its JSR223 alias)
+Additionally, the `lang` attribute corresponds to the language name (or its JSR223 alias).
 
 Other Spring Integration endpoint elements that support scripting include `router`, `service-activator`, `transformer`, and `splitter`.
 The scripting configuration in each case would be identical to the above (besides the endpoint element).
@@ -89,9 +127,16 @@ Another useful feature of scripting support is the ability to update (reload) sc
 To do so, specify the `refresh-check-delay` attribute on the `script` element, as the following example shows:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
 ----
-<int-script:script location="..." refresh-check-delay="5000"/>
+Scripts.processor(...).refreshCheckDelay(5000)
+}
+----
+[source, xml, role="secondary"]
+.XML
+----
+<int-script:script location="..." refresh-check-delay="5000"/>
 ----
 ====
 
@@ -101,9 +146,16 @@ If the script is updated, any invocation that occurs later than 5 seconds since 
 Consider the following example:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
 ----
-<int-script:script location="..." refresh-check-delay="0"/>
+Scripts.processor(...).refreshCheckDelay(0)
+}
+----
+[source, xml, role="secondary"]
+.XML
+----
+<int-script:script location="..." refresh-check-delay="0"/>
 ----
 ====
 
@@ -113,9 +165,16 @@ This is the default behavior.
 The following example shows a script that never updates:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
 ----
-<int-script:script location="..." refresh-check-delay="-1"/>
+Scripts.processor(...).refreshCheckDelay(-1)
+}
+----
+[source, xml, role="secondary"]
+.XML
+----
+<int-script:script location="..." refresh-check-delay="-1"/>
 ----
 ====
 
@@ -126,14 +185,22 @@ IMPORTANT: Inline scripts can not be reloaded.
 
 Variable bindings are required to enable the script to reference variables externally provided to the script's execution context.
 By default, `payload` and `headers` are used as binding variables.
-You can bind additional variables to a script by using `<variable>` elements, as the following example shows:
+You can bind additional variables to a script by using `<variable>` elements (or `ScriptSpec.variables()` option), as the following example shows:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
 ----
-<script:script lang="js" location="foo/bar/MyScript.js">
-    <script:variable name="foo" value="thing1"/>
-    <script:variable name="bar" value="thing2"/>
+Scripts.processor("foo/bar/MyScript.py")
+    .variables(Map.of("var1", "thing1", "var2", "thing2", "date", date))
+}
+----
+[source, xml, role="secondary"]
+.XML
+----
+<script:script lang="py" location="foo/bar/MyScript.py">
+    <script:variable name="var1" value="thing1"/>
+    <script:variable name="var2" value="thing2"/>
     <script:variable name="date" ref="date"/>
 </script:script>
 ----
@@ -191,7 +258,15 @@ This method is called every time the script is executed for a message.
 The following example shows how to provide an implementation of `ScriptVariableGenerator` and reference it with the `script-variable-generator` attribute:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
+----
+Scripts.processor("foo/bar/MyScript.groovy")
+    .variableGenerator(new foo.bar.MyScriptVariableGenerator())
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int-script:script location="foo/bar/MyScript.groovy"
         script-variable-generator="variableGenerator"/>

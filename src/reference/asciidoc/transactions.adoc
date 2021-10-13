@@ -36,7 +36,7 @@ In other words, these message flows depend on a third party process (such as som
 
 * Message flows initiated by a daemon process: Example scenarios in this category include a Poller polling a message queue to initiate a new message flow with the polled message or a scheduler scheduling the process by creating a new message and initiating a message flow at a predefined time.
 
-Clearly the gateway proxy, `MessageChannel.send(...)` and `MessagePublisher` all belong to the first category, and inbound adapters and gateways, scheduler, and poller belong to the second category.
+Clearly the gateway proxy, `MessageChannel.send(...)` and `MessagePublisher` all belong to the first category, and inbound adapters and gateways, scheduler, and poller belong to the second category.
 
 So, how can you address transactional needs in various scenarios within each category, and is there a need for Spring Integration to provide something explicit with regard to transactions for a particular scenario?
 Or can you use Spring's transaction support instead?
@@ -47,7 +47,7 @@ In other words, as a framework, we must expose hooks to Spring's transaction man
 However, since Spring Integration configuration is based on Spring configuration, we need not always expose these hooks, because Spring already exposes them .
 After all, every Spring Integration component is a Spring Bean.
 
-With this goal in mind, we can again consider the two scenarios: messgae flows initiated by a user process and message flows initiated by a daemon.
+With this goal in mind, we can again consider the two scenarios: message flows initiated by a user process and message flows initiated by a daemon.
 
 Message flows that are initiated by a user process and configured in a Spring application context are subject to the usual transactional configuration of such processes.
 Therefore they need not be explicitly configured by Spring Integration to support transactions.
@@ -71,7 +71,7 @@ Spring Integration provides transactional support for pollers.
 Pollers are a special type of component because, within a poller task, we can call `receive()` against a resource that is itself transactional, thus including the `receive()` call in the the boundaries of the transaction, which lets it be rolled back in case of a task failure.
 If we were to add the same support for channels, the added transactions would affect all downstream components starting with the `send()` call.
 That provides a rather wide scope for transaction demarcation without any strong reason, especially when Spring already provides several ways to address the transactional needs of any component downstream.
-However the `receive()` method being included in a transaction boundary is the "`strong reason`" for pollers.
+However the `receive()` method being included in a transaction boundary is the "`strong reason`" for pollers.
 
 Any time you configure a Poller, you can provide transactional configuration by using the `transactional` child element and its attributes,as the following example shows:
 
@@ -79,10 +79,10 @@ Any time you configure a Poller, you can provide transactional configuration by 
 [source,xml]
 ----
 <int:poller max-messages-per-poll="1" fixed-rate="1000">
-    <transactional transaction-manager="txManager" 
+    <transactional transaction-manager="txManager"
                    isolation="DEFAULT"
-                   propagation="REQUIRED" 
-                   read-only="true" 
+                   propagation="REQUIRED"
+                   read-only="true"
                    timeout="1000"/>
 </poller>
 ----
@@ -110,7 +110,7 @@ The following example shows how to do so:
 <int:poller max-messages-per-poll="1" fixed-rate="10000">
   <advice-chain>
     <ref bean="txAdvice"/>
-    <ref bean="someAotherAdviceBean" />
+    <ref bean="someOtherAdviceBean" />
     <beans:bean class="foo.bar.SampleAdvice"/>
   </advice-chain>
 </poller>

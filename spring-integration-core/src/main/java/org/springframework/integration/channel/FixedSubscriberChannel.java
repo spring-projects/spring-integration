@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ public final class FixedSubscriberChannel implements SubscribableChannel, BeanNa
 
 	@Override
 	public boolean subscribe(MessageHandler handler) {
-		if (handler != this.handler && LOGGER.isDebugEnabled()) {
+		if (!this.handler.equals(handler) && LOGGER.isDebugEnabled()) {
 			LOGGER.debug(getComponentName() + ": cannot be subscribed to (it has a fixed single subscriber).");
 		}
 		return false;

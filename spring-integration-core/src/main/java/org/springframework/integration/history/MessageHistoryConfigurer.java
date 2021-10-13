@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
-import org.springframework.beans.factory.support.BeanDefinitionValidationException;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.integration.support.management.TrackableComponent;
@@ -57,9 +56,7 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 
 	private final Set<TrackableComponent> currentlyTrackedComponents = ConcurrentHashMap.newKeySet();
 
-	private String[] componentNamePatterns = new String[]{ "*" };
-
-	private boolean componentNamePatternsExplicitlySet;
+	private String[] componentNamePatterns = { "*" };
 
 	private ListableBeanFactory beanFactory;
 
@@ -83,13 +80,7 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 			trimmedAndSortedComponentNamePatterns[i] = trimmedAndSortedComponentNamePatterns[i].trim();
 		}
 		Arrays.sort(trimmedAndSortedComponentNamePatterns);
-		Assert.isTrue(!this.componentNamePatternsExplicitlySet
-						|| Arrays.equals(this.componentNamePatterns, trimmedAndSortedComponentNamePatterns),
-				"When more than one message history definition " +
-						"(@EnableMessageHistory or <message-history>)" +
-						" is found in the context, they all must have the same 'componentNamePatterns'");
 		this.componentNamePatterns = trimmedAndSortedComponentNamePatterns;
-		this.componentNamePatternsExplicitlySet = true;
 	}
 
 	/**
@@ -118,20 +109,8 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 	public void setComponentNamePatternsSet(Set<String> componentNamePatternsSet) {
 		Assert.notNull(componentNamePatternsSet, "'componentNamePatternsSet' must not be null");
 		Assert.state(!this.running, "'componentNamePatternsSet' cannot be changed without invoking stop() first");
-		for (String s : componentNamePatternsSet) {
-			String[] patterns = StringUtils.delimitedListToStringArray(s, ",", " ");
-			Arrays.sort(patterns);
-			if (this.componentNamePatternsExplicitlySet
-					&& !Arrays.equals(this.componentNamePatterns, patterns)) {
-				throw new BeanDefinitionValidationException("When more than one message history definition " +
-						"(@EnableMessageHistory or <message-history>)" +
-						" is found in the context, they all must have the same 'componentNamePatterns'");
-			}
-			else {
-				this.componentNamePatterns = patterns;
-				this.componentNamePatternsExplicitlySet = true;
-			}
-		}
+		String patterns = String.join(",", componentNamePatternsSet);
+		this.componentNamePatterns = StringUtils.delimitedListToStringArray(patterns, ",", " ");
 	}
 
 	@Override
@@ -225,7 +204,6 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 				});
 
 				this.currentlyTrackedComponents.clear();
-				this.componentNamePatternsExplicitlySet = false; // allow pattern changes
 				this.running = false;
 			}
 		}

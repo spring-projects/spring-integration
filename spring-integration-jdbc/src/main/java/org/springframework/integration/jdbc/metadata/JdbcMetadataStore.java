@@ -168,9 +168,9 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 					ps -> {
 						ps.setString(1, key);
 						ps.setString(2, value);
-						ps.setString(3, this.region);
-						ps.setString(4, key);
-						ps.setString(5, this.region);
+						ps.setString(3, this.region); // NOSONAR magic number
+						ps.setString(4, key); // NOSONAR magic number
+						ps.setString(5, this.region); // NOSONAR magic number
 					});
 		}
 		catch (DuplicateKeyException ex) {
@@ -188,8 +188,8 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 				ps -> {
 					ps.setString(1, newValue);
 					ps.setString(2, key);
-					ps.setString(3, oldValue);
-					ps.setString(4, this.region);
+					ps.setString(3, oldValue); // NOSONAR magic number
+					ps.setString(4, this.region); // NOSONAR magic number
 				});
 		return affectedRows > 0;
 	}
@@ -217,7 +217,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 						ps -> {
 							ps.setString(1, value);
 							ps.setString(2, key);
-							ps.setString(3, this.region);
+							ps.setString(3, this.region); // NOSONAR magic number
 						});
 			}
 			return;

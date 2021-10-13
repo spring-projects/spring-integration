@@ -132,7 +132,6 @@ Consequently, the `Collection<Message>` variable in the POJO is cleared too, if 
 If you wish to simply release that collection as-is for further processing, you must build a new `Collection` (for example, `new ArrayList<Message>(messages)`).
 Starting with version 4.3, the framework no longer copies the messages to a new collection, to avoid undesired extra object creation.
 
-
 If the `processMessageGroup` method of the `MessageGroupProcessor` returns a collection, it must be a collection of `Message<?>` objects.
 In this case, the messages are individually released.
 Prior to version 4.2, it was not possible to provide a `MessageGroupProcessor` by using XML configuration.
@@ -260,6 +259,10 @@ The following example shows how to configure an aggregator with the previous imp
 <bean id="releaser" class="SimpleSequenceSizeReleaseStrategy" />
 ----
 ====
+
+NOTE: If the filter endpoint is involved in the flow upstream of an aggregator, the sequence size release strategy (fixed or based on the `sequenceSize` header) is not going to serve its purpose because some messages from a sequence may be discarded by the filter.
+In this case it is recommended to choose another `ReleaseStrategy`, or use compensation messages sent from a discard sub-flow carrying some information in their content to be skipped in a custom complete group function.
+See <<./filter.adoc#filter,Filter>> for more information.
 
 ===== Correlation Strategy
 
@@ -691,7 +694,7 @@ In the preceding example, the root object of the SpEL evaluation context is the 
 [[agg-and-group-to]]
 ====== Aggregator and Group Timeout
 
-Starting with version 4.0, two new mutually exclusive attributes have been introduced: `group-timeout` and `group-timeout-expression` (see the earlier description).
+Starting with version 4.0, two new mutually exclusive attributes have been introduced: `group-timeout` and `group-timeout-expression`.
 See <<aggregator-xml>>.
 In some cases, you may need to emit the aggregator result (or discard the group) after a timeout if the `ReleaseStrategy` does not release when the current message arrives.
 For this purpose, the `groupTimeout` option lets scheduling the `MessageGroup` be forced to complete, as the following example shows:
@@ -720,6 +723,16 @@ There is a difference between `groupTimeout` behavior and `MessageGroupStoreReap
 The reaper initiates forced completion for all `MessageGroup` s in the `MessageGroupStore` periodically.
 The `groupTimeout` does it for each `MessageGroup` individually if a new message does not arrive during the `groupTimeout`.
 Also, the reaper can be used to remove empty groups (empty groups are retained in order to discard late messages if `expire-groups-upon-completion` is false).
+
+Starting with version 5.5, the `groupTimeoutExpression` can be evaluated to a `java.util.Date` instance.
+This can be useful in cases like determining a scheduled task moment based on the group creation time (`MessageGroup.getTimestamp()`) instead of a current message arrival as it is calculated when `groupTimeoutExpression` is evaluated to `long`:
+
+====
+[source,xml]
+----
+group-timeout-expression="size() ge 2 ? new java.util.Date(timestamp + 200) : null"
+----
+====
 
 [[aggregator-annotations]]
 ===== Configuring an Aggregator with Annotations
@@ -843,7 +856,6 @@ public interface MessageGroupCallback {
 The callback has direct access to the store and the message group so that it can manage the persistent state (for example, by entirely removing the group from the store).
 
 The `MessageGroupStore` maintains a list of these callbacks, which it applies, on demand, to all messages whose timestamps are earlier than a time supplied as a parameter (see the `registerMessageGroupExpiryCallback(..)` and `expireMessageGroups(..)` methods, described earlier).
-For more detail, see <<reaper>>.
 
 IMPORTANT: It is important not to use the same `MessageGroupStore` instance in different aggregator components, when you intend to rely on the `expireMessageGroups` functionality.
 Every `AbstractCorrelatingMessageHandler` registers its own `MessageGroupCallback` based on the `forceComplete()` callback.
@@ -884,6 +896,10 @@ In addition to the reaper, the expiry callbacks are invoked when the application
 
 The `AbstractCorrelatingMessageHandler` registers its own expiry callback, and this is the link with the boolean flag `send-partial-result-on-expiry` in the XML configuration of the aggregator.
 If the flag is set to `true`, then, when the expiry callback is invoked, any unmarked messages in groups that are not yet released can be sent on to the output channel.
+
+IMPORTANT: Since the `MessageGroupStoreReaper` is called from a scheduled task, and may result in the production of a message (depending on the `sendPartialResultOnExpiry` option) to a downstream integration flow, it is recommended to supply a custom `TaskScheduler` with a `MessagePublishingErrorHandler` to handler exceptions via an `errorChannel`, as it might be expected by the regular aggregator release functionality.
+The same logic applies for group timeout functionality which also relies on a `TaskScheduler`.
+See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 
 [IMPORTANT]
 =====
@@ -959,3 +975,13 @@ Flux<Message<?>> window =
                 .convertSendAndReceive(new Integer[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, Flux.class);
 ----
 ====
+
+[[agg-message-group-condition]]
+==== Condition on the Message Group
+
+Starting with version 5.5, an `AbstractCorrelatingMessageHandler` (including its Java & XML DSLs) exposes a `groupConditionSupplier` option of the `BiFunction<Message<?>, String, String>` implementation.
+This function is used on each message added to the group and a result condition sentence is stored into the group for future consideration.
+The `ReleaseStrategy` may consult this condition instead of iterating over all the messages in the group.
+See `GroupConditionProvider` JavaDocs and <<./message-store.adoc#message-group-condition, Message Group Condition>> for more information.
+
+See also <<./file.adoc#file-aggregator, File Aggregator>>.

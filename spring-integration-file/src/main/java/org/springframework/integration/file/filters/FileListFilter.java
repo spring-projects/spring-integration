@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.List;
 /**
  * Strategy interface for filtering a group of files. This is a generic filter intended
  * to work with either local files or references to remote files.
+ *
+ * @param <F> The type that will be filtered.
  *
  * @author Iwein Fuld
  * @author Josh Long
@@ -61,6 +63,15 @@ public interface FileListFilter<F> {
 	 * @see #accept(Object)
 	 */
 	default boolean supportsSingleFileFiltering() {
+		return false;
+	}
+
+	/**
+	 * Return true if this filter is being used for recursion.
+	 * @return whether or not to filter based on the full path.
+	 * @since 5.3.6
+	 */
+	default boolean isForRecursion() {
 		return false;
 	}
 

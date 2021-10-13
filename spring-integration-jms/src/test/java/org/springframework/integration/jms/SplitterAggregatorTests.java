@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -46,15 +45,14 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.3
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class SplitterAggregatorTests extends ActiveMQMultiContextTests {
 
@@ -68,7 +66,7 @@ public class SplitterAggregatorTests extends ActiveMQMultiContextTests {
 	@Test
 	public void testSplitterAggregatorOverJms() {
 		List<Integer> payload = Arrays.asList(1, 2, 3, 4, 5, 6);
-		this.splitChannel.send(new GenericMessage<List<Integer>>(payload));
+		this.splitChannel.send(new GenericMessage<>(payload));
 		Message<?> message = this.resultChannel.receive(10000);
 		assertThat(message).isNotNull();
 		Collections.sort(((List<Integer>) message.getPayload()));

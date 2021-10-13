@@ -898,7 +898,7 @@ public IntegrationFlow routerFlow() {
 Sometimes, the routing logic may be simple, and writing a separate class for it and configuring it as a bean may seem like overkill.
 As of Spring Integration 2.0, we offer an alternative that lets you use SpEL to implement simple computations that previously required a custom POJO router.
 
-NOTE: For more information about the Spring Expression Language, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[relevant chapter in the Spring Framework Reference Guide]:
+NOTE: For more information about the Spring Expression Language, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[relevant chapter in the Spring Framework Reference Guide].
 
 Generally, a SpEL expression is evaluated and its result is mapped to a channel, as the following example shows:
 
@@ -1034,7 +1034,7 @@ As another example, you may want to introduce more granularity to your message f
 Unfortunately, with static router configuration to accomplish either of those goals, you would have to bring down your entire application, change the configuration of the router (change routes), and bring the application back up.
 This is obviously not a solution anyone wants.
 
-The https://www.enterpriseintegrationpatterns.com/DynamicRouter.html[dynamic router] pattern describes the mechanisms by which you can change or configure routers dynamically without bringing down the system or individual routers. 
+The https://www.enterpriseintegrationpatterns.com/DynamicRouter.html[dynamic router] pattern describes the mechanisms by which you can change or configure routers dynamically without bringing down the system or individual routers.
 
 Before we get into the specifics of how Spring Integration supports dynamic routing, we need to consider the typical flow of a router:
 
@@ -1091,7 +1091,7 @@ However, if you look at the alternate configuration of the `HeaderValueRouter` w
 ====
 [source,xml]
 ----
-<int:header-value-router input-channel="inputChannel" header-name="testHeader">
+<int:header-value-router input-channel="inputChannel" header-name="testHeader">
 ----
 ====
 
@@ -1099,8 +1099,8 @@ However, the configuration is still perfectly valid.
 So the natural question is what about the mapping in the second step?
 
 The second step is now optional.
-If `mapping` is not defined, then the channel identifier value computed in the first step is automatically treated as the `channel name`, which is now resolved to the actual `MessageChannel`, as in the third step. 
-What it also means is that the second step is one of the key steps to providing dynamic characteristics to the routers, since it introduces a process that lets you change the way channel identifier resolves to the channel name, thus influencing the process of determining the final instance of the `MessageChannel` from the initial channel identifier. 
+If `mapping` is not defined, then the channel identifier value computed in the first step is automatically treated as the `channel name`, which is now resolved to the actual `MessageChannel`, as in the third step.
+What it also means is that the second step is one of the key steps to providing dynamic characteristics to the routers, since it introduces a process that lets you change the way channel identifier resolves to the channel name, thus influencing the process of determining the final instance of the `MessageChannel` from the initial channel identifier.
 
 For example, in the preceding configuration, assume that the `testHeader` value is 'kermit', which is now a channel identifier (the first step).
 Since there is no mapping in this router, resolving this channel identifier to a channel name (the second step) is impossible and this channel identifier is now treated as the channel name.
@@ -1120,7 +1120,7 @@ In fact, it applies to every other router, including expression-based routers, s
 Any router that is a subclass of the `AbstractMappingMessageRouter` (which includes most framework-defined routers) is a dynamic router, because the `channelMapping` is defined at the `AbstractMappingMessageRouter` level.
 That map's setter method is exposed as a public method along with the 'setChannelMapping' and 'removeChannelMapping' methods.
 These let you  change, add, and remove router mappings at runtime, as long as you have a reference to the router itself.
-It also means that you could expose these same configuration options through JMX (see <<./jmx.adoc#jmx,JMX Support>>) or the Spring Integration control bus (see <<./control-bus.adoc#control-bus,Control Bus>>) functionality. 
+It also means that you could expose these same configuration options through JMX (see <<./jmx.adoc#jmx,JMX Support>>) or the Spring Integration control bus (see <<./control-bus.adoc#control-bus,Control Bus>>) functionality.
 
 IMPORTANT: Falling back to the channel key as the channel name is flexible and convenient.
 However, if you don't trust the message creator, a malicious actor (who has knowledge of the system) could create a message that is routed to an unexpected channel.

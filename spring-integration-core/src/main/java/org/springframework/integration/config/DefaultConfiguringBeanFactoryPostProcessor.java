@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.config;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,30 +26,24 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.HierarchicalBeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.context.Lifecycle;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -63,6 +56,8 @@ import org.springframework.integration.handler.support.CollectionArgumentResolve
 import org.springframework.integration.handler.support.MapArgumentResolver;
 import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
 import org.springframework.integration.handler.support.PayloadsArgumentResolver;
+import org.springframework.integration.json.JsonNodeWrapperToJsonNodeConverter;
+import org.springframework.integration.json.JsonPathUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.integration.support.SmartLifecycleRoleController;
@@ -72,9 +67,14 @@ import org.springframework.integration.support.converter.ConfigurableCompositeMe
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ErrorHandler;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@link BeanFactoryPostProcessor} implementation that registers bean definitions
@@ -86,24 +86,45 @@ import org.springframework.util.ClassUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Michael Wiles
+ * @author Pierre Lakreb
  *
  * @see IntegrationContextUtils
  */
-class DefaultConfiguringBeanFactoryPostProcessor
+public class DefaultConfiguringBeanFactoryPostProcessor
 		implements BeanFactoryPostProcessor, BeanClassLoaderAware, SmartInitializingSingleton {
 
-	private static final Log LOGGER = LogFactory.getLog(DefaultConfiguringBeanFactoryPostProcessor.class);
-
-	private static final IntegrationConverterInitializer INTEGRATION_CONVERTER_INITIALIZER =
-			new IntegrationConverterInitializer();
+	private static final LogAccessor LOGGER = new LogAccessor(DefaultConfiguringBeanFactoryPostProcessor.class);
 
 	private static final Set<Integer> REGISTRIES_PROCESSED = new HashSet<>();
+
+	private static final Class<?> XPATH_CLASS;
+
+	private static final boolean JSON_PATH_PRESENT = ClassUtils.isPresent("com.jayway.jsonpath.JsonPath", null);
+
+	static {
+		Class<?> xpathClass = null;
+		try {
+			xpathClass = ClassUtils.forName(IntegrationContextUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
+					ClassUtils.getDefaultClassLoader());
+		}
+		catch (@SuppressWarnings("unused") ClassNotFoundException e) {
+			LOGGER.debug("SpEL function '#xpath' isn't registered: " +
+					"there is no spring-integration-xml.jar on the classpath.");
+		}
+		finally {
+			XPATH_CLASS = xpathClass;
+		}
+	}
+
 
 	private ClassLoader classLoader;
 
 	private ConfigurableListableBeanFactory beanFactory;
 
 	private BeanDefinitionRegistry registry;
+
+	DefaultConfiguringBeanFactoryPostProcessor() {
+	}
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
@@ -134,7 +155,7 @@ class DefaultConfiguringBeanFactoryPostProcessor
 			registerMessageHandlerMethodFactory();
 			registerListMessageHandlerMethodFactory();
 		}
-		else if (LOGGER.isWarnEnabled()) {
+		else {
 			LOGGER.warn("BeanFactory is not a BeanDefinitionRegistry. " +
 					"The default Spring Integration infrastructure beans are not going to be registered");
 		}
@@ -156,15 +177,14 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	private void registerBeanFactoryChannelResolver() {
 		if (!this.beanFactory.containsBeanDefinition(ChannelResolverUtils.CHANNEL_RESOLVER_BEAN_NAME)) {
 			this.registry.registerBeanDefinition(ChannelResolverUtils.CHANNEL_RESOLVER_BEAN_NAME,
-					new RootBeanDefinition(BeanFactoryChannelResolver.class));
+					new RootBeanDefinition(BeanFactoryChannelResolver.class, BeanFactoryChannelResolver::new));
 		}
 	}
 
 	private void registerMessagePublishingErrorHandler() {
-		if (!this.beanFactory.containsBeanDefinition(
-				ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)) {
+		if (!this.beanFactory.containsBeanDefinition(ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)) {
 			this.registry.registerBeanDefinition(ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME,
-					new RootBeanDefinition(MessagePublishingErrorHandler.class));
+					new RootBeanDefinition(MessagePublishingErrorHandler.class, MessagePublishingErrorHandler::new));
 		}
 	}
 
@@ -180,8 +200,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 				if (beanFactoryToUse instanceof ConfigurableListableBeanFactory) {
 					ConfigurableListableBeanFactory listable = (ConfigurableListableBeanFactory) beanFactoryToUse;
 					if (listable.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
-						nullChannelDefinition = listable
-								.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+						nullChannelDefinition =
+								listable.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
 					}
 				}
 				if (beanFactoryToUse instanceof HierarchicalBeanFactory) {
@@ -197,7 +217,7 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		}
 		else {
 			this.registry.registerBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME,
-					new RootBeanDefinition(NullChannel.class));
+					new RootBeanDefinition(NullChannel.class, NullChannel::new));
 		}
 	}
 
@@ -209,27 +229,27 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerErrorChannel() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)) {
-			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("No bean named '" + IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME +
-						"' has been explicitly defined. " +
-						"Therefore, a default PublishSubscribeChannel will be created.");
-			}
-			this.registry.registerBeanDefinition(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME,
-					new RootBeanDefinition(PublishSubscribeChannel.class));
+			LOGGER.info(() -> "No bean named '" + IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME +
+					"' has been explicitly defined. " +
+					"Therefore, a default PublishSubscribeChannel will be created.");
 
-			BeanDefinition loggingHandler =
-					BeanDefinitionBuilder.genericBeanDefinition(LoggingHandler.class)
-							.addConstructorArgValue("ERROR")
-							.getBeanDefinition();
+			this.registry.registerBeanDefinition(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME,
+					new RootBeanDefinition(PublishSubscribeChannel.class, this::createErrorChannel));
 
 			String errorLoggerBeanName =
 					IntegrationContextUtils.ERROR_LOGGER_BEAN_NAME + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
-			this.registry.registerBeanDefinition(errorLoggerBeanName, loggingHandler);
+			this.registry.registerBeanDefinition(errorLoggerBeanName,
+					new RootBeanDefinition(LoggingHandler.class, () -> new LoggingHandler(LoggingHandler.Level.ERROR)));
 
 			BeanDefinitionBuilder loggingEndpointBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class)
-							.addPropertyReference("handler", errorLoggerBeanName)
-							.addPropertyValue("inputChannelName", IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+					BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class,
+							() -> {
+								ConsumerEndpointFactoryBean endpointFactoryBean = new ConsumerEndpointFactoryBean();
+								endpointFactoryBean.setInputChannelName(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+								endpointFactoryBean.setHandler(this.beanFactory.getBean(errorLoggerBeanName,
+										MessageHandler.class));
+								return endpointFactoryBean;
+							});
 
 			BeanComponentDefinition componentDefinition =
 					new BeanComponentDefinition(loggingEndpointBuilder.getBeanDefinition(),
@@ -238,35 +258,44 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		}
 	}
 
+	private PublishSubscribeChannel createErrorChannel() {
+		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+		String requireSubscribers =
+				integrationProperties.getProperty(IntegrationProperties.ERROR_CHANNEL_REQUIRE_SUBSCRIBERS);
+
+		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel(Boolean.parseBoolean(requireSubscribers));
+
+		String ignoreFailures = integrationProperties.getProperty(IntegrationProperties.ERROR_CHANNEL_IGNORE_FAILURES);
+		errorChannel.setIgnoreFailures(Boolean.parseBoolean(ignoreFailures));
+
+		return errorChannel;
+	}
+
 	/**
 	 * Register {@link IntegrationEvaluationContextFactoryBean}
 	 * and {@link IntegrationSimpleEvaluationContextFactoryBean} beans, if necessary.
 	 */
 	private void registerIntegrationEvaluationContext() {
 		if (!this.registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)) {
-			BeanDefinitionBuilder integrationEvaluationContextBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationEvaluationContextFactoryBean.class);
-			integrationEvaluationContextBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+			BeanDefinitionBuilder integrationEvaluationContextBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationEvaluationContextFactoryBean.class,
+							IntegrationEvaluationContextFactoryBean::new)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
-			BeanDefinitionHolder integrationEvaluationContextHolder =
-					new BeanDefinitionHolder(integrationEvaluationContextBuilder.getBeanDefinition(),
-							IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
-
-			BeanDefinitionReaderUtils.registerBeanDefinition(integrationEvaluationContextHolder, this.registry);
+			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+					integrationEvaluationContextBuilder.getBeanDefinition());
 		}
 
 		if (!this.registry.containsBeanDefinition(
 				IntegrationContextUtils.INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME)) {
 
-			BeanDefinitionBuilder integrationEvaluationContextBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationSimpleEvaluationContextFactoryBean.class);
-			integrationEvaluationContextBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+			BeanDefinitionBuilder integrationEvaluationContextBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationSimpleEvaluationContextFactoryBean.class,
+							IntegrationSimpleEvaluationContextFactoryBean::new)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
-			BeanDefinitionHolder integrationEvaluationContextHolder =
-					new BeanDefinitionHolder(integrationEvaluationContextBuilder.getBeanDefinition(),
-							IntegrationContextUtils.INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME);
-
-			BeanDefinitionReaderUtils.registerBeanDefinition(integrationEvaluationContextHolder, this.registry);
+			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME,
+					integrationEvaluationContextBuilder.getBeanDefinition());
 		}
 	}
 
@@ -274,19 +303,17 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 * Register an {@link IdGeneratorConfigurer} in the application context.
 	 */
 	private void registerIdGeneratorConfigurer() {
-		Class<?> clazz = IdGeneratorConfigurer.class;
+		Class<IdGeneratorConfigurer> clazz = IdGeneratorConfigurer.class;
 		String className = clazz.getName();
 		String[] definitionNames = this.registry.getBeanDefinitionNames();
 		for (String definitionName : definitionNames) {
 			BeanDefinition definition = this.registry.getBeanDefinition(definitionName);
 			if (className.equals(definition.getBeanClassName())) {
-				if (LOGGER.isInfoEnabled()) {
-					LOGGER.info(className + " is already registered and will be used");
-				}
+				LOGGER.info(() -> className + " is already registered and will be used");
 				return;
 			}
 		}
-		RootBeanDefinition beanDefinition = new RootBeanDefinition(clazz);
+		RootBeanDefinition beanDefinition = new RootBeanDefinition(clazz, IdGeneratorConfigurer::new);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinition, this.registry);
 	}
@@ -296,22 +323,26 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerTaskScheduler() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)) {
-			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("No bean named '" + IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME +
-						"' has been explicitly defined. " +
-						"Therefore, a default ThreadPoolTaskScheduler will be created.");
-			}
-			BeanDefinition scheduler = BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskScheduler.class)
-					.addPropertyValue("poolSize", IntegrationProperties
-							.getExpressionFor(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE))
-					.addPropertyValue("threadNamePrefix", "task-scheduler-")
-					.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy())
-					.addPropertyReference("errorHandler",
-							ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)
-					.getBeanDefinition();
-
-			this.registry.registerBeanDefinition(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, scheduler);
+			LOGGER.info(() -> "No bean named '" + IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME +
+					"' has been explicitly defined. " +
+					"Therefore, a default ThreadPoolTaskScheduler will be created.");
+			this.registry.registerBeanDefinition(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME,
+					new RootBeanDefinition(ThreadPoolTaskScheduler.class, this::createTaskScheduler));
 		}
+	}
+
+	private ThreadPoolTaskScheduler createTaskScheduler() {
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.setThreadNamePrefix("task-scheduler-");
+		taskScheduler.setRejectedExecutionHandler(new CallerRunsPolicy());
+		taskScheduler.setErrorHandler(
+				this.beanFactory.getBean(ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME, ErrorHandler.class));
+
+		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+		String poolSize = integrationProperties.getProperty(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE);
+		taskScheduler.setPoolSize(Integer.parseInt(poolSize));
+
+		return taskScheduler;
 	}
 
 	/**
@@ -321,23 +352,25 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)) {
 			ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver(this.classLoader);
 			try {
-				Resource[] defaultResources =
-						resourceResolver.getResources("classpath*:META-INF/spring.integration.default.properties");
-				Resource[] userResources =
+				Resource[] resources =
 						resourceResolver.getResources("classpath*:META-INF/spring.integration.properties");
 
-				List<Resource> resources = new LinkedList<>(Arrays.asList(defaultResources));
-				resources.addAll(Arrays.asList(userResources));
-
-				BeanDefinitionBuilder integrationPropertiesBuilder = BeanDefinitionBuilder
-						.genericBeanDefinition(PropertiesFactoryBean.class)
-						.addPropertyValue("locations", resources);
+				// TODO Revise in favor of 'IntegrationProperties' instance in the next 6.0 version
+				BeanDefinitionBuilder integrationPropertiesBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(PropertiesFactoryBean.class,
+								() -> {
+									PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
+									propertiesFactoryBean.setProperties(IntegrationProperties.defaults());
+									propertiesFactoryBean.setLocations(resources);
+									return propertiesFactoryBean;
+								})
+								.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 				this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME,
 						integrationPropertiesBuilder.getBeanDefinition());
 			}
-			catch (IOException e) {
-				LOGGER.warn("Cannot load 'spring.integration.properties' Resources.", e);
+			catch (IOException ex) {
+				LOGGER.warn(ex, "Cannot load 'spring.integration.properties' Resources.");
 			}
 		}
 	}
@@ -355,70 +388,37 @@ class DefaultConfiguringBeanFactoryPostProcessor
 
 	private void jsonPath(int registryId) throws LinkageError {
 		String jsonPathBeanName = "jsonPath";
-		if (!this.beanFactory.containsBean(jsonPathBeanName) && !REGISTRIES_PROCESSED.contains(registryId)) {
-			Class<?> jsonPathClass = null;
-			try {
-				jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", this.classLoader);
-			}
-			catch (@SuppressWarnings("unused") ClassNotFoundException e) {
-				LOGGER.debug("The '#jsonPath' SpEL function cannot be registered: " +
-						"there is no jayway json-path.jar on the classpath.");
-			}
-
-			if (jsonPathClass != null) {
-				try {
-					ClassUtils.forName("com.jayway.jsonpath.Predicate", this.classLoader);
-				}
-				catch (ClassNotFoundException e) {
-					jsonPathClass = null;
-					LOGGER.warn("The '#jsonPath' SpEL function cannot be registered. " +
-							"An old json-path.jar version is detected in the classpath." +
-							"At least 2.4.0 is required; see version information at: " +
-							"https://github.com/jayway/JsonPath/releases", e);
-
-				}
-			}
-
-			if (jsonPathClass != null) {
+		if (JSON_PATH_PRESENT) {
+			if (!this.beanFactory.containsBean(jsonPathBeanName) && !REGISTRIES_PROCESSED.contains(registryId)) {
 				IntegrationConfigUtils.registerSpelFunctionBean(this.registry, jsonPathBeanName,
-						IntegrationConfigUtils.BASE_PACKAGE + ".json.JsonPathUtils", "evaluate");
+						JsonPathUtils.class, "evaluate");
 			}
+		}
+		else {
+			LOGGER.debug("The '#jsonPath' SpEL function cannot be registered: " +
+					"there is no jayway json-path.jar on the classpath.");
 		}
 	}
 
 	private void xpath(int registryId) throws LinkageError {
 		String xpathBeanName = "xpath";
-		if (!this.beanFactory.containsBean(xpathBeanName) && !REGISTRIES_PROCESSED.contains(registryId)) {
-			Class<?> xpathClass = null;
-			try {
-				xpathClass = ClassUtils.forName(IntegrationConfigUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
-						this.classLoader);
-			}
-			catch (@SuppressWarnings("unused") ClassNotFoundException e) {
-				LOGGER.debug("SpEL function '#xpath' isn't registered: " +
-						"there is no spring-integration-xml.jar on the classpath.");
-			}
+		if (XPATH_CLASS != null
+				&& !this.beanFactory.containsBean(xpathBeanName)
+				&& !REGISTRIES_PROCESSED.contains(registryId)) {
 
-			if (xpathClass != null) {
-				IntegrationConfigUtils.registerSpelFunctionBean(this.registry, xpathBeanName,
-						IntegrationConfigUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils", "evaluate");
-			}
+			IntegrationConfigUtils.registerSpelFunctionBean(this.registry, xpathBeanName, XPATH_CLASS, "evaluate");
 		}
 	}
 
 	private void jsonNodeToString(int registryId) {
 		if (!this.beanFactory.containsBean(
-				IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME) &&
+				IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER) &&
 				!REGISTRIES_PROCESSED.contains(registryId) && JacksonPresent.isJackson2Present()) {
 
 			this.registry.registerBeanDefinition(
-					IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME,
-					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE +
-							".json.ToStringFriendlyJsonNodeToStringConverter")
-							.getBeanDefinition());
-			INTEGRATION_CONVERTER_INITIALIZER.registerConverter(this.registry,
-					new RuntimeBeanReference(
-							IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME));
+					IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER,
+					new RootBeanDefinition(JsonNodeWrapperToJsonNodeConverter.class,
+							JsonNodeWrapperToJsonNodeConverter::new));
 		}
 	}
 
@@ -427,12 +427,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerRoleController() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER)) {
-			BeanDefinitionBuilder builder =
-					BeanDefinitionBuilder.genericBeanDefinition(SmartLifecycleRoleController.class);
-			builder.addConstructorArgValue(new ManagedList<String>());
-			builder.addConstructorArgValue(new ManagedList<Lifecycle>());
-			this.registry.registerBeanDefinition(
-					IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER, builder.getBeanDefinition());
+			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER,
+					new RootBeanDefinition(SmartLifecycleRoleController.class, SmartLifecycleRoleController::new));
 		}
 	}
 
@@ -441,14 +437,17 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerMessageBuilderFactory() {
 		if (!this.beanFactory.containsBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME)) {
-			BeanDefinitionBuilder mbfBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(DefaultMessageBuilderFactory.class)
-					.addPropertyValue("readOnlyHeaders",
-							IntegrationProperties.getExpressionFor(IntegrationProperties.READ_ONLY_HEADERS));
-			this.registry.registerBeanDefinition(
-					IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
-					mbfBuilder.getBeanDefinition());
+			this.registry.registerBeanDefinition(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+					new RootBeanDefinition(DefaultMessageBuilderFactory.class, this::createDefaultMessageBuilderFactory));
 		}
+	}
+
+	private DefaultMessageBuilderFactory createDefaultMessageBuilderFactory() {
+		DefaultMessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+		String readOnlyHeaders = integrationProperties.getProperty(IntegrationProperties.READ_ONLY_HEADERS);
+		messageBuilderFactory.setReadOnlyHeaders(StringUtils.commaDelimitedListToStringArray(readOnlyHeaders));
+		return messageBuilderFactory;
 	}
 
 	/**
@@ -456,17 +455,11 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerHeaderChannelRegistry() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME)) {
-			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("No bean named '" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME +
-						"' has been explicitly defined. " +
-						"Therefore, a default DefaultHeaderChannelRegistry will be created.");
-			}
-			BeanDefinitionBuilder schedulerBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(DefaultHeaderChannelRegistry.class);
-			BeanDefinitionHolder replyChannelRegistryComponent = new BeanDefinitionHolder(
-					schedulerBuilder.getBeanDefinition(),
-					IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
-			BeanDefinitionReaderUtils.registerBeanDefinition(replyChannelRegistryComponent, this.registry);
+			LOGGER.info(() -> "No bean named '" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME +
+					"' has been explicitly defined. Therefore, a default DefaultHeaderChannelRegistry will be created.");
+
+			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
+					new RootBeanDefinition(DefaultHeaderChannelRegistry.class, DefaultHeaderChannelRegistry::new));
 		}
 	}
 
@@ -477,7 +470,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		if (!this.registry.containsBeanDefinition(
 				IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME)) {
 			BeanDefinitionBuilder builder =
-					BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorProcessor.class)
+					BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorProcessor.class,
+							GlobalChannelInterceptorProcessor::new)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME,
@@ -492,11 +486,10 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		if (!this.beanFactory.containsBean(
 				IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME)) {
 
-			BeanDefinitionBuilder converterBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(DefaultDatatypeChannelMessageConverter.class);
 			this.registry.registerBeanDefinition(
 					IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME,
-					converterBuilder.getBeanDefinition());
+					new RootBeanDefinition(DefaultDatatypeChannelMessageConverter.class,
+							DefaultDatatypeChannelMessageConverter::new));
 		}
 	}
 
@@ -506,56 +499,67 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerArgumentResolverMessageConverter() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
-			BeanDefinitionBuilder converterBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(ConfigurableCompositeMessageConverter.class);
 			this.registry.registerBeanDefinition(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
-					converterBuilder.getBeanDefinition());
+					new RootBeanDefinition(ConfigurableCompositeMessageConverter.class,
+							ConfigurableCompositeMessageConverter::new));
 		}
 	}
 
 	private void registerMessageHandlerMethodFactory() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME)) {
-			BeanDefinitionBuilder messageHandlerMethodFactoryBuilder =
-					createMessageHandlerMethodFactoryBeanDefinition(false);
 			this.registry.registerBeanDefinition(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME,
-					messageHandlerMethodFactoryBuilder.getBeanDefinition());
+					new RootBeanDefinition(DefaultMessageHandlerMethodFactory.class,
+							() -> createMessageHandlerMethodFactory(false)));
 		}
 	}
 
 	private void registerListMessageHandlerMethodFactory() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME)) {
-			BeanDefinitionBuilder messageHandlerMethodFactoryBuilder =
-					createMessageHandlerMethodFactoryBeanDefinition(true);
 			this.registry.registerBeanDefinition(IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME,
-					messageHandlerMethodFactoryBuilder.getBeanDefinition());
+					new RootBeanDefinition(DefaultMessageHandlerMethodFactory.class,
+							() -> createMessageHandlerMethodFactory(true)));
 		}
 	}
 
-	private BeanDefinitionBuilder createMessageHandlerMethodFactoryBeanDefinition(boolean listCapable) {
-		return BeanDefinitionBuilder.genericBeanDefinition(DefaultMessageHandlerMethodFactory.class)
-				.addPropertyReference("messageConverter",
-						IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)
-				.addPropertyValue("customArgumentResolvers", buildArgumentResolvers(listCapable));
+	private DefaultMessageHandlerMethodFactory createMessageHandlerMethodFactory(boolean listCapable) {
+		DefaultMessageHandlerMethodFactory methodFactory = new DefaultMessageHandlerMethodFactory();
+		methodFactory.setMessageConverter(
+				this.beanFactory.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
+						MessageConverter.class));
+		methodFactory.setCustomArgumentResolvers(buildArgumentResolvers(listCapable));
+		return methodFactory;
 	}
 
-	private ManagedList<BeanDefinition> buildArgumentResolvers(boolean listCapable) {
-		ManagedList<BeanDefinition> resolvers = new ManagedList<>();
-		resolvers.add(new RootBeanDefinition(PayloadExpressionArgumentResolver.class));
-		BeanDefinitionBuilder builder =
-				BeanDefinitionBuilder.genericBeanDefinition(NullAwarePayloadArgumentResolver.class);
-		builder.addConstructorArgReference(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
-		// TODO Validator ?
-		resolvers.add(builder.getBeanDefinition());
-		resolvers.add(new RootBeanDefinition(PayloadsArgumentResolver.class));
+	private List<HandlerMethodArgumentResolver> buildArgumentResolvers(boolean listCapable) {
+		List<HandlerMethodArgumentResolver> resolvers = new LinkedList<>();
+		MessageConverter messageConverter =
+				this.beanFactory.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
+						MessageConverter.class);
+
+		PayloadExpressionArgumentResolver payloadExpressionArgumentResolver = new PayloadExpressionArgumentResolver();
+		payloadExpressionArgumentResolver.setBeanFactory(this.beanFactory);
+		payloadExpressionArgumentResolver.afterPropertiesSet();
+		resolvers.add(payloadExpressionArgumentResolver);
+
+		resolvers.add(new NullAwarePayloadArgumentResolver(messageConverter));
+
+		PayloadsArgumentResolver payloadsArgumentResolver = new PayloadsArgumentResolver();
+		payloadsArgumentResolver.setBeanFactory(this.beanFactory);
+		payloadsArgumentResolver.afterPropertiesSet();
+		resolvers.add(payloadsArgumentResolver);
 
 		if (listCapable) {
-			resolvers.add(
-					BeanDefinitionBuilder.genericBeanDefinition(CollectionArgumentResolver.class)
-							.addConstructorArgValue(true)
-							.getBeanDefinition());
+			CollectionArgumentResolver collectionArgumentResolver = new CollectionArgumentResolver(true);
+			collectionArgumentResolver.setBeanFactory(this.beanFactory);
+			collectionArgumentResolver.afterPropertiesSet();
+			resolvers.add(collectionArgumentResolver);
 		}
 
-		resolvers.add(new RootBeanDefinition(MapArgumentResolver.class));
+		MapArgumentResolver mapArgumentResolver = new MapArgumentResolver();
+		mapArgumentResolver.setBeanFactory(this.beanFactory);
+		mapArgumentResolver.afterPropertiesSet();
+		resolvers.add(mapArgumentResolver);
+
 		return resolvers;
 	}
 

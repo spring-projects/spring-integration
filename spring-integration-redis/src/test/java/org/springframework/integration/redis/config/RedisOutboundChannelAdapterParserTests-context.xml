@@ -24,19 +24,20 @@
 		</int-redis:request-handler-advice-chain>
 	</int-redis:outbound-channel-adapter>
 
-	<int-redis:inbound-channel-adapter id="fooInbound" channel="receiveChannel" topics="foo"/>
+	<int-redis:inbound-channel-adapter id="fooInbound" channel="receiveChannel" topics="foo" auto-startup="false"/>
 
 	<int:channel id="receiveChannel">
 		<int:queue/>
 	</int:channel>
 
-	<int-redis:inbound-channel-adapter id="barInbound" channel="barChannel" topics="bar"/>
+	<int-redis:inbound-channel-adapter id="barInbound" channel="barChannel" topics="bar" auto-startup="false"/>
 
 	<int:channel id="barChannel">
 		<int:queue/>
 	</int:channel>
 
-	<bean id="testConverter" class="org.springframework.integration.redis.config.RedisOutboundChannelAdapterParserTests$TestMessageConverter"/>
+	<bean id="testConverter"
+		  class="org.springframework.integration.redis.config.RedisOutboundChannelAdapterParserTests$TestMessageConverter"/>
 
 	<int:chain input-channel="redisOutboundChain">
 		<int-redis:outbound-channel-adapter topic="foo"/>

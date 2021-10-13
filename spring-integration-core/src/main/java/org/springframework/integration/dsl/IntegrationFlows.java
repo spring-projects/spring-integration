@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,29 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FluxMessageChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototype;
 import org.springframework.integration.dsl.support.MessageChannelReference;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -160,10 +167,19 @@ public final class IntegrationFlows {
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 
 		Assert.notNull(messageSource, "'messageSource' must not be null");
-		MethodInvokingMessageSource methodInvokingMessageSource = new MethodInvokingMessageSource();
-		methodInvokingMessageSource.setObject(messageSource);
-		methodInvokingMessageSource.setMethodName("get");
-		return from(methodInvokingMessageSource, endpointConfigurer);
+		return from(new AbstractMessageSource<Object>() {
+
+			@Override
+			protected Object doReceive() {
+				return messageSource.get();
+			}
+
+			@Override
+			public String getComponentType() {
+				return "inbound-channel-adapter";
+			}
+
+		}, endpointConfigurer);
 	}
 
 	/**
@@ -319,10 +335,50 @@ public final class IntegrationFlows {
 	 * @param publisher the {@link Publisher} to subscribe to.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
+	@SuppressWarnings("overloads")
 	public static IntegrationFlowBuilder from(Publisher<? extends Message<?>> publisher) {
 		FluxMessageChannel reactiveChannel = new FluxMessageChannel();
 		reactiveChannel.subscribeTo(publisher);
 		return from((MessageChannel) reactiveChannel);
+	}
+
+	/**
+	 * Start the flow with a composition from the {@link IntegrationFlow}.
+	 * @param other the {@link IntegrationFlow} from which to compose.
+	 * @return new {@link IntegrationFlowBuilder}.
+	 * @since 5.5.4
+	 */
+	@SuppressWarnings("overloads")
+	public static IntegrationFlowBuilder from(IntegrationFlow other) {
+		Map<Object, String> integrationComponents = other.getIntegrationComponents();
+		Assert.notNull(integrationComponents, () ->
+				"The provided integration flow to compose from '" + other +
+						"' must be declared as a bean in the application context");
+		Object lastIntegrationComponentFromOther =
+				integrationComponents.keySet().stream().reduce((prev, next) -> next).orElse(null);
+		if (lastIntegrationComponentFromOther instanceof MessageChannel) {
+			return from((MessageChannel) lastIntegrationComponentFromOther);
+		}
+		else if (lastIntegrationComponentFromOther instanceof ConsumerEndpointFactoryBean) {
+			MessageHandler handler = ((ConsumerEndpointFactoryBean) lastIntegrationComponentFromOther).getHandler();
+			handler = extractProxyTarget(handler);
+			if (handler instanceof AbstractMessageProducingHandler) {
+				return buildFlowFromOutputChannel((AbstractMessageProducingHandler) handler);
+			}
+			lastIntegrationComponentFromOther = handler; // for the exception message below
+		}
+		throw new BeanCreationException("The 'IntegrationFlow' to start from must end with " +
+				"a 'MessageChannel' or reply-producing endpoint to let the result from that flow to be " +
+				"processed in this instance. The provided flow ends with: " + lastIntegrationComponentFromOther);
+	}
+
+	private static IntegrationFlowBuilder buildFlowFromOutputChannel(AbstractMessageProducingHandler handler) {
+		MessageChannel outputChannel = handler.getOutputChannel();
+		if (outputChannel == null) {
+			outputChannel = new PublishSubscribeChannel();
+			handler.setOutputChannel(outputChannel);
+		}
+		return from(outputChannel);
 	}
 
 	private static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway,
@@ -349,6 +405,20 @@ public final class IntegrationFlows {
 					.addComponents(((ComponentsRegistration) spec).getComponentsToRegister());
 		}
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> T extractProxyTarget(T target) {
+		if (!(target instanceof Advised)) {
+			return target;
+		}
+		Advised advised = (Advised) target;
+		try {
+			return (T) extractProxyTarget(advised.getTargetSource().getTarget());
+		}
+		catch (Exception e) {
+			throw new BeanCreationException("Could not extract target", e);
+		}
 	}
 
 	private IntegrationFlows() {

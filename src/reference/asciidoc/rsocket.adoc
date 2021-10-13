@@ -188,6 +188,9 @@ public Flux<?> flattenRSocketResponse(Flux<?> payload) {
 
 Or subscribed explicitly in the target application logic.
 
+The expected response type can also be configured (or evaluated via expression) to `void` treating this gateway as an outbound channel adapter.
+However the `outputChannel` still has to be configured (even if it just a `NullChannel`) to initiate a subscription to the returned `Mono`.
+
 See <<rsocket-java-config>> for samples how to configure an `RSocketOutboundGateway` endpoint a deal with payloads downstream.
 
 [[rsocket-namespace]]
@@ -340,4 +343,4 @@ public IntegrationFlow rsocketUpperCaseRequestFlow(ClientRSocketConnector client
 ----
 ====
 
-See <<./dsl.adoc#java-dsl-gateway,`IntegrationFlow` as a Gateway>> for more information how to use a mentioned `Function` interface in the beginning of the flow above.
+See <<./dsl.adoc#integration-flow-as-gateway,`IntegrationFlow` as a Gateway>> for more information how to use a mentioned `Function` interface in the beginning of the flow above.

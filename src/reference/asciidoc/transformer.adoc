@@ -122,7 +122,7 @@ For more sophistication (such as selection of the charset dynamically, at runtim
 ====
 
 If you need to serialize an `Object` to a byte array or deserialize a byte array back into an `Object`, Spring Integration provides symmetrical serialization transformers.
-These use standard Java serialization by default, but you can provide an implementation of Spring 3.0's serializer or seserializer strategies by using the `serializer` and `deserializer` attributes, respectively.
+These use standard Java serialization by default, but you can provide an implementation of Spring `Serializer` or `Deserializer` strategies by using the `serializer` and `deserializer` attributes, respectively.
 The following example shows to use Spring's serializer and deserializer:
 
 ====
@@ -151,15 +151,15 @@ Consider the following example:
 [source,java]
 ----
 public class Parent{
-    private Child child;
-    private String name; 
-    // setters and getters are omitted
+    private Child child;
+    private String name;
+    // setters and getters are omitted
 }
 
 public class Child{
-    private String name; 
-    private List<String> nickNames;
-    // setters and getters are omitted
+    private String name;
+    private List<String> nickNames;
+    // setters and getters are omitted
 }
 ----
 ====
@@ -181,15 +181,15 @@ For example, the preceding structure could be restored back to the following obj
 [source,java]
 ----
 public class Father {
-    private Kid child;
-    private String name; 
-    // setters and getters are omitted
+    private Kid child;
+    private String name;
+    // setters and getters are omitted
 }
 
 public class Kid {
-    private String name; 
-    private List<String> nickNames;
-    // setters and getters are omitted
+    private String name;
+    private List<String> nickNames;
+    // setters and getters are omitted
 }
 ----
 ====
@@ -249,25 +249,25 @@ Spring Integration provides namespace support for Map-to-Object, as the followin
 ====
 [source,xml]
 ----
-<int:map-to-object-transformer input-channel="input" 
-                         output-channel="output" 
-                          type="org.something.Person"/>
+<int:map-to-object-transformer input-channel="input" 
+                         output-channel="output" 
+                         type="org.something.Person"/>
 ----
 ====
 
 Alterately, you could use a `ref` attribute and a prototype-scoped bean, as the following example shows:
 [source,xml]
 ----
-<int:map-to-object-transformer input-channel="inputA" 
-                                output-channel="outputA" 
-                                ref="person"/>
+<int:map-to-object-transformer input-channel="inputA" 
+                               output-channel="outputA"
+                               ref="person"/>
 <bean id="person" class="org.something.Person" scope="prototype"/>
 
 ----
 
 NOTE: The 'ref' and 'type' attributes are mutually exclusive.
 Also, if you use the 'ref' attribute, you must point to a 'prototype' scoped bean.
-Otherwise, a `BeanCreationException` is thrown. 
+Otherwise, a `BeanCreationException` is thrown. 
 
 Starting with version 5.0, you can supply the `ObjectToMapTransformer` with a customized `JsonObjectMapper` -- for when you need special formats for dates or nulls for empty collections (and other uses).
 See <<json-transformers>> for more information about `JsonObjectMapper` implementations.

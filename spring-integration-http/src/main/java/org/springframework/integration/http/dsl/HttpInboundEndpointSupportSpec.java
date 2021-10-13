@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,9 @@ import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
+ * @param <S> the target spec extension type.
+ * @param <E> the target endpoint type.
+ *
  * @author Artem Bilan
  * @author Gary Russell
  *
@@ -68,7 +71,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	}
 
 	/**
-	 * Provide a {@link Consumer} for configuring {@link RequestMapping} via {@link RequestMappingSpec}
+	 * Provide a {@link Consumer} for configuring {@link RequestMapping} via {@link RequestMappingSpec}.
 	 * @param mapping the {@link Consumer} to configure {@link RequestMappingSpec}.
 	 * @return the spec
 	 * @see RequestMapping
@@ -79,7 +82,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	}
 
 	/**
-	 * Provide a {@link Consumer} for configuring {@link CrossOrigin} via {@link CrossOriginSpec}
+	 * Provide a {@link Consumer} for configuring {@link CrossOrigin} via {@link CrossOriginSpec}.
 	 * @param crossOrigin the {@link Consumer} to configure {@link CrossOriginSpec}.
 	 * @return the spec
 	 * @see CrossOrigin

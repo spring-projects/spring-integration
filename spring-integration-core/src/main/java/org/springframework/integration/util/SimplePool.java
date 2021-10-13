@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import org.springframework.util.Assert;
  * timeout when attempting to obtain an item from the pool. Pool grows on
  * demand up to the limit.
  *
+ * @param <T> pool element type.
+ *
  * @author Gary Russell
  * @author Sergey Bogatyrev
  * @author Artem Bilan
@@ -65,7 +67,7 @@ public class SimplePool<T> implements Pool<T> {
 	private volatile boolean closed;
 
 	/**
-	 * Creates a SimplePool with a specific limit.
+	 * Create a SimplePool with a specific limit.
 	 * @param poolSize The maximum number of items the pool supports.
 	 * @param callback A {@link PoolItemCallback} implementation called during various
 	 * pool operations.
@@ -85,7 +87,7 @@ public class SimplePool<T> implements Pool<T> {
 	}
 
 	/**
-	 * Adjusts the current pool size. When reducing the pool size, attempts to
+	 * Adjust the current pool size. When reducing the pool size, attempts to
 	 * remove the delta from the pool. If there are not enough unused items in
 	 * the pool, the actual pool size will decrease to the specified size as in-use
 	 * items are returned.
@@ -122,7 +124,7 @@ public class SimplePool<T> implements Pool<T> {
 	}
 
 	/**
-	 * Returns the current size of the pool; may be greater than the target pool size
+	 * Return the current size of the pool; may be greater than the target pool size
 	 * if it was recently reduced and too many items were in use to allow the new size
 	 * to be set.
 	 */
@@ -147,7 +149,7 @@ public class SimplePool<T> implements Pool<T> {
 	}
 
 	/**
-	 * Adjusts the wait timeout - the time for which getItem() will wait if no idle
+	 * Adjust the wait timeout - the time for which getItem() will wait if no idle
 	 * entries are available.
 	 * <br>
 	 * Default: infinity.
@@ -158,7 +160,7 @@ public class SimplePool<T> implements Pool<T> {
 	}
 
 	/**
-	 * Obtains an item from the pool; waits up to waitTime milliseconds (default infinity).
+	 * Obtain an item from the pool; waits up to waitTime milliseconds (default infinity).
 	 * @throws PoolItemNotAvailableException if no items become available in time.
 	 */
 	@Override
@@ -213,7 +215,7 @@ public class SimplePool<T> implements Pool<T> {
 	}
 
 	/**
-	 * Returns an item to the pool.
+	 * Return an item to the pool.
 	 */
 	@Override
 	public synchronized void releaseItem(T item) {
@@ -268,6 +270,7 @@ public class SimplePool<T> implements Pool<T> {
 	 * User of the pool provide an implementation of this interface; called during
 	 * various pool operations.
 	 *
+	 * @param <T> pool item type.
 	 */
 	public interface PoolItemCallback<T> {
 

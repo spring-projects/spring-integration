@@ -7,6 +7,10 @@ For example, it is fairly common to provide a transformer before other component
 Similarly, when you provide a filter before some other component in a chain, you essentially create a https://www.enterpriseintegrationpatterns.com/MessageSelector.html[selective consumer].
 In either case, the chain requires only a single `input-channel` and a single `output-channel`, eliminating the need to define channels for each individual component.
 
+NOTE: The `MessageHandlerChain` is mostly designed for an XML configuration.
+For Java DSL, an `IntegrationFlow` definition can be treated as a chain component, but it has nothing to do with concepts and principles described in this chapter below.
+See <<./dsl.adoc#java-dsl,Java DSL>> for more information.
+
 TIP: Spring Integration's `Filter` provides a boolean property: `throwExceptionOnRejection`.
 When you provide multiple selective consumers on the same point-to-point channel with different acceptance criteria, you should set this value 'true' (the default is `false`) so that the dispatcher knows that the message was rejected and, as a result, tries to pass the message on to other subscribers.
 If the exception were not thrown, it would appear to the dispatcher that the message had been passed on successfully even though the filter had dropped the message to prevent further processing.
@@ -126,6 +130,7 @@ You can access them from the `BeanFactory` by using the appropriate bean name, a
 
 TIP: It is useful to provide an explicit `id` attribute on `<chain>` elements to simplify the identification of sub-components in logs and to provide access to them from the `BeanFactory` etc.
 
+[[chain-gateway]]
 ==== Calling a Chain from within a Chain
 
 Sometimes, you need to make a nested call to another chain from within a chain and then come back and continue execution within the original chain.
@@ -134,27 +139,27 @@ To accomplish this, you can use a messaging gateway by including a <gateway> ele
 ====
 [source,xml]
 ----
-<int:chain id="main-chain" input-channel="in" output-channel="out">
+<int:chain id="main-chain" input-channel="in" output-channel="out">
     <int:header-enricher>
       <int:header name="name" value="Many" />
     </int:header-enricher>
     <int:service-activator>
       <bean class="org.foo.SampleService" />
     </int:service-activator>
-    <int:gateway request-channel="inputA"/>  
+    <int:gateway request-channel="inputA"/>
 </int:chain>
 
-<int:chain id="nested-chain-a" input-channel="inputA">
+<int:chain id="nested-chain-a" input-channel="inputA">
     <int:header-enricher>
         <int:header name="name" value="Moe" />
     </int:header-enricher>
-    <int:gateway request-channel="inputB"/> 
+    <int:gateway request-channel="inputB"/>
     <int:service-activator>
         <bean class="org.foo.SampleService" />
     </int:service-activator>
 </int:chain>
 
-<int:chain id="nested-chain-b" input-channel="inputB">
+<int:chain id="nested-chain-b" input-channel="inputB">
     <int:header-enricher>
         <int:header name="name" value="Jack" />
     </int:header-enricher>

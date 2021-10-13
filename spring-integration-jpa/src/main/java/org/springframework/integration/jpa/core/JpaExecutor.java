@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.PersistMode;
 import org.springframework.integration.jpa.support.parametersource.BeanPropertyParameterSourceFactory;
@@ -50,7 +50,7 @@ import org.springframework.util.CollectionUtils;
  *     <li>Sql Native Query</li>
  *     <li>JpQl Named Query</li>
  *     <li>Sql Native Named Query</li>
- * </ul>
+ * </ul>.
  *
  * When objects are being retrieved, it also possibly to:
  *
@@ -163,7 +163,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * Sets the class type which is being used for retrieving entities from the
+	 * Set the class type which is being used for retrieving entities from the
 	 * database.
 	 * @param entityClass Must not be null.
 	 */
@@ -190,11 +190,9 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @param nativeQuery The provided SQL query must neither be null nor empty.
 	 */
 	public void setNativeQuery(String nativeQuery) {
-
 		Assert.isTrue(this.namedQuery == null && this.jpaQuery == null, "You can define only one of the "
 				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 		Assert.hasText(nativeQuery, "nativeQuery must neither be null nor empty.");
-
 		this.nativeQuery = nativeQuery;
 	}
 
@@ -204,10 +202,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @param namedQuery Must neither be null nor empty
 	 */
 	public void setNamedQuery(String namedQuery) {
-
 		Assert.isTrue(this.jpaQuery == null && this.nativeQuery == null, "You can define only one of the "
 				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
-
 		Assert.hasText(namedQuery, "namedQuery must neither be null nor empty.");
 		this.namedQuery = namedQuery;
 	}
@@ -334,7 +330,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	/**
 	 * Set the expression that will be evaluated to get the {@code primaryKey} for
-	 * {@link javax.persistence.EntityManager#find(Class, Object)}
+	 * {@link javax.persistence.EntityManager#find(Class, Object)}.
 	 * @param idExpression the SpEL expression for entity {@code primaryKey}.
 	 * @since 4.0
 	 */
@@ -359,7 +355,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @see javax.persistence.Query#setMaxResults(int)
 	 */
 	public void setMaxNumberOfResults(int maxNumberOfResults) {
-		this.setMaxResultsExpression(new LiteralExpression("" + maxNumberOfResults));
+		this.setMaxResultsExpression(new ValueExpression<>(maxNumberOfResults));
 	}
 
 	@Override
@@ -453,7 +449,12 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			case MERGE:
 				return this.jpaOperations.merge(payload, this.flushSize, this.clearOnFlush); // NOSONAR
 			case DELETE:
-				this.jpaOperations.delete(payload);
+				if (payload instanceof Iterable) {
+					this.jpaOperations.deleteInBatch((Iterable<?>) payload);
+				}
+				else {
+					this.jpaOperations.delete(payload);
+				}
 				if (this.flush) {
 					this.jpaOperations.flush();
 				}
@@ -537,7 +538,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		return payload;
 	}
 
-	private void checkDelete(final Object payload) {
+	private void checkDelete(@Nullable Object payload) {
 		if (payload != null && this.deleteAfterPoll) {
 			if (payload instanceof Iterable) {
 				if (this.deleteInBatch) {

@@ -151,7 +151,7 @@ The following listing shows some usage examples:
 ----
 ====
 +
-`#jsonPath` also supports a third (optional) parameter: an array of https://github.com/jayway/JsonPath/blob/master/json-path/src/main/java/com/jayway/jsonpath/Filter.java[`com.jayway.jsonpath.Filter`], which can be provided by a reference to a bean or bean method (for example).
+`#jsonPath` also supports a third (optional) parameter: an array of https://github.com/json-path/JsonPath#filter-predicates[`com.jayway.jsonpath.Filter`], which can be provided by a reference to a bean or bean method (for example).
 +
 NOTE: Using this function requires the Jayway JsonPath library (`json-path.jar`) to be on the classpath.
 Otherwise the `#jsonPath` SpEL function is not registered.

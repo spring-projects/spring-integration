@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,9 +72,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	private static final IdGenerator ID_GENERATOR = new AlternativeJdkIdGenerator();
 
-	/**
-	 * Logger that is available to subclasses
-	 */
 	protected final LogAccessor logger = new LogAccessor(getClass()); // NOSONAR protected
 
 	private final ConversionService defaultConversionService = DefaultConversionService.getSharedInstance();
@@ -292,13 +289,15 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	/**
-	 * @see IntegrationContextUtils#getIntegrationProperties(BeanFactory)
 	 * @return The global integration properties.
+	 * @deprecated since version 5.5 in favor of {@link #getIntegrationProperty(String, Class)};
+	 * will be replaced with {@link IntegrationProperties} variant in the next major version.
+	 * @see IntegrationContextUtils#getIntegrationProperties(BeanFactory)
 	 */
+	@Deprecated
 	protected Properties getIntegrationProperties() {
 		return this.integrationProperties;
 	}
-
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
 		if (this.messageBuilderFactory == null) {

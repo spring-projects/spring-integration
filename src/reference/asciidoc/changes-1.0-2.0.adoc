@@ -90,7 +90,7 @@ See also the following blog: https://spring.io/blog/2010/03/29/using-udp-and-tcp
 
 Twitter adapters provides support for sending and receiving Twitter status updates as well as direct messages.
 You can also perform Twitter Searches with an inbound channel adapter.
-See https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-social-twitter[Spring Integration Social Twitter] for more details.
+See https://github.com/spring-projects/spring-integration-extensions/tree/main/spring-integration-social-twitter[Spring Integration Social Twitter] for more details.
 
 [[new-xmpp]]
 ===== XMPP Adapters

@@ -326,7 +326,7 @@ public class UnicastSendingMessageHandler extends
 					this.ackLatch = new CountDownLatch(1);
 					this.taskExecutor.execute(this);
 					try {
-						this.ackLatch.await(10000, TimeUnit.MILLISECONDS);
+						this.ackLatch.await(10000, TimeUnit.MILLISECONDS); // NOSONAR magic number
 					}
 					catch (@SuppressWarnings("unused") InterruptedException e) {
 						Thread.currentThread().interrupt();
@@ -518,7 +518,7 @@ public class UnicastSendingMessageHandler extends
 		try {
 			this.ackThreadRunning = true;
 			this.ackLatch.countDown();
-			DatagramPacket ackPack = new DatagramPacket(new byte[100], 100);
+			DatagramPacket ackPack = new DatagramPacket(new byte[100], 100); // NOSONAR magic number
 			while (true) {
 				getSocket().receive(ackPack);
 				String id = new String(ackPack.getData(), ackPack.getOffset(), ackPack.getLength());

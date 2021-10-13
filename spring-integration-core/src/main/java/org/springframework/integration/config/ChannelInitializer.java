@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,16 +40,20 @@ import org.springframework.util.Assert;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1.1
  */
-final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
+public final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private static final Log LOGGER = LogFactory.getLog(ChannelInitializer.class);
 
 	private volatile BeanFactory beanFactory;
 
 	private volatile boolean autoCreate = true;
 
+	ChannelInitializer() {
+	}
 
 	public void setAutoCreate(boolean autoCreate) {
 		this.autoCreate = autoCreate;
@@ -68,17 +72,18 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 		}
 		else {
 			AutoCreateCandidatesCollector channelCandidatesCollector  =
-					this.beanFactory.getBean(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME, AutoCreateCandidatesCollector.class);
-			Assert.notNull(channelCandidatesCollector, "Failed to locate '" + IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
+					this.beanFactory.getBean(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME,
+							AutoCreateCandidatesCollector.class);
 			// at this point channelNames are all resolved with placeholders and SpEL
 			Collection<String> channelNames = channelCandidatesCollector.getChannelNames();
 			if (channelNames != null) {
 				for (String channelName : channelNames) {
 					if (!this.beanFactory.containsBean(channelName)) {
-						if (this.logger.isDebugEnabled()) {
-							this.logger.debug("Auto-creating channel '" + channelName + "' as DirectChannel");
+						if (LOGGER.isDebugEnabled()) {
+							LOGGER.debug("Auto-creating channel '" + channelName + "' as DirectChannel");
 						}
-						IntegrationConfigUtils.autoCreateDirectChannel(channelName, (BeanDefinitionRegistry) this.beanFactory);
+						IntegrationConfigUtils.autoCreateDirectChannel(channelName,
+								(BeanDefinitionRegistry) this.beanFactory);
 					}
 				}
 			}
@@ -88,7 +93,7 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 	/*
 	 * Collects candidate channel names to be auto-created by ChannelInitializer
 	 */
-	static class AutoCreateCandidatesCollector {
+	public static class AutoCreateCandidatesCollector {
 
 		private final Collection<String> channelNames;
 

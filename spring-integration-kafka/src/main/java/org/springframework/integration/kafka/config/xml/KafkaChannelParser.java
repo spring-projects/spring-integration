@@ -28,7 +28,7 @@ import org.springframework.integration.kafka.channel.SubscribableKafkaChannel;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for a channel backed by a Kafka topic.
+ * Parser for a channel backed by an Apache Kafka topic.
  *
  * @author Gary Russell
  *

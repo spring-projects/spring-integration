@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,16 +28,20 @@ import org.springframework.util.Assert;
  * Abstract {@link InboundMessageMapper} implementation that maps incoming JSON messages
  * to a {@link org.springframework.messaging.Message} with the specified payload type.
  *
+ * @param <P> the payload type.
+ *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  *
  * @see JsonInboundMessageMapper
  */
 public abstract class AbstractJsonInboundMessageMapper<P> implements InboundMessageMapper<String> {
 
-	protected static final String MESSAGE_FORMAT_ERROR = "JSON message is invalid.  Expected a message in the format of either " +
-			"{\"headers\":{...},\"payload\":{...}} or {\"payload\":{...}.\"headers\":{...}} but was ";
+	protected static final String MESSAGE_FORMAT_ERROR =
+			"JSON message is invalid.  Expected a message in the format of either " +
+					"{\"headers\":{...},\"payload\":{...}} or {\"payload\":{...}.\"headers\":{...}} but was ";
 
 	protected static final Map<String, Class<?>> DEFAULT_HEADER_TYPES = new HashMap<String, Class<?>>();
 

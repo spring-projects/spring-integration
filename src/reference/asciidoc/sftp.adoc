@@ -388,7 +388,7 @@ IMPORTANT: Further, if you use a distributed `MetadataStore` (such as <<./redis.
 The actual local filter is a `CompositeFileListFilter` that contains the supplied filter and a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`).
 Files are downloaded with this suffix (the default is `.writing`), and the files are renamed to their final names when the transfer is complete, making them 'visible' to the filter.
 
-See the https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
 
 SFTP inbound channel adapter is a polling consumer.
 Therefore, you must configure a poller (either a global default or a local element).
@@ -844,7 +844,7 @@ The following example shows how to configure an SFTP outbound channel adapter:
 ----
 ====
 
-See the https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
 
 ==== SpEL and the SFTP Outbound Adapter
 
@@ -1009,7 +1009,7 @@ When using the recursive option (`-R`), the `fileName` includes any subdirectory
 If you use the `-dirs` option, each recursive directory is also returned as an element in the list.
 In this case, we recommend that you not use the `-1` option, because you would not be able to distinguish files from directories, which you can do when you use `FileInfo` objects.
 
-Using `nlst` Command
+==== Using `nlst` Command
 
 Version 5 introduced support for the `nlst` command.
 
@@ -1125,6 +1125,13 @@ The `-dirs` option is not allowed (the recursive `mget` uses the recursive `ls` 
 Typically, you would use the `#remoteDirectory` variable in the `local-directory-expression` so that the remote directory structure is retained locally.
 =====
 
+The persistent file list filters now have a boolean property `forRecursion`.
+Setting this property to `true`, also sets `alwaysAcceptDirectories`, which means that the recursive operation on the outbound gateways (`ls` and `mget`) will now always traverse the full directory tree each time.
+This is to solve a problem where changes deep in the directory tree were not detected.
+In addition, `forRecursion=true` causes the full path to files to be used as the metadata store keys; this solves a problem where the filter did not work properly if a file with the same name appears multiple times in different directories.
+IMPORTANT: This means that existing keys in a persistent metadata store will not be found for files beneath the top level directory.
+For this reason, the property is `false` by default; this may change in a future release.
+
 Starting with version 5.0, you can configure the `SftpSimplePatternFileListFilter` and `SftpRegexPatternFileListFilter` to always pass directories by setting the `alwaysAcceptDirectorties` to `true`.
 Doing so allows recursion for a simple pattern, as the following examples show:
 
@@ -1157,7 +1164,7 @@ See also <<sftp-partial>>.
 The payload of the message can be a `java.io.File`, a `byte[]`, or a `String`.
 A `remote-filename-generator` (or expression) is used to name the remote file.
 Other available attributes include `remote-directory`, `temporary-remote-directory` and their `*-expression` equivalents: `use-temporary-file-name` and `auto-create-directory`.
-See the https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config[schema documentation] for more information.
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema documentation] for more information.
 
 The message payload resulting from a `put` operation is a `String` that contains the full path of the file on the server after transfer.
 
@@ -1179,7 +1186,7 @@ In addition, you can filter files in the local directory with one of `mput-patte
 The filter works with recursion, as long as the subdirectories themselves pass the filter.
 Subdirectories that do not pass the filter are not recursed.
 
-The message payload resulting from an `mget` operation is a `List<String>` object (that is, a `List` of remote file paths resulting from the transfer).
+The message payload resulting from an `mput` operation is a `List<String>` object (that is, a `List` of remote file paths resulting from the transfer).
 
 See also <<sftp-partial>>.
 
@@ -1187,7 +1194,7 @@ Version 4.3 introduced the `chmod` attribute, which lets you change the remote f
 You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
 When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 
-Using the `rm` Command
+==== Using the `rm` Command
 
 The `rm` command has no options.
 

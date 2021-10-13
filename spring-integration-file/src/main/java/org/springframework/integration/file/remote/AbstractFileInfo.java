@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,10 @@ import org.springframework.integration.json.SimpleJsonSerializer;
  * Abstract implementation of {@link FileInfo}; provides a setter
  * for the remote directory and a generic toString implementation.
  *
+ * @param <F> The target protocol file type.
+ *
  * @author Gary Russell
+ *
  * @since 2.1
  */
 public abstract class AbstractFileInfo<F> implements FileInfo<F>, Comparable<FileInfo<F>> {
@@ -44,20 +47,20 @@ public abstract class AbstractFileInfo<F> implements FileInfo<F>, Comparable<Fil
 	}
 
 	@Override
-	public String toString() {
-		return "FileInfo [isDirectory=" + isDirectory() + ", isLink=" + isLink()
-				+ ", Size=" + getSize() + ", ModifiedTime="
-				+ new Date(getModified()) + ", Filename=" + getFilename()
-				+ ", RemoteDirectory=" + getRemoteDirectory() + ", Permissions=" + getPermissions() + "]";
-	}
-
-	@Override
 	public int compareTo(FileInfo<F> o) {
 		return this.getFilename().compareTo(o.getFilename());
 	}
 
 	public String toJson() {
 		return SimpleJsonSerializer.toJson(this, "fileInfo");
+	}
+
+	@Override
+	public String toString() {
+		return "FileInfo [isDirectory=" + isDirectory() + ", isLink=" + isLink()
+				+ ", Size=" + getSize() + ", ModifiedTime="
+				+ new Date(getModified()) + ", Filename=" + getFilename()
+				+ ", RemoteDirectory=" + getRemoteDirectory() + ", Permissions=" + getPermissions() + "]";
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 
 	/**
 	 * Specify the {@code outputChannel} for the
-	 * {@link org.springframework.integration.core.MessageProducer}
+	 * {@link org.springframework.integration.core.MessageProducer}.
 	 * @param outputChannel the outputChannel.
 	 * @return the spec.
 	 * @see MessageProducerSupport#setOutputChannel(MessageChannel)
@@ -82,7 +82,7 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 
 	/**
 	 * Specify the bean name of the {@code outputChannel} for the
-	 * {@link org.springframework.integration.core.MessageProducer}
+	 * {@link org.springframework.integration.core.MessageProducer}.
 	 * @param outputChannel the outputChannel bean name.
 	 * @return the spec.
 	 * @see MessageProducerSupport#setOutputChannelName(String)

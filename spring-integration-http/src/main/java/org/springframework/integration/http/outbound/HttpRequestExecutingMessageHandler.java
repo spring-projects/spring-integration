@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	}
 
 	/**
-	 * Create a handler that will send requests to the provided URI using a provided RestTemplate
+	 * Create a handler that will send requests to the provided URI using a provided RestTemplate.
 	 * @param uri The URI.
 	 * @param restTemplate The rest template.
 	 */
@@ -107,8 +107,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		Assert.hasText(uri, "URI is required");
 	}
 
-	/**
-	 * Create a handler that will send requests to the provided URI using a provided RestTemplate
+	/**4
+	 * Create a handler that will send requests to the provided URI using a provided RestTemplate.
 	 * @param uriExpression A SpEL Expression that can be resolved against the message object and
 	 * {@link org.springframework.beans.factory.BeanFactory}.
 	 * @param restTemplate The rest template.

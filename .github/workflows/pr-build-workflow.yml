@@ -1,0 +1,54 @@
+name: Pull Request build
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    services:
+
+      rabbitmq:
+        image: cyrilix/rabbitmq-mqtt
+        ports:
+          - 5672:5672
+          - 15672:15672
+          - 1883:1883
+
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Run Gradle
+        uses: burrunan/gradle-cache-action@v1
+        env:
+          SI_FATAL_WHEN_NO_BEANFACTORY: true
+          NO_REFERENCE_TASK: true
+        with:
+          arguments: checkAsciidocLinks check
+
+      - name: Capture Test Results
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: '*/build/reports/tests/**/*.*'
+          retention-days: 3

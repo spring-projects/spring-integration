@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.xml.transform.Source;
-
-import org.reactivestreams.Publisher;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -103,6 +101,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	private boolean extractPayloadExplicitlySet = false;
 
+	private boolean extractResponseBody = true;
+
 	private Charset charset = StandardCharsets.UTF_8;
 
 	private boolean transferCookies = false;
@@ -114,23 +114,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	public AbstractHttpRequestExecutingMessageHandler(Expression uriExpression) {
 		Assert.notNull(uriExpression, "URI Expression is required");
 		this.uriExpression = uriExpression;
-	}
-
-	/**
-	 * Specify whether the real URI should be encoded after <code>uriVariables</code>
-	 * expanding and before send request via
-	 * {@link org.springframework.web.client.RestTemplate}. The default value is
-	 * <code>true</code>.
-	 * @param encodeUri true if the URI should be encoded.
-	 * @see org.springframework.web.util.UriComponentsBuilder
-	 * @deprecated since 5.3 in favor of {@link #setEncodingMode}
-	 */
-	@Deprecated
-	public void setEncodeUri(boolean encodeUri) {
-		setEncodingMode(
-				encodeUri
-						? DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES
-						: DefaultUriBuilderFactory.EncodingMode.NONE);
 	}
 
 	/**
@@ -205,9 +188,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	}
 
 	/**
-	 * Specify the expected response type for the REST request
-	 * otherwise the default response type is {@link ResponseEntity} and will
-	 * be returned as a payload of the reply Message.
+	 * Specify the expected response type for the REST request.
+	 * Otherwise it is null and an empty {@link ResponseEntity} is returned from HTTP client.
 	 * To take advantage of the HttpMessageConverters
 	 * registered on this adapter, provide a different type).
 	 * @param expectedResponseType The expected type.
@@ -262,8 +244,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	/**
 	 * Set to true if you wish 'Set-Cookie' headers in responses to be
-	 * transferred as 'Cookie' headers in subsequent interactions for
-	 * a message.
+	 * transferred as 'Cookie' headers in subsequent interactions for a message.
+	 * Defaults to false.
 	 * @param transferCookies the transferCookies to set.
 	 */
 	public void setTransferCookies(boolean transferCookies) {
@@ -279,6 +261,16 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 */
 	public void setTrustedSpel(boolean trustedSpel) {
 		this.trustedSpel = trustedSpel;
+	}
+
+	/**
+	 * The flag to extract a body of the {@link ResponseEntity} for reply message payload.
+	 * Defaults to true.
+	 * @param extractResponseBody produce a reply message with a whole {@link ResponseEntity} or just its body.
+	 * @since 5.5
+	 */
+	public void setExtractResponseBody(boolean extractResponseBody) {
+		this.extractResponseBody = extractResponseBody;
 	}
 
 	@Override
@@ -297,10 +289,9 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	@Nullable
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		HttpMethod httpMethod = determineHttpMethod(requestMessage);
-		if (this.extractPayloadExplicitlySet && logger.isWarnEnabled() && !shouldIncludeRequestBody(httpMethod)) {
-			logger.warn("The 'extractPayload' attribute has no relevance for the current request " +
-					"since the HTTP Method is '" + httpMethod +
-					"', and no request body will be sent for that method.");
+		if (this.extractPayloadExplicitlySet && !shouldIncludeRequestBody(httpMethod)) {
+			logger.warn(() -> "The 'extractPayload' attribute has no relevance for the current request " +
+					"since the HTTP Method is '" + httpMethod + "', and no request body will be sent for that method.");
 		}
 
 		Object expectedResponseType = determineExpectedResponseType(requestMessage);
@@ -333,12 +324,11 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 		AbstractIntegrationMessageBuilder<?> replyBuilder;
 		MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
-		if (httpResponse.hasBody()) {
+		if (httpResponse.hasBody() && this.extractResponseBody) {
 			Object responseBody = httpResponse.getBody();
 			replyBuilder = (responseBody instanceof Message<?>)
 					? messageBuilderFactory.fromMessage((Message<?>) responseBody)
 					: messageBuilderFactory.withPayload(responseBody); // NOSONAR - hasBody()
-
 		}
 		else {
 			replyBuilder = messageBuilderFactory.withPayload(httpResponse);
@@ -348,9 +338,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		return replyBuilder.copyHeaders(headers);
 	}
 
-	/**
-	 * Convert Set-Cookie to Cookie
-	 */
 	private void doConvertSetCookie(Map<String, Object> headers) {
 		String keyName = null;
 		for (String key : headers.keySet()) {
@@ -362,9 +349,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		if (keyName != null) {
 			Object cookies = headers.remove(keyName);
 			headers.put(HttpHeaders.COOKIE, cookies);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Converted Set-Cookie header to Cookie for: " + cookies);
-			}
+			logger.debug(() -> "Converted Set-Cookie header to Cookie for: " + cookies);
 		}
 	}
 
@@ -389,7 +374,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		if (httpHeaders.getContentType() == null) {
 			MediaType contentType =
 					payload instanceof String
-							? new MediaType("text", "plain", this.charset)
+							? new MediaType(MediaType.TEXT_PLAIN, this.charset)
 							: resolveContentType(payload);
 			httpHeaders.setContentType(contentType);
 		}
@@ -408,7 +393,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	private HttpEntity<?> createHttpEntityFromMessage(Message<?> message, HttpMethod httpMethod) {
 		HttpHeaders httpHeaders = mapHeaders(message);
 		if (shouldIncludeRequestBody(httpMethod)) {
-			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
 			return new HttpEntity<Object>(message, httpHeaders);
 		}
 		return new HttpEntity<>(httpHeaders);
@@ -421,6 +405,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	}
 
 	@SuppressWarnings("unchecked")
+	@Nullable
 	private MediaType resolveContentType(Object content) {
 		MediaType contentType = null;
 		if (content instanceof byte[]) {
@@ -438,9 +423,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			else {
 				contentType = MediaType.APPLICATION_FORM_URLENCODED;
 			}
-		}
-		if (contentType == null && !(content instanceof Publisher<?>)) {
-			contentType = new MediaType("application", "x-java-serialized-object");
 		}
 		return contentType;
 	}
@@ -479,7 +461,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		return true;
 	}
 
-	/**
+	/*
 	 * If all keys are Strings, and some values are not Strings we'll consider
 	 * the Map to be multipart/form-data
 	 */

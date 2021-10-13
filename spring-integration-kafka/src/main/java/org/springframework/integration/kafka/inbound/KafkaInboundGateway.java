@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,15 +38,16 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConsumerSeekAware;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
-import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryCallback;
@@ -128,7 +129,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	/**
 	 * Specify a {@link RetryTemplate} instance to wrap
 	 * {@link KafkaInboundGateway.IntegrationRecordMessageListener} into
-	 * {@link RetryingMessageListenerAdapter}.
+	 * {@code RetryingMessageListenerAdapter}.
 	 * @param retryTemplate the {@link RetryTemplate} to use.
 	 */
 	public void setRetryTemplate(RetryTemplate retryTemplate) {
@@ -172,26 +173,30 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	protected void onInit() {
 		super.onInit();
 		MessageListener<K, V> kafkaListener = this.listener;
 		if (this.retryTemplate != null) {
-			kafkaListener = new RetryingMessageListenerAdapter<>(kafkaListener, this.retryTemplate,
-					this.recoveryCallback);
+			kafkaListener =
+					new org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter<>(kafkaListener,
+							this.retryTemplate, this.recoveryCallback);
 			this.retryTemplate.registerListener(this.listener);
 		}
-		this.messageListenerContainer.getContainerProperties().setMessageListener(kafkaListener);
-		this.containerDeliveryAttemptPresent = this.messageListenerContainer.getContainerProperties()
-				.isDeliveryAttemptHeader();
+		ContainerProperties containerProperties = this.messageListenerContainer.getContainerProperties();
+		containerProperties.setMessageListener(kafkaListener);
+		this.containerDeliveryAttemptPresent = containerProperties.isDeliveryAttemptHeader();
 	}
 
 	@Override
 	protected void doStart() {
+		super.doStart();
 		this.messageListenerContainer.start();
 	}
 
 	@Override
 	protected void doStop() {
+		super.doStop();
 		this.messageListenerContainer.stop();
 	}
 
@@ -264,7 +269,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 			implements RetryListener {
 
 		IntegrationRecordMessageListener() {
-			super(null, null);
+			super(null, null); // NOSONAR - out of use
 		}
 
 		@Override
@@ -282,9 +287,10 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 				setAttributesIfNecessary(record, message);
 			}
 			catch (RuntimeException e) {
-				if (getErrorChannel() != null) {
-					KafkaInboundGateway.this.messagingTemplate.send(getErrorChannel(), buildErrorMessage(null,
-							new ConversionException("Failed to convert to message for: " + record, e)));
+				MessageChannel errorChannel = getErrorChannel();
+				if (errorChannel != null) {
+					KafkaInboundGateway.this.messagingTemplate.send(errorChannel, buildErrorMessage(null,
+							new ConversionException("Failed to convert to message", record, e)));
 				}
 			}
 			if (message != null) {
@@ -302,7 +308,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 				}
 			}
 			else {
-				KafkaInboundGateway.this.logger.debug("Converter returned a null message for: " + record);
+				KafkaInboundGateway.this.logger.debug(() -> "Converter returned a null message for: " + record);
 			}
 		}
 

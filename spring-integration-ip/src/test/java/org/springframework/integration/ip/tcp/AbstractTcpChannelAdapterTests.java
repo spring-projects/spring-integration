@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,40 +16,34 @@
 
 package org.springframework.integration.ip.tcp;
 
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory;
 
 /**
  * @author Gary Russell
+ * @author Mário Dias
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
 public class AbstractTcpChannelAdapterTests {
 
-	private static final ApplicationEventPublisher NOOP_PUBLISHER = new ApplicationEventPublisher() {
-
-		@Override
-		public void publishEvent(ApplicationEvent event) {
-		}
-
-		@Override
-		public void publishEvent(Object event) {
-
-		}
-
-	};
+	private static final ApplicationEventPublisher NOOP_PUBLISHER = event -> { };
 
 	protected HelloWorldInterceptorFactory newInterceptorFactory() {
+		return newInterceptorFactory(NOOP_PUBLISHER);
+	}
+
+	protected HelloWorldInterceptorFactory newInterceptorFactory(ApplicationEventPublisher applicationEventPublisher) {
 		HelloWorldInterceptorFactory factory = new HelloWorldInterceptorFactory();
-		factory.setApplicationEventPublisher(NOOP_PUBLISHER);
+		factory.setApplicationEventPublisher(applicationEventPublisher);
 		return factory;
 	}
 
 	protected void noopPublisher(AbstractConnectionFactory connectionFactory) {
 		connectionFactory.setApplicationEventPublisher(NOOP_PUBLISHER);
 	}
-
 
 }

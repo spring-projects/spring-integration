@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2019 the original author or authors.
+ * Copyright 2007-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
@@ -143,7 +144,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		store.removeMessageGroup(this.groupId);
 		MessageGroup messageGroupA = store.getMessageGroup(this.groupId);
 		assertThat(messageGroupA).isNotSameAs(messageGroup);
-//		assertEquals(0, messageGroupA.getMarked().size());
+		//		assertEquals(0, messageGroupA.getMarked().size());
 		assertThat(messageGroupA.getMessages().size()).isEqualTo(0);
 		assertThat(messageGroupA.size()).isEqualTo(0);
 
@@ -438,6 +439,9 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		store.setValueSerializer(serializer);
 
 		Message<?> genericMessage = new GenericMessage<>(new Date());
+		NullChannel testComponent = new NullChannel();
+		testComponent.setBeanName("testChannel");
+		genericMessage = MessageHistory.write(genericMessage, testComponent);
 		Message<?> mutableMessage = new MutableMessage<>(UUID.randomUUID());
 		Message<?> adviceMessage = new AdviceMessage<>("foo", genericMessage);
 		ErrorMessage errorMessage = new ErrorMessage(new RuntimeException("test exception"), mutableMessage);
@@ -448,6 +452,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertThat(messageGroup.size()).isEqualTo(4);
 		List<Message<?>> messages = new ArrayList<>(messageGroup.getMessages());
 		assertThat(messages.get(0)).isEqualTo(genericMessage);
+		assertThat(messages.get(0).getHeaders()).containsKeys(MessageHistory.HEADER_NAME);
 		assertThat(messages.get(1)).isEqualTo(mutableMessage);
 		assertThat(messages.get(2)).isEqualTo(adviceMessage);
 		Message<?> errorMessageResult = messages.get(3);

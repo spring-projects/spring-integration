@@ -70,7 +70,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	 */
 	@Override
 	public long getModified() {
-		return ((long) this.attrs.getMTime()) * 1000;
+		return ((long) this.attrs.getMTime()) * 1000; // NOSONAR magic number
 	}
 
 	/**

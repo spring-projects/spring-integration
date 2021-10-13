@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.messaging.Message;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -84,19 +85,17 @@ public class TcpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 
 	@Override
 	protected void doStart() {
-		super.doStart();
 		this.connectionFactory.start();
 	}
 
 	@Override
 	protected void doStop() {
-		super.doStop();
 		this.connectionFactory.stop();
 	}
 
 	@Override
 	public boolean onMessage(Message<?> message) {
-		this.convertAndSend(message);
+		convertAndSend(message);
 		return false;
 	}
 

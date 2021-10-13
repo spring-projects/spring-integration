@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/jms https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+
+	<int:gateway id="sampleGateway"
+				 service-interface="org.springframework.integration.jms.config.JmsMessageHistoryTests$SampleGateway"
+				 default-request-channel="outbound-channel">
+	</int:gateway>
+
+	<int:channel id="outbound-channel"/>
+
+	<int-jms:outbound-channel-adapter id="jmsOutbound" channel="outbound-channel" destination-name="request.queue_c"/>
+
+	<!--	<int-jms:outbound-gateway id="jmsOutbound" request-channel="outbound-channel"  request-destination-name="request.queue_c"/>-->
+
+	<int-jms:inbound-channel-adapter id="sampleJmsInboundAdapter" channel="jmsInputChannel"
+									 destination-name="request.queue_c"/>
+
+	<!--    <int-jms:inbound-gateway id="sampleJmsInboundAdapter" request-channel="jmsInputChannel"  request-destination-name="request.queue_c" reply-timeout="60000" request-timeout="60000"/>-->
+
+	<int:channel id="jmsInputChannel">
+		<int:queue capacity="2"/>
+	</int:channel>
+
+	<int:poller id="poller" default="true" fixed-delay="10"/>
+
+	<util:constant id="jmsConnectionFactory"
+				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.connectionFactory"/>
+
+	<bean class="org.springframework.integration.history.MessageHistoryConfigurer"/>
+
+</beans>

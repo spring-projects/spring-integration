@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.ClassUtils;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 /**
  * An {@link ImportBeanDefinitionRegistrar} to conditionally add a {@link MicrometerMetricsCaptor}
  * bean when {@code io.micrometer.core.instrument.MeterRegistry} is present in classpath and
@@ -35,30 +37,24 @@ import org.springframework.util.ClassUtils;
  */
 public class MicrometerMetricsCaptorRegistrar implements ImportBeanDefinitionRegistrar {
 
-	private static final Class<?> METER_REGISTRY_CLASS;
-
-	static {
-		Class<?> aClass = null;
-		try {
-			aClass = ClassUtils.forName("io.micrometer.core.instrument.MeterRegistry",
-					ClassUtils.getDefaultClassLoader());
-		}
-		catch (ClassNotFoundException e) {
-			// Ignore - no Micrometer in classpath
-		}
-		METER_REGISTRY_CLASS = aClass;
-	}
+	/**
+	 * A {@code boolean} flag to indicate if the
+	 * {@code io.micrometer.core.instrument.MeterRegistry} class is present in the
+	 * CLASSPATH to allow a {@link MicrometerMetricsCaptor} bean.
+	 */
+	public static final boolean METER_REGISTRY_PRESENT =
+			ClassUtils.isPresent("io.micrometer.core.instrument.MeterRegistry", null);
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		ListableBeanFactory beanFactory = (ListableBeanFactory) registry;
-		if (METER_REGISTRY_CLASS != null
+		if (METER_REGISTRY_PRESENT
 				&& !registry.containsBeanDefinition(MicrometerMetricsCaptor.MICROMETER_CAPTOR_NAME)
-				&& beanFactory.getBeanNamesForType(METER_REGISTRY_CLASS, false, false).length > 0) {
+				&& beanFactory.getBeanNamesForType(MeterRegistry.class, false, false).length > 0) {
 
 			registry.registerBeanDefinition(MicrometerMetricsCaptor.MICROMETER_CAPTOR_NAME,
-					BeanDefinitionBuilder.genericBeanDefinition(MicrometerMetricsCaptor.class)
-							.addConstructorArgValue(beanFactory.getBeanProvider(METER_REGISTRY_CLASS))
+					BeanDefinitionBuilder.genericBeanDefinition(MicrometerMetricsCaptor.class,
+							() -> new MicrometerMetricsCaptor(beanFactory.getBeanProvider(MeterRegistry.class)))
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
 							.getBeanDefinition());
 		}

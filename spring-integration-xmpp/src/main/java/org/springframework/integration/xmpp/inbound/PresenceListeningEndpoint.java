@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Trung Pham
  *
  * @since 2.0
  */
@@ -87,31 +88,23 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 
 		@Override
 		public void entriesAdded(Collection<Jid> entries) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("entries added: " + StringUtils.collectionToCommaDelimitedString(entries));
-			}
+			logger.debug(() -> "entries added: " + StringUtils.collectionToCommaDelimitedString(entries));
 		}
 
 		@Override
 		public void entriesUpdated(Collection<Jid> entries) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("entries updated: " + StringUtils.collectionToCommaDelimitedString(entries));
-			}
+			logger.debug(() -> "entries updated: " + StringUtils.collectionToCommaDelimitedString(entries));
 		}
 
 		@Override
 		public void entriesDeleted(Collection<Jid> entries) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("entries deleted: " + StringUtils.collectionToCommaDelimitedString(entries));
-			}
+			logger.debug(() -> "entries deleted: " + StringUtils.collectionToCommaDelimitedString(entries));
 		}
 
 		@Override
 		public void presenceChanged(Presence presence) {
 			if (presence != null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("presence changed: " + presence.getFrom() + " - " + presence);
-				}
+				logger.debug(() -> "presence changed: " + presence.getFrom() + " - " + presence);
 				sendMessage(PresenceListeningEndpoint.this.getMessageBuilderFactory().withPayload(presence).build());
 			}
 		}

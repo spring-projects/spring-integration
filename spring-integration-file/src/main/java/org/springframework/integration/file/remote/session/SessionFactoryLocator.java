@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,11 @@ package org.springframework.integration.file.remote.session;
  *
  * A factory returning a {@link SessionFactory} based on some key.
  *
- * @author Gary Russell
- * @since 4.2
+ * @param <F> the target system file type.
  *
+ * @author Gary Russell
+ *
+ * @since 4.2
  */
 @FunctionalInterface
 public interface SessionFactoryLocator<F> {

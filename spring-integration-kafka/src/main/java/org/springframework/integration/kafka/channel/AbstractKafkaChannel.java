@@ -28,9 +28,10 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
- * Abstract MessageChannel backed by a Kafka topic.
+ * Abstract MessageChannel backed by an Apache Kafka topic.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.4
  *
@@ -44,7 +45,7 @@ public abstract class AbstractKafkaChannel extends AbstractMessageChannel {
 	private String groupId;
 
 	/**
-	 * Construct an instance with the provided paramters.
+	 * Construct an instance with the provided {@link KafkaOperations} and topic.
 	 * @param template the template.
 	 * @param topic the topic.
 	 */

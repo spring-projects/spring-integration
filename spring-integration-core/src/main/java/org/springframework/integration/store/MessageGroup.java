@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,16 @@
 package org.springframework.integration.store;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
  * A group of messages that are correlated with each other and should be processed in the same context.
  * <p>
- * The message group allows implementations to be mutable, but this behavior is optional. Implementations should take
- * care to document their thread safety and mutability.
+ * The message group allows implementations to be mutable, but this behavior is optional.
+ * Implementations should take care to document their thread safety and mutability.
  *
  * @author Dave Syer
  * @author Oleg Zhurakousky
@@ -35,7 +37,6 @@ public interface MessageGroup {
 
 	/**
 	 * Query if the message can be added.
-	 *
 	 * @param message The message.
 	 * @return true if the message can be added.
 	 */
@@ -57,11 +58,19 @@ public interface MessageGroup {
 	boolean remove(Message<?> messageToRemove);
 
 	/**
-	 * Returns all available Messages from the group at the time of invocation
-	 *
+	 * Return all available Messages from the group at the time of invocation.
 	 * @return The messages.
 	 */
 	Collection<Message<?>> getMessages();
+
+	/**
+	 * Return a stream for messages stored in this group.
+	 * @return the {@link Stream} for messages in this group.
+	 * @since 5.5
+	 */
+	default Stream<Message<?>> streamMessages() {
+		return getMessages().stream();
+	}
 
 	/**
 	 * @return the key that links these messages together
@@ -111,6 +120,21 @@ public interface MessageGroup {
 	long getLastModified();
 
 	void setLastModified(long lastModified);
+
+	/**
+	 * Add a condition statement to this group which can be consulted later on, e.g. from the release strategy.
+	 * @param condition statement which could be consulted later on, e.g. from the release strategy.
+	 * @since 5.5
+	 */
+	void setCondition(String condition);
+
+	/**
+	 * Return the condition for this group to consult with, e.g. from the release strategy.
+	 * @return the condition for this group to consult with, e.g. from the release strategy.
+	 * @since 5.5
+	 */
+	@Nullable
+	String getCondition();
 
 	void clear();
 

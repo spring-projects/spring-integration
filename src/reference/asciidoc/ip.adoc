@@ -381,6 +381,8 @@ The following example shows a client connection factory that uses `java.net.Sock
 
 Starting with version 5.2, the client connection factories support the property `connectTimeout`, specified in seconds, which defaults to 60.
 
+Also see <<ip-annotation>> and <<ip-dsl>>.
+
 [[tcp-codecs]]
 ==== Message Demarcation (Serializers and Deserializers)
 
@@ -495,6 +497,8 @@ You can override this default behavior by setting the `lookup-host` attribute to
 NOTE: You can also modify the attributes of sockets and socket factories.
 See <<ssl-tls>> for more information.
 As noted there, such modifications are possible whether or not SSL is being used.
+
+Also see <<ip-annotation>> and <<ip-dsl>>.
 
 ==== Custom Serializers and Deserializers
 
@@ -664,7 +668,7 @@ clientFactory.setConnectionTest(conn -> {
 
 You can configure connection factories with a reference to a `TcpConnectionInterceptorFactoryChain`.
 You can use interceptors to add behavior to connections, such as negotiation, security, and other options.
-No interceptors are currently provided by the framework, but see https://github.com/spring-projects/spring-integration/blob/master/spring-integration-ip/src/test/java/org/springframework/integration/ip/tcp/InterceptedSharedConnectionTests.java[`InterceptedSharedConnectionTests` in the source repository] for an example.
+No interceptors are currently provided by the framework, but see https://github.com/spring-projects/spring-integration/blob/main/spring-integration-ip/src/test/java/org/springframework/integration/ip/tcp/InterceptedSharedConnectionTests.java[`InterceptedSharedConnectionTests` in the source repository] for an example.
 
 The `HelloWorldInterceptor` used in the test case works as follows:
 
@@ -815,6 +819,8 @@ The following example shows how to define client and server TCP connection facto
 ----
 ====
 
+Also see <<ip-annotation>> and <<ip-dsl>>.
+
 In the preceding configuration, messages arriving in the `input` channel are serialized over connections created by `client` connection factory, received at the server, and placed on the `loop` channel.
 Since `loop` is the input channel for `outboundServer`, the message is looped back over the same connection, received by `inboundClient`, and deposited in the `replies` channel.
 Java serialization is used on the wire.
@@ -922,6 +928,8 @@ Unsolicited inbound messages will be sent to this channel, as well as late repli
 To support this on the server side, you can now register multiple `TcpSender` s with the connection factory.
 Gateways and Channel Adapters automatically register themselves.
 When sending unsolicited messages from the server, you must add the appropriate `IpHeaders.CONNECTION_ID` to the messages sent.
+
+Also see <<ip-annotation>> and <<ip-dsl>>.
 
 [[ip-correlation]]
 === TCP Message Correlation
@@ -2246,4 +2254,74 @@ In this scenario, the `@ServiceActivator` configures the endpoint, according to 
 <7> The client-side connection factory.
 
 <8> The server-side connection factory.
+====
+
+[[ip-dsl]]
+=== Using the Java DSL for TCP Components
+
+DSL support for TCP components includes specs for adapters and gateways, the `Tcp` class with factory methods to create connection factory beans, and the `TcpCodecs` class with factory methods to create serializers and deserializers.
+Refer to their javadocs for more information.
+
+Here are some examples of using the DSL to configure flows using the DSL.
+
+.Server Adapter Flow
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow server() {
+    return IntegrationFlows.from(Tcp.inboundAdapter(Tcp.netServer(1234)
+                            .deserializer(TcpCodecs.lengthHeader1())
+                            .backlog(30))
+                        .errorChannel("tcpIn.errorChannel")
+                        .id("tcpIn"))
+            .transform(Transformers.objectToString())
+            .channel("tcpInbound")
+            .get();
+}
+----
+====
+
+.Client Adapter Flow
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow client() {
+    return f -> f.handle(Tcp.outboundAdapter(Tcp.nioClient("localhost", 1234)
+                        .serializer(TcpCodecs.lengthHeader1())));
+}
+----
+====
+
+.Server Gateway Flow
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow server() {
+    return IntegrationFlows.from(Tcp.inboundGateway(Tcp.netServer(1234)
+                            .deserializer(TcpCodecs.lengthHeader1())
+                            .serializer(TcpCodecs.lengthHeader1())
+                            .backlog(30))
+                        .errorChannel("tcpIn.errorChannel")
+                        .id("tcpIn"))
+            .transform(Transformers.objectToString())
+            .channel("tcpInbound")
+            .get();
+}
+----
+====
+
+.Client Gateway Flow
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow client() {
+    return f -> f.handle(Tcp.outboundGateway(Tcp.nioClient("localhost", 1234)
+                        .deserializer(TcpCodecs.lengthHeader1())
+                        .serializer(TcpCodecs.lengthHeader1())));
+}
+----
 ====

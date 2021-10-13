@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,12 +44,12 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 	private volatile FileLocker locker;
 
 	/**
-	 * Initializes {@link DefaultDirectoryScanner#filter} with a default list of
+	 * Initialize {@link DefaultDirectoryScanner#filter} with a default list of
 	 * {@link FileListFilter}s using a {@link CompositeFileListFilter}:
 	 * <ul>
 	 *	<li>{@link IgnoreHiddenFileListFilter}</li>
 	 *	<li>{@link AcceptOnceFileListFilter}</li>
-	 * </ul>
+	 * </ul>.
 	 */
 	public DefaultDirectoryScanner() {
 		final List<FileListFilter<File>> defaultFilters = new ArrayList<>(2);

@@ -139,23 +139,24 @@ To do so, define a bean with the appropriate JNDI name for your environment, as 
 ====
 [source,xml]
 ----
-<bean id="taskScheduler" class="o.s.scheduling.commonj.TimerManagerTaskScheduler">
-    <property name="timerManagerName" value="tm/MyTimerManager" />
+<bean id="taskScheduler" class="org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler">
+    <property name="jndiName" value="tm/MyTimerManager" />
     <property name="resourceRef" value="true" />
 </bean>
 ----
 ====
 =====
 
-The next section describes what happens if exceptions occur within the asynchronous invocations.
+IMPORTANT: When a custom `TaskScheduler` is configured in the application context (like the above mentioned `DefaultManagedTaskScheduler`), it is recommended to supply it with a `MessagePublishingErrorHandler` (`integrationMessagePublishingErrorHandler` bean) to be able to handle exceptions as `ErrorMessage`s sent to the error channel, as is done with the default `TaskScheduler` bean provided by the framework.
+
+See also <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 
 [[global-properties]]
 === Global Properties
 
 Certain global framework properties can be overridden by providing a properties file on the classpath.
 
-The default properties can be found in `/META-INF/spring.integration.default.properties` in the `spring-integration-core` jar.
-You can see them on GitHub https://github.com/spring-projects/spring-integration/blob/master/spring-integration-core/src/main/resources/META-INF/spring.integration.default.properties[here].
+The default properties can be found in `org.springframework.integration.context.IntegrationProperties` class.
 The following listing shows the default values:
 
 ====
@@ -168,7 +169,8 @@ spring.integration.taskScheduler.poolSize=10 <4>
 spring.integration.messagingTemplate.throwExceptionOnLateReply=false <5>
 spring.integration.readOnly.headers= <6>
 spring.integration.endpoints.noAutoStartup= <7>
-spring.integration.postProcessDynamicBeans=false <8>
+spring.integration.channels.error.requireSubscribers=true <8>
+spring.integration.channels.error.ignoreFailures=true <9>
 ----
 
 <1> When true, `input-channel` instances are automatically declared as `DirectChannel` instances when not explicitly found in the application context.
@@ -196,11 +198,15 @@ You can manually start these endpoints later by their bean name through a `Contr
 You can explicitly override the effect of this global property by specifying `auto-startup` XML annotation or the `autoStartup` annotation attribute or by calling `AbstractEndpoint.setAutoStartup()` in the bean definition.
 Since version 4.3.12.
 
-<8> A boolean flag to indicate that `BeanPostProcessor` instances should post-process beans registered at runtime (for example, message channels created by `IntegrationFlowContext` can be supplied with global channel interceptors).
-Since version 4.3.15.
+<8> A boolean flag to indicate that default global `errorChannel` must be configured with the `requireSubscribers` option.
+Since version 5.4.3.
+See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
+
+<9> A boolean flag to indicate that default global `errorChannel` must ignore dispatching errors and pass the message to the next handler.
+Since version 5.5.
 ====
 
-These properties can be overridden by adding a `/META-INF/spring.integration.properties` file to the classpath.
+These properties can be overridden by adding a `/META-INF/spring.integration.properties` file to the classpath or an `IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME` bean for the `org.springframework.integration.context.IntegrationProperties` instance.
 You need not provide all the properties -- only those that you want to override.
 
 Starting with version 5.1, all the merged global properties are printed in the logs after application context startup when a `DEBUG` logic level is turned on for the `org.springframework.integration` category.
@@ -467,6 +473,38 @@ Starting with version 4.3.3, the `@Poller` annotation has the `errorChannel` att
 This attribute plays the same role as `error-channel` in the `<poller>` XML component.
 See <<./endpoint.adoc#endpoint-namespace,Endpoint Namespace Support>> for more information.
 
+The `poller()` attribute on the messaging annotations is mutually exclusive with the `reactive()` attribute.
+See next section for more information.
+
+[[configuration-using-reactive-annotation]]
+==== Using `@Reactive` Annotation
+
+The `ReactiveStreamsConsumer` has been around since version 5.0, but it was applied only when an input channel for the endpoint is a `FluxMessageChannel` (or any `org.reactivestreams.Publisher` implementation).
+Starting with version 5.3, its instance is also created by the framework when the target message handler is a `ReactiveMessageHandler` independently of the input channel type.
+The `@Reactive` sub-annotation (similar to mentioned above `@Poller`) has been introduced for all the messaging annotations starting with version 5.5.
+It accepts an optional `Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>>` bean reference and, independently of the input channel type and message handler, turns the target endpoint into the `ReactiveStreamsConsumer` instance.
+The function is used from the `Flux.transform()` operator to apply some customization (`publishOn()`, `doOnNext()`, `log()`, `retry()` etc.) on a reactive stream source from the input channel.
+
+The following example demonstrates how to change the publishing thread from the input channel independently of the final subscriber and producer to that `DirectChannel`:
+
+====
+[source,java]
+----
+@Bean
+public Function<Flux<?>, Flux<?>> publishOnCustomizer() {
+    return flux -> flux.publishOn(Schedulers.parallel());
+}
+
+@ServiceActivator(inputChannel = "directChannel", reactive = @Reactive("publishOnCustomizer"))
+public void handleReactive(String payload) {
+    ...
+}
+----
+====
+
+The `reactive()` attribute on the messaging annotations is mutually exclusive with the `poller()` attribute.
+See <<configuration-using-poller-annotation>> and <<./reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
+
 ==== Using the `@InboundChannelAdapter` Annotation
 
 Version 4.0 introduced the `@InboundChannelAdapter` method-level annotation.
@@ -595,7 +633,7 @@ public class MyFlowConfiguration {
 ====
 
 Version 5.0 introduced support for a `@Bean` annotated with `@InboundChannelAdapter` that returns `java.util.function.Supplier`, which can produce either a POJO or a `Message`.
-The followig example shows how to use that combination:
+The following example shows how to use that combination:
 
 ====
 [source,java]
@@ -710,11 +748,11 @@ public String doSomething(Object o);
 ----
 ====
 
-The input parameter is a message payload.
-If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
+The input parameter is a message payload.
+If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
 The return value is incorporated as a payload of the returned message.
 
-The following example shows a single un-annotated parameter (object or primitive)that is not a `Map` or a `Properties` with a `Message` return type:
+The following example shows a single un-annotated parameter (object or primitive)that is not a `Map` or a `Properties` with a `Message` return type:
 
 ====
 [source,java]
@@ -723,8 +761,8 @@ public Message doSomething(Object o);
 ----
 ====
 
-The input parameter is a message payload.
-If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
+The input parameter is a message payload.
+If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
 The return value is a newly constructed message that is sent to the next destination.
 
 The followig example shows a single parameter that is a message (or one of its subclasses) with an arbitrary object or primitive return type:
@@ -732,11 +770,11 @@ The followig example shows a single parameter that is a message (or one of its s
 ====
 [source,java]
 ----
-public int doSomething(Message  msg);
+public int doSomething(Message  msg);
 ----
 ====
 
-The input parameter is itself a `Message`. 
+The input parameter is itself a `Message`.
 The return value becomes a payload of the `Message` that is sent to the next destination.
 
 The following example shows a single parameter that is a `Message` (or one of its subclasses) with a `Message` (or one of its subclasses) as the return type:
@@ -744,11 +782,11 @@ The following example shows a single parameter that is a `Message` (or one of it
 ====
 [source,java]
 ----
-public Message doSomething(Message msg);
+public Message doSomething(Message msg);
 ----
 ====
 
-The input parameter is itself a `Message`. 
+The input parameter is itself a `Message`.
 The return value is a newly constructed `Message` that is sent to the next destination.
 
 The following example shows a single parameter of type `Map` or `Properties` with a `Message` as the return type:
@@ -775,7 +813,7 @@ public Message doSomething(Map h, <T> t);
 ====
 
 This combination contains two input parameters where one of them is of type `Map`.
-The non-`Map` parameters (regardless of the order) are mapped to a `Message` payload and the `Map` or `Properties` (regardless of the order) is mapped to message headers, giving you a nice POJO way of interacting with `Message` structure.
+The non-`Map` parameters (regardless of the order) are mapped to a `Message` payload and the `Map` or `Properties` (regardless of the order) is mapped to message headers, giving you a nice POJO way of interacting with `Message` structure.
 
 The following example shows no parameters (regardless of the return):
 
@@ -808,7 +846,7 @@ The following example shows how to explicitly map a method to a header:
 
 [source,java]
 ----
-public String doSomething(@Payload String s, @Header("someheader") String b) 
+public String doSomething(@Payload String s, @Header("someheader") String b)
 ----
 
 As you can see later on, without an annotation this signature would result in an ambiguous condition.
@@ -819,11 +857,11 @@ The following example is nearly identical to the preceding example:
 ====
 [source,java]
 ----
-public String doSomething(@Payload String s, @RequestParam("something") String b) 
+public String doSomething(@Payload String s, @RequestParam("something") String b)
 ----
 ====
 
-`@RequestMapping` or any other non-Spring Integration mapping annotation is irrelevant and is therefore ignored, leaving the second parameter unmapped.
+`@RequestMapping` or any other non-Spring Integration mapping annotation is irrelevant and is therefore ignored, leaving the second parameter unmapped.
 Although the second parameter could easily be mapped to a payload, there can only be one payload.
 Therefore, the annotations keep this method from being ambiguous.
 
@@ -832,7 +870,7 @@ The following example shows another similar method that would be ambiguous were 
 ====
 [source,java]
 ----
-public String foo(String s, @Header("foo") String b) 
+public String foo(String s, @Header("foo") String b)
 ----
 ====
 
@@ -916,7 +954,7 @@ public class Something {
 
 (Whether the methods have the same name or different names makes no difference).
 The `Message` could be mapped to either method.
-The first method would be invoked when the message payload could be mapped to `str` and the message headers could be mapped to `m`.
+The first method would be invoked when the message payload could be mapped to `str` and the message headers could be mapped to `m`.
 The second method could also be a candidate by mapping only the message headers to `m`.
 To make matters worse, both methods have the same name.
 At first, that might look ambiguous because of the following configuration:
@@ -924,8 +962,8 @@ At first, that might look ambiguous because of the following configuration:
 ====
 [source,xml]
 ----
-<int:service-activator input-channel="input" output-channel="output" method="doSomething">
-    <bean class="org.things.Something"/>
+<int:service-activator input-channel="input" output-channel="output" method="doSomething">
+    <bean class="org.things.Something"/>
 </int:service-activator>
 ----
 ====
@@ -967,8 +1005,8 @@ The following example shows how to use the `method` attribute to dictate the map
 
 [source,xml]
 ----
-<int:service-activator input-channel="input" output-channel="output" method="doSomethingElse">
-    <bean class="org.bar.Foo"/>
+<int:service-activator input-channel="input" output-channel="output" method="doSomethingElse">
+    <bean class="org.bar.Foo"/>
 </int:service-activator>
 ----
 Because the configuration explicitly maps the `doSomethingElse` method, we have eliminated the ambiguity.

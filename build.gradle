@@ -1,7 +1,9 @@
 buildscript {
-	ext.kotlinVersion = '1.4.10'
+	ext.kotlinVersion = '1.5.31'
 	repositories {
-		maven { url 'https://repo.spring.io/plugins-release' }
+		mavenCentral()
+		maven { url 'https://plugins.gradle.org/m2' }
+		maven { url 'https://repo.spring.io/plugins-release-local' }
 	}
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
@@ -11,17 +13,17 @@ buildscript {
 
 plugins {
 	id 'org.sonarqube' version '2.8'
-	id 'io.spring.nohttp' version '0.0.5.RELEASE' apply false
+	id 'io.spring.nohttp' version '0.0.10' apply false
 	id 'org.ajoberstar.grgit' version '4.1.0'
-	id "io.spring.dependency-management" version '1.0.10.RELEASE'
-	id 'com.jfrog.artifactory' version '4.17.2' apply false
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'com.jfrog.artifactory' version '4.24.18' apply false
 	id 'org.jetbrains.dokka' version '0.10.1'
-	id 'org.asciidoctor.jvm.pdf' version '3.2.0'
-	id 'org.asciidoctor.jvm.gems' version '3.2.0'
-	id 'org.asciidoctor.jvm.convert' version '3.2.0'
+	id 'org.asciidoctor.jvm.pdf' version '3.3.2'
+	id 'org.asciidoctor.jvm.gems' version '3.3.2'
+	id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
-if (System.getenv('TRAVIS') || System.getenv('bamboo_buildKey')) {
+if (System.getenv('GITHUB_ACTION') || System.getenv('bamboo_buildKey')) {
 	apply plugin: 'io.spring.nohttp'
 
 	nohttp {
@@ -40,74 +42,73 @@ ext {
 	linkScmUrl = 'https://github.com/spring-projects/spring-integration'
 	linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
 	linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
-	docResourcesVersion = '0.2.2.RELEASE'
 
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.16.0'
-	apacheSshdVersion = '2.5.1'
-	aspectjVersion = '1.9.6'
-	assertjVersion = '3.17.2'
-	assertkVersion = '0.23'
-	avroVersion = '1.10.0'
-	awaitilityVersion = '4.0.3'
-	commonsDbcp2Version = '2.8.0'
-	commonsIoVersion = '2.8.0'
-	commonsNetVersion = '3.7'
+	activeMqVersion = '5.16.3'
+	apacheSshdVersion = '2.7.0'
+	aspectjVersion = '1.9.7'
+	assertjVersion = '3.21.0'
+	assertkVersion = '0.25'
+	avroVersion = '1.10.2'
+	awaitilityVersion = '4.1.0'
+	commonsDbcp2Version = '2.9.0'
+	commonsIoVersion = '2.11.0'
+	commonsNetVersion = '3.8.0'
 	curatorVersion = '4.3.0'
 	derbyVersion = '10.14.2.0'
 	ftpServerVersion = '1.1.1'
 	googleJsr305Version = '3.0.2'
-	groovyVersion = '3.0.6'
+	greenmailVersion = '1.6.5'
+	groovyVersion = '3.0.9'
 	hamcrestVersion = '2.2'
-	hazelcastVersion = '4.0.3'
-	hibernateVersion = '5.4.22.Final'
-	hsqldbVersion = '2.5.1'
+	hazelcastVersion = '4.2.2'
+	hibernateVersion = '5.5.7.Final'
+	hsqldbVersion = '2.6.0'
 	h2Version = '1.4.200'
-	jacksonVersion = '2.11.3'
+	jacksonVersion = '2.12.5'
 	javaxActivationVersion = '1.2.0'
-	javaxAnnotationVersion= '1.3.2'
-	jaxbVersion = '2.3.3'
+	jaxbVersion = '2.3.4'
 	jeroMqVersion = '0.5.2'
 	jmsApiVersion = '2.0.1'
-	jpa21ApiVersion = '1.0.2.Final'
-	jpaApiVersion = '2.2.1'
-	jrubyVersion = '9.2.13.0'
+	jpaApiVersion = '2.7.7'
+	jrubyVersion = '9.2.19.0'
 	jschVersion = '0.1.55'
-	jsonpathVersion = '2.4.0'
-	junit4Version = '4.13.1'
-	junitJupiterVersion = '5.7.0'
+	jsonpathVersion = '2.6.0'
+	junit4Version = '4.13.2'
+	junitJupiterVersion = '5.7.2'
 	jythonVersion = '2.7.2'
 	kryoShadedVersion = '4.0.2'
-	lettuceVersion = '6.0.0.RELEASE'
-	log4jVersion = '2.13.3'
-	mailVersion = '1.6.5'
-	micrometerVersion = '1.5.5'
-	mockitoVersion = '3.5.13'
-	mongoDriverVersion = '4.1.0'
-	mysqlVersion = '8.0.21'
-	pahoMqttClientVersion = '1.2.4'
-	postgresVersion = '42.2.17'
+    lettuceVersion = '6.1.5.RELEASE'
+	log4jVersion = '2.14.1'
+	mailVersion = '1.6.7'
+	micrometerVersion = '1.7.4'
+	mockitoVersion = '3.12.4'
+	mongoDriverVersion = '4.3.2'
+	mysqlVersion = '8.0.26'
+	pahoMqttClientVersion = '1.2.5'
+	postgresVersion = '42.2.23'
 	r2dbch2Version='0.8.4.RELEASE'
-	reactorVersion = '2020.0.0-RC2'
-	resilience4jVersion = '1.6.1'
-	romeToolsVersion = '1.15.0'
-	rsocketVersion = '1.1.0-RC1'
+	reactorVersion = '2020.0.7'
+	resilience4jVersion = '1.7.1'
+	romeToolsVersion = '1.16.0'
+	rsocketVersion = '1.1.1'
 	saajVersion = '1.5.2'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.0-RC1'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.0-RC2'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.10'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.5'
 	springGraphqlVersion = '1.0.0-SNAPSHOT'
-	springKafkaVersion = '2.6.2'
-	springRetryVersion = '1.3.0'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.4.1'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.0-RC2'
-	springWsVersion = '3.0.10.RELEASE'
-	tomcatVersion = "9.0.39"
-	xstreamVersion = '1.4.13'
+	springKafkaVersion = '2.7.7'
+	springRetryVersion = '1.3.1'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.2'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.10'
+	springWsVersion = '3.1.1'
+	tomcatVersion = '9.0.52'
+	xmlUnitVersion = '2.8.2'
+	xstreamVersion = '1.4.17'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
 }
@@ -116,33 +117,29 @@ allprojects {
 	group = 'org.springframework.integration'
 
 	repositories {
-//		maven { url 'https://repo.spring.io/milestone' }
-		maven { url 'https://repo.spring.io/libs-milestone' }
 		if (project.hasProperty('mavenLocal')) {
 			mavenLocal()
 		}
-		if (version.endsWith('SNAPSHOT')) {
-//			maven { url 'https://repo.spring.io/snapshot' }
-			maven { url 'https://repo.spring.io/libs-snapshot' }
-		}
-		maven { url 'https://repo.spring.io/release' }
 		mavenCentral()
-		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-//		maven { url 'https://repo.spring.io/staging-local' }
+		maven { url 'https://repo.spring.io/release' }
+		maven { url 'https://repo.spring.io/milestone' }
+		if (version.endsWith('SNAPSHOT')) {
+			maven { url 'https://repo.spring.io/snapshot' }
+		}
+//		maven { url 'https://repo.spring.io/libs-staging-local' }
 	}
 
 	ext.javadocLinks = [
-		'https://docs.oracle.com/javase/7/docs/api/',
-		'https://docs.oracle.com/javaee/6/api/',
-		'https://docs.spring.io/spring/docs/current/javadoc-api/',
+		'https://docs.oracle.com/en/java/javase/15/docs/api',
+		'https://docs.spring.io/spring-framework/docs/current/javadoc-api',
 		'https://docs.spring.io/spring-amqp/docs/current/api/',
 		'https://docs.spring.io/spring-data-gemfire/docs/current/api/',
 		'https://docs.spring.io/spring-data/data-mongo/docs/current/api/',
 		'https://docs.spring.io/spring-data/data-redis/docs/current/api/',
-		'https://docs.spring.io/spring-ws/sites/2.0/apidocs/'
+		'https://docs.spring.io/spring-ws/docs/current/api/'
 	] as String[]
 
-	apply plugin: "io.spring.dependency-management"
+	apply plugin: 'io.spring.dependency-management'
 
 	dependencyManagement {
 		resolutionStrategy {
@@ -175,7 +172,7 @@ configure(javaProjects) { subproject ->
 	apply plugin: 'kotlin'
 	apply plugin: 'kotlin-spring'
 
-	apply from: "${rootProject.projectDir}/publish-maven.gradle"
+	apply from: "${rootDir}/gradle/publish-maven.gradle"
 
 	sourceSets {
 		test {
@@ -201,14 +198,23 @@ configure(javaProjects) { subproject ->
 		targetCompatibility = 1.8
 	}
 
+	compileTestJava {
+		sourceCompatibility = 11
+		targetCompatibility = 11
+		options.encoding = 'UTF-8'
+	}
+
 	compileKotlin {
 		kotlinOptions {
+			apiVersion = '1.3'
 			jvmTarget = '1.8'
+			freeCompilerArgs = ['-Xjsr305=strict']
+//			allWarningsAsErrors = true TODO bring it back after upgrading to Kotlin 1.5 language version
 		}
 	}
 	compileTestKotlin {
 		kotlinOptions {
-			jvmTarget = '1.8'
+			jvmTarget = '11'
 		}
 	}
 
@@ -219,7 +225,7 @@ configure(javaProjects) { subproject ->
 	}
 
 	jacoco {
-		toolVersion = '0.8.6'
+		toolVersion = '0.8.7'
 	}
 
 	// dependencies that are common across all java projects
@@ -236,16 +242,17 @@ configure(javaProjects) { subproject ->
 		testImplementation("org.awaitility:awaitility:$awaitilityVersion") {
 			exclude group: 'org.hamcrest'
 		}
+		testImplementation ("junit:junit:$junit4Version") {
+			exclude group: 'org.hamcrest'
+		}
 		testImplementation 'org.junit.jupiter:junit-jupiter-api'
-		testImplementation "com.willowtreeapps.assertk:assertk-jvm:$assertkVersion"
+		testImplementation ("com.willowtreeapps.assertk:assertk-jvm:$assertkVersion") {
+            exclude group: 'org.jetbrains.kotlin'
+        }
+		testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
 		testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 		testImplementation 'io.projectreactor:reactor-test'
-		testImplementation "com.jayway.jsonpath:json-path:$jsonpathVersion"
-		testImplementation 'com.fasterxml.jackson.core:jackson-databind'
-		testImplementation "javax.annotation:javax.annotation-api:$javaxAnnotationVersion"
-
-		// To avoid compiler warnings about @API annotations in JUnit code
-		testCompileOnly 'org.apiguardian:apiguardian-api:1.0.0'
+		testImplementation 'org.testcontainers:junit-jupiter:1.16.0'
 
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -259,10 +266,10 @@ configure(javaProjects) { subproject ->
 
 	// enable all compiler warnings; individual projects may customize further
 	ext.xLintArg = '-Xlint:all,-options,-processing'
-	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
+	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg, '-parameters']
 
 	task updateCopyrights {
-		onlyIf { !System.getenv('TRAVIS') && !System.getenv('bamboo_buildKey') }
+		onlyIf { !System.getenv('GITHUB_ACTION') && !System.getenv('bamboo_buildKey') }
 		inputs.files(modifiedFiles.filter { f -> f.path.contains(subproject.name) })
 		outputs.dir('build/classes')
 
@@ -293,16 +300,24 @@ configure(javaProjects) { subproject ->
 	compileKotlin.dependsOn updateCopyrights
 
 	jacocoTestReport {
-		dependsOn test
 		reports {
-			xml.enabled false
+			xml.enabled true
 			csv.enabled false
-			html.destination file("$buildDir/reports/jacoco/html")
+			html.enabled false
+			xml.destination file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
 		}
 	}
 
 	test {
-		maxHeapSize = '1536m'
+		maxHeapSize = '2g'
+		jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
+		jacoco {
+			destinationFile = file("$buildDir/jacoco.exec")
+		}
+
+		if (System.properties['sonar.host.url']) {
+			finalizedBy jacocoTestReport
+		}
 	}
 
 	task testAll(type: Test, dependsOn: [':checkAsciidocLinks', 'check'])
@@ -329,8 +344,8 @@ configure(javaProjects) { subproject ->
 	}
 
 	checkstyle {
-		configDirectory.set(rootProject.file("src/checkstyle"))
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.36.2'
+		configDirectory.set(rootProject.file('src/checkstyle'))
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '9.0'
 	}
 
 	jar {
@@ -358,7 +373,6 @@ configure(javaProjects) { subproject ->
 	}
 
 	check.dependsOn javadoc
-	build.dependsOn jacocoTestReport
 
 	publishing {
 		publications {
@@ -387,14 +401,14 @@ project('spring-integration-test-support') {
 	dependencies {
 		compileOnly 'org.apiguardian:apiguardian-api:1.0.0'
 		api "org.hamcrest:hamcrest-library:$hamcrestVersion"
-		api ("junit:junit:$junit4Version") {
-			exclude group: 'org.hamcrest'
-		}
 		api "org.mockito:mockito-core:$mockitoVersion"
 		api "org.assertj:assertj-core:$assertjVersion"
 		api 'org.springframework:spring-context'
 		api 'org.springframework:spring-messaging'
 		api 'org.springframework:spring-test'
+		optionalApi ("junit:junit:$junit4Version") {
+			exclude group: 'org.hamcrest'
+		}
 		optionalApi 'org.junit.jupiter:junit-jupiter-api'
 		optionalApi 'org.apache.logging.log4j:log4j-core'
 	}
@@ -428,7 +442,15 @@ project('spring-integration-core') {
 			exclude group: 'org.springframework'
 		}
 		api 'io.projectreactor:reactor-core'
+
 		optionalApi 'com.fasterxml.jackson.core:jackson-databind'
+		optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+		optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+		optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
+		optionalApi ('com.fasterxml.jackson.module:jackson-module-kotlin') {
+			exclude group: 'org.jetbrains.kotlin'
+		}
+
 		optionalApi "com.jayway.jsonpath:json-path:$jsonpathVersion"
 		optionalApi "com.esotericsoftware:kryo-shaded:$kryoShadedVersion"
 		optionalApi "io.micrometer:micrometer-core:$micrometerVersion"
@@ -436,9 +458,7 @@ project('spring-integration-core') {
 		optionalApi "org.apache.avro:avro:$avroVersion"
 		optionalApi 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
-		testImplementation ("org.aspectj:aspectjweaver:$aspectjVersion")
-		testImplementation ('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-		testRuntime 'com.fasterxml.jackson.module:jackson-module-kotlin'
+		testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }
@@ -470,6 +490,7 @@ project('spring-integration-file') {
 		testImplementation project(':spring-integration-jdbc')
 		testImplementation "com.h2database:h2:$h2Version"
 		testImplementation "io.lettuce:lettuce-core:$lettuceVersion"
+		testImplementation "com.jayway.jsonpath:json-path:$jsonpathVersion"
 	}
 }
 
@@ -479,7 +500,6 @@ project('spring-integration-ftp') {
 		api project(':spring-integration-file')
 		api "commons-net:commons-net:$commonsNetVersion"
 		api 'org.springframework:spring-context-support'
-		optionalApi "javax.activation:javax.activation-api:$javaxActivationVersion"
 		optionalApi "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 
 		testImplementation project(':spring-integration-file').sourceSets.test.output
@@ -531,6 +551,7 @@ project('spring-integration-http') {
 		api 'org.springframework:spring-webmvc'
 		providedImplementation "javax.servlet:javax.servlet-api:$servletApiVersion"
 		optionalApi "com.rometools:rome:$romeToolsVersion"
+		optionalApi 'org.springframework:spring-webflux'
 
 		testImplementation project(':spring-integration-security')
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
@@ -540,6 +561,9 @@ project('spring-integration-http') {
 		testImplementation ("org.springframework.security:spring-security-test:$springSecurityVersion") {
 			exclude group: 'org.springframework'
 		}
+		testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+
+		testRuntimeOnly "com.jayway.jsonpath:json-path:$jsonpathVersion"
 	}
 }
 
@@ -550,7 +574,9 @@ project('spring-integration-ip') {
 		testImplementation project(':spring-integration-stream')
 		testImplementation project(':spring-integration-event')
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
+
 		testRuntimeOnly "com.esotericsoftware:kryo-shaded:$kryoShadedVersion"
+		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
 
@@ -567,6 +593,8 @@ project('spring-integration-jdbc') {
 		testImplementation "org.postgresql:postgresql:$postgresVersion"
 		testImplementation "mysql:mysql-connector-java:$mysqlVersion"
 		testImplementation "org.apache.commons:commons-dbcp2:$commonsDbcp2Version"
+
+		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
 
@@ -597,15 +625,14 @@ project('spring-integration-jpa') {
 	dependencies {
 		api project(':spring-integration-core')
 		api 'org.springframework:spring-orm'
-		optionalApi "org.eclipse.persistence:javax.persistence:$jpaApiVersion"
+		optionalApi "org.eclipse.persistence:org.eclipse.persistence.jpa:$jpaApiVersion"
 
 		testImplementation ('org.springframework.data:spring-data-jpa') {
 			exclude group: 'org.springframework'
 		}
 		testImplementation "com.h2database:h2:$h2Version"
 		testImplementation "org.hibernate:hibernate-entitymanager:$hibernateVersion"
-
-		testRuntimeOnly "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:$jpa21ApiVersion"
+		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }
 
@@ -618,12 +645,8 @@ project('spring-integration-kafka') {
 		}
 
 		testImplementation "org.springframework.kafka:spring-kafka-test:$springKafkaVersion"
-		testImplementation "com.willowtreeapps.assertk:assertk-jvm:$assertkVersion"
-		testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
-		testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 
-		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-core'
 		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
@@ -634,11 +657,9 @@ project('spring-integration-mail') {
 		api project(':spring-integration-core')
 		api 'org.springframework:spring-context-support'
 
-		providedImplementation "jakarta.mail:jakarta.mail-api:$mailVersion"
-		providedImplementation "com.sun.mail:imap:$mailVersion"
 		providedImplementation "com.sun.mail:jakarta.mail:$mailVersion"
-
-		optionalApi "javax.activation:javax.activation-api:$javaxActivationVersion"
+		testImplementation "com.icegreen:greenmail:$greenmailVersion"
+		testRuntimeOnly 'org.apache.logging.log4j:log4j-jul'
 	}
 }
 
@@ -663,6 +684,7 @@ project('spring-integration-r2dbc') {
 		}
 		api 'org.springframework:spring-r2dbc'
 		testImplementation "io.r2dbc:r2dbc-h2:$r2dbch2Version"
+		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 	}
 }
 
@@ -671,8 +693,10 @@ project('spring-integration-mqtt') {
 	dependencies {
 		api project(':spring-integration-core')
 		api "org.eclipse.paho:org.eclipse.paho.client.mqttv3:$pahoMqttClientVersion"
+		optionalApi "org.eclipse.paho:org.eclipse.paho.mqttv5.client:$pahoMqttClientVersion"
 
 		testImplementation project(':spring-integration-jmx')
+		testImplementation 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
 
@@ -686,6 +710,7 @@ project('spring-integration-redis') {
 
 		testImplementation "io.lettuce:lettuce-core:$lettuceVersion"
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
+		testImplementation 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
 
@@ -711,10 +736,10 @@ project('spring-integration-scripting') {
 		optionalApi 'org.jetbrains.kotlin:kotlin-script-util'
 		optionalApi 'org.jetbrains.kotlin:kotlin-compiler-embeddable'
 
-		testImplementation("org.jruby:jruby-complete:$jrubyVersion")
-		testImplementation("org.codehaus.groovy:groovy:$groovyVersion")
-		testImplementation("org.codehaus.groovy:groovy-jsr223:$groovyVersion")
-		testImplementation("org.python:jython-standalone:$jythonVersion")
+		testImplementation "org.jruby:jruby-complete:$jrubyVersion"
+		testImplementation "org.codehaus.groovy:groovy:$groovyVersion"
+		testImplementation "org.codehaus.groovy:groovy-jsr223:$groovyVersion"
+		testImplementation "org.python:jython-standalone:$jythonVersion"
 
 		testRuntimeOnly 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable'
 	}
@@ -740,7 +765,6 @@ project('spring-integration-sftp') {
 		api project(':spring-integration-file')
 		api "com.jcraft:jsch:$jschVersion"
 		api 'org.springframework:spring-context-support'
-		optionalApi "javax.activation:javax.activation-api:$javaxActivationVersion"
 		optionalApi "org.apache.sshd:sshd-sftp:$apacheSshdVersion"
 
 		testImplementation "org.apache.sshd:sshd-core:$apacheSshdVersion"
@@ -806,6 +830,9 @@ project('spring-integration-webflux') {
 		testImplementation ("org.springframework.security:spring-security-test:$springSecurityVersion") {
 			exclude group: 'org.springframework'
 		}
+		testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+
+		testRuntimeOnly "com.jayway.jsonpath:json-path:$jsonpathVersion"
 	}
 }
 
@@ -815,9 +842,12 @@ project('spring-integration-websocket') {
 		api project(':spring-integration-core')
 		api 'org.springframework:spring-websocket'
 		optionalApi 'org.springframework:spring-webmvc'
+		providedImplementation "javax.servlet:javax.servlet-api:$servletApiVersion"
 
 		testImplementation project(':spring-integration-event')
 		testImplementation "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
+
+		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
 	}
 }
 
@@ -840,10 +870,9 @@ project('spring-integration-ws') {
 		testImplementation ("org.springframework.ws:spring-ws-support:$springWsVersion") {
 			exclude group: 'org.springframework'
 		}
-		testImplementation ('org.springframework:spring-jms')
+		testImplementation 'org.springframework:spring-jms'
 		testImplementation "javax.jms:javax.jms-api:$jmsApiVersion"
 		testImplementation "org.igniterealtime.smack:smack-tcp:$smackVersion"
-		testImplementation "org.igniterealtime.smack:smack-java7:$smackVersion"
 		testImplementation "org.igniterealtime.smack:smack-extensions:$smackVersion"
 		testImplementation "jakarta.mail:jakarta.mail-api:$mailVersion"
 
@@ -865,6 +894,7 @@ project('spring-integration-xml') {
 		}
 
 		testImplementation "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
+		testImplementation "org.xmlunit:xmlunit-assertj3:$xmlUnitVersion"
 	}
 }
 
@@ -904,10 +934,10 @@ project('spring-integration-zookeeper') {
 }
 
 project('spring-integration-bom') {
-	description = "Spring Integration (Bill of Materials)"
+	description = 'Spring Integration (Bill of Materials)'
 
 	apply plugin: 'java-platform'
-	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
+	apply from:   "${rootDir}/gradle/publish-maven.gradle"
 
 	dependencies {
 		constraints {
@@ -930,126 +960,6 @@ project('spring-integration-bom') {
 	}
 }
 
-configurations {
-	docs
-}
-
-dependencies {
-	docs "io.spring.docresources:spring-doc-resources:${docResourcesVersion}@zip"
-}
-
-task prepareAsciidocBuild(type: Sync) {
-	dependsOn configurations.docs
-	from {
-		configurations.docs.collect { zipTree(it) }
-	}
-	from 'src/reference/asciidoc/'
-	into "$buildDir/asciidoc"
-}
-
-task checkAsciidocLinks {
-	dependsOn prepareAsciidocBuild
-	inputs.dir("$buildDir/asciidoc")
-	doLast {
-		def errors = new ArrayList<>();
-		errors.add('*** Anchor reference errors found:')
-		inputs.files.filter{ f -> f.path.endsWith('.adoc') }.each { file ->
-			def doc = file.text
-			def anchors = new HashSet<>()
-			def matcher = (doc =~ /\[\[([^]]+)]]/)
-			while (matcher.find()) {
-				anchors.add(matcher.group(1))
-			}
-			matcher = (doc =~ /<<([^>]+)>>/)
-			while (matcher.find()) {
-				def anchor = matcher.group(1);
-				def hasComma = anchor.contains(",")
-				if (!anchor.startsWith("./")) {
-					if (hasComma) {
-						anchor = anchor.substring(0, anchor.indexOf(","));
-					}
-					if (!anchors.contains(anchor)) {
-						errors.add("\nAnchor '" + anchor
-							+ "' not found in '" + file.name
-							+ "', if in another file, it needs to be qualified with './fileName.adoc#'")
-					}
-				}
-				else {
-					if (!hasComma) {
-						errors.add("\nExternal anchor '" + anchor
-							+ "' in '" + file.name
-							+ "' should have a textual description (,...)")
-					}
-				}
-			}
-		}
-		if (errors.size() > 1) {
-			throw new InvalidUserDataException(errors.toString())
-		}
-	}
-}
-
-asciidoctorPdf {
-	dependsOn checkAsciidocLinks
-	baseDirFollowsSourceFile()
-
-	asciidoctorj {
-		sourceDir "$buildDir/asciidoc"
-		inputs.dir(sourceDir)
-		sources {
-			include 'index-single.adoc'
-		}
-		options doctype: 'book'
-		attributes 'icons': 'font',
-		'sectanchors': '',
-		'sectnums': '',
-		'toc': '',
-		'source-highlighter' : 'coderay',
-		revnumber: project.version,
-		'project-version': project.version
-	}
-}
-
-asciidoctor {
-	dependsOn asciidoctorPdf
-
-	baseDirFollowsSourceFile()
-
-	sourceDir "$buildDir/asciidoc"
-	inputs.dir(sourceDir)
-	resources {
-		from(sourceDir) {
-			include 'images/*', 'css/**', 'js/**'
-		}
-	}
-	options doctype: 'book'
-
-	attributes 'docinfo': 'shared',
-		stylesdir: 'css/',
-		stylesheet: 'spring.css',
-		'linkcss': true,
-		'icons': 'font',
-		'sectanchors': '',
-		'source-highlighter': 'highlight.js',
-		'highlightjsdir': 'js/highlight',
-		'highlightjs-theme': 'github',
-		'idprefix': '',
-		'idseparator': '-',
-		'spring-version': project.version,
-		'allow-uri-read': '',
-		'toc': 'left',
-		'toclevels': '4',
-		revnumber: project.version,
-		'project-version': project.version
-}
-
-task reference(dependsOn: asciidoctor) {
-	group = 'Documentation'
-	description = 'Generate the reference documentation'
-}
-
-reference.onlyIf { "$System.env.NO_REFERENCE_TASK" != 'true' || project.hasProperty('ignoreEnvToStopReference') }
-
 sonarqube {
 	properties {
 		property 'sonar.links.homepage', linkHomepage
@@ -1057,7 +967,6 @@ sonarqube {
 		property 'sonar.links.issue', linkIssue
 		property 'sonar.links.scm', linkScmUrl
 		property 'sonar.links.scm_dev', linkScmDevConnection
-		property 'sonar.java.coveragePlugin', 'jacoco'
 	}
 }
 
@@ -1099,7 +1008,7 @@ dokka {
 		moduleName = 'spring-integration'
 		externalDocumentationLink {
 			url = new URL("https://docs.spring.io/spring-integration/docs/$version/api/")
-			packageListUrl = new File(buildDir, "api/package-list").toURI().toURL()
+			packageListUrl = new File(buildDir, 'api/element-list').toURI().toURL()
 		}
 		externalDocumentationLink {
 			url = new URL('https://docs.spring.io/spring-framework/docs/current/javadoc-api/')
@@ -1113,6 +1022,8 @@ dokka {
 	}
 }
 
+apply from: "${rootDir}/gradle/docs.gradle"
+
 task schemaZip(type: Zip) {
 	group = 'Distribution'
 	archiveClassifier = 'schema'
@@ -1124,7 +1035,7 @@ task schemaZip(type: Zip) {
 	javaProjects.each { subproject ->
 		Properties schemas = new Properties();
 		def shortName = subproject.name.replaceFirst("${rootProject.name}-", '')
-		if (subproject.name.endsWith("-core")) {
+		if (subproject.name.endsWith('-core')) {
 			shortName = ''
 		}
 
@@ -1167,12 +1078,12 @@ task docsZip(type: Zip, dependsOn: reference) {
 	    }
 
 	    from ('build/docs/asciidocPdf') {
-			include "index-single.pdf"
+			include 'index-single.pdf'
 			rename  'index-single.pdf', 'spring-integration-reference.pdf'
 			into 'reference/pdf'
 	    }
 	from (dokka) {
-		into "kdoc-api"
+		into 'kdoc-api'
 	}
 }
 
@@ -1188,7 +1099,7 @@ task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
 		include 'readme.txt'
 		include 'notice.txt'
 		into "${baseDir}"
-		expand(copyright: new Date().format("yyyy"), version: project.version)
+		expand(copyright: new Date().format('yyyy'), version: project.version)
 	}
 
 	from("$project.rootDir") {
@@ -1218,7 +1129,7 @@ task dist(dependsOn: assemble) {
 	description = 'Builds -dist, -docs and -schema distribution archives.'
 }
 
-apply from: "${rootProject.projectDir}/publish-maven.gradle"
+apply from: "${rootDir}/gradle/publish-maven.gradle"
 
 publishing {
 	publications {

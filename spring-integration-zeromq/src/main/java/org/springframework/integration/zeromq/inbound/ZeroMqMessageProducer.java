@@ -90,8 +90,6 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 
 	private volatile Mono<ZMQ.Socket> socketMono;
 
-	private volatile boolean active;
-
 	public ZeroMqMessageProducer(ZContext context) {
 		this(context, SocketType.PAIR);
 	}
@@ -212,7 +210,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 	@ManagedOperation
 	public void subscribeToTopics(String... topics) {
 		Assert.state(SocketType.SUB.equals(this.socketType), "Only SUB socket can accept a subscription option.");
-		Assert.state(this.active, "This message producer is not active to accept a new subscription.");
+		Assert.state(isActive(), "This message producer is not active to accept a new subscription.");
 
 		Flux.fromArray(topics)
 				.flatMap((topic) ->
@@ -223,7 +221,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 	@ManagedOperation
 	public void unsubscribeFromTopics(String... topics) {
 		Assert.state(SocketType.SUB.equals(this.socketType), "Only SUB socket can accept a unsubscription option.");
-		Assert.state(this.active, "This message producer is not active to cancel a subscription.");
+		Assert.state(isActive(), "This message producer is not active to cancel a subscription.");
 
 		Flux.fromArray(topics)
 				.flatMap((topic) ->
@@ -255,8 +253,6 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 						.cache()
 						.publishOn(this.consumerScheduler);
 
-		this.active = true;
-
 		Flux<? extends Message<?>> dataFlux =
 				this.socketMono
 						.flatMap((socket) -> {
@@ -273,8 +269,8 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 						.doOnError((error) ->
 								logger.error(error, () -> "Error processing ZeroMQ message in the " + this))
 						.repeatWhenEmpty((repeat) ->
-								this.active ? repeat.delayElements(this.consumeDelay) : repeat)
-						.repeat(() -> this.active)
+								isActive() ? repeat.delayElements(this.consumeDelay) : repeat)
+						.repeat(this::isActive)
 						.doOnComplete(this.consumerScheduler::dispose);
 
 		subscribeToPublisher(dataFlux);
@@ -296,13 +292,11 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 
 	@Override
 	protected void doStop() {
-		this.active = false;
 		this.socketMono.doOnNext(ZMQ.Socket::close).subscribe();
 	}
 
 	@Override
 	public void destroy() {
-		this.active = false;
 		super.destroy();
 		this.socketMono.doOnNext(ZMQ.Socket::close).block();
 	}

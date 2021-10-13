@@ -143,7 +143,8 @@ public final class Kafka {
 			KafkaAckCallbackFactory<K, V> ackCallbackFactory,
 			boolean allowMultiFetch) {
 
-		return new KafkaInboundChannelAdapterSpec<>(consumerFactory, consumerProperties, ackCallbackFactory, allowMultiFetch);
+		return new KafkaInboundChannelAdapterSpec<>(consumerFactory, consumerProperties, ackCallbackFactory,
+				allowMultiFetch);
 	}
 
 	/**

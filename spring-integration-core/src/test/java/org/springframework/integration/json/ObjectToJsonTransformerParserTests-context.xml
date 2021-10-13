@@ -2,26 +2,31 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			 xmlns:beans="http://www.springframework.org/schema/beans"
-			 xmlns:util="http://www.springframework.org/schema/util"
 			 xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<util:properties id="integrationGlobalProperties">
-		<beans:prop key="spring.integration.readOnly.headers">contentType,foo</beans:prop>
-	</util:properties>
+	<beans:bean id="integrationGlobalProperties" class="org.springframework.integration.context.IntegrationProperties">
+		<beans:property name="readOnlyHeaders" value="contentType,foo"/>
+	</beans:bean>
 
 	<object-to-json-transformer id="defaultTransformer" input-channel="defaultObjectMapperInput"/>
 
-	<object-to-json-transformer id="emptyContentTypeTransformer" input-channel="customObjectMapperInput" content-type=""/>
+	<object-to-json-transformer id="emptyContentTypeTransformer" input-channel="customObjectMapperInput"
+								content-type=""/>
 
-	<object-to-json-transformer id="overriddenContentTypeTransformer" input-channel="customObjectMapperInput" content-type="text/xml"/>
+	<object-to-json-transformer id="overriddenContentTypeTransformer" input-channel="customObjectMapperInput"
+								content-type="text/xml"/>
 
 	<object-to-json-transformer id="customJsonObjectMapperTransformer" input-channel="customJsonObjectMapperInput"
 								object-mapper="customJsonObjectMapper"/>
 
 	<object-to-json-transformer id="jsonNodeTransformer" input-channel="jsonNodeInput" result-type="NODE"/>
 
-	<beans:bean id="customJsonObjectMapper" class="org.springframework.integration.json.ObjectToJsonTransformerParserTests$CustomJsonObjectMapper"/>
+	<beans:bean id="customJsonObjectMapper"
+				class="org.springframework.integration.json.ObjectToJsonTransformerParserTests$CustomJsonObjectMapper"/>
+
+	<spel-property-accessors>
+		<beans:bean id="json" class="org.springframework.integration.json.JsonPropertyAccessor"/>
+	</spel-property-accessors>
 
 </beans:beans>

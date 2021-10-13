@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.amqp.channel;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
@@ -56,7 +56,6 @@ import com.rabbitmq.client.Channel;
  */
 public class DispatcherHasNoSubscribersTests {
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testPtP() throws Exception {
 		final Channel channel = mock(Channel.class);
@@ -79,14 +78,10 @@ public class DispatcherHasNoSubscribersTests {
 		amqpChannel.afterPropertiesSet();
 
 		MessageListener listener = (MessageListener) container.getMessageListener();
-		try {
-			listener.onMessage(new Message("Hello world!".getBytes(), null));
-			fail("Exception expected");
-		}
-		catch (MessageDeliveryException e) {
-			assertThat(e.getMessage())
-					.contains("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.");
-		}
+
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> listener.onMessage(new Message("Hello world!".getBytes())))
+				.withMessageContaining("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.");
 	}
 
 	@Test
@@ -99,24 +94,23 @@ public class DispatcherHasNoSubscribersTests {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
 		AmqpTemplate amqpTemplate = mock(AmqpTemplate.class);
-		PublishSubscribeAmqpChannel amqpChannel = new PublishSubscribeAmqpChannel("noSubscribersChannel",
-				container, amqpTemplate);
+		PublishSubscribeAmqpChannel amqpChannel =
+				new PublishSubscribeAmqpChannel("noSubscribersChannel", container, amqpTemplate);
 		amqpChannel.setBeanName("noSubscribersChannel");
 		amqpChannel.setBeanFactory(mock(BeanFactory.class));
 		amqpChannel.afterPropertiesSet();
 
 		List<String> logList = insertMockLoggerInListener(amqpChannel);
 		MessageListener listener = (MessageListener) container.getMessageListener();
-		listener.onMessage(new Message("Hello world!".getBytes(), null));
+		listener.onMessage(new Message("Hello world!".getBytes()));
 		verifyLogReceived(logList);
 	}
 
-	private List<String> insertMockLoggerInListener(
-			PublishSubscribeAmqpChannel channel) {
-		SimpleMessageListenerContainer container = TestUtils.getPropertyValue(
-				channel, "container", SimpleMessageListenerContainer.class);
+	private static List<String> insertMockLoggerInListener(PublishSubscribeAmqpChannel channel) {
+		SimpleMessageListenerContainer container =
+				TestUtils.getPropertyValue(channel, "container", SimpleMessageListenerContainer.class);
 		Log logger = mock(Log.class);
-		final ArrayList<String> logList = new ArrayList<String>();
+		final ArrayList<String> logList = new ArrayList<>();
 		doAnswer(invocation -> {
 			String message = invocation.getArgument(0);
 			if (message.startsWith("Dispatcher has no subscribers")) {
@@ -131,7 +125,7 @@ public class DispatcherHasNoSubscribersTests {
 		return logList;
 	}
 
-	private void verifyLogReceived(final List<String> logList) {
+	private static void verifyLogReceived(final List<String> logList) {
 		assertThat(logList.size() > 0).as("Failed to get expected exception").isTrue();
 		boolean expectedExceptionFound = false;
 		while (logList.size() > 0) {

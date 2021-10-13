@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.KafkaOperations;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
@@ -33,7 +34,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 
 /**
- * Subscribable channel backed by a Kafka topic.
+ * Subscribable channel backed by an Apache Kafka topic.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -110,19 +111,9 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 		this.dispatcher = createDispatcher();
 		this.container = this.factory.createContainer(this.topic);
 		String groupId = getGroupId();
-		this.container.getContainerProperties().setGroupId(groupId != null ? groupId : getBeanName());
-		this.container.getContainerProperties().setMessageListener(
-				new RecordMessagingMessageListenerAdapter<Object, Object>(null, null) {
-
-					@Override
-					public void onMessage(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment,
-							Consumer<?, ?> consumer) {
-
-						SubscribableKafkaChannel.this.dispatcher
-								.dispatch(toMessagingMessage(record, acknowledgment, consumer));
-					}
-
-				});
+		ContainerProperties containerProperties = this.container.getContainerProperties();
+		containerProperties.setGroupId(groupId != null ? groupId : getBeanName());
+		containerProperties.setMessageListener(new IntegrationRecordMessageListener());
 	}
 
 	protected MessageDispatcher createDispatcher() {
@@ -159,6 +150,22 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 	@Override
 	public boolean unsubscribe(MessageHandler handler) {
 		return this.dispatcher.removeHandler(handler);
+	}
+
+
+	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<Object, Object> {
+
+		IntegrationRecordMessageListener() {
+			super(null, null); // NOSONAR - out of use
+		}
+
+		@Override
+		public void onMessage(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment,
+				Consumer<?, ?> consumer) {
+
+			SubscribableKafkaChannel.this.dispatcher.dispatch(toMessagingMessage(record, acknowledgment, consumer));
+		}
+
 	}
 
 }

@@ -61,7 +61,7 @@ public class DynamicJmsTemplate extends JmsTemplate {
 		if (priority == null) {
 			return super.getPriority();
 		}
-		Assert.isTrue(priority >= 0 && priority <= 9, "JMS priority must be in the range of 0-9");
+		Assert.isTrue(priority >= 0 && priority <= 9, "JMS priority must be in the range of 0-9"); // NOSONAR magic number
 		return priority;
 	}
 

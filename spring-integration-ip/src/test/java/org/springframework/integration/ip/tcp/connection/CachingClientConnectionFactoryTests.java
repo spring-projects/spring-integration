@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,7 @@ import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.PoolItemNotAvailableException;
 import org.springframework.integration.util.SimplePool;
@@ -93,6 +94,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
+@LogLevels(level = "trace", categories = "org.springframework.integration")
 public class CachingClientConnectionFactoryTests {
 
 	@Autowired
@@ -435,7 +437,7 @@ public class CachingClientConnectionFactoryTests {
 	}
 
 	@Test
-//	@Repeat(1000) // INT-3722
+	//	@Repeat(1000) // INT-3722
 	public void gatewayIntegrationTest() throws Exception {
 		final List<String> connectionIds = new ArrayList<>();
 		final AtomicBoolean okToRun = new AtomicBoolean(true);
@@ -497,6 +499,7 @@ public class CachingClientConnectionFactoryTests {
 		TcpConnection connection = cccf.getConnection();
 		await().atMost(Duration.ofSeconds(10)).until(() -> !connection.isOpen());
 		cccf.stop();
+		cccf.destroy();
 	}
 
 	@Test
@@ -526,6 +529,9 @@ public class CachingClientConnectionFactoryTests {
 		conn1 = cachingFactory.getConnection();
 		conn1.send(message);
 		Mockito.verify(mockConn2).send(message);
+		conn1.close();
+		cachingFactory.stop();
+		cachingFactory.destroy();
 	}
 
 	@Test
@@ -592,6 +598,8 @@ public class CachingClientConnectionFactoryTests {
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		SimplePool<?> pool = TestUtils.getPropertyValue(cachingFactory, "pool", SimplePool.class);
 		assertThat(pool.getIdleCount()).isEqualTo(2);
+		cachingFactory.stop();
+		cachingFactory.destroy();
 		server2.stop();
 	}
 
@@ -650,6 +658,8 @@ public class CachingClientConnectionFactoryTests {
 		assertThat(latch1.getCount()).isEqualTo(3);
 		server1.stop();
 		server2.stop();
+		cachingFactory.stop();
+		cachingFactory.destroy();
 	}
 
 	@Test //INT-3650
@@ -689,6 +699,7 @@ public class CachingClientConnectionFactoryTests {
 		assertThat(connectionIds.get(101)).isSameAs(connectionIds.get(0));
 		in.stop();
 		cache.stop();
+		cache.destroy();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -721,11 +732,12 @@ public class CachingClientConnectionFactoryTests {
 		TcpNetClientConnectionFactory out = new TcpNetClientConnectionFactory("localhost", port);
 		out.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		CachingClientConnectionFactory cache = new CachingClientConnectionFactory(out, 2);
-		final TcpOutboundGateway gate = new TcpOutboundGateway();
+		TcpOutboundGateway gate = new TcpOutboundGateway();
 		gate.setConnectionFactory(cache);
 		QueueChannel outputChannel = new QueueChannel();
 		gate.setOutputChannel(outputChannel);
 		gate.setBeanFactory(mock(BeanFactory.class));
+		gate.setRemoteTimeout(20_000);
 		gate.afterPropertiesSet();
 		LogAccessor logger = spy(TestUtils.getPropertyValue(gate, "logger", LogAccessor.class));
 		new DirectFieldAccessor(gate).setPropertyValue("logger", logger);
@@ -734,18 +746,20 @@ public class CachingClientConnectionFactoryTests {
 
 			private final CountDownLatch latch = new CountDownLatch(2);
 
+			private final AtomicBoolean first = new AtomicBoolean(true);
+
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
 				invocation.callRealMethod();
 				String log = ((Supplier<String>) invocation.getArgument(0)).get();
-				if (log.startsWith("Response")) {
-					new SimpleAsyncTaskExecutor()
+				if (log.startsWith("Response") && this.first.getAndSet(false)) {
+					new SimpleAsyncTaskExecutor("testGatewayRelease-")
 							.execute(() -> gate.handleMessage(new GenericMessage<>("bar")));
 					// hold up the first thread until the second has added its pending reply
-					latch.await(10, TimeUnit.SECONDS);
+					this.latch.await(20, TimeUnit.SECONDS);
 				}
 				else if (log.startsWith("Added")) {
-					latch.countDown();
+					this.latch.countDown();
 				}
 				return null;
 			}
@@ -761,6 +775,8 @@ public class CachingClientConnectionFactoryTests {
 		handler.stop();
 		gate.stop();
 		verify(logger, never()).error(anyString());
+		cache.stop();
+		in.stop();
 	}
 
 	@Test // INT-3728

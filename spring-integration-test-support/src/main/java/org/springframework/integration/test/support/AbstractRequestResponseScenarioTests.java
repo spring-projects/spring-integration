@@ -83,7 +83,7 @@ public abstract class AbstractRequestResponseScenarioTests {
 					.as(name + ": message not sent on " + scenario.getInputChannelName()).isTrue();
 
 			if (outputChannel instanceof PollableChannel) {
-				Message<?> response = ((PollableChannel) outputChannel).receive(10000);
+				Message<?> response = ((PollableChannel) outputChannel).receive(10000); // NOSONAR magic number
 				assertThat(response).as(name + ": receive timeout on " + scenario.getOutputChannelName()).isNotNull();
 				scenario.getResponseValidator().handleMessage(response);
 			}

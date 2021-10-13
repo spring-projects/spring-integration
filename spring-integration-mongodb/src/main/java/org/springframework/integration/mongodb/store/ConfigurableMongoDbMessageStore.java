@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.springframework.data.domain.Sort;
@@ -74,7 +75,9 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		this(mongoDbFactory, null, DEFAULT_COLLECTION_NAME);
 	}
 
-	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter) {
+	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory,
+			MappingMongoConverter mappingMongoConverter) {
+
 		this(mongoDbFactory, mappingMongoConverter, DEFAULT_COLLECTION_NAME);
 	}
 
@@ -82,8 +85,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
-			String collectionName) {
+	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory,
+			MappingMongoConverter mappingMongoConverter, String collectionName) {
 
 		super(mongoDbFactory, mappingMongoConverter, collectionName);
 	}
@@ -128,8 +131,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 					.create(this, groupId, createdTime, complete);
 			messageGroup.setLastModified(lastModifiedTime);
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
+			messageGroup.setCondition(messageDocument.getCondition());
 			return messageGroup;
-
 		}
 		else {
 			return new SimpleMessageGroup(groupId);
@@ -154,10 +157,13 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		int lastReleasedSequence = 0;
 		boolean complete = false;
 
+		String condition = null;
+
 		if (messageDocument != null) {
 			createdTime = messageDocument.getGroupCreatedTime();
 			lastReleasedSequence = messageDocument.getLastReleasedSequence();
 			complete = messageDocument.isComplete();
+			condition = messageDocument.getCondition();
 		}
 
 		for (Message<?> message : messages) {
@@ -168,7 +174,9 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 			document.setGroupCreatedTime(createdTime);
 			document.setLastModifiedTime(messageDocument == null ? createdTime : System.currentTimeMillis());
 			document.setSequence(getNextId());
-
+			if (condition != null) {
+				document.setCondition(condition);
+			}
 			addMessageDocument(document);
 		}
 	}
@@ -216,6 +224,11 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.LAST_RELEASED_SEQUENCE, sequenceNumber));
+	}
+
+	@Override
+	public void setGroupCondition(Object groupId, String condition) {
+		updateGroup(groupId, lastModifiedUpdate().set("condition", condition));
 	}
 
 	@Override
@@ -276,6 +289,18 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		return documents.stream()
 				.map(MessageDocument::getMessage)
 				.collect(Collectors.toList());
+	}
+
+	@Override
+	public Stream<Message<?>> streamMessagesForGroup(Object groupId) {
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
+		Query query = groupOrderQuery(groupId);
+		Stream<MessageDocument> documents =
+				getMongoTemplate()
+						.stream(query, MessageDocument.class, this.collectionName)
+						.stream();
+
+		return documents.map(MessageDocument::getMessage);
 	}
 
 	private void updateGroup(Object groupId, Update update) {

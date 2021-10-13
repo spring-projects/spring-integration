@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,7 +45,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -55,12 +53,12 @@ import org.springframework.util.FileCopyUtils;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class ScriptsTests {
 
-	@ClassRule
-	public static final TemporaryFolder FOLDER = new TemporaryFolder();
+	@TempDir
+	public static File FOLDER;
 
 	private static File SCRIPT_FILE;
 
@@ -99,13 +97,13 @@ public class ScriptsTests {
 	@Autowired
 	private PollableChannel messageSourceChannel;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setup() throws IOException {
-		SCRIPT_FILE = FOLDER.newFile("script.py");
+		SCRIPT_FILE = new File(FOLDER, "script.py");
 		FileCopyUtils.copy("1".getBytes(), SCRIPT_FILE);
 	}
 
-	@After
+	@AfterEach
 	public void clear() {
 		((QueueChannelOperations) this.results).clear();
 	}
@@ -243,7 +241,7 @@ public class ScriptsTests {
 
 		@Bean
 		public IntegrationFlow scriptRouter() {
-			return f -> f.route(Scripts.processor("scripts/TestRouterScript.js"));
+			return f -> f.route(Scripts.processor("scripts/TestRouterScript.py"));
 		}
 
 		@Bean

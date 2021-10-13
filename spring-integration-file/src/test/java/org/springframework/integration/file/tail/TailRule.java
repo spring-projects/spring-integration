@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -75,9 +76,6 @@ public class TailRule extends TestWatcher {
 	}
 
 	private boolean tailWorksOnThisMachine() {
-		if (tmpDir.contains(":")) {
-			return false;
-		}
 		File testDir = new File(tmpDir, "FileTailingMessageProducerTests");
 		testDir.mkdir();
 		final File file = new File(testDir, "foo");
@@ -88,19 +86,24 @@ public class TailRule extends TestWatcher {
 			fos.close();
 			final AtomicReference<Integer> c = new AtomicReference<>();
 			final CountDownLatch latch = new CountDownLatch(1);
-			Future<Process> future = Executors.newSingleThreadExecutor().submit(() -> {
-				final Process process = Runtime.getRuntime().exec(commandToTest + " " + file.getAbsolutePath());
-				Executors.newSingleThreadExecutor().execute(() -> {
-					try {
-						c.set(process.getInputStream().read());
-						latch.countDown();
-					}
-					catch (IOException e) {
-						logger.error("Error reading test stream", e);
-					}
-				});
-				return process;
-			});
+			ExecutorService newSingleThreadExecutor = Executors.newSingleThreadExecutor();
+			Future<Process> future =
+					newSingleThreadExecutor.submit(() -> {
+						final Process process = Runtime.getRuntime().exec(commandToTest + " " + file.getAbsolutePath());
+						ExecutorService executorService = Executors.newSingleThreadExecutor();
+						executorService.execute(() -> {
+							try {
+								c.set(process.getInputStream().read());
+								latch.countDown();
+							}
+							catch (IOException e) {
+								logger.error("Error reading test stream", e);
+							}
+						});
+						executorService.shutdown();
+						return process;
+					});
+			newSingleThreadExecutor.shutdown();
 			try {
 				Process process = future.get(10, TimeUnit.SECONDS);
 				if (latch.await(10, TimeUnit.SECONDS)) {

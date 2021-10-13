@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.util.Objects;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -28,6 +30,8 @@ import org.springframework.util.Assert;
  * connection factory will create a new one (if possible).
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  *
  */
@@ -53,7 +57,7 @@ public class ClientModeConnectionManager implements Runnable {
 		synchronized (this.clientConnectionFactory) {
 			try {
 				TcpConnection connection = this.clientConnectionFactory.getConnection();
-				if (connection != this.lastConnection) {
+				if (!Objects.equals(connection, this.lastConnection)) {
 					if (this.logger.isDebugEnabled()) {
 						this.logger.debug("Connection " + connection.getConnectionId() + " established");
 					}
@@ -65,8 +69,8 @@ public class ClientModeConnectionManager implements Runnable {
 					}
 				}
 			}
-			catch (Exception e) {
-				this.logger.error("Could not establish connection using " + this.clientConnectionFactory, e);
+			catch (Exception ex) {
+				this.logger.error("Could not establish connection using " + this.clientConnectionFactory, ex);
 			}
 		}
 	}

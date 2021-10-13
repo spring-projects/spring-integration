@@ -2,6 +2,8 @@
 == Change History
 
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
+include::./changes-5.3-5.4.adoc[]
+
 include::./changes-5.2-5.3.adoc[]
 
 include::./changes-5.1-5.2.adoc[]

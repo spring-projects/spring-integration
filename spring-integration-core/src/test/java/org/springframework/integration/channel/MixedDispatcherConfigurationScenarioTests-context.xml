@@ -18,6 +18,7 @@
 	<channel id="noLoadBalancerNoFailover" >
 		<dispatcher load-balancer="none" failover="${failover}"/>
 	</channel>
+
 	<channel id="noLoadBalancerNoFailoverExecutor" >
 		<dispatcher load-balancer="none" failover="false" task-executor="taskExecutor"/>
 	</channel>
@@ -25,6 +26,7 @@
 	<channel id="loadBalancerNoFailover">
 		<dispatcher load-balancer="round-robin" failover="false"/>
 	</channel>
+
 	<channel id="loadBalancerNoFailoverExecutor">
 		<dispatcher load-balancer="round-robin" failover="false" task-executor="taskExecutor"/>
 	</channel>
@@ -32,11 +34,13 @@
 	<channel id="noLoadBalancerFailover">
 		<dispatcher load-balancer="none" failover="true"/>
 	</channel>
+
 	<channel id="noLoadBalancerFailoverExecutor">
 		<dispatcher load-balancer="none" failover="true" task-executor="taskExecutor"/>
 	</channel>
 
-	<beans:bean id="taskExecutor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool"/>
+	<beans:bean id="taskExecutor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool"
+				destroy-method="shutdown"/>
 
 	<!-- send async errors to null channel to avoid chatter -->
 	<bridge input-channel="errorChannel" output-channel="nullChannel"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,17 +58,20 @@ import org.springframework.xml.transform.StringSource;
  */
 public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object, Object> {
 
+	private static final boolean MIME_MESSAGE_PRESENT =
+			ClassUtils.isPresent("org.springframework.ws.mime.MimeMessage", null);
+
 	private final Unmarshaller unmarshaller;
 
-	private volatile SourceFactory sourceFactory = new DomSourceFactory();
+	private SourceFactory sourceFactory = new DomSourceFactory();
 
-	private volatile boolean alwaysUseSourceFactory = false;
+	private boolean alwaysUseSourceFactory = false;
 
 	private MimeMessageUnmarshallerHelper mimeMessageUnmarshallerHelper;
 
 	public UnmarshallingTransformer(Unmarshaller unmarshaller) {
 		this.unmarshaller = unmarshaller;
-		if (ClassUtils.isPresent("org.springframework.ws.mime.MimeMessage", ClassUtils.getDefaultClassLoader())) {
+		if (MIME_MESSAGE_PRESENT) {
 			this.mimeMessageUnmarshallerHelper = new MimeMessageUnmarshallerHelper(unmarshaller);
 		}
 	}

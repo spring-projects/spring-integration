@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -32,9 +34,11 @@ import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -60,9 +64,10 @@ import org.springframework.util.ReflectionUtils;
 public class ContentEnricher extends AbstractReplyProducingMessageHandler implements ManageableLifecycle {
 
 	/**
-	 * Customized SpelExpressionParser to allow to specify nested properties when paren is null
+	 * Customized SpelExpressionParser to allow to specify nested properties when parent is null.
 	 */
-	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private static final SpelExpressionParser SPEL_PARSER =
+			new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	private Map<Expression, Expression> nullResultPropertyExpressions = new HashMap<>();
 
@@ -102,16 +107,6 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		this.nullResultPropertyExpressions = convertExpressions(nullResultPropertyExpressions);
 	}
 
-	private Map<Expression, Expression> convertExpressions(Map<String, Expression> expressions) {
-		Map<Expression, Expression> localMap = new HashMap<>(expressions.size());
-		for (Map.Entry<String, Expression> entry : expressions.entrySet()) {
-			String key = entry.getKey();
-			Expression value = entry.getValue();
-			localMap.put(this.parser.parseExpression(key), value);
-		}
-		return localMap;
-	}
-
 	public void setNullResultHeaderExpressions(Map<String, HeaderValueMessageProcessor<?>> nullResultHeaderExpressions) {
 		this.nullResultHeaderExpressions = new HashMap<>(nullResultHeaderExpressions);
 	}
@@ -144,7 +139,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Sets the content enricher's request channel. If specified, then an internal Gateway
+	 * Set the content enricher request channel. If specified, then an internal Gateway
 	 * will be initialized. Setting a request channel is optional. Not setting a request
 	 * channel is useful in situations where message payloads shall be enriched with
 	 * static values only.
@@ -160,7 +155,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Sets the content enricher's reply channel. If not specified, yet the request
+	 * Set the content enricher reply channel. If not specified, yet the request
 	 * channel is set, an anonymous reply channel will automatically created for each
 	 * request.
 	 * @param replyChannel The reply channel.
@@ -175,7 +170,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Set the content enricher's error channel to allow the error handling flow to return
+	 * Set the content enricher error channel to allow the error handling flow to return
 	 * of an alternative object to use for enrichment if exceptions occur in the
 	 * downstream flow.
 	 * @param errorChannel The error channel.
@@ -261,11 +256,48 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Initializes the Content Enricher. Will instantiate an internal Gateway if the
+	 * Initialize the Content Enricher. Will instantiate an internal Gateway if the
 	 * requestChannel is set.
 	 */
 	@Override
 	protected void doInit() {
+		validateConfiguration();
+
+		BeanFactory beanFactory = getBeanFactory();
+
+		if (this.requestChannel != null || this.requestChannelName != null) {
+			this.gateway = new Gateway();
+
+			JavaUtils.INSTANCE
+					.acceptIfNotNull(this.requestChannel, this.gateway::setRequestChannel)
+					.acceptIfNotNull(this.requestChannelName, this.gateway::setRequestChannelName)
+					.acceptIfNotNull(this.requestTimeout, this.gateway::setRequestTimeout)
+					.acceptIfNotNull(this.replyTimeout, this.gateway::setReplyTimeout)
+					.acceptIfNotNull(this.replyChannel, this.gateway::setReplyChannel)
+					.acceptIfNotNull(this.replyChannelName, this.gateway::setReplyChannelName)
+					.acceptIfNotNull(this.errorChannel, this.gateway::setErrorChannel)
+					.acceptIfNotNull(this.errorChannelName, this.gateway::setErrorChannelName)
+					.acceptIfNotNull(beanFactory, this.gateway::setBeanFactory);
+
+			this.gateway.afterPropertiesSet();
+		}
+
+		if (this.sourceEvaluationContext == null) {
+			this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
+		}
+
+		StandardEvaluationContext targetContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
+		// bean resolution is NOT allowed for the target of the enrichment
+		targetContext.setBeanResolver(null); // NOSONAR (null)
+		this.targetEvaluationContext = targetContext;
+
+		if (beanFactory != null) {
+			configureHeaderExpressions(beanFactory, this.headerExpressions);
+			configureHeaderExpressions(beanFactory, this.nullResultHeaderExpressions);
+		}
+	}
+
+	private void validateConfiguration() {
 		Assert.state(!(this.requestChannelName != null && this.requestChannel != null),
 				"'requestChannelName' and 'requestChannel' are mutually exclusive.");
 
@@ -283,150 +315,44 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			Assert.state(this.requestChannel != null || this.requestChannelName != null,
 					"If the errorChannel is set, then the requestChannel must not be null");
 		}
+	}
 
-		BeanFactory beanFactory = getBeanFactory();
+	private void configureHeaderExpressions(BeanFactory beanFactory,
+			Map<String, HeaderValueMessageProcessor<?>> headerExpressions) {
 
-		if (this.requestChannel != null || this.requestChannelName != null) {
-			this.gateway = new Gateway();
-			if (this.requestChannel != null) {
-				this.gateway.setRequestChannel(this.requestChannel);
+		boolean checkReadOnlyHeaders = getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory;
+
+		for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : headerExpressions.entrySet()) {
+			if (checkReadOnlyHeaders &&
+					(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
+
+				throw new BeanInitializationException(
+						"ContentEnricher cannot override 'id' and 'timestamp' read-only headers.\n" +
+								"Wrong 'headerExpressions' [" + headerExpressions
+								+ "] configuration for " + getComponentName());
 			}
-			if (this.requestChannelName != null) {
-				this.gateway.setRequestChannelName(this.requestChannelName);
-			}
-
-			if (this.requestTimeout != null) {
-				this.gateway.setRequestTimeout(this.requestTimeout);
-			}
-			if (this.replyTimeout != null) {
-				this.gateway.setReplyTimeout(this.replyTimeout);
-			}
-
-			this.gateway.setReplyChannel(this.replyChannel);
-			if (this.replyChannelName != null) {
-				this.gateway.setReplyChannelName(this.replyChannelName);
-			}
-
-			this.gateway.setErrorChannel(this.errorChannel);
-			if (this.errorChannelName != null) {
-				this.gateway.setErrorChannelName(this.errorChannelName);
-			}
-
-			if (beanFactory != null) {
-				this.gateway.setBeanFactory(beanFactory);
-			}
-
-			this.gateway.afterPropertiesSet();
-		}
-
-
-		if (this.sourceEvaluationContext == null) {
-			this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
-		}
-
-		StandardEvaluationContext targetContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
-		// bean resolution is NOT allowed for the target of the enrichment
-		targetContext.setBeanResolver(null); // NOSONAR (null)
-		this.targetEvaluationContext = targetContext;
-
-		if (beanFactory != null) {
-			boolean checkReadOnlyHeaders = getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory;
-
-			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.headerExpressions.entrySet()) {
-				if (checkReadOnlyHeaders &&
-						(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
-					throw new BeanInitializationException(
-							"ContentEnricher cannot override 'id' and 'timestamp' read-only headers.\n" +
-									"Wrong 'headerExpressions' [" + this.headerExpressions
-									+ "] configuration for " + getComponentName());
-				}
-				if (entry.getValue() instanceof BeanFactoryAware) {
-					((BeanFactoryAware) entry.getValue()).setBeanFactory(beanFactory);
-				}
-			}
-
-			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry :
-					this.nullResultHeaderExpressions.entrySet()) {
-				if (checkReadOnlyHeaders &&
-						(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
-					throw new BeanInitializationException(
-							"ContentEnricher cannot override 'id' and 'timestamp' read-only headers.\n" +
-									"Wrong 'nullResultHeaderExpressions' [" + this.nullResultHeaderExpressions
-									+ "] configuration for " + getComponentName());
-				}
-				if (entry.getValue() instanceof BeanFactoryAware) {
-					((BeanFactoryAware) entry.getValue()).setBeanFactory(beanFactory);
-				}
+			if (entry.getValue() instanceof BeanFactoryAware) {
+				((BeanFactoryAware) entry.getValue()).setBeanFactory(beanFactory);
 			}
 		}
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		final Object requestPayload = requestMessage.getPayload();
-		final Object targetPayload;
-		if (requestPayload instanceof Cloneable && this.shouldClonePayload) {
-			try {
-				Method cloneMethod = requestPayload.getClass().getMethod("clone");
-				targetPayload = ReflectionUtils.invokeMethod(cloneMethod, requestPayload);
-			}
-			catch (Exception e) {
-				throw new MessageHandlingException(requestMessage,
-						"Failed to clone payload object in the [" + this + ']', e);
-			}
-		}
-		else {
-			targetPayload = requestPayload;
-		}
-		final Message<?> actualRequestMessage;
-		if (this.requestPayloadExpression == null) {
-			actualRequestMessage = requestMessage;
-		}
-		else {
-			final Object requestMessagePayload =
-					this.requestPayloadExpression.getValue(this.sourceEvaluationContext, requestMessage);
-			Assert.state(requestMessagePayload != null,
-					() -> "Request payload expression produced null for " + requestMessage);
-			actualRequestMessage = getMessageBuilderFactory().withPayload(requestMessagePayload)
-					.copyHeaders(requestMessage.getHeaders()).build();
-		}
-		final Message<?> replyMessage;
+		Object targetPayload = prepareTargetPayload(requestMessage);
+		Message<?> actualRequestMessage = prepareActualRequestMessage(requestMessage);
+
+		Message<?> replyMessage;
 		if (this.gateway == null) {
 			replyMessage = actualRequestMessage;
 		}
 		else {
 			replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
 			if (replyMessage == null) {
-				if (this.nullResultPropertyExpressions.isEmpty() && this.nullResultHeaderExpressions.isEmpty()) {
-					return null;
-				}
-				for (Map.Entry<Expression, Expression> entry : this.nullResultPropertyExpressions.entrySet()) {
-					Expression propertyExpression = entry.getKey();
-					Expression valueExpression = entry.getValue();
-					Object value = valueExpression.getValue(this.sourceEvaluationContext, requestMessage);
-					propertyExpression.setValue(this.targetEvaluationContext, targetPayload, value);
-				}
-				if (this.nullResultHeaderExpressions.isEmpty()) {
-					return targetPayload;
-				}
-				else {
-					Map<String, Object> targetHeaders = new HashMap<>(this.nullResultHeaderExpressions.size());
-					for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.nullResultHeaderExpressions
-							.entrySet()) {
-						String header = entry.getKey();
-						HeaderValueMessageProcessor<?> valueProcessor = entry.getValue();
-						Boolean overwrite = valueProcessor.isOverwrite();
-						overwrite = overwrite != null ? overwrite : true;
-						if (overwrite || !requestMessage.getHeaders().containsKey(header)) {
-							Object value = valueProcessor.processMessage(requestMessage);
-							targetHeaders.put(header, value);
-						}
-					}
-					return this.getMessageBuilderFactory().withPayload(targetPayload).copyHeaders(targetHeaders)
-							.build();
-				}
+				return processNullReply(requestMessage, targetPayload);
 			}
 		}
+
 		for (Map.Entry<Expression, Expression> entry : this.propertyExpressions.entrySet()) {
 			Expression propertyExpression = entry.getKey();
 			Expression valueExpression = entry.getValue();
@@ -438,22 +364,83 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			return targetPayload;
 		}
 		else {
-			Map<String, Object> targetHeaders = new HashMap<>(this.headerExpressions.size());
-			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.headerExpressions.entrySet()) {
-				String header = entry.getKey();
-				HeaderValueMessageProcessor<?> valueProcessor = entry.getValue();
-				Boolean overwrite = valueProcessor.isOverwrite();
-				overwrite = overwrite != null ? overwrite : true;
-				if (overwrite || !requestMessage.getHeaders().containsKey(header)) {
-					Object value = valueProcessor.processMessage(replyMessage);
-					targetHeaders.put(header, value);
-				}
-			}
-			return getMessageBuilderFactory()
-					.withPayload(targetPayload)
-					.copyHeaders(targetHeaders);
+			return buildReplyWithHeaders(replyMessage, targetPayload, this.headerExpressions);
 		}
 	}
+
+	private Object prepareTargetPayload(Message<?> requestMessage) {
+		Object requestPayload = requestMessage.getPayload();
+		if (requestPayload instanceof Cloneable && this.shouldClonePayload) {
+			try {
+				Method cloneMethod = requestPayload.getClass().getMethod("clone");
+				Object result = ReflectionUtils.invokeMethod(cloneMethod, requestPayload);
+				Assert.notNull(result, "The 'clone()' method cannot return null for content enricher");
+				return result;
+			}
+			catch (Exception ex) {
+				throw new MessageHandlingException(requestMessage,
+						"Failed to clone payload object in the [" + this + ']', ex);
+			}
+		}
+		return requestPayload;
+	}
+
+	private Message<?> prepareActualRequestMessage(Message<?> requestMessage) {
+		if (this.requestPayloadExpression != null) {
+			Object requestMessagePayload =
+					this.requestPayloadExpression.getValue(this.sourceEvaluationContext, requestMessage);
+			Assert.state(requestMessagePayload != null,
+					() -> "Request payload expression produced null for " + requestMessage);
+			return getMessageBuilderFactory()
+					.withPayload(requestMessagePayload)
+					.copyHeaders(requestMessage.getHeaders())
+					.build();
+		}
+		return requestMessage;
+	}
+
+	@Nullable
+	private Object processNullReply(Message<?> requestMessage, Object targetPayload) {
+		if (this.nullResultPropertyExpressions.isEmpty() && this.nullResultHeaderExpressions.isEmpty()) {
+			return null;
+		}
+
+		for (Map.Entry<Expression, Expression> entry : this.nullResultPropertyExpressions.entrySet()) {
+			Expression propertyExpression = entry.getKey();
+			Expression valueExpression = entry.getValue();
+			Object value = valueExpression.getValue(this.sourceEvaluationContext, requestMessage);
+			propertyExpression.setValue(this.targetEvaluationContext, targetPayload, value);
+		}
+
+		if (this.nullResultHeaderExpressions.isEmpty()) {
+			return targetPayload;
+		}
+		else {
+			return buildReplyWithHeaders(requestMessage, targetPayload, this.nullResultHeaderExpressions);
+
+		}
+	}
+
+	private AbstractIntegrationMessageBuilder<?> buildReplyWithHeaders(Message<?> message,
+			Object targetPayload, Map<String, HeaderValueMessageProcessor<?>> headerExpressions) {
+
+		Map<String, Object> targetHeaders = new HashMap<>(headerExpressions.size());
+		for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : headerExpressions.entrySet()) {
+			String header = entry.getKey();
+			HeaderValueMessageProcessor<?> valueProcessor = entry.getValue();
+			Boolean overwrite = valueProcessor.isOverwrite();
+			overwrite = overwrite != null ? overwrite : true;
+			if (overwrite || !message.getHeaders().containsKey(header)) {
+				Object value = valueProcessor.processMessage(message);
+				targetHeaders.put(header, value);
+			}
+		}
+
+		return getMessageBuilderFactory()
+				.withPayload(targetPayload)
+				.copyHeaders(targetHeaders);
+	}
+
 
 	/**
 	 * Lifecycle implementation. If no requestChannel is defined, this method has no
@@ -484,6 +471,16 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	@Override
 	public boolean isRunning() {
 		return this.gateway == null || this.gateway.isRunning();
+	}
+
+	private static Map<Expression, Expression> convertExpressions(Map<String, Expression> expressions) {
+		Map<Expression, Expression> localMap = new HashMap<>(expressions.size());
+		for (Map.Entry<String, Expression> entry : expressions.entrySet()) {
+			String key = entry.getKey();
+			Expression value = entry.getValue();
+			localMap.put(SPEL_PARSER.parseExpression(key), value);
+		}
+		return localMap;
 	}
 
 	/**

@@ -17,15 +17,15 @@
 package org.springframework.integration.splitter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,19 +39,17 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Iwein Fuld
  * @author Alexander Peters
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
+@SpringJUnitConfig
+@DirtiesContext
 public class SplitterIntegrationTests {
 
 	@Autowired
@@ -77,19 +75,21 @@ public class SplitterIntegrationTests {
 	@Autowired
 	Receiver receiver;
 
-	@Before
+	@BeforeEach
 	public void clearWords() {
 		receiver.receivedWords.clear();
 	}
 
 	@MessageEndpoint
 	public static class Receiver {
-		private final List<String> receivedWords = new ArrayList<String>();
+
+		private final List<String> receivedWords = new ArrayList<>();
 
 		@ServiceActivator(inputChannel = "out")
 		public void deliveredWords(String string) {
 			this.receivedWords.add(string);
 		}
+
 	}
 
 	@MessageEndpoint
@@ -99,88 +99,68 @@ public class SplitterIntegrationTests {
 		public Iterator<String> split(String sentence) {
 			return Arrays.asList(sentence.split("\\s")).iterator();
 		}
-	}
 
-
-	@Test
-	public void configOk() throws Exception {
-		// just checking the parsing
 	}
 
 	@Test
 	public void annotated() throws Exception {
-		inAnnotated.send(new GenericMessage<String>(sentence));
+		inAnnotated.send(new GenericMessage<>(sentence));
 		assertThat(this.receiver.receivedWords.containsAll(words)).isTrue();
 		assertThat(words.containsAll(this.receiver.receivedWords)).isTrue();
 	}
 
 	@Test
-	public void methodInvoking() throws Exception {
-		inMethodInvoking.send(new GenericMessage<String>(sentence));
+	public void methodInvoking() {
+		inMethodInvoking.send(new GenericMessage<>(sentence));
 		assertThat(receiver.receivedWords.containsAll(words)).isTrue();
 		assertThat(words.containsAll(this.receiver.receivedWords)).isTrue();
 	}
 
 	@Test
-	public void defaultSplitter() throws Exception {
-		inDefault.send(new GenericMessage<List<String>>(words));
+	public void defaultSplitter() {
+		inDefault.send(new GenericMessage<>(words));
 		assertThat(receiver.receivedWords.containsAll(words)).isTrue();
 		assertThat(words.containsAll(receiver.receivedWords)).isTrue();
 	}
 
 	@Test
-	public void delimiterSplitter() throws Exception {
-		inDelimiters.send(new GenericMessage<String>("one,two, three; four/five"));
+	public void delimiterSplitter() {
+		inDelimiters.send(new GenericMessage<>("one,two, three; four/five"));
 		assertThat(receiver.receivedWords.containsAll(Arrays.asList("one", "two", "three", "four", "five"))).isTrue();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void delimitersNotAllowedWithRef() throws Throwable {
-		try {
-			new ClassPathXmlApplicationContext("SplitterIntegrationTests-invalidRef.xml",
-					SplitterIntegrationTests.class).close();
-		}
-		catch (BeanCreationException e) {
-			Throwable cause = e.getMostSpecificCause();
-			assertThat(cause).isNotNull();
-			assertThat(cause instanceof IllegalArgumentException).isTrue();
-			assertThat(cause.getMessage().contains("'delimiters' property is only available")).isTrue();
-			throw cause;
-		}
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void delimitersNotAllowedWithInnerBean() throws Throwable {
-		try {
-			new ClassPathXmlApplicationContext("SplitterIntegrationTests-invalidInnerBean.xml",
-					SplitterIntegrationTests.class).close();
-		}
-		catch (BeanCreationException e) {
-			Throwable cause = e.getMostSpecificCause();
-			assertThat(cause).isNotNull();
-			assertThat(cause instanceof IllegalArgumentException).isTrue();
-			assertThat(cause.getMessage().contains("'delimiters' property is only available")).isTrue();
-			throw cause;
-		}
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void delimitersNotAllowedWithExpression() throws Throwable {
-		try {
-			new ClassPathXmlApplicationContext("SplitterIntegrationTests-invalidExpression.xml",
-					SplitterIntegrationTests.class).close();
-		}
-		catch (BeanCreationException e) {
-			Throwable cause = e.getMostSpecificCause();
-			assertThat(cause).isNotNull();
-			assertThat(cause instanceof IllegalArgumentException).isTrue();
-			assertThat(cause.getMessage().contains("'delimiters' property is only available")).isTrue();
-			throw cause;
-		}
+	@Test
+	public void delimitersNotAllowedWithRef() {
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("SplitterIntegrationTests-invalidRef.xml",
+								SplitterIntegrationTests.class))
+				.withRootCauseExactlyInstanceOf(IllegalArgumentException.class)
+				.withMessageContaining("'delimiters' property is only available");
 	}
 
 	@Test
-	public void channelResolver_isNotNull() throws Exception {
+	public void delimitersNotAllowedWithInnerBean() {
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("SplitterIntegrationTests-invalidInnerBean.xml",
+								SplitterIntegrationTests.class))
+				.withRootCauseExactlyInstanceOf(IllegalArgumentException.class)
+				.withMessageContaining("'delimiters' property is only available");
+	}
+
+	@Test
+	public void delimitersNotAllowedWithExpression() {
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("SplitterIntegrationTests-invalidExpression.xml",
+								SplitterIntegrationTests.class))
+				.withRootCauseExactlyInstanceOf(IllegalArgumentException.class)
+				.withMessageContaining("'delimiters' property is only available");
+	}
+
+	@Test
+	public void channelResolver_isNotNull() {
 		splitter.setOutputChannel(null);
 		Message<String> message = MessageBuilder.withPayload("fooBar")
 				.setReplyChannelName("out").build();

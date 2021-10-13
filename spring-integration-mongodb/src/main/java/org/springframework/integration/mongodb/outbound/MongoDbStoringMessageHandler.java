@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2020 the original author or authors.
+ * Copyright 2007-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,51 +35,48 @@ import org.springframework.util.Assert;
  * @author Amol Nayak
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ *
  * @since 2.2
  *
  */
 public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 
-	private volatile MongoOperations mongoTemplate;
+	private final MongoDatabaseFactory mongoDbFactory;
 
-	private volatile MongoDatabaseFactory mongoDbFactory;
+	private MongoOperations mongoTemplate;
 
-	private volatile MongoConverter mongoConverter;
+	private MongoConverter mongoConverter;
 
-	private volatile StandardEvaluationContext evaluationContext;
+	private StandardEvaluationContext evaluationContext;
 
-	private volatile Expression collectionNameExpression = new LiteralExpression("data");
+	private Expression collectionNameExpression = new LiteralExpression("data");
 
 	private volatile boolean initialized = false;
 
 	/**
-	 * Will construct this instance using provided {@link MongoDatabaseFactory}
-	 *
+	 * Will construct this instance using provided {@link MongoDatabaseFactory}.
 	 * @param mongoDbFactory The mongodb factory.
 	 */
 	public MongoDbStoringMessageHandler(MongoDatabaseFactory mongoDbFactory) {
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
-
 		this.mongoDbFactory = mongoDbFactory;
 	}
 
 	/**
 	 * Will construct this instance using fully created and initialized instance of
-	 * provided {@link MongoOperations}
-	 *
+	 * provided {@link MongoOperations}.
 	 * @param mongoTemplate The MongoOperations implementation.
 	 */
 	public MongoDbStoringMessageHandler(MongoOperations mongoTemplate) {
 		Assert.notNull(mongoTemplate, "'mongoTemplate' must not be null");
-
 		this.mongoTemplate = mongoTemplate;
+		this.mongoDbFactory = null;
 	}
 
 	/**
-	 * Allows you to provide custom {@link MongoConverter} used to assist in serialization
+	 * Allow providing custom {@link MongoConverter} used to assist in serialization
 	 * of data written to MongoDb. Only allowed if this instance was constructed with a
 	 * {@link MongoDatabaseFactory}.
-	 *
 	 * @param mongoConverter The mongo converter.
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {
@@ -89,9 +86,8 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Sets the SpEL {@link Expression} that should resolve to a collection name
+	 * Set the SpEL {@link Expression} that should resolve to a collection name
 	 * used by {@link MongoOperations} to store data
-	 *
 	 * @param collectionNameExpression The collection name expression.
 	 */
 	public void setCollectionNameExpression(Expression collectionNameExpression) {
@@ -124,4 +120,5 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 
 		this.mongoTemplate.save(payload, collectionName);
 	}
+
 }

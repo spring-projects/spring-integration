@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -48,6 +49,7 @@ import reactor.core.publisher.Flux;
  * input channel and reactive consumption of messages from that channel.
  *
  * @author Artem Bilan
+ * @author Trung Pham
  *
  * @since 5.0
  */
@@ -68,6 +70,9 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 	@Nullable
 	private final Lifecycle lifecycleDelegate;
 
+	@Nullable
+	private Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>> reactiveCustomizer;
+
 	private ErrorHandler errorHandler;
 
 	private volatile Disposable subscription;
@@ -85,7 +90,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		Assert.notNull(subscriber, "'subscriber' must not be null");
 		this.inputChannel = inputChannel;
 
-		if (inputChannel instanceof NullChannel && logger.isWarnEnabled()) {
+		if (inputChannel instanceof NullChannel) {
 			logger.warn("The consuming from the NullChannel does not have any effects: " +
 					"it doesn't forward messages sent to it. A NullChannel is the end of the flow.");
 		}
@@ -126,6 +131,12 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		this.errorHandler = errorHandler;
 	}
 
+	public void setReactiveCustomizer(
+			@Nullable Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>> reactiveCustomizer) {
+
+		this.reactiveCustomizer = reactiveCustomizer;
+	}
+
 	@Override
 	public MessageChannel getInputChannel() {
 		return this.inputChannel;
@@ -163,16 +174,21 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 			this.lifecycleDelegate.start();
 		}
 
+		Flux<Message<?>> fluxFromChannel = Flux.from(this.publisher);
+		if (this.reactiveCustomizer != null) {
+			fluxFromChannel = fluxFromChannel.transform(this.reactiveCustomizer);
+		}
+
 		if (this.reactiveMessageHandler != null) {
 			this.subscription =
-					Flux.from(this.publisher)
+					fluxFromChannel
 							.flatMap(this.reactiveMessageHandler::handleMessage)
 							.onErrorContinue((ex, data) -> this.errorHandler.handleError(ex))
 							.subscribe();
 		}
 		else if (this.subscriber != null) {
 			this.subscription =
-					Flux.from(this.publisher)
+					fluxFromChannel
 							.subscribeWith(new SubscriberDecorator(this.subscriber, this.errorHandler));
 		}
 	}

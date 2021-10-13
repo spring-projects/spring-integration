@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	private String host;
 
-	private int port = 22; // the default
+	private int port = 22; // NOSONAR magic number. The default
 
 	private String user;
 
@@ -191,8 +191,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * <b>Required if {@link #setAllowUnknownKeys(boolean) allowUnknownKeys} is
 	 * false (default).</b>
 	 * @param knownHosts The known hosts.
-	 * @see JSch#setKnownHosts(String)
 	 * @deprecated since 5.2.5 in favor of {@link #setKnownHostsResource(Resource)}
+	 * @see JSch#setKnownHosts(String)
 	 */
 	@Deprecated
 	public void setKnownHosts(String knownHosts) {
@@ -203,8 +203,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * Specifies the filename that will be used for a host key repository.
 	 * The file has the same format as OpenSSH's known_hosts file.
 	 * @param knownHosts the resource for known hosts.
-	 * @see JSch#setKnownHosts(java.io.InputStream)
 	 * @since 5.2.5
+	 * @see JSch#setKnownHosts(java.io.InputStream)
 	 */
 	public void setKnownHostsResource(Resource knownHosts) {
 		this.knownHosts = knownHosts;
@@ -351,8 +351,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * {@link #setPrivateKeyPassphrase(String) passphrase} are not allowed because those values
 	 * will be obtained from the {@link UserInfo}.</b>
 	 * @param userInfo the UserInfo.
-	 * @see com.jcraft.jsch.Session#setUserInfo(com.jcraft.jsch.UserInfo)
 	 * @since 4.1.7
+	 * @see com.jcraft.jsch.Session#setUserInfo(com.jcraft.jsch.UserInfo)
 	 */
 	public void setUserInfo(UserInfo userInfo) {
 		this.userInfo = userInfo;
@@ -371,7 +371,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	}
 
 	/**
-	 * Set the connect timeout.
+	 * Set the connection timeout.
 	 * @param timeout the timeout to set.
 	 * @since 5.2
 	 */
@@ -382,11 +382,11 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	@Override
 	public SftpSession getSession() {
-		JSchSessionWrapper jschSession = this.sharedJschSession;
 		SftpSession sftpSession;
 		if (this.sharedSessionLock != null) {
 			this.sharedSessionLock.lock();
 		}
+		JSchSessionWrapper jschSession = this.sharedJschSession;
 		try {
 			boolean freshJschSession = false;
 			if (jschSession == null || !jschSession.isConnected()) {
@@ -419,7 +419,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				"either a password or a private key is required");
 
 		if (this.port <= 0) {
-			this.port = 22;
+			this.port = 22; // NOSONAR magic number
 		}
 		if (this.knownHosts != null) {
 			this.jsch.setKnownHosts(this.knownHosts.getInputStream());

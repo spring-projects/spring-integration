@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.zeromq.SocketType;
@@ -32,10 +34,13 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.support.GenericMessage;
+
+import reactor.core.publisher.Mono;
 
 /**
  * @author Artem Bilan
@@ -59,7 +64,13 @@ public class ZeroMqMessageHandlerTests {
 
 		ZeroMqMessageHandler messageHandler = new ZeroMqMessageHandler(CONTEXT, socketAddress);
 		messageHandler.setBeanFactory(mock(BeanFactory.class));
+		messageHandler.setSocketConfigurer(s -> s.setZapDomain("global"));
 		messageHandler.afterPropertiesSet();
+
+		@SuppressWarnings("unchecked")
+		Mono<ZMQ.Socket> socketMono = TestUtils.getPropertyValue(messageHandler, "socketMono", Mono.class);
+		ZMQ.Socket socketInUse = socketMono.block(Duration.ofSeconds(10));
+		assertThat(socketInUse.getZapDomain()).isEqualTo("global");
 
 		Message<?> testMessage = new GenericMessage<>("test");
 		messageHandler.handleMessage(testMessage).subscribe();
@@ -75,9 +86,9 @@ public class ZeroMqMessageHandlerTests {
 	}
 
 	@Test
-	void testMessageHandlerForPubSub() throws InterruptedException {
+	void testMessageHandlerForPubSub() {
 		ZMQ.Socket subSocket = CONTEXT.createSocket(SocketType.SUB);
-		subSocket.setReceiveTimeOut(10_000);
+		subSocket.setReceiveTimeOut(0);
 		int port = subSocket.bindToRandomPort("tcp://*");
 		subSocket.subscribe("test");
 
@@ -89,19 +100,21 @@ public class ZeroMqMessageHandlerTests {
 		messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
 		messageHandler.afterPropertiesSet();
 
-		// Give it some time to bind and subscribe
-		Thread.sleep(2000);
-
 		Message<?> testMessage = MessageBuilder.withPayload("test").setHeader("topic", "testTopic").build();
-		messageHandler.handleMessage(testMessage).subscribe();
 
-		ZMsg msg = ZMsg.recvMsg(subSocket);
-		assertThat(msg).isNotNull();
-		assertThat(msg.unwrap().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
-		Message<?> capturedMessage = new EmbeddedJsonHeadersMessageMapper().toMessage(msg.getFirst().getData());
-		assertThat(capturedMessage).isEqualTo(testMessage);
+		await().atMost(Duration.ofSeconds(20)).pollDelay(Duration.ofMillis(100))
+				.untilAsserted(() -> {
+					subSocket.subscribe("test");
+					messageHandler.handleMessage(testMessage).subscribe();
+					ZMsg msg = ZMsg.recvMsg(subSocket);
+					assertThat(msg).isNotNull();
+					assertThat(msg.unwrap().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
+					Message<?> capturedMessage =
+							new EmbeddedJsonHeadersMessageMapper().toMessage(msg.getFirst().getData());
+					assertThat(capturedMessage).isEqualTo(testMessage);
+					msg.destroy();
+				});
 
-		msg.destroy();
 		messageHandler.destroy();
 		subSocket.close();
 	}
@@ -116,7 +129,7 @@ public class ZeroMqMessageHandlerTests {
 		await().until(() -> proxy.getBackendPort() > 0);
 
 		ZMQ.Socket pullSocket = CONTEXT.createSocket(SocketType.PULL);
-		pullSocket.setReceiveTimeOut(10_000);
+		pullSocket.setReceiveTimeOut(20_000);
 		pullSocket.connect("tcp://localhost:" + proxy.getBackendPort());
 
 		ZeroMqMessageHandler messageHandler =

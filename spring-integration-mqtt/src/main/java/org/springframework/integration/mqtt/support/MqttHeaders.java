@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,14 @@ public final class MqttHeaders {
 	public static final String TOPIC = PREFIX + "topic";
 
 	public static final String RECEIVED_TOPIC = PREFIX + "receivedTopic";
+
+	public static final String MESSAGE_EXPIRY_INTERVAL = PREFIX + "messageExpiryInterval";
+
+	public static final String TOPIC_ALIAS = PREFIX + "topicAlias";
+
+	public static final String RESPONSE_TOPIC = PREFIX + "responseTopic";
+
+	public static final String CORRELATION_DATA = PREFIX + "correlationData";
 
 	private MqttHeaders() {
 		throw new AssertionError();

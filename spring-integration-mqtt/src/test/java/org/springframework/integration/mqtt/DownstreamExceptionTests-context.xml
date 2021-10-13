@@ -7,12 +7,16 @@
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/mqtt https://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd">
 
+	<bean id="mqtt_url" class="java.lang.String">
+		<constructor-arg value="#{T(org.springframework.integration.mqtt.MosquittoContainerTest).mqttUrl()}"/>
+	</bean>
+
 	<int-mqtt:message-driven-channel-adapter id="noErrorChannel"
-		url="tcp://localhost:1883"
+		url="#{mqtt_url}"
 		client-id="fooEx1" channel="foo" topics="mqtt-fooEx1" />
 
 	<int-mqtt:message-driven-channel-adapter id="withErrorChannel"
-		url="tcp://localhost:1883"
+		url="#{mqtt_url}"
 		error-channel="errors"
 		client-id="fooEx2" channel="foo" topics="mqtt-fooEx2" />
 

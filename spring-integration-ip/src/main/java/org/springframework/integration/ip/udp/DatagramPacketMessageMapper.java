@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.ip.udp;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.UUID;
@@ -140,7 +141,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		}
 		byte[] bytes = getPayloadAsBytes(message);
 		if (this.lengthCheck) {
-			ByteBuffer buffer = ByteBuffer.allocate(bytes.length + 4);
+			ByteBuffer buffer = ByteBuffer.allocate(bytes.length + 4); // NOSONAR magic number
 			// insert the length (not including the length bytes)
 			// default ByteOrder is	ByteOrder.BIG_ENDIAN (network byte order)
 			buffer.putInt(bytes.length);
@@ -156,7 +157,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	private DatagramPacket fromMessageWithAck(Message<?> message) {
 		Assert.state(StringUtils.hasText(this.ackAddress), "'ackAddress' must not be empty");
 		byte[] bytes = getPayloadAsBytes(message);
-		ByteBuffer buffer = ByteBuffer.allocate(100 + bytes.length);
+		ByteBuffer buffer = ByteBuffer.allocate(100 + bytes.length); // NOSONAR magic number
 		if (this.lengthCheck) {
 			buffer.putInt(0); // placeholder for length
 		}
@@ -176,7 +177,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		catch (UnsupportedEncodingException e) {
 			throw new MessagingException(message, "Failed to get headers", e);
 		}
-		int headersLength = buffer.position() - 4;
+		int headersLength = buffer.position() - 4; // NOSONAR magic number
 		buffer.put(bytes);
 		if (this.lengthCheck) {
 			// insert the length (not including the length bytes)
@@ -223,12 +224,12 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		Message<byte[]> message = null;
 		if (this.lengthCheck) {
 			int declaredLength = buffer.getInt();
-			if (declaredLength != (length - 4)) {
-				throw new MessageMappingException("Incorrect length; expected " + (declaredLength + 4)
+			if (declaredLength != (length - 4)) { // NOSONAR magic number
+				throw new MessageMappingException("Incorrect length; expected " + (declaredLength + 4) // NOSONAR magic number
 						+ ", received " + length);
 			}
-			offset += 4;
-			length -= 4;
+			offset += 4; // NOSONAR magic number
+			length -= 4; // NOSONAR magic number
 		}
 		String hostAddress = packet.getAddress().getHostAddress();
 		String hostName;
@@ -303,7 +304,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		}
 		finally {
 			//reposition the buffer
-			buffer.position(pos);
+			((Buffer) buffer).position(pos);
 		}
 	}
 

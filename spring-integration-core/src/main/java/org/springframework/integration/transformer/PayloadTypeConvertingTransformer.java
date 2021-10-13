@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,9 @@ import org.springframework.util.Assert;
 /**
  * Transformer that converts the inbound payload to an object by delegating to a
  * Converter&lt;Object, Object&gt;. A reference to the delegate must be provided.
+ *
+ * @param <T> inbound payload type.
+ * @param <U> outbound payload type.
  *
  * @author Gary Russell
  * @author Artem Bilan

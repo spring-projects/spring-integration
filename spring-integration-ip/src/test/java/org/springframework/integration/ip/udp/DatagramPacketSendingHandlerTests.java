@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class DatagramPacketSendingHandlerTests {
 		final CountDownLatch received = new CountDownLatch(1);
 		final AtomicInteger testPort = new AtomicInteger();
 		final CountDownLatch listening = new CountDownLatch(1);
-		new SimpleAsyncTaskExecutor()
+		new SimpleAsyncTaskExecutor("verifySend-")
 				.execute(() -> {
 					try {
 						DatagramSocket socket = new DatagramSocket();
@@ -93,7 +93,7 @@ public class DatagramPacketSendingHandlerTests {
 		final CountDownLatch listening = new CountDownLatch(1);
 		final CountDownLatch ackListening = new CountDownLatch(1);
 		final CountDownLatch ackSent = new CountDownLatch(1);
-		new SimpleAsyncTaskExecutor()
+		new SimpleAsyncTaskExecutor("verifySendWithAck-")
 				.execute(() -> {
 					try {
 						DatagramSocket socket = new DatagramSocket();

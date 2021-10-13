@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -284,22 +284,26 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 			}
 			return task.call();
 		}
-		catch (Exception e) {
-			if (e instanceof IOException) {
-				throw (IOException) e;
-
-			}
-			else if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
-			}
-			else {
-				throw new IOException("Uncategorised IO exception", e);
-			}
+		catch (Exception ex) {
+			throw rethrowAsIoExceptionIfAny(ex);
 		}
 		finally {
 			if (restoreWorkingDirectory) {
 				ftpClient.changeWorkingDirectory(currentWorkingDirectory);
 			}
+		}
+	}
+
+	private IOException rethrowAsIoExceptionIfAny(Exception ex) {
+		if (ex instanceof IOException) {
+			return (IOException) ex;
+
+		}
+		else if (ex instanceof RuntimeException) {
+			throw (RuntimeException) ex;
+		}
+		else {
+			return new IOException("Uncategorized IO exception", ex);
 		}
 	}
 
@@ -316,7 +320,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 				client.sendSiteCommand(chModCommand);
 			}
 			catch (IOException e) {
-				throw new UncheckedIOException("Failed to execute '" + chModCommand  + "'", e);
+				throw new UncheckedIOException("Failed to execute '" + chModCommand + "'", e);
 			}
 		});
 	}

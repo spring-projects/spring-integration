@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
@@ -32,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.support.MessageBuilder;
@@ -70,16 +71,10 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		ExecutorService exec = Executors.newFixedThreadPool(100);
 		processor.processMessage(new GenericMessage<>("foo"));
 		for (int i = 0; i < 100; i++) {
-			exec.execute(new Runnable() {
-
-				public void run() {
-					Object result = processor.processMessage(new GenericMessage<>("foo"));
-					assertThat(result).isNotNull();
-				}
-			});
+			exec.execute(() -> assertThat(processor.processMessage(new GenericMessage<>("foo"))).isNotNull());
 		}
 		exec.shutdown();
-		assertThat(exec.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(exec.awaitTermination(20, TimeUnit.SECONDS)).isTrue();
 		assertThat(concurrencyFailures).isEqualTo(0);
 	}
 
@@ -92,15 +87,16 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		assertThat(result).isNull();
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void requiredHeaderNotProvided() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.processMessage(new GenericMessage<>("foo"));
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")));
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void requiredHeaderNotProvidedOnSecondMessage() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
@@ -110,7 +106,8 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		GenericMessage<String> messageWithoutHeader = new GenericMessage<>("foo");
 
 		processor.processMessage(messageWithHeader);
-		processor.processMessage(messageWithoutHeader);
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> processor.processMessage(messageWithoutHeader));
 	}
 
 	@Test
@@ -124,14 +121,16 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		assertThat(result).isEqualTo(123);
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void fromMessageWithOptionalAndRequiredHeaderAndOnlyOptionalHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("prop", "bar").build();
-		processor.processMessage(message);
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> processor.processMessage(message));
 	}
 
 	@Test
@@ -342,13 +341,11 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		assertThat(result).isEqualTo("olegmonday");
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void fromMessageInvalidMethodWithMultipleMappingAnnotations() throws Exception {
 		Method method = MultipleMappingAnnotationTestBean.class.getMethod("test", String.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(mock(BeanFactory.class));
-		Message<?> message = MessageBuilder.withPayload("payload").setHeader("foo", "bar").build();
-		processor.processMessage(message);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> new MethodInvokingMessageProcessor(testService, method));
 	}
 
 	@Test
@@ -468,7 +465,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 				@Payload Employee payloadArg,
 				@Payload("fname") String value,
 				@Headers Map<?, ?> headers) {
-			return new Object[] { argA, argB, payloadArg, value, headers };
+			return new Object[]{ argA, argB, payloadArg, value, headers };
 		}
 
 		public String irrelevantAnnotation(@BogusAnnotation String value) {
@@ -479,7 +476,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 			return foobar.toUpperCase();
 		}
 
-		Set<String> ids = Collections.synchronizedSet(new HashSet<String>());
+		Set<String> ids = Collections.synchronizedSet(new HashSet<>());
 
 		public String headerId(String payload, @Header("id") String id) {
 			logger.debug(id);

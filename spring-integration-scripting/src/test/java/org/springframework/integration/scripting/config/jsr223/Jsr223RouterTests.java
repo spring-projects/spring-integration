@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,26 @@ package org.springframework.integration.scripting.config.jsr223;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
  * @author David Turanski
  * @author Artem Bilan
+ *
  * @since 2.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class Jsr223RouterTests {
 
 	@Autowired
@@ -49,19 +50,25 @@ public class Jsr223RouterTests {
 	private MessageChannel scriptRouterWithinChainInput;
 
 	@Autowired
-	private PollableChannel longStrings;
+	private QueueChannel longStrings;
 
 	@Autowired
-	private PollableChannel shortStrings;
+	private QueueChannel shortStrings;
 
+
+	@AfterEach
+	void cleanUp() {
+		this.longStrings.clear();
+		this.shortStrings.clear();
+	}
 
 	@Test
 	public void referencedScript() { // long is > 3
-		Message<?> message1 = new GenericMessage<String>("aardvark");
-		Message<?> message2 = new GenericMessage<String>("bear");
-		Message<?> message3 = new GenericMessage<String>("cat");
-		Message<?> message4 = new GenericMessage<String>("dog");
-		Message<?> message5 = new GenericMessage<String>("elephant");
+		Message<?> message1 = new GenericMessage<>("aardvark");
+		Message<?> message2 = new GenericMessage<>("bear");
+		Message<?> message3 = new GenericMessage<>("cat");
+		Message<?> message4 = new GenericMessage<>("dog");
+		Message<?> message5 = new GenericMessage<>("elephant");
 		this.referencedScriptInput.send(message1);
 		this.referencedScriptInput.send(message2);
 		this.referencedScriptInput.send(message3);
@@ -78,11 +85,11 @@ public class Jsr223RouterTests {
 
 	@Test
 	public void inlineScript() { // long is > 5
-		Message<?> message1 = new GenericMessage<String>("aardvark");
-		Message<?> message2 = new GenericMessage<String>("bear");
-		Message<?> message3 = new GenericMessage<String>("cat");
-		Message<?> message4 = new GenericMessage<String>("dog");
-		Message<?> message5 = new GenericMessage<String>("elephant");
+		Message<?> message1 = new GenericMessage<>("aardvark");
+		Message<?> message2 = new GenericMessage<>("bear");
+		Message<?> message3 = new GenericMessage<>("cat");
+		Message<?> message4 = new GenericMessage<>("dog");
+		Message<?> message5 = new GenericMessage<>("elephant");
 		this.inlineScriptInput.send(message1);
 		this.inlineScriptInput.send(message2);
 		this.inlineScriptInput.send(message3);
@@ -99,11 +106,11 @@ public class Jsr223RouterTests {
 
 	@Test
 	public void testInt2893ScriptRouterWithinChain() {
-		Message<?> message1 = new GenericMessage<String>("aardvark");
-		Message<?> message2 = new GenericMessage<String>("bear");
-		Message<?> message3 = new GenericMessage<String>("cat");
-		Message<?> message4 = new GenericMessage<String>("dog");
-		Message<?> message5 = new GenericMessage<String>("elephant");
+		Message<?> message1 = new GenericMessage<>("aardvark");
+		Message<?> message2 = new GenericMessage<>("bear");
+		Message<?> message3 = new GenericMessage<>("cat");
+		Message<?> message4 = new GenericMessage<>("dog");
+		Message<?> message5 = new GenericMessage<>("elephant");
 		this.scriptRouterWithinChainInput.send(message1);
 		this.scriptRouterWithinChainInput.send(message2);
 		this.scriptRouterWithinChainInput.send(message3);

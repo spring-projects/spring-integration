@@ -1,4 +1,4 @@
 /**
- * Provides outbound Spring Integration Kafka components.
+ * Provides Spring Integration outbound components for Apache Kafka.
  */
 package org.springframework.integration.kafka.outbound;

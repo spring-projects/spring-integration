@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,11 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -38,28 +39,33 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
-public class JmsWithMarshallingMessageConverterTests {
+@SpringJUnitConfig
+@DirtiesContext
+public class JmsWithMarshallingMessageConverterTests extends ActiveMQMultiContextTests {
+
+	@Autowired
+	@Qualifier("outbound-gateway-channel")
+	MessageChannel input;
+
+	@Autowired
+	PollableChannel output;
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void demoWithMarshallingConverter() {
-		ActiveMqTestUtils.prepare();
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext(
-				"JmsWithMarshallingMessageConverterTests-context.xml", JmsWithMarshallingMessageConverterTests.class);
-		MessageChannel input = ac.getBean("outbound-gateway-channel", MessageChannel.class);
-		PollableChannel output = ac.getBean("output", PollableChannel.class);
-		input.send(new GenericMessage<String>("hello"));
-		Message<String> replyMessage = (Message<String>) output.receive();
+		this.input.send(new GenericMessage<>("hello"));
+		Message<?> replyMessage = this.output.receive();
 		MessageHeaders headers = replyMessage.getHeaders();
 		// check for couple of JMS headers, make sure they are present
 		assertThat(headers.get("jms_redelivered")).isNotNull();
 		assertThat(replyMessage.getPayload()).isEqualTo("HELLO");
-		ac.close();
 	}
 
 
@@ -68,13 +74,14 @@ public class JmsWithMarshallingMessageConverterTests {
 		public String echo(String value) {
 			return value.toUpperCase();
 		}
+
 	}
 
 
 	public static class SampleMarshaller implements Marshaller {
 
 		public void marshal(Object graph, Result result) throws IOException, XmlMappingException {
-			String payload = null;
+			String payload;
 			if (graph instanceof Message<?>) {
 				payload = (String) ((Message<?>) graph).getPayload();
 			}
@@ -101,7 +108,7 @@ public class JmsWithMarshallingMessageConverterTests {
 			InputStream io = ((StreamSource) source).getInputStream();
 			byte[] bytes = new byte[io.available()];
 			io.read(bytes);
-			return new GenericMessage<String>(new String(bytes));
+			return new GenericMessage<>(new String(bytes));
 		}
 
 	}

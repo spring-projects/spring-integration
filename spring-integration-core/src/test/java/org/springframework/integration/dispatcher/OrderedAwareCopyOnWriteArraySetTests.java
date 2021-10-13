@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.Ordered;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ *
  * @since 1.0.3
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class OrderedAwareCopyOnWriteArraySetTests {
 
 	/**
 	 * Tests that semantics of the LinkedHashSet were not broken
 	 */
-	@SuppressWarnings("rawtypes")
 	@Test
 	public void testAddUnordered() {
 		OrderedAwareCopyOnWriteArraySet setToTest = new OrderedAwareCopyOnWriteArraySet();
@@ -43,11 +44,12 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		setToTest.add("bar");
 		setToTest.add("baz");
 		assertThat(setToTest.size()).isEqualTo(3);
-		Object[] elements =  setToTest.toArray();
+		Object[] elements = setToTest.toArray();
 		assertThat(elements[0]).isEqualTo("foo");
 		assertThat(elements[1]).isEqualTo("bar");
 		assertThat(elements[2]).isEqualTo("baz");
 	}
+
 	/**
 	 * Tests that semantics of TreeSet(Comparator) were not broken.
 	 * However, there is a special Comparator (instantiated by default) for this implementation of Set,
@@ -56,7 +58,6 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 	 * the already existing element, thus preserving the order of insertion (LinkedHashset semantics)
 	 * within the elements that have the same "order" value.
 	 */
-	@SuppressWarnings("rawtypes")
 	@Test
 	public void testAddOrdered() {
 		OrderedAwareCopyOnWriteArraySet setToTest = new OrderedAwareCopyOnWriteArraySet();
@@ -94,7 +95,6 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		assertThat(elements[9]).isEqualTo(o6);
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Test
 	public void testAddAllOrderedUnordered() {
 		List tempList = new ArrayList();
@@ -135,13 +135,7 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 	}
 
 	@Test
-	public void testConcurrent() {
-		for (int i = 0; i < 1000; i++) {
-			this.doConcurrent();
-		}
-	}
-	@SuppressWarnings("rawtypes")
-	private void doConcurrent() {
+	public void testConcurrent() throws InterruptedException {
 		final OrderedAwareCopyOnWriteArraySet setToTest = new OrderedAwareCopyOnWriteArraySet();
 		final Object o1 = new Foo(3);
 		final Object o2 = new Foo(1);
@@ -174,34 +168,23 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 			setToTest.add(new Foo(9));
 			setToTest.add(8);
 		});
+
 		t1.start();
 		t2.start();
 		t3.start();
-		try {
-			t1.join();
-			t2.join();
-			t3.join();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+		t1.join();
+		t2.join();
+		t3.join();
 
-
-		assertThat(setToTest.size()).isEqualTo(15);
+		assertThat(setToTest).hasSize(15);
 	}
+
 	/**
 	 * Will test addAll operation including the removal and adding an object in the concurrent environment
 	 */
 	@Test
-	public void testConcurrentAll() {
-		for (int i = 0; i < 1000; i++) {
-			this.doConcurrentAll();
-		}
-	}
-	@SuppressWarnings("rawtypes")
-	public void doConcurrentAll() {
-		final List tempList = new ArrayList();
+	public void testConcurrentAll() throws InterruptedException {
+		List tempList = new ArrayList();
 		Object o1 = new Foo(3);
 		Object o2 = new Foo(1);
 		Object o3 = "Bla";
@@ -253,17 +236,11 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		t1.start();
 		t2.start();
 		t3.start();
-		try {
-			t1.join();
-			t2.join();
-			t3.join();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-		Object[] elements = orderAwareSet.toArray();
-		assertThat(elements.length).isEqualTo(18);
+		t1.join();
+		t2.join();
+		t3.join();
+
+		assertThat(orderAwareSet).hasSize(18);
 	}
 
 	private static class Foo implements Ordered {
@@ -283,6 +260,7 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		public String toString() {
 			return "Foo-" + order;
 		}
+
 	}
 
 }

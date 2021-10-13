@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,11 @@
 package org.springframework.integration.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -39,98 +38,76 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  */
+@SpringJUnitConfig
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ChannelAdapterParserTests {
 
+	@Autowired
 	private AbstractApplicationContext applicationContext;
 
-	private AbstractApplicationContext applicationContextInner;
-
-
-	@Before
-	public void setUp() {
-		this.applicationContext = new ClassPathXmlApplicationContext(
-				"ChannelAdapterParserTests-context.xml", this.getClass());
-		this.applicationContextInner = new ClassPathXmlApplicationContext(
-				"ChannelAdapterParserTests-inner-context.xml", this.getClass());
-	}
-
-	@After
-	public void tearDown() {
-		this.applicationContext.close();
-		this.applicationContextInner.close();
-	}
-
+	@Autowired
+	private TestBean testBean;
 
 	@Test
 	public void methodInvokingSourceStoppedByApplicationContext() {
-		String beanName = "methodInvokingSource";
-		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannel");
-		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
 		testBean.store("source test");
-		Object adapter = this.applicationContext.getBean(beanName);
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof SourcePollingChannelAdapter).isTrue();
+		PollableChannel channel = this.applicationContext.getBean("queueChannel", PollableChannel.class);
+		Object adapter = this.applicationContext.getBean("methodInvokingSource");
+		assertThat(adapter).isInstanceOf(SourcePollingChannelAdapter.class);
 		assertThat(((SourcePollingChannelAdapter) adapter).getPhase()).isEqualTo(-1);
 		this.applicationContext.start();
 		Message<?> message = channel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(testBean.getMessage()).isEqualTo("source test");
 		this.applicationContext.stop();
-		message = channel.receive(100);
+		message = channel.receive(0);
 		assertThat(message).isNull();
 	}
 
 	@Test
 	public void methodInvokingSourceStoppedByApplicationContextInner() {
-		String beanName = "methodInvokingSource";
-		PollableChannel channel = (PollableChannel) this.applicationContextInner.getBean("queueChannel");
-//		TestBean testBean = (TestBean) this.applicationContextInner.getBean("testBean");
-//		testBean.store("source test");
-		Object adapter = this.applicationContextInner.getBean(beanName);
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof SourcePollingChannelAdapter).isTrue();
-		this.applicationContextInner.start();
+		AbstractApplicationContext applicationContextInner =
+				new ClassPathXmlApplicationContext("ChannelAdapterParserTests-inner-context.xml", this.getClass());
+		PollableChannel channel = applicationContextInner.getBean("queueChannel", PollableChannel.class);
+		Object adapter = applicationContextInner.getBean("methodInvokingSource");
+		assertThat(adapter).isInstanceOf(SourcePollingChannelAdapter.class);
+		applicationContextInner.start();
 		Message<?> message = channel.receive(10000);
 		assertThat(message).isNotNull();
-		//assertEquals("source test", testBean.getMessage());
-		this.applicationContextInner.stop();
-		message = channel.receive(100);
+		applicationContextInner.stop();
+		message = channel.receive(0);
 		assertThat(message).isNull();
+		applicationContextInner.close();
 	}
 
 	@Test
 	public void targetOnly() {
 		String beanName = "outboundWithImplicitChannel";
 		Object channel = this.applicationContext.getBean(beanName);
-		assertThat(channel instanceof DirectChannel).isTrue();
+		assertThat(channel).isInstanceOf(DirectChannel.class);
 		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
 		assertThat(channelResolver.resolveDestination(beanName)).isNotNull();
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof EventDrivenConsumer).isTrue();
+		assertThat(adapter).isInstanceOf(EventDrivenConsumer.class);
 		assertThat(((EventDrivenConsumer) adapter).isAutoStartup()).isFalse();
 		assertThat(((EventDrivenConsumer) adapter).getPhase()).isEqualTo(-1);
 		TestConsumer consumer = (TestConsumer) this.applicationContext.getBean("consumer");
 		assertThat(consumer.getLastMessage()).isNull();
-		Message<?> message = new GenericMessage<String>("test");
-		try {
-			((MessageChannel) channel).send(message);
-			fail("MessageDispatchingException is expected.");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageDeliveryException.class);
-			assertThat(e.getCause()).isInstanceOf(MessageDispatchingException.class);
-		}
+		Message<?> message = new GenericMessage<>("test");
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> ((MessageChannel) channel).send(message))
+				.withCauseInstanceOf(MessageDispatchingException.class);
 
 		((EventDrivenConsumer) adapter).start();
 		((MessageChannel) channel).send(message);
-		assertThat(consumer.getLastMessage()).isNotNull();
 		assertThat(consumer.getLastMessage()).isEqualTo(message);
 	}
 
@@ -138,24 +115,19 @@ public class ChannelAdapterParserTests {
 	public void methodInvokingConsumer() {
 		String beanName = "methodInvokingConsumer";
 		Object channel = this.applicationContext.getBean(beanName);
-		assertThat(channel instanceof DirectChannel).isTrue();
+		assertThat(channel).isInstanceOf(DirectChannel.class);
 		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
 		assertThat(channelResolver.resolveDestination(beanName)).isNotNull();
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof EventDrivenConsumer).isTrue();
-		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		assertThat(adapter).isInstanceOf(EventDrivenConsumer.class);
 		assertThat(testBean.getMessage()).isNull();
-		Message<?> message = new GenericMessage<String>("consumer test");
+		Message<?> message = new GenericMessage<>("consumer test");
 		assertThat(((MessageChannel) channel).send(message)).isTrue();
 		assertThat(testBean.getMessage()).isNotNull();
 		assertThat(testBean.getMessage()).isEqualTo("consumer test");
 	}
 
 	@Test
-	/**
-	 * @since 2.1
-	 */
 	public void expressionConsumer() {
 		String beanName = "expressionConsumer";
 		Object channel = this.applicationContext.getBean(beanName);
@@ -163,11 +135,9 @@ public class ChannelAdapterParserTests {
 		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
 		assertThat(channelResolver.resolveDestination(beanName)).isNotNull();
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof EventDrivenConsumer).isTrue();
-		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		assertThat(adapter).isInstanceOf(EventDrivenConsumer.class);
 		assertThat(testBean.getMessage()).isNull();
-		Message<?> message = new GenericMessage<String>("consumer test expression");
+		Message<?> message = new GenericMessage<>("consumer test expression");
 		assertThat(((MessageChannel) channel).send(message)).isTrue();
 		assertThat(testBean.getMessage()).isNotNull();
 		assertThat(testBean.getMessage()).isEqualTo("consumer test expression");
@@ -177,11 +147,9 @@ public class ChannelAdapterParserTests {
 	public void methodInvokingSource() {
 		String beanName = "methodInvokingSource";
 		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannel");
-		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
 		testBean.store("source test");
 		Object adapter = this.applicationContext.getBean(beanName);
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof SourcePollingChannelAdapter).isTrue();
+		assertThat(adapter).isInstanceOf(SourcePollingChannelAdapter.class);
 		((SourcePollingChannelAdapter) adapter).start();
 		Message<?> message = channel.receive(10000);
 		assertThat(message).isNotNull();
@@ -191,13 +159,10 @@ public class ChannelAdapterParserTests {
 
 	@Test
 	public void methodInvokingSourceWithHeaders() {
-		String beanName = "methodInvokingSourceWithHeaders";
-		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannelForHeadersTest");
-		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		PollableChannel channel = this.applicationContext.getBean("queueChannelForHeadersTest", PollableChannel.class);
 		testBean.store("source test");
-		Object adapter = this.applicationContext.getBean(beanName);
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof SourcePollingChannelAdapter).isTrue();
+		Object adapter = this.applicationContext.getBean("methodInvokingSourceWithHeaders");
+		assertThat(adapter).isInstanceOf(SourcePollingChannelAdapter.class);
 		((SourcePollingChannelAdapter) adapter).start();
 		Message<?> message = channel.receive(10000);
 		((SourcePollingChannelAdapter) adapter).stop();
@@ -210,44 +175,35 @@ public class ChannelAdapterParserTests {
 
 	@Test
 	public void methodInvokingSourceNotStarted() {
-		String beanName = "methodInvokingSource";
-		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannel");
-		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		PollableChannel channel = this.applicationContext.getBean("queueChannel", PollableChannel.class);
 		testBean.store("source test");
-		Object adapter = this.applicationContext.getBean(beanName);
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof SourcePollingChannelAdapter).isTrue();
-		Message<?> message = channel.receive(100);
+		Object adapter = this.applicationContext.getBean("methodInvokingSource");
+		assertThat(adapter).isInstanceOf(SourcePollingChannelAdapter.class);
+		Message<?> message = channel.receive(0);
 		assertThat(message).isNull();
 	}
 
 	@Test
 	public void methodInvokingSourceStopped() {
-		String beanName = "methodInvokingSource";
-		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannel");
-		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		PollableChannel channel = this.applicationContext.getBean("queueChannel", PollableChannel.class);
 		testBean.store("source test");
-		Object adapter = this.applicationContext.getBean(beanName);
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof SourcePollingChannelAdapter).isTrue();
+		Object adapter = this.applicationContext.getBean("methodInvokingSource");
+		assertThat(adapter).isInstanceOf(SourcePollingChannelAdapter.class);
 		((SourcePollingChannelAdapter) adapter).start();
 		Message<?> message = channel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(testBean.getMessage()).isEqualTo("source test");
 		((SourcePollingChannelAdapter) adapter).stop();
-		message = channel.receive(100);
+		message = channel.receive(0);
 		assertThat(message).isNull();
 	}
 
 	@Test
 	public void methodInvokingSourceStartedByApplicationContext() {
-		String beanName = "methodInvokingSource";
-		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannel");
-		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		PollableChannel channel = this.applicationContext.getBean("queueChannel", PollableChannel.class);
 		testBean.store("source test");
-		Object adapter = this.applicationContext.getBean(beanName);
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof SourcePollingChannelAdapter).isTrue();
+		Object adapter = this.applicationContext.getBean("methodInvokingSource");
+		assertThat(adapter).isInstanceOf(SourcePollingChannelAdapter.class);
 		this.applicationContext.start();
 		Message<?> message = channel.receive(1000);
 		assertThat(message).isNotNull();
@@ -255,27 +211,29 @@ public class ChannelAdapterParserTests {
 		this.applicationContext.stop();
 	}
 
-	@Test(expected = DestinationResolutionException.class)
+	@Test
 	public void methodInvokingSourceAdapterIsNotChannel() {
 		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
-		channelResolver.resolveDestination("methodInvokingSource");
+		assertThatExceptionOfType(DestinationResolutionException.class)
+				.isThrownBy(() -> channelResolver.resolveDestination("methodInvokingSource"));
 	}
 
 	@Test
-	public void methodInvokingSourceWithSendTimeout() throws Exception {
-		String beanName = "methodInvokingSourceWithTimeout";
-
+	public void methodInvokingSourceWithSendTimeout() {
 		SourcePollingChannelAdapter adapter =
-				this.applicationContext.getBean(beanName, SourcePollingChannelAdapter.class);
+				this.applicationContext.getBean("methodInvokingSourceWithTimeout", SourcePollingChannelAdapter.class);
 		assertThat(adapter).isNotNull();
 		long sendTimeout = TestUtils.getPropertyValue(adapter, "messagingTemplate.sendTimeout", Long.class);
 		assertThat(sendTimeout).isEqualTo(999);
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
-	public void innerBeanAndExpressionFail() throws Exception {
-		new ClassPathXmlApplicationContext("InboundChannelAdapterInnerBeanWithExpression-fail-context.xml",
-				this.getClass()).close();
+	@Test
+	public void innerBeanAndExpressionFail() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"InboundChannelAdapterInnerBeanWithExpression-fail-context.xml",
+								this.getClass()));
 	}
 
 	@Test
@@ -310,10 +268,8 @@ public class ChannelAdapterParserTests {
 
 	public static class SampleBean {
 
-		private final String message = "hello";
-
-		String getMessage() {
-			return message;
+		public String getMessage() {
+			return  "hello";
 		}
 
 	}

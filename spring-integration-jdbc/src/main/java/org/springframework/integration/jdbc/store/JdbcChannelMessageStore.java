@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.core.log.LogMessage;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
@@ -64,22 +65,20 @@ import org.springframework.util.StringUtils;
  * database via JDBC.
  *
  * This message store shall be used for message channels only.
- * </p>
  * <p>
  * As such, the {@link JdbcChannelMessageStore} uses database specific SQL queries.
- * </p>
  * <p>
  * Contrary to the {@link JdbcMessageStore}, this implementation uses a single database table,
  * optimized to operate like a queue.
  * The SQL scripts for creating the table are packaged
  * under {@code org/springframework/integration/jdbc/schema-*.sql},
  * where {@code *} denotes the target database type.
- * </p>
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
  * @author Meherzad Lahewala
+ * @author Trung Pham
  *
  * @since 2.2
  */
@@ -112,6 +111,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		DELETE_MESSAGE
 	}
 
+	private final Map<Query, String> queryCache = new ConcurrentHashMap<>();
+
 	private final Set<String> idCache = new HashSet<>();
 
 	private final ReadWriteLock idCacheLock = new ReentrantReadWriteLock();
@@ -137,8 +138,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	private MessageRowMapper messageRowMapper;
 
 	private ChannelMessageStorePreparedStatementSetter preparedStatementSetter;
-
-	private final Map<Query, String> queryCache = new ConcurrentHashMap<>();
 
 	private MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
 
@@ -227,7 +226,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * Allows for passing in a custom {@link MessageRowMapper}. The {@link MessageRowMapper}
+	 * Allow for passing in a custom {@link MessageRowMapper}. The {@link MessageRowMapper}
 	 * is used to convert the selected database row representing the persisted
 	 * message into the actual {@link Message} object.
 	 * @param messageRowMapper Must not be null
@@ -250,7 +249,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * Sets the database specific {@link ChannelMessageStoreQueryProvider} to use.
+	 * Set the database specific {@link ChannelMessageStoreQueryProvider} to use.
 	 * The {@link JdbcChannelMessageStore} provides the SQL queries to retrieve messages from
 	 * the database. See the JavaDocs {@link ChannelMessageStoreQueryProvider} (all known
 	 * implementing classes) to see those implementations provided by the framework.
@@ -267,7 +266,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	/**
 	 * A unique grouping identifier for all messages persisted with this store.
 	 * Using multiple regions allows the store to be partitioned (if necessary)
-	 * for different purposes. Defaults to <code>{@link #DEFAULT_REGION}</code>.
+	 * for different purposes. Defaults to {@link #DEFAULT_REGION}.
 	 * @param region the region name to set
 	 */
 	public void setRegion(String region) {
@@ -331,7 +330,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * </int:poller>
 	 * }
 	 * </pre>
-	 * @param usingIdCache When <code>true</code> the id cache will be used.
+	 * @param usingIdCache When {@code true} the id cache will be used.
 	 */
 	public void setUsingIdCache(boolean usingIdCache) {
 		this.usingIdCache = usingIdCache;
@@ -384,7 +383,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 			this.messageRowMapper = new MessageRowMapper(this.deserializer, this.lobHandler);
 		}
 
-		if (this.jdbcTemplate.getFetchSize() != 1 && LOGGER.isWarnEnabled()) {
+		if (this.jdbcTemplate.getFetchSize() != 1) {
 			LOGGER.warn("The jdbcTemplate's fetch size is not 1. This may cause FIFO issues with Oracle databases.");
 		}
 
@@ -437,9 +436,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * Method not implemented.
+	 * Return the number of message groups in the store for configured region.
 	 * @return The message group count.
-	 * @throws UnsupportedOperationException Method not supported.
 	 */
 	@ManagedAttribute
 	public int getMessageGroupCount() {
@@ -463,7 +461,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * Returns the number of messages persisted for the specified channel id (groupId)
+	 * Return the number of messages persisted for the specified channel id (groupId)
 	 * and the specified region ({@link #setRegion(String)}).
 	 * @return The message group size.
 	 */
@@ -486,7 +484,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * Polls the database for a new message that is persisted for the given
+	 * Poll the database for a new message that is persisted for the given
 	 * group id which represents the channel identifier.
 	 */
 	@Override
@@ -559,7 +557,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 				this.idCacheWriteLock.lock();
 				try {
 					boolean added = this.idCache.add(messageId);
-					LOGGER.debug(() -> String.format("Polled message with id '%s' added: '%s'.", messageId, added));
+					LOGGER.debug(LogMessage.format("Polled message with id '%s' added: '%s'.", messageId, added));
 				}
 				finally {
 					this.idCacheWriteLock.unlock();
@@ -580,21 +578,20 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 		boolean result = updated != 0;
 		if (result) {
-			LOGGER.debug(() -> String.format("Message with id '%s' was deleted.", id));
+			LOGGER.debug(() -> "Message with id '" + id + "' was deleted.");
 		}
 		else {
-			LOGGER.warn(() -> String.format("Message with id '%s' was not deleted.", id));
+			LOGGER.warn(() -> "Message with id '" + id + "' was not deleted.");
 		}
 		return result;
 	}
 
 	/**
-	 * <p>Remove a Message Id from the idCache. Should be used in conjunction
+	 * Remove a Message Id from the idCache. Should be used in conjunction
 	 * with the Spring Integration Transaction Synchronization feature to remove
 	 * a message from the Message Id cache once a transaction either succeeded or
-	 * rolled back.</p>
-	 * <p>Only applicable if {@link #setUsingIdCache(boolean)} is set to
-	 * <code>true</code></p>.
+	 * rolled back.
+	 * Only applicable if {@link #setUsingIdCache(boolean)} is set to{@code true}.
 	 * @param messageId The message identifier.
 	 */
 	public void removeFromIdCache(String messageId) {
@@ -609,7 +606,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * Returns the size of the Message Id Cache, which caches Message Ids for
+	 * Return the size of the Message Id Cache, which caches Message Ids for
 	 * those messages that are currently being processed.
 	 * @return The size of the Message Id Cache
 	 */
