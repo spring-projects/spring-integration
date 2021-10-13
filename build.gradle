@@ -100,6 +100,7 @@ ext {
 	soapVersion = '1.4.0'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.0-RC1'
 	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2020.0.0-RC2'
+	springGraphqlVersion = '1.0.0-SNAPSHOT'
 	springKafkaVersion = '2.6.2'
 	springRetryVersion = '1.3.0'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.4.1'
@@ -115,15 +116,19 @@ allprojects {
 	group = 'org.springframework.integration'
 
 	repositories {
+//		maven { url 'https://repo.spring.io/milestone' }
 		maven { url 'https://repo.spring.io/libs-milestone' }
 		if (project.hasProperty('mavenLocal')) {
 			mavenLocal()
 		}
 		if (version.endsWith('SNAPSHOT')) {
+//			maven { url 'https://repo.spring.io/snapshot' }
 			maven { url 'https://repo.spring.io/libs-snapshot' }
 		}
+		maven { url 'https://repo.spring.io/release' }
+		mavenCentral()
 		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-//		maven { url 'https://repo.spring.io/libs-staging-local' }
+//		maven { url 'https://repo.spring.io/staging-local' }
 	}
 
 	ext.javadocLinks = [
@@ -492,6 +497,17 @@ project('spring-integration-gemfire') {
 		api "commons-io:commons-io:$commonsIoVersion"
 
 		testImplementation project(':spring-integration-stream')
+	}
+}
+
+project('spring-integration-graphql') {
+	description = 'Spring Integration GraphQL Support'
+	dependencies {
+		api project(':spring-integration-core')
+		api "org.springframework.graphql:spring-graphql:$springGraphqlVersion"
+
+		testImplementation "org.springframework.graphql:spring-graphql-test:$springGraphqlVersion"
+//		testImplementation 'org.springframework:spring-web'
 	}
 }
 
