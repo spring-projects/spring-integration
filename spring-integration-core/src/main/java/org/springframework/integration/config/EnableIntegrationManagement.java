@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
-import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptorRegistrar;
+import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptorImportSelector;
 
 /**
  * Enables default configuring of management in Spring Integration components in an existing application.
@@ -39,7 +39,7 @@ import org.springframework.integration.support.management.micrometer.MicrometerM
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import({ MicrometerMetricsCaptorRegistrar.class, IntegrationManagementConfiguration.class })
+@Import({ MicrometerMetricsCaptorImportSelector.class, IntegrationManagementConfiguration.class })
 public @interface EnableIntegrationManagement {
 
 	/**

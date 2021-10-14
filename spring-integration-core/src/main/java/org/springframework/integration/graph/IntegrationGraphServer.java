@@ -48,7 +48,7 @@ import org.springframework.integration.router.RecipientListRouter.Recipient;
 import org.springframework.integration.router.RecipientListRouterManagement;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
-import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptorRegistrar;
+import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptorConfiguration;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
@@ -159,7 +159,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	}
 
 	private synchronized Graph buildGraph() {
-		if (micrometerEnhancer == null && MicrometerMetricsCaptorRegistrar.METER_REGISTRY_PRESENT) {
+		if (micrometerEnhancer == null && MicrometerMetricsCaptorConfiguration.METER_REGISTRY_PRESENT) {
 			micrometerEnhancer = new MicrometerNodeEnhancer(this.applicationContext);
 		}
 		String implementationVersion = IntegrationGraphServer.class.getPackage().getImplementationVersion();
