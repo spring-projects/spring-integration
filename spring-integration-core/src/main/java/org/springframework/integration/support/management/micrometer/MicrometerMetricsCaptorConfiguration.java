@@ -16,12 +16,10 @@
 
 package org.springframework.integration.support.management.micrometer;
 
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
-import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.ClassUtils;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -35,7 +33,8 @@ import io.micrometer.core.instrument.MeterRegistry;
  *
  * @since 5.2.9
  */
-public class MicrometerMetricsCaptorRegistrar implements ImportBeanDefinitionRegistrar {
+@Configuration(proxyBeanMethods = false)
+public class MicrometerMetricsCaptorConfiguration {
 
 	/**
 	 * A {@code boolean} flag to indicate if the
@@ -45,18 +44,13 @@ public class MicrometerMetricsCaptorRegistrar implements ImportBeanDefinitionReg
 	public static final boolean METER_REGISTRY_PRESENT =
 			ClassUtils.isPresent("io.micrometer.core.instrument.MeterRegistry", null);
 
-	@Override
-	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		ListableBeanFactory beanFactory = (ListableBeanFactory) registry;
-		if (METER_REGISTRY_PRESENT
-				&& !registry.containsBeanDefinition(MicrometerMetricsCaptor.MICROMETER_CAPTOR_NAME)
-				&& beanFactory.getBeanNamesForType(MeterRegistry.class, false, false).length > 0) {
-
-			registry.registerBeanDefinition(MicrometerMetricsCaptor.MICROMETER_CAPTOR_NAME,
-					BeanDefinitionBuilder.genericBeanDefinition(MicrometerMetricsCaptor.class,
-							() -> new MicrometerMetricsCaptor(beanFactory.getBeanProvider(MeterRegistry.class)))
-							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
-							.getBeanDefinition());
+	@Bean(name = MicrometerMetricsCaptor.MICROMETER_CAPTOR_NAME)
+	public MicrometerMetricsCaptor micrometerMetricsCaptor(ObjectProvider<MeterRegistry> meterRegistries) {
+		if (meterRegistries.stream().findAny().isPresent()) {
+			return new MicrometerMetricsCaptor(meterRegistries);
+		}
+		else {
+			return null;
 		}
 	}
 
