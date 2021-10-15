@@ -20,6 +20,7 @@ import graphql.ExecutionResult;
 import graphql.ExecutionResultImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,53 +30,87 @@ import org.springframework.graphql.RequestInput;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.support.AnnotatedControllerConfigurer;
 import org.springframework.graphql.execution.*;
+import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Controller;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  *
  * @author Daniel Frey
  *
  */
+@SpringJUnitConfig(GraphqlQueryMessageHandlerTests.TestConfig.class)
+@DirtiesContext
 public class GraphqlQueryMessageHandlerTests {
 
-	private GraphqlQueryMessageHandler handler;
+	@Autowired
+	private FluxMessageChannel inputChannel;
 
-	@BeforeEach
-	void setup() {
-
-		AnnotationConfigApplicationContext testContext = new AnnotationConfigApplicationContext();
-		testContext.register(TestConfig.class);
-		testContext.refresh();
-
-		this.handler = testContext.getBean(GraphqlQueryMessageHandler.class);
-
-	}
+	@Autowired
+	private FluxMessageChannel resultChannel;
 
 	@Test
 	void testHandleMessageForQuery() {
 
-		QueueChannel output = new QueueChannel();
-		this.handler.setOutputChannel(output);
+		ExecutionResult expected = new ExecutionResultImpl(
+				Map.of( "testQuery", Map.of( "id", "test-data") ),
+				null, null
+		);
+		StepVerifier verifier = StepVerifier.create(
+//				Flux.from(
+						this.resultChannel
+//						)
+//						.map(Message::getPayload)
+//						.cast(ExecutionResult.class)
+				)
+				.consumeNextWith( result -> {
+					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
+//					Map<String, Object> data = ((ExecutionResult) result).getData();
+//					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
+//					assertThat(testQuery.get("id")).isEqualTo("test-data");
+				}
+				)
+				.thenCancel()
+				.verifyLater();
 
-		Message<?> testMessage = new GenericMessage<>(new RequestInput("{ testQuery { id } }", null, emptyMap()));
-		this.handler.handleMessage(testMessage);
+		this.inputChannel.send(
+				MessageBuilder
+						.withPayload(new RequestInput("{ testQuery { id } }", null, emptyMap()))
+						.build()
+		);
 
-		Message<?> message = output.receive(0);
-		ExecutionResult result = (ExecutionResult) message.getPayload();
-		assertThat(result).isInstanceOf(ExecutionResultImpl.class);
+		verifier.verify(Duration.ofSeconds(10));
+	}
 
-		Map<String, Object> data = result.getData();
-		Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
-		assertThat(testQuery.get("id")).isEqualTo("test-data");
+	@Test
+	void testHandleMessageForQueryWithInvalidPayload() {
+
+		Message<?> testMessage = new GenericMessage<>("{ testQuery { id } }");
+		assertThrows( IllegalArgumentException.class, () -> this.inputChannel.send(testMessage));
+
 	}
 
 	@Controller
@@ -89,28 +124,51 @@ public class GraphqlQueryMessageHandlerTests {
 	}
 
 	@Configuration
+	@EnableIntegration
+	@TestPropertySource(properties = {
+			"logging.level.org.springframework.integration=TRACE"
+	})
 	static class TestConfig {
 
 		@Bean
-		public GraphqlQueryMessageHandler handler(GraphQlService graphQlService) {
+		GraphqlQueryMessageHandler handler(GraphQlService graphQlService) {
 
 			return new GraphqlQueryMessageHandler(graphQlService);
 		}
 
 		@Bean
-		public GraphqlQueryController graphqlQueryController() {
+		IntegrationFlow graphqlQueryMessageHandlerFlow(GraphqlQueryMessageHandler handler) {
+
+			return IntegrationFlows.from(MessageChannels.flux("inputChannel"))
+					.handle(handler)
+					.channel(c -> c.flux("resultChannel"))
+					.get();
+		}
+
+		@Bean
+		PollableChannel errorChannel() {
+
+			return new QueueChannel();
+		}
+
+		@Bean
+		GraphqlQueryController graphqlQueryController() {
+
 			return new GraphqlQueryController();
 		}
 
 		@Bean
-		public GraphQlService graphQlService(GraphQlSource graphQlSource, BatchLoaderRegistry batchLoaderRegistry) {
+		GraphQlService graphQlService(GraphQlSource graphQlSource, BatchLoaderRegistry batchLoaderRegistry) {
+
 			ExecutionGraphQlService service = new ExecutionGraphQlService(graphQlSource);
 			service.addDataLoaderRegistrar(batchLoaderRegistry);
+
 			return service;
 		}
 
 		@Bean
-		public GraphQlSource graphQlSource(AnnotatedControllerConfigurer annotatedDataFetcherConfigurer) {
+		GraphQlSource graphQlSource(AnnotatedControllerConfigurer annotatedDataFetcherConfigurer) {
+
 			return GraphQlSource.builder()
 					.schemaResources(new ClassPathResource("graphql/test-query-schema.graphqls"))
 					.configureRuntimeWiring(annotatedDataFetcherConfigurer)
@@ -118,12 +176,14 @@ public class GraphqlQueryMessageHandlerTests {
 		}
 
 		@Bean
-		public AnnotatedControllerConfigurer annotatedDataFetcherConfigurer() {
+		AnnotatedControllerConfigurer annotatedDataFetcherConfigurer() {
+
 			return new AnnotatedControllerConfigurer();
 		}
 
 		@Bean
-		public BatchLoaderRegistry batchLoaderRegistry() {
+		BatchLoaderRegistry batchLoaderRegistry() {
+
 			return new DefaultBatchLoaderRegistry();
 		}
 
@@ -133,11 +193,11 @@ public class GraphqlQueryMessageHandlerTests {
 
 		private final String id;
 
-		public QueryResult(final String id) {
+		QueryResult(final String id) {
 			this.id = id;
 		}
 
-		public String getId() {
+		String getId() {
 			return this.id;
 		}
 
