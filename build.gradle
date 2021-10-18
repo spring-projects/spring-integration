@@ -217,6 +217,10 @@ configure(javaProjects) { subproject ->
 		}
 	}
 
+	tasks.withType(JavaCompile).configureEach {
+		options.fork = true
+	}
+
 	eclipse {
 		project {
 			natures += 'org.springframework.ide.eclipse.core.springnature'
