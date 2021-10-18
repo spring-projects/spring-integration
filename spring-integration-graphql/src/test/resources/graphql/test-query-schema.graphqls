@@ -1,7 +1,0 @@
-type Query {
-    testQuery: QueryResult
-}
-
-type QueryResult {
-    id: String
-}
