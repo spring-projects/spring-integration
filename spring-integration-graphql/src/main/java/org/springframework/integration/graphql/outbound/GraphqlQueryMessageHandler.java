@@ -16,12 +16,12 @@
 
 package org.springframework.integration.graphql.outbound;
 
-import graphql.ExecutionResult;
 import org.springframework.graphql.GraphQlService;
 import org.springframework.graphql.RequestInput;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
-import reactor.core.publisher.Flux;
+
+import graphql.ExecutionResult;
 import reactor.core.publisher.Mono;
 
 /**
@@ -34,20 +34,20 @@ public class GraphqlQueryMessageHandler extends AbstractReplyProducingMessageHan
 
 	public GraphqlQueryMessageHandler(final GraphQlService graphQlService) {
 		this.graphQlService = graphQlService;
+		setAsync(true);
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 
-		if( requestMessage.getPayload() instanceof RequestInput ) {
+		if (requestMessage.getPayload() instanceof RequestInput) {
 
 			Mono<ExecutionResult> result = this.graphQlService
 					.execute((RequestInput) requestMessage.getPayload());
 
 			return result;
-
-		} else {
-
+		}
+		else {
 			throw new IllegalArgumentException("Message payload needs to be 'org.springframework.graphql.RequestInput'");
 		}
 	}
