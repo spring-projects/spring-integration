@@ -16,12 +16,15 @@
 
 package org.springframework.integration.graphql.outbound;
 
-import graphql.ExecutionResult;
-import graphql.ExecutionResultImpl;
-import org.junit.jupiter.api.BeforeEach;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Duration;
+import java.util.Collections;
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -29,7 +32,10 @@ import org.springframework.graphql.GraphQlService;
 import org.springframework.graphql.RequestInput;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.support.AnnotatedControllerConfigurer;
-import org.springframework.graphql.execution.*;
+import org.springframework.graphql.execution.BatchLoaderRegistry;
+import org.springframework.graphql.execution.DefaultBatchLoaderRegistry;
+import org.springframework.graphql.execution.ExecutionGraphQlService;
+import org.springframework.graphql.execution.GraphQlSource;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -39,23 +45,17 @@ import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import reactor.core.Disposable;
+
+import graphql.ExecutionResult;
+import graphql.ExecutionResultImpl;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
-import java.time.Duration;
-import java.util.Map;
-
-import static java.util.Collections.emptyMap;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  *
@@ -72,25 +72,22 @@ public class GraphqlQueryMessageHandlerTests {
 	@Autowired
 	private FluxMessageChannel resultChannel;
 
+	@Autowired
+	private PollableChannel errorChannel;
+
 	@Test
 	void testHandleMessageForQuery() {
 
-		ExecutionResult expected = new ExecutionResultImpl(
-				Map.of( "testQuery", Map.of( "id", "test-data") ),
-				null, null
-		);
 		StepVerifier verifier = StepVerifier.create(
-//				Flux.from(
-						this.resultChannel
-//						)
-//						.map(Message::getPayload)
-//						.cast(ExecutionResult.class)
+				Flux.from(this.resultChannel)
+						.map(Message::getPayload)
+						.cast(ExecutionResult.class)
 				)
-				.consumeNextWith( result -> {
+				.consumeNextWith(result -> {
 					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
-//					Map<String, Object> data = ((ExecutionResult) result).getData();
-//					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
-//					assertThat(testQuery.get("id")).isEqualTo("test-data");
+					Map<String, Object> data = result.getData();
+					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
+					assertThat(testQuery.get("id")).isEqualTo("test-data");
 				}
 				)
 				.thenCancel()
@@ -98,7 +95,7 @@ public class GraphqlQueryMessageHandlerTests {
 
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload(new RequestInput("{ testQuery { id } }", null, emptyMap()))
+						.withPayload(new RequestInput("{ testQuery { id } }", null, Collections.emptyMap()))
 						.build()
 		);
 
@@ -108,8 +105,20 @@ public class GraphqlQueryMessageHandlerTests {
 	@Test
 	void testHandleMessageForQueryWithInvalidPayload() {
 
-		Message<?> testMessage = new GenericMessage<>("{ testQuery { id } }");
-		assertThrows( IllegalArgumentException.class, () -> this.inputChannel.send(testMessage));
+		this.inputChannel.send(
+				MessageBuilder
+						.withPayload("{ testQuery { id } }")
+						.build()
+		);
+
+		Message<?> errorMessage = errorChannel.receive(10_000);
+		assertThat(errorMessage).isNotNull()
+				.isInstanceOf(ErrorMessage.class)
+				.extracting(Message::getPayload)
+				.isInstanceOf(MessageHandlingException.class)
+				.satisfies((ex) -> assertThat((Exception) ex)
+						.hasMessageContaining(
+								"Message payload needs to be 'org.springframework.graphql.RequestInput'"));
 
 	}
 
@@ -125,9 +134,6 @@ public class GraphqlQueryMessageHandlerTests {
 
 	@Configuration
 	@EnableIntegration
-	@TestPropertySource(properties = {
-			"logging.level.org.springframework.integration=TRACE"
-	})
 	static class TestConfig {
 
 		@Bean
