@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package org.springframework.integration.expression;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import java.util.function.Supplier;
+
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.ConversionServiceFactoryBean;
@@ -33,6 +35,7 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 3.0
  */
@@ -66,7 +69,7 @@ public class ExpressionUtilsTests {
 		assertThat(evalContext.getBeanResolver()).isNotNull();
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertThat(typeConverter).isNotNull();
-		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService"))
+		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService", Supplier.class).get())
 				.isSameAs(DefaultConversionService.getSharedInstance());
 	}
 
@@ -80,9 +83,9 @@ public class ExpressionUtilsTests {
 		assertThat(evalContext.getBeanResolver()).isNotNull();
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertThat(typeConverter).isNotNull();
-		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService"))
+		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService", Supplier.class).get())
 				.isNotSameAs(DefaultConversionService.getSharedInstance());
-		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService"))
+		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService", Supplier.class).get())
 				.isSameAs(context.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME));
 	}
 
@@ -92,7 +95,8 @@ public class ExpressionUtilsTests {
 		assertThat(evalContext.getBeanResolver()).isNull();
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertThat(typeConverter).isNotNull();
-		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService"))
+		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService", Supplier.class).get())
 				.isSameAs(DefaultConversionService.getSharedInstance());
 	}
+
 }
