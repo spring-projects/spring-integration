@@ -668,9 +668,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the provided
-	 * {@link GenericTransformer} for the specific {@code payloadType} to convert at
+	 * {@link GenericTransformer} for the specific {@code expectedType} to convert at
 	 * runtime.
-	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * @param expectedType the {@link Class} for expected payload type. It can also be
 	 * {@code Message.class} if you wish to access the entire message in the transformer.
 	 * Conversion to this type will be attempted, if necessary.
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
@@ -680,14 +680,14 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see MethodInvokingTransformer
 	 * @see LambdaMessageProcessor
 	 */
-	public <P, T> B transform(Class<P> payloadType, GenericTransformer<P, T> genericTransformer) {
-		return transform(payloadType, genericTransformer, null);
+	public <P, T> B transform(Class<P> expectedType, GenericTransformer<P, T> genericTransformer) {
+		return transform(expectedType, genericTransformer, null);
 	}
 
 	/**
 	 * Populate the {@link MessageTransformingHandler} instance
 	 * for the provided {@code payloadType} to convert at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param payloadType the {@link Class} for expected payload type.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <P> the payload type - 'transform to'.
@@ -706,9 +706,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}
-	 * for the specific {@code payloadType} to convert at runtime.
+	 * for the specific {@code expectedType} to convert at runtime.
 	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * @param expectedType the {@link Class} for expected payload type. It can also be
 	 * {@code Message.class} if you wish to access the entire message in the transformer.
 	 * Conversion to this type will be attempted, if necessary.
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
@@ -720,13 +720,13 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see LambdaMessageProcessor
 	 * @see GenericEndpointSpec
 	 */
-	public <P, T> B transform(Class<P> payloadType, GenericTransformer<P, T> genericTransformer,
+	public <P, T> B transform(Class<P> expectedType, GenericTransformer<P, T> genericTransformer,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
 		Assert.notNull(genericTransformer, "'genericTransformer' must not be null");
 		Transformer transformer = genericTransformer instanceof Transformer ? (Transformer) genericTransformer :
 				(ClassUtils.isLambda(genericTransformer.getClass())
-						? new MethodInvokingTransformer(new LambdaMessageProcessor(genericTransformer, payloadType))
+						? new MethodInvokingTransformer(new LambdaMessageProcessor(genericTransformer, expectedType))
 						: new MethodInvokingTransformer(genericTransformer, ClassUtils.TRANSFORMER_TRANSFORM_METHOD));
 		return addComponent(transformer)
 				.handle(new MessageTransformingHandler(transformer), endpointConfigurer);
@@ -840,13 +840,13 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate a {@link MessageFilter} with {@link MethodInvokingSelector}
 	 * for the provided {@link GenericSelector}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .filter(Date.class, p -> p.after(new Date()))
 	 * }
 	 * </pre>
-	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * @param expectedType the {@link Class} for expected payload type. It can also be
 	 * {@code Message.class} if you wish to access the entire message in the selector.
 	 * Conversion to this type will be attempted, if necessary.
 	 * @param genericSelector the {@link GenericSelector} to use.
@@ -854,21 +854,21 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <P> B filter(Class<P> payloadType, GenericSelector<P> genericSelector) {
-		return filter(payloadType, genericSelector, null);
+	public <P> B filter(Class<P> expectedType, GenericSelector<P> genericSelector) {
+		return filter(expectedType, genericSelector, null);
 	}
 
 	/**
 	 * Populate a {@link MessageFilter} with {@link MethodInvokingSelector}
 	 * for the provided {@link GenericSelector}.
-	 * In addition accept options for the integration endpoint using {@link FilterEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * In addition, accept options for the integration endpoint using {@link FilterEndpointSpec}.
+	 * Typically, used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .filter(Date.class, p -> p.after(new Date()), e -> e.autoStartup(false))
 	 * }
 	 * </pre>
-	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * @param expectedType the {@link Class} for expected payload type. It can also be
 	 * {@code Message.class} if you wish to access the entire message in the selector.
 	 * Conversion to this type will be attempted, if necessary.
 	 * @param genericSelector the {@link GenericSelector} to use.
@@ -878,13 +878,13 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see LambdaMessageProcessor
 	 * @see FilterEndpointSpec
 	 */
-	public <P> B filter(Class<P> payloadType, GenericSelector<P> genericSelector,
+	public <P> B filter(Class<P> expectedType, GenericSelector<P> genericSelector,
 			Consumer<FilterEndpointSpec> endpointConfigurer) {
 
 		Assert.notNull(genericSelector, "'genericSelector' must not be null");
 		MessageSelector selector = genericSelector instanceof MessageSelector ? (MessageSelector) genericSelector :
 				(ClassUtils.isLambda(genericSelector.getClass())
-						? new MethodInvokingSelector(new LambdaMessageProcessor(genericSelector, payloadType))
+						? new MethodInvokingSelector(new LambdaMessageProcessor(genericSelector, expectedType))
 						: new MethodInvokingSelector(genericSelector, ClassUtils.SELECTOR_ACCEPT_METHOD));
 		return this.register(new FilterEndpointSpec(new MessageFilter(selector)), endpointConfigurer);
 	}
@@ -1001,13 +1001,13 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link ServiceActivatingHandler} for the
 	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
 	 * to invoke the provided {@link GenericHandler} at runtime.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .handle(Integer.class, (p, h) -> p / 2)
 	 * }
 	 * </pre>
-	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * @param expectedType the {@link Class} for expected payload type. It can also be
 	 * {@code Message.class} if you wish to access the entire message in the handler.
 	 * Conversion to this type will be attempted, if necessary.
 	 * @param handler the handler to invoke.
@@ -1015,8 +1015,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <P> B handle(Class<P> payloadType, GenericHandler<P> handler) {
-		return handle(payloadType, handler, null);
+	public <P> B handle(Class<P> expectedType, GenericHandler<P> handler) {
+		return handle(expectedType, handler, null);
 	}
 
 	/**
@@ -1030,7 +1030,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 *  .handle(Integer.class, (p, h) -> p / 2, e -> e.autoStartup(false))
 	 * }
 	 * </pre>
-	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * @param expectedType the {@link Class} for expected payload type. It can also be
 	 * {@code Message.class} if you wish to access the entire message in the handler.
 	 * Conversion to this type will be attempted, if necessary.
 	 * @param handler the handler to invoke.
@@ -1039,15 +1039,15 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <P> B handle(Class<P> payloadType, GenericHandler<P> handler,
+	public <P> B handle(Class<P> expectedType, GenericHandler<P> handler,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 
 		ServiceActivatingHandler serviceActivatingHandler;
 		if (ClassUtils.isLambda(handler.getClass())) {
-			serviceActivatingHandler = new ServiceActivatingHandler(new LambdaMessageProcessor(handler, payloadType));
+			serviceActivatingHandler = new ServiceActivatingHandler(new LambdaMessageProcessor(handler, expectedType));
 		}
-		else if (payloadType != null) {
-			return handle(payloadType, handler::handle, endpointConfigurer);
+		else if (expectedType != null) {
+			return handle(expectedType, handler::handle, endpointConfigurer);
 		}
 		else {
 			serviceActivatingHandler = new ServiceActivatingHandler(handler, ClassUtils.HANDLER_HANDLE_METHOD);
@@ -1488,7 +1488,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
 	 * {@link Function} at runtime.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .split(String.class, p ->
@@ -1499,7 +1499,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 *                           new Foo(rs.getInt(1), rs.getString(2)))))
 	 * }
 	 * </pre>
-	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * @param expectedType the {@link Class} for expected payload type. It can also be
 	 * {@code Message.class} if you wish to access the entire message in the splitter.
 	 * Conversion to this type will be attempted, if necessary.
 	 * @param splitter the splitter {@link Function}.
@@ -1507,15 +1507,15 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <P> B split(Class<P> payloadType, Function<P, ?> splitter) {
-		return split(payloadType, splitter, null);
+	public <P> B split(Class<P> expectedType, Function<P, ?> splitter) {
+		return split(expectedType, splitter, null);
 	}
 
 	/**
 	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
 	 * {@link Function} at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically, used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .split(String.class, p ->
@@ -1527,7 +1527,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 *       , e -> e.applySequence(false))
 	 * }
 	 * </pre>
-	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * @param expectedType the {@link Class} for expected payload type. It can also be
 	 * {@code Message.class} if you wish to access the entire message in the splitter.
 	 * Conversion to this type will be attempted, if necessary.
 	 * @param splitter the splitter {@link Function}.
@@ -1537,12 +1537,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see LambdaMessageProcessor
 	 * @see SplitterEndpointSpec
 	 */
-	public <P> B split(Class<P> payloadType, Function<P, ?> splitter,
+	public <P> B split(Class<P> expectedType, Function<P, ?> splitter,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 
 		MethodInvokingSplitter split =
 				ClassUtils.isLambda(splitter.getClass())
-						? new MethodInvokingSplitter(new LambdaMessageProcessor(splitter, payloadType))
+						? new MethodInvokingSplitter(new LambdaMessageProcessor(splitter, expectedType))
 						: new MethodInvokingSplitter(splitter, ClassUtils.FUNCTION_APPLY_METHOD);
 		return split(split, endpointConfigurer);
 	}
@@ -1880,8 +1880,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 *  .route(Integer.class, p -> p % 2 == 0)
 	 * }
 	 * </pre>
-	 * @param payloadType the {@link Class} for expected payload type. It can also be
-	 * {@code Message.class} if you wish to access the entire message in the splitter.
+	 * @param expectedType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the router.
 	 * Conversion to this type will be attempted, if necessary.
 	 * @param router  the {@link Function} to use.
 	 * @param <S> the source payload type or {@code Message.class}.
@@ -1889,15 +1889,15 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <S, T> B route(Class<S> payloadType, Function<S, T> router) {
-		return route(payloadType, router, null);
+	public <S, T> B route(Class<S> expectedType, Function<S, T> router) {
+		return route(expectedType, router, null);
 	}
 
 	/**
 	 * Populate the {@link MethodInvokingRouter} for provided {@link Function}
 	 * and payload type and options from {@link RouterSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically, used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .route(Integer.class, p -> p % 2 == 0,
@@ -1907,8 +1907,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 *                       .applySequence(false))
 	 * }
 	 * </pre>
-	 * @param payloadType the {@link Class} for expected payload type. It can also be
-	 * {@code Message.class} if you wish to access the entire message in the splitter.
+	 * @param expectedType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the router.
 	 * Conversion to this type will be attempted, if necessary.
 	 * @param router the {@link Function} to use.
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
@@ -1917,12 +1917,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <P, T> B route(Class<P> payloadType, Function<P, T> router,
+	public <P, T> B route(Class<P> expectedType, Function<P, T> router,
 			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
 
 		MethodInvokingRouter methodInvokingRouter =
 				ClassUtils.isLambda(router.getClass())
-						? new MethodInvokingRouter(new LambdaMessageProcessor(router, payloadType))
+						? new MethodInvokingRouter(new LambdaMessageProcessor(router, expectedType))
 						: new MethodInvokingRouter(router, ClassUtils.FUNCTION_APPLY_METHOD);
 		return route(new RouterSpec<>(methodInvokingRouter), routerConfigurer);
 	}
