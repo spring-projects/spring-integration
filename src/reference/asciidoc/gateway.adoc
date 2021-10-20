@@ -152,6 +152,10 @@ The following example shows how to add a different message header for each of tw
 
 In the preceding example a different value is set for the 'RESPONSE_TYPE' header, based on the gateway's method.
 
+IMPORTANT: If you specify, for example, the `requestChannel` in `<int:method/>` as well as in a `@Gateway` annotation, the annotation value wins.
+
+NOTE: If a no-argument gateway is specified in XML, and the interface method has both a `@Payload` and `@Gateway` annotation (with a `payloadExpression` or a `payload-expression` in an `<int:method/>` element), the `@Payload` value is ignored.
+
 ===== Expressions and "`Global`" Headers
 
 The `<header/>` element supports `expression` as an alternative to `value`.
@@ -348,6 +352,22 @@ public interface Cafe {
 
 }
 ----
+
+You can also use the `@Gateway` annotation.
+
+[source,xml]
+----
+public interface Cafe {
+
+    @Gateway(payloadExpression = "new java.util.Date()")
+    List<Order> retrieveOpenOrders();
+
+}
+----
+
+NOTE: If both annotations are present (and the `payloadExpression` is provided), `@Gateway` wins.
+
+Also see <<gateway-configuration-annotations>>.
 
 If a method has no argument and no return value but does contain a payload expression, it is treated as a send-only operation.
 

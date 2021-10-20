@@ -111,6 +111,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private final Class<?> serviceInterface;
 
+	private final Set<Method> hasPayloadExpression = new HashSet<>();
+
 	private MessageChannel defaultRequestChannel;
 
 	private String defaultRequestChannelName;
@@ -586,18 +588,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	private boolean findPayloadExpression(Method method) {
-		boolean hasPayloadExpression = method.isAnnotationPresent(Payload.class);
-		if (!hasPayloadExpression) {
-			// check for the method metadata next
-			if (this.methodMetadataMap != null) {
-				GatewayMethodMetadata metadata = this.methodMetadataMap.get(method.getName());
-				hasPayloadExpression = (metadata != null) && metadata.getPayloadExpression() != null;
-			}
-			else if (this.globalMethodMetadata != null) {
-				hasPayloadExpression = this.globalMethodMetadata.getPayloadExpression() != null;
-			}
-		}
-		return hasPayloadExpression;
+		return method.isAnnotationPresent(Payload.class) || this.hasPayloadExpression.contains(method);
 	}
 
 	@Nullable
@@ -683,6 +674,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 		Expression payloadExpression =
 				extractPayloadExpressionFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
+		if (payloadExpression != null) {
+			this.hasPayloadExpression.add(method);
+		}
 		String requestChannelName = extractRequestChannelFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
 		String replyChannelName = extractReplyChannelFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
 		Expression requestTimeout = extractRequestTimeoutFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
