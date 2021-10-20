@@ -119,4 +119,4 @@ See <<./jpa.adoc#jpa-outbound-channel-adapter,Outbound Channel Adapter>> for mor
 
 Previously, when using XML configuration, `@Gateway.payloadExpression` was ignored for no-argument methods.
 There is one possible breaking change - if the method is annotated with `@Payload` as well as `@Gateway` (with a different expression) previously, the `@Payload` would be applied, now the `@Gateway.payloadExpression` is applied.
-See <<./gateway.adoc#gateway-configuration-annotations>> and <<./gateway.adoc#gateway-calling-no-argument-methods>> for more information.
+See <<./gateway.adoc#gateway-configuration-annotations,Gateway Configuration with Annotations and XML>> and <<./gateway.adoc#gateway-calling-no-argument-methods,Invoking No-Argument Methods>> for more information.
