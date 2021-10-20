@@ -580,9 +580,10 @@ Second, you can define the routing function within the DSL flow itself, as the f
 @Bean
 public IntegrationFlow routerFlow2() {
     return IntegrationFlows.from("routingChannel")
-            .<Message<?>, String>route(m -> m.getHeaders().get("testHeader", String.class), m -> m
-                    .channelMapping("someHeaderValue", "channelA")
-                    .channelMapping("someOtherHeaderValue", "channelB"),
+            .route(Message.class, m -> m.getHeaders().get("testHeader", String.class),
+                    m -> m
+                        .channelMapping("someHeaderValue", "channelA")
+                        .channelMapping("someOtherHeaderValue", "channelB"),
                 e -> e.id("headerValueRouter"))
             .get();
 }

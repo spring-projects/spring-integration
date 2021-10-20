@@ -30,6 +30,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
@@ -53,13 +54,19 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 
 	private final Method method;
 
-	private final Class<?> payloadType;
+	@Nullable
+	private final Class<?> expectedType;
 
 	private final Class<?>[] parameterTypes;
 
 	private MessageConverter messageConverter;
 
-	public LambdaMessageProcessor(Object target, Class<?> payloadType) {
+	/**
+	 * Create a processor to evaluate a provided lambda at runtime against a request message.
+	 * @param target the lambda object.
+	 * @param expectedType an optional expected type for method argument conversion.
+	 */
+	public LambdaMessageProcessor(Object target, @Nullable Class<?> expectedType) {
 		Assert.notNull(target, "'target' must not be null");
 		this.target = target;
 
@@ -79,7 +86,7 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		this.method = methods.iterator().next();
 		this.method.setAccessible(true);
 		this.parameterTypes = this.method.getParameterTypes();
-		this.payloadType = payloadType;
+		this.expectedType = expectedType;
 	}
 
 	@Override
@@ -138,13 +145,13 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 				}
 			}
 			else {
-				if (this.payloadType != null &&
-						!ClassUtils.isAssignable(this.payloadType, message.getPayload().getClass())) {
-					if (Message.class.isAssignableFrom(this.payloadType)) {
+				if (this.expectedType != null &&
+						!ClassUtils.isAssignable(this.expectedType, message.getPayload().getClass())) {
+					if (Message.class.isAssignableFrom(this.expectedType)) {
 						args[i] = message;
 					}
 					else {
-						args[i] = this.messageConverter.fromMessage(message, this.payloadType);
+						args[i] = this.messageConverter.fromMessage(message, this.expectedType);
 					}
 				}
 				else {

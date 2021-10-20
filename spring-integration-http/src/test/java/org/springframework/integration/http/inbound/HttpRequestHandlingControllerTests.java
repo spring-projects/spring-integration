@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.http.Cookie;
+
 import org.apache.commons.logging.LogFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
@@ -51,12 +53,14 @@ import org.springframework.web.servlet.View;
  * @author Gunnar Hillert
  * @author Biju Kunjummen
  * @author Artem Bilan
+ * @author Anthony Schweigard
+ *
  * @since 2.0
  */
 public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests {
 
 	@Test
-	public void sendOnly() throws Exception {
+	public void sendOnly() {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
 		controller.setBeanFactory(mock(BeanFactory.class));
@@ -83,7 +87,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 	}
 
 	@Test
-	public void sendOnlyViewExpression() throws Exception {
+	public void sendOnlyViewExpression() {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
 		controller.setBeanFactory(mock(BeanFactory.class));
@@ -111,9 +115,10 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 	}
 
 	@Test
-	public void requestReply() throws Exception {
+	public void requestReply() {
 		DirectChannel requestChannel = new DirectChannel();
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return requestMessage.getPayload().toString().toUpperCase();
@@ -145,9 +150,10 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 	}
 
 	@Test
-	public void requestReplyViewExpressionString() throws Exception {
+	public void requestReplyViewExpressionString() {
 		DirectChannel requestChannel = new DirectChannel();
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Message<String> handleRequestMessage(Message<?> requestMessage) {
 				return MessageBuilder.withPayload("foo")
@@ -177,10 +183,11 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 	}
 
 	@Test
-	public void requestReplyViewExpressionView() throws Exception {
+	public void requestReplyViewExpressionView() {
 		final View view = mock(View.class);
 		DirectChannel requestChannel = new DirectChannel();
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Message<String> handleRequestMessage(Message<?> requestMessage) {
 				return MessageBuilder.withPayload("foo")
@@ -210,9 +217,10 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 	}
 
 	@Test
-	public void requestReplyWithCustomReplyKey() throws Exception {
+	public void requestReplyWithCustomReplyKey() {
 		DirectChannel requestChannel = new DirectChannel();
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return requestMessage.getPayload().toString().toUpperCase();
@@ -245,9 +253,10 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 	}
 
 	@Test
-	public void requestReplyWithFullMessageInModel() throws Exception {
+	public void requestReplyWithFullMessageInModel() {
 		DirectChannel requestChannel = new DirectChannel();
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return requestMessage.getPayload().toString().toUpperCase();
@@ -281,8 +290,9 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 	}
 
 	@Test
-	public void testSendWithError() throws Exception {
+	public void testSendWithError() {
 		QueueChannel requestChannel = new QueueChannel() {
+
 			@Override
 			protected boolean doSend(Message<?> message, long timeout) {
 				throw new RuntimeException("Planned");
@@ -310,11 +320,12 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 	}
 
 	@Test
-	public void shutDown() throws Exception {
+	public void shutDown() {
 		DirectChannel requestChannel = new DirectChannel();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				try {
@@ -377,6 +388,42 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		Object reply = modelAndView.getModel().get("reply");
 		assertThat(reply).isNotNull();
 		assertThat(reply).isEqualTo("HELLO");
+	}
+
+	@Test
+	public void handleRequestDuplicateCookies() {
+		DirectChannel requestChannel = new DirectChannel();
+		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return requestMessage.getPayload().toString();
+			}
+		});
+
+		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
+		controller.setErrorsKey("errors");
+		controller.setRequestChannel(requestChannel);
+		controller.setViewName("foo");
+		controller.setReplyKey("cookiesReply");
+		controller.setExtractReplyPayload(true);
+		controller.setPayloadExpression(new SpelExpressionParser().parseExpression("#cookies['c1']?.value"));
+		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.afterPropertiesSet();
+		controller.start();
+
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContent("hello".getBytes());
+		request.addHeader("Content-Type", "text/plain");
+		request.setCookies(new Cookie("c1", "first"), new Cookie("c1", "last"));
+
+		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		ModelAndView modelAndView = controller.handleRequest(request, response);
+		assertThat(modelAndView.getModelMap()).doesNotContainKey("errors");
+		assertThat(modelAndView.getModelMap()).containsKey("cookiesReply");
+		assertThat(modelAndView.getModelMap()).containsEntry("cookiesReply", "first");
 	}
 
 

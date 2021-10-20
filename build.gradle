@@ -16,7 +16,7 @@ plugins {
 	id 'io.spring.nohttp' version '0.0.10' apply false
 	id 'org.ajoberstar.grgit' version '4.1.0'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'com.jfrog.artifactory' version '4.24.18' apply false
+	id 'com.jfrog.artifactory' version '4.24.20' apply false
 	id 'org.jetbrains.dokka' version '0.10.1'
 	id 'org.asciidoctor.jvm.pdf' version '3.3.2'
 	id 'org.asciidoctor.jvm.gems' version '3.3.2'
@@ -64,7 +64,7 @@ ext {
 	groovyVersion = '3.0.9'
 	hamcrestVersion = '2.2'
 	hazelcastVersion = '4.2.2'
-	hibernateVersion = '5.5.7.Final'
+	hibernateVersion = '5.5.8.Final'
 	hsqldbVersion = '2.6.0'
 	h2Version = '1.4.200'
 	jacksonVersion = '2.12.5'
@@ -83,7 +83,7 @@ ext {
     lettuceVersion = '6.1.5.RELEASE'
 	log4jVersion = '2.14.1'
 	mailVersion = '1.6.7'
-	micrometerVersion = '1.7.4'
+	micrometerVersion = '1.7.5'
 	mockitoVersion = '3.12.4'
 	mongoDriverVersion = '4.3.2'
 	mysqlVersion = '8.0.26'
@@ -98,13 +98,13 @@ ext {
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.10'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.5'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.11'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.6'
 	springGraphqlVersion = '1.0.0-SNAPSHOT'
-	springKafkaVersion = '2.7.7'
+	springKafkaVersion = '2.7.8'
 	springRetryVersion = '1.3.1'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.2'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.10'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.3'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.11'
 	springWsVersion = '3.1.1'
 	tomcatVersion = '9.0.52'
 	xmlUnitVersion = '2.8.2'
@@ -216,6 +216,10 @@ configure(javaProjects) { subproject ->
 		kotlinOptions {
 			jvmTarget = '11'
 		}
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		options.fork = true
 	}
 
 	eclipse {
@@ -527,7 +531,6 @@ project('spring-integration-graphql') {
 		api "org.springframework.graphql:spring-graphql:$springGraphqlVersion"
 
 		testImplementation "org.springframework.graphql:spring-graphql-test:$springGraphqlVersion"
-//		testImplementation 'org.springframework:spring-web'
 	}
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ import java.util.Map;
 
 import javax.servlet.http.Cookie;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -36,8 +35,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.context.request.RequestAttributes;
@@ -53,8 +51,7 @@ import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
  * @since 3.0
  */
 //INT-2312
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext
 public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTests {
 
@@ -100,7 +97,7 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 		String requestURI = "/test/" + testRequest;
 		request.setRequestURI(requestURI);
 		request.setContentType("text/plain");
-		final Map<String, String> params = new HashMap<String, String>();
+		final Map<String, String> params = new HashMap<>();
 		params.put("foo", "bar");
 		request.setParameters(params);
 		request.setContent("hello".getBytes());
