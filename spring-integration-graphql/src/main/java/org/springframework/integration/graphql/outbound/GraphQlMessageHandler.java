@@ -25,15 +25,15 @@ import graphql.ExecutionResult;
 import reactor.core.publisher.Mono;
 
 /**
- * A <code>MessageHandler</code> capable of fielding GraphQL Query and Mutation requests.
+ * A <code>MessageHandler</code> capable of fielding GraphQL Query, Mutation and Subscription requests.
  *
  * @author Daniel Frey
  */
-public class GraphqlQueryMutationMessageHandler extends AbstractReplyProducingMessageHandler {
+public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler {
 
 	private final GraphQlService graphQlService;
 
-	public GraphqlQueryMutationMessageHandler(final GraphQlService graphQlService) {
+	public GraphQlMessageHandler(final GraphQlService graphQlService) {
 		this.graphQlService = graphQlService;
 		setAsync(true);
 	}

@@ -6,6 +6,10 @@ type Mutation {
     update(id: String!): Update!
 }
 
+type Subscription {
+    results: QueryResult
+}
+
 type QueryResult {
     id: String
 }
