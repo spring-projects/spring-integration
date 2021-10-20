@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +32,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.graphql.GraphQlService;
 import org.springframework.graphql.RequestInput;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.support.AnnotatedControllerConfigurer;
 import org.springframework.graphql.execution.BatchLoaderRegistry;
 import org.springframework.graphql.execution.DefaultBatchLoaderRegistry;
@@ -48,6 +51,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Repository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -62,9 +66,9 @@ import reactor.test.StepVerifier;
  * @author Daniel Frey
  *
  */
-@SpringJUnitConfig(GraphqlQueryMessageHandlerTests.TestConfig.class)
+@SpringJUnitConfig(GraphQlMutationMessageHandlerTests.TestConfig.class)
 @DirtiesContext
-public class GraphqlQueryMessageHandlerTests {
+public class GraphQlMutationMessageHandlerTests {
 
 	@Autowired
 	private FluxMessageChannel inputChannel;
@@ -75,8 +79,15 @@ public class GraphqlQueryMessageHandlerTests {
 	@Autowired
 	private PollableChannel errorChannel;
 
+	@Autowired
+	UpdateRepository updateRepository;
+
 	@Test
-	void testHandleMessageForQuery() {
+	@SuppressWarnings("unchecked")
+	void testHandleMessageForMutation() {
+
+		String fakeId = UUID.randomUUID().toString();
+		Update expected = new Update(fakeId);
 
 		StepVerifier verifier = StepVerifier.create(
 				Flux.from(this.resultChannel)
@@ -86,8 +97,10 @@ public class GraphqlQueryMessageHandlerTests {
 				.consumeNextWith(result -> {
 					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
 					Map<String, Object> data = result.getData();
-					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
-					assertThat(testQuery.get("id")).isEqualTo("test-data");
+					Map<String, Object> update = (Map<String, Object>) data.get("update");
+					assertThat(update.get("id")).isEqualTo(fakeId);
+
+					assertThat(this.updateRepository.current().block()).isEqualTo(expected);
 				}
 				)
 				.thenCancel()
@@ -95,19 +108,27 @@ public class GraphqlQueryMessageHandlerTests {
 
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload(new RequestInput("{ testQuery { id } }", null, Collections.emptyMap()))
+						.withPayload(new RequestInput("mutation { update(id: \"" + fakeId + "\") { id } }", null, Collections.emptyMap()))
 						.build()
 		);
 
 		verifier.verify(Duration.ofSeconds(10));
+
+		StepVerifier.create(this.updateRepository.current())
+				.expectNext(expected)
+				.expectComplete()
+				.verify();
+
 	}
 
 	@Test
 	void testHandleMessageForQueryWithInvalidPayload() {
 
+		String fakeId = UUID.randomUUID().toString();
+
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload("{ testQuery { id } }")
+						.withPayload("mutation { update(id: \"" + fakeId + "\") { id } }")
 						.build()
 		);
 
@@ -123,11 +144,33 @@ public class GraphqlQueryMessageHandlerTests {
 	}
 
 	@Controller
-	static class GraphqlQueryController {
+	static class GraphqlMutationController {
 
-		@QueryMapping
-		public Mono<QueryResult> testQuery() {
-			return Mono.just(new QueryResult("test-data"));
+		final UpdateRepository updateRepository;
+
+		GraphqlMutationController(UpdateRepository updateRepository) {
+			this.updateRepository = updateRepository;
+		}
+
+		@MutationMapping
+		public Mono<Update> update(@Argument String id) {
+			return this.updateRepository.save(new Update(id));
+		}
+
+	}
+
+	@Repository
+	static class UpdateRepository {
+
+		private Update current;
+
+		Mono<Update> save(Update update) {
+			this.current = update;
+			return Mono.justOrEmpty(this.current);
+		}
+
+		Mono<Update> current() {
+			return Mono.just(this.current);
 		}
 
 	}
@@ -137,13 +180,13 @@ public class GraphqlQueryMessageHandlerTests {
 	static class TestConfig {
 
 		@Bean
-		GraphqlQueryMutationMessageHandler handler(GraphQlService graphQlService) {
+		GraphQlMessageHandler handler(GraphQlService graphQlService) {
 
-			return new GraphqlQueryMutationMessageHandler(graphQlService);
+			return new GraphQlMessageHandler(graphQlService);
 		}
 
 		@Bean
-		IntegrationFlow graphqlQueryMessageHandlerFlow(GraphqlQueryMutationMessageHandler handler) {
+		IntegrationFlow graphqlQueryMessageHandlerFlow(GraphQlMessageHandler handler) {
 
 			return IntegrationFlows.from(MessageChannels.flux("inputChannel"))
 					.handle(handler)
@@ -158,9 +201,14 @@ public class GraphqlQueryMessageHandlerTests {
 		}
 
 		@Bean
-		GraphqlQueryController graphqlQueryController() {
+		UpdateRepository updateRepository() {
+			return new UpdateRepository();
+		}
 
-			return new GraphqlQueryController();
+		@Bean
+		GraphqlMutationController graphqlMutationController(final UpdateRepository updateRepository) {
+
+			return new GraphqlMutationController(updateRepository);
 		}
 
 		@Bean
@@ -195,11 +243,11 @@ public class GraphqlQueryMessageHandlerTests {
 
 	}
 
-	static class QueryResult {
+	static class Update {
 
 		private final String id;
 
-		QueryResult(final String id) {
+		Update(final String id) {
 			this.id = id;
 		}
 
@@ -207,6 +255,22 @@ public class GraphqlQueryMessageHandlerTests {
 			return this.id;
 		}
 
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof Update)) {
+				return false;
+			}
+			Update update = (Update) o;
+			return getId().equals(update.getId());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId());
+		}
 	}
 
 }
