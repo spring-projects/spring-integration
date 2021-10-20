@@ -53,6 +53,8 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.PartialSuccessException;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -736,8 +738,45 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		String remoteFilePath = obtainRemoteFilePath(requestMessage);
 		String remoteFilename = getRemoteFilename(remoteFilePath);
 		String remoteDir = getRemoteDirectory(remoteFilePath, remoteFilename);
+		if (remoteDir == null) {
+			MessageProcessor<String> directoryExpressionProcessor =
+					this.remoteFileTemplate.getDirectoryExpressionProcessor();
+			if (directoryExpressionProcessor != null) {
+				remoteDir = directoryExpressionProcessor.processMessage(requestMessage);
+				if (remoteDir != null) {
+					remoteFilePath = remoteDir + this.remoteFileTemplate.getRemoteFileSeparator() + remoteFilename;
+				}
+			}
+		}
+
+		String remoteFileNewPath = buildRemoteFileNewPath(requestMessage, remoteDir);
+		Assert.hasLength(remoteFileNewPath, "New filename cannot be empty");
+
+		return executeMv(requestMessage, remoteFilename, remoteDir, remoteFilePath, remoteFileNewPath);
+	}
+
+	private String obtainRemoteFilePath(Message<?> requestMessage) {
+		String remoteFilePath = this.fileNameProcessor.processMessage(requestMessage);
+		Assert.state(remoteFilePath != null,
+				() -> "The 'fileNameProcessor' evaluated to null 'remoteFilePath' from message: " + requestMessage);
+		return remoteFilePath;
+	}
+
+	private String buildRemoteFileNewPath(Message<?> requestMessage, @Nullable String remoteDir) {
 		String remoteFileNewPath = this.renameProcessor.processMessage(requestMessage);
 		Assert.hasLength(remoteFileNewPath, "New filename cannot be empty");
+		if (remoteDir != null) {
+			String remoteFilename = getRemoteFilename(remoteFileNewPath);
+			String dir = getRemoteDirectory(remoteFileNewPath, remoteFilename);
+			if (dir == null) {
+				remoteFileNewPath = remoteDir + this.remoteFileTemplate.getRemoteFileSeparator() + remoteFilename;
+			}
+		}
+		return remoteFileNewPath;
+	}
+
+	private AbstractIntegrationMessageBuilder<Boolean> executeMv(Message<?> requestMessage, String remoteFilename,
+			String remoteDir, String remoteFilePath, String remoteFileNewPath) {
 
 		return this.remoteFileTemplate.execute(session -> {
 					Boolean result = mv(requestMessage, session, remoteFilePath, remoteFileNewPath);
@@ -747,15 +786,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 							.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 							.setHeader(FileHeaders.RENAME_TO, remoteFileNewPath)
 							.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
-				}
-		);
-	}
-
-	private String obtainRemoteFilePath(Message<?> requestMessage) {
-		String remoteFilePath = this.fileNameProcessor.processMessage(requestMessage);
-		Assert.state(remoteFilePath != null,
-				() -> "The 'fileNameProcessor' evaluated to null 'remoteFilePath' from message: " + requestMessage);
-		return remoteFilePath;
+				});
 	}
 
 	/**

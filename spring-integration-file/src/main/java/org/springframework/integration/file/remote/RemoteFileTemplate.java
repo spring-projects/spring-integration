@@ -42,6 +42,7 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
@@ -156,6 +157,10 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		Assert.notNull(remoteDirectoryExpression, "remoteDirectoryExpression must not be null");
 		this.directoryExpressionProcessor =
 				new ExpressionEvaluatingMessageProcessor<>(remoteDirectoryExpression, String.class);
+	}
+
+	public MessageProcessor<String> getDirectoryExpressionProcessor() {
+		return this.directoryExpressionProcessor;
 	}
 
 	/**

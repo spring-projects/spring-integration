@@ -92,6 +92,8 @@ For this reason, the property is `false` by default; this may change in a future
 
 The `FileInboundChannelAdapterSpec` has now a convenient `recursive(boolean)` option instead of requiring an explicit reference to the `RecursiveDirectoryScanner`.
 
+The `remoteDirectoryExpression` can now be used in the `mv` command for convenience.
+
 [[x5.5-mongodb]]
 ==== MongoDb Changes
 
