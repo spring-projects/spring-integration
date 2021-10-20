@@ -1,1 +1,0 @@
-package org.springframework.integration.graphql.config;
