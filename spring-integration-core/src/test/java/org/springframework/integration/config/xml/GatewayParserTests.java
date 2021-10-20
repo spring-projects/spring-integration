@@ -149,6 +149,26 @@ public class GatewayParserTests {
 	}
 
 	@Test
+	public void testRequestReplyNoArgsGw() {
+		PollableChannel requestChannel = (PollableChannel) context.getBean("requestChannel");
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		this.startResponder(requestChannel, replyChannel);
+		TestService service = (TestService) context.getBean("requestReply");
+		String result = service.noArgWithGateway();
+		assertThat(result).isEqualTo("fromGwExpression");
+	}
+
+	@Test
+	public void testRequestReplyNoArgsBothAnn() {
+		PollableChannel requestChannel = (PollableChannel) context.getBean("requestChannel");
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		this.startResponder(requestChannel, replyChannel);
+		TestService service = (TestService) context.getBean("requestReply");
+		String result = service.noArgWithGatewayAndPayload();
+		assertThat(result).isEqualTo("fromGwExpression");
+	}
+
+	@Test
 	public void testAsyncGateway() throws Exception {
 		PollableChannel requestChannel = (PollableChannel) context.getBean("requestChannel");
 		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
