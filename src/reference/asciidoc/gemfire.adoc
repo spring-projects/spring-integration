@@ -192,7 +192,7 @@ As described in EIP, a https://www.enterpriseintegrationpatterns.com/MessageStor
 This can be useful when dealing with components that have a capability to buffer messages (`QueueChannel`, `Aggregator`, `Resequencer`, and others) if reliability is a concern.
 In Spring Integration, the `MessageStore` strategy interface also provides the foundation for the https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html[claim check] pattern, which is described in EIP as well.
 
-Spring Integration's Gemfire module provides `GemfireMessageStore`, which is an implementation of both the the `MessageStore` strategy (mainly used by the `QueueChannel` and `ClaimCheck` patterns) and the `MessageGroupStore` strategy (mainly used by the `Aggregator` and `Resequencer` patterns).
+Spring Integration's Gemfire module provides `GemfireMessageStore`, which is an implementation of both the `MessageStore` strategy (mainly used by the `QueueChannel` and `ClaimCheck` patterns) and the `MessageGroupStore` strategy (mainly used by the `Aggregator` and `Resequencer` patterns).
 
 The following example configures the cache and region by using the `spring-gemfire` namespace (not to be confused with the `spring-integration-gemfire` namespace):
 

@@ -732,7 +732,7 @@ messagingTemplate.convertAndSend(controlBus, "@'simpleRouter.handler'.addRecipie
 
 From the application start up the `simpleRouter`, has only one `channel1` recipient.
 But after the `addRecipient` command, `channel2` recipient is added.
-It is a "`registering an interest in something that is part of the message`" use case, when we may be interested in messages from the router at some time period, so we are subscribing to the the `recipient-list-router` and, at some point, decide to unsubscribe.
+It is a "`registering an interest in something that is part of the message`" use case, when we may be interested in messages from the router at some time period, so we are subscribing to the `recipient-list-router` and, at some point, decide to unsubscribe.
 
 Because of the runtime management operation for the `<recipient-list-router>`, it can be configured without any `<recipient>` from the start.
 In this case, the behavior of `RecipientListRouter` is the same when there is no one matching recipient for the message.

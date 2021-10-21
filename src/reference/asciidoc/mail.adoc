@@ -138,7 +138,7 @@ The `close()` on the `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` heade
 Starting with version 5.4, it is possible now to return a `MimeMessage` as is without any conversion or eager content loading.
 This functionality is enabled with this combination of options: no `headerMapper` provided, the `simpleContent` property is `false` and the `autoCloseFolder` property is `false`.
 The `MimeMessage` is present as the payload of the Spring message produced.
-In this case, the only header populated is the above mentioned `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` for the folder which must be closed when processing of the the `MimeMessage` is complete.
+In this case, the only header populated is the above mentioned `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` for the folder which must be closed when processing of the `MimeMessage` is complete.
 
 [[mail-mapping]]
 === Inbound Mail Message Mapping

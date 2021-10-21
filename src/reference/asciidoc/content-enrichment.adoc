@@ -226,7 +226,7 @@ This sub-element is a convenience, and is the equivalent of specifying the follo
 ----
 ====
 
-Starting with version 4.1, you can now override the registry's configured reaper delay so that the the channel mapping is retained for at least the specified time, regardless of the reaper delay.
+Starting with version 4.1, you can now override the registry's configured reaper delay so that the channel mapping is retained for at least the specified time, regardless of the reaper delay.
 The following example shows how to do so:
 
 ====

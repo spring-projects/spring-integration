@@ -372,7 +372,7 @@ The default value is `pass:[*]`.
 This property controls the value of the actual response's `Access-Control-Expose-Headers` header.
 * `method`: The HTTP request methods to allow: `GET`, `POST`, `HEAD`, `OPTIONS`, `PUT`, `PATCH`, `DELETE`, `TRACE`.
 Methods specified here overrides those in `supported-methods`.
-* `allow-credentials`: Set to `true` if the the browser should include any cookies associated to the domain of the request or `false` if it should not.
+* `allow-credentials`: Set to `true` if the browser should include any cookies associated to the domain of the request or `false` if it should not.
 An empty string ("") means undefined.
 If `true`, the pre-flight response includes the `Access-Control-Allow-Credentials=true` header.
 The default value is `true`.
@@ -697,7 +697,7 @@ The whole `queryString` can also be presented as a `uri-variable`, as the follow
 
 In this case, you must manually provide the URL encoding.
 For example, you can use the `org.apache.http.client.utils.URLEncodedUtils#format()` for this purpose.
-As mentioned earlier, a manually built `MultiValueMap<String, String>` can be converted to the the `List<NameValuePair>` `format()` method argument by using the following Java Streams snippet:
+As mentioned earlier, a manually built `MultiValueMap<String, String>` can be converted to the `List<NameValuePair>` `format()` method argument by using the following Java Streams snippet:
 
 ====
 [source,java]

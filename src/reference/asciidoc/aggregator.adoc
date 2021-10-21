@@ -888,7 +888,7 @@ The reaper is a `Runnable`.
 In the preceding example, the message group store's expire method is called every ten seconds.
 The timeout itself is 30 seconds.
 
-NOTE: It is important to understand that the 'timeout' property of `MessageGroupStoreReaper` is an approximate value and is impacted by the the rate of the task scheduler, since this property is only checked on the next scheduled execution of the `MessageGroupStoreReaper` task.
+NOTE: It is important to understand that the 'timeout' property of `MessageGroupStoreReaper` is an approximate value and is impacted by the rate of the task scheduler, since this property is only checked on the next scheduled execution of the `MessageGroupStoreReaper` task.
 For example, if the timeout is set for ten minutes but the `MessageGroupStoreReaper` task is scheduled to run every hour and the last execution of the `MessageGroupStoreReaper` task happened one minute before the timeout, the `MessageGroup` does not expire for the next 59 minutes.
 Consequently, we recommend setting the rate to be at least equal to the value of the timeout or shorter.
 

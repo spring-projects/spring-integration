@@ -1211,7 +1211,7 @@ By default, the `rename-expression` is `headers['file_renameTo']`.
 This expression must not evaluate to null or an empty `String`.
 If necessary, any remote directories needed are created.
 The payload of the result message is `Boolean.TRUE`.
-The the `file_remoteDirectory` header holds the original remote directory, and the `file_remoteFile` header holds the filename.
+The `file_remoteDirectory` header holds the original remote directory, and the `file_remoteFile` header holds the filename.
 The `file_renameTo` header holds the new path.
 
 Starting with version 5.5.6, the `remoteDirectoryExpression` can be used in the `mv` command for convenience.
