@@ -65,9 +65,9 @@ import reactor.test.StepVerifier;
 /**
  *
  * @author Daniel Frey
- *
+ * @since 6.0
  */
-@SpringJUnitConfig(GraphQlMessageHandlerTests.TestConfig.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class GraphQlMessageHandlerTests {
 

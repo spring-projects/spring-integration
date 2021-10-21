@@ -1,0 +1,24 @@
+[[graphql]]
+== GraphQL Support
+
+Spring Integration provides support for GraphQL.
+
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-graphql</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-graphql:{project-version}"
+----
+====
