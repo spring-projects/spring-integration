@@ -34,9 +34,9 @@ import org.springframework.graphql.GraphQlService;
 import org.springframework.graphql.RequestInput;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.graphql.data.method.annotation.SubscriptionMapping;
 import org.springframework.graphql.data.method.annotation.support.AnnotatedControllerConfigurer;
-import org.springframework.graphql.execution.BatchLoaderRegistry;
-import org.springframework.graphql.execution.DefaultBatchLoaderRegistry;
 import org.springframework.graphql.execution.ExecutionGraphQlService;
 import org.springframework.graphql.execution.GraphQlSource;
 import org.springframework.integration.channel.FluxMessageChannel;
@@ -57,6 +57,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import graphql.ExecutionResult;
 import graphql.ExecutionResultImpl;
+import graphql.execution.reactive.SubscriptionPublisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -66,9 +67,9 @@ import reactor.test.StepVerifier;
  * @author Daniel Frey
  *
  */
-@SpringJUnitConfig(GraphQlMutationMessageHandlerTests.TestConfig.class)
+@SpringJUnitConfig(GraphQlMessageHandlerTests.TestConfig.class)
 @DirtiesContext
-public class GraphQlMutationMessageHandlerTests {
+public class GraphQlMessageHandlerTests {
 
 	@Autowired
 	private FluxMessageChannel inputChannel;
@@ -80,14 +81,11 @@ public class GraphQlMutationMessageHandlerTests {
 	private PollableChannel errorChannel;
 
 	@Autowired
-	UpdateRepository updateRepository;
+	private UpdateRepository updateRepository;
 
 	@Test
 	@SuppressWarnings("unchecked")
-	void testHandleMessageForMutation() {
-
-		String fakeId = UUID.randomUUID().toString();
-		Update expected = new Update(fakeId);
+	void testHandleMessageForQuery() {
 
 		StepVerifier verifier = StepVerifier.create(
 				Flux.from(this.resultChannel)
@@ -97,11 +95,42 @@ public class GraphQlMutationMessageHandlerTests {
 				.consumeNextWith(result -> {
 					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
 					Map<String, Object> data = result.getData();
-					Map<String, Object> update = (Map<String, Object>) data.get("update");
-					assertThat(update.get("id")).isEqualTo(fakeId);
-
-					assertThat(this.updateRepository.current().block()).isEqualTo(expected);
+					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
+					assertThat(testQuery.get("id")).isEqualTo("test-data");
 				}
+				)
+				.thenCancel()
+				.verifyLater();
+
+		this.inputChannel.send(
+				MessageBuilder
+						.withPayload(new RequestInput("{ testQuery { id } }", null, Collections.emptyMap()))
+						.build()
+		);
+
+		verifier.verify(Duration.ofSeconds(10));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void testHandleMessageForMutation() {
+
+		String fakeId = UUID.randomUUID().toString();
+		Update expected = new Update(fakeId);
+
+		StepVerifier verifier = StepVerifier.create(
+						Flux.from(this.resultChannel)
+								.map(Message::getPayload)
+								.cast(ExecutionResult.class)
+				)
+				.consumeNextWith(result -> {
+							assertThat(result).isInstanceOf(ExecutionResultImpl.class);
+							Map<String, Object> data = result.getData();
+							Map<String, Object> update = (Map<String, Object>) data.get("update");
+							assertThat(update.get("id")).isEqualTo(fakeId);
+
+							assertThat(this.updateRepository.current().block()).isEqualTo(expected);
+						}
 				)
 				.thenCancel()
 				.verifyLater();
@@ -122,7 +151,63 @@ public class GraphQlMutationMessageHandlerTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
+	void testHandleMessageForSubscription() {
+
+		StepVerifier verifier = StepVerifier.create(
+						Flux.from(this.resultChannel)
+								.map(Message::getPayload)
+								.cast(ExecutionResult.class)
+								.map(ExecutionResult::getData)
+								.cast(SubscriptionPublisher.class)
+								.map(Flux::from)
+								.flatMap(data -> data)
+				)
+				.consumeNextWith(executionResult -> {
+					Map<String, Object> results = (Map<String, Object>) executionResult.getData();
+					assertThat(results).containsKey("results");
+
+					Map<String, Object> queryResult = (Map<String, Object>) results.get("results");
+					assertThat(queryResult)
+							.containsKey("id")
+							.containsValue("test-data-01");
+
+				})
+				.expectNextCount(9)
+				.thenCancel()
+				.verifyLater();
+
+		this.inputChannel.send(
+				MessageBuilder
+						.withPayload(new RequestInput("subscription { results { id } }", null, Collections.emptyMap()))
+						.build()
+		);
+
+		verifier.verify(Duration.ofSeconds(10));
+	}
+
+	@Test
 	void testHandleMessageForQueryWithInvalidPayload() {
+
+		this.inputChannel.send(
+				MessageBuilder
+						.withPayload("{ testQuery { id } }")
+						.build()
+		);
+
+		Message<?> errorMessage = errorChannel.receive(10_000);
+		assertThat(errorMessage).isNotNull()
+				.isInstanceOf(ErrorMessage.class)
+				.extracting(Message::getPayload)
+				.isInstanceOf(MessageHandlingException.class)
+				.satisfies((ex) -> assertThat((Exception) ex)
+						.hasMessageContaining(
+								"Message payload needs to be 'org.springframework.graphql.RequestInput'"));
+
+	}
+
+	@Test
+	void testHandleMessageForMutationWithInvalidPayload() {
 
 		String fakeId = UUID.randomUUID().toString();
 
@@ -143,18 +228,59 @@ public class GraphQlMutationMessageHandlerTests {
 
 	}
 
+	@Test
+	void testHandleMessageForSubscriptionWithInvalidPayload() {
+
+		this.inputChannel.send(
+				MessageBuilder
+						.withPayload("subscription { results { id } }")
+						.build()
+		);
+
+		Message<?> errorMessage = errorChannel.receive(10_000);
+		assertThat(errorMessage).isNotNull()
+				.isInstanceOf(ErrorMessage.class)
+				.extracting(Message::getPayload)
+				.isInstanceOf(MessageHandlingException.class)
+				.satisfies((ex) -> assertThat((Exception) ex)
+						.hasMessageContaining(
+								"Message payload needs to be 'org.springframework.graphql.RequestInput'"));
+
+	}
+
 	@Controller
-	static class GraphqlMutationController {
+	static class GraphQlController {
 
 		final UpdateRepository updateRepository;
 
-		GraphqlMutationController(UpdateRepository updateRepository) {
+		GraphQlController(UpdateRepository updateRepository) {
 			this.updateRepository = updateRepository;
+		}
+
+		@QueryMapping
+		public Mono<QueryResult> testQuery() {
+			return Mono.just(new QueryResult("test-data"));
 		}
 
 		@MutationMapping
 		public Mono<Update> update(@Argument String id) {
 			return this.updateRepository.save(new Update(id));
+		}
+
+		@SubscriptionMapping
+		public Flux<QueryResult> results() {
+			return Flux.just(
+					new QueryResult("test-data-01"),
+					new QueryResult("test-data-02"),
+					new QueryResult("test-data-03"),
+					new QueryResult("test-data-04"),
+					new QueryResult("test-data-05"),
+					new QueryResult("test-data-06"),
+					new QueryResult("test-data-07"),
+					new QueryResult("test-data-08"),
+					new QueryResult("test-data-09"),
+					new QueryResult("test-data-10")
+			);
 		}
 
 	}
@@ -206,18 +332,15 @@ public class GraphQlMutationMessageHandlerTests {
 		}
 
 		@Bean
-		GraphqlMutationController graphqlMutationController(final UpdateRepository updateRepository) {
+		GraphQlController graphqlQueryController(final UpdateRepository updateRepository) {
 
-			return new GraphqlMutationController(updateRepository);
+			return new GraphQlController(updateRepository);
 		}
 
 		@Bean
-		GraphQlService graphQlService(GraphQlSource graphQlSource, BatchLoaderRegistry batchLoaderRegistry) {
+		GraphQlService graphQlService(GraphQlSource graphQlSource) {
 
-			ExecutionGraphQlService service = new ExecutionGraphQlService(graphQlSource);
-			service.addDataLoaderRegistrar(batchLoaderRegistry);
-
-			return service;
+			return new ExecutionGraphQlService(graphQlSource);
 		}
 
 		@Bean
@@ -235,12 +358,43 @@ public class GraphQlMutationMessageHandlerTests {
 			return new AnnotatedControllerConfigurer();
 		}
 
-		@Bean
-		BatchLoaderRegistry batchLoaderRegistry() {
+	}
 
-			return new DefaultBatchLoaderRegistry();
+	static class QueryResult {
+
+		private final String id;
+
+		QueryResult(final String id) {
+			this.id = id;
 		}
 
+		String getId() {
+			return this.id;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof QueryResult)) {
+				return false;
+			}
+			QueryResult that = (QueryResult) o;
+			return getId().equals(that.getId());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId());
+		}
+
+		@Override
+		public String toString() {
+			return "QueryResult{" +
+					"id='" + id + '\'' +
+					'}';
+		}
 	}
 
 	static class Update {
