@@ -68,7 +68,7 @@ In other words, we need to expose some transaction configuration, but only enoug
 ==== Poller Transaction Support
 
 Spring Integration provides transactional support for pollers.
-Pollers are a special type of component because, within a poller task, we can call `receive()` against a resource that is itself transactional, thus including the `receive()` call in the the boundaries of the transaction, which lets it be rolled back in case of a task failure.
+Pollers are a special type of component because, within a poller task, we can call `receive()` against a resource that is itself transactional, thus including the `receive()` call in the boundaries of the transaction, which lets it be rolled back in case of a task failure.
 If we were to add the same support for channels, the added transactions would affect all downstream components starting with the `send()` call.
 That provides a rather wide scope for transaction demarcation without any strong reason, especially when Spring already provides several ways to address the transactional needs of any component downstream.
 However the `receive()` method being included in a transaction boundary is the "`strong reason`" for pollers.

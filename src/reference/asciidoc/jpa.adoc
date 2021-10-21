@@ -725,7 +725,7 @@ Null values returned by the iterator are ignored.
 It defaults to `false`.
 Applies only if you did not specify the `flush-size` attribute.
 If this attribute is set to `true`, `flush-size` is implicitly set to `1`, if no other value configured it.
-<14> Set this attribute to a value greater than '0' if you want to flush the persistence context immediately after persist, merge or delete operations and do not want to rely on the the `flushMode` of the `EntityManager`.
+<14> Set this attribute to a value greater than '0' if you want to flush the persistence context immediately after persist, merge or delete operations and do not want to rely on the `flushMode` of the `EntityManager`.
 The default value is set to `0`, which means "'no flush'".
 This attribute is geared towards messages with `Iterable` payloads.
 For instance, if `flush-size` is set to `3`, then `entityManager.flush()` is called after every third entity.

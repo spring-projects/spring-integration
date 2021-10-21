@@ -96,7 +96,7 @@ The following example shows the configuration of two pollers:
 ----
 ====
 
-In the the first configuration, the polling task is invoked once per poll, and, during each task (poll), the method (which results in the production of the message) is invoked once, based on the `max-messages-per-poll` attribute value.
+In the first configuration, the polling task is invoked once per poll, and, during each task (poll), the method (which results in the production of the message) is invoked once, based on the `max-messages-per-poll` attribute value.
 In the second configuration, the polling task is invoked 10 times per poll or until it returns 'null', thus possibly producing ten messages per poll while each poll happens at one-second intervals.
 However, what happens if the configuration looks like the following example:
 

@@ -392,7 +392,7 @@ Spring Integration ships with some sample scripts that can be used to initialize
 In the `spring-integration-jdbc` JAR file, you can find scripts in the `org.springframework.integration.jdbc` package.
 It provides an example create and an example drop script for a range of common database platforms.
 A common way to use these scripts is to reference them in a https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource[Spring JDBC data source initializer].
-Note that the scripts are provided as samples and as specifications of the the required table and column names.
+Note that the scripts are provided as samples and as specifications of the required table and column names.
 You may find that you need to enhance them for production use (for, example, by adding index declarations).
 
 [[jdbc-message-store-generic]]

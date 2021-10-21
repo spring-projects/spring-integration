@@ -7,7 +7,7 @@ Samples now have a dedicated GitHub repository.
 Sample development also has its own lifecycle, which is not dependent on the lifecycle of the framework releases, although the repository is still tagged with each major release for compatibility reasons.
 
 The great benefit to the community is that we can now add more samples and make them available to you right away without waiting for the next release.
-Having its own GitHub repository that is not tied to the the actual framework is also a great benefit.
+Having its own GitHub repository that is not tied to the actual framework is also a great benefit.
 You now have a dedicated place to suggest samples as well as report issues with existing samples.
 You can also submit a sample to us as a Pull Request.
 If we believe your sample adds value, we would be more then glad to add it to the 'samples' repository, properly crediting you as the author.
@@ -70,7 +70,7 @@ The Project Lead is Artem Bilan.
 
 ==== Code Contribution Process
 
-For the actual code contribution process, read the the Contributor Guidelines for Spring Integration.
+For the actual code contribution process, read the Contributor Guidelines for Spring Integration.
 They apply for the samples project as well.
 You can find them at https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.md
 

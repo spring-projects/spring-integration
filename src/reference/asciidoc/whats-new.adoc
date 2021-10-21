@@ -92,6 +92,8 @@ For this reason, the property is `false` by default; this may change in a future
 
 The `FileInboundChannelAdapterSpec` has now a convenient `recursive(boolean)` option instead of requiring an explicit reference to the `RecursiveDirectoryScanner`.
 
+The `remoteDirectoryExpression` can now be used in the `mv` command for convenience.
+
 [[x5.5-mongodb]]
 ==== MongoDb Changes
 
@@ -113,3 +115,10 @@ See <<./web-sockets.adoc#web-sockets,WebSockets Support>> for more information.
 The `JpaOutboundGateway` now supports an `Iterable` message payload for a `PersistMode.DELETE`.
 
 See <<./jpa.adoc#jpa-outbound-channel-adapter,Outbound Channel Adapter>> for more information.
+
+[[x55-gw]]
+==== Gateway Changes
+
+Previously, when using XML configuration, `@Gateway.payloadExpression` was ignored for no-argument methods.
+There is one possible breaking change - if the method is annotated with `@Payload` as well as `@Gateway` (with a different expression) previously, the `@Payload` would be applied, now the `@Gateway.payloadExpression` is applied.
+See <<./gateway.adoc#gateway-configuration-annotations,Gateway Configuration with Annotations and XML>> and <<./gateway.adoc#gateway-calling-no-argument-methods,Invoking No-Argument Methods>> for more information.
