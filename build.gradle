@@ -529,8 +529,6 @@ project('spring-integration-graphql') {
 	dependencies {
 		api project(':spring-integration-core')
 		api "org.springframework.graphql:spring-graphql:$springGraphqlVersion"
-
-		testImplementation "org.springframework.graphql:spring-graphql-test:$springGraphqlVersion"
 	}
 }
 

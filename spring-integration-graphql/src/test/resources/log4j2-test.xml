@@ -6,7 +6,6 @@
 		</Console>
 	</Appenders>
 	<Loggers>
-		<Logger name="test" level="debug"/>
 		<Logger name="org.springframework" level="warn"/>
 		<Logger name="org.springframework.graphql" level="warn"/>
 		<Logger name="org.springframework.integration.graphql" level="warn"/>

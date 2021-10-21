@@ -20,20 +20,24 @@ import org.springframework.graphql.GraphQlService;
 import org.springframework.graphql.RequestInput;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 import graphql.ExecutionResult;
 import reactor.core.publisher.Mono;
 
 /**
- * A <code>MessageHandler</code> capable of fielding GraphQL Query, Mutation and Subscription requests.
+ * A {@link org.springframework.messaging.MessageHandler} capable of fielding GraphQL Query, Mutation and Subscription requests.
  *
  * @author Daniel Frey
+ * @since 6.0
  */
 public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler {
 
 	private final GraphQlService graphQlService;
 
 	public GraphQlMessageHandler(final GraphQlService graphQlService) {
+		Assert.notNull(graphQlService, "'graphQlService' must not be null");
+
 		this.graphQlService = graphQlService;
 		setAsync(true);
 	}

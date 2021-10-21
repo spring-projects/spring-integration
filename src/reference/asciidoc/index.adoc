@@ -30,6 +30,7 @@ This documentation is also available as single searchable link:index-single.html
 <<./file.adoc#files,File Support>> ::
 <<./ftp.adoc#ftp,FTP/FTPS Adapters>> ::
 <<./gemfire.adoc#gemfire,Pivotal GemFire and Apache Geode Support>> ::
+<<./graphql.adoc#graphql,GraphQL Support>> ::
 <<./http.adoc#http,HTTP Support>> ::
 <<./jdbc.adoc#jdbc,JDBC Support>> ::
 <<./jpa.adoc#jpa,JPA Support>> ::
