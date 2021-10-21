@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class SftpTests extends SftpTestSupport {
 								.regexFilter(".*\\.txt$")
 								.localFilenameExpression("#this.toUpperCase() + '.a'")
 								.localDirectory(getTargetLocalDirectory())
-						.remoteComparator(Comparator.naturalOrder()),
+								.remoteComparator(Comparator.naturalOrder()),
 						e -> e.id("sftpInboundAdapter").poller(Pollers.fixedDelay(100)))
 				.channel(out)
 				.get();
@@ -105,10 +105,10 @@ public class SftpTests extends SftpTestSupport {
 	public void testSftpInboundStreamFlow() throws Exception {
 		QueueChannel out = new QueueChannel();
 		StandardIntegrationFlow flow = IntegrationFlows.from(
-				Sftp.inboundStreamingAdapter(new SftpRemoteFileTemplate(sessionFactory()))
-						.remoteDirectory("sftpSource")
-						.regexFilter(".*\\.txt$"),
-				e -> e.id("sftpInboundAdapter").poller(Pollers.fixedDelay(100)))
+						Sftp.inboundStreamingAdapter(new SftpRemoteFileTemplate(sessionFactory()))
+								.remoteDirectory("sftpSource")
+								.regexFilter(".*\\.txt$"),
+						e -> e.id("sftpInboundAdapter").poller(Pollers.fixedDelay(100)))
 				.channel(out)
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
@@ -230,7 +230,7 @@ public class SftpTests extends SftpTestSupport {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = f -> f
 				.handle(Sftp.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET,
-						"payload")
+								"payload")
 						.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
 						.regexFileNameFilter("(subSftpSource|.*1.txt)")
 						.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
@@ -268,6 +268,31 @@ public class SftpTests extends SftpTestSupport {
 		assertThat(payload).isInstanceOf(ChannelSftp.LsEntry[].class);
 
 		assertThat(((ChannelSftp.LsEntry[]) payload).length > 0).isTrue();
+
+		registration.destroy();
+	}
+
+
+	@Test
+	public void testSftpMv() {
+		QueueChannel out = new QueueChannel();
+		IntegrationFlow flow = f -> f
+				.handle(Sftp.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MV, "payload")
+						.renameExpression("payload.concat('.done')")
+						.remoteDirectoryExpression("'sftpSource'"))
+				.channel(out);
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		registration.getInputChannel().send(new GenericMessage<>("sftpSource2.txt"));
+		Message<?> receive = out.receive(10_000);
+		assertThat(receive)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo(Boolean.TRUE);
+
+		assertThat(receive.getHeaders())
+				.containsEntry(FileHeaders.REMOTE_FILE, "sftpSource2.txt")
+				.containsEntry(FileHeaders.REMOTE_DIRECTORY, "sftpSource")
+				.containsEntry(FileHeaders.RENAME_TO, "sftpSource/sftpSource2.txt.done");
 
 		registration.destroy();
 	}
