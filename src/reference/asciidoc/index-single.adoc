@@ -41,6 +41,8 @@ include::./ftp.adoc[]
 
 include::./gemfire.adoc[]
 
+include::./graphql.adoc[]
+
 include::./http.adoc[]
 
 include::./jdbc.adoc[]
