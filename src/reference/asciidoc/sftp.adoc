@@ -1215,8 +1215,8 @@ The the `file_remoteDirectory` header holds the original remote directory, and t
 The `file_renameTo` header holds the new path.
 
 Starting with version 5.5.6, the `remoteDirectoryExpression` can be used in the `mv` command for convenience.
-If "`from`" file is not a full file path, the result of `remoteDirectoryExpression` is used as the remote directory.
-Same applies for "`to`" file, for example if the task is just to rename a remote file in some directory.
+If the "`from`" file is not a full file path, the result of `remoteDirectoryExpression` is used as the remote directory.
+The same applies for the "`to`" file, for example, if the task is just to rename a remote file in some directory.
 
 ==== Additional Command Information
 
