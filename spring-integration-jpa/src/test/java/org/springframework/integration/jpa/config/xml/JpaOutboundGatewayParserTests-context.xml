@@ -3,11 +3,9 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:int-jpa="http://www.springframework.org/schema/integration/jpa"
-	   xmlns:tx="http://www.springframework.org/schema/tx"
 	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/jpa https://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd
-		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+		http://www.springframework.org/schema/integration/jpa https://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd">
 
 	<import resource="classpath:/hibernateJpa-context.xml" />
 
