@@ -121,7 +121,7 @@ public class GraphQlMessageHandlerTests {
 		this.graphQlMessageHandler.setQuery(fakeQuery);
 
 		StepVerifier.create(
-				Mono.from((Mono<ExecutionResult>)this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
+				Mono.from((Mono<ExecutionResult>) this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
 		)
 				.consumeNextWith(result -> {
 					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
@@ -142,7 +142,7 @@ public class GraphQlMessageHandlerTests {
 		this.graphQlMessageHandler.setOperationName("FriendlyName");
 
 		StepVerifier.create(
-						Mono.from((Mono<ExecutionResult>)this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
+						Mono.from((Mono<ExecutionResult>) this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
 				)
 				.consumeNextWith(result -> {
 					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
@@ -164,7 +164,7 @@ public class GraphQlMessageHandlerTests {
 		this.graphQlMessageHandler.setVariables(Map.of("$id", "test-data"));
 
 		StepVerifier.create(
-						Mono.from((Mono<ExecutionResult>)this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
+						Mono.from((Mono<ExecutionResult>) this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
 				)
 				.consumeNextWith(result -> {
 					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
