@@ -1,5 +1,6 @@
 type Query {
     testQuery: QueryResult
+    testQueryById(id: String): QueryResult
 }
 
 type Mutation {
