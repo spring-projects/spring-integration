@@ -313,10 +313,6 @@ public class GraphQlMessageHandlerTests {
 
 	}
 
-	private static <T> T waitFor(Mono<T> mono) {
-		return mono.block(Duration.ofSeconds(10));
-	}
-
 	@Controller
 	static class GraphQlController {
 
