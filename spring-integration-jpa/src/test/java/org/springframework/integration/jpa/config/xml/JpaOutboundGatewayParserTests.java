@@ -17,14 +17,15 @@
 package org.springframework.integration.jpa.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 
-import org.junit.After;
-import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
@@ -42,8 +43,9 @@ import org.springframework.integration.jpa.support.PersistMode;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 
 /**
@@ -55,15 +57,18 @@ import org.springframework.messaging.support.GenericMessage;
  * @since 2.2
  *
  */
+@SpringJUnitConfig
+@DirtiesContext
 public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice {
 
+	@Autowired
 	private ConfigurableApplicationContext context;
 
 	private EventDrivenConsumer consumer;
 
 	@Test
 	public void testRetrievingJpaOutboundGatewayParser() {
-		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGateway");
+		setUp("retrievingJpaOutboundGateway");
 		final AbstractMessageChannel inputChannel =
 				TestUtils.getPropertyValue(this.consumer, "inputChannel", AbstractMessageChannel.class);
 		assertThat(inputChannel.getComponentName()).isEqualTo("in");
@@ -95,7 +100,7 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 
 	@Test
 	public void testRetrievingJpaOutboundGatewayParserWithFirstResult() {
-		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGatewayWithFirstResult");
+		setUp("retrievingJpaOutboundGatewayWithFirstResult");
 		final JpaOutboundGateway jpaOutboundGateway =
 				TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
 		Expression firstResultExpression =
@@ -107,8 +112,7 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 
 	@Test
 	public void testRetrievingJpaOutboundGatewayParserWithFirstResultExpression() {
-		setUp("JpaOutboundGatewayParserTests.xml", getClass(),
-				"retrievingJpaOutboundGatewayWithFirstResultExpression");
+		setUp("retrievingJpaOutboundGatewayWithFirstResultExpression");
 		final JpaOutboundGateway jpaOutboundGateway =
 				TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
 		Expression firstResultExpression =
@@ -121,7 +125,7 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 
 	@Test
 	public void testRetrievingJpaOutboundGatewayParserWithMaxResultExpression() {
-		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGatewayWithMaxResultExpression");
+		setUp("retrievingJpaOutboundGatewayWithMaxResultExpression");
 		final JpaOutboundGateway jpaOutboundGateway =
 				TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
 		Expression maxNumberOfResultExpression =
@@ -134,10 +138,9 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 
 	@Test
 	public void testUpdatingJpaOutboundGatewayParser() {
-		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "updatingJpaOutboundGateway");
+		setUp("updatingJpaOutboundGateway");
 
-
-		final AbstractMessageChannel inputChannel =
+		AbstractMessageChannel inputChannel =
 				TestUtils.getPropertyValue(this.consumer, "inputChannel", AbstractMessageChannel.class);
 
 		assertThat(inputChannel.getComponentName()).isEqualTo("in");
@@ -165,12 +168,11 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 
 		assertThat(entityClass.getName()).isEqualTo("org.springframework.integration.jpa.test.entity.StudentDomain");
 
-		final JpaOperations jpaOperations =
-				TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+		JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
 
 		assertThat(jpaOperations).isNotNull();
 
-		final Boolean usePayloadAsParameterSource =
+		Boolean usePayloadAsParameterSource =
 				TestUtils.getPropertyValue(jpaExecutor, "usePayloadAsParameterSource", Boolean.class);
 
 		assertThat(usePayloadAsParameterSource).isTrue();
@@ -189,57 +191,35 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 
 	@Test
 	public void advised() {
-		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "advised");
-
+		setUp("advised");
 		EventDrivenConsumer jpaOutboundGatewayEndpoint = context.getBean("advised", EventDrivenConsumer.class);
 		MessageHandler jpaOutboundGateway =
 				TestUtils.getPropertyValue(jpaOutboundGatewayEndpoint, "handler", MessageHandler.class);
 		FooAdvice advice = context.getBean("jpaFooAdvice", FooAdvice.class);
-//		assertThat(AopUtils.isAopProxy(jpaOutboundGateway)).isTrue();
+		assertThat(AopUtils.isAopProxy(jpaOutboundGateway)).isTrue();
 
-		try {
-			jpaOutboundGateway.handleMessage(new GenericMessage<>("foo"));
-			fail("expected ReplyRequiredException");
-		}
-		catch (MessagingException e) {
-			assertThat(e instanceof ReplyRequiredException).isTrue();
-		}
+		assertThatExceptionOfType(ReplyRequiredException.class)
+				.isThrownBy(() -> jpaOutboundGateway.handleMessage(new GenericMessage<>("foo")));
 
-		/*Mockito.verify(advice)
-				.doInvoke(Mockito.any(ExecutionCallback.class), Mockito.any(Object.class), Mockito.any(Message.class));*/
+		verify(advice).doInvoke(any(ExecutionCallback.class), any(Object.class), any(Message.class));
 	}
 
 	@Test
 	public void testJpaExecutorBeanIdNaming() {
-		this.context = new ClassPathXmlApplicationContext("JpaOutboundGatewayParserTests.xml", getClass());
-
 		assertThat(context.getBean("retrievingJpaOutboundGateway.jpaExecutor", JpaExecutor.class)).isNotNull();
 		assertThat(context.getBean("updatingJpaOutboundGateway.jpaExecutor", JpaExecutor.class)).isNotNull();
 	}
 
 	@Test
 	public void withBothFirstResultAndFirstResultExpressionPresent() {
-		try {
-			this.context = new ClassPathXmlApplicationContext("JpaInvalidOutboundGatewayParserTests.xml", getClass());
-		}
-		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getMessage()).startsWith("Configuration problem: Only one of 'first-result' " +
-					"or 'first-result-expression' is allowed");
-			return;
-		}
-		fail("BeanDefinitionStoreException expected.");
-
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("JpaInvalidOutboundGatewayParserTests.xml", getClass()))
+				.withMessageStartingWith(
+						"Configuration problem: Only one of 'first-result' or 'first-result-expression' is allowed");
 	}
 
-	@After
-	public void tearDown() {
-		if (context != null) {
-			context.close();
-		}
-	}
-
-	public void setUp(String name, Class<?> cls, String gatewayId) {
-		context = new ClassPathXmlApplicationContext(name, cls);
+	private void setUp(String gatewayId) {
 		consumer = this.context.getBean(gatewayId, EventDrivenConsumer.class);
 	}
 
