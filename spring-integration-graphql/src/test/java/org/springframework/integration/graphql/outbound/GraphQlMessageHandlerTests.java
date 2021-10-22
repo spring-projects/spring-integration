@@ -68,7 +68,7 @@ import reactor.test.StepVerifier;
  * @since 6.0
  */
 @SpringJUnitConfig
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class GraphQlMessageHandlerTests {
 
 	@Autowired
@@ -79,6 +79,9 @@ public class GraphQlMessageHandlerTests {
 
 	@Autowired
 	private PollableChannel errorChannel;
+
+	@Autowired
+	private GraphQlMessageHandler graphQlMessageHandler;
 
 	@Autowired
 	private UpdateRepository updateRepository;
@@ -97,8 +100,7 @@ public class GraphQlMessageHandlerTests {
 					Map<String, Object> data = result.getData();
 					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
 					assertThat(testQuery.get("id")).isEqualTo("test-data");
-				}
-				)
+				})
 				.thenCancel()
 				.verifyLater();
 
@@ -109,6 +111,69 @@ public class GraphQlMessageHandlerTests {
 		);
 
 		verifier.verify(Duration.ofSeconds(10));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void testHandleMessageForQueryWithQueryProvided() {
+
+		String fakeQuery = "{ testQuery { id } }";
+		this.graphQlMessageHandler.setQuery(fakeQuery);
+
+		StepVerifier.create(
+				Mono.from((Mono<ExecutionResult>)this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
+		)
+				.consumeNextWith(result -> {
+					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
+					Map<String, Object> data = result.getData();
+					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
+					assertThat(testQuery.get("id")).isEqualTo("test-data");
+				})
+				.expectComplete()
+				.verify();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void testHandleMessageForQueryWithQueryAndOperationProvided() {
+
+		String fakeQuery = "query FriendlyName { testQuery { id } }";
+		this.graphQlMessageHandler.setQuery(fakeQuery);
+		this.graphQlMessageHandler.setOperationName("FriendlyName");
+
+		StepVerifier.create(
+						Mono.from((Mono<ExecutionResult>)this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
+				)
+				.consumeNextWith(result -> {
+					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
+					Map<String, Object> data = result.getData();
+					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
+					assertThat(testQuery.get("id")).isEqualTo("test-data");
+				})
+				.expectComplete()
+				.verify();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void testHandleMessageForQueryWithQueryAndOperationNameAndVariablesProvided() {
+
+		String fakeQuery = "query FriendlyName($id: String) { testQueryById(id: $id) { id } }";
+		this.graphQlMessageHandler.setQuery(fakeQuery);
+		this.graphQlMessageHandler.setOperationName("FriendlyName");
+		this.graphQlMessageHandler.setVariables(Map.of("$id", "test-data"));
+
+		StepVerifier.create(
+						Mono.from((Mono<ExecutionResult>)this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
+				)
+				.consumeNextWith(result -> {
+					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
+					Map<String, Object> data = result.getData();
+					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQueryById");
+					assertThat(testQuery.get("id")).isEqualTo("test-data");
+				})
+				.expectComplete()
+				.verify();
 	}
 
 	@Test
@@ -191,7 +256,7 @@ public class GraphQlMessageHandlerTests {
 
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload("{ testQuery { id } }")
+						.withPayload(new Object())
 						.build()
 		);
 
@@ -202,7 +267,7 @@ public class GraphQlMessageHandlerTests {
 				.isInstanceOf(MessageHandlingException.class)
 				.satisfies((ex) -> assertThat((Exception) ex)
 						.hasMessageContaining(
-								"Message payload needs to be 'org.springframework.graphql.RequestInput'"));
+								"Message payload does not meet criteria to construct a 'org.springframework.graphql.RequestInput'"));
 
 	}
 
@@ -213,7 +278,7 @@ public class GraphQlMessageHandlerTests {
 
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload("mutation { update(id: \"" + fakeId + "\") { id } }")
+						.withPayload(new Object())
 						.build()
 		);
 
@@ -224,7 +289,7 @@ public class GraphQlMessageHandlerTests {
 				.isInstanceOf(MessageHandlingException.class)
 				.satisfies((ex) -> assertThat((Exception) ex)
 						.hasMessageContaining(
-								"Message payload needs to be 'org.springframework.graphql.RequestInput'"));
+								"Message payload does not meet criteria to construct a 'org.springframework.graphql.RequestInput'"));
 
 	}
 
@@ -233,7 +298,7 @@ public class GraphQlMessageHandlerTests {
 
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload("subscription { results { id } }")
+						.withPayload(new Object())
 						.build()
 		);
 
@@ -244,8 +309,12 @@ public class GraphQlMessageHandlerTests {
 				.isInstanceOf(MessageHandlingException.class)
 				.satisfies((ex) -> assertThat((Exception) ex)
 						.hasMessageContaining(
-								"Message payload needs to be 'org.springframework.graphql.RequestInput'"));
+								"Message payload does not meet criteria to construct a 'org.springframework.graphql.RequestInput'"));
 
+	}
+
+	private static <T> T waitFor(Mono<T> mono) {
+		return mono.block(Duration.ofSeconds(10));
 	}
 
 	@Controller
@@ -259,6 +328,11 @@ public class GraphQlMessageHandlerTests {
 
 		@QueryMapping
 		public Mono<QueryResult> testQuery() {
+			return Mono.just(new QueryResult("test-data"));
+		}
+
+		@QueryMapping
+		public Mono<QueryResult> testQueryById(@Argument String id) {
 			return Mono.just(new QueryResult("test-data"));
 		}
 
