@@ -80,14 +80,14 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	 * @param operationName the GraphQL Operation Name to use.
 	 */
 	public void setOperationName(String operationName) {
-		setOperationNameTypeExpression(new LiteralExpression(operationName));
+		setOperationNameExpression(new LiteralExpression(operationName));
 	}
 
 	/**
 	 * Set a SpEL expression to evaluate a GraphQL Operation Name to execute.
 	 * @param operationNameExpression the expression to use.
 	 */
-	public void setOperationNameTypeExpression(Expression operationNameExpression) {
+	public void setOperationNameExpression(Expression operationNameExpression) {
 		Assert.notNull(operationNameExpression, "'operationNameExpression' must not be null");
 		this.operationNameExpression = operationNameExpression;
 	}
@@ -129,20 +129,18 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 		}
 	}
 
-	String evaluateQueryExpression(Message<?> message) {
+	private String evaluateQueryExpression(Message<?> message) {
 		String query = this.queryExpression.getValue(this.evaluationContext, message, String.class);
 		Assert.notNull(query, "'queryExpression' must not evaluate to null");
 		return query;
 	}
 
-	String evaluateOperationNameExpression(Message<?> message) {
-		Assert.notNull(this.operationNameExpression, "'operationNameExpression' must not be null when 'query' mode is used");
+	private String evaluateOperationNameExpression(Message<?> message) {
 		return this.operationNameExpression.getValue(this.evaluationContext, message, String.class);
 	}
 
 	@SuppressWarnings("unchecked")
-	Map<String, Object> evaluateVariablesExpression(Message<?> message) {
-		Assert.notNull(this.variablesExpression, "'variablesExpression' must not be null when 'query' mode is used");
+	private Map<String, Object> evaluateVariablesExpression(Message<?> message) {
 		return this.variablesExpression.getValue(this.evaluationContext, message, Map.class);
 	}
 
