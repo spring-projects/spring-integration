@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -65,7 +67,8 @@ import org.springframework.messaging.MessageChannel;
  * @see org.springframework.integration.dsl.context.IntegrationFlowContext
  * @see SmartLifecycle
  */
-public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle {
+public class StandardIntegrationFlow
+		implements IntegrationFlow, SmartLifecycle, BeanNameAware, NamedComponent {
 
 	private final Map<Object, String> integrationComponents;
 
@@ -73,8 +76,25 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	private boolean running;
 
+	private String beanName;
+
 	StandardIntegrationFlow(Map<Object, String> integrationComponents) {
 		this.integrationComponents = new LinkedHashMap<>(integrationComponents);
+	}
+
+	@Override
+	public void setBeanName(String name) {
+		this.beanName = name;
+	}
+
+	@Override
+	public String getComponentName() {
+		return this.beanName;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "integration-flow";
 	}
 
 	@Override

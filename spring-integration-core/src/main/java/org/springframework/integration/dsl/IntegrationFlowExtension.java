@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.dsl;
 
 import java.util.Map;
 
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.channel.DirectChannel;
 
 /**
@@ -78,8 +77,7 @@ public abstract class IntegrationFlowExtension<B extends IntegrationFlowExtensio
 				this.inputChannel);
 	}
 
-	private static class StandardIntegrationFlowExtension extends StandardIntegrationFlow
-			implements BeanNameAware {
+	private static class StandardIntegrationFlowExtension extends StandardIntegrationFlow {
 
 		private final DirectChannel inputChannel;
 
@@ -90,6 +88,7 @@ public abstract class IntegrationFlowExtension<B extends IntegrationFlowExtensio
 
 		@Override
 		public void setBeanName(String name) {
+			super.setBeanName(name);
 			this.inputChannel.setBeanName(name + ".input");
 		}
 
