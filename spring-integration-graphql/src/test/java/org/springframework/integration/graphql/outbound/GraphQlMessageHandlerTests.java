@@ -45,7 +45,6 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
-import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
@@ -89,7 +88,7 @@ public class GraphQlMessageHandlerTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	void testHandleMessageForQuery() {
+	void testHandleMessageForQueryWithRequestInputProvided() {
 
 		StepVerifier verifier = StepVerifier.create(
 				Flux.from(this.resultChannel)
@@ -136,50 +135,7 @@ public class GraphQlMessageHandlerTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	void testHandleMessageForQueryWithQueryAndOperationProvided() {
-
-		String fakeQuery = "query FriendlyName { testQuery { id } }";
-		this.graphQlMessageHandler.setQuery(fakeQuery);
-		this.graphQlMessageHandler.setOperationName("FriendlyName");
-
-		StepVerifier.create(
-						Mono.from((Mono<ExecutionResult>) this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
-				)
-				.consumeNextWith(result -> {
-					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
-					Map<String, Object> data = result.getData();
-					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
-					assertThat(testQuery.get("id")).isEqualTo("test-data");
-				})
-				.expectComplete()
-				.verify();
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	void testHandleMessageForQueryWithQueryAndOperationNameAndVariablesProvided() {
-
-		String fakeQuery = "query FriendlyName($id: String) { testQueryById(id: $id) { id } }";
-		this.graphQlMessageHandler.setQuery(fakeQuery);
-		this.graphQlMessageHandler.setOperationName("FriendlyName");
-		this.graphQlMessageHandler.setVariablesExpression(new FunctionExpression<>(m -> Map.of("$id", "test-data")));
-
-		StepVerifier.create(
-						Mono.from((Mono<ExecutionResult>) this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
-				)
-				.consumeNextWith(result -> {
-					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
-					Map<String, Object> data = result.getData();
-					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQueryById");
-					assertThat(testQuery.get("id")).isEqualTo("test-data");
-				})
-				.expectComplete()
-				.verify();
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	void testHandleMessageForMutation() {
+	void testHandleMessageForMutationWithRequestInputProvided() {
 
 		String fakeId = UUID.randomUUID().toString();
 		Update expected = new Update(fakeId);
@@ -218,7 +174,7 @@ public class GraphQlMessageHandlerTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	void testHandleMessageForSubscription() {
+	void testHandleMessageForSubscriptionWithRequestInputProvided() {
 
 		StepVerifier verifier = StepVerifier.create(
 						Flux.from(this.resultChannel)
