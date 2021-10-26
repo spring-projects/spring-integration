@@ -19,6 +19,7 @@ package org.springframework.integration.graphql.outbound;
 import java.util.Collections;
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -29,8 +30,6 @@ import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-
-import graphql.com.google.common.base.Strings;
 
 /**
  * A {@link org.springframework.messaging.MessageHandler} capable of fielding GraphQL Query, Mutation and Subscription requests.
@@ -53,7 +52,6 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	public GraphQlMessageHandler(final GraphQlService graphQlService) {
 		Assert.notNull(graphQlService, "'graphQlService' must not be null");
 
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		this.graphQlService = graphQlService;
 		setAsync(true);
 	}
@@ -93,20 +91,18 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	}
 
 	/**
-	 * Specify variables for the GraphQL Query to execute.
-	 * @param variables the GraphQL variables to use.
-	 */
-	public void setVariables(Map<String, Object> variables) {
-		setVariablesExpression(new SupplierExpression<>(() -> variables));
-	}
-
-	/**
 	 * Set a SpEL expression to evaluate Variables for GraphQL Query to execute.
 	 * @param variablesExpression the expression to use.
 	 */
 	public void setVariablesExpression(Expression variablesExpression) {
 		Assert.notNull(variablesExpression, "'variablesExpression' must not be null");
 		this.variablesExpression = variablesExpression;
+	}
+
+	@Override
+	protected final void doInit() {
+		BeanFactory beanFactory = getBeanFactory();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 	}
 
 	@Override
@@ -117,15 +113,13 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 			return this.graphQlService
 					.execute((RequestInput) requestMessage.getPayload());
 		}
-		else if (requestMessage.getPayload() instanceof String && !Strings.isNullOrEmpty((String) requestMessage.getPayload())) {
+		else  {
+			Assert.notNull(this.queryExpression, "'queryExpression' must not be null");
 			String query = evaluateQueryExpression(requestMessage);
 			String operationName = evaluateOperationNameExpression(requestMessage);
 			Map<String, Object> variables = evaluateVariablesExpression(requestMessage);
 			return this.graphQlService
 					.execute(new RequestInput(query, operationName, variables));
-		}
-		else {
-			throw new IllegalArgumentException("Message payload does not meet criteria to construct a 'org.springframework.graphql.RequestInput'");
 		}
 	}
 
