@@ -45,6 +45,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
@@ -161,7 +162,7 @@ public class GraphQlMessageHandlerTests {
 		String fakeQuery = "query FriendlyName($id: String) { testQueryById(id: $id) { id } }";
 		this.graphQlMessageHandler.setQuery(fakeQuery);
 		this.graphQlMessageHandler.setOperationName("FriendlyName");
-		this.graphQlMessageHandler.setVariables(Map.of("$id", "test-data"));
+		this.graphQlMessageHandler.setVariablesExpression(new FunctionExpression<>(m -> Map.of("$id", "test-data")));
 
 		StepVerifier.create(
 						Mono.from((Mono<ExecutionResult>) this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
@@ -267,14 +268,12 @@ public class GraphQlMessageHandlerTests {
 				.isInstanceOf(MessageHandlingException.class)
 				.satisfies((ex) -> assertThat((Exception) ex)
 						.hasMessageContaining(
-								"Message payload does not meet criteria to construct a 'org.springframework.graphql.RequestInput'"));
+								"'queryExpression' must not be null"));
 
 	}
 
 	@Test
 	void testHandleMessageForMutationWithInvalidPayload() {
-
-		String fakeId = UUID.randomUUID().toString();
 
 		this.inputChannel.send(
 				MessageBuilder
@@ -289,7 +288,7 @@ public class GraphQlMessageHandlerTests {
 				.isInstanceOf(MessageHandlingException.class)
 				.satisfies((ex) -> assertThat((Exception) ex)
 						.hasMessageContaining(
-								"Message payload does not meet criteria to construct a 'org.springframework.graphql.RequestInput'"));
+								"'queryExpression' must not be null"));
 
 	}
 
@@ -309,7 +308,7 @@ public class GraphQlMessageHandlerTests {
 				.isInstanceOf(MessageHandlingException.class)
 				.satisfies((ex) -> assertThat((Exception) ex)
 						.hasMessageContaining(
-								"Message payload does not meet criteria to construct a 'org.springframework.graphql.RequestInput'"));
+								"'queryExpression' must not be null"));
 
 	}
 
