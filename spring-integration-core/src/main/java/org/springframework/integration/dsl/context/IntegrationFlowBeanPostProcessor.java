@@ -396,26 +396,24 @@ public class IntegrationFlowBeanPostProcessor
 	private boolean noBeanPresentForComponent(Object instance, String parentBeanName) {
 		if (instance instanceof NamedComponent) {
 			String beanName = ((NamedComponent) instance).getBeanName();
-			if (beanName != null) {
-				if (this.beanFactory.containsBean(beanName)) {
-					BeanDefinition existingBeanDefinition =
-							IntegrationContextUtils.getBeanDefinition(beanName, this.beanFactory);
-					if (!ConfigurableBeanFactory.SCOPE_PROTOTYPE.equals(existingBeanDefinition.getScope())
-							&& !instance.equals(this.beanFactory.getBean(beanName))) {
+			if (beanName == null || !this.beanFactory.containsBean(beanName)) {
+				return true;
+			}
+			else {
+				BeanDefinition existingBeanDefinition =
+						IntegrationContextUtils.getBeanDefinition(beanName, this.beanFactory);
+				if (!ConfigurableBeanFactory.SCOPE_PROTOTYPE.equals(existingBeanDefinition.getScope())
+						&& !instance.equals(this.beanFactory.getBean(beanName))) {
 
-						AbstractBeanDefinition beanDefinition =
-								BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) instance.getClass(),
-												() -> instance)
-										.getBeanDefinition();
-						beanDefinition.setResourceDescription("the '" + parentBeanName + "' bean definition");
-						throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingBeanDefinition);
-					}
-					else {
-						return false;
-					}
+					AbstractBeanDefinition beanDefinition =
+							BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) instance.getClass(),
+											() -> instance)
+									.getBeanDefinition();
+					beanDefinition.setResourceDescription("the '" + parentBeanName + "' bean definition");
+					throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingBeanDefinition);
 				}
 				else {
-					return true;
+					return false;
 				}
 			}
 		}
