@@ -61,6 +61,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	 * @param query the GraphQL query to use.
 	 */
 	public void setQuery(String query) {
+		Assert.hasText(query, "'query' must not be empty");
 		setQueryExpression(new LiteralExpression(query));
 	}
 
@@ -107,20 +108,23 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
+		RequestInput requestInput = null;
 
 		if (requestMessage.getPayload() instanceof RequestInput) {
 
-			return this.graphQlService
-					.execute((RequestInput) requestMessage.getPayload());
+			requestInput = (RequestInput) requestMessage.getPayload();
 		}
 		else  {
 			Assert.notNull(this.queryExpression, "'queryExpression' must not be null");
 			String query = evaluateQueryExpression(requestMessage);
 			String operationName = evaluateOperationNameExpression(requestMessage);
 			Map<String, Object> variables = evaluateVariablesExpression(requestMessage);
-			return this.graphQlService
-					.execute(new RequestInput(query, operationName, variables));
+			requestInput = new RequestInput(query, operationName, variables);
 		}
+
+		return this.graphQlService
+				.execute(requestInput);
+
 	}
 
 	private String evaluateQueryExpression(Message<?> message) {
