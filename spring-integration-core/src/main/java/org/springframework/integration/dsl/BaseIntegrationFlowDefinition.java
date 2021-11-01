@@ -2934,8 +2934,21 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param <T> the expected {@code payload} type
 	 * @return the Reactive Streams {@link Publisher}
 	 */
-	@SuppressWarnings(UNCHECKED)
 	protected <T> Publisher<Message<T>> toReactivePublisher() {
+		return toReactivePublisher(false);
+	}
+
+	/**
+	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.
+	 * @param autoStartOnSubscribe start a production and consumption in the flow,
+	 * when subscription to the publisher is initiated.
+	 * If this set to true, the flow is marked to not start automatically by the application context.
+	 * @param <T> the expected {@code payload} type
+	 * @return the Reactive Streams {@link Publisher}
+	 * @since 5.5.6
+	 */
+	@SuppressWarnings(UNCHECKED)
+	protected <T> Publisher<Message<T>> toReactivePublisher(boolean autoStartOnSubscribe) {
 		MessageChannel channelForPublisher = getCurrentMessageChannel();
 		Publisher<Message<T>> publisher;
 		Map<Object, String> components = getIntegrationComponents();
@@ -2959,7 +2972,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 		get();
 
-		return new PublisherIntegrationFlow<>(components, publisher);
+		return new PublisherIntegrationFlow<>(components, publisher, autoStartOnSubscribe);
 	}
 
 	protected <S extends ConsumerEndpointSpec<? super S, ? extends MessageHandler>> B register(S endpointSpec,

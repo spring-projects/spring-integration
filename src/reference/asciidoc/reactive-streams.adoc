@@ -125,7 +125,14 @@ See <<./splitter.adoc#split-stream-and-flux,Stream and Flux Splitting>> and <<./
 An `IntegrationFlow` in Java DSL can start from any `Publisher` instance (see `IntegrationFlows.from(Publisher<Message<T>>)`).
 Also, with an `IntegrationFlowBuilder.toReactivePublisher()` operator, the `IntegrationFlow` can be turned into a reactive hot source.
 A `FluxMessageChannel` is used internally in both cases; it can subscribe to an inbound `Publisher` according to its `ReactiveStreamsSubscribableChannel` contract and it is a `Publisher<Message<?>>` by itself for downstream subscribers.
-With a dynamic `IntegrationFlow` registration we can implement a powerful logic combining Reactive Streams with this integration flow bringing to/from `Publisher`.
+With a dynamic `IntegrationFlow` registration we can implement a powerful logic combining Reactive Streams with this integration flow bridging to/from `Publisher`.
+
+Starting with version 5.5.6, a `toReactivePublisher(boolean autoStartOnSubscribe)` operator variant is present to control a lifecycle of the whole `IntegrationFlow` behind the returned `Publisher<Message<?>>`.
+Typically, the subscription and consumption from the reactive publisher happens in the later runtime phase, not during reactive stream composition, or even `ApplicationContext` startup.
+To avoid boilerplate code for lifecycle management of the `IntegrationFlow` at the `Publisher<Message<?>>` subscription point and for better end-user experience, this new operator with the `autoStartOnSubscribe` flag has been introduced.
+It marks (if `true`) the `IntegrationFlow` and its components for `autoStartup = false`, so an `ApplicationContext` won't initiate production and consumption of messages in the flow automatically.
+Instead the `start()` for the `IntegrationFlow` is initiated from the internal `Flux.doOnSubscribe()`.
+Independently of the `autoStartOnSubscribe` value, the flow is stopped from a `Flux.doOnCancel()` and `Flux.doOnTerminate()` - it does not make sense to produce messages if there is nothing to consume them.
 
 For the exact opposite use-case, when `IntegrationFlow` should call a reactive stream and continue after completion, a `fluxTransform()` operator is provided in the `IntegrationFlowDefinition`.
 The flow at this point is turned into a `FluxMessageChannel` which is propagated into a provided `fluxFunction`, performed in the `Flux.transform()` operator.
