@@ -25,10 +25,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport;
 import org.springframework.integration.file.tail.OSDelegatingFileTailingMessageProducer;
-import org.springframework.integration.util.JavaUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -232,9 +232,9 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 					"'native-options' is not allowed with 'delay', 'end', or 'reopen'");
 			ApacheCommonsFileTailingMessageProducer apache = new ApacheCommonsFileTailingMessageProducer();
 			JavaUtils.INSTANCE
-				.acceptIfNotNull(this.delay, apache::setPollingDelay)
-				.acceptIfNotNull(this.end, apache::setEnd)
-				.acceptIfNotNull(this.reopen, apache::setReopen);
+					.acceptIfNotNull(this.delay, apache::setPollingDelay)
+					.acceptIfNotNull(this.end, apache::setEnd)
+					.acceptIfNotNull(this.reopen, apache::setReopen);
 			adapter = apache;
 		}
 		adapter.setFile(this.file);
@@ -243,16 +243,16 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		adapter.setBeanName(this.beanName);
 		BeanFactory beanFactory = getBeanFactory();
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(this.taskExecutor, adapter::setTaskExecutor)
-			.acceptIfNotNull(this.taskScheduler, adapter::setTaskScheduler)
-			.acceptIfNotNull(this.fileDelay, adapter::setTailAttemptsDelay)
-			.acceptIfNotNull(this.idleEventInterval, adapter::setIdleEventInterval)
-			.acceptIfNotNull(this.autoStartup, adapter::setAutoStartup)
-			.acceptIfNotNull(this.phase, adapter::setPhase)
-			.acceptIfNotNull(this.applicationEventPublisher, adapter::setApplicationEventPublisher)
-			.acceptIfNotNull(this.outputChannelName, adapter::setOutputChannelName)
-			.acceptIfNotNull(this.errorChannelName, adapter::setErrorChannelName)
-			.acceptIfNotNull(beanFactory, adapter::setBeanFactory);
+				.acceptIfNotNull(this.taskExecutor, adapter::setTaskExecutor)
+				.acceptIfNotNull(this.taskScheduler, adapter::setTaskScheduler)
+				.acceptIfNotNull(this.fileDelay, adapter::setTailAttemptsDelay)
+				.acceptIfNotNull(this.idleEventInterval, adapter::setIdleEventInterval)
+				.acceptIfNotNull(this.autoStartup, adapter::setAutoStartup)
+				.acceptIfNotNull(this.phase, adapter::setPhase)
+				.acceptIfNotNull(this.applicationEventPublisher, adapter::setApplicationEventPublisher)
+				.acceptIfNotNull(this.outputChannelName, adapter::setOutputChannelName)
+				.acceptIfNotNull(this.errorChannelName, adapter::setErrorChannelName)
+				.acceptIfNotNull(beanFactory, adapter::setBeanFactory);
 		adapter.afterPropertiesSet();
 		this.tailAdapter = adapter;
 		return adapter;

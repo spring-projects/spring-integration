@@ -29,11 +29,11 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.jms.AbstractJmsChannel;
 import org.springframework.integration.jms.DynamicJmsTemplate;
 import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.integration.jms.SubscribableJmsChannel;
-import org.springframework.integration.util.JavaUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -385,7 +385,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 					"A JMS Topic-backed 'publish-subscribe-channel' must be message-driven.");
 			PollableJmsChannel pollableJmschannel = new PollableJmsChannel(this.jmsTemplate);
 			JavaUtils.INSTANCE
-				.acceptIfNotNull(this.messageSelector, pollableJmschannel::setMessageSelector);
+					.acceptIfNotNull(this.messageSelector, pollableJmschannel::setMessageSelector);
 			this.channel = pollableJmschannel;
 		}
 		if (!CollectionUtils.isEmpty(this.interceptors)) {
@@ -394,7 +394,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		this.channel.setBeanName(this.beanName);
 		BeanFactory beanFactory = this.getBeanFactory();
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(beanFactory, this.channel::setBeanFactory);
+				.acceptIfNotNull(beanFactory, this.channel::setBeanFactory);
 		this.channel.afterPropertiesSet();
 		return this.channel;
 	}
@@ -403,8 +403,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		Assert.isTrue(this.destination != null ^ this.destinationName != null,
 				"Exactly one of destination or destinationName is required.");
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(this.destination, this.jmsTemplate::setDefaultDestination)
-			.acceptIfNotNull(this.destinationName, this.jmsTemplate::setDefaultDestinationName);
+				.acceptIfNotNull(this.destination, this.jmsTemplate::setDefaultDestination)
+				.acceptIfNotNull(this.destinationName, this.jmsTemplate::setDefaultDestinationName);
 	}
 
 	private AbstractMessageListenerContainer createContainer() {
@@ -418,18 +418,18 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		container.setClientId(this.clientId);
 		container.setConnectionFactory(this.connectionFactory);
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(this.destination, container::setDestination)
-			.acceptIfNotNull(this.destinationName, container::setDestinationName)
-			.acceptIfNotNull(this.destinationResolver, container::setDestinationResolver);
+				.acceptIfNotNull(this.destination, container::setDestination)
+				.acceptIfNotNull(this.destinationName, container::setDestinationName)
+				.acceptIfNotNull(this.destinationResolver, container::setDestinationResolver);
 		container.setDurableSubscriptionName(this.durableSubscriptionName);
 		container.setErrorHandler(this.errorHandler);
 		container.setExceptionListener(this.exceptionListener);
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(this.exposeListenerSession, container::setExposeListenerSession);
+				.acceptIfNotNull(this.exposeListenerSession, container::setExposeListenerSession);
 		container.setMessageSelector(this.messageSelector);
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(this.phase, container::setPhase)
-			.acceptIfNotNull(this.pubSubDomain, container::setPubSubDomain);
+				.acceptIfNotNull(this.phase, container::setPhase)
+				.acceptIfNotNull(this.pubSubDomain, container::setPubSubDomain);
 		container.setSessionAcknowledgeMode(this.sessionAcknowledgeMode);
 		container.setSessionTransacted(this.sessionTransacted);
 		container.setSubscriptionDurable(this.subscriptionDurable);
@@ -438,28 +438,28 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		if (container instanceof DefaultMessageListenerContainer) {
 			DefaultMessageListenerContainer dmlc = (DefaultMessageListenerContainer) container;
 			JavaUtils.INSTANCE
-				.acceptIfNotNull(this.cacheLevelName, dmlc::setCacheLevelName)
-				.acceptIfNotNull(this.cacheLevel, dmlc::setCacheLevel)
-				.acceptIfHasText(this.concurrency, dmlc::setConcurrency)
-				.acceptIfNotNull(this.concurrentConsumers, dmlc::setConcurrentConsumers)
-				.acceptIfNotNull(this.maxConcurrentConsumers, dmlc::setMaxConcurrentConsumers)
-				.acceptIfNotNull(this.idleTaskExecutionLimit, dmlc::setIdleTaskExecutionLimit)
-				.acceptIfNotNull(this.maxMessagesPerTask, dmlc::setMaxMessagesPerTask);
+					.acceptIfNotNull(this.cacheLevelName, dmlc::setCacheLevelName)
+					.acceptIfNotNull(this.cacheLevel, dmlc::setCacheLevel)
+					.acceptIfHasText(this.concurrency, dmlc::setConcurrency)
+					.acceptIfNotNull(this.concurrentConsumers, dmlc::setConcurrentConsumers)
+					.acceptIfNotNull(this.maxConcurrentConsumers, dmlc::setMaxConcurrentConsumers)
+					.acceptIfNotNull(this.idleTaskExecutionLimit, dmlc::setIdleTaskExecutionLimit)
+					.acceptIfNotNull(this.maxMessagesPerTask, dmlc::setMaxMessagesPerTask);
 			dmlc.setPubSubNoLocal(this.pubSubNoLocal);
 			JavaUtils.INSTANCE
-				.acceptIfNotNull(this.receiveTimeout, dmlc::setReceiveTimeout)
-				.acceptIfNotNull(this.recoveryInterval, dmlc::setRecoveryInterval);
+					.acceptIfNotNull(this.receiveTimeout, dmlc::setReceiveTimeout)
+					.acceptIfNotNull(this.recoveryInterval, dmlc::setRecoveryInterval);
 			dmlc.setTaskExecutor(this.taskExecutor);
 			dmlc.setTransactionManager(this.transactionManager);
 			JavaUtils.INSTANCE
-				.acceptIfNotNull(this.transactionName, dmlc::setTransactionName)
-				.acceptIfNotNull(this.transactionTimeout, dmlc::setTransactionTimeout);
+					.acceptIfNotNull(this.transactionName, dmlc::setTransactionName)
+					.acceptIfNotNull(this.transactionTimeout, dmlc::setTransactionTimeout);
 		}
 		else if (container instanceof SimpleMessageListenerContainer) {
 			SimpleMessageListenerContainer smlc = (SimpleMessageListenerContainer) container;
 			JavaUtils.INSTANCE
-				.acceptIfHasText(this.concurrency, smlc::setConcurrency)
-				.acceptIfNotNull(this.concurrentConsumers, smlc::setConcurrentConsumers);
+					.acceptIfHasText(this.concurrency, smlc::setConcurrency)
+					.acceptIfNotNull(this.concurrentConsumers, smlc::setConcurrentConsumers);
 			smlc.setPubSubNoLocal(this.pubSubNoLocal);
 			smlc.setTaskExecutor(this.taskExecutor);
 		}

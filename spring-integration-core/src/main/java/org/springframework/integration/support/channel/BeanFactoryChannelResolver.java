@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
@@ -97,9 +96,9 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 				synchronized (this) {
 					if (!this.initialized) {
 						try {
-							this.replyChannelRegistry = this.beanFactory.getBean(
-									IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
-									HeaderChannelRegistry.class);
+							this.replyChannelRegistry =
+									this.beanFactory.getBean("integrationHeaderChannelRegistry",
+											HeaderChannelRegistry.class);
 						}
 						catch (Exception ex) {
 							LOGGER.debug("No HeaderChannelRegistry found");

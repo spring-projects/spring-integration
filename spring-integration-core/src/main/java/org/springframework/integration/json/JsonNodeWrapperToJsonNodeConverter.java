@@ -21,7 +21,6 @@ import java.util.Set;
 
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.integration.config.IntegrationConverter;
 import org.springframework.integration.json.JsonPropertyAccessor.JsonNodeWrapper;
 import org.springframework.lang.Nullable;
 
@@ -38,7 +37,6 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @since 5.5
  */
-@IntegrationConverter
 public class JsonNodeWrapperToJsonNodeConverter implements GenericConverter {
 
 	@Override

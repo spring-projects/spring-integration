@@ -26,6 +26,7 @@ import org.aopalliance.aop.Advice;
 import org.jetbrains.annotations.Nullable;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.aggregator.AbstractAggregatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
@@ -36,7 +37,6 @@ import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.integration.util.JavaUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;

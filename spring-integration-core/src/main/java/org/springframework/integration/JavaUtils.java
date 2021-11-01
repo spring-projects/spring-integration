@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.util;
+package org.springframework.integration;
 
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -32,10 +32,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  *
  * @since 5.1.3
- *
- * @deprecated since 5.5.6 in favor of {@link org.springframework.integration.JavaUtils}.
  */
-@Deprecated
 public final class JavaUtils {
 
 	/**

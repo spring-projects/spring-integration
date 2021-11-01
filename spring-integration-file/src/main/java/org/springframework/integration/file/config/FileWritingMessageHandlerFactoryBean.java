@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package org.springframework.integration.file.config;
 import java.io.File;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate;
 import org.springframework.integration.file.support.FileExistsMode;
-import org.springframework.integration.util.JavaUtils;
 
 /**
  * Factory bean used to create {@link FileWritingMessageHandler}s.
@@ -170,21 +170,21 @@ public class FileWritingMessageHandlerFactoryBean
 
 		handler.setExpectReply(this.expectReply);
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(this.charset, handler::setCharset)
-			.acceptIfNotNull(this.fileNameGenerator, handler::setFileNameGenerator)
-			.acceptIfNotNull(this.deleteSourceFiles, handler::setDeleteSourceFiles)
-			.acceptIfNotNull(this.autoCreateDirectory, handler::setAutoCreateDirectory)
-			.acceptIfNotNull(this.requiresReply, handler::setRequiresReply)
-			.acceptIfNotNull(this.sendTimeout, handler::setSendTimeout)
-			.acceptIfNotNull(this.temporaryFileSuffix, handler::setTemporaryFileSuffix)
-			.acceptIfNotNull(this.appendNewLine, handler::setAppendNewLine)
-			.acceptIfNotNull(this.fileExistsMode, handler::setFileExistsMode)
-			.acceptIfNotNull(this.bufferSize, handler::setBufferSize)
-			.acceptIfNotNull(this.flushInterval, handler::setFlushInterval)
-			.acceptIfNotNull(this.flushWhenIdle, handler::setFlushWhenIdle)
-			.acceptIfNotNull(this.flushPredicate, handler::setFlushPredicate)
-			.acceptIfNotNull(this.chmod, handler::setChmodOctal)
-			.acceptIfNotNull(this.preserveTimestamp, handler::setPreserveTimestamp);
+				.acceptIfNotNull(this.charset, handler::setCharset)
+				.acceptIfNotNull(this.fileNameGenerator, handler::setFileNameGenerator)
+				.acceptIfNotNull(this.deleteSourceFiles, handler::setDeleteSourceFiles)
+				.acceptIfNotNull(this.autoCreateDirectory, handler::setAutoCreateDirectory)
+				.acceptIfNotNull(this.requiresReply, handler::setRequiresReply)
+				.acceptIfNotNull(this.sendTimeout, handler::setSendTimeout)
+				.acceptIfNotNull(this.temporaryFileSuffix, handler::setTemporaryFileSuffix)
+				.acceptIfNotNull(this.appendNewLine, handler::setAppendNewLine)
+				.acceptIfNotNull(this.fileExistsMode, handler::setFileExistsMode)
+				.acceptIfNotNull(this.bufferSize, handler::setBufferSize)
+				.acceptIfNotNull(this.flushInterval, handler::setFlushInterval)
+				.acceptIfNotNull(this.flushWhenIdle, handler::setFlushWhenIdle)
+				.acceptIfNotNull(this.flushPredicate, handler::setFlushPredicate)
+				.acceptIfNotNull(this.chmod, handler::setChmodOctal)
+				.acceptIfNotNull(this.preserveTimestamp, handler::setPreserveTimestamp);
 
 		return handler;
 	}

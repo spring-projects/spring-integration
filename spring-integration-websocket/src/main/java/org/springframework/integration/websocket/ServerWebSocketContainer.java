@@ -20,7 +20,7 @@ import java.util.Arrays;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.integration.util.JavaUtils;
+import org.springframework.integration.JavaUtils;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;

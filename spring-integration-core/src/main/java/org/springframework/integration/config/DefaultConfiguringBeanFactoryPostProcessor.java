@@ -385,6 +385,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 		}
 	}
 
+	// TODO Remove in 6.0
 	private void jsonNodeToString(int registryId) {
 		if (!this.beanFactory.containsBean(
 				IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER) &&
