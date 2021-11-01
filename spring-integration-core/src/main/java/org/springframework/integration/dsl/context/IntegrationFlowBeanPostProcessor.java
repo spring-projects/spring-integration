@@ -177,6 +177,49 @@ public class IntegrationFlowBeanPostProcessor
 				registerComponent(endpoint, id, flowBeanName);
 				targetIntegrationComponents.put(endpoint, id);
 			}
+			else if (component instanceof MessageChannelReference) {
+				String channelBeanName = ((MessageChannelReference) component).getName();
+				if (!this.beanFactory.containsBean(channelBeanName)) {
+					DirectChannel directChannel = new DirectChannel();
+					registerComponent(directChannel, channelBeanName, flowBeanName);
+					targetIntegrationComponents.put(directChannel, channelBeanName);
+				}
+			}
+			else if (component instanceof SourcePollingChannelAdapterSpec) {
+				SourcePollingChannelAdapterSpec spec = (SourcePollingChannelAdapterSpec) component;
+				Map<Object, String> componentsToRegister = spec.getComponentsToRegister();
+				if (!CollectionUtils.isEmpty(componentsToRegister)) {
+					componentsToRegister.entrySet()
+							.stream()
+							.filter(o -> noBeanPresentForComponent(o.getKey(), flowBeanName))
+							.forEach(o ->
+									registerComponent(o.getKey(),
+											generateBeanName(o.getKey(), flowNamePrefix, o.getValue(),
+													useFlowIdAsPrefix)));
+				}
+				SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean = spec.get().getT1();
+				String id = spec.getId();
+				if (id == null) {
+					id = generateBeanName(pollingChannelAdapterFactoryBean, flowNamePrefix, entry.getValue(),
+							useFlowIdAsPrefix);
+				}
+				else if (useFlowIdAsPrefix) {
+					id = flowNamePrefix + id;
+				}
+
+				registerComponent(pollingChannelAdapterFactoryBean, id, flowBeanName);
+				targetIntegrationComponents.put(pollingChannelAdapterFactoryBean, id);
+
+				MessageSource<?> messageSource = spec.get().getT2();
+				if (noBeanPresentForComponent(messageSource, flowBeanName)) {
+					String messageSourceId = id + ".source";
+					if (messageSource instanceof NamedComponent
+							&& ((NamedComponent) messageSource).getComponentName() != null) {
+						messageSourceId = ((NamedComponent) messageSource).getComponentName();
+					}
+					registerComponent(messageSource, messageSourceId, flowBeanName);
+				}
+			}
 			else {
 				if (noBeanPresentForComponent(component, flowBeanName)) {
 					if (component instanceof AbstractMessageChannel || component instanceof NullChannel) {
@@ -191,14 +234,6 @@ public class IntegrationFlowBeanPostProcessor
 						registerComponent(component, channelBeanName, flowBeanName);
 						targetIntegrationComponents.put(component, channelBeanName);
 					}
-					else if (component instanceof MessageChannelReference) {
-						String channelBeanName = ((MessageChannelReference) component).getName();
-						if (!this.beanFactory.containsBean(channelBeanName)) {
-							DirectChannel directChannel = new DirectChannel();
-							registerComponent(directChannel, channelBeanName, flowBeanName);
-							targetIntegrationComponents.put(directChannel, channelBeanName);
-						}
-					}
 					else if (component instanceof FixedSubscriberChannel) {
 						FixedSubscriberChannel fixedSubscriberChannel = (FixedSubscriberChannel) component;
 						String channelBeanName = fixedSubscriberChannel.getComponentName();
@@ -209,47 +244,12 @@ public class IntegrationFlowBeanPostProcessor
 						registerComponent(component, channelBeanName, flowBeanName);
 						targetIntegrationComponents.put(component, channelBeanName);
 					}
-					else if (component instanceof SourcePollingChannelAdapterSpec) {
-						SourcePollingChannelAdapterSpec spec = (SourcePollingChannelAdapterSpec) component;
-						Map<Object, String> componentsToRegister = spec.getComponentsToRegister();
-						if (!CollectionUtils.isEmpty(componentsToRegister)) {
-							componentsToRegister.entrySet()
-									.stream()
-									.filter(o -> noBeanPresentForComponent(o.getKey(), flowBeanName))
-									.forEach(o ->
-											registerComponent(o.getKey(),
-													generateBeanName(o.getKey(), flowNamePrefix, o.getValue(),
-															useFlowIdAsPrefix)));
-						}
-						SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean = spec.get().getT1();
-						String id = spec.getId();
-						if (id == null) {
-							id = generateBeanName(pollingChannelAdapterFactoryBean, flowNamePrefix, entry.getValue(),
-									useFlowIdAsPrefix);
-						}
-						else if (useFlowIdAsPrefix) {
-							id = flowNamePrefix + id;
-						}
-
-						registerComponent(pollingChannelAdapterFactoryBean, id, flowBeanName);
-						targetIntegrationComponents.put(pollingChannelAdapterFactoryBean, id);
-
-						MessageSource<?> messageSource = spec.get().getT2();
-						if (noBeanPresentForComponent(messageSource, flowBeanName)) {
-							String messageSourceId = id + ".source";
-							if (messageSource instanceof NamedComponent
-									&& ((NamedComponent) messageSource).getComponentName() != null) {
-								messageSourceId = ((NamedComponent) messageSource).getComponentName();
-							}
-							registerComponent(messageSource, messageSourceId, flowBeanName);
-						}
-					}
 					else if (component instanceof StandardIntegrationFlow) {
 						String subFlowBeanName =
 								entry.getValue() != null
 										? entry.getValue()
 										: flowNamePrefix + "subFlow" +
-												BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + subFlowNameIndex++;
+										BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + subFlowNameIndex++;
 						registerComponent(component, subFlowBeanName, flowBeanName);
 						targetIntegrationComponents.put(component, subFlowBeanName);
 					}
@@ -396,26 +396,24 @@ public class IntegrationFlowBeanPostProcessor
 	private boolean noBeanPresentForComponent(Object instance, String parentBeanName) {
 		if (instance instanceof NamedComponent) {
 			String beanName = ((NamedComponent) instance).getBeanName();
-			if (beanName != null) {
-				if (this.beanFactory.containsBean(beanName)) {
-					BeanDefinition existingBeanDefinition =
-							IntegrationContextUtils.getBeanDefinition(beanName, this.beanFactory);
-					if (!ConfigurableBeanFactory.SCOPE_PROTOTYPE.equals(existingBeanDefinition.getScope())
-							&& !instance.equals(this.beanFactory.getBean(beanName))) {
+			if (beanName == null || !this.beanFactory.containsBean(beanName)) {
+				return true;
+			}
+			else {
+				BeanDefinition existingBeanDefinition =
+						IntegrationContextUtils.getBeanDefinition(beanName, this.beanFactory);
+				if (!ConfigurableBeanFactory.SCOPE_PROTOTYPE.equals(existingBeanDefinition.getScope())
+						&& !instance.equals(this.beanFactory.getBean(beanName))) {
 
-						AbstractBeanDefinition beanDefinition =
-								BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) instance.getClass(),
-										() -> instance)
-										.getBeanDefinition();
-						beanDefinition.setResourceDescription("the '" + parentBeanName + "' bean definition");
-						throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingBeanDefinition);
-					}
-					else {
-						return false;
-					}
+					AbstractBeanDefinition beanDefinition =
+							BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) instance.getClass(),
+											() -> instance)
+									.getBeanDefinition();
+					beanDefinition.setResourceDescription("the '" + parentBeanName + "' bean definition");
+					throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingBeanDefinition);
 				}
 				else {
-					return true;
+					return false;
 				}
 			}
 		}
