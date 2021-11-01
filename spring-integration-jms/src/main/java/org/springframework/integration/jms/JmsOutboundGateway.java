@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.Expression;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -54,7 +55,6 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
 import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.management.ManageableLifecycle;
-import org.springframework.integration.util.JavaUtils;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.JmsUtils;

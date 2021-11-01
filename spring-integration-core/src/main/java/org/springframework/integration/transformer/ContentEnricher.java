@@ -31,6 +31,7 @@ import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.IntegrationPatternType;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -38,7 +39,6 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
-import org.springframework.integration.util.JavaUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;

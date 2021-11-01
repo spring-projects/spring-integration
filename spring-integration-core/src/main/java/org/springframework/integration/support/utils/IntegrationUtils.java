@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.context.NamedComponent;
@@ -49,7 +48,7 @@ public final class IntegrationUtils {
 
 	private static final Log LOGGER = LogFactory.getLog(IntegrationUtils.class);
 
-	private static final String INTERNAL_COMPONENT_PREFIX = '_' + IntegrationContextUtils.BASE_PACKAGE;
+	private static final String INTERNAL_COMPONENT_PREFIX = "_org.springframework.integration";
 
 	public static final String INTEGRATION_CONVERSION_SERVICE_BEAN_NAME = "integrationConversionService";
 

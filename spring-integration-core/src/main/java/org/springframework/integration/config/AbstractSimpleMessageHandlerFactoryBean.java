@@ -35,13 +35,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.integration.util.JavaUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.core.DestinationResolver;
@@ -199,19 +199,19 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			}
 			this.handler = createHandler();
 			JavaUtils.INSTANCE
-				.acceptIfCondition(this.handler instanceof ApplicationContextAware && this.applicationContext != null,
-					this.applicationContext,
-					context -> ((ApplicationContextAware) this.handler).setApplicationContext(this.applicationContext))
-				.acceptIfCondition(this.handler instanceof BeanFactoryAware && getBeanFactory() != null,
-					getBeanFactory(),
-					factory -> ((BeanFactoryAware) this.handler).setBeanFactory(factory))
-				.acceptIfCondition(this.handler instanceof BeanNameAware && this.beanName != null, this.beanName,
-					name -> ((BeanNameAware) this.handler).setBeanName(this.beanName))
-				.acceptIfCondition(this.handler instanceof ApplicationEventPublisherAware
-										&& this.applicationEventPublisher != null,
-					this.applicationEventPublisher,
-					publisher -> ((ApplicationEventPublisherAware) this.handler)
-						.setApplicationEventPublisher(publisher));
+					.acceptIfCondition(this.handler instanceof ApplicationContextAware && this.applicationContext != null,
+							this.applicationContext,
+							context -> ((ApplicationContextAware) this.handler).setApplicationContext(this.applicationContext))
+					.acceptIfCondition(this.handler instanceof BeanFactoryAware && getBeanFactory() != null,
+							getBeanFactory(),
+							factory -> ((BeanFactoryAware) this.handler).setBeanFactory(factory))
+					.acceptIfCondition(this.handler instanceof BeanNameAware && this.beanName != null, this.beanName,
+							name -> ((BeanNameAware) this.handler).setBeanName(this.beanName))
+					.acceptIfCondition(this.handler instanceof ApplicationEventPublisherAware
+									&& this.applicationEventPublisher != null,
+							this.applicationEventPublisher,
+							publisher -> ((ApplicationEventPublisherAware) this.handler)
+									.setApplicationEventPublisher(publisher));
 			configureOutputChannelIfAny();
 			Object actualHandler = extractTarget(this.handler);
 			if (actualHandler == null) {
@@ -221,11 +221,11 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			integrationObjectSupport(actualHandler, handlerToConfigure);
 			adviceChain(actualHandler);
 			JavaUtils.INSTANCE
-				.acceptIfCondition(this.async != null && actualHandler instanceof AbstractMessageProducingHandler,
-					this.async,
-					asyncValue -> ((AbstractMessageProducingHandler) handlerToConfigure).setAsync(asyncValue))
-				.acceptIfCondition(this.handler instanceof Orderable && this.order != null,
-					this.order, theOrder -> ((Orderable) this.handler).setOrder(theOrder));
+					.acceptIfCondition(this.async != null && actualHandler instanceof AbstractMessageProducingHandler,
+							this.async,
+							asyncValue -> ((AbstractMessageProducingHandler) handlerToConfigure).setAsync(asyncValue))
+					.acceptIfCondition(this.handler instanceof Orderable && this.order != null,
+							this.order, theOrder -> ((Orderable) this.handler).setOrder(theOrder));
 			this.initialized = true;
 		}
 		initializingBean();
@@ -235,10 +235,10 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	private void integrationObjectSupport(Object actualHandler, final Object handlerToConfigure) {
 		if (actualHandler instanceof IntegrationObjectSupport) {
 			JavaUtils.INSTANCE
-				.acceptIfNotNull(this.componentName,
-						name -> ((IntegrationObjectSupport) handlerToConfigure).setComponentName(name))
-				.acceptIfNotNull(this.channelResolver,
-						resolver -> ((IntegrationObjectSupport) handlerToConfigure).setChannelResolver(resolver));
+					.acceptIfNotNull(this.componentName,
+							name -> ((IntegrationObjectSupport) handlerToConfigure).setComponentName(name))
+					.acceptIfNotNull(this.channelResolver,
+							resolver -> ((IntegrationObjectSupport) handlerToConfigure).setChannelResolver(resolver));
 		}
 	}
 

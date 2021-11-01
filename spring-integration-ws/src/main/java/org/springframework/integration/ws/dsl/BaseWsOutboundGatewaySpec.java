@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.dsl.MessageHandlerSpec;
-import org.springframework.integration.util.JavaUtils;
 import org.springframework.integration.ws.AbstractWebServiceOutboundGateway;
 import org.springframework.integration.ws.SoapHeaderMapper;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -47,7 +47,7 @@ import org.springframework.ws.transport.WebServiceMessageSender;
  */
 public abstract class BaseWsOutboundGatewaySpec<
 		S extends BaseWsOutboundGatewaySpec<S, E>, E extends AbstractWebServiceOutboundGateway>
-	extends MessageHandlerSpec<S, E> {
+		extends MessageHandlerSpec<S, E> {
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
@@ -158,7 +158,7 @@ public abstract class BaseWsOutboundGatewaySpec<
 	protected E assemble(E gateway) {
 		gateway.setUriVariableExpressions(this.uriVariableExpressions);
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(this.headerMapper, gateway::setHeaderMapper);
+				.acceptIfNotNull(this.headerMapper, gateway::setHeaderMapper);
 		gateway.setEncodingMode(this.encodingMode);
 		gateway.setIgnoreEmptyResponses(this.ignoreEmptyResponses);
 		gateway.setRequestCallback(this.requestCallback);

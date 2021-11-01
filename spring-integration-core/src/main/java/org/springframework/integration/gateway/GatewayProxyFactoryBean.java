@@ -58,6 +58,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.IntegrationPatternType;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -68,7 +69,6 @@ import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
-import org.springframework.integration.util.JavaUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -865,7 +865,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 		String gatewayMethodBeanName =
 				getComponentName() + '#' + method.getName() +
-				'(' + Arrays.stream(method.getParameterTypes())
+						'(' + Arrays.stream(method.getParameterTypes())
 						.map(Class::getSimpleName)
 						.collect(Collectors.joining(", ")) + ')';
 
