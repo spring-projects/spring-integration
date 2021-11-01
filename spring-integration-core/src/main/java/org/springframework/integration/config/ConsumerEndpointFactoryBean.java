@@ -374,7 +374,7 @@ public class ConsumerEndpointFactoryBean
 						+ "', since '" + channel + "' is a SubscribableChannel (not pollable).");
 		this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
 		if (Boolean.FALSE.equals(this.autoStartup) && channel instanceof FixedSubscriberChannel) {
-			LOGGER.warn("'autoStartup=\"false\"' has no effect when using a FixedSubscriberChannel");
+			LOGGER.info("'autoStartup=\"false\"' has no effect when using a FixedSubscriberChannel");
 		}
 	}
 

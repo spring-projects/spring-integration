@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.reactivestreams.Subscriber;
 
 import org.springframework.messaging.Message;
 
+import reactor.core.publisher.Flux;
+
 /**
  *
  * @param <T> the message payload type.
@@ -35,9 +37,26 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 
 	private final Publisher<Message<T>> delegate;
 
-	PublisherIntegrationFlow(Map<Object, String> integrationComponents, Publisher<Message<T>> publisher) {
+	PublisherIntegrationFlow(Map<Object, String> integrationComponents, Publisher<Message<T>> publisher,
+			boolean autoStartOnSubscribe) {
+
 		super(integrationComponents);
-		this.delegate = publisher;
+		Flux<Message<T>> flux =
+				Flux.from(publisher)
+						.doOnCancel(this::stop)
+						.doOnTerminate(this::stop);
+
+		if (autoStartOnSubscribe) {
+			flux = flux.doOnSubscribe((sub) -> start());
+			for (Object component : integrationComponents.keySet()) {
+				if (component instanceof EndpointSpec) {
+					((EndpointSpec<?, ?, ?>) component).autoStartup(false);
+				}
+			}
+		}
+
+		this.delegate = flux;
+
 	}
 
 	@Override

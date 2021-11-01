@@ -54,6 +54,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
@@ -104,19 +105,22 @@ public class ReactiveStreamsTests {
 
 	@Test
 	void testReactiveFlow() throws Exception {
+		assertThat(this.messageSource.isRunning()).isFalse();
 		List<String> results = new ArrayList<>();
 		CountDownLatch latch = new CountDownLatch(6);
-		Flux.from(this.publisher)
+		Disposable disposable =
+				Flux.from(this.publisher)
 				.map(m -> m.getPayload().toUpperCase())
 				.subscribe(p -> {
 					results.add(p);
 					latch.countDown();
 				});
-		this.messageSource.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		String[] strings = results.toArray(new String[0]);
 		assertThat(strings).isEqualTo(new String[]{ "A", "B", "C", "D", "E", "F" });
-		this.messageSource.stop();
+
+		disposable.dispose();
+		assertThat(this.messageSource.isRunning()).isFalse();
 	}
 
 	@Test
@@ -249,11 +253,10 @@ public class ReactiveStreamsTests {
 			return IntegrationFlows
 					.from(() -> new GenericMessage<>("a,b,c,d,e,f"),
 							e -> e.poller(p -> p.trigger(ctx -> this.invoked.getAndSet(true) ? null : new Date()))
-									.autoStartup(false)
 									.id("reactiveStreamsMessageSource"))
 					.split(String.class, p -> p.split(","))
 					.log()
-					.toReactivePublisher();
+					.toReactivePublisher(true);
 		}
 
 		@Bean
