@@ -2940,8 +2940,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.
-	 * @param autoStartOnSubscribe start a production and consumption in the flow,
-	 * when subscription to the publisher is initiated.
+	 * @param autoStartOnSubscribe start message production and consumption in the flow,
+	 * when a subscription to the publisher is initiated.
 	 * If this set to true, the flow is marked to not start automatically by the application context.
 	 * @param <T> the expected {@code payload} type
 	 * @return the Reactive Streams {@link Publisher}
