@@ -25,11 +25,11 @@ import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
 
-import javax.mail.Flags;
-import javax.mail.Flags.Flag;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Flags;
+import jakarta.mail.Flags.Flag;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import jakarta.mail.internet.MimeMessage;
 
 import org.junit.jupiter.api.Test;
 

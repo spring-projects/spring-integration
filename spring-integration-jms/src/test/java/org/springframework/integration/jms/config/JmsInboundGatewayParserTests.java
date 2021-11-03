@@ -17,13 +17,14 @@
 package org.springframework.integration.jms.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Properties;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.DeliveryMode;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.DeliveryMode;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.NotReadablePropertyException;
@@ -130,27 +131,21 @@ public class JmsInboundGatewayParserTests extends ActiveMQMultiContextTests {
 		context.close();
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void testGatewayWithConnectionFactoryOnly() {
-		try {
-			new ClassPathXmlApplicationContext("jmsGatewayWithConnectionFactoryOnly.xml", this.getClass()).close();
-		}
-		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getMessage().contains("request-destination")).isTrue();
-			assertThat(e.getMessage().contains("request-destination-name")).isTrue();
-			throw e;
-		}
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("jmsGatewayWithConnectionFactoryOnly.xml", getClass()))
+				.withMessageContaining("request-destination")
+				.withMessageContaining("request-destination-name");
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void testGatewayWithEmptyConnectionFactory() {
-		try {
-			new ClassPathXmlApplicationContext("jmsGatewayWithEmptyConnectionFactory.xml", this.getClass()).close();
-		}
-		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getMessage().contains("connection-factory")).isTrue();
-			throw e;
-		}
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("jmsGatewayWithEmptyConnectionFactory.xml", getClass()))
+				.withMessageContaining("connection-factory");
 	}
 
 	@Test

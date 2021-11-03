@@ -236,7 +236,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	private static final class KotlinModuleProvider {
 
 		static final com.fasterxml.jackson.databind.Module MODULE =
-				new com.fasterxml.jackson.module.kotlin.KotlinModule();
+				new com.fasterxml.jackson.module.kotlin.KotlinModule.Builder().build();
 
 	}
 

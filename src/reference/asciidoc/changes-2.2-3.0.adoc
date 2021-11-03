@@ -417,12 +417,6 @@ Previously, when configuring a `<message-driven-channel-adapter/>`, if you wishe
 We added the `task-executor`, letting it be set directly on the adapter.
 This is in addition to several other container attributes that were already available.
 
-[[x3.0-rmi-ec]]
-===== RMI Inbound Gateway
-
-The RMI Inbound Gateway now supports an `error-channel` attribute.
-See <<./rmi.adoc#rmi-inbound,Inbound RMI>>.
-
 [[x3.0-xslt-transformer]]
 ===== `XsltPayloadTransformer`
 

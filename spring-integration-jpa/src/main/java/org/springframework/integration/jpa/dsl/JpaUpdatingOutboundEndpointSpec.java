@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public class JpaUpdatingOutboundEndpointSpec extends JpaBaseOutboundEndpointSpec
 	}
 
 	/**
-	 * If set to {@code true} the {@link javax.persistence.EntityManager#flush()} will be called
+	 * If set to {@code true} the {@link jakarta.persistence.EntityManager#flush()} will be called
 	 * after persistence operation.
 	 * Has the same effect, if the {@link #flushSize} is specified to {@code 1}.
 	 * For convenience in cases when the provided entity to persist is not an instance of {@link Iterable}.
@@ -67,7 +67,7 @@ public class JpaUpdatingOutboundEndpointSpec extends JpaBaseOutboundEndpointSpec
 	}
 
 	/**
-	 * If the provided value is greater than {@code 0}, then {@link javax.persistence.EntityManager#flush()}
+	 * If the provided value is greater than {@code 0}, then {@link jakarta.persistence.EntityManager#flush()}
 	 * will be called after persistence operations as well as within batch operations.
 	 * This property has precedence over the {@link #flush}, if it is specified to a value greater than {@code 0}.
 	 * If the entity to persist is not an instance of {@link Iterable} and this property is greater than {@code 0},
@@ -81,8 +81,8 @@ public class JpaUpdatingOutboundEndpointSpec extends JpaBaseOutboundEndpointSpec
 	}
 
 	/**
-	 * If set to {@code true} the {@link javax.persistence.EntityManager#clear()} will be called,
-	 * and only if the {@link javax.persistence.EntityManager#flush()}
+	 * If set to {@code true} the {@link jakarta.persistence.EntityManager#clear()} will be called,
+	 * and only if the {@link jakarta.persistence.EntityManager#flush()}
 	 * was called after performing persistence operations.
 	 * @param clearOnFlush defaults to {@code false}.
 	 * @return the spec

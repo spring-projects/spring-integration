@@ -20,10 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
-import javax.mail.Flags;
-import javax.mail.Folder;
-import javax.mail.URLName;
-import javax.mail.search.SearchTerm;
+import jakarta.mail.Flags;
+import jakarta.mail.Folder;
+import jakarta.mail.URLName;
+import jakarta.mail.search.SearchTerm;
 
 import org.junit.jupiter.api.Test;
 

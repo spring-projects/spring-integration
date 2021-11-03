@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,24 @@
 
 package org.springframework.integration.jpa.test;
 
-import javax.persistence.EntityManager;
-import javax.persistence.FlushModeType;
-import javax.persistence.PersistenceException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
+import jakarta.persistence.PersistenceException;
 
 import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
 
 /**
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 @SuppressWarnings("serial")
 public class TestHibernateJpaDialect extends HibernateJpaDialect {
 
 	@Override
-	public Object prepareTransaction(EntityManager entityManager, boolean readOnly, String name) throws PersistenceException {
+	public Object prepareTransaction(EntityManager entityManager, boolean readOnly, String name)
+			throws PersistenceException {
+
 		entityManager.setFlushMode(FlushModeType.COMMIT);
 		return super.prepareTransaction(entityManager, readOnly, name);
 	}

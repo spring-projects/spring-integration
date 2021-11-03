@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2019 the original author or authors.
+ * Copyright 2007-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ package org.springframework.integration.redis.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
@@ -35,8 +34,7 @@ import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.redis.outbound.RedisStoreWritingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  *
@@ -44,8 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class RedisStoreOutboundChannelAdapterParserTests {
 
@@ -72,8 +69,7 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 
 		assertThat(withStringTemplate).isSameAs(((Advised) handler).getTargetSource().getTarget());
 
-		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"))
-				.isInstanceOf(RequestHandlerRetryAdvice.class);
+		assertThat(((Advised) handler).getAdvisors()[0].getAdvice()).isInstanceOf(RequestHandlerRetryAdvice.class);
 
 		assertThat(TestUtils.getPropertyValue(withStringTemplate, "zsetIncrementScoreExpression",
 				Expression.class).getExpressionString()).isEqualTo("true");

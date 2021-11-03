@@ -36,7 +36,7 @@
 	</bean>
 
 	<bean id="jmsConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="javax.jms.ConnectionFactory"/>
+		<constructor-arg value="jakarta.jms.ConnectionFactory"/>
 	</bean>
 
 	<!--Email Transport-->

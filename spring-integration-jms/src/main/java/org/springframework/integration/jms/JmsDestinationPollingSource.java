@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.jms;
 
 import java.util.Map;
 
-import javax.jms.Destination;
+import jakarta.jms.Destination;
 
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
@@ -117,13 +117,13 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 	}
 
 	/**
-	 * Will receive a JMS {@link javax.jms.Message} converting and returning it as
+	 * Will receive a JMS {@link jakarta.jms.Message} converting and returning it as
 	 * a Spring Integration {@link Message}. This method will also use the current
 	 * {@link JmsHeaderMapper} instance to map JMS properties to the MessageHeaders.
 	 */
 	@Override
 	protected Object doReceive() {
-		javax.jms.Message jmsMessage = doReceiveJmsMessage();
+		jakarta.jms.Message jmsMessage = doReceiveJmsMessage();
 		if (jmsMessage == null) {
 			return null;
 		}
@@ -148,8 +148,8 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 		}
 	}
 
-	private javax.jms.Message doReceiveJmsMessage() {
-		javax.jms.Message jmsMessage = null;
+	private jakarta.jms.Message doReceiveJmsMessage() {
+		jakarta.jms.Message jmsMessage = null;
 		if (this.destination != null) {
 			jmsMessage = this.jmsTemplate.receiveSelected(this.destination, this.messageSelector);
 		}

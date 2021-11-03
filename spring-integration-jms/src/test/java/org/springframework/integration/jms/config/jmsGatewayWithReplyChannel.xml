@@ -25,10 +25,10 @@
 	<si:service-activator input-channel="requests" output-channel="replies" expression="payload"/>
 
 	
-	<bean id="testDestination" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="testDestination" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="testDestination"/>
 	</bean>
-	<bean id="testReplyDestination" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="testReplyDestination" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="testReplyDestination"/>
 	</bean>
 

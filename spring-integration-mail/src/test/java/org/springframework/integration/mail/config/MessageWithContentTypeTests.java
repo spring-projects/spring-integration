@@ -27,8 +27,8 @@ import java.io.FileReader;
 import java.io.StringWriter;
 import java.util.Properties;
 
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

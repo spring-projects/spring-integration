@@ -22,15 +22,15 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ScheduledFuture;
 
-import javax.mail.Flags;
-import javax.mail.Flags.Flag;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.search.AndTerm;
-import javax.mail.search.FlagTerm;
-import javax.mail.search.NotTerm;
-import javax.mail.search.SearchTerm;
+import jakarta.mail.Flags;
+import jakarta.mail.Flags.Flag;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.search.AndTerm;
+import jakarta.mail.search.FlagTerm;
+import jakarta.mail.search.NotTerm;
+import jakarta.mail.search.SearchTerm;
 
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -201,9 +201,9 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	/**
 	 * Retrieves new messages from this receiver's folder. This implementation
 	 * creates a {@link SearchTerm} that searches for all messages in the
-	 * folder that are {@link javax.mail.Flags.Flag#RECENT RECENT}, not
-	 * {@link javax.mail.Flags.Flag#ANSWERED ANSWERED}, and not
-	 * {@link javax.mail.Flags.Flag#DELETED DELETED}. The search term is used
+	 * folder that are {@link jakarta.mail.Flags.Flag#RECENT RECENT}, not
+	 * {@link jakarta.mail.Flags.Flag#ANSWERED ANSWERED}, and not
+	 * {@link jakarta.mail.Flags.Flag#DELETED DELETED}. The search term is used
 	 * to {@link Folder#search(SearchTerm) search} for new messages.
 	 * @return the new messages
 	 * @throws MessagingException in case of JavaMail errors

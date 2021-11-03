@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,19 +25,42 @@ import java.io.Closeable;
  *
  * @author Dave Syer
  * @author Alexandre Strubel
+ * @author Artem Bilan
  *
  * @since 4.3
  */
 public interface LockRepository extends Closeable {
 
+	/**
+	 * Check if a lock is held by this repository.
+	 * @param lock the lock to check.
+	 * @return acquired or not.
+	 */
 	boolean isAcquired(String lock);
 
+	/**
+	 * Remove a lock from this repository.
+	 * @param lock the lock to remove.
+	 */
 	void delete(String lock);
 
+	/**
+	 * Remove all the expired locks.
+	 */
 	void deleteExpired();
 
+	/**
+	 * Acquire a lock for a key.
+	 * @param lock the key for lock to acquire.
+	 * @return acquired or not.
+	 */
 	boolean acquire(String lock);
 
+	/**
+	 * Renew the lease for a lock.
+	 * @param lock the lock to renew.
+	 * @return renewed or not.
+	 */
 	boolean renew(String lock);
 
 	@Override

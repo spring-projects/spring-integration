@@ -17,12 +17,13 @@
 package org.springframework.integration.http.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 import org.junit.jupiter.api.Test;
 
@@ -48,9 +49,9 @@ import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
-//INT-2312
 @SpringJUnitConfig
 @DirtiesContext
 public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTests {
@@ -129,9 +130,9 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 			assertThat(requestParams).isNotNull();
 			assertThat(((HttpHeaders) requestHeaders).getContentType()).isEqualTo(MediaType.TEXT_PLAIN);
 
-			Map<String, Cookie> cookies = (Map<String, Cookie>) headers.get("cookies");
+			MultiValueMap<String, Cookie> cookies = (MultiValueMap<String, Cookie>) headers.get("cookies");
 			assertThat(cookies.size()).isEqualTo(1);
-			Cookie foo = cookies.get("foo");
+			Cookie foo = cookies.getFirst("foo");
 			assertThat(foo).isNotNull();
 			assertThat(foo).isEqualTo(cookie);
 		});
@@ -148,22 +149,16 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 
 	@Test
 	public void testParams() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/params");
-		Object handler = null;
-		try {
-			handler = this.handlerMapping.getHandler(request);
-		}
-		catch (Exception e) {
-			// There is no matching handlers and some default handler
-			//See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleNoMatch
-			assertThat(e instanceof UnsatisfiedServletRequestParameterException).isTrue();
-		}
+		// There is no matching handlers and some default handler
+		//See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleNoMatch
+		assertThatExceptionOfType(UnsatisfiedServletRequestParameterException.class)
+				.isThrownBy(() -> this.handlerMapping.getHandler(new MockHttpServletRequest("GET", "/params")));
 
-		request = new MockHttpServletRequest("GET", "/params");
+		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/params");
 		request.addParameter("param1", "1");
 		request.addParameter("param2", "1");
 
-		handler = this.handlerMapping.getHandler(request).getHandler();
+		Object handler = this.handlerMapping.getHandler(request).getHandler();
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 

@@ -161,7 +161,6 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 *   return map.get(key);
 	 * }</pre>
 	 * except that the action is performed atomically.
-	 * <p>
 	 * @param key the metadata entry key
 	 * @param value the metadata entry value to store
 	 * @return null if successful, the old value otherwise.

@@ -18,8 +18,8 @@ package org.springframework.integration.jpa.core;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -221,7 +221,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * If set to {@code true} the {@link javax.persistence.EntityManager#flush()} will be called
+	 * If set to {@code true} the {@link jakarta.persistence.EntityManager#flush()} will be called
 	 * after persistence operation.
 	 * Has the same effect, if the {@link #flushSize} is specified to {@code 1}.
 	 * For convenience in cases when the provided entity to persist is not an instance of {@link Iterable}.
@@ -232,7 +232,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * If the provided value is greater than {@code 0}, then {@link javax.persistence.EntityManager#flush()}
+	 * If the provided value is greater than {@code 0}, then {@link jakarta.persistence.EntityManager#flush()}
 	 * will be called after persistence operations as well as within batch operations.
 	 * This property has precedence over the {@link #flush}, if it is specified to a value greater than {@code 0}.
 	 * If the entity to persist is not an instance of {@link Iterable} and this property is greater than {@code 0},
@@ -245,8 +245,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * If set to {@code true} the {@link javax.persistence.EntityManager#clear()} will be called,
-	 * and only if the {@link javax.persistence.EntityManager#flush()} was called after performing persistence
+	 * If set to {@code true} the {@link jakarta.persistence.EntityManager#clear()} will be called,
+	 * and only if the {@link jakarta.persistence.EntityManager#flush()} was called after performing persistence
 	 * operations.
 	 * @param clearOnFlush defaults to 'false'.
 	 * @see #setFlush(boolean)
@@ -258,10 +258,10 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	/**
 	 * If not set, this property defaults to <code>false</code>, which means that
-	 * deletion occurs on a per object basis if a collection of entities is being
+	 * deletion occurs on a per-object basis if a collection of entities is being
 	 * deleted.
 	 *<p>If set to 'true' the elements of the payload are deleted as a batch
-	 * operation. Be aware that this exhibits issues in regards to cascaded deletes.
+	 * operation. Be aware that this exhibits issues in regard to cascaded deletes.
 	 *<p>The specification 'JSR 317: Java Persistence API, Version 2.0' does not
 	 * support cascaded deletes in batch operations. The specification states in
 	 * chapter 4.10:
@@ -322,7 +322,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * Set the expression that will be evaluated to get the first result in the query executed.
 	 * If a null expression is set, all the results in the result set will be retrieved
 	 * @param firstResultExpression The first result expression.
-	 * @see javax.persistence.Query#setFirstResult(int)
+	 * @see jakarta.persistence.Query#setFirstResult(int)
 	 */
 	public void setFirstResultExpression(Expression firstResultExpression) {
 		this.firstResultExpression = firstResultExpression;
@@ -330,7 +330,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	/**
 	 * Set the expression that will be evaluated to get the {@code primaryKey} for
-	 * {@link javax.persistence.EntityManager#find(Class, Object)}.
+	 * {@link EntityManager#find(Class, Object)}.
 	 * @param idExpression the SpEL expression for entity {@code primaryKey}.
 	 * @since 4.0
 	 */
@@ -352,7 +352,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * Set the max number of results to retrieve from the database. Defaults to
 	 * 0, which means that all possible objects shall be retrieved.
 	 * @param maxNumberOfResults Must not be negative.
-	 * @see javax.persistence.Query#setMaxResults(int)
+	 * @see jakarta.persistence.Query#setMaxResults(int)
 	 */
 	public void setMaxNumberOfResults(int maxNumberOfResults) {
 		this.setMaxResultsExpression(new ValueExpression<>(maxNumberOfResults));

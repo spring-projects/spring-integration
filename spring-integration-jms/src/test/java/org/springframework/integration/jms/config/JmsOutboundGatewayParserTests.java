@@ -24,10 +24,10 @@ import static org.mockito.Mockito.when;
 import java.lang.reflect.Method;
 import java.util.Properties;
 
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
-import javax.jms.Queue;
-import javax.jms.Session;
+import jakarta.jms.DeliveryMode;
+import jakarta.jms.Destination;
+import jakarta.jms.Queue;
+import jakarta.jms.Session;
 
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +42,7 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
 import org.springframework.integration.support.MessageBuilder;
@@ -60,7 +61,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public class JmsOutboundGatewayParserTests {
+public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 
 	private static volatile int adviceCalled;
 

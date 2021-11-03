@@ -47,7 +47,7 @@ public class JmsInboundChannelAdapterTests extends ActiveMQMultiContextTests {
 		assertThat(out.receive(20000)).isNotNull();
 		/*
 		 *  INT-3288 - previously acknowledge="transacted"
-		 *  Caused by: javax.jms.JMSException: acknowledgeMode SESSION_TRANSACTED cannot be used for an non-transacted Session
+		 *  Caused by: jakarta.jms.JMSException: acknowledgeMode SESSION_TRANSACTED cannot be used for an non-transacted Session
 		 */
 	}
 

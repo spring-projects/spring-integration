@@ -18,9 +18,9 @@ package org.springframework.integration.jms.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.jms.Destination;
-import javax.jms.Message;
-import javax.jms.TextMessage;
+import jakarta.jms.Destination;
+import jakarta.jms.Message;
+import jakarta.jms.TextMessage;
 
 import org.junit.jupiter.api.Test;
 

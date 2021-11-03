@@ -113,7 +113,7 @@
 		store-uri="imap:test" session="testSession" channel="testChannel"
 		should-delete-messages="false" auto-startup="false" />
 
-	<bean id="testSession" class="javax.mail.Session" factory-method="getInstance">
+	<bean id="testSession" class="jakarta.mail.Session" factory-method="getInstance">
 		<constructor-arg>
 			<props>
 				<prop key="foo">bar</prop>

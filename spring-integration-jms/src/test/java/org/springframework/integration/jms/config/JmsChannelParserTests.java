@@ -20,12 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.Topic;
+import jakarta.jms.DeliveryMode;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
+import jakarta.jms.Queue;
+import jakarta.jms.Session;
+import jakarta.jms.Topic;
 
 import org.junit.jupiter.api.Test;
 
@@ -276,7 +276,7 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 	public void withPlaceholders() {
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(withPlaceholders, "container",
 				DefaultMessageListenerContainer.class);
-		assertThat(container.getDestination().toString()).isEqualTo("queue://test.queue");
+		assertThat(container.getDestination().toString()).isEqualTo("ActiveMQQueue[test.queue]");
 		assertThat(container.getConcurrentConsumers()).isEqualTo(5);
 		assertThat(container.getMaxConcurrentConsumers()).isEqualTo(25);
 	}

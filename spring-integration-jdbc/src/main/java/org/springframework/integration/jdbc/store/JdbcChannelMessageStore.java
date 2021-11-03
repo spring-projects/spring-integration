@@ -336,6 +336,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		this.usingIdCache = usingIdCache;
 	}
 
+	/**
+	 * Enable a priority handling in this store.
+	 * @param priorityEnabled the priority handling enabled or not.
+	 */
 	public void setPriorityEnabled(boolean priorityEnabled) {
 		this.priorityEnabled = priorityEnabled;
 	}
@@ -357,6 +361,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		this.messageGroupFactory = messageGroupFactory;
 	}
 
+	/**
+	 * Return the {@link MessageGroupFactory}.
+	 * @return the {@link MessageGroupFactory}
+	 */
 	protected MessageGroupFactory getMessageGroupFactory() {
 		return this.messageGroupFactory;
 	}

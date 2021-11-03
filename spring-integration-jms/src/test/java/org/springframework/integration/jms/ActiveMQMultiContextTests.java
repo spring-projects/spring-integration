@@ -16,15 +16,22 @@
 
 package org.springframework.integration.jms;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.transport.vm.VMTransport;
+import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.api.core.TransportConfiguration;
+import org.apache.activemq.artemis.core.config.Configuration;
+import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
+import org.apache.activemq.artemis.core.remoting.impl.invm.InVMAcceptorFactory;
+import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.apache.activemq.artemis.utils.ObjectInputStreamWithClassLoader;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.jms.connection.CachingConnectionFactory;
 
 /**
- * Keeps an ActiveMQ {@link VMTransport} open for the duration of
+ * Keeps an ActiveMQ open for the duration of
  * all tests (avoids cycling the transport each time the last
  * connection is closed).
  *
@@ -35,14 +42,32 @@ import org.springframework.jms.connection.CachingConnectionFactory;
  */
 public abstract class ActiveMQMultiContextTests {
 
-	public static final ActiveMQConnectionFactory amqFactory =
-			new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false&broker.useJmx=false&broker.enableStatistics=false");
+	public static final ActiveMQConnectionFactory amqFactory = new ActiveMQConnectionFactory("vm://0");
 
 	public static final CachingConnectionFactory connectionFactory = new CachingConnectionFactory(amqFactory);
 
+	private static final EmbeddedActiveMQ broker = new EmbeddedActiveMQ();
+
+	static {
+		amqFactory.setDeserializationWhiteList(ObjectInputStreamWithClassLoader.CATCH_ALL_WILDCARD);
+		amqFactory.setRetryInterval(0);
+	}
+
 	@BeforeAll
 	public static void startUp() throws Exception {
-		amqFactory.setTrustAllPackages(true);
+		Configuration configuration =
+				new ConfigurationImpl()
+						.setName("embedded-server")
+						.setPersistenceEnabled(false)
+						.setSecurityEnabled(false)
+						.setJMXManagementEnabled(false)
+						.setJournalDatasync(false)
+						.addAcceptorConfiguration(new TransportConfiguration(InVMAcceptorFactory.class.getName()))
+						.addAddressesSetting("#",
+								new AddressSettings()
+										.setDeadLetterAddress(SimpleString.toSimpleString("dla"))
+										.setExpiryAddress(SimpleString.toSimpleString("expiry")));
+		broker.setConfiguration(configuration).start();
 		connectionFactory.setCacheConsumers(false);
 	}
 
@@ -50,6 +75,7 @@ public abstract class ActiveMQMultiContextTests {
 	public static void shutDown() throws Exception {
 		connectionFactory.destroy();
 		amqFactory.createConnection().close();
+		broker.stop();
 	}
 
 }

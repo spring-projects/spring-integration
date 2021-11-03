@@ -32,11 +32,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -380,14 +380,21 @@ public class FileSplitterTests {
 		});
 		FileSplitter splitter = new FileSplitter(true, true);
 		splitter.setOutputChannel(outputChannel);
-		FileReader fileReader = Mockito.spy(new FileReader(file));
+		AtomicBoolean closeCalled = new AtomicBoolean();
+		FileReader fileReader = new FileReader(file) {
+
+			@Override public void close() throws IOException {
+				super.close();
+				closeCalled.set(true);
+			}
+		};
 		try {
 			splitter.handleMessage(new GenericMessage<>(fileReader));
 		}
 		catch (RuntimeException e) {
 			// ignore
 		}
-		Mockito.verify(fileReader).close();
+		assertThat(closeCalled.get()).isTrue();
 	}
 
 	@Configuration

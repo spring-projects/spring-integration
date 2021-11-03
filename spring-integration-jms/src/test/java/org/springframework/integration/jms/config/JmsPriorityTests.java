@@ -18,10 +18,10 @@ package org.springframework.integration.jms.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.jms.JMSException;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
 
 import org.junit.jupiter.api.Test;
 
@@ -61,8 +61,8 @@ public class JmsPriorityTests extends ActiveMQMultiContextTests {
 		channelAdapterChannel.send(message);
 		Message<?> result = channelAdapterResults.receive(5000);
 		assertThat(result).isNotNull();
-		assertThat(result.getPayload() instanceof javax.jms.Message).isTrue();
-		javax.jms.Message jmsMessage = (javax.jms.Message) result.getPayload();
+		assertThat(result.getPayload() instanceof jakarta.jms.Message).isTrue();
+		jakarta.jms.Message jmsMessage = (jakarta.jms.Message) result.getPayload();
 		assertThat(jmsMessage.getJMSPriority()).isEqualTo(3);
 	}
 
@@ -72,8 +72,8 @@ public class JmsPriorityTests extends ActiveMQMultiContextTests {
 		channelAdapterChannel.send(message);
 		Message<?> result = channelAdapterResults.receive(5000);
 		assertThat(result).isNotNull();
-		assertThat(result.getPayload() instanceof javax.jms.Message).isTrue();
-		javax.jms.Message jmsMessage = (javax.jms.Message) result.getPayload();
+		assertThat(result.getPayload() instanceof jakarta.jms.Message).isTrue();
+		jakarta.jms.Message jmsMessage = (jakarta.jms.Message) result.getPayload();
 		assertThat(jmsMessage.getJMSPriority()).isEqualTo(7);
 	}
 
@@ -98,9 +98,9 @@ public class JmsPriorityTests extends ActiveMQMultiContextTests {
 	}
 
 
-	public static class PriorityReader implements SessionAwareMessageListener<javax.jms.Message> {
+	public static class PriorityReader implements SessionAwareMessageListener<jakarta.jms.Message> {
 
-		public void onMessage(javax.jms.Message request, Session session) throws JMSException {
+		public void onMessage(jakarta.jms.Message request, Session session) throws JMSException {
 			String text = "priority=" + request.getJMSPriority();
 			TextMessage reply = session.createTextMessage(text);
 			MessageProducer producer = session.createProducer(request.getJMSReplyTo());

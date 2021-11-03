@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import javax.jms.Session;
+import jakarta.jms.Session;
 
 import org.w3c.dom.Element;
 

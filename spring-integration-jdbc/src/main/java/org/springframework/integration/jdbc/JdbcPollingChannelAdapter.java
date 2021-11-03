@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,10 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		this.rowMapper = new ColumnMapRowMapper();
 	}
 
+	/**
+	 * Set a {@link RowMapper}.
+	 * @param rowMapper the {@link RowMapper} to use.
+	 */
 	public void setRowMapper(@Nullable RowMapper<?> rowMapper) {
 		this.rowMapper = rowMapper;
 		if (rowMapper == null) {
@@ -125,14 +129,26 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		this.selectQuery = selectQuery;
 	}
 
+	/**
+	 * Set an update query.
+	 * @param updateSql the update query to use.
+	 */
 	public void setUpdateSql(String updateSql) {
 		this.updateSql = updateSql;
 	}
 
+	/**
+	 * Set a flag to update per record or not. Defaults to false.
+	 * @param updatePerRow the flag to control an update per record or whole batch.
+	 */
 	public void setUpdatePerRow(boolean updatePerRow) {
 		this.updatePerRow = updatePerRow;
 	}
 
+	/**
+	 * Set an {@link SqlParameterSourceFactory} for update query.
+	 * @param sqlParameterSourceFactory the {@link SqlParameterSourceFactory} to use.
+	 */
 	public void setUpdateSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		Assert.notNull(sqlParameterSourceFactory, "'sqlParameterSourceFactory' must be null.");
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
@@ -194,6 +210,11 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		return payload;
 	}
 
+	/**
+	 * Perform a select against provided {@link SqlParameterSource}.
+	 * @param sqlQueryParameterSource the {@link SqlParameterSource} to use. Optional.
+	 * @return the result of the query.
+	 */
 	protected List<?> doPoll(@Nullable SqlParameterSource sqlQueryParameterSource) {
 		if (sqlQueryParameterSource != null) {
 			return this.jdbcOperations.query(this.selectQuery, sqlQueryParameterSource, this.rowMapper);
@@ -207,17 +228,8 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		this.jdbcOperations.update(this.updateSql, this.sqlParameterSourceFactory.createParameterSource(obj));
 	}
 
-	private static final class PreparedStatementCreatorWithMaxRows
+	private record PreparedStatementCreatorWithMaxRows(PreparedStatementCreator delegate, int maxRows)
 			implements PreparedStatementCreator, PreparedStatementSetter, SqlProvider, ParameterDisposer {
-
-		private final PreparedStatementCreator delegate;
-
-		private final int maxRows;
-
-		private PreparedStatementCreatorWithMaxRows(PreparedStatementCreator delegate, int maxRows) {
-			this.delegate = delegate;
-			this.maxRows = maxRows;
-		}
 
 		@Override
 		public PreparedStatement createPreparedStatement(Connection con) throws SQLException {

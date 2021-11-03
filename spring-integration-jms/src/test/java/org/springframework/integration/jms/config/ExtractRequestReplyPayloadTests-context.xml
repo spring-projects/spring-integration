@@ -31,7 +31,7 @@
 
 	<int:channel id="jmsInputChannel"/>
 
-	<bean id="extractRecRepQueue" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="extractRecRepQueue" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="request.queue.req.rep"/>
 	</bean>
 

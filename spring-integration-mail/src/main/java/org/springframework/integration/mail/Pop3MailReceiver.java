@@ -16,11 +16,11 @@
 
 package org.springframework.integration.mail;
 
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.URLName;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.URLName;
+import jakarta.mail.internet.MimeMessage;
 
 import org.springframework.util.Assert;
 

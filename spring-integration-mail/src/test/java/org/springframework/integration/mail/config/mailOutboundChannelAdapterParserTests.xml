@@ -26,8 +26,8 @@
 
 	<bean id="mailSender" class="org.springframework.integration.mail.StubJavaMailSender">
 		<constructor-arg>
-			<bean class="javax.mail.internet.MimeMessage">
-				<constructor-arg type="javax.mail.Session"><null/></constructor-arg>
+			<bean class="jakarta.mail.internet.MimeMessage">
+				<constructor-arg type="jakarta.mail.Session"><null/></constructor-arg>
 			</bean>
 		</constructor-arg>
 	</bean>

@@ -18,7 +18,7 @@ package org.springframework.integration.jms.dsl;
 
 import java.util.concurrent.Executor;
 
-import javax.jms.ConnectionFactory;
+import jakarta.jms.ConnectionFactory;
 
 import org.springframework.integration.jms.AbstractJmsChannel;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;

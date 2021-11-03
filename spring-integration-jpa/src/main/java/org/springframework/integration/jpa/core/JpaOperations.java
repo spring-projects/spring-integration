@@ -148,11 +148,11 @@ public interface JpaOperations {
 	Object getSingleResultForQuery(String query, ParameterSource source);
 
 	/**
-	 * The entity to be merged with the {@link javax.persistence.EntityManager}.
+	 * The entity to be merged with the {@link jakarta.persistence.EntityManager}.
 	 * The provided object can
 	 * also be an {@link Iterable} in which case each object of the {@link Iterable}
 	 * is treated as an entity and merged with the
-	 * {@link javax.persistence.EntityManager}. {@code Null}
+	 * {@link jakarta.persistence.EntityManager}. {@code Null}
 	 * values returned while iterating over the {@link Iterable} are ignored.
 	 * @param entity Must not be null.
 	 * @return The merged managed instance of the entity.
@@ -160,16 +160,16 @@ public interface JpaOperations {
 	Object merge(Object entity);
 
 	/**
-	 * The entity to be merged with the {@link javax.persistence.EntityManager}.
+	 * The entity to be merged with the {@link jakarta.persistence.EntityManager}.
 	 * The provided object can
 	 * also be an {@link Iterable} in which case each object of the {@link Iterable}
 	 * is treated as an entity and merged with the
-	 * {@link javax.persistence.EntityManager}.
-	 * In addition the {@link javax.persistence.EntityManager#flush()} is called after the merge
+	 * {@link jakarta.persistence.EntityManager}.
+	 * In addition the {@link jakarta.persistence.EntityManager#flush()} is called after the merge
 	 * and after each batch, as it is specified using {@code flushSize} parameter and if
 	 * provided object is {@link Iterable}.
-	 * {@code clearOnFlush}parameter specifies, if the {@link javax.persistence.EntityManager#clear()}
-	 * should be called after each {@link javax.persistence.EntityManager#flush()}.
+	 * {@code clearOnFlush} parameter specifies, if the {@link jakarta.persistence.EntityManager#clear()}
+	 * should be called after each {@link jakarta.persistence.EntityManager#flush()}.
 	 * @param entity The entity.
 	 * @param flushSize The flush size.
 	 * @param clearOnFlush true to clear after flushing.
@@ -181,7 +181,7 @@ public interface JpaOperations {
 	/**
 	 * Persists the entity. The provided object can also be an {@link Iterable}
 	 * in which case each object of the {@link Iterable} is treated as an entity
-	 * and persisted with the {@link javax.persistence.EntityManager}.
+	 * and persisted with the {@link jakarta.persistence.EntityManager}.
 	 * {@code Null} values returned
 	 * while iterating over the {@link Iterable} are ignored.
 	 * @param entity Must not be null
@@ -191,14 +191,14 @@ public interface JpaOperations {
 	/**
 	 * Persists the entity. The provided object can also be an {@link Iterable}
 	 * in which case each object of the {@link Iterable} is treated as an entity
-	 * and persisted with the {@link javax.persistence.EntityManager}.
+	 * and persisted with the {@link jakarta.persistence.EntityManager}.
 	 * {@code Null} values returned
 	 * while iterating over the {@link Iterable} are ignored.
-	 * In addition the {@link javax.persistence.EntityManager#flush()} is called after the persist
+	 * In addition the {@link jakarta.persistence.EntityManager#flush()} is called after the persist
 	 * and after each batch, as it is specified using {@code flushSize} parameter and if
 	 * provided object is {@link Iterable}.
-	 * {@code clearOnFlush}parameter specifies, if the {@link javax.persistence.EntityManager#clear()}
-	 * should be called after each {@link javax.persistence.EntityManager#flush()}.
+	 * {@code clearOnFlush}parameter specifies, if the {@link jakarta.persistence.EntityManager#clear()}
+	 * should be called after each {@link jakarta.persistence.EntityManager#flush()}.
 	 * @param entity The entity.
 	 * @param flushSize The flush size.
 	 * @param clearOnFlush true to clear after flushing.
@@ -206,7 +206,7 @@ public interface JpaOperations {
 	void persist(Object entity, int flushSize, boolean clearOnFlush);
 
 	/**
-	 * Executes {@link javax.persistence.EntityManager#flush()}.
+	 * Executes {@link jakarta.persistence.EntityManager#flush()}.
 	 */
 	void flush();
 

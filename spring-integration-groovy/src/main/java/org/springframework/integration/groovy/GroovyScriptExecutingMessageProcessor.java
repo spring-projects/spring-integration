@@ -18,8 +18,6 @@ package org.springframework.integration.groovy;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -74,9 +72,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private ScriptSource scriptSource;
 
-	private GroovyClassLoader groovyClassLoader =
-			AccessController.doPrivileged((PrivilegedAction<GroovyClassLoader>)
-					() -> new GroovyClassLoader(ClassUtils.getDefaultClassLoader()));
+	private GroovyClassLoader groovyClassLoader = new GroovyClassLoader(ClassUtils.getDefaultClassLoader());
 
 	private boolean compileStatic;
 
@@ -160,9 +156,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 			compilerConfig = this.compilerConfiguration;
 		}
 
-		this.groovyClassLoader =
-				AccessController.doPrivileged((PrivilegedAction<GroovyClassLoader>)
-						() -> new GroovyClassLoader(getBeanClassLoader(), compilerConfig));
+		this.groovyClassLoader = new GroovyClassLoader(getBeanClassLoader(), compilerConfig);
 	}
 
 	@Override

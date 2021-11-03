@@ -18,11 +18,11 @@
 	</int-jms:outbound-gateway>
 
 
-	<bean id="siOutQueueOptimizedA" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siOutQueueOptimizedA" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siOutQueueOptimizedA"/>
 	</bean>
 
-	<bean id="siInQueueOptimizedA" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siInQueueOptimizedA" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siInQueueOptimizedA"/>
 	</bean>
 
@@ -38,11 +38,11 @@
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
 
-	<bean id="siOutQueueNonOptimizedB" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siOutQueueNonOptimizedB" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siOutQueueNonOptimizedB"/>
 	</bean>
 
-	<bean id="siInQueueNonOptimizedB" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siInQueueNonOptimizedB" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siInQueueNonOptimizedB"/>
 	</bean>
 
@@ -59,11 +59,11 @@
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
 
-	<bean id="siOutQueueOptimizedC" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siOutQueueOptimizedC" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siOutQueueOptimizedC"/>
 	</bean>
 
-	<bean id="siInQueueOptimizedC" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siInQueueOptimizedC" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siInQueueOptimizedC"/>
 	</bean>
 
@@ -79,11 +79,11 @@
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
 
-	<bean id="siOutQueueNonOptimizedD" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siOutQueueNonOptimizedD" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siOutQueueNonOptimizedD"/>
 	</bean>
 
-	<bean id="siInQueueNonOptimizedD" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siInQueueNonOptimizedD" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siInQueueNonOptimizedD"/>
 	</bean>
 
@@ -100,11 +100,11 @@
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
 
-	<bean id="siOutQueueE" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siOutQueueE" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siOutQueueE"/>
 	</bean>
 
-	<bean id="siInQueueE" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siInQueueE" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siInQueueE"/>
 	</bean>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jms.dsl;
 
-import javax.jms.ConnectionFactory;
+import jakarta.jms.ConnectionFactory;
 
 import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.jms.support.destination.DestinationResolver;
@@ -75,7 +75,7 @@ public abstract class JmsDestinationAccessorSpec<S extends JmsDestinationAccesso
 	 * A session acknowledgement mode.
 	 * @param sessionAcknowledgeMode the acknowledgement mode constant
 	 * @return the spec
-	 * @see javax.jms.Session#AUTO_ACKNOWLEDGE etc.
+	 * @see jakarta.jms.Session#AUTO_ACKNOWLEDGE etc.
 	 * @see JmsDestinationAccessor#setSessionAcknowledgeMode
 	 */
 	public S sessionAcknowledgeMode(int sessionAcknowledgeMode) {
@@ -85,7 +85,7 @@ public abstract class JmsDestinationAccessorSpec<S extends JmsDestinationAccesso
 
 	/**
 	 * A session acknowledgement mode name.
-	 * @param constantName the name of the {@link javax.jms.Session} acknowledge mode constant.
+	 * @param constantName the name of the {@link jakarta.jms.Session} acknowledge mode constant.
 	 * @return the spec.
 	 * @see JmsDestinationAccessor#setSessionAcknowledgeModeName
 	 */

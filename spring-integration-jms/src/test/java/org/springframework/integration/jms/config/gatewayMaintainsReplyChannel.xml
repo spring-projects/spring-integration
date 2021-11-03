@@ -62,11 +62,11 @@
 
 	<int:channel id="badOutputChannel"/>
 -->
-	<bean id="requestQueueA" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="requestQueueA" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="request.queueA"/>
 	</bean>
 
-	<bean id="replyQueueB" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="replyQueueB" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="reply.queueB"/>
 	</bean>
 

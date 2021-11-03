@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.fail;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.jms.JMSException;
+import jakarta.jms.JMSException;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -125,7 +125,7 @@ public class ExtractRequestReplyPayloadTests extends ActiveMQMultiContextTests {
 		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload()).isInstanceOf(javax.jms.TextMessage.class);
+		assertThat(replyMessage.getPayload()).isInstanceOf(jakarta.jms.TextMessage.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
@@ -189,7 +189,7 @@ public class ExtractRequestReplyPayloadTests extends ActiveMQMultiContextTests {
 		this.jmsInputChannel.subscribe(handler);
 		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload()).isInstanceOf(javax.jms.Message.class);
+		assertThat(replyMessage.getPayload()).isInstanceOf(jakarta.jms.Message.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
@@ -221,7 +221,7 @@ public class ExtractRequestReplyPayloadTests extends ActiveMQMultiContextTests {
 		this.jmsInputChannel.subscribe(handler);
 		this.outboundChannel.send(new GenericMessage<>("Hello " + testInfo.getDisplayName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload()).isInstanceOf(javax.jms.Message.class);
+		assertThat(replyMessage.getPayload()).isInstanceOf(jakarta.jms.Message.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
@@ -236,12 +236,12 @@ public class ExtractRequestReplyPayloadTests extends ActiveMQMultiContextTests {
 
 	private MessageHandler unwrapObjectMessageAndEchoHandler() {
 		return message -> {
-			assertThat(message.getPayload()).isInstanceOf(javax.jms.ObjectMessage.class);
+			assertThat(message.getPayload()).isInstanceOf(jakarta.jms.ObjectMessage.class);
 			MessagingTemplate template = new MessagingTemplate();
 			template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 			Message<?> origMessage = null;
 			try {
-				origMessage = (Message<?>) ((javax.jms.ObjectMessage) message.getPayload()).getObject();
+				origMessage = (Message<?>) ((jakarta.jms.ObjectMessage) message.getPayload()).getObject();
 			}
 			catch (JMSException e) {
 				fail("failed to deserialize message");
@@ -252,12 +252,12 @@ public class ExtractRequestReplyPayloadTests extends ActiveMQMultiContextTests {
 
 	private MessageHandler unwrapTextMessageAndEchoHandler() {
 		return message -> {
-			assertThat(message.getPayload()).isInstanceOf(javax.jms.TextMessage.class);
+			assertThat(message.getPayload()).isInstanceOf(jakarta.jms.TextMessage.class);
 			MessagingTemplate template = new MessagingTemplate();
 			template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 			String payload = null;
 			try {
-				payload = ((javax.jms.TextMessage) message.getPayload()).getText();
+				payload = ((jakarta.jms.TextMessage) message.getPayload()).getText();
 			}
 			catch (JMSException e) {
 				fail("failed to deserialize message");

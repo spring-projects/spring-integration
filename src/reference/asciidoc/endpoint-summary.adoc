@@ -156,12 +156,6 @@ The following table summarizes the various endpoints with quick links to the app
 | N
 | N
 
-| *RMI*
-| N
-| N
-| <<./rmi.adoc#rmi-inbound,Inbound RMI>>
-| <<./rmi.adoc#rmi-outbound,Outbound RMI>>
-
 | *RSocket*
 | N
 | N

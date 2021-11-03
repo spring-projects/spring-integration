@@ -15,7 +15,7 @@
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
 
-	<bean id="siOutQueue" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siOutQueue" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siOutQueueA"/>
 	</bean>
 

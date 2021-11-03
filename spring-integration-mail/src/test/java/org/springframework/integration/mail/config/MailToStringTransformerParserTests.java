@@ -19,7 +19,7 @@ package org.springframework.integration.mail.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMessage;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -49,7 +49,7 @@ class MailToStringTransformerParserTests {
 					(PollableChannel) new BeanFactoryChannelResolver(context).resolveDestination("output");
 			MimeMessage mimeMessage = Mockito.mock(MimeMessage.class);
 			Mockito.when(mimeMessage.getContent()).thenReturn("hello");
-			input.send(new GenericMessage<javax.mail.Message>(mimeMessage));
+			input.send(new GenericMessage<jakarta.mail.Message>(mimeMessage));
 			Message<?> result = output.receive(10_000);
 			assertThat(result).isNotNull();
 			assertThat(result.getPayload()).isEqualTo("hello");
@@ -67,7 +67,7 @@ class MailToStringTransformerParserTests {
 					(PollableChannel) new BeanFactoryChannelResolver(context).resolveDestination("output");
 			MimeMessage mimeMessage = Mockito.mock(MimeMessage.class);
 			Mockito.when(mimeMessage.getContent()).thenReturn("foo");
-			input.send(new GenericMessage<javax.mail.Message>(mimeMessage));
+			input.send(new GenericMessage<jakarta.mail.Message>(mimeMessage));
 			Message<?> result = output.receive(0);
 			assertThat(result).isNotNull();
 			assertThat(result.getPayload()).isEqualTo("FOO!!!");

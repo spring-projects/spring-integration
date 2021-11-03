@@ -16,7 +16,7 @@
 		request-destination="explicitCorrelationJmsOut"
 		correlation-key="bar"/>
 
-	<bean id="explicitCorrelationJmsOut" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="explicitCorrelationJmsOut" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="explicitCorrelationJmsOut"/>
 	</bean>
 
@@ -36,7 +36,7 @@
 		request-destination="explicitCorrelationJmsOutB"
 		correlation-key="JMSCorrelationID"/>
 
-	<bean id="explicitCorrelationJmsOutB" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="explicitCorrelationJmsOutB" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="explicitCorrelationJmsOutB"/>
 	</bean>
 
@@ -56,7 +56,7 @@
 		request-destination="existingCorrelationJmsOutB"
 		correlation-key="JMSCorrelationID*"/>
 
-	<bean id="existingCorrelationJmsOutB" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="existingCorrelationJmsOutB" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="existingCorrelationJmsOutB"/>
 	</bean>
 
@@ -83,7 +83,7 @@
 		correlation-key="foo"
 		receive-timeout="100"/>
 
-	<bean id="explicitCorrelationJmsOutC" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="explicitCorrelationJmsOutC" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="explicitCorrelationJmsOutC"/>
 	</bean>
 

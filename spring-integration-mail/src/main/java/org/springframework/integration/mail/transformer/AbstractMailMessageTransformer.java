@@ -67,11 +67,11 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer,
 	@Override
 	public Message<?> transform(Message<?> message) {
 		Object payload = message.getPayload();
-		if (!(payload instanceof javax.mail.Message)) {
+		if (!(payload instanceof jakarta.mail.Message)) {
 			throw new MessageTransformationException(message, getClass().getSimpleName()
-					+ " requires a javax.mail.Message payload");
+					+ " requires a jakarta.mail.Message payload");
 		}
-		javax.mail.Message mailMessage = (javax.mail.Message) payload;
+		jakarta.mail.Message mailMessage = (jakarta.mail.Message) payload;
 		AbstractIntegrationMessageBuilder<T> builder;
 		try {
 			builder = this.doTransform(mailMessage);
@@ -86,11 +86,11 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer,
 		return builder.build();
 	}
 
-	protected abstract AbstractIntegrationMessageBuilder<T> doTransform(javax.mail.Message mailMessage)
+	protected abstract AbstractIntegrationMessageBuilder<T> doTransform(jakarta.mail.Message mailMessage)
 			throws Exception; // NOSONAR
 
 
-	private static Map<String, Object> extractHeaderMapFromMailMessage(javax.mail.Message mailMessage) {
+	private static Map<String, Object> extractHeaderMapFromMailMessage(jakarta.mail.Message mailMessage) {
 		return MailUtils.extractStandardHeaders(mailMessage);
 	}
 

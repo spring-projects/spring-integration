@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jms;
 
-import javax.jms.MessageListener;
+import jakarta.jms.MessageListener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -213,7 +213,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 
 
 		@Override
-		public void onMessage(javax.jms.Message message) {
+		public void onMessage(jakarta.jms.Message message) {
 			Message<?> messageToSend = null;
 			try {
 				MessageConverter converter = this.jmsTemplate.getMessageConverter();

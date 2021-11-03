@@ -18,7 +18,7 @@ package org.springframework.integration.jms.dsl;
 
 import java.util.function.Consumer;
 
-import javax.jms.Destination;
+import jakarta.jms.Destination;
 
 import org.springframework.integration.dsl.MessagingGatewaySpec;
 import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;

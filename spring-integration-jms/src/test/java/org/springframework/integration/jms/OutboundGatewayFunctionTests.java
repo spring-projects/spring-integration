@@ -26,10 +26,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.jms.Destination;
-import javax.jms.JMSException;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
 
-import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -105,9 +105,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
-		javax.jms.Message request = template.receive(requestQueue1);
+		jakarta.jms.Message request = template.receive(requestQueue1);
 		assertThat(request).isNotNull();
-		final javax.jms.Message jmsReply = request;
+		final jakarta.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> jmsReply);
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reply.get()).isNotNull();
@@ -150,9 +150,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
-		javax.jms.Message request = template.receive(requestQueue2);
+		jakarta.jms.Message request = template.receive(requestQueue2);
 		assertThat(request).isNotNull();
-		final javax.jms.Message jmsReply = request;
+		final jakarta.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> {
 			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 			return jmsReply;
@@ -199,9 +199,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
-		javax.jms.Message request = template.receive(requestQueue3);
+		jakarta.jms.Message request = template.receive(requestQueue3);
 		assertThat(request).isNotNull();
-		final javax.jms.Message jmsReply = request;
+		final jakarta.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> jmsReply);
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reply.get()).isNotNull();
@@ -244,9 +244,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
-		javax.jms.Message request = template.receive(requestQueue4);
+		jakarta.jms.Message request = template.receive(requestQueue4);
 		assertThat(request).isNotNull();
-		final javax.jms.Message jmsReply = request;
+		final jakarta.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> {
 			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 			return jmsReply;
@@ -293,9 +293,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
-		javax.jms.Message request = template.receive(requestQueue5);
+		jakarta.jms.Message request = template.receive(requestQueue5);
 		assertThat(request).isNotNull();
-		final javax.jms.Message jmsReply = request;
+		final jakarta.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> jmsReply);
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reply.get()).isNotNull();
@@ -337,9 +337,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
-		javax.jms.Message request = template.receive(requestQueue6);
+		jakarta.jms.Message request = template.receive(requestQueue6);
 		assertThat(request).isNotNull();
-		final javax.jms.Message jmsReply = request;
+		final jakarta.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> {
 			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 			return jmsReply;
@@ -399,8 +399,8 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 	}
 
 	private void receiveAndSend(JmsTemplate template) {
-		javax.jms.Message request = template.receive(requestQueue7);
-		final javax.jms.Message jmsReply = request;
+		jakarta.jms.Message request = template.receive(requestQueue7);
+		final jakarta.jms.Message jmsReply = request;
 		try {
 			template.send(request.getJMSReplyTo(), session -> jmsReply);
 		}

@@ -89,8 +89,7 @@ public class MqttOutboundChannelAdapterParserTests {
 
 		assertThat(this.withConverterHandler).isSameAs(((Advised) handler).getTargetSource().getTarget());
 
-		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"))
-				.isInstanceOf(RequestHandlerRetryAdvice.class);
+		assertThat(((Advised) handler).getAdvisors()[0].getAdvice()).isInstanceOf(RequestHandlerRetryAdvice.class);
 	}
 
 	@Test

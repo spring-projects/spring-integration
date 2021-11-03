@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -130,7 +130,7 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 	}
 
 	@Override
-	public void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
+	public void fromHeaders(MessageHeaders headers, jakarta.jms.Message jmsMessage) {
 		try {
 			populateCorrelationIdPropertyFromHeaders(headers, jmsMessage);
 			populateReplyToPropertyFromHeaders(headers, jmsMessage);
@@ -155,7 +155,7 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 		}
 	}
 
-	private void populateCorrelationIdPropertyFromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
+	private void populateCorrelationIdPropertyFromHeaders(MessageHeaders headers, jakarta.jms.Message jmsMessage) {
 		Object jmsCorrelationId = headers.get(JmsHeaders.CORRELATION_ID);
 		if (jmsCorrelationId instanceof Number) {
 			jmsCorrelationId = jmsCorrelationId.toString();
@@ -170,7 +170,7 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 		}
 	}
 
-	private void populateReplyToPropertyFromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
+	private void populateReplyToPropertyFromHeaders(MessageHeaders headers, jakarta.jms.Message jmsMessage) {
 		Object jmsReplyTo = headers.get(JmsHeaders.REPLY_TO);
 		if (jmsReplyTo instanceof Destination) {
 			try {
@@ -182,7 +182,7 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 		}
 	}
 
-	private void populateTypePropertyFromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
+	private void populateTypePropertyFromHeaders(MessageHeaders headers, jakarta.jms.Message jmsMessage) {
 		Object jmsType = headers.get(JmsHeaders.TYPE);
 		if (jmsType instanceof String) {
 			try {
@@ -194,7 +194,7 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 		}
 	}
 
-	private void populateArbitraryHeaderToProperty(javax.jms.Message jmsMessage, String headerName, Object value)
+	private void populateArbitraryHeaderToProperty(jakarta.jms.Message jmsMessage, String headerName, Object value)
 			throws JMSException {
 
 		if (SUPPORTED_PROPERTY_TYPES.contains(value.getClass())) {
@@ -222,7 +222,7 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 	}
 
 	@Override
-	public Map<String, Object> toHeaders(javax.jms.Message jmsMessage) {
+	public Map<String, Object> toHeaders(jakarta.jms.Message jmsMessage) {
 		Map<String, Object> headers = new HashMap<>();
 		try {
 			mapMessageIdProperty(jmsMessage, headers);

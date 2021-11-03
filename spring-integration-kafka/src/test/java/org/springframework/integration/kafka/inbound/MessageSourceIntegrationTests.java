@@ -29,6 +29,8 @@ import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -46,6 +48,7 @@ import org.springframework.messaging.Message;
  * @since 5.4
  *
  */
+@DisabledOnOs(OS.WINDOWS)
 class MessageSourceIntegrationTests {
 
 	private static final String TOPIC1 = "MessageSourceIntegrationTests1";

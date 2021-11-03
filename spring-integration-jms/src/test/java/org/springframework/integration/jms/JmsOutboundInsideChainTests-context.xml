@@ -38,11 +38,11 @@
 		<int:service-activator expression="@jmsRequiresReplyFlag.getAndIncrement() % 2 == 0 ? payload : null"/>
 	</int:chain>
 
-	<bean id="testQueue" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="testQueue" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="test.queue"/>
 	</bean>
 
-	<bean id="testQueue2" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="testQueue2" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="test.queue2"/>
 	</bean>
 

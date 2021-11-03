@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
 
 import org.aopalliance.aop.Advice;
 
@@ -50,7 +50,7 @@ import org.springframework.util.CollectionUtils;
  * An event-driven Channel Adapter that receives mail messages from a mail
  * server that supports the IMAP "idle" command (see RFC 2177). Received mail
  * messages will be converted and sent as Spring Integration Messages to the
- * output channel. The Message payload will be the {@link javax.mail.Message}
+ * output channel. The Message payload will be the {@link jakarta.mail.Message}
  * instance that was received.
  *
  * @author Arjen Poutsma
@@ -116,7 +116,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	/**
 	 * Specify whether the IDLE task should reconnect automatically after
-	 * catching a {@link javax.mail.FolderClosedException} while waiting for messages. The
+	 * catching a {@link jakarta.mail.FolderClosedException} while waiting for messages. The
 	 * default value is <code>true</code>.
 	 * @param shouldReconnectAutomatically true to reconnect.
 	 */

@@ -19,7 +19,7 @@ package org.springframework.integration.mail.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import javax.mail.Authenticator;
+import jakarta.mail.Authenticator;
 
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXParseException;

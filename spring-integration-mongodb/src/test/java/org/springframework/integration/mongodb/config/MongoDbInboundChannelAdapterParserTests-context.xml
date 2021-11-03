@@ -8,7 +8,8 @@
 		http://www.springframework.org/schema/integration/mongodb https://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
 
 	<bean id="mongoDbFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.mongodb.MongoDbFactory"/>
+		<constructor-arg value="org.springframework.data.mongodb.MongoDatabaseFactory"/>
+		<constructor-arg value="#{T(org.mockito.Answers).RETURNS_MOCKS}"/>
 	</bean>
 
 	<int-mongodb:inbound-channel-adapter id="minimalConfig"

@@ -24,7 +24,7 @@ compile "org.springframework.integration:spring-integration-http:{project-versio
 ----
 ====
 
-The `javax.servlet:javax.servlet-api` dependency must be provided on the target Servlet container.
+The `jakarta.servlet:jakarta.servlet-api` dependency must be provided on the target Servlet container.
 
 [[http-inbound]]
 === Http Inbound Components
@@ -478,7 +478,7 @@ Since Spring Integration 3.0, in addition to the existing `#pathVariables` and `
 Note that `#matrixVariables` requires Spring MVC 3.2 or higher.
 * `#requestAttributes`: The `org.springframework.web.context.request.RequestAttributes` associated with the current request.
 * `#requestHeaders`: The `org.springframework.http.HttpHeaders` object from the current request.
-* `#cookies`: The `Map<String, Cookie>` of `javax.servlet.http.Cookie` instances from the current request.
+* `#cookies`: The `MultiValueMap<String, Cookie>` of `jakarta.servlet.http.Cookie` instances from the current request.
 
 Note that all these values (and others) can be accessed within expressions in the downstream message flow through the `ThreadLocal` `org.springframework.web.context.request.RequestAttributes` variable, if that message flow is single-threaded and lives within the request thread.
 The following example configures a transformer that uses an `expression` attribute:

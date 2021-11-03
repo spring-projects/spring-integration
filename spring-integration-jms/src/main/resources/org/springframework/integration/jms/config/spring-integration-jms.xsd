@@ -156,7 +156,7 @@
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="javax.jms.ConnectionFactory"/>
+						<tool:expected-type type="jakarta.jms.ConnectionFactory"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -377,13 +377,13 @@
 					<xsd:attribute name="destination" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								A reference to a javax.jms.Destination by bean name. As an alternative to a bean
+								A reference to a jakarta.jms.Destination by bean name. As an alternative to a bean
 								reference, use 'destination-name' and 'pub-sub-domain' which will rely upon the
 								DestinationResolver strategy (DynamicDestinationResolver by default).
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="javax.jms.Destination"/>
+									<tool:expected-type type="jakarta.jms.Destination"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -544,13 +544,13 @@
 					<xsd:attribute name="destination" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								A reference to a javax.jms.Destination by bean name. As an alternative to a bean
+								A reference to a jakarta.jms.Destination by bean name. As an alternative to a bean
 								reference, use 'destination-name' and 'pub-sub-domain' which will rely upon the
 								DestinationResolver strategy (DynamicDestinationResolver by default).
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="javax.jms.Destination"/>
+									<tool:expected-type type="jakarta.jms.Destination"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -620,13 +620,13 @@
 					<xsd:attribute name="request-destination" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								A reference to a javax.jms.Destination by bean name. As an alternative to a bean
+								A reference to a jakarta.jms.Destination by bean name. As an alternative to a bean
 								reference, use 'request-destination-name' and 'request-pub-sub-domain' which will rely
 								upon the DestinationResolver strategy (DynamicDestinationResolver by default).
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="javax.jms.Destination"/>
+									<tool:expected-type type="jakarta.jms.Destination"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -636,13 +636,13 @@
 					<xsd:attribute name="default-reply-destination" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								A reference to a javax.jms.Destination by bean name. As an alternative to a bean
+								A reference to a jakarta.jms.Destination by bean name. As an alternative to a bean
 								reference, use either 'default-reply-queue-name' or 'default-reply-topic-name' which
 								will rely upon the DestinationResolver strategy (DynamicDestinationResolver by default).
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="javax.jms.Destination"/>
+									<tool:expected-type type="jakarta.jms.Destination"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -900,7 +900,7 @@
 			<xsd:attribute name="request-destination" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						A reference to a javax.jms.Destination by bean name. As an alternative to a bean
+						A reference to a jakarta.jms.Destination by bean name. As an alternative to a bean
 						reference, use 'request-destination-name' and 'request-pub-sub-domain' which will rely
 						upon the DestinationResolver strategy (DynamicDestinationResolver by default). This
 						attribute is mutually exclusive with 'request-destination-name' and
@@ -908,7 +908,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="javax.jms.Destination"/>
+							<tool:expected-type type="jakarta.jms.Destination"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -947,7 +947,7 @@
 			<xsd:attribute name="reply-destination" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						A reference to a javax.jms.Destination by bean name. As an alternative to a bean
+						A reference to a jakarta.jms.Destination by bean name. As an alternative to a bean
 						reference, use 'reply-destination-name' and 'reply-pub-sub-domain' which will rely
 						upon the DestinationResolver strategy (DynamicDestinationResolver by default).
 						This attribute is mutually exclusive with
@@ -955,7 +955,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="javax.jms.Destination"/>
+							<tool:expected-type type="jakarta.jms.Destination"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -1032,7 +1032,7 @@
 				]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="javax.jms.ConnectionFactory"/>
+							<tool:expected-type type="jakarta.jms.ConnectionFactory"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -1178,14 +1178,14 @@
 					<xsd:attribute name="destination" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								A reference to a javax.jms.Destination by bean name. As an alternative to a bean
+								A reference to a jakarta.jms.Destination by bean name. As an alternative to a bean
 								reference, use 'destination-name' and 'pub-sub-domain' which will rely upon the
 								DestinationResolver strategy (DynamicDestinationResolver by default). This attribute
 								is mutually exclusive with 'destination-name' and 'destination-expression'.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="javax.jms.Destination"/>
+									<tool:expected-type type="jakarta.jms.Destination"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -1491,7 +1491,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="javax.jms.ConnectionFactory"/>
+						<tool:expected-type type="jakarta.jms.ConnectionFactory"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

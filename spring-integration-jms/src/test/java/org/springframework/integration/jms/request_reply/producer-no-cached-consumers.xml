@@ -20,11 +20,11 @@
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
 
-	<bean id="siOutQueueA" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siOutQueueA" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siOutQueueA.not.cached"/>
 	</bean>
 
-	<bean id="siInQueueA" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siInQueueA" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siInQueueA.not.cached"/>
 	</bean>
 
@@ -40,11 +40,11 @@
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
 
-	<bean id="siOutQueueB" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siOutQueueB" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siOutQueueB.not.cached"/>
 	</bean>
 
-	<bean id="siInQueueB" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siInQueueB" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siInQueueB.not.cached"/>
 	</bean>
 
@@ -61,11 +61,11 @@
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
 
-	<bean id="siOutQueueC" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siOutQueueC" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siOutQueueC.not.cached"/>
 	</bean>
 
-	<bean id="siInQueueC" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siInQueueC" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siInQueueC.not.cached"/>
 	</bean>
 
@@ -81,11 +81,11 @@
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
 
-	<bean id="siOutQueueD" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siOutQueueD" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siOutQueueD.not.cached"/>
 	</bean>
 
-	<bean id="siInQueueD" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="siInQueueD" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="siInQueueD.not.cached"/>
 	</bean>
 

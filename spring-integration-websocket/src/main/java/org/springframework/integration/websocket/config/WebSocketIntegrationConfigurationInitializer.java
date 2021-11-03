@@ -49,7 +49,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 
 	private static final Log LOGGER = LogFactory.getLog(WebSocketIntegrationConfigurationInitializer.class);
 
-	private static final boolean SERVLET_PRESENT = ClassUtils.isPresent("javax.servlet.Servlet", null);
+	private static final boolean SERVLET_PRESENT = ClassUtils.isPresent("jakarta.servlet.Servlet", null);
 
 	private static final String WEB_SOCKET_HANDLER_MAPPING_BEAN_NAME = "integrationWebSocketHandlerMapping";
 
@@ -68,7 +68,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 	 * Register a {@link WebSocketHandlerMappingFactoryBean} which could also be overridden
 	 * by the user by simply using {@link org.springframework.web.socket.config.annotation.EnableWebSocket}
 	 * <p>
-	 * In addition, checks if the {@code javax.servlet.Servlet} class is present on the classpath.
+	 * In addition, checks if the {@code jakarta.servlet.Servlet} class is present on the classpath.
 	 * When Spring Integration WebSocket support is used only as a WebSocket client,
 	 * there is no reason to use and register the Spring WebSocket server components.
 	 * <p>

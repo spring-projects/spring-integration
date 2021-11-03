@@ -19,7 +19,10 @@ package org.springframework.integration.stomp.client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
+import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -64,21 +67,26 @@ import org.springframework.util.SocketUtils;
  */
 public class StompServerIntegrationTests {
 
-	private static BrokerService activeMQBroker;
+	private static final EmbeddedActiveMQ broker = new EmbeddedActiveMQ();
 
 	private static ReactorNettyTcpStompClient stompClient;
 
 	@BeforeAll
 	public static void setup() throws Exception {
 		int port = SocketUtils.findAvailableTcpPort(61613);
-		activeMQBroker = new BrokerService();
-		activeMQBroker.addConnector("stomp://127.0.0.1:" + port);
-		activeMQBroker.setPersistent(false);
-		activeMQBroker.setUseJmx(false);
-		activeMQBroker.setEnableStatistics(false);
-		activeMQBroker.getSystemUsage().getMemoryUsage().setLimit(1024 * 1024 * 5);
-		activeMQBroker.getSystemUsage().getTempUsage().setLimit(1024 * 1024 * 5);
-		activeMQBroker.start();
+		ConfigurationImpl configuration =
+				new ConfigurationImpl()
+						.setName("embedded-server")
+						.setPersistenceEnabled(false)
+						.setSecurityEnabled(false)
+						.setJMXManagementEnabled(false)
+						.setJournalDatasync(false)
+						.addAcceptorConfiguration("stomp", "tcp://127.0.0.1:" + port)
+						.addAddressesSetting("#",
+								new AddressSettings()
+										.setDeadLetterAddress(SimpleString.toSimpleString("dla"))
+										.setExpiryAddress(SimpleString.toSimpleString("expiry")));
+		broker.setConfiguration(configuration).start();
 
 		stompClient = new ReactorNettyTcpStompClient("127.0.0.1", port);
 		stompClient.setMessageConverter(new PassThruMessageConverter());
@@ -91,7 +99,7 @@ public class StompServerIntegrationTests {
 	@AfterAll
 	public static void teardown() throws Exception {
 		stompClient.shutdown();
-		activeMQBroker.stop();
+		broker.stop();
 	}
 
 	@Test
@@ -191,7 +199,7 @@ public class StompServerIntegrationTests {
 		assertThat(receive24).isNotNull();
 		assertThat((byte[]) receive24.getPayload()).isEqualTo("???".getBytes());
 
-		activeMQBroker.stop();
+		broker.stop();
 
 		n = 0;
 		do {
@@ -205,7 +213,7 @@ public class StompServerIntegrationTests {
 				.isThrownBy(() -> stompOutputChannel1.send(new GenericMessage<>("foo".getBytes())))
 				.withMessageContaining("could not deliver message");
 
-		activeMQBroker.start(false);
+		broker.start();
 
 		n = 0;
 		do {

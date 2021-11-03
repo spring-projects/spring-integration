@@ -19,7 +19,7 @@
 		<int:queue/>
 	</int:channel>
 
-	<bean id="requestQueue" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="requestQueue" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="request.queue."/>
 	</bean>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,15 +30,13 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  *
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class BeanPropertySqlParameterSourceFactory implements SqlParameterSourceFactory {
 
-	private volatile Map<String, Object> staticParameters;
-
-	public BeanPropertySqlParameterSourceFactory() {
-		this.staticParameters = Collections.unmodifiableMap(new HashMap<String, Object>());
-	}
+	private Map<String, Object> staticParameters = Collections.unmodifiableMap(new HashMap<>());
 
 	/**
 	 * If the input is a List or a Map, the output is a map parameter source, and in that case some static parameters

@@ -65,8 +65,6 @@ include::./redis.adoc[]
 
 include::./resource.adoc[]
 
-include::./rmi.adoc[]
-
 include::./rsocket.adoc[]
 
 include::./sftp.adoc[]

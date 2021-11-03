@@ -42,7 +42,6 @@ This documentation is also available as single searchable link:index-single.html
 <<./r2dbc.adoc#r2dbc,R2DBC Support>> ::
 <<./redis.adoc#redis,Redis Support>> ::
 <<./resource.adoc#resource,Resource Support>> ::
-<<./rmi.adoc#rmi,RMI Support>> ::
 <<./rsocket.adoc#rsocket,RSocket Support>> ::
 <<./sftp.adoc#sftp,SFTP Adapters>> ::
 <<./stomp.adoc#stomp,STOMP Support>> ::

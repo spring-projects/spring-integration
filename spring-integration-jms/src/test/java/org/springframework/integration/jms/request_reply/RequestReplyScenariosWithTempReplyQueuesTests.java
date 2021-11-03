@@ -26,15 +26,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageProducer;
-import javax.jms.TextMessage;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.TextMessage;
 
-import org.apache.activemq.broker.BrokerService;
-import org.apache.activemq.command.ActiveMQDestination;
+import org.apache.activemq.artemis.core.config.Configuration;
+import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
+import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.activemq.artemis.jms.client.ActiveMQDestination;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
@@ -167,12 +169,15 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 	 */
 	@Test
 	public void brokenBrokerTest() throws Exception {
-		BrokerService broker = new BrokerService();
-		broker.setPersistent(false);
-		broker.setUseJmx(false);
-		broker.setTransportConnectorURIs(new String[]{ "tcp://localhost:61623" });
-		broker.setDeleteAllMessagesOnStartup(true);
-		broker.start();
+		Configuration configuration =
+				new ConfigurationImpl()
+						.addAcceptorConfiguration("jms", "tcp://localhost:61623")
+						.setPersistenceEnabled(false)
+						.setSecurityEnabled(false)
+						.setJMXManagementEnabled(false)
+						.setJournalDatasync(false);
+
+		EmbeddedActiveMQ broker = new EmbeddedActiveMQ().setConfiguration(configuration).start();
 
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("broken-broker.xml", this.getClass());
@@ -194,7 +199,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 				Object replyDestination = TestUtils
 						.getPropertyValue(context.getBean("jog"), "handler.replyDestination");
 				if (replyDestination != null) {
-					broker.removeDestination((ActiveMQDestination) replyDestination);
+					broker.getActiveMQServer().destroyQueue(((ActiveMQDestination) replyDestination).getSimpleAddress());
 				}
 			}
 		}

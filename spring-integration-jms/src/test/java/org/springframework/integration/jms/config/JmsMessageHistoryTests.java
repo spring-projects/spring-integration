@@ -93,7 +93,7 @@ public class JmsMessageHistoryTests extends ActiveMQMultiContextTests {
 
 	public static class SampleHeaderMapper extends DefaultJmsHeaderMapper {
 
-		public void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
+		public void fromHeaders(MessageHeaders headers, jakarta.jms.Message jmsMessage) {
 			super.fromHeaders(headers, jmsMessage);
 			String messageHistory = headers.get(MessageHistory.HEADER_NAME, MessageHistory.class).toString();
 			try {
@@ -104,7 +104,7 @@ public class JmsMessageHistoryTests extends ActiveMQMultiContextTests {
 			}
 		}
 
-		public Map<String, Object> toHeaders(javax.jms.Message jmsMessage) {
+		public Map<String, Object> toHeaders(jakarta.jms.Message jmsMessage) {
 			Map<String, Object> headers = super.toHeaders(jmsMessage);
 			List<Properties> history = new ArrayList<Properties>();
 			String outboundHistory = (String) headers.get("outbound_history");

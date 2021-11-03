@@ -61,12 +61,19 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 
 	private OutboundMessageMapper<Notification> notificationMapper;
 
-
+	/**
+	 * Construct an instance based on the provided object name.
+	 * @param objectName the {@link ObjectName} to use for notification.
+	 */
 	public NotificationPublishingMessageHandler(ObjectName objectName) {
 		Assert.notNull(objectName, "JMX ObjectName is required");
 		this.objectName = objectName;
 	}
 
+	/**
+	 * Construct an instance based on the provided object name.
+	 * @param objectName the object name to use for notification.
+	 */
 	public NotificationPublishingMessageHandler(String objectName) {
 		Assert.notNull(objectName, "JMX ObjectName is required");
 		try {

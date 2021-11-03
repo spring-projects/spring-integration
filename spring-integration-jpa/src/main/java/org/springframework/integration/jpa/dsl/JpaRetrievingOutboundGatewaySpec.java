@@ -81,7 +81,7 @@ public class JpaRetrievingOutboundGatewaySpec extends JpaBaseOutboundEndpointSpe
 
 	/**
 	 * Specify a SpEL expression that will be evaluated to get the {@code primaryKey} for
-	 * {@link javax.persistence.EntityManager#find(Class, Object)}.
+	 * {@link jakarta.persistence.EntityManager#find(Class, Object)}.
 	 * @param idExpression the SpEL expression for entity {@code primaryKey}.
 	 * @return the spec
 	 */
@@ -91,7 +91,7 @@ public class JpaRetrievingOutboundGatewaySpec extends JpaBaseOutboundEndpointSpe
 
 	/**
 	 * Specify a SpEL expression that will be evaluated to get the {@code primaryKey} for
-	 * {@link javax.persistence.EntityManager#find(Class, Object)}.
+	 * {@link jakarta.persistence.EntityManager#find(Class, Object)}.
 	 * @param idExpression the SpEL expression for entity {@code primaryKey}.
 	 * @return the spec
 	 */
@@ -162,7 +162,7 @@ public class JpaRetrievingOutboundGatewaySpec extends JpaBaseOutboundEndpointSpe
 	}
 
 	/**
-	 * If set to {@code true} the {@link javax.persistence.EntityManager#flush()} will be called
+	 * If set to {@code true} the {@link jakarta.persistence.EntityManager#flush()} will be called
 	 * after persistence operation.
 	 * Has the same effect, if the {@code flushSize} is specified to {@code 1}.
 	 * For convenience in cases when the provided entity to persist is not an instance of {@link Iterable}.

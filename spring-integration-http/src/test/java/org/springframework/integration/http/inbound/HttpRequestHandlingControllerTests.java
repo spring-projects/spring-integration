@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
@@ -330,7 +330,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				try {
 					latch2.countDown();
-					// hold up an active thread so we can verify the count and that it completes ok
+					// hold up an active thread, so we can verify the count and that it completes ok
 					latch1.await(10, TimeUnit.SECONDS);
 				}
 				catch (InterruptedException e) {
@@ -407,7 +407,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		controller.setViewName("foo");
 		controller.setReplyKey("cookiesReply");
 		controller.setExtractReplyPayload(true);
-		controller.setPayloadExpression(new SpelExpressionParser().parseExpression("#cookies['c1']?.value"));
+		controller.setPayloadExpression(new SpelExpressionParser().parseExpression("#cookies['c1'][0].value"));
 		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.afterPropertiesSet();
 		controller.start();

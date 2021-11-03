@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
-import javax.jms.InvalidDestinationException;
-import javax.jms.JMSException;
-import javax.jms.Session;
+import jakarta.jms.InvalidDestinationException;
+import jakarta.jms.JMSException;
+import jakarta.jms.Session;
 
 import org.junit.jupiter.api.Test;
 
@@ -62,7 +62,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 		listener.setExpectReply(true);
 		listener.setRequestChannel(requestChannel);
 		listener.setMessageConverter(new TestMessageConverter());
-		javax.jms.Message jmsMessage = session.createTextMessage("test");
+		jakarta.jms.Message jmsMessage = session.createTextMessage("test");
 		listener.setBeanFactory(mock(BeanFactory.class));
 		listener.afterPropertiesSet();
 		assertThatExceptionOfType(InvalidDestinationException.class)
@@ -83,13 +83,13 @@ public class ChannelPublishingJmsMessageListenerTests {
 		listener.setMessageConverter(new TestMessageConverter() {
 
 			@Override
-			public Object fromMessage(javax.jms.Message message) throws MessageConversionException {
+			public Object fromMessage(jakarta.jms.Message message) throws MessageConversionException {
 				return null;
 			}
 
 		});
 		listener.afterPropertiesSet();
-		javax.jms.Message jmsMessage = session.createTextMessage("test");
+		jakarta.jms.Message jmsMessage = session.createTextMessage("test");
 		listener.onMessage(jmsMessage, mock(Session.class));
 		ErrorMessage received = (ErrorMessage) errorChannel.receive(0);
 		assertThat(received).isNotNull();
@@ -108,12 +108,12 @@ public class ChannelPublishingJmsMessageListenerTests {
 	private static class TestMessageConverter implements MessageConverter {
 
 		@Override
-		public Object fromMessage(javax.jms.Message message) throws MessageConversionException {
+		public Object fromMessage(jakarta.jms.Message message) throws MessageConversionException {
 			return "test-from";
 		}
 
 		@Override
-		public javax.jms.Message toMessage(Object object, Session session) throws MessageConversionException {
+		public jakarta.jms.Message toMessage(Object object, Session session) throws MessageConversionException {
 			return new StubTextMessage("test-to");
 		}
 

@@ -28,18 +28,18 @@ import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.mail.Authenticator;
-import javax.mail.FetchProfile;
-import javax.mail.Flags;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.Part;
-import javax.mail.Session;
-import javax.mail.Store;
-import javax.mail.URLName;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Authenticator;
+import jakarta.mail.FetchProfile;
+import jakarta.mail.Flags;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
+import jakarta.mail.Part;
+import jakarta.mail.Session;
+import jakarta.mail.Store;
+import jakarta.mail.URLName;
+import jakarta.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.Expression;
@@ -359,7 +359,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	@Override
-	public Object[] receive() throws javax.mail.MessagingException {
+	public Object[] receive() throws jakarta.mail.MessagingException {
 		this.folderReadLock.lock(); // NOSONAR - guarded with the getReadHoldCount()
 		try {
 			try {
@@ -574,7 +574,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	/**
 	 * Fetches the specified messages from this receiver's folder. Default
 	 * implementation {@link Folder#fetch(Message[], FetchProfile) fetches}
-	 * every {@link javax.mail.FetchProfile.Item}.
+	 * every {@link jakarta.mail.FetchProfile.Item}.
 	 * @param messages the messages to fetch
 	 * @throws MessagingException in case of JavaMail errors
 	 */

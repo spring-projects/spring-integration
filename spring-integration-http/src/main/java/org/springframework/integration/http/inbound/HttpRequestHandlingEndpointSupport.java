@@ -22,9 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.Source;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -386,8 +387,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			for (Cookie requestCookie : requestCookies) {
 				cookies.add(requestCookie.getName(), requestCookie);
 			}
-			// TODO no toSingleValueMap() in the next major version
-			evaluationContext.setVariable("cookies", cookies.toSingleValueMap());
+			evaluationContext.setVariable("cookies", cookies);
 		}
 
 		Map<?, ?> pathVariables =

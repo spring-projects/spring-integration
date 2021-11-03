@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,10 @@ import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +37,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -50,11 +48,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.2
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext
 public class JpaOutboundChannelAdapterTests {
 
@@ -70,13 +68,13 @@ public class JpaOutboundChannelAdapterTests {
 	@Autowired
 	private MessageChannel jpaOutboundChannelAdapterWithinChain;
 
-	@Before
+	@BeforeEach
 	public void cleanUp() {
 		this.jdbcTemplate.execute("delete from Student where rollNumber > 1003 or rollNumber < 1001");
 	}
 
 	@Test
-	public void saveEntityWithMerge() throws InterruptedException {
+	public void saveEntityWithMerge() {
 
 		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
 		assertThat(results1).isNotNull();

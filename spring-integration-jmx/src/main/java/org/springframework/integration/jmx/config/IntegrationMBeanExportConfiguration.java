@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportAware;
-import org.springframework.context.annotation.MBeanExportConfiguration.SpecificPlatform;
 import org.springframework.context.annotation.Role;
 import org.springframework.context.expression.StandardBeanExpressionResolver;
 import org.springframework.core.annotation.AnnotationAttributes;
@@ -130,12 +129,6 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 				bean = this.beanFactory.getBean(server, MBeanServer.class);
 			}
 			exporter.setServer(bean);
-		}
-		else {
-			SpecificPlatform specificPlatform = SpecificPlatform.get();
-			if (specificPlatform != null) {
-				exporter.setServer(specificPlatform.getMBeanServer());
-			}
 		}
 	}
 

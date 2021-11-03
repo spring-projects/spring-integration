@@ -22,6 +22,7 @@ import assertk.assertions.contains
 import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThan
 import assertk.assertions.isNotNull
+import jakarta.jms.DeliveryMode
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -41,7 +42,6 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import java.util.concurrent.Executors
-import javax.jms.DeliveryMode
 
 /**
  * @author Artem Bilan

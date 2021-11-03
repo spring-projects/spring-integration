@@ -19,14 +19,14 @@ package org.springframework.integration.mail.transformer;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 
-import javax.mail.Multipart;
-import javax.mail.Part;
+import jakarta.mail.Multipart;
+import jakarta.mail.Part;
 
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.util.Assert;
 
 /**
- * Transforms a Message payload of type {@link javax.mail.Message} to a String. If the
+ * Transforms a Message payload of type {@link jakarta.mail.Message} to a String. If the
  * mail message's content is a String, it will be the payload of the result Message. If
  * the content is a Part or Multipart, a String will be created from an output stream of
  * bytes using the provided charset (or UTF-8 by default).
@@ -51,7 +51,7 @@ public class MailToStringTransformer extends AbstractMailMessageTransformer<Stri
 	}
 
 	@Override
-	protected AbstractIntegrationMessageBuilder<String> doTransform(javax.mail.Message mailMessage)
+	protected AbstractIntegrationMessageBuilder<String> doTransform(jakarta.mail.Message mailMessage)
 			throws Exception { // NOSONAR
 
 		Object content = mailMessage.getContent();

@@ -20,8 +20,8 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Map;
 
-import javax.mail.Header;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Header;
+import jakarta.mail.internet.MimeMessage;
 
 import org.springframework.integration.mail.MailHeaders;
 import org.springframework.integration.mapping.HeaderMapper;

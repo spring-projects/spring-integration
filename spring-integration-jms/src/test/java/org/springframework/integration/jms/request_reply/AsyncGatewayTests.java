@@ -18,8 +18,8 @@ package org.springframework.integration.jms.request_reply;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.jms.Message;
-import javax.jms.TextMessage;
+import jakarta.jms.Message;
+import jakarta.jms.TextMessage;
 
 import org.junit.jupiter.api.Test;
 

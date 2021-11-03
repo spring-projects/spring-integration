@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,15 @@
 package org.springframework.integration.mongodb.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import java.util.List;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
-
+import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
@@ -33,105 +35,100 @@ import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.mongodb.outbound.MongoDbStoringMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
  */
+@SpringJUnitConfig
 public class MongoDbOutboundChannelAdapterParserTests {
+
+	@Autowired
+	ApplicationContext context;
 
 	@Test
 	public void minimalConfig() {
-		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
 		MongoDbStoringMessageHandler handler =
-				TestUtils.getPropertyValue(context.getBean("minimalConfig.adapter"), "handler", MongoDbStoringMessageHandler.class);
+				TestUtils.getPropertyValue(context.getBean("minimalConfig.adapter"), "handler",
+						MongoDbStoringMessageHandler.class);
 		assertThat(TestUtils.getPropertyValue(handler, "componentName")).isEqualTo("minimalConfig.adapter");
 		assertThat(TestUtils.getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
 		assertThat(TestUtils.getPropertyValue(handler, "mongoTemplate")).isNotNull();
 		assertThat(TestUtils.getPropertyValue(handler, "mongoDbFactory")).isEqualTo(context.getBean("mongoDbFactory"));
 		assertThat(TestUtils.getPropertyValue(handler, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression") instanceof LiteralExpression)
-				.isTrue();
+		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression")).isInstanceOf(LiteralExpression.class);
 		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression.literalValue")).isEqualTo("data");
-		context.close();
 	}
 
 	@Test
 	public void fullConfigWithCollectionExpression() {
-		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
 		MongoDbStoringMessageHandler handler =
-				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollectionExpression.adapter"), "handler", MongoDbStoringMessageHandler.class);
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollectionExpression.adapter"), "handler",
+						MongoDbStoringMessageHandler.class);
 		assertThat(TestUtils.getPropertyValue(handler, "componentName"))
 				.isEqualTo("fullConfigWithCollectionExpression.adapter");
 		assertThat(TestUtils.getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
 		assertThat(TestUtils.getPropertyValue(handler, "mongoTemplate")).isNotNull();
 		assertThat(TestUtils.getPropertyValue(handler, "mongoDbFactory")).isEqualTo(context.getBean("mongoDbFactory"));
 		assertThat(TestUtils.getPropertyValue(handler, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression") instanceof SpelExpression).isTrue();
+		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression")).isInstanceOf(SpelExpression.class);
 		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression.expression"))
 				.isEqualTo("headers.collectionName");
-		context.close();
 	}
 
 	@Test
 	public void fullConfigWithCollection() {
-		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
 		MongoDbStoringMessageHandler handler =
-				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollection.adapter"), "handler", MongoDbStoringMessageHandler.class);
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollection.adapter"), "handler",
+						MongoDbStoringMessageHandler.class);
 		assertThat(TestUtils.getPropertyValue(handler, "componentName")).isEqualTo("fullConfigWithCollection.adapter");
 		assertThat(TestUtils.getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
 		assertThat(TestUtils.getPropertyValue(handler, "mongoTemplate")).isNotNull();
 		assertThat(TestUtils.getPropertyValue(handler, "mongoDbFactory")).isEqualTo(context.getBean("mongoDbFactory"));
 		assertThat(TestUtils.getPropertyValue(handler, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression") instanceof LiteralExpression)
-				.isTrue();
+		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression")).isInstanceOf(LiteralExpression.class);
 		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression.literalValue")).isEqualTo("foo");
-		context.close();
 	}
 
 	@Test
 	public void fullConfigWithMongoTemplate() {
-		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
 		MongoDbStoringMessageHandler handler =
-				TestUtils.getPropertyValue(context.getBean("fullConfigWithMongoTemplate.adapter"), "handler", MongoDbStoringMessageHandler.class);
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithMongoTemplate.adapter"), "handler",
+						MongoDbStoringMessageHandler.class);
 		assertThat(TestUtils.getPropertyValue(handler, "componentName"))
 				.isEqualTo("fullConfigWithMongoTemplate.adapter");
 		assertThat(TestUtils.getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
 		assertThat(TestUtils.getPropertyValue(handler, "mongoTemplate")).isNotNull();
 		assertThat(TestUtils.getPropertyValue(handler, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression") instanceof LiteralExpression)
-				.isTrue();
+		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression")).isInstanceOf(LiteralExpression.class);
 		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression.literalValue")).isEqualTo("foo");
-		context.close();
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void templateAndFactoryFail() {
-		new ClassPathXmlApplicationContext("outbound-adapter-parser-fail-template-factory-config.xml", this.getClass())
-				.close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("outbound-adapter-parser-fail-template-factory-config.xml",
+								getClass()));
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void templateAndConverterFail() {
-		new ClassPathXmlApplicationContext("outbound-adapter-parser-fail-template-converter-config.xml",
-				this.getClass()).close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("outbound-adapter-parser-fail-template-converter-config.xml",
+								getClass()));
 	}
 
 	@Test
 	public void testInt3024PollerAndRequestHandlerAdviceChain() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"outbound-adapter-parser-config.xml", this.getClass());
 		AbstractEndpoint endpoint = context.getBean("pollableAdapter", AbstractEndpoint.class);
 		assertThat(endpoint).isInstanceOf(PollingConsumer.class);
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
 		assertThat(AopUtils.isAopProxy(handler)).isTrue();
-		List<?> advisors = TestUtils.getPropertyValue(handler, "h.advised.advisors", List.class);
-		assertThat(TestUtils.getPropertyValue(advisors.get(0), "advice")).isInstanceOf(RequestHandlerRetryAdvice.class);
-		context.close();
+		assertThat(((Advised) handler).getAdvisors()[0].getAdvice()).isInstanceOf(RequestHandlerRetryAdvice.class);
 	}
 
 }

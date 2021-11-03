@@ -583,7 +583,7 @@
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="javax.persistence.EntityManagerFactory"/>
+						<tool:expected-type type="jakarta.persistence.EntityManagerFactory"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -599,7 +599,7 @@
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="javax.persistence.EntityManager"/>
+						<tool:expected-type type="jakarta.persistence.EntityManager"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

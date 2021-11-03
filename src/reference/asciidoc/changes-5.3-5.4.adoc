@@ -66,13 +66,6 @@ See <<./ip.adoc#ip-collaborating-adapters,Collaborating Channel Adapters>> and <
 The UDP channel adapters can now be configured with a `SocketCustomizer` which allows the setting of socket properties that are not directly supported by the adapters.
 See <<./ip.adoc#udp-adapters,UDP Adapters>> for more information.
 
-[[x5.4-rmi]]
-=== RMI Changes
-
-The `spring-integration-rmi` module is deprecated with no replacement and is going to be removed in the next major version.
-See <<./rmi.adoc#rmi, RMI Support>> for more information.
-
-
 [[x5.4-amqp]]
 === AMQP Changes
 

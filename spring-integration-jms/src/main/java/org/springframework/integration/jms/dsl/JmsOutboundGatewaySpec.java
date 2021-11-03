@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Destination;
 
 import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.integration.dsl.MessageHandlerSpec;
@@ -325,7 +325,7 @@ public class JmsOutboundGatewaySpec extends MessageHandlerSpec<JmsOutboundGatewa
 		/**
 		 * @param sessionAcknowledgeMode the acknowledgement mode constant
 		 * @return the current {@link ReplyContainerSpec}.
-		 * @see javax.jms.Session#AUTO_ACKNOWLEDGE etc.
+		 * @see jakarta.jms.Session#AUTO_ACKNOWLEDGE etc.
 		 */
 		public ReplyContainerSpec sessionAcknowledgeMode(Integer sessionAcknowledgeMode) {
 			this.target.setSessionAcknowledgeMode(sessionAcknowledgeMode);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,16 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.Enumeration;
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 import org.springframework.web.context.request.RequestAttributes;
@@ -53,8 +52,7 @@ public class MultipartAsRawByteArrayTests {
 	@Test
 	public void testMultiPass() throws Exception {
 		HttpRequestHandlingMessagingGateway gw = new HttpRequestHandlingMessagingGateway(false);
-		gw.setMessageConverters(
-				Collections.<HttpMessageConverter<?>>singletonList(new ByteArrayHttpMessageConverter()));
+		gw.setMessageConverters(Collections.singletonList(new ByteArrayHttpMessageConverter()));
 		gw.setMergeWithDefaultConverters(false);
 		QueueChannel requestChannel = new QueueChannel();
 		gw.setRequestChannel(requestChannel);
@@ -70,7 +68,7 @@ public class MultipartAsRawByteArrayTests {
 			int done;
 
 			@Override
-			public Integer answer(InvocationOnMock invocation) throws Throwable {
+			public Integer answer(InvocationOnMock invocation) {
 				byte[] buff = invocation.getArgument(0);
 				buff[0] = 'f';
 				buff[1] = 'o';

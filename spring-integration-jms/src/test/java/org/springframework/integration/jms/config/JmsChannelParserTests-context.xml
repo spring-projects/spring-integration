@@ -53,12 +53,12 @@
 	<jms:channel id="pollableWithSelectorChannel" queue="testQueue" message-driven="false"
 		selector="foo='bar'" />
 
-	<bean id="testQueue" class="org.apache.activemq.command.ActiveMQQueue">
-		<property name="physicalName" value="test.queue"/>
+	<bean id="testQueue" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
+		<constructor-arg value="test.queue"/>
 	</bean>
 
-	<bean id="testTopic" class="org.apache.activemq.command.ActiveMQTopic">
-		<property name="physicalName" value="test.topic"/>
+	<bean id="testTopic" class="org.apache.activemq.artemis.jms.client.ActiveMQTopic">
+		<constructor-arg value="test.topic"/>
 	</bean>
 
 	<bean id="destinationResolver"

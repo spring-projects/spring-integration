@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.util.Calendar;
@@ -24,13 +25,14 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -84,7 +86,7 @@ public class DelayHandlerTests {
 
 	private TestApplicationContext context = TestUtils.createTestApplicationContext();
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		input.setBeanName("input");
 		output.setBeanName("output");
@@ -97,7 +99,7 @@ public class DelayHandlerTests {
 		output.subscribe(resultHandler);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.context.close();
 		this.taskScheduler.destroy();
@@ -251,7 +253,7 @@ public class DelayHandlerTests {
 		assertThat(resultHandler.lastThread).isSameAs(Thread.currentThread());
 	}
 
-	@Test(expected = TestTimedOutException.class)
+	@Test
 	public void delayHeaderIsFutureDateAndTimesOut() {
 		this.setDelayExpression();
 		startDelayerHandler();
@@ -259,7 +261,8 @@ public class DelayHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", future).build();
 		input.send(message);
-		waitForLatch(100);
+		assertThatExceptionOfType(TestTimedOutException.class)
+				.isThrownBy(() -> waitForLatch(100));
 	}
 
 	@Test
@@ -308,7 +311,7 @@ public class DelayHandlerTests {
 		assertThat(this.latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void handlerThrowsExceptionWithNoDelay() {
 		startDelayerHandler();
 		output.unsubscribe(resultHandler);
@@ -316,7 +319,8 @@ public class DelayHandlerTests {
 			throw new UnsupportedOperationException("intentional test failure");
 		});
 		Message<?> message = MessageBuilder.withPayload("test").build();
-		input.send(message);
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> input.send(message));
 	}
 
 	@Test
@@ -409,7 +413,7 @@ public class DelayHandlerTests {
 	}
 
 	@Test //INT-1132
-	@Ignore("Time-sensitive: no guarantee that message won't be released in between 'sleep' and 'destroy'")
+	@Disabled("Time-sensitive: no guarantee that message won't be released in between 'sleep' and 'destroy'")
 	public void testReschedulePersistedMessagesOnStartup() throws Exception {
 		MessageGroupStore messageGroupStore = new SimpleMessageStore();
 		this.delayHandler.setDefaultDelay(2000);
@@ -464,12 +468,13 @@ public class DelayHandlerTests {
 		ac.close();
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void testInt2243IgnoreExpressionFailuresAsFalse() {
 		this.setDelayExpression();
 		this.delayHandler.setIgnoreExpressionFailures(false);
 		startDelayerHandler();
-		this.delayHandler.handleMessage(new GenericMessage<>("test"));
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.delayHandler.handleMessage(new GenericMessage<>("test")));
 	}
 
 	@Test //INT-3560
@@ -516,7 +521,7 @@ public class DelayHandlerTests {
 		dfa.setPropertyValue("requestDate", requestDate.getTimeInMillis());
 		this.taskScheduler.afterPropertiesSet();
 		this.delayHandler.reschedulePersistedMessages();
-		Queue<?> works = TestUtils.getPropertyValue(this.taskScheduler, "scheduledExecutor.workQueue", Queue.class);
+		Queue<?> works = ((ScheduledThreadPoolExecutor) this.taskScheduler.getScheduledExecutor()).getQueue();
 		int n = 0;
 		while (n++ < 2000 && works.size() == 0) {
 			Thread.sleep(10);

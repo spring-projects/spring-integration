@@ -18,7 +18,7 @@ package org.springframework.integration.jms.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.jms.TextMessage;
+import jakarta.jms.TextMessage;
 
 import org.junit.jupiter.api.Test;
 
@@ -67,9 +67,9 @@ public class JmsDynamicDestinationTests extends ActiveMQMultiContextTests {
 		TextMessage jmsResult1 = (TextMessage) result1.getPayload();
 		TextMessage jmsResult2 = (TextMessage) result2.getPayload();
 		assertThat(jmsResult1.getText()).isEqualTo("test-1");
-		assertThat(jmsResult1.getJMSDestination().toString()).isEqualTo("queue://queue.test.dynamic.adapter.1");
+		assertThat(jmsResult1.getJMSDestination().toString()).isEqualTo("ActiveMQQueue[queue.test.dynamic.adapter.1]");
 		assertThat(jmsResult2.getText()).isEqualTo("test-2");
-		assertThat(jmsResult2.getJMSDestination().toString()).isEqualTo("queue://queue.test.dynamic.adapter.2");
+		assertThat(jmsResult2.getJMSDestination().toString()).isEqualTo("ActiveMQQueue[queue.test.dynamic.adapter.2]");
 	}
 
 	@Test

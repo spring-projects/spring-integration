@@ -16,8 +16,8 @@
 
 package org.springframework.integration.mail;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.handler.AbstractMessageHandler;

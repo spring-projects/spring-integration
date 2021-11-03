@@ -79,7 +79,10 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 	private int cacheCapacity = DEFAULT_CAPACITY;
 
-	public JdbcLockRegistry(LockRepository client) {
+	/**
+	 * Construct an instance based on the provided {@link LockRepository}.
+	 * @param client the {@link LockRepository} to rely on.
+	 */	public JdbcLockRegistry(LockRepository client) {
 		this.client = client;
 	}
 

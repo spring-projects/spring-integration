@@ -62,6 +62,8 @@ import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
@@ -118,6 +120,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  *
  * @since 5.4
  */
+@DisabledOnOs(OS.WINDOWS)
 class KafkaProducerMessageHandlerTests {
 
 	private static String topic1 = "testTopic1out";

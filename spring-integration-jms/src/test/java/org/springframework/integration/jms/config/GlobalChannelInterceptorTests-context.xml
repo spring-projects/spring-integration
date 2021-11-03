@@ -28,7 +28,7 @@
 	<util:constant id="jmsConnectionFactory"
 				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.connectionFactory"/>
 
-	<bean id="jmsQueue" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="jmsQueue" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="jmsQueue.queue"/>
 	</bean>
 

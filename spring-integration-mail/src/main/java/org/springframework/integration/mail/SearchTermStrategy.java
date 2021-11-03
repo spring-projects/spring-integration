@@ -16,9 +16,9 @@
 
 package org.springframework.integration.mail;
 
-import javax.mail.Flags;
-import javax.mail.Folder;
-import javax.mail.search.SearchTerm;
+import jakarta.mail.Flags;
+import jakarta.mail.Folder;
+import jakarta.mail.search.SearchTerm;
 
 /**
  * Strategy to be used to generate a {@link SearchTerm}.

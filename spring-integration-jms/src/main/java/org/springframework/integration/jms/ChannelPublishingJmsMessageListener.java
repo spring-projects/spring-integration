@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package org.springframework.integration.jms;
 
 import java.util.Map;
 
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
-import javax.jms.InvalidDestinationException;
-import javax.jms.JMSException;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
+import jakarta.jms.DeliveryMode;
+import jakarta.jms.Destination;
+import jakarta.jms.InvalidDestinationException;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.Session;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -61,7 +61,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  */
 public class ChannelPublishingJmsMessageListener
-		implements SessionAwareMessageListener<javax.jms.Message>, InitializingBean,
+		implements SessionAwareMessageListener<jakarta.jms.Message>, InitializingBean,
 		TrackableComponent, BeanFactoryAware {
 
 	protected final LogAccessor logger = new LogAccessor(getClass()); // NOSONAR final
@@ -80,11 +80,11 @@ public class ChannelPublishingJmsMessageListener
 
 	private String correlationKey;
 
-	private long replyTimeToLive = javax.jms.Message.DEFAULT_TIME_TO_LIVE;
+	private long replyTimeToLive = jakarta.jms.Message.DEFAULT_TIME_TO_LIVE;
 
-	private int replyPriority = javax.jms.Message.DEFAULT_PRIORITY;
+	private int replyPriority = jakarta.jms.Message.DEFAULT_PRIORITY;
 
-	private int replyDeliveryMode = javax.jms.Message.DEFAULT_DELIVERY_MODE;
+	private int replyDeliveryMode = jakarta.jms.Message.DEFAULT_DELIVERY_MODE;
 
 	private boolean explicitQosEnabledForReplies;
 
@@ -176,7 +176,7 @@ public class ChannelPublishingJmsMessageListener
 	 * <p>Alternatively, specify a JMS Destination object as "defaultReplyDestination".
 	 * @param destinationName The default reply destination name.
 	 * @see #setDestinationResolver
-	 * @see #setDefaultReplyDestination(javax.jms.Destination)
+	 * @see #setDefaultReplyDestination(jakarta.jms.Destination)
 	 */
 	public void setDefaultReplyQueueName(String destinationName) {
 		this.defaultReplyDestination = new DestinationNameHolder(destinationName, false);
@@ -189,7 +189,7 @@ public class ChannelPublishingJmsMessageListener
 	 * <p>Alternatively, specify a JMS Destination object as "defaultReplyDestination".
 	 * @param destinationName The default reply topic name.
 	 * @see #setDestinationResolver
-	 * @see #setDefaultReplyDestination(javax.jms.Destination)
+	 * @see #setDefaultReplyDestination(jakarta.jms.Destination)
 	 */
 	public void setDefaultReplyTopicName(String destinationName) {
 		this.defaultReplyDestination = new DestinationNameHolder(destinationName, true);
@@ -198,7 +198,7 @@ public class ChannelPublishingJmsMessageListener
 	/**
 	 * Specify the time-to-live property for JMS reply Messages.
 	 * @param replyTimeToLive The reply time to live.
-	 * @see javax.jms.MessageProducer#setTimeToLive(long)
+	 * @see jakarta.jms.MessageProducer#setTimeToLive(long)
 	 */
 	public void setReplyTimeToLive(long replyTimeToLive) {
 		this.replyTimeToLive = replyTimeToLive;
@@ -207,7 +207,7 @@ public class ChannelPublishingJmsMessageListener
 	/**
 	 * Specify the priority value for JMS reply Messages.
 	 * @param replyPriority The reply priority.
-	 * @see javax.jms.MessageProducer#setPriority(int)
+	 * @see jakarta.jms.MessageProducer#setPriority(int)
 	 */
 	public void setReplyPriority(int replyPriority) {
 		this.replyPriority = replyPriority;
@@ -216,7 +216,7 @@ public class ChannelPublishingJmsMessageListener
 	/**
 	 * Specify the delivery mode for JMS reply Messages.
 	 * @param replyDeliveryPersistent true for a persistent reply message.
-	 * @see javax.jms.MessageProducer#setDeliveryMode(int)
+	 * @see jakarta.jms.MessageProducer#setDeliveryMode(int)
 	 */
 	public void setReplyDeliveryPersistent(boolean replyDeliveryPersistent) {
 		this.replyDeliveryMode = replyDeliveryPersistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT;
@@ -310,7 +310,7 @@ public class ChannelPublishingJmsMessageListener
 	}
 
 	@Override
-	public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
+	public void onMessage(jakarta.jms.Message jmsMessage, Session session) throws JMSException {
 		Message<?> requestMessage;
 		try {
 			final Object result;
@@ -358,7 +358,7 @@ public class ChannelPublishingJmsMessageListener
 					replyResult = replyMessage;
 				}
 				try {
-					javax.jms.Message jmsReply = this.messageConverter.toMessage(replyResult, session);
+					jakarta.jms.Message jmsReply = this.messageConverter.toMessage(replyResult, session);
 					// map SI Message Headers to JMS Message Properties/Headers
 					this.headerMapper.fromHeaders(replyMessage.getHeaders(), jmsReply);
 					copyCorrelationIdFromRequestToReply(jmsMessage, jmsReply);
@@ -392,7 +392,7 @@ public class ChannelPublishingJmsMessageListener
 		this.gatewayDelegate.stop();
 	}
 
-	private void copyCorrelationIdFromRequestToReply(javax.jms.Message requestMessage, javax.jms.Message replyMessage)
+	private void copyCorrelationIdFromRequestToReply(jakarta.jms.Message requestMessage, jakarta.jms.Message replyMessage)
 			throws JMSException {
 
 		if (this.correlationKey != null) {
@@ -429,9 +429,9 @@ public class ChannelPublishingJmsMessageListener
 	 * @throws JMSException if thrown by JMS API methods
 	 * @throws InvalidDestinationException if no {@link Destination} can be determined
 	 * @see #setDefaultReplyDestination
-	 * @see javax.jms.Message#getJMSReplyTo()
+	 * @see jakarta.jms.Message#getJMSReplyTo()
 	 */
-	private Destination getReplyDestination(javax.jms.Message request, Session session) throws JMSException {
+	private Destination getReplyDestination(jakarta.jms.Message request, Session session) throws JMSException {
 		Destination replyTo = request.getJMSReplyTo();
 		if (replyTo == null) {
 			replyTo = resolveDefaultReplyDestination(session);
@@ -448,7 +448,7 @@ public class ChannelPublishingJmsMessageListener
 	 * listener's {@link DestinationResolver} in case of a destination name.
 	 * @param session The session.
 	 * @return the located {@link Destination}
-	 * @throws javax.jms.JMSException if resolution failed
+	 * @throws jakarta.jms.JMSException if resolution failed
 	 * @see #setDefaultReplyDestination
 	 * @see #setDefaultReplyQueueName
 	 * @see #setDefaultReplyTopicName
@@ -465,7 +465,7 @@ public class ChannelPublishingJmsMessageListener
 		return null;
 	}
 
-	private void sendReply(javax.jms.Message replyMessage, Destination destination, Session session)
+	private void sendReply(jakarta.jms.Message replyMessage, Destination destination, Session session)
 			throws JMSException {
 
 		MessageProducer producer = session.createProducer(destination);

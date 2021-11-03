@@ -213,12 +213,12 @@
 		<xsd:attribute name="session" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					Specify the javax.mail.Session reference.
+					Specify the jakarta.mail.Session reference.
 					NOTE: if this is provided, then 'java-mail-properties' should not be.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="javax.mail.Session"/>
+						<tool:expected-type type="jakarta.mail.Session"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -239,12 +239,12 @@
 		<xsd:attribute name="authenticator" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					Specify the javax.mail.Authenticator.
+					Specify the jakarta.mail.Authenticator.
 					NOTE: if this is provided, then 'session' should not be.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="javax.mail.Authenticator"/>
+						<tool:expected-type type="jakarta.mail.Authenticator"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -309,7 +309,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Defines a Transformer ('org.springframework.integration.mail.transformer.MailToStringTransformer')
-					that converts a javax.mail.Message payload to a String.
+					that converts a jakarta.mail.Message payload to a String.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>

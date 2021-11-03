@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -57,6 +59,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  * @since 5.4
  *
  */
+@DisabledOnOs(OS.WINDOWS)
 @SpringJUnitConfig
 @EmbeddedKafka(topics = { "channel.1", "channel.2", "channel.3" }, partitions = 1)
 public class ChannelTests {

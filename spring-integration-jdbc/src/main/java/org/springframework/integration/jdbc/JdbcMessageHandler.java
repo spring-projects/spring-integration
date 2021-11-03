@@ -129,7 +129,10 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 		this.keysGenerated = keysGenerated;
 	}
 
-
+	/**
+	 * Configure an {@link SqlParameterSourceFactory}.
+	 * @param sqlParameterSourceFactory the {@link SqlParameterSourceFactory} to use.
+	 */
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
 	}
@@ -178,6 +181,12 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
+	/**
+	 * Execute an update for the provided message and generated keys flag.
+	 * @param message the message to use for update query params.
+	 * @param keysGenerated generate key or not.
+	 * @return a generated keys for udapte.
+	 */
 	protected List<? extends Map<String, Object>> executeUpdateQuery(final Message<?> message, boolean keysGenerated) {
 		if (keysGenerated) {
 			if (this.preparedStatementSetter != null) {

@@ -22,9 +22,9 @@ import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import javax.mail.Authenticator;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Authenticator;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
@@ -70,7 +70,7 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 
 	/**
 	 * Configure a SpEL expression to select messages. The root object for the expression
-	 * evaluation is a {@link javax.mail.internet.MimeMessage} which should return a boolean
+	 * evaluation is a {@link jakarta.mail.internet.MimeMessage} which should return a boolean
 	 * result (true means select the message).
 	 * @param selectorExpression the selectorExpression.
 	 * @return the spec.
@@ -88,7 +88,7 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 
 	/**
 	 * Configure a SpEL expression to select messages. The root object for the expression
-	 * evaluation is a {@link javax.mail.internet.MimeMessage} which should return a boolean
+	 * evaluation is a {@link jakarta.mail.internet.MimeMessage} which should return a boolean
 	 * result (true means select the message).
 	 * @param selectorExpression the selectorExpression.
 	 * @return the spec.
@@ -101,7 +101,7 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 
 	/**
 	 * Configure a {@link Function} to select messages. The argument for the function
-	 * is a {@link javax.mail.internet.MimeMessage}; {@code apply} returns a boolean
+	 * is a {@link jakarta.mail.internet.MimeMessage}; {@code apply} returns a boolean
 	 * result (true means select the message).
 	 * @param selectorFunction the selectorFunction.
 	 * @return the spec.
@@ -225,9 +225,9 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 
 	/**
 	 * When a header mapper is provided determine whether an embedded
-	 * {@link javax.mail.Part} (e.g {@link javax.mail.Message} or
-	 * {@link javax.mail.Multipart} content is rendered as a byte[] in the payload.
-	 * Otherwise, leave as a {@link javax.mail.Part}. These objects are not suitable for
+	 * {@link jakarta.mail.Part} (e.g {@link jakarta.mail.Message} or
+	 * {@link jakarta.mail.Multipart} content is rendered as a byte[] in the payload.
+	 * Otherwise, leave as a {@link jakarta.mail.Part}. These objects are not suitable for
 	 * downstream serialization. Default: true.
 	 * <p> This has no effect if there is no header mapper, in that case the payload is the
 	 * {@link MimeMessage}.

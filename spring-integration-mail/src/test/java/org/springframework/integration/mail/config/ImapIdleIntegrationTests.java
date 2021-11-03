@@ -29,8 +29,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.mail.Folder;
-import javax.mail.Message;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
 
 import org.junit.jupiter.api.Test;
 

@@ -52,6 +52,8 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
@@ -109,6 +111,7 @@ import org.springframework.retry.support.RetryTemplate;
  * @since 5.4
  *
  */
+@DisabledOnOs(OS.WINDOWS)
 class MessageDrivenAdapterTests {
 
 	private static String topic1 = "testTopic1";

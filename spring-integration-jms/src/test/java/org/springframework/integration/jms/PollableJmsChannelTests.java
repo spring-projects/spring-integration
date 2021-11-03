@@ -30,10 +30,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.jms.Destination;
-import javax.jms.TextMessage;
+import jakarta.jms.DeliveryMode;
+import jakarta.jms.Destination;
+import jakarta.jms.TextMessage;
 
-import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -170,7 +171,7 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		final JmsTemplate receiver = new JmsTemplate(connectionFactory);
 		boolean sent1 = channel.send(new GenericMessage<>("foo"));
 		assertThat(sent1).isTrue();
-		final AtomicReference<javax.jms.Message> message = new AtomicReference<>();
+		final AtomicReference<jakarta.jms.Message> message = new AtomicReference<>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
@@ -181,7 +182,7 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		assertThat(message.get()).isNotNull();
 		assertThat(message.get().getJMSPriority()).isEqualTo(5);
 		assertThat(message.get().getJMSExpiration() <= System.currentTimeMillis() + ttl).isTrue();
-		assertThat(message.get().toString().contains("persistent = false")).isTrue();
+		assertThat(message.get().getJMSDeliveryMode()).isEqualTo(DeliveryMode.NON_PERSISTENT);
 		message.set(null);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		boolean sent2 = channel.send(MessageBuilder.withPayload("foo").setPriority(6).build());
@@ -194,7 +195,7 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		assertThat(message.get()).isNotNull();
 		assertThat(message.get().getJMSPriority()).isEqualTo(6);
 		assertThat(message.get().getJMSExpiration() <= System.currentTimeMillis() + ttl).isTrue();
-		assertThat(message.get().toString().contains("persistent = false")).isTrue();
+		assertThat(message.get().getJMSDeliveryMode()).isEqualTo(DeliveryMode.NON_PERSISTENT);
 		exec.shutdownNow();
 	}
 

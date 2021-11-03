@@ -26,12 +26,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Destination;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.broker.BrokerService;
-import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.artemis.core.config.Configuration;
+import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
+import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -66,9 +68,14 @@ public class OutboundGatewayConnectionTests {
 				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		BrokerService broker = new BrokerService();
-		broker.addConnector("tcp://localhost:61616?broker.persistent=false");
-		broker.start();
+		Configuration configuration =
+				new ConfigurationImpl()
+						.addAcceptorConfiguration("jms", "tcp://localhost:61616")
+						.setPersistenceEnabled(false)
+						.setSecurityEnabled(false)
+						.setJMXManagementEnabled(false)
+						.setJournalDatasync(false);
+		EmbeddedActiveMQ broker = new EmbeddedActiveMQ().setConfiguration(configuration).start();
 		ActiveMQConnectionFactory amqConnectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
 		ConnectionFactory connectionFactory = new CachingConnectionFactory(amqConnectionFactory);
 		gateway.setConnectionFactory(connectionFactory);
@@ -78,7 +85,7 @@ public class OutboundGatewayConnectionTests {
 		gateway.setUseReplyContainer(true);
 		gateway.afterPropertiesSet();
 		gateway.start();
-		final AtomicReference<Object> reply = new AtomicReference<Object>();
+		final AtomicReference<Object> reply = new AtomicReference<>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
@@ -95,16 +102,16 @@ public class OutboundGatewayConnectionTests {
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(amqConnectionFactory);
 		template.setReceiveTimeout(5000);
-		javax.jms.Message request = template.receive(requestQueue1);
+		jakarta.jms.Message request = template.receive(requestQueue1);
 		assertThat(request).isNotNull();
-		final javax.jms.Message jmsReply = request;
+		final jakarta.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> jmsReply);
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reply.get()).isNotNull();
 
 		broker.stop();
-		broker = new BrokerService();
-		broker.addConnector("tcp://localhost:61616?broker.persistent=false");
+
+		broker = new EmbeddedActiveMQ().setConfiguration(configuration).start();
 		broker.start();
 
 		final CountDownLatch latch3 = new CountDownLatch(1);
@@ -112,7 +119,7 @@ public class OutboundGatewayConnectionTests {
 		exec.execute(() -> {
 			latch3.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
 			}
 			finally {
 				latch4.countDown();
@@ -124,7 +131,7 @@ public class OutboundGatewayConnectionTests {
 		template.setReceiveTimeout(5000);
 		request = template.receive(requestQueue1);
 		assertThat(request).isNotNull();
-		final javax.jms.Message jmsReply2 = request;
+		final jakarta.jms.Message jmsReply2 = request;
 		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply2);
 		assertThat(latch4.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reply.get()).isNotNull();

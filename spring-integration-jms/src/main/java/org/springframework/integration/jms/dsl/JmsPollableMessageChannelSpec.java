@@ -16,8 +16,8 @@
 
 package org.springframework.integration.jms.dsl;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Destination;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -199,7 +199,7 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 	/**
 	 * @param sessionAcknowledgeMode the acknowledgement mode constant
 	 * @return the current {@link MessageChannelSpec}.
-	 * @see javax.jms.Session#AUTO_ACKNOWLEDGE etc.
+	 * @see jakarta.jms.Session#AUTO_ACKNOWLEDGE etc.
 	 */
 	public S sessionAcknowledgeMode(int sessionAcknowledgeMode) {
 		this.jmsChannelFactoryBean.setSessionAcknowledgeMode(sessionAcknowledgeMode);

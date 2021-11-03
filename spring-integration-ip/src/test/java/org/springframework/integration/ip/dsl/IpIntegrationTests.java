@@ -18,7 +18,6 @@ package org.springframework.integration.ip.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.net.DatagramSocket;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -181,8 +180,6 @@ public class IpIntegrationTests {
 		Message<?> received = this.udpIn.receive(10000);
 		assertThat(received).isNotNull();
 		assertThat(Transformers.objectToString().transform(received).getPayload()).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(this.udpOutbound, "socket", DatagramSocket.class).getTrafficClass())
-				.isEqualTo(0x10);
 	}
 
 	@Test
@@ -202,7 +199,7 @@ public class IpIntegrationTests {
 	@Test
 	void testCloseStream() throws InterruptedException {
 		IntegrationFlow server = IntegrationFlows.from(Tcp.inboundGateway(Tcp.netServer(0)
-				.deserializer(new ByteArrayRawSerializer())))
+						.deserializer(new ByteArrayRawSerializer())))
 				.<byte[], String>transform(p -> "reply:" + new String(p).toUpperCase())
 				.get();
 		CountDownLatch latch = new CountDownLatch(1);
@@ -223,8 +220,8 @@ public class IpIntegrationTests {
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		IntegrationFlow client = IntegrationFlows.from(MessageChannels.direct())
 				.handle(Tcp.outboundGateway(Tcp.netClient("localhost", port.get())
-						.singleUseConnections(true)
-						.serializer(new ByteArrayRawSerializer()))
+								.singleUseConnections(true)
+								.serializer(new ByteArrayRawSerializer()))
 						.remoteTimeout(20_000)
 						.closeStreamAfterSend(true))
 				.transform(Transformers.objectToString())
@@ -262,10 +259,10 @@ public class IpIntegrationTests {
 		@Bean
 		public IntegrationFlow inTcpGateway() {
 			return IntegrationFlows.from(
-					Tcp.inboundGateway(server1())
-							.replyTimeout(1)
-							.errorOnTimeout(true)
-							.errorChannel("inTcpGatewayErrorFlow.input"))
+							Tcp.inboundGateway(server1())
+									.replyTimeout(1)
+									.errorOnTimeout(true)
+									.errorChannel("inTcpGatewayErrorFlow.input"))
 					.handle(this, "captureId")
 					.transform(Transformers.objectToString())
 					.<String>filter((payload) -> !"junk".equals(payload))

@@ -63,6 +63,7 @@ import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
@@ -847,11 +848,13 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
+	@Disabled("Until https://github.com/spring-projects/spring-integration/issues/3666")
 	public void testMultiAccept() throws InterruptedException, IOException {
 		testMulti(true);
 	}
 
 	@Test
+	@Disabled("Until https://github.com/spring-projects/spring-integration/issues/3666")
 	public void testNoMultiAccept() throws InterruptedException, IOException {
 		testMulti(false);
 	}

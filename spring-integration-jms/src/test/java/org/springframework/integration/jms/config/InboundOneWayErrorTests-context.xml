@@ -22,11 +22,11 @@
 		<int:queue/>
 	</int:channel>
 
-	<bean id="queueA" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="queueA" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="oneway.a"/>
 	</bean>
 
-	<bean id="queueB" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="queueB" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="oneway.b"/>
 	</bean>
 

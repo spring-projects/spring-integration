@@ -6,8 +6,9 @@
 		</Console>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.apache.derby" level="warn"/>
+		<Logger name="org.apache.activemq" level="error"/>
 		<Logger name="org.springframework" level="error"/>
+		<Logger name="org.springframework.jms" level="error"/>
 		<Logger name="org.springframework.integration" level="error"/>
 		<Logger name="org.springframework.integration.jms" level="warn"/>
 		<Logger name="org.springframework.integration.jms.jms.request_reply" level="info"/>

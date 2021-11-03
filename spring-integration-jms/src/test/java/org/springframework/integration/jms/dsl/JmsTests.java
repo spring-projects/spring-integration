@@ -284,7 +284,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
 		public PollerMetadata poller() {
-			return Pollers.fixedRate(500).get();
+			return Pollers.fixedDelay(1000).get();
 		}
 
 		@Bean

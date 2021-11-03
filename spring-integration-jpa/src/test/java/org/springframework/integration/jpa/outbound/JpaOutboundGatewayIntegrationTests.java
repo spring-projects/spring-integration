@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,11 @@ import static org.assertj.core.api.Assertions.fail;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.hibernate.TypeMismatchException;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,8 +38,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * The test cases for testing out a complete flow of the JPA gateways/adapters with all
@@ -53,8 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 3.0
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class JpaOutboundGatewayIntegrationTests {
 
@@ -91,7 +88,7 @@ public class JpaOutboundGatewayIntegrationTests {
 
 	private volatile MessageHandler handler;
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		if (this.handler != null) {
 			responseChannel.unsubscribe(this.handler);
@@ -101,7 +98,6 @@ public class JpaOutboundGatewayIntegrationTests {
 	/**
 	 * Sends a message with the payload as a integer representing the start number in the result
 	 * set and a header with value maxResults to get the max number of results
-	 * @throws Exception
 	 */
 	@Test
 	public void retrieveFromSecondRecordAndMaximumOneRecord() {

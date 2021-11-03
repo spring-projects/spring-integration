@@ -53,23 +53,23 @@
     	<bean class="org.springframework.integration.jms.config.ExceptionHandlingSiConsumerTests$SampleService"/>
     </int:service-activator>                      
                      
-    <bean id="requestQueueA" class="org.apache.activemq.command.ActiveMQQueue">
+    <bean id="requestQueueA" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="request.queue.a"/>
 	</bean>
 
-	<bean id="replyQueueA" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="replyQueueA" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="reply.queue.a"/>
 	</bean>
 	
-	<bean id="requestQueueB" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="requestQueueB" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="request.queue.b"/>
 	</bean>
 
-	<bean id="replyQueueB" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="replyQueueB" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="reply.queue.b"/>
 	</bean>
 	
-	<bean id="requestQueueC" class="org.apache.activemq.command.ActiveMQQueue">
+	<bean id="requestQueueC" class="org.apache.activemq.artemis.jms.client.ActiveMQQueue">
 		<constructor-arg value="request.queue.c"/>
 	</bean>
 

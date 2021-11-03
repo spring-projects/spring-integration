@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.messaging.Message;
  *
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.2
  *
@@ -41,6 +42,12 @@ public class MessageRowMapper implements RowMapper<Message<?>> {
 
 	private final LobHandler lobHandler;
 
+	/**
+	 * Construct an instance based on the provided {@link AllowListDeserializingConverter}
+	 * and {@link LobHandler}.
+	 * @param deserializer the {@link AllowListDeserializingConverter} to use.
+	 * @param lobHandler the {@link LobHandler} to use.
+	 */
 	public MessageRowMapper(AllowListDeserializingConverter deserializer, LobHandler lobHandler) {
 		this.deserializer = deserializer;
 		this.lobHandler = lobHandler;

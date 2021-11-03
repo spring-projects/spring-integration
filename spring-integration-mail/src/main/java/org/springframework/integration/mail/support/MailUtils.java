@@ -19,9 +19,9 @@ package org.springframework.integration.mail.support;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.Message.RecipientType;
+import jakarta.mail.Address;
+import jakarta.mail.Message;
+import jakarta.mail.Message.RecipientType;
 
 import org.springframework.integration.mail.MailHeaders;
 import org.springframework.messaging.MessagingException;
