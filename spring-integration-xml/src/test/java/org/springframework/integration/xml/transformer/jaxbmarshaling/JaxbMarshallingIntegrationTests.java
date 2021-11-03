@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,8 +97,7 @@ public class JaxbMarshallingIntegrationTests {
 		Files.write(tempFile, "junk".getBytes());
 		assertThatExceptionOfType(MessageTransformationException.class)
 				.isThrownBy(() -> this.unmarshallIn.send(new GenericMessage<>(tempFile.toFile())))
-				.withCauseInstanceOf(UnmarshallingFailureException.class)
-				.withStackTraceContaining("Content is not allowed in prolog.");
+				.withCauseInstanceOf(UnmarshallingFailureException.class);
 
 		Files.delete(tempFile);
 	}
