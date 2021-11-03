@@ -68,6 +68,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Mauro Molinari
  *
  * @since 2.1
  */
@@ -1080,9 +1081,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		FileExistsMode existsMode = this.fileExistsMode;
 		boolean appending = FileExistsMode.APPEND.equals(existsMode);
 		boolean exists = localFile.exists();
-		boolean replacing = FileExistsMode.REPLACE.equals(existsMode)
-				|| (exists && FileExistsMode.REPLACE_IF_MODIFIED.equals(existsMode)
-				&& localFile.lastModified() != getModified(fileInfo));
+		boolean replacing = exists && (FileExistsMode.REPLACE.equals(existsMode)
+				|| (FileExistsMode.REPLACE_IF_MODIFIED.equals(existsMode)
+				&& localFile.lastModified() != getModified(fileInfo)));
 		if (!exists || appending || replacing) {
 			OutputStream outputStream;
 			String tempFileName = localFile.getAbsolutePath() + this.remoteFileTemplate.getTemporaryFileSuffix();
