@@ -19,7 +19,7 @@ package org.springframework.integration.mqtt.event;
 import org.springframework.messaging.Message;
 
 /**
- * An event emitted (when using aysnc) when the client indicates that a message
+ * An event emitted (when using async) when the client indicates that a message
  * has been sent.
  *
  * @author Gary Russell
