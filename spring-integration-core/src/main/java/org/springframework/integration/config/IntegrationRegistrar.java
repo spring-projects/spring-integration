@@ -19,7 +19,6 @@ package org.springframework.integration.config;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
@@ -89,7 +88,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 
 			BeanDefinitionBuilder postProcessorBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigurationBeanFactoryPostProcessor.class,
-							IntegrationConfigurationBeanFactoryPostProcessor::new)
+									IntegrationConfigurationBeanFactoryPostProcessor::new)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME,
 					postProcessorBuilder.getBeanDefinition());
@@ -107,7 +106,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)) {
 			BeanDefinitionBuilder builder =
 					BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class,
-							MessagingAnnotationPostProcessor::new)
+									MessagingAnnotationPostProcessor::new)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME,
