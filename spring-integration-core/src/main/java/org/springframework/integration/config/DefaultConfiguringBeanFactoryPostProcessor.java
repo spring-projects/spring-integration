@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.HierarchicalBeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -36,6 +35,7 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -83,7 +83,7 @@ import org.springframework.util.ClassUtils;
  * @see IntegrationContextUtils
  */
 public class DefaultConfiguringBeanFactoryPostProcessor
-		implements BeanFactoryPostProcessor, BeanClassLoaderAware, SmartInitializingSingleton {
+		implements BeanDefinitionRegistryPostProcessor, SmartInitializingSingleton {
 
 	private static final LogAccessor LOGGER = new LogAccessor(DefaultConfiguringBeanFactoryPostProcessor.class);
 
@@ -119,38 +119,32 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	}
 
 	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.classLoader = classLoader;
+	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+		this.registry = registry;
+		this.beanFactory = (ConfigurableListableBeanFactory) registry;
+		this.classLoader = this.beanFactory.getBeanClassLoader();
+
+		registerBeanFactoryChannelResolver();
+		registerMessagePublishingErrorHandler();
+		registerNullChannel();
+		registerErrorChannel();
+		registerIntegrationEvaluationContext();
+		registerTaskScheduler();
+		registerIdGeneratorConfigurer();
+		registerIntegrationProperties();
+		registerBuiltInBeans();
+		registerRoleController();
+		registerMessageBuilderFactory();
+		registerHeaderChannelRegistry();
+		registerGlobalChannelInterceptorProcessor();
+		registerDefaultDatatypeChannelMessageConverter();
+		registerArgumentResolverMessageConverter();
+		registerMessageHandlerMethodFactory();
+		registerListMessageHandlerMethodFactory();
 	}
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		if (beanFactory instanceof BeanDefinitionRegistry) {
-			this.beanFactory = beanFactory;
-			this.registry = (BeanDefinitionRegistry) beanFactory;
-
-			registerBeanFactoryChannelResolver();
-			registerMessagePublishingErrorHandler();
-			registerNullChannel();
-			registerErrorChannel();
-			registerIntegrationEvaluationContext();
-			registerTaskScheduler();
-			registerIdGeneratorConfigurer();
-			registerIntegrationProperties();
-			registerBuiltInBeans();
-			registerRoleController();
-			registerMessageBuilderFactory();
-			registerHeaderChannelRegistry();
-			registerGlobalChannelInterceptorProcessor();
-			registerDefaultDatatypeChannelMessageConverter();
-			registerArgumentResolverMessageConverter();
-			registerMessageHandlerMethodFactory();
-			registerListMessageHandlerMethodFactory();
-		}
-		else {
-			LOGGER.warn("BeanFactory is not a BeanDefinitionRegistry. " +
-					"The default Spring Integration infrastructure beans are not going to be registered");
-		}
 	}
 
 	@Override

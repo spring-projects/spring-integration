@@ -70,9 +70,12 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 	 */
 	private void registerDefaultConfiguringBeanFactoryPostProcessor(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME)) {
+			BeanDefinitionBuilder postProcessorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class,
+									DefaultConfiguringBeanFactoryPostProcessor::new)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME,
-					new RootBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class,
-							DefaultConfiguringBeanFactoryPostProcessor::new));
+					postProcessorBuilder.getBeanDefinition());
 		}
 	}
 
