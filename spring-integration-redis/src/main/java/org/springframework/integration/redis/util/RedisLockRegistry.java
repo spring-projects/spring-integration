@@ -19,19 +19,18 @@ package org.springframework.integration.redis.util;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -95,11 +94,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					"return false";
 
 
-	private final Map<String, RedisLock> locks = new ConcurrentHashMap<>();
-
-	private final ConcurrentLinkedDeque<String> queue = new ConcurrentLinkedDeque<>();
-
-	private final ReadWriteLock lock = new ReentrantReadWriteLock();
+	private final Map<String, RedisLock> locks;
 
 	private final String clientId = UUID.randomUUID().toString();
 
@@ -162,6 +157,12 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.registryKey = registryKey;
 		this.expireAfter = expireAfter;
 		this.capacity = capacity;
+		this.locks = new LinkedHashMap<String, RedisLock>(16, 0.75F, true) {
+			@Override
+			protected boolean removeEldestEntry(Entry eldest) {
+				return size() > capacity;
+			}
+		};
 	}
 
 	/**
@@ -179,53 +180,25 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = (String) lockKey;
-		return this.locks.compute(path, (key, oldValue)->{
-			if (oldValue != null) {
-				lock.readLock().lock();
-				try{
-					if(queue.removeLastOccurrence(path)){
-						queue.offer(path);
-					}
-					return oldValue;
-				}finally {
-					lock.readLock().unlock();
-				}
-			} else {
-				lock.writeLock().lock();
-				try{
-					if (locks.size() >= this.capacity) {
-						String oldKey = queue.poll();
-						locks.remove(oldKey);
-					}
-					RedisLock redisLock = new RedisLock(path);
-					queue.offer(path);
-					return redisLock;
-				}finally {
-					lock.writeLock().unlock();
-				}
-			}
-		});
+		synchronized (locks){
+			return this.locks.computeIfAbsent(path, RedisLock::new);
+		}
 	}
 
 	@Override
 	public void expireUnusedOlderThan(long age) {
 		long now = System.currentTimeMillis();
-		this.lock.writeLock().lock();
-		try {
-			this.queue.stream()
-					  .allMatch(key -> {
-						  RedisLock redisLock = locks.get(key);
-						  boolean isRemove =
-								  now - redisLock.getLockedAt() > age && !redisLock
-										  .isAcquiredInThisProcess();
-						  if (isRemove) {
-							  locks.remove(key);
-							  queue.remove(key);
-						  }
-						  return isRemove;
-					  });
-		} finally {
-			this.lock.writeLock().unlock();
+		synchronized (locks) {
+			Iterator<Entry<String, RedisLock>> iterator = locks.entrySet().iterator();
+			while (iterator.hasNext()) {
+				Entry<String, RedisLock> entry = iterator.next();
+				RedisLock lock = entry.getValue();
+				if (now - lock.getLockedAt() > age && !lock.isAcquiredInThisProcess()) {
+					iterator.remove();
+				} else {
+					break;
+				}
+			}
 		}
 	}
 
