@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,13 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -51,6 +54,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Konstantin Yakimov
  * @author Artem Bilan
  * @author Vedran Pavic
+ * @author Unseok Kim
  *
  * @since 4.0
  *
@@ -435,9 +439,176 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		lock.unlock();
 	}
 
+	@Test
+	@RedisAvailable
+	public void concurrentObtainCapacityTest() throws InterruptedException {
+		final int KEY_CNT = 500;
+		final int CAPACITY_CNT = 179;
+		final int THREAD_CNT = 4;
+
+		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
+		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
+		registry.setCapacity(CAPACITY_CNT);
+		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
+
+		for (int i = 0; i < KEY_CNT; i++) {
+			int finalI = i;
+			executorService.submit(() -> {
+				countDownLatch.countDown();
+				try {
+					countDownLatch.await();
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				String keyId = "foo:" + finalI;
+				Lock obtain = registry.obtain(keyId);
+				obtain.lock();
+				obtain.unlock();
+			});
+		}
+		executorService.shutdown();
+		executorService.awaitTermination(5, TimeUnit.SECONDS);
+
+		//capacity limit test
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(CAPACITY_CNT);
+
+
+		registry.expireUnusedOlderThan(-1000);
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+	}
+
+	@Test
+	@RedisAvailable
+	public void concurrentObtainRemoveOrderTest() throws InterruptedException {
+		final int THREAD_CNT = 2;
+		final int DUMMY_LOCK_CNT = 3;
+
+		final int CAPACITY_CNT = THREAD_CNT;
+
+		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
+		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
+		registry.setCapacity(CAPACITY_CNT);
+		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
+		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
+
+		//Removed due to capcity limit
+		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
+			Lock obtainLock0 = registry.obtain("foo:" + i);
+			obtainLock0.lock();
+			obtainLock0.unlock();
+		}
+
+		for (int i = DUMMY_LOCK_CNT; i < THREAD_CNT + DUMMY_LOCK_CNT; i++) {
+			int finalI = i;
+			executorService.submit(() -> {
+				countDownLatch.countDown();
+				try {
+					countDownLatch.await();
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				String keyId = "foo:" + finalI;
+				remainLockCheckQueue.offer(keyId);
+				Lock obtain = registry.obtain(keyId);
+				obtain.lock();
+				obtain.unlock();
+			});
+		}
+
+		executorService.shutdown();
+		executorService.awaitTermination(5, TimeUnit.SECONDS);
+
+		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
+				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
+	}
+
+	@Test
+	@RedisAvailable
+	public void concurrentObtainAccessRemoveOrderTest() throws InterruptedException {
+		final int THREAD_CNT = 2;
+		final int DUMMY_LOCK_CNT = 3;
+
+		final int CAPACITY_CNT = THREAD_CNT + 1;
+		final String REMAIN_DUMMY_LOCK_KEY = "foo:1";
+
+		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
+		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
+		registry.setCapacity(CAPACITY_CNT);
+		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
+		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
+
+		//Removed due to capcity limit
+		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
+			Lock obtainLock0 = registry.obtain("foo:" + i);
+			obtainLock0.lock();
+			obtainLock0.unlock();
+		}
+
+		Lock obtainLock0 = registry.obtain(REMAIN_DUMMY_LOCK_KEY);
+		obtainLock0.lock();
+		obtainLock0.unlock();
+		remainLockCheckQueue.offer(REMAIN_DUMMY_LOCK_KEY);
+
+		for (int i = DUMMY_LOCK_CNT; i < THREAD_CNT + DUMMY_LOCK_CNT; i++) {
+			int finalI = i;
+			executorService.submit(() -> {
+				countDownLatch.countDown();
+				try {
+					countDownLatch.await();
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				String keyId = "foo:" + finalI;
+				remainLockCheckQueue.offer(keyId);
+				Lock obtain = registry.obtain(keyId);
+				obtain.lock();
+				obtain.unlock();
+			});
+		}
+
+		executorService.shutdown();
+		executorService.awaitTermination(5, TimeUnit.SECONDS);
+
+		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
+				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
+	}
+
+	@Test
+	@RedisAvailable
+	public void setCapacityTest() {
+		final int CAPACITY_CNT = 4;
+		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
+		registry.setCapacity(CAPACITY_CNT);
+
+		registry.obtain("foo:1");
+		registry.obtain("foo:2");
+		registry.obtain("foo:3");
+
+		//capacity 4->3
+		registry.setCapacity(CAPACITY_CNT - 1);
+
+		registry.obtain("foo:4");
+
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(3);
+		assertThat(getRedisLockRegistryLocks(registry)).containsKeys("foo:2", "foo:3", "foo:4");
+
+		//capacity 3->4
+		registry.setCapacity(CAPACITY_CNT);
+		registry.obtain("foo:5");
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(4);
+		assertThat(getRedisLockRegistryLocks(registry)).containsKeys("foo:3", "foo:4", "foo:5");
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void ntestUlink() {
+	public void testUlink() {
 		RedisOperations ops = mock(RedisOperations.class);
 		Properties props = new Properties();
 		willReturn(props).given(ops).execute(any(RedisCallback.class));
@@ -462,6 +633,11 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			Thread.sleep(100);
 		}
 		assertThat(n < 100).as(key + " key did not expire").isTrue();
+	}
+
+	@SuppressWarnings("unchecked")
+	private Map<String, Lock> getRedisLockRegistryLocks(RedisLockRegistry registry) {
+		return TestUtils.getPropertyValue(registry, "locks", Map.class);
 	}
 
 }

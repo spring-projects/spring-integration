@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@ package org.springframework.integration.redis.util;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,6 +69,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Konstantin Yakimov
  * @author Artem Bilan
  * @author Vedran Pavic
+ * @author Unseok Kim
  *
  * @since 4.0
  *
@@ -77,6 +79,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	private static final Log LOGGER = LogFactory.getLog(RedisLockRegistry.class);
 
 	private static final long DEFAULT_EXPIRE_AFTER = 60000L;
+
+	private static final int DEFAULT_CAPACITY = 1_000_000;
 
 	private static final String OBTAIN_LOCK_SCRIPT =
 			"local lockClientId = redis.call('GET', KEYS[1])\n" +
@@ -90,7 +94,15 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					"return false";
 
 
-	private final Map<String, RedisLock> locks = new ConcurrentHashMap<>();
+	private final Map<String, RedisLock> locks =
+			new LinkedHashMap<String, RedisLock>(16, 0.75F, true) {
+
+				@Override
+				protected boolean removeEldestEntry(Entry<String, RedisLock> eldest) {
+					return size() > RedisLockRegistry.this.capacity;
+				}
+
+			};
 
 	private final String clientId = UUID.randomUUID().toString();
 
@@ -101,6 +113,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	private final RedisScript<Boolean> obtainLockScript;
 
 	private final long expireAfter;
+
+	private int capacity = DEFAULT_CAPACITY;
 
 	/**
 	 * An {@link ExecutorService} to call {@link StringRedisTemplate#delete} in
@@ -152,21 +166,34 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.executorExplicitlySet = true;
 	}
 
+	/**
+	 * Set the capacity of cached locks.
+	 * @param capacity The capacity of cached lock, (default 1_000_000).
+	 * @since 5.5.6
+	 */
+	public void setCapacity(int capacity) {
+		this.capacity = capacity;
+	}
+
 	@Override
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = (String) lockKey;
-		return this.locks.computeIfAbsent(path, RedisLock::new);
+		synchronized (this.locks) {
+			return this.locks.computeIfAbsent(path, RedisLock::new);
+		}
 	}
 
 	@Override
 	public void expireUnusedOlderThan(long age) {
 		long now = System.currentTimeMillis();
-		this.locks.entrySet()
-				.removeIf((entry) -> {
-					RedisLock lock = entry.getValue();
-					return now - lock.getLockedAt() > age && !lock.isAcquiredInThisProcess();
-				});
+		synchronized (this.locks) {
+			this.locks.entrySet()
+					.removeIf((entry) -> {
+						RedisLock lock = entry.getValue();
+						return now - lock.getLockedAt() > age && !lock.isAcquiredInThisProcess();
+					});
+		}
 	}
 
 	@Override
