@@ -383,7 +383,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			}
 			finally {
 				this.localLock.unlock();
-
 			}
 		}
 
