@@ -581,27 +581,8 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void lockedInLogicAtArbitraryTimeTest() {
-		final int CAPACITY_CNT = 3;
-		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
-		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
-		registry.setCapacity(CAPACITY_CNT);
-
-		Lock obtain1 = registry.obtain("foo:1");
-		Lock obtain2 = registry.obtain("foo:2");
-		Lock obtain3 = registry.obtain("foo:3");
-		obtain1.lock();
-		obtain1.unlock();
-		Lock obtain4 = registry.obtain("foo:4");
-
-		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
-				new String[] { "foo:3", "foo:1", "foo:4" });
-	}
-
-	@Test
-	@RedisAvailable
 	public void setCapacityTest() {
-		final int CAPACITY_CNT = 3;
+		final int CAPACITY_CNT = 4;
 		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
 		registry.setCapacity(CAPACITY_CNT);
@@ -610,19 +591,21 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		Lock obtain2 = registry.obtain("foo:2");
 		Lock obtain3 = registry.obtain("foo:3");
 
+		//capacity 4->3
 		registry.setCapacity(CAPACITY_CNT - 1);
-		//locks 3->2
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(2);
 
-		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
-				new String[] { "foo:2", "foo:3" });
-
-		//after changed(3->2), get newLock(2->2?)
 		Lock obtain4 = registry.obtain("foo:4");
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(2);
 
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(3);
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
-				new String[] { "foo:3", "foo:4" });
+				new String[] { "foo:2", "foo:3", "foo:4" });
+
+		//capacity 3->4
+		registry.setCapacity(CAPACITY_CNT);
+		Lock obtain5 = registry.obtain("foo:5");
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(4);
+		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
+				new String[] { "foo:3", "foo:4", "foo:5" });
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
