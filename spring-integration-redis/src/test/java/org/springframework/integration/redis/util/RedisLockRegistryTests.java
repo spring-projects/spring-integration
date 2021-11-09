@@ -39,6 +39,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
@@ -446,16 +447,18 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
 		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
-		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10, CAPACITY_CNT);
+		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
+		registry.setCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 
 		for (int i = 0; i < KEY_CNT; i++) {
 			int finalI = i;
-			executorService.submit(()->{
+			executorService.submit(() -> {
 				countDownLatch.countDown();
 				try {
 					countDownLatch.await();
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				String keyId = "foo:" + finalI;
@@ -485,25 +488,26 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
 		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
-		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10, CAPACITY_CNT);
+		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
+		registry.setCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 		final LinkedBlockingQueue remainLockCheckQueue = new LinkedBlockingQueue();
 
-		{//Removed due to capcity limit
-			for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
-				Lock obtainLock0 = registry.obtain("foo:" + i);
-				obtainLock0.lock();
-				obtainLock0.unlock();
-			}
+		//Removed due to capcity limit
+		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
+			Lock obtainLock0 = registry.obtain("foo:" + i);
+			obtainLock0.lock();
+			obtainLock0.unlock();
 		}
 
 		for (int i = DUMMY_LOCK_CNT; i < THREAD_CNT + DUMMY_LOCK_CNT; i++) {
 			int finalI = i;
-			executorService.submit(()->{
+			executorService.submit(() -> {
 				countDownLatch.countDown();
 				try {
 					countDownLatch.await();
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				String keyId = "foo:" + finalI;
@@ -531,34 +535,31 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
 		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
-		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10, CAPACITY_CNT);
+		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
+		registry.setCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 		final LinkedBlockingQueue remainLockCheckQueue = new LinkedBlockingQueue();
 
-		{//Removed due to capcity limit
-			for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
-				Lock obtainLock0 = registry.obtain("foo:" + i);
-				obtainLock0.lock();
-				obtainLock0.unlock();
-			}
-		}
-
-		{
-			Lock obtainLock0 = registry.obtain(REMAIN_DUMMY_LOCK_KEY);
+		//Removed due to capcity limit
+		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
+			Lock obtainLock0 = registry.obtain("foo:" + i);
 			obtainLock0.lock();
 			obtainLock0.unlock();
-			remainLockCheckQueue.offer(REMAIN_DUMMY_LOCK_KEY);
 		}
 
-
+		Lock obtainLock0 = registry.obtain(REMAIN_DUMMY_LOCK_KEY);
+		obtainLock0.lock();
+		obtainLock0.unlock();
+		remainLockCheckQueue.offer(REMAIN_DUMMY_LOCK_KEY);
 
 		for (int i = DUMMY_LOCK_CNT; i < THREAD_CNT + DUMMY_LOCK_CNT; i++) {
 			int finalI = i;
-			executorService.submit(()->{
+			executorService.submit(() -> {
 				countDownLatch.countDown();
 				try {
 					countDownLatch.await();
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				String keyId = "foo:" + finalI;
@@ -573,6 +574,52 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		executorService.awaitTermination(5, TimeUnit.SECONDS);
 
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class)).containsKeys(remainLockCheckQueue.toArray());
+	}
+
+	@Test
+	@RedisAvailable
+	public void lockedInLogicAtArbitraryTimeTest() {
+		final int CAPACITY_CNT = 3;
+		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
+		registry.setCapacity(CAPACITY_CNT);
+
+		Lock obtain1 = registry.obtain("foo:1");
+		Lock obtain2 = registry.obtain("foo:2");
+		Lock obtain3 = registry.obtain("foo:3");
+		obtain1.lock();
+		obtain1.unlock();
+		Lock obtain4 = registry.obtain("foo:4");
+
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class)).containsKeys(
+				new String[] { "foo:3", "foo:1", "foo:4" });
+	}
+
+	@Test
+	@RedisAvailable
+	public void setCapacityTest() {
+		final int CAPACITY_CNT = 3;
+		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
+		registry.setCapacity(CAPACITY_CNT);
+
+		Lock obtain1 = registry.obtain("foo:1");
+		Lock obtain2 = registry.obtain("foo:2");
+		Lock obtain3 = registry.obtain("foo:3");
+
+		registry.setCapacity(CAPACITY_CNT - 1);
+		//locks 3->2
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(2);
+
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class)).containsKeys(
+				new String[] { "foo:2", "foo:3" });
+
+		//after changed(3->2), get newLock(2->2?)
+		Lock obtain4 = registry.obtain("foo:4");
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(2);
+
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class)).containsKeys(
+				new String[] { "foo:3", "foo:4" });
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

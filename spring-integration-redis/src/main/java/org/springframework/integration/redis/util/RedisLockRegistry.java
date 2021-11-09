@@ -34,6 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -94,7 +95,12 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					"return false";
 
 
-	private final Map<String, RedisLock> locks;
+	private final Map<String, RedisLock> locks = new LinkedHashMap<String, RedisLock>(16, 0.75F, true) {
+		@Override
+		protected boolean removeEldestEntry(Entry eldest) {
+			return size() > RedisLockRegistry.this.capacity;
+		}
+	};
 
 	private final String clientId = UUID.randomUUID().toString();
 
@@ -106,7 +112,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private final long expireAfter;
 
-	private final long capacity;
+	private long capacity = DEFAULT_CAPACITY;
 
 	/**
 	 * An {@link ExecutorService} to call {@link StringRedisTemplate#delete} in
@@ -139,30 +145,12 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	 * @param expireAfter The expiration in milliseconds.
 	 */
 	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey, long expireAfter) {
-		this(connectionFactory, registryKey, expireAfter, DEFAULT_CAPACITY);
-	}
-
-	/**
-	 * Constructs a lock registry with the supplied lock expiration, and with cache limit count
-	 * @param connectionFactory The connection factory.
-	 * @param registryKey The key prefix for locks.
-	 * @param expireAfter The expiration in milliseconds.
-	 * @param capacity The capacity of cached lock
-	 */
-	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey, long expireAfter, long capacity) {
 		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
 		Assert.notNull(registryKey, "'registryKey' cannot be null");
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
 		this.obtainLockScript = new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
 		this.registryKey = registryKey;
 		this.expireAfter = expireAfter;
-		this.capacity = capacity;
-		this.locks = new LinkedHashMap<String, RedisLock>(16, 0.75F, true) {
-			@Override
-			protected boolean removeEldestEntry(Entry eldest) {
-				return size() > capacity;
-			}
-		};
 	}
 
 	/**
@@ -176,11 +164,32 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.executorExplicitlySet = true;
 	}
 
+	/**
+	 * Rebalance the capacity of cached locks.
+	 * @param capacity The capacity of cached lock
+	 * @since 5.5.6
+	 */
+	public void setCapacity(long capacity) {
+		synchronized (this.locks) {
+			final int locksSize = this.locks.size();
+			final int newLockMapSize = (int) capacity;
+			if (locksSize > newLockMapSize) {
+				final int removeCnt = locksSize - newLockMapSize;
+				Iterator<Entry<String, RedisLock>> iterator = this.locks.entrySet().iterator();
+				for (int i = 0; i < removeCnt; i++) {
+					iterator.next();
+					iterator.remove();
+				}
+			}
+			this.capacity = capacity;
+		}
+	}
+
 	@Override
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = (String) lockKey;
-		synchronized (locks){
+		synchronized (this.locks) {
 			return this.locks.computeIfAbsent(path, RedisLock::new);
 		}
 	}
@@ -188,14 +197,15 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	@Override
 	public void expireUnusedOlderThan(long age) {
 		long now = System.currentTimeMillis();
-		synchronized (locks) {
-			Iterator<Entry<String, RedisLock>> iterator = locks.entrySet().iterator();
+		synchronized (this.locks) {
+			Iterator<Entry<String, RedisLock>> iterator = this.locks.entrySet().iterator();
 			while (iterator.hasNext()) {
 				Entry<String, RedisLock> entry = iterator.next();
 				RedisLock lock = entry.getValue();
 				if (now - lock.getLockedAt() > age && !lock.isAcquiredInThisProcess()) {
 					iterator.remove();
-				} else {
+				}
+				else {
 					break;
 				}
 			}
@@ -213,12 +223,15 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 		private final String lockKey;
 
+		private final String path;
+
 		private final ReentrantLock localLock = new ReentrantLock();
 
 		private volatile long lockedAt;
 
 		private RedisLock(String path) {
 			this.lockKey = constructLockKey(path);
+			this.path = path;
 		}
 
 		private String constructLockKey(String path) {
@@ -320,7 +333,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			boolean result = Boolean.TRUE.equals(success);
 
 			if (result) {
-				this.lockedAt = System.currentTimeMillis();
+				final long now = System.currentTimeMillis();
+				synchronized (RedisLockRegistry.this.locks) {
+					this.lockedAt = now;
+					RedisLockRegistry.this.locks.get(this.path);
+				}
 			}
 			return result;
 		}
