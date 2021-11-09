@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -491,7 +492,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
 		registry.setCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
-		final LinkedBlockingQueue remainLockCheckQueue = new LinkedBlockingQueue();
+		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
 
 		//Removed due to capcity limit
 		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
@@ -521,7 +522,8 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		executorService.shutdown();
 		executorService.awaitTermination(5, TimeUnit.SECONDS);
 
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class)).containsKeys(remainLockCheckQueue.toArray());
+		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
+				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
 	}
 
 	@Test
@@ -538,7 +540,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
 		registry.setCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
-		final LinkedBlockingQueue remainLockCheckQueue = new LinkedBlockingQueue();
+		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
 
 		//Removed due to capcity limit
 		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
@@ -573,7 +575,8 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		executorService.shutdown();
 		executorService.awaitTermination(5, TimeUnit.SECONDS);
 
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class)).containsKeys(remainLockCheckQueue.toArray());
+		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
+				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
 	}
 
 	@Test
@@ -591,7 +594,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		obtain1.unlock();
 		Lock obtain4 = registry.obtain("foo:4");
 
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class)).containsKeys(
+		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
 				new String[] { "foo:3", "foo:1", "foo:4" });
 	}
 
@@ -611,14 +614,14 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		//locks 3->2
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(2);
 
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class)).containsKeys(
+		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
 				new String[] { "foo:2", "foo:3" });
 
 		//after changed(3->2), get newLock(2->2?)
 		Lock obtain4 = registry.obtain("foo:4");
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(2);
 
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class)).containsKeys(
+		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
 				new String[] { "foo:3", "foo:4" });
 	}
 
@@ -651,4 +654,8 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(n < 100).as(key + " key did not expire").isTrue();
 	}
 
+	@SuppressWarnings("unchecked")
+	private Map<String, Lock> getRedisLockRegistryLocks(RedisLockRegistry registry) {
+		return TestUtils.getPropertyValue(registry, "locks", Map.class);
+	}
 }
