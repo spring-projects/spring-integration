@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
@@ -372,6 +373,10 @@ public abstract class TestUtils {
 		});
 
 		ctx.updateLoggers();
+	}
+
+	public static String dockerRegistryFromEnv() {
+		return Optional.ofNullable(System.getenv("DOCKER_REGISTRY_URL")).orElse("");
 	}
 
 	public static class LevelsContainer {
