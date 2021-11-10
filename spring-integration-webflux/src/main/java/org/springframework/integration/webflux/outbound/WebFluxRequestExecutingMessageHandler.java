@@ -23,7 +23,6 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpEntity;
@@ -73,7 +72,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 	private boolean replyPayloadToFlux;
 
-	private BodyExtractor<?, ClientHttpResponse> bodyExtractor;
+	private BodyExtractor<?, ? super ClientHttpResponse> bodyExtractor;
 
 	private Expression publisherElementTypeExpression;
 
@@ -166,7 +165,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	 * @see #setExpectedResponseType(Class)
 	 * @see #setExpectedResponseTypeExpression(Expression)
 	 */
-	public void setBodyExtractor(BodyExtractor<?, ClientHttpResponse> bodyExtractor) {
+	public void setBodyExtractor(BodyExtractor<?, ? super ClientHttpResponse> bodyExtractor) {
 		this.bodyExtractor = bodyExtractor;
 	}
 
@@ -208,69 +207,14 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		WebClient.RequestBodySpec requestSpec =
 				createRequestBodySpec(uri, httpMethod, httpRequest, requestMessage, uriVariables);
 
-		Mono<ClientResponse> responseMono = exchangeForResponseMono(requestSpec);
+		Mono<ResponseEntity<Flux<Object>>> responseMono = exchangeForResponseMono(requestSpec, expectedResponseType);
 
 		if (isExpectReply()) {
-			return createReplyFromResponse(expectedResponseType, responseMono);
+			return createReplyFromResponse(responseMono);
 		}
 		else {
 			return responseMono.then();
 		}
-	}
-
-	private Object createReplyFromResponse(Object expectedResponseType, Mono<ClientResponse> responseMono) {
-		return responseMono
-				.flatMap(response -> {
-							ResponseEntity.BodyBuilder httpEntityBuilder =
-									ResponseEntity.status(response.statusCode())
-											.headers(response.headers().asHttpHeaders());
-
-							Mono<?> bodyMono;
-
-							if (expectedResponseType != null) {
-								if (this.replyPayloadToFlux) {
-									BodyExtractor<? extends Flux<?>, ReactiveHttpInputMessage> extractor;
-									if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
-										extractor = BodyExtractors.toFlux(
-												(ParameterizedTypeReference<?>) expectedResponseType);
-									}
-									else {
-										extractor = BodyExtractors.toFlux((Class<?>) expectedResponseType);
-									}
-									Flux<?> flux = response.body(extractor);
-									bodyMono = Mono.just(flux);
-								}
-								else {
-									BodyExtractor<? extends Mono<?>, ReactiveHttpInputMessage> extractor;
-									if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
-										extractor = BodyExtractors.toMono(
-												(ParameterizedTypeReference<?>) expectedResponseType);
-									}
-									else {
-										extractor = BodyExtractors.toMono((Class<?>) expectedResponseType);
-									}
-									bodyMono = response.body(extractor);
-								}
-							}
-							else if (this.bodyExtractor != null) {
-								Object body = response.body(this.bodyExtractor);
-								if (body instanceof Mono) {
-									bodyMono = (Mono<?>) body;
-								}
-								else {
-									bodyMono = Mono.just(body);
-								}
-							}
-							else {
-								bodyMono = Mono.empty();
-							}
-
-							return bodyMono
-									.map(httpEntityBuilder::body)
-									.defaultIfEmpty(httpEntityBuilder.build());
-						}
-				)
-				.map(this::getReply);
 	}
 
 	private WebClient.RequestBodySpec createRequestBodySpec(Object uri, HttpMethod httpMethod,
@@ -292,17 +236,6 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 			requestSpec.body(inserter);
 		}
 		return requestSpec;
-	}
-
-	private Mono<ClientResponse> exchangeForResponseMono(WebClient.RequestBodySpec requestSpec) {
-		return requestSpec.retrieve()
-				.onStatus(HttpStatus::isError, ClientResponse::createException)
-				.toEntityList(DataBuffer.class)
-				.map((entity) ->
-						ClientResponse.create(entity.getStatusCode())
-								.headers((headers) -> headers.addAll(entity.getHeaders()))
-								.body(Flux.fromIterable(entity.getBody())) // NOSONAR - not null according toEntityList()
-								.build());
 	}
 
 	@Nullable
@@ -364,6 +297,77 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		else {
 			return null;
 		}
+	}
+
+	private Mono<ResponseEntity<Flux<Object>>> exchangeForResponseMono(WebClient.RequestBodySpec requestSpec,
+			Object expectedResponseType) {
+
+		return requestSpec.retrieve()
+				.onStatus(HttpStatus::isError, ClientResponse::createException)
+				.toEntityFlux(createBodyExtractor(expectedResponseType));
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private BodyExtractor<Flux<Object>, ? super ClientHttpResponse> createBodyExtractor(Object expectedResponseType) {
+		if (expectedResponseType != null) {
+			if (this.replyPayloadToFlux) {
+				if (expectedResponseType instanceof ParameterizedTypeReference) {
+					return BodyExtractors.toFlux((ParameterizedTypeReference) expectedResponseType);
+				}
+				else {
+					return BodyExtractors.toFlux((Class) expectedResponseType);
+				}
+			}
+			else {
+				BodyExtractor<? extends Mono<?>, ReactiveHttpInputMessage> monoExtractor;
+				if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+					monoExtractor = BodyExtractors.toMono((ParameterizedTypeReference) expectedResponseType);
+				}
+				else {
+					monoExtractor = BodyExtractors.toMono((Class) expectedResponseType);
+				}
+				return (inputMessage, context) -> Flux.from(monoExtractor.extract(inputMessage, context));
+			}
+		}
+		else if (this.bodyExtractor != null) {
+			return (inputMessage, context) -> {
+				Object body = this.bodyExtractor.extract(inputMessage, context);
+				if (body instanceof Publisher) {
+					return Flux.from((Publisher) body);
+				}
+				return Flux.just(body);
+			};
+		}
+		else {
+			return (inputMessage, context) -> Flux.empty();
+		}
+	}
+
+	private Object createReplyFromResponse(Mono<ResponseEntity<Flux<Object>>> responseMono) {
+		return responseMono
+				.flatMap(response -> {
+							ResponseEntity.BodyBuilder httpEntityBuilder =
+									ResponseEntity.status(response.getStatusCode())
+											.headers(response.getHeaders());
+
+							Flux<?> body = response.getBody();
+							Mono<?> bodyMono = Mono.empty();
+
+							if (body != null) {
+								if (this.replyPayloadToFlux) {
+									bodyMono = Mono.just(body);
+								}
+								else {
+									bodyMono = body.next();
+								}
+							}
+
+							return bodyMono
+									.map(httpEntityBuilder::body)
+									.defaultIfEmpty(httpEntityBuilder.build());
+						}
+				)
+				.map(this::getReply);
 	}
 
 }
