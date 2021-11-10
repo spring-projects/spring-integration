@@ -201,17 +201,16 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			JavaUtils.INSTANCE
 					.acceptIfCondition(this.handler instanceof ApplicationContextAware && this.applicationContext != null,
 							this.applicationContext,
-							context -> ((ApplicationContextAware) this.handler).setApplicationContext(this.applicationContext))
+							((ApplicationContextAware) this.handler)::setApplicationContext)
 					.acceptIfCondition(this.handler instanceof BeanFactoryAware && getBeanFactory() != null,
 							getBeanFactory(),
-							factory -> ((BeanFactoryAware) this.handler).setBeanFactory(factory))
+							((BeanFactoryAware) this.handler)::setBeanFactory)
 					.acceptIfCondition(this.handler instanceof BeanNameAware && this.beanName != null, this.beanName,
-							name -> ((BeanNameAware) this.handler).setBeanName(this.beanName))
+							((BeanNameAware) this.handler)::setBeanName)
 					.acceptIfCondition(this.handler instanceof ApplicationEventPublisherAware
 									&& this.applicationEventPublisher != null,
 							this.applicationEventPublisher,
-							publisher -> ((ApplicationEventPublisherAware) this.handler)
-									.setApplicationEventPublisher(publisher));
+							((ApplicationEventPublisherAware) this.handler)::setApplicationEventPublisher);
 			configureOutputChannelIfAny();
 			Object actualHandler = extractTarget(this.handler);
 			if (actualHandler == null) {
@@ -223,9 +222,9 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			JavaUtils.INSTANCE
 					.acceptIfCondition(this.async != null && actualHandler instanceof AbstractMessageProducingHandler,
 							this.async,
-							asyncValue -> ((AbstractMessageProducingHandler) handlerToConfigure).setAsync(asyncValue))
+							((AbstractMessageProducingHandler) handlerToConfigure)::setAsync)
 					.acceptIfCondition(this.handler instanceof Orderable && this.order != null,
-							this.order, theOrder -> ((Orderable) this.handler).setOrder(theOrder));
+							this.order, ((Orderable) this.handler)::setOrder);
 			this.initialized = true;
 		}
 		initializingBean();
@@ -236,9 +235,9 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		if (actualHandler instanceof IntegrationObjectSupport) {
 			JavaUtils.INSTANCE
 					.acceptIfNotNull(this.componentName,
-							name -> ((IntegrationObjectSupport) handlerToConfigure).setComponentName(name))
+							((IntegrationObjectSupport) handlerToConfigure)::setComponentName)
 					.acceptIfNotNull(this.channelResolver,
-							resolver -> ((IntegrationObjectSupport) handlerToConfigure).setChannelResolver(resolver));
+							((IntegrationObjectSupport) handlerToConfigure)::setChannelResolver);
 		}
 	}
 

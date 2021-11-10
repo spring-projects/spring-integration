@@ -28,7 +28,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.HierarchicalBeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -38,8 +37,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
@@ -69,7 +66,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ClassUtils;
 
 /**
- * A {@link BeanFactoryPostProcessor} implementation that registers bean definitions
+ * A {@link BeanDefinitionRegistryPostProcessor} implementation that registers bean definitions
  * for many infrastructure components with their default configurations.
  * All of them can be overridden using particular bean names.
  *
@@ -330,7 +327,6 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerIntegrationProperties() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)) {
-			ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver(this.classLoader);
 			// TODO Revise in favor of 'IntegrationProperties' instance in the next 6.0 version
 			BeanDefinitionBuilder integrationPropertiesBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(PropertiesFactoryBean.class,

@@ -20,16 +20,13 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.context.annotation.Role;
 import org.springframework.util.ClassUtils;
 
 import io.micrometer.core.instrument.MeterRegistry;
 
 /**
- * An {@link ImportBeanDefinitionRegistrar} to conditionally add a {@link MicrometerMetricsCaptor}
- * bean when {@code io.micrometer.core.instrument.MeterRegistry} is present in classpath and
- * no {@link MicrometerMetricsCaptor#MICROMETER_CAPTOR_NAME} bean present yet.
+ * A {@link Configuration} to add a {@link MicrometerMetricsCaptor}.
  *
  * @author Artem Bilan
  *

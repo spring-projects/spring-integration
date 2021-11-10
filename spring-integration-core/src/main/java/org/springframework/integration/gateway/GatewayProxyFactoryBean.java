@@ -113,7 +113,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private final Class<?> serviceInterface;
 
-	private final Set<Method> hasPayloadExpression = new HashSet<>();
+	private final Set<Method> havePayloadExpressions = new HashSet<>();
 
 	private MessageChannel defaultRequestChannel;
 
@@ -601,7 +601,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	private boolean findPayloadExpression(Method method) {
-		return method.isAnnotationPresent(Payload.class) || this.hasPayloadExpression.contains(method);
+		return method.isAnnotationPresent(Payload.class) || this.havePayloadExpressions.contains(method);
 	}
 
 	@Nullable
@@ -688,7 +688,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		Expression payloadExpression =
 				extractPayloadExpressionFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
 		if (payloadExpression != null) {
-			this.hasPayloadExpression.add(method);
+			this.havePayloadExpressions.add(method);
 		}
 		String requestChannelName = extractRequestChannelFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
 		String replyChannelName = extractReplyChannelFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
