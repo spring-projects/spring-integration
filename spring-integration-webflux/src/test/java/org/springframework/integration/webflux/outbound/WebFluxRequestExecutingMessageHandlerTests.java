@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ClientHttpConnector;
@@ -38,6 +39,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.web.reactive.server.HttpHandlerConnector;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -272,8 +274,8 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.TEXT_PLAIN);
 
 		StepVerifier.create(
-				response.getBody()
-						.map(dataBuffer -> new String(dataBuffer.asByteBuffer().array())))
+						response.getBody()
+								.map(dataBuffer -> new String(dataBuffer.asByteBuffer().array())))
 				.expectNext("foo", "bar", "baz")
 				.verifyComplete();
 	}
@@ -289,14 +291,14 @@ class WebFluxRequestExecutingMessageHandlerTests {
 
 			Flux<DataBuffer> data =
 					Flux.just(
-						bufferFactory.wrap("{".getBytes(StandardCharsets.UTF_8)),
-						bufferFactory.wrap("  \"error\": \"Not Found\",".getBytes(StandardCharsets.UTF_8)),
-						bufferFactory.wrap("  \"message\": \"404 NOT_FOUND\",".getBytes(StandardCharsets.UTF_8)),
-						bufferFactory.wrap("  \"path\": \"/spring-integration\",".getBytes(StandardCharsets.UTF_8)),
-						bufferFactory.wrap("  \"status\": 404,".getBytes(StandardCharsets.UTF_8)),
-						bufferFactory.wrap("  \"timestamp\": \"1970-01-01T00:00:00.000+00:00\",".getBytes(StandardCharsets.UTF_8)),
-						bufferFactory.wrap("  \"trace\": \"some really\nlong\ntrace\",".getBytes(StandardCharsets.UTF_8)),
-						bufferFactory.wrap("}".getBytes(StandardCharsets.UTF_8))
+							bufferFactory.wrap("{".getBytes(StandardCharsets.UTF_8)),
+							bufferFactory.wrap("  \"error\": \"Not Found\",".getBytes(StandardCharsets.UTF_8)),
+							bufferFactory.wrap("  \"message\": \"404 NOT_FOUND\",".getBytes(StandardCharsets.UTF_8)),
+							bufferFactory.wrap("  \"path\": \"/spring-integration\",".getBytes(StandardCharsets.UTF_8)),
+							bufferFactory.wrap("  \"status\": 404,".getBytes(StandardCharsets.UTF_8)),
+							bufferFactory.wrap("  \"timestamp\": \"1970-01-01T00:00:00.000+00:00\",".getBytes(StandardCharsets.UTF_8)),
+							bufferFactory.wrap("  \"trace\": \"some really\nlong\ntrace\",".getBytes(StandardCharsets.UTF_8)),
+							bufferFactory.wrap("}".getBytes(StandardCharsets.UTF_8))
 					);
 
 			return response.writeWith(data)
@@ -304,12 +306,12 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		});
 
 		WebClient webClient = WebClient.builder()
-										.clientConnector(httpConnector)
-										.build();
+				.clientConnector(httpConnector)
+				.build();
 
 		String destinationUri = "https://www.springsource.org/spring-integration";
 		WebFluxRequestExecutingMessageHandler reactiveHandler =
-							new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
+				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
 
 		QueueChannel replyChannel = new QueueChannel();
 		QueueChannel errorChannel = new QueueChannel();
@@ -317,9 +319,9 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		reactiveHandler.setBodyExtractor(new ClientHttpResponseBodyExtractor());
 
 		final Message<?> message =
-							MessageBuilder.withPayload("hello, world")
-											.setErrorChannel(errorChannel)
-											.build();
+				MessageBuilder.withPayload("hello, world")
+						.setErrorChannel(errorChannel)
+						.build();
 		reactiveHandler.handleMessage(message);
 
 		Message<?> errorMessage = errorChannel.receive(10_000);
@@ -331,4 +333,49 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		assertThat(throwable.getCause()).isInstanceOf(WebClientResponseException.NotFound.class);
 		assertThat(throwable.getMessage()).contains("404 Not Found");
 	}
+
+	@Test
+	void testMaxInMemorySizeExceeded() {
+		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
+			response.setStatusCode(HttpStatus.OK);
+
+			DataBufferFactory bufferFactory = response.bufferFactory();
+
+			Mono<DataBuffer> data = Mono.just(bufferFactory.wrap("test".getBytes()));
+
+			return response.writeWith(data)
+					.then(Mono.defer(response::setComplete));
+		});
+
+		WebClient webClient = WebClient.builder()
+				.clientConnector(httpConnector)
+				.exchangeStrategies(ExchangeStrategies.builder()
+						.codecs(clientCodecConfigurer -> clientCodecConfigurer
+								.defaultCodecs()
+								.maxInMemorySize(1))
+						.build())
+				.build();
+
+		String destinationUri = "https://www.springsource.org/spring-integration";
+		WebFluxRequestExecutingMessageHandler reactiveHandler =
+				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
+
+		reactiveHandler.setExpectedResponseType(String.class);
+
+		QueueChannel errorChannel = new QueueChannel();
+		reactiveHandler.handleMessage(MessageBuilder.withPayload("").setErrorChannel(errorChannel).build());
+
+		Message<?> errorMessage = errorChannel.receive(10000);
+		assertThat(errorMessage).isNotNull();
+
+		Object payload = errorMessage.getPayload();
+		assertThat(payload).isInstanceOf(MessageHandlingException.class)
+				.extracting("cause")
+				.isInstanceOf(WebClientResponseException.class)
+				.extracting("cause")
+				.isInstanceOf(DataBufferLimitException.class)
+				.extracting("message")
+				.isEqualTo("Exceeded limit on max bytes to buffer : 1");
+	}
+
 }
