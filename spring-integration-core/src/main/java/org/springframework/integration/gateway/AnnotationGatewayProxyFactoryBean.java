@@ -95,7 +95,10 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 
 		populateAsyncExecutorIfAny();
 
-		setProxyDefaultMethods(this.gatewayAttributes.getBoolean("proxyDefaultMethods"));
+		boolean proxyDefaultMethods = this.gatewayAttributes.getBoolean("proxyDefaultMethods");
+		if (proxyDefaultMethods) { // Override only if annotation attribute is different
+			setProxyDefaultMethods(true);
+		}
 		super.onInit();
 	}
 
