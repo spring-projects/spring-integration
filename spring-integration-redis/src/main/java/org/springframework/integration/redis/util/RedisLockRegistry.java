@@ -80,7 +80,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private static final long DEFAULT_EXPIRE_AFTER = 60000L;
 
-	private static final int DEFAULT_CAPACITY = 1_000_000;
+	private static final int DEFAULT_CAPACITY = 100_000;
 
 	private static final String OBTAIN_LOCK_SCRIPT =
 			"local lockClientId = redis.call('GET', KEYS[1])\n" +
@@ -168,7 +168,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	/**
 	 * Set the capacity of cached locks.
-	 * @param capacity The capacity of cached lock, (default 1_000_000).
+	 * @param capacity The capacity of cached lock, (default 100_000).
 	 * @since 5.5.6
 	 */
 	public void setCapacity(int capacity) {
