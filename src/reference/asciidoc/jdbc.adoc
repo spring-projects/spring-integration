@@ -1091,6 +1091,9 @@ So the time to live can be highly reduce and deployments can retake a lost lock 
 
 NOTE: The lock renewal can be done only if the lock is held by the current thread.
 
+String with version 5.5.6, the `JdbcLockRegistry` is support automatically clean up cache for JdbcLock in `JdbcLockRegistry.locks` via `JdbcLockRegistry.setCacheCapacity()`.
+See its JavaDocs for more information.
+
 [[jdbc-metadata-store]]
 === JDBC Metadata Store
 
