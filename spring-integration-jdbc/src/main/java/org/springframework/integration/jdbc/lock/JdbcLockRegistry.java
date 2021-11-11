@@ -68,7 +68,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, JdbcLock> eldest) {
-					return size() > JdbcLockRegistry.this.capacity;
+					return size() > JdbcLockRegistry.this.cacheCapacity;
 				}
 
 			};
@@ -77,7 +77,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 	private Duration idleBetweenTries = Duration.ofMillis(DEFAULT_IDLE);
 
-	private int capacity = DEFAULT_CAPACITY;
+	private int cacheCapacity = DEFAULT_CAPACITY;
 
 	public JdbcLockRegistry(LockRepository client) {
 		this.client = client;
@@ -96,11 +96,11 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 	/**
 	 * Set the capacity of cached locks.
-	 * @param capacity The capacity of cached lock, (default 100_000).
+	 * @param cacheCapacity The capacity of cached lock, (default 100_000).
 	 * @since 5.5.6
 	 */
-	public void cacheCapacity(int capacity) {
-		this.capacity = capacity;
+	public void setCacheCapacity(int cacheCapacity) {
+		this.cacheCapacity = cacheCapacity;
 	}
 
 	@Override

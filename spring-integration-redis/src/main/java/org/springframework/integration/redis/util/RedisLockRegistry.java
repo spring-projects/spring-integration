@@ -99,7 +99,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, RedisLock> eldest) {
-					return size() > RedisLockRegistry.this.capacity;
+					return size() > RedisLockRegistry.this.cacheCapacity;
 				}
 
 			};
@@ -114,7 +114,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private final long expireAfter;
 
-	private int capacity = DEFAULT_CAPACITY;
+	private int cacheCapacity = DEFAULT_CAPACITY;
 
 	/**
 	 * An {@link ExecutorService} to call {@link StringRedisTemplate#delete} in
@@ -168,11 +168,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	/**
 	 * Set the capacity of cached locks.
-	 * @param capacity The capacity of cached lock, (default 100_000).
+	 * @param cacheCapacity The capacity of cached lock, (default 100_000).
 	 * @since 5.5.6
 	 */
-	public void cacheCapacity(int capacity) {
-		this.capacity = capacity;
+	public void setCacheCapacity(int cacheCapacity) {
+		this.cacheCapacity = cacheCapacity;
 	}
 
 	@Override

@@ -349,7 +349,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		final CountDownLatch maincountDownLatch = new CountDownLatch(KEY_CNT);
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
 		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
-		registry.cacheCapacity(CAPACITY_CNT);
+		registry.setCacheCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 
 		for (int i = 0; i < KEY_CNT; i++) {
@@ -391,7 +391,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
 		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
-		registry.cacheCapacity(CAPACITY_CNT);
+		registry.setCacheCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
 
@@ -438,7 +438,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
 		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
-		registry.cacheCapacity(CAPACITY_CNT);
+		registry.setCacheCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
 
@@ -484,14 +484,14 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	public void setCapacityTest() {
 		final int CAPACITY_CNT = 4;
 		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
-		registry.cacheCapacity(CAPACITY_CNT);
+		registry.setCacheCapacity(CAPACITY_CNT);
 
 		registry.obtain("foo:1");
 		registry.obtain("foo:2");
 		registry.obtain("foo:3");
 
 		//capacity 4->3
-		registry.cacheCapacity(CAPACITY_CNT - 1);
+		registry.setCacheCapacity(CAPACITY_CNT - 1);
 
 		registry.obtain("foo:4");
 
@@ -499,7 +499,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		assertThat(getRegistryLocks(registry)).containsKeys(toKey("foo:2"), toKey("foo:3"), toKey("foo:4"));
 
 		//capacity 3->4
-		registry.cacheCapacity(CAPACITY_CNT);
+		registry.setCacheCapacity(CAPACITY_CNT);
 		registry.obtain("foo:5");
 		assertThat(getRegistryLocks(registry)).hasSize(4);
 		assertThat(getRegistryLocks(registry)).containsKeys(toKey("foo:3"), toKey("foo:4"), toKey("foo:5"));
@@ -507,11 +507,11 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Map<String, Lock> getRegistryLocks(ZookeeperLockRegistry registry) {
+	private static Map<String, Lock> getRegistryLocks(ZookeeperLockRegistry registry) {
 		return TestUtils.getPropertyValue(registry, "locks", Map.class);
 	}
 
-	private String toKey(String path) {
+	private static String toKey(String path) {
 		final String DEFAULT_ROOT = "/SpringIntegration-LockRegistry";
 		return DEFAULT_ROOT + "/" + path;
 	}

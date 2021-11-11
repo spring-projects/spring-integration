@@ -63,7 +63,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, ZkLock> eldest) {
-					return size() > ZookeeperLockRegistry.this.capacity;
+					return size() > ZookeeperLockRegistry.this.cacheCapacity;
 				}
 
 			};
@@ -81,7 +81,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 
 	private boolean mutexTaskExecutorExplicitlySet;
 
-	private int capacity = DEFAULT_CAPACITY;
+	private int cacheCapacity = DEFAULT_CAPACITY;
 
 	/**
 	 * Construct a lock registry using the default {@link KeyToPathStrategy} which
@@ -134,11 +134,11 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 
 	/**
 	 * Set the capacity of cached locks.
-	 * @param capacity The capacity of cached lock, (default 30_000).
+	 * @param cacheCapacity The capacity of cached lock, (default 30_000).
 	 * @since 5.5.6
 	 */
-	public void cacheCapacity(int capacity) {
-		this.capacity = capacity;
+	public void setCacheCapacity(int cacheCapacity) {
+		this.cacheCapacity = cacheCapacity;
 	}
 
 	@Override
