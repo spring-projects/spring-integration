@@ -106,8 +106,6 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	}
 
 
-	private ClassLoader classLoader;
-
 	private ConfigurableListableBeanFactory beanFactory;
 
 	private BeanDefinitionRegistry registry;
@@ -119,7 +117,6 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
 		this.registry = registry;
 		this.beanFactory = (ConfigurableListableBeanFactory) registry;
-		this.classLoader = this.beanFactory.getBeanClassLoader();
 
 		registerBeanFactoryChannelResolver();
 		registerMessagePublishingErrorHandler();
