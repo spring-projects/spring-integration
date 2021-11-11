@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -35,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.util.UUIDConverter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -43,6 +48,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  * @author Artem Bilan
  * @author Stefan Vassilev
  * @author Alexandre Strubel
+ * @author Unseok Kim
  *
  * @since 4.3
  */
@@ -312,4 +318,171 @@ public class JdbcLockRegistryTests {
 				.isThrownBy(() -> registry.renewLock("foo"));
 	}
 
+	@Test
+	public void concurrentObtainCapacityTest() throws InterruptedException {
+		final int KEY_CNT = 500;
+		final int CAPACITY_CNT = 179;
+		final int THREAD_CNT = 4;
+
+		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
+		registry.setCapacity(CAPACITY_CNT);
+		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
+
+		for (int i = 0; i < KEY_CNT; i++) {
+			int finalI = i;
+			executorService.submit(() -> {
+				countDownLatch.countDown();
+				try {
+					countDownLatch.await();
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				String keyId = "foo:" + finalI;
+				Lock obtain = registry.obtain(keyId);
+				obtain.lock();
+				obtain.unlock();
+			});
+		}
+		executorService.shutdown();
+		executorService.awaitTermination(5, TimeUnit.SECONDS);
+
+		//capacity limit test
+		assertThat(getRegistryLocks(registry)).hasSize(CAPACITY_CNT);
+
+
+		registry.expireUnusedOlderThan(-1000);
+		assertThat(getRegistryLocks(registry)).isEmpty();
+	}
+
+	@Test
+	public void concurrentObtainRemoveOrderTest() throws InterruptedException {
+		final int THREAD_CNT = 2;
+		final int DUMMY_LOCK_CNT = 3;
+
+		final int CAPACITY_CNT = THREAD_CNT;
+
+		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
+		registry.setCapacity(CAPACITY_CNT);
+		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
+		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
+
+		//Removed due to capcity limit
+		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
+			Lock obtainLock0 = registry.obtain("foo:" + i);
+			obtainLock0.lock();
+			obtainLock0.unlock();
+		}
+
+		for (int i = DUMMY_LOCK_CNT; i < THREAD_CNT + DUMMY_LOCK_CNT; i++) {
+			int finalI = i;
+			executorService.submit(() -> {
+				countDownLatch.countDown();
+				try {
+					countDownLatch.await();
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				String keyId = "foo:" + finalI;
+				remainLockCheckQueue.offer(toUUID(keyId));
+				Lock obtain = registry.obtain(keyId);
+				obtain.lock();
+				obtain.unlock();
+			});
+		}
+
+		executorService.shutdown();
+		executorService.awaitTermination(5, TimeUnit.SECONDS);
+
+		assertThat(getRegistryLocks(registry)).containsKeys(
+				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
+	}
+
+	@Test
+	public void concurrentObtainAccessRemoveOrderTest() throws InterruptedException {
+		final int THREAD_CNT = 2;
+		final int DUMMY_LOCK_CNT = 3;
+
+		final int CAPACITY_CNT = THREAD_CNT + 1;
+		final String REMAIN_DUMMY_LOCK_KEY = "foo:1";
+
+		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
+		registry.setCapacity(CAPACITY_CNT);
+		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
+		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
+
+		//Removed due to capcity limit
+		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
+			Lock obtainLock0 = registry.obtain("foo:" + i);
+			obtainLock0.lock();
+			obtainLock0.unlock();
+		}
+
+		Lock obtainLock0 = registry.obtain(REMAIN_DUMMY_LOCK_KEY);
+		obtainLock0.lock();
+		obtainLock0.unlock();
+		remainLockCheckQueue.offer(toUUID(REMAIN_DUMMY_LOCK_KEY));
+
+		for (int i = DUMMY_LOCK_CNT; i < THREAD_CNT + DUMMY_LOCK_CNT; i++) {
+			int finalI = i;
+			executorService.submit(() -> {
+				countDownLatch.countDown();
+				try {
+					countDownLatch.await();
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				String keyId = "foo:" + finalI;
+				remainLockCheckQueue.offer(toUUID(keyId));
+				Lock obtain = registry.obtain(keyId);
+				obtain.lock();
+				obtain.unlock();
+			});
+		}
+
+		executorService.shutdown();
+		executorService.awaitTermination(5, TimeUnit.SECONDS);
+
+		assertThat(getRegistryLocks(registry)).containsKeys(
+				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
+	}
+
+	@Test
+	public void setCapacityTest() {
+		final int CAPACITY_CNT = 4;
+		registry.setCapacity(CAPACITY_CNT);
+
+		registry.obtain("foo:1");
+		registry.obtain("foo:2");
+		registry.obtain("foo:3");
+
+		//capacity 4->3
+		registry.setCapacity(CAPACITY_CNT - 1);
+
+		registry.obtain("foo:4");
+
+		assertThat(getRegistryLocks(registry)).hasSize(3);
+		assertThat(getRegistryLocks(registry)).containsKeys(toUUID("foo:2"),
+															toUUID("foo:3"),
+															toUUID("foo:4"));
+
+		//capacity 3->4
+		registry.setCapacity(CAPACITY_CNT);
+		registry.obtain("foo:5");
+		assertThat(getRegistryLocks(registry)).hasSize(4);
+		assertThat(getRegistryLocks(registry)).containsKeys(toUUID("foo:3"),
+															toUUID("foo:4"),
+															toUUID("foo:5"));
+	}
+
+	@SuppressWarnings("unchecked")
+	private Map<String, Lock> getRegistryLocks(JdbcLockRegistry registry) {
+		return TestUtils.getPropertyValue(registry, "locks", Map.class);
+	}
+
+	private String toUUID(String key) {
+		return UUIDConverter.getUUID(key).toString();
+	}
 }

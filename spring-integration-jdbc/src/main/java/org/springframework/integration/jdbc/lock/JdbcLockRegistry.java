@@ -17,10 +17,9 @@
 package org.springframework.integration.jdbc.lock;
 
 import java.time.Duration;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -54,6 +53,7 @@ import org.springframework.util.Assert;
  * @author Stefan Vassilev
  * @author Olivier Hubaut
  * @author Fran Aranda
+ * @author Unseok Kim
  *
  * @since 4.3
  */
@@ -61,11 +61,23 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 	private static final int DEFAULT_IDLE = 100;
 
-	private final Map<String, JdbcLock> locks = new ConcurrentHashMap<>();
+	private static final int DEFAULT_CAPACITY = 100_000;
+
+	private final Map<String, JdbcLock> locks =
+			new LinkedHashMap<String, JdbcLock>(16, 0.75F, true) {
+
+				@Override
+				protected boolean removeEldestEntry(Entry<String, JdbcLock> eldest) {
+					return size() > JdbcLockRegistry.this.capacity;
+				}
+
+			};
 
 	private final LockRepository client;
 
 	private Duration idleBetweenTries = Duration.ofMillis(DEFAULT_IDLE);
+
+	private int capacity = DEFAULT_CAPACITY;
 
 	public JdbcLockRegistry(LockRepository client) {
 		this.client = client;
@@ -82,11 +94,22 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 		this.idleBetweenTries = idleBetweenTries;
 	}
 
+	/**
+	 * Set the capacity of cached locks.
+	 * @param capacity The capacity of cached lock, (default 100_000).
+	 * @since 5.5.6
+	 */
+	public void setCapacity(int capacity) {
+		this.capacity = capacity;
+	}
+
 	@Override
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = pathFor((String) lockKey);
-		return this.locks.computeIfAbsent(path, (key) -> new JdbcLock(this.client, this.idleBetweenTries, key));
+		synchronized (this.locks) {
+			return this.locks.computeIfAbsent(path, key -> new JdbcLock(this.client, this.idleBetweenTries, key));
+		}
 	}
 
 	private String pathFor(String input) {
@@ -95,14 +118,13 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 	@Override
 	public void expireUnusedOlderThan(long age) {
-		Iterator<Entry<String, JdbcLock>> iterator = this.locks.entrySet().iterator();
 		long now = System.currentTimeMillis();
-		while (iterator.hasNext()) {
-			Entry<String, JdbcLock> entry = iterator.next();
-			JdbcLock lock = entry.getValue();
-			if (now - lock.getLastUsed() > age && !lock.isAcquiredInThisProcess()) {
-				iterator.remove();
-			}
+		synchronized (this.locks) {
+			this.locks.entrySet()
+					.removeIf(entry -> {
+						JdbcLock lock = entry.getValue();
+						return now - lock.getLastUsed() > age && !lock.isAcquiredInThisProcess();
+					});
 		}
 	}
 
@@ -110,7 +132,10 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 	public void renewLock(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = pathFor((String) lockKey);
-		JdbcLock jdbcLock = this.locks.get(path);
+		JdbcLock jdbcLock;
+		synchronized (this.locks) {
+			jdbcLock = this.locks.get(path);
+		}
 		if (jdbcLock == null) {
 			throw new IllegalStateException("Could not found mutex at " + path);
 		}

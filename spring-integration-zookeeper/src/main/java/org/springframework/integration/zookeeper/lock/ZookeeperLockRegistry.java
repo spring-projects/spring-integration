@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 package org.springframework.integration.zookeeper.lock;
 
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -44,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Vedran Pavic
+ * @author Unseok Kim
  *
  * @since 4.2
  *
@@ -56,7 +56,17 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 
 	private final KeyToPathStrategy keyToPath;
 
-	private final Map<String, ZkLock> locks = new ConcurrentHashMap<>();
+	private static final int DEFAULT_CAPACITY = 30_000;
+
+	private final Map<String, ZkLock> locks =
+			new LinkedHashMap<String, ZkLock>(16, 0.75F, true) {
+
+				@Override
+				protected boolean removeEldestEntry(Entry<String, ZkLock> eldest) {
+					return size() > ZookeeperLockRegistry.this.capacity;
+				}
+
+			};
 
 	private final boolean trackingTime;
 
@@ -70,6 +80,8 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 	}
 
 	private boolean mutexTaskExecutorExplicitlySet;
+
+	private int capacity = DEFAULT_CAPACITY;
 
 	/**
 	 * Construct a lock registry using the default {@link KeyToPathStrategy} which
@@ -120,11 +132,23 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 		this.mutexTaskExecutorExplicitlySet = true;
 	}
 
+	/**
+	 * Set the capacity of cached locks.
+	 * @param capacity The capacity of cached lock, (default 30_000).
+	 * @since 5.5.6
+	 */
+	public void setCapacity(int capacity) {
+		this.capacity = capacity;
+	}
+
 	@Override
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = this.keyToPath.pathFor((String) lockKey);
-		ZkLock lock = this.locks.computeIfAbsent(path, p -> new ZkLock(this.client, this.mutexTaskExecutor, p));
+		ZkLock lock;
+		synchronized (this.locks) {
+			lock = this.locks.computeIfAbsent(path, p -> new ZkLock(this.client, this.mutexTaskExecutor, p));
+		}
 		if (this.trackingTime) {
 			lock.setLastUsed(System.currentTimeMillis());
 		}
@@ -143,15 +167,14 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 		if (!this.trackingTime) {
 			throw new IllegalStateException("Ths KeyToPathStrategy is bounded; expiry is not supported");
 		}
-		Iterator<Entry<String, ZkLock>> iterator = this.locks.entrySet().iterator();
+
 		long now = System.currentTimeMillis();
-		while (iterator.hasNext()) {
-			Entry<String, ZkLock> entry = iterator.next();
-			ZkLock lock = entry.getValue();
-			if (now - lock.getLastUsed() > age
-					&& !lock.isAcquiredInThisProcess()) {
-				iterator.remove();
-			}
+		synchronized (this.locks) {
+			this.locks.entrySet()
+					.removeIf(entry -> {
+						ZkLock lock = entry.getValue();
+						return now - lock.getLastUsed() > age && !lock.isAcquiredInThisProcess();
+					});
 		}
 	}
 
