@@ -325,7 +325,7 @@ public class JdbcLockRegistryTests {
 		final int THREAD_CNT = 4;
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
-		registry.setCapacity(CAPACITY_CNT);
+		registry.cacheCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 
 		for (int i = 0; i < KEY_CNT; i++) {
@@ -363,7 +363,7 @@ public class JdbcLockRegistryTests {
 		final int CAPACITY_CNT = THREAD_CNT;
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
-		registry.setCapacity(CAPACITY_CNT);
+		registry.cacheCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
 
@@ -408,7 +408,7 @@ public class JdbcLockRegistryTests {
 		final String REMAIN_DUMMY_LOCK_KEY = "foo:1";
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
-		registry.setCapacity(CAPACITY_CNT);
+		registry.cacheCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
 
@@ -452,14 +452,14 @@ public class JdbcLockRegistryTests {
 	@Test
 	public void setCapacityTest() {
 		final int CAPACITY_CNT = 4;
-		registry.setCapacity(CAPACITY_CNT);
+		registry.cacheCapacity(CAPACITY_CNT);
 
 		registry.obtain("foo:1");
 		registry.obtain("foo:2");
 		registry.obtain("foo:3");
 
 		//capacity 4->3
-		registry.setCapacity(CAPACITY_CNT - 1);
+		registry.cacheCapacity(CAPACITY_CNT - 1);
 
 		registry.obtain("foo:4");
 
@@ -469,7 +469,7 @@ public class JdbcLockRegistryTests {
 															toUUID("foo:4"));
 
 		//capacity 3->4
-		registry.setCapacity(CAPACITY_CNT);
+		registry.cacheCapacity(CAPACITY_CNT);
 		registry.obtain("foo:5");
 		assertThat(getRegistryLocks(registry)).hasSize(4);
 		assertThat(getRegistryLocks(registry)).containsKeys(toUUID("foo:3"),

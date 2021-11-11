@@ -84,7 +84,7 @@ public interface KeyToPathStrategy {
 If the strategy returns `true` from `isBounded`, unused locks do not need to be harvested.
 For unbounded strategies (such as the default), you need to periodically invoke `expireUnusedOlderThan(long age)` to remove old unused locks from memory.
 
-String with version 5.5.6, the `ZookeeperLockRegistry` is support automatically clean up cache for ZkLock in `ZookeeperLockRegistry.locks` via `ZookeeperLockRegistry.setCapacity()`.
+String with version 5.5.6, the `ZookeeperLockRegistry` is support automatically clean up cache for ZkLock in `ZookeeperLockRegistry.locks` via `ZookeeperLockRegistry.cacheCapacity()`.
 See its JavaDocs for more information.
 
 [[zk-leadership]]

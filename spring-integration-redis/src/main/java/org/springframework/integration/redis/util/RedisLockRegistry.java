@@ -171,7 +171,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	 * @param capacity The capacity of cached lock, (default 100_000).
 	 * @since 5.5.6
 	 */
-	public void setCapacity(int capacity) {
+	public void cacheCapacity(int capacity) {
 		this.capacity = capacity;
 	}
 

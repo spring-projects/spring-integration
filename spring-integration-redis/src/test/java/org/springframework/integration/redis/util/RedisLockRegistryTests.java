@@ -449,7 +449,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
 		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
-		registry.setCapacity(CAPACITY_CNT);
+		registry.cacheCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 
 		for (int i = 0; i < KEY_CNT; i++) {
@@ -490,7 +490,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
 		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
-		registry.setCapacity(CAPACITY_CNT);
+		registry.cacheCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
 
@@ -538,7 +538,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
 		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
-		registry.setCapacity(CAPACITY_CNT);
+		registry.cacheCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
 
@@ -585,14 +585,14 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		final int CAPACITY_CNT = 4;
 		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
-		registry.setCapacity(CAPACITY_CNT);
+		registry.cacheCapacity(CAPACITY_CNT);
 
 		registry.obtain("foo:1");
 		registry.obtain("foo:2");
 		registry.obtain("foo:3");
 
 		//capacity 4->3
-		registry.setCapacity(CAPACITY_CNT - 1);
+		registry.cacheCapacity(CAPACITY_CNT - 1);
 
 		registry.obtain("foo:4");
 
@@ -600,7 +600,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys("foo:2", "foo:3", "foo:4");
 
 		//capacity 3->4
-		registry.setCapacity(CAPACITY_CNT);
+		registry.cacheCapacity(CAPACITY_CNT);
 		registry.obtain("foo:5");
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(4);
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys("foo:3", "foo:4", "foo:5");
