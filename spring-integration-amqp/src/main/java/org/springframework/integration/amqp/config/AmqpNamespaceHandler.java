@@ -23,19 +23,20 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  *
  * @author Mark Fisher
  * @author Gary Russell
+ *
  * @since 2.1
  */
 public class AmqpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	@Override
 	public void init() {
-		this.registerBeanDefinitionParser("channel", new AmqpChannelParser());
-		this.registerBeanDefinitionParser("publish-subscribe-channel", new AmqpChannelParser());
-		this.registerBeanDefinitionParser("inbound-channel-adapter", new AmqpInboundChannelAdapterParser());
-		this.registerBeanDefinitionParser("inbound-gateway", new AmqpInboundGatewayParser());
-		this.registerBeanDefinitionParser("outbound-channel-adapter", new AmqpOutboundChannelAdapterParser());
-		this.registerBeanDefinitionParser("outbound-gateway", new AmqpOutboundGatewayParser());
-		this.registerBeanDefinitionParser("outbound-async-gateway", new AmqpOutboundGatewayParser());
+		registerBeanDefinitionParser("channel", new AmqpChannelParser());
+		registerBeanDefinitionParser("publish-subscribe-channel", new AmqpChannelParser());
+		registerBeanDefinitionParser("inbound-channel-adapter", new AmqpInboundChannelAdapterParser());
+		registerBeanDefinitionParser("inbound-gateway", new AmqpInboundGatewayParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new AmqpOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-gateway", new AmqpOutboundGatewayParser());
+		registerBeanDefinitionParser("outbound-async-gateway", new AmqpOutboundGatewayParser());
 	}
 
 }

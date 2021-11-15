@@ -31,6 +31,8 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
+ * The base {@link AbstractMessageChannel} implementation for AMQP.
+ *
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell

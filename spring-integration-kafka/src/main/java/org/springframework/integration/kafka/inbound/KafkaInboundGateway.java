@@ -118,7 +118,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	}
 
 	/**
-	 * When using a type-aware message converter (such as {@code StringJsonMessageConverter},
+	 * When using a type-aware message converter such as {@code StringJsonMessageConverter},
 	 * set the payload type the converter should create. Defaults to {@link Object}.
 	 * @param payloadType the type.
 	 */
@@ -154,7 +154,6 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	 * This is called from the internal
 	 * {@link org.springframework.kafka.listener.adapter.MessagingMessageListenerAdapter} implementation.
 	 * @param onPartitionsAssignedCallback the {@link BiConsumer} to use
-	 * @since 3.0.4
 	 * @see ConsumerSeekAware#onPartitionsAssigned
 	 */
 	public void setOnPartitionsAssignedSeekCallback(
@@ -166,14 +165,12 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	 * Set to true to bind the source consumer record in the header named
 	 * {@link IntegrationMessageHeaderAccessor#SOURCE_DATA}.
 	 * @param bindSourceRecord true to bind.
-	 * @since 3.1.4
 	 */
 	public void setBindSourceRecord(boolean bindSourceRecord) {
 		this.bindSourceRecord = bindSourceRecord;
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	protected void onInit() {
 		super.onInit();
 		MessageListener<K, V> kafkaListener = this.listener;

@@ -49,7 +49,7 @@ public class AmqpMessageHeaderErrorMessageStrategy implements ErrorMessageStrate
 	public ErrorMessage buildErrorMessage(Throwable throwable, @Nullable AttributeAccessor context) {
 		Object inputMessage = context == null ? null
 				: context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		if (context != null) {
 			headers.put(AMQP_RAW_MESSAGE, context.getAttribute(AMQP_RAW_MESSAGE));
 			headers.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, context.getAttribute(AMQP_RAW_MESSAGE));

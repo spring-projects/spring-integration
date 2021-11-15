@@ -35,7 +35,7 @@ import com.rabbitmq.client.ConfirmCallback;
  * An advice that causes all downstream {@link RabbitOperations} operations to be executed
  * on the same channel, as long as there are no thread handoffs, since the channel is
  * bound to the thread. The same RabbitOperations must be used in this and all downstream
- * components. Typically used with a splitter or some other mechanism that would cause
+ * components. Typically, used with a splitter or some other mechanism that would cause
  * multiple messages to be sent. Optionally waits for publisher confirms if the channel is
  * so configured.
  *

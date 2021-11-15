@@ -26,6 +26,12 @@ import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrateg
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 
 /**
+ * The {@link AbstractSubscribableAmqpChannel} implementation for one-to-one subscription
+ * over AMQP queue.
+ * <p>
+ * If queue name is not provided, the channel bean name is used internally to declare
+ * a queue via provided {@link AmqpAdmin} (if any).
+ *
  * @author Mark Fisher
  * @author Artem Bilan
  *
@@ -45,6 +51,7 @@ public class PointToPointSubscribableAmqpChannel extends AbstractSubscribableAmq
 	 */
 	public PointToPointSubscribableAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate) {
+
 		super(channelName, container, amqpTemplate);
 	}
 
@@ -62,6 +69,7 @@ public class PointToPointSubscribableAmqpChannel extends AbstractSubscribableAmq
 	 */
 	public PointToPointSubscribableAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, AmqpHeaderMapper outboundMapper, AmqpHeaderMapper inboundMapper) {
+
 		super(channelName, container, amqpTemplate, outboundMapper, inboundMapper);
 	}
 

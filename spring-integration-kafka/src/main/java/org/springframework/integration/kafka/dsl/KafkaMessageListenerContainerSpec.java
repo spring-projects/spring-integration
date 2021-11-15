@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,7 +204,7 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	}
 
 	/**
-	 * Set whether or not to call consumer.commitSync() or commitAsync() when the
+	 * Set whether to call consumer.commitSync() or commitAsync() when the
 	 * container is responsible for commits. Default true. See
 	 * https://github.com/spring-projects/spring-kafka/issues/62 At the time of
 	 * writing, async commits are not entirely reliable.

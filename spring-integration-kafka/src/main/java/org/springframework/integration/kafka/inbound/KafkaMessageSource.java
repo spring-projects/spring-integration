@@ -155,7 +155,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 * records per poll will be disabled.
 	 * @param consumerFactory the consumer factory.
 	 * @param consumerProperties the consumer properties.
-	 * @since 3.2
 	 * @see #KafkaMessageSource(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory, boolean)
 	 */
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory, ConsumerProperties consumerProperties) {
@@ -175,7 +174,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 * @param consumerFactory the consumer factory.
 	 * @param consumerProperties the consumer properties.
 	 * @param allowMultiFetch true to allow {@code max.poll.records > 1}.
-	 * @since 3.2
 	 */
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory,
 			ConsumerProperties consumerProperties,
@@ -190,7 +188,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 * @param consumerFactory the consumer factory.
 	 * @param consumerProperties the consumer properties.
 	 * @param ackCallbackFactory the ack callback factory.
-	 * @since 3.2
 	 * @see #KafkaMessageSource(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory, boolean)
 	 */
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory,
@@ -210,12 +207,10 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 * within {@code max.poll.interval.ms}. When false, you must call {@link #receive()}
 	 * within {@code max.poll.interval.ms}. {@link #pause()} will not take effect until
 	 * the records from the previous poll are consumed.
-	 *
 	 * @param consumerFactory the consumer factory.
 	 * @param consumerProperties the consumer properties.
 	 * @param ackCallbackFactory the ack callback factory.
 	 * @param allowMultiFetch true to allow {@code max.poll.records > 1}.
-	 * @since 3.2
 	 */
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory,
 			ConsumerProperties consumerProperties,
@@ -243,7 +238,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	/**
 	 * Return the currently assigned partitions.
 	 * @return the partitions.
-	 * @since 3.2.2
 	 */
 	public Collection<TopicPartition> getAssignedPartitions() {
 		return Collections.unmodifiableCollection(this.assignedPartitions);
@@ -260,7 +254,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 * Get a reference to the configured consumer properties; allows further
 	 * customization of the properties before the source is started.
 	 * @return the properties.
-	 * @since 3.2
 	 */
 	public ConsumerProperties getConsumerProperties() {
 		return this.consumerProperties;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,6 @@ public final class Kafka {
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
 	 * @return the spec.
-	 * @since 3.2
 	 */
 	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
 			ConsumerFactory<K, V> consumerFactory, ConsumerProperties consumerProperties) {
@@ -96,7 +95,6 @@ public final class Kafka {
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
 	 * @return the spec.
-	 * @since 3.2
 	 */
 	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
 			ConsumerFactory<K, V> consumerFactory,
@@ -115,7 +113,6 @@ public final class Kafka {
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
 	 * @return the spec.
-	 * @since 3.2
 	 */
 	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
 			ConsumerFactory<K, V> consumerFactory,
@@ -135,7 +132,6 @@ public final class Kafka {
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
 	 * @return the spec.
-	 * @since 3.2
 	 */
 	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
 			ConsumerFactory<K, V> consumerFactory,
@@ -341,7 +337,6 @@ public final class Kafka {
 	 * @param <V> the Kafka message value type (request).
 	 * @param <R> the Kafka message value type (reply).
 	 * @return the KafkaGatewayMessageHandlerSpec.
-	 * @since 3.0.2
 	 */
 	public static <K, V, R> KafkaOutboundGatewaySpec<K, V, R, ?> outboundGateway(
 			ReplyingKafkaTemplate<K, V, R> kafkaTemplate) {
@@ -357,7 +352,6 @@ public final class Kafka {
 	 * @param <V> the Kafka message value type (request).
 	 * @param <R> the Kafka message value type (reply).
 	 * @return the KafkaGatewayMessageHandlerSpec.
-	 * @since 3.0.2
 	 */
 	public static <K, V, R> KafkaOutboundGatewaySpec.KafkaGatewayMessageHandlerTemplateSpec<K, V, R> outboundGateway(
 			ProducerFactory<K, V> producerFactory, GenericMessageListenerContainer<K, R> replyContainer) {
@@ -378,7 +372,6 @@ public final class Kafka {
 	 * @param <V> the Kafka message value type (request).
 	 * @param <R> the Kafka message value type (reply).
 	 * @return the spec.
-	 * @since 3.0.2
 	 */
 	public static <K, V, R> KafkaInboundGatewaySpec<K, V, R, ?> inboundGateway(
 			AbstractMessageListenerContainer<K, V> container, KafkaTemplate<K, R> template) {
@@ -396,7 +389,6 @@ public final class Kafka {
 	 * @param <V> the Kafka message value type (request).
 	 * @param <R> the Kafka message value type (reply).
 	 * @return the spec.
-	 * @since 3.0.2
 	 */
 	public static <K, V, R> KafkaInboundGatewaySpec.KafkaInboundGatewayListenerContainerSpec<K, V, R> inboundGateway(
 			ConsumerFactory<K, V> consumerFactory, ContainerProperties containerProperties,
@@ -416,7 +408,6 @@ public final class Kafka {
 	 * @param <V> the Kafka message value type (request).
 	 * @param <R> the Kafka message value type (reply).
 	 * @return the spec.
-	 * @since 3.0.2
 	 */
 	public static <K, V, R> KafkaInboundGatewaySpec.KafkaInboundGatewayListenerContainerSpec<K, V, R> inboundGateway(
 			KafkaMessageListenerContainerSpec<K, V> containerSpec, KafkaTemplateSpec<K, R> templateSpec) {
@@ -430,7 +421,6 @@ public final class Kafka {
 	 * @param containerFactory the container factory.
 	 * @param topic the topic.
 	 * @return the spec.
-	 * @since 3.3
 	 */
 	public static KafkaPointToPointChannelSpec channel(KafkaTemplate<?, ?> template,
 			KafkaListenerContainerFactory<?> containerFactory, String topic) {
@@ -439,12 +429,11 @@ public final class Kafka {
 	}
 
 	/**
-	 * Create a spec for a publish/subscribe channel with the provided parameters.
+	 * Create a spec for a publish-subscribe channel with the provided parameters.
 	 * @param template the template.
 	 * @param containerFactory the container factory.
 	 * @param topic the topic.
 	 * @return the spec.
-	 * @since 3.3
 	 */
 	public static KafkaPublishSubscribeChannelSpec publishSubscribeChannel(KafkaTemplate<?, ?> template,
 			KafkaListenerContainerFactory<?> containerFactory, String topic) {

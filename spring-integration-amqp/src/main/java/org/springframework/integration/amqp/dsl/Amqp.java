@@ -271,7 +271,9 @@ public final class Amqp {
 	 * @param connectionFactory the connectionFactory.
 	 * @return the AmqpPollableMessageChannelSpec.
 	 */
-	public static AmqpPollableMessageChannelSpec<?, PollableAmqpChannel> pollableChannel(ConnectionFactory connectionFactory) {
+	public static AmqpPollableMessageChannelSpec<?, PollableAmqpChannel> pollableChannel(
+			ConnectionFactory connectionFactory) {
+
 		return pollableChannel(null, connectionFactory);
 	}
 
@@ -284,7 +286,8 @@ public final class Amqp {
 	public static AmqpPollableMessageChannelSpec<?, PollableAmqpChannel> pollableChannel(@Nullable String id,
 			ConnectionFactory connectionFactory) {
 
-		AmqpPollableMessageChannelSpec<?, PollableAmqpChannel> spec = new AmqpPollableMessageChannelSpec<>(connectionFactory);
+		AmqpPollableMessageChannelSpec<?, PollableAmqpChannel> spec =
+				new AmqpPollableMessageChannelSpec<>(connectionFactory);
 		return spec.id(id);
 	}
 

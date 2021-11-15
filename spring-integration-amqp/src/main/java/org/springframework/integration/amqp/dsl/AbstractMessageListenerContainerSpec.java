@@ -191,7 +191,7 @@ public abstract class AbstractMessageListenerContainerSpec<S extends AbstractMes
 	}
 
 	/**
-	 * Determine whether or not the container should de-batch batched
+	 * Determine whether the container should de-batch batched
 	 * messages (true) or call the listener with the batch (false). Default: true.
 	 * @param deBatchingEnabled the deBatchingEnabled to set.
 	 * @return the spec.
@@ -300,7 +300,7 @@ public abstract class AbstractMessageListenerContainerSpec<S extends AbstractMes
 	}
 
 	/**
-	 * If all of the configured queue(s) are not available on the broker, this setting
+	 * If all the configured queue(s) are not available on the broker, this setting
 	 * determines whether the condition is fatal. When true, and
 	 * the queues are missing during startup, the context refresh() will fail.
 	 * <p> When false, the condition is not considered fatal and the container will
@@ -316,7 +316,7 @@ public abstract class AbstractMessageListenerContainerSpec<S extends AbstractMes
 
 	/**
 	 * Prevent the container from starting if any of the queues defined in the context have
-	 * mismatched arguments (TTL etc). Default false.
+	 * mismatched arguments (TTL etc.). Default false.
 	 * @param mismatchedQueuesFatal true to fail initialization when this condition occurs.
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setMismatchedQueuesFatal(boolean)
@@ -329,7 +329,7 @@ public abstract class AbstractMessageListenerContainerSpec<S extends AbstractMes
 	/**
 	 * Set to true to automatically declare elements (queues, exchanges, bindings)
 	 * in the application context during container start().
-	 * @param autoDeclare the boolean flag to indicate an declaration operation.
+	 * @param autoDeclare the boolean flag to indicate a declaration operation.
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setAutoDeclare(boolean)
 	 */

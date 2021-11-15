@@ -117,7 +117,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * Construct an instance with the provided mode.
 	 * @param messageListenerContainer the container.
 	 * @param mode the mode.
-	 * @since 1.2
 	 */
 	public KafkaMessageDrivenChannelAdapter(AbstractMessageListenerContainer<K, V> messageListenerContainer,
 			ListenerMode mode) {
@@ -153,7 +152,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	/**
 	 * Set the message converter to use with a record-based consumer.
 	 * @param messageConverter the converter.
-	 * @since 2.1
 	 */
 	public void setRecordMessageConverter(RecordMessageConverter messageConverter) {
 		this.recordListener.setMessageConverter(messageConverter);
@@ -162,7 +160,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	/**
 	 * Set the message converter to use with a batch-based consumer.
 	 * @param messageConverter the converter.
-	 * @since 2.1
 	 */
 	public void setBatchMessageConverter(BatchMessageConverter messageConverter) {
 		this.batchListener.setBatchMessageConverter(messageConverter);
@@ -173,7 +170,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
 	 * {@link FilteringMessageListenerAdapter}.
 	 * @param recordFilterStrategy the {@link RecordFilterStrategy} to use.
-	 * @since 2.0.1
 	 */
 	public void setRecordFilterStrategy(RecordFilterStrategy<K, V> recordFilterStrategy) {
 		this.recordFilterStrategy = recordFilterStrategy;
@@ -184,7 +180,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * should acknowledge discarded records or not.
 	 * Does not make sense if {@link #setRecordFilterStrategy(RecordFilterStrategy)} isn't specified.
 	 * @param ackDiscarded true to ack (commit offset for) discarded messages.
-	 * @since 2.0.1
 	 */
 	public void setAckDiscarded(boolean ackDiscarded) {
 		this.ackDiscarded = ackDiscarded;
@@ -195,7 +190,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
 	 * {@code RetryingMessageListenerAdapter}.
 	 * @param retryTemplate the {@link RetryTemplate} to use.
-	 * @since 2.0.1
 	 */
 	public void setRetryTemplate(RetryTemplate retryTemplate) {
 		Assert.isTrue(retryTemplate == null || this.mode.equals(ListenerMode.record),
@@ -209,7 +203,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * (unless an error channel is configured).
 	 * Does not make sense if {@link #setRetryTemplate(RetryTemplate)} isn't specified.
 	 * @param recoveryCallback the recovery callback.
-	 * @since 2.0.1
 	 */
 	public void setRecoveryCallback(RecoveryCallback<?> recoveryCallback) {
 		this.recoveryCallback = recoveryCallback;
@@ -224,17 +217,15 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * {@link RecordFilterStrategy} is present, or any.
 	 * @param filterInRetry the order for {@code RetryingMessageListenerAdapter} and
 	 * {@link FilteringMessageListenerAdapter} wrapping. Defaults to {@code false}.
-	 * @since 2.0.1
 	 */
 	public void setFilterInRetry(boolean filterInRetry) {
 		this.filterInRetry = filterInRetry;
 	}
 
 	/**
-	 * When using a type-aware message converter (such as {@code StringJsonMessageConverter},
+	 * When using a type-aware message converter such as {@code StringJsonMessageConverter},
 	 * set the payload type the converter should create. Defaults to {@link Object}.
 	 * @param payloadType the type.
-	 * @since 2.1.1
 	 */
 	public void setPayloadType(Class<?> payloadType) {
 		this.recordListener.setFallbackType(payloadType);
@@ -248,7 +239,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * This is called from the internal
 	 * {@link org.springframework.kafka.listener.adapter.MessagingMessageListenerAdapter} implementation.
 	 * @param onPartitionsAssignedCallback the {@link BiConsumer} to use
-	 * @since 3.0.4
 	 * @see ConsumerSeekAware#onPartitionsAssigned
 	 */
 	public void setOnPartitionsAssignedSeekCallback(
@@ -261,7 +251,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * {@link IntegrationMessageHeaderAccessor#SOURCE_DATA}.
 	 * Does not apply to batch listeners.
 	 * @param bindSourceRecord true to bind.
-	 * @since 3.1.4
 	 */
 	public void setBindSourceRecord(boolean bindSourceRecord) {
 		this.bindSourceRecord = bindSourceRecord;
@@ -273,7 +262,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	protected void onInit() {
 		super.onInit();
 
@@ -364,7 +352,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * attributes for use by the {@link org.springframework.integration.support.ErrorMessageStrategy}.
 	 * @param record the record.
 	 * @param message the message.
-	 * @since 2.1.1
 	 */
 	private void setAttributesIfNecessary(Object record, Message<?> message) {
 		boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
@@ -411,8 +398,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	/**
 	 * The listener mode for the container, record or batch.
-	 * @since 1.2
-	 *
 	 */
 	public enum ListenerMode {
 

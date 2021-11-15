@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,7 +136,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	 * @param recoveryCallback the recovery callback.
 	 * @return the spec
 	 */
-	public S recoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
+	public S recoveryCallback(RecoveryCallback<?> recoveryCallback) {
 		this.target.setRecoveryCallback(recoveryCallback);
 		return _this();
 	}
@@ -146,7 +146,6 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	 * set the payload type the converter should create. Defaults to {@link Object}.
 	 * @param payloadType the type.
 	 * @return the spec
-	 * @since 3.2.0
 	 */
 	public S payloadType(Class<?> payloadType) {
 		this.target.setPayloadType(payloadType);
@@ -178,7 +177,6 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	 * call from the {@link org.springframework.kafka.listener.KafkaMessageListenerContainer}.
 	 * @param onPartitionsAssignedCallback the {@link BiConsumer} to use
 	 * @return the spec
-	 * @since 3.0.4
 	 */
 	public S onPartitionsAssignedSeekCallback(
 			BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedCallback) {

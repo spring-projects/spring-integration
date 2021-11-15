@@ -45,6 +45,8 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 
 /**
+ * The base {@link AbstractAmqpChannel} extension for a {@link SubscribableChannel} contract.
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan

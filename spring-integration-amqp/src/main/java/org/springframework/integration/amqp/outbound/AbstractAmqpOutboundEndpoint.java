@@ -54,6 +54,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
+ * A base {@link AbstractReplyProducingMessageHandler} extension for AMQP message handlers.
+ *
  * @author Gary Russell
  * @author Artem Bilan
  *

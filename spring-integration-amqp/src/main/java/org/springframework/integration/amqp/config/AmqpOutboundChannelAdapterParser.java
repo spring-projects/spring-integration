@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {

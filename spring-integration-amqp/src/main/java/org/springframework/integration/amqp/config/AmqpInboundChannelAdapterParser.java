@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,6 +33,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.1
  */
@@ -42,7 +44,9 @@ public class AmqpInboundChannelAdapterParser extends AbstractAmqpInboundAdapterP
 	}
 
 	@Override
-	protected final String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
+	protected final String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
+			throws BeanDefinitionStoreException {
+
 		String id = element.getAttribute("id");
 		if (!element.hasAttribute("channel")) {
 			// the created channel will get the 'id', so the adapter's bean name includes a suffix
@@ -69,8 +73,7 @@ public class AmqpInboundChannelAdapterParser extends AbstractAmqpInboundAdapterP
 			parserContext.getReaderContext().error("The channel-adapter's 'id' attribute is required when no 'channel' "
 					+ "reference has been provided, because that 'id' would be used for the created channel.", element);
 		}
-		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.channel.DirectChannel");
+		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelId);
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 		return channelId;

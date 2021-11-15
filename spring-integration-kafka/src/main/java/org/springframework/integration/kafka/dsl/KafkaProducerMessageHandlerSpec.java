@@ -251,7 +251,7 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	 * Configure a {@link Function} that will be invoked at runtime to determine whether
 	 * to flush the producer after send. By default, the producer is flushed if a
 	 * header {@code kafka_flush} has a value {@link Boolean#TRUE}. Typically, used with a
-	 * Java 8 Lambda expression:
+	 * Java Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 * .flush(m -> m.getPayload().shouldFlush())
@@ -314,7 +314,6 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	 * Set the channel to which successful send results are sent.
 	 * @param sendSuccessChannel the channel.
 	 * @return the spec.
-	 * @since 3.0.2
 	 */
 	public S sendSuccessChannel(MessageChannel sendSuccessChannel) {
 		this.target.setSendSuccessChannel(sendSuccessChannel);
@@ -325,7 +324,6 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	 * Set the channel to which successful send results are sent.
 	 * @param sendSuccessChannel the channel name.
 	 * @return the spec.
-	 * @since 3.0.2
 	 */
 	public S sendSuccessChannel(String sendSuccessChannel) {
 		this.target.setSendSuccessChannelName(sendSuccessChannel);
@@ -336,7 +334,6 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	 * Set the channel to which failed send results are sent.
 	 * @param sendFailureChannel the channel.
 	 * @return the spec.
-	 * @since 3.0.2
 	 */
 	public S sendFailureChannel(MessageChannel sendFailureChannel) {
 		this.target.setSendFailureChannel(sendFailureChannel);
@@ -347,7 +344,6 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	 * Set the channel to which failed send results are sent.
 	 * @param sendFailureChannel the channel name.
 	 * @return the spec.
-	 * @since 3.0.2
 	 */
 	public S sendFailureChannel(String sendFailureChannel) {
 		this.target.setSendFailureChannelName(sendFailureChannel);
@@ -358,7 +354,6 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	 * Set the channel to which send futures are sent.
 	 * @param futuresChannel the channel.
 	 * @return the spec.
-	 * @since 5.4
 	 */
 	public S futuresChannel(MessageChannel futuresChannel) {
 		this.target.setFuturesChannel(futuresChannel);
@@ -369,7 +364,6 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	 * Set the channel to which send futures are sent.
 	 * @param futuresChannel the channel name.
 	 * @return the spec.
-	 * @since 5.4
 	 */
 	public S futuresChannel(String futuresChannel) {
 		this.target.setFuturesChannelName(futuresChannel);

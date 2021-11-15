@@ -273,7 +273,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	/**
 	 * Specify a timeout in milliseconds for how long this
-	 * {@link KafkaProducerMessageHandler} should wait wait for send operation results.
+	 * {@link KafkaProducerMessageHandler} should wait for send operation results.
 	 * Defaults to the kafka {@code delivery.timeout.ms} property + 5 seconds. The timeout
 	 * is applied Also applies when sending to the success or failure channels.
 	 * @param sendTimeout the timeout to wait for result for a send operation.
@@ -286,7 +286,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	/**
 	 * Specify a SpEL expression to evaluate a timeout in milliseconds for how long this
-	 * {@link KafkaProducerMessageHandler} should wait wait for send operation results.
+	 * {@link KafkaProducerMessageHandler} should wait for send operation results.
 	 * Defaults to the kafka {@code delivery.timeout.ms} property + 5 seconds. The timeout
 	 * is applied only in {@link #sync} mode. If this expression yields a result that is
 	 * less than that value, the higher value is used.
@@ -618,7 +618,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			if (topicToCheck == null) {
 				topicToCheck = new String(replyTopic, StandardCharsets.UTF_8);
 			}
-			if (!this.replyTopicsAndPartitions.keySet().contains(topicToCheck)) {
+			if (!this.replyTopicsAndPartitions.containsKey(topicToCheck)) {
 				throw new IllegalStateException("The reply topic header ["
 						+ topicToCheck +
 						"] does not match any reply container topic: " + this.replyTopicsAndPartitions.keySet());
