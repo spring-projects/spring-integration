@@ -63,6 +63,8 @@ import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
 
 /**
+ * The {@link MessageProducerSupport} for inbound WebSocket messages.
+ *
  * @author Artem Bilan
  *
  * @since 4.1
@@ -356,7 +358,6 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	}
 
 	private void produceMessage(Message<?> message, SimpMessageHeaderAccessor headerAccessor) {
-		headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
 		Object payload = this.messageConverter.fromMessage(message, this.payloadType.get());
 		Assert.state(payload != null,
 				() -> "The message converter '" + this.messageConverter +

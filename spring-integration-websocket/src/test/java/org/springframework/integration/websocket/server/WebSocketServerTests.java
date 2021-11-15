@@ -134,6 +134,7 @@ public class WebSocketServerTests {
 		assertThat(received).isNotNull();
 		StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(received);
 		assertThat(stompHeaderAccessor.getMessageType()).isEqualTo(StompCommand.MESSAGE.getMessageType());
+		assertThat(stompHeaderAccessor.getNativeHeader(StompHeaderAccessor.STOMP_MESSAGE_ID_HEADER)).isNotNull();
 
 		Object receivedPayload = received.getPayload();
 		assertThat(receivedPayload).isInstanceOf(String.class);
