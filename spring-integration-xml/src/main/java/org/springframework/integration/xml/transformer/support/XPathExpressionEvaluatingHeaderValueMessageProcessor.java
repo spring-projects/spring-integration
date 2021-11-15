@@ -35,6 +35,8 @@ import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
 
 /**
+ * The xPath-specific {@link HeaderValueMessageProcessor}
+ *
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Artem Bilan

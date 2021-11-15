@@ -122,7 +122,6 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 	 * used internally, an external executor may be required in some environments, for
 	 * example those that require the use of a {@code WorkManagerTaskExecutor}.
 	 * @param mutexTaskExecutor the executor.
-	 *
 	 * @since 4.2.10
 	 */
 	public void setMutexTaskExecutor(AsyncTaskExecutor mutexTaskExecutor) {

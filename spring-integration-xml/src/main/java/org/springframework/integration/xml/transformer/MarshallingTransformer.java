@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Jonas Partner
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class MarshallingTransformer extends AbstractXmlTransformer {
 
@@ -44,13 +45,13 @@ public class MarshallingTransformer extends AbstractXmlTransformer {
 	private volatile boolean extractPayload = true;
 
 
-	public MarshallingTransformer(Marshaller marshaller, ResultTransformer resultTransformer) throws ParserConfigurationException {
+	public MarshallingTransformer(Marshaller marshaller, ResultTransformer resultTransformer) {
 		Assert.notNull(marshaller, "a marshaller is required");
 		this.marshaller = marshaller;
 		this.resultTransformer = resultTransformer;
 	}
 
-	public MarshallingTransformer(Marshaller marshaller) throws ParserConfigurationException {
+	public MarshallingTransformer(Marshaller marshaller) {
 		this(marshaller, null);
 	}
 
@@ -59,7 +60,6 @@ public class MarshallingTransformer extends AbstractXmlTransformer {
 	 * Specify whether the source Message's payload should be extracted prior
 	 * to marshalling. This value is set to "true" by default. To send the
 	 * Message itself as input to the Marshaller instead, set this to "false".
-	 *
 	 * @param extractPayload true if the payload should be extracted.
 	 */
 	public void setExtractPayload(boolean extractPayload) {
@@ -75,8 +75,8 @@ public class MarshallingTransformer extends AbstractXmlTransformer {
 	@Override
 	public Object doTransform(Message<?> message) {
 		Object source = (this.extractPayload) ? message.getPayload() : message;
-		Object transformedPayload = null;
-		Result result = this.getResultFactory().createResult(source);
+		Object transformedPayload;
+		Result result = getResultFactory().createResult(source);
 		if (result == null) {
 			throw new MessagingException(
 					"Unable to marshal payload, ResultFactory returned null.");

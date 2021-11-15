@@ -20,8 +20,11 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * The validation exception which aggregate all the XML validation errors.
+ *
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 @SuppressWarnings("serial")
@@ -31,7 +34,7 @@ public class AggregatedXmlMessageValidationException extends RuntimeException {
 
 
 	public AggregatedXmlMessageValidationException(List<Throwable> exceptions) {
-		this.exceptions = (exceptions != null) ? exceptions : Collections.<Throwable>emptyList();
+		this.exceptions = (exceptions != null) ? exceptions : Collections.emptyList();
 	}
 
 	@Override

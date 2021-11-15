@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * super class for XmlTransformer
+ * Super class for XML transformers.
  *
  * @author Jonas Partner
  * @author Mark Fisher
@@ -73,7 +73,8 @@ public abstract class AbstractXmlTransformer extends AbstractTransformer {
 	@Override
 	protected void onInit() {
 		super.onInit();
-		ResultFactory generatedResultFactory = configureResultFactory(this.resultType, this.resultFactoryName, this.getBeanFactory());
+		ResultFactory generatedResultFactory =
+				configureResultFactory(this.resultType, this.resultFactoryName, getBeanFactory());
 		if (generatedResultFactory != null) {
 			this.resultFactory = generatedResultFactory;
 		}

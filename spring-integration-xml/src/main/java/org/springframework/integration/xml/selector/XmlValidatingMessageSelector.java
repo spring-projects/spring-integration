@@ -37,6 +37,8 @@ import org.springframework.xml.validation.XmlValidator;
 import org.springframework.xml.validation.XmlValidatorFactory;
 
 /**
+ * The XML validation-specific {@link MessageSelector}.
+ *
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Liujiong
@@ -74,7 +76,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 
 
 	/**
-	 * Creates a selector with a default {@link XmlValidator}. The validator will be initialized with
+	 * Create a selector with a default {@link XmlValidator}. The validator will be initialized with
 	 * the provided 'schema' location {@link Resource} and 'schemaType'. The valid options for schema
 	 * type are {@link XmlValidatorFactory#SCHEMA_W3C_XML} or {@link XmlValidatorFactory#SCHEMA_RELAX_NG}.
 	 * If no 'schemaType' is provided it will default to {@link XmlValidatorFactory#SCHEMA_W3C_XML};
@@ -133,8 +135,10 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 						new AggregatedXmlMessageValidationException(Arrays.asList(validationExceptions)));
 			}
 			else {
-				LOGGER.info(new AggregatedXmlMessageValidationException(Arrays.asList(validationExceptions)),
-						exceptionMessage);
+				if (LOGGER.isInfoEnabled()) {
+					LOGGER.info(new AggregatedXmlMessageValidationException(Arrays.asList(validationExceptions)),
+							exceptionMessage);
+				}
 			}
 		}
 		return validationSuccess;

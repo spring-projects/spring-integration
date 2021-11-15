@@ -23,6 +23,9 @@ import org.springframework.xml.xpath.XPathExpression;
 /**
  * Enumeration of different types of XPath evaluation used to indicate the type
  * of evaluation that should be carried out using a provided XPath expression.
+ *
+ * @author Mark Fisher
+ * @author Jonas Partner
  */
 public enum XPathEvaluationType {
 

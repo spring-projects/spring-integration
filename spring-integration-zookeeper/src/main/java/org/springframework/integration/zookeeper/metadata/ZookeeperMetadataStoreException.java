@@ -17,7 +17,11 @@
 package org.springframework.integration.zookeeper.metadata;
 
 /**
+ * A {@code ZookeeperMetadataStore}-specific exception.
+ *
  * @author Marius Bogoevici
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 @SuppressWarnings("serial")
