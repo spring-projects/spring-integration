@@ -10,8 +10,8 @@ Version 4.2 added https://zookeeper.apache.org/[Zookeeper] support to the framew
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -20,8 +20,8 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-zookeeper:{project-version}"
 ----

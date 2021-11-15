@@ -18,7 +18,6 @@ package org.springframework.integration.xml.transformer;
 
 import java.io.IOException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 
 import org.springframework.messaging.Message;
