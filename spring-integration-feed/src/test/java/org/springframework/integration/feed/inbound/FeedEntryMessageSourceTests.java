@@ -17,16 +17,20 @@
 package org.springframework.integration.feed.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.messaging.Message;
 
@@ -43,7 +47,7 @@ import com.rometools.rome.feed.synd.SyndEntry;
  */
 public class FeedEntryMessageSourceTests {
 
-	@Before
+	@BeforeEach
 	public void prepare() {
 		File metadataStoreFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/",
 				"metadata-store.properties");
@@ -52,17 +56,28 @@ public class FeedEntryMessageSourceTests {
 		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testFailureWhenNotInitialized() throws Exception {
 		URL url = new ClassPathResource("org/springframework/integration/feed/sample.rss").getURL();
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo");
-		feedEntrySource.receive();
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(feedEntrySource::receive);
 	}
 
 	@Test
 	public void testReceiveFeedWithNoEntries() throws Exception {
 		URL url = new ClassPathResource("org/springframework/integration/feed/empty.rss").getURL();
-		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo");
+		UrlResource urlResource =
+				new UrlResource(url) {
+
+					@Override
+					protected void customizeConnection(HttpURLConnection connection) throws IOException {
+						super.customizeConnection(connection);
+						connection.setConnectTimeout(10000);
+						connection.setReadTimeout(5000);
+					}
+				};
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(urlResource, "foo");
 		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
 		feedEntrySource.afterPropertiesSet();
@@ -70,7 +85,7 @@ public class FeedEntryMessageSourceTests {
 	}
 
 	@Test
-	public void testReceiveFeedWithEntriesSorted() throws Exception {
+	public void testReceiveFeedWithEntriesSorted() {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
 		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "foo");
 		source.setBeanName("feedReader");
@@ -90,7 +105,7 @@ public class FeedEntryMessageSourceTests {
 	// verifies that when entry has been updated since publish, that is taken into
 	// account when determining if the feed entry has been seen before
 	@Test
-	public void testEntryHavingBeenUpdatedAfterPublishAndRepeat() throws Exception {
+	public void testEntryHavingBeenUpdatedAfterPublishAndRepeat() {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/atom.xml");
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(resource, "foo");
 		feedEntrySource.setBeanName("feedReader");
@@ -124,7 +139,7 @@ public class FeedEntryMessageSourceTests {
 	// will test that last feed entry is remembered between the sessions
 	// and no duplicate entries are retrieved
 	@Test
-	public void testReceiveFeedWithRealEntriesAndRepeatWithPersistentMetadataStore() throws Exception {
+	public void testReceiveFeedWithRealEntriesAndRepeatWithPersistentMetadataStore() {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(resource, "foo");
 		feedEntrySource.setBeanName("feedReader");
@@ -166,7 +181,7 @@ public class FeedEntryMessageSourceTests {
 	// will test that last feed entry is NOT remembered between the sessions, since
 	// no persistent MetadataStore is provided and the same entries are retrieved again
 	@Test
-	public void testReceiveFeedWithRealEntriesAndRepeatNoPersistentMetadataStore() throws Exception {
+	public void testReceiveFeedWithRealEntriesAndRepeatNoPersistentMetadataStore() {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(resource, "foo");
 		feedEntrySource.setBeanName("feedReader");

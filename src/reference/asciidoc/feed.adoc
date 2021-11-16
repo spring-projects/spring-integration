@@ -7,8 +7,8 @@ The implementation is based on the https://rometools.github.io/rome/[ROME Framew
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -17,8 +17,8 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-feed:{project-version}"
 ----
@@ -86,6 +86,31 @@ Starting with version 5.0, the deprecated `com.rometools.fetcher.FeedFetcher` op
 This is useful when the feed source is not an HTTP endpoint but is any other resource (such as local or remote on FTP).
 In the `FeedEntryMessageSource` logic, such a resource (or provided `URL`) is parsed by the `SyndFeedInput` to the `SyndFeed` object for the processing mentioned earlier.
 You can also inject a customized `SyndFeedInput` (for example, with the `allowDoctypes` option) instance into the `FeedEntryMessageSource`.
+
+[NOTE]
+====
+If the connection to the feed needs some customization, e.g. connection and read timeouts, the `org.springframework.core.io.UrlResource` extension with its `customizeConnection(HttpURLConnection)` override has to be used instead of plain `URL` injection into the `FeedEntryMessageSource`.
+For example:
+
+[source, java]
+----
+@Bean
+@InboundChannelAdapter("feedChannel")
+FeedEntryMessageSource feedEntrySource() {
+    UrlResource urlResource =
+	    new UrlResource(url) {
+
+	        @Override
+	        protected void customizeConnection(HttpURLConnection connection) throws IOException {
+	            super.customizeConnection(connection);
+	            connection.setConnectTimeout(10000);
+	            connection.setReadTimeout(5000);
+	        }
+	    };
+    return new FeedEntryMessageSource(urlResource, "myKey");
+}
+----
+====
 
 [[feed-java-configuration]]
 === Java DSL Configuration
