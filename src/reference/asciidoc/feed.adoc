@@ -7,8 +7,8 @@ The implementation is based on the https://rometools.github.io/rome/[ROME Framew
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -17,8 +17,8 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-feed:{project-version}"
 ----
@@ -127,3 +127,5 @@ public class FeedJavaApplication {
 }
 ----
 ====
+
+NOTE: If the connection to the feed needs some customization, e.g. connection and read timeouts, the `org.springframework.core.io.UrlResource` extension with its `customizeConnection(HttpURLConnection)` override has to be used instead of plain `URL` injection into the `FeedEntryMessageSource`.
