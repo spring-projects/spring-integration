@@ -17,7 +17,7 @@ plugins {
 	id 'org.ajoberstar.grgit' version '4.1.0'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'com.jfrog.artifactory' version '4.24.20' apply false
-	id 'org.jetbrains.dokka' version '0.10.1'
+	id 'org.jetbrains.dokka' version '1.5.30'
 	id 'org.asciidoctor.jvm.pdf' version '3.3.2'
 	id 'org.asciidoctor.jvm.gems' version '3.3.2'
 	id 'org.asciidoctor.jvm.convert' version '3.3.2'
@@ -436,6 +436,8 @@ project('spring-integration-amqp') {
 project('spring-integration-core') {
 	description = 'Spring Integration Core'
 
+	apply plugin: 'org.jetbrains.dokka'
+
 	dependencies {
 		api 'org.springframework:spring-aop'
 		api 'org.springframework:spring-context'
@@ -463,6 +465,26 @@ project('spring-integration-core') {
 
 		testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
 		testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
+	}
+
+	dokkaHtmlPartial {
+		outputDirectory.set(new File(buildDir, 'docs/kdoc'))
+		dokkaSourceSets {
+			main {
+				sourceRoots.setFrom(file('src/main/kotlin'))
+				classpath.from(sourceSets['main'].runtimeClasspath)
+				externalDocumentationLink {
+					url.set(new URL("https://docs.spring.io/spring-integration/docs/$version/api/"))
+					packageListUrl.set(file("$buildDir/api/element-list").toURI().toURL())
+				}
+				externalDocumentationLink {
+					url.set(new URL('https://projectreactor.io/docs/core/release/api/'))
+				}
+				externalDocumentationLink {
+					url.set(new URL('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
+				}
+			}
+		}
 	}
 }
 
@@ -981,37 +1003,10 @@ task api(type: Javadoc) {
 	})
 }
 
-dokka {
+dokkaHtmlMultiModule {
 	dependsOn api
-
-	outputFormat = 'html'
-	outputDirectory = "$buildDir/docs/kdoc"
-
-	configuration {
-		classpath = javaProjects.collect { project -> project.jar.outputs.files.getFiles() }.flatten()
-		classpath += files(javaProjects.collect { it.sourceSets.main.compileClasspath })
-		javaProjects.forEach { project ->
-			if(project.sourceSets.main.kotlin) {
-				sourceRoot {
-					path = project.sourceSets.main.kotlin.srcDirs.first()
-				}
-			}
-		}
-		moduleName = 'spring-integration'
-		externalDocumentationLink {
-			url = new URL("https://docs.spring.io/spring-integration/docs/$version/api/")
-			packageListUrl = new File(buildDir, 'api/element-list').toURI().toURL()
-		}
-		externalDocumentationLink {
-			url = new URL('https://docs.spring.io/spring-framework/docs/current/javadoc-api/')
-		}
-		externalDocumentationLink {
-			url = new URL('https://projectreactor.io/docs/core/release/api/')
-		}
-		externalDocumentationLink {
-			url = new URL('https://www.reactive-streams.org/reactive-streams-1.0.1-javadoc/')
-		}
-	}
+	moduleName.set('spring-integration')
+	outputDirectory.set(file("$buildDir/docs/kdoc"))
 }
 
 apply from: "${rootDir}/gradle/docs.gradle"
@@ -1051,7 +1046,7 @@ task schemaZip(type: Zip) {
 	}
 }
 
-task docsZip(type: Zip, dependsOn: reference) {
+task docsZip(type: Zip, dependsOn:  [reference, dokkaHtmlMultiModule]) {
 		group = 'Distribution'
 		archiveClassifier = 'docs'
 		description = "Builds -${archiveClassifier} archive containing api and reference " +
@@ -1074,7 +1069,7 @@ task docsZip(type: Zip, dependsOn: reference) {
 			rename  'index-single.pdf', 'spring-integration-reference.pdf'
 			into 'reference/pdf'
 	    }
-	from (dokka) {
+	from(dokkaHtmlMultiModule.outputDirectory) {
 		into 'kdoc-api'
 	}
 }
