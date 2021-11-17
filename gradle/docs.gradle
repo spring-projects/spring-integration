@@ -18,6 +18,7 @@ task prepareAsciidocBuild(type: Sync) {
 	from {
 		configurations.docs.collect { zipTree(it) }
 	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	from 'src/reference/asciidoc/'
 	into "$buildDir/asciidoc"
 }
