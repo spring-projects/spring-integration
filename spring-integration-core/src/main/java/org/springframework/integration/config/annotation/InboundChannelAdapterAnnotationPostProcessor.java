@@ -23,6 +23,7 @@ import java.util.function.Supplier;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -122,12 +123,9 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 			methodInvokingMessageSource.setObject(bean);
 			methodInvokingMessageSource.setMethod(method);
 			String messageSourceBeanName = generateHandlerBeanName(beanName, method);
-			this.beanFactory.registerSingleton(messageSourceBeanName, methodInvokingMessageSource);
-			messageSource = (MessageSource<?>) this.beanFactory
-					.initializeBean(methodInvokingMessageSource, messageSourceBeanName);
-			if (this.disposables != null) {
-				this.disposables.add(methodInvokingMessageSource);
-			}
+			this.definitionRegistry.registerBeanDefinition(messageSourceBeanName,
+					new RootBeanDefinition(MethodInvokingMessageSource.class, () -> methodInvokingMessageSource));
+			messageSource = this.beanFactory.getBean(messageSourceBeanName, MessageSource.class);
 		}
 		return messageSource;
 	}
