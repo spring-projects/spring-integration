@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.MergedAnnotation;
@@ -104,10 +104,11 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	@Override
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(
-				IntegrationContextUtils.DISPOSABLES_BEAN_NAME,
-				BeanDefinitionBuilder.genericBeanDefinition(Disposables.class, Disposables::new)
-						.getRawBeanDefinition());
+		if (!this.beanFactory.containsBeanDefinition(IntegrationContextUtils.DISPOSABLES_BEAN_NAME)) {
+			((BeanDefinitionRegistry) this.beanFactory)
+					.registerBeanDefinition(IntegrationContextUtils.DISPOSABLES_BEAN_NAME,
+							new RootBeanDefinition(Disposables.class, Disposables::new));
+		}
 		this.postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory));
 		this.postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
 		this.postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
