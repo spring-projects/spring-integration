@@ -56,7 +56,6 @@ import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.Assert;
@@ -104,11 +103,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	@Override
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		if (!this.beanFactory.containsBeanDefinition(IntegrationContextUtils.DISPOSABLES_BEAN_NAME)) {
-			((BeanDefinitionRegistry) this.beanFactory)
-					.registerBeanDefinition(IntegrationContextUtils.DISPOSABLES_BEAN_NAME,
-							new RootBeanDefinition(Disposables.class, Disposables::new));
-		}
 		this.postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory));
 		this.postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
 		this.postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
@@ -224,17 +218,20 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void postProcessMethodAndRegisterEndpointIfAny(Object bean, String beanName, Method method,
 			Class<? extends Annotation> annotationType, List<Annotation> annotations,
 			MethodAnnotationPostProcessor<?> postProcessor, Method targetMethod) {
 
 		Object result = postProcessor.postProcess(bean, beanName, targetMethod, annotations);
+		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+		BeanDefinitionRegistry definitionRegistry = (BeanDefinitionRegistry) beanFactory;
 		if (result instanceof AbstractEndpoint) {
 			AbstractEndpoint endpoint = (AbstractEndpoint) result;
 			String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, "autoStartup",
 					String.class);
 			if (StringUtils.hasText(autoStartup)) {
-				autoStartup = getBeanFactory().resolveEmbeddedValue(autoStartup);
+				autoStartup = beanFactory.resolveEmbeddedValue(autoStartup);
 				if (StringUtils.hasText(autoStartup)) {
 					endpoint.setAutoStartup(Boolean.parseBoolean(autoStartup));
 				}
@@ -242,7 +239,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 			String phase = MessagingAnnotationUtils.resolveAttribute(annotations, "phase", String.class);
 			if (StringUtils.hasText(phase)) {
-				phase = getBeanFactory().resolveEmbeddedValue(phase);
+				phase = beanFactory.resolveEmbeddedValue(phase);
 				if (StringUtils.hasText(phase)) {
 					endpoint.setPhase(Integer.parseInt(phase));
 				}
@@ -255,8 +252,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 			String endpointBeanName = generateBeanName(beanName, method, annotationType);
 			endpoint.setBeanName(endpointBeanName);
-			getBeanFactory().registerSingleton(endpointBeanName, endpoint);
-			getBeanFactory().initializeBean(endpoint, endpointBeanName);
+			definitionRegistry.registerBeanDefinition(endpointBeanName,
+					new RootBeanDefinition((Class<AbstractEndpoint>) endpoint.getClass(), () -> endpoint));
+			beanFactory.getBean(endpointBeanName);
 		}
 	}
 

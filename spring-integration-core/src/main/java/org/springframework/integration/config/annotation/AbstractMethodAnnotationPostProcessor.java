@@ -36,10 +36,11 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.DefaultBeanFactoryPointcutAdvisor;
 import org.springframework.aop.support.NameMatchMethodPointcut;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.ResolvableType;
@@ -120,19 +121,20 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final ConfigurableListableBeanFactory beanFactory; // NOSONAR
 
+	protected final BeanDefinitionRegistry definitionRegistry; // NOSONAR
+
 	protected final ConversionService conversionService; // NOSONAR
 
 	protected final DestinationResolver<MessageChannel> channelResolver; // NOSONAR
 
 	protected final Class<T> annotationType; // NOSONAR
 
-	protected final Disposables disposables; // NOSONAR
-
 	@SuppressWarnings(UNCHECKED)
 	public AbstractMethodAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		this.messageHandlerAttributes.add(SEND_TIMEOUT_ATTRIBUTE);
 		this.beanFactory = beanFactory;
+		this.definitionRegistry = (BeanDefinitionRegistry) beanFactory;
 		this.conversionService = this.beanFactory.getConversionService() != null
 				? this.beanFactory.getConversionService()
 				: DefaultConversionService.getSharedInstance();
@@ -140,14 +142,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		this.annotationType =
 				(Class<T>) GenericTypeResolver.resolveTypeArgument(this.getClass(),
 						MethodAnnotationPostProcessor.class);
-		Disposables disposablesBean = null;
-		try {
-			disposablesBean = beanFactory.getBean(Disposables.class);
-		}
-		catch (@SuppressWarnings("unused") Exception e) {
-			// NOSONAR - only for test cases
-		}
-		this.disposables = disposablesBean;
 	}
 
 	@Override
@@ -187,23 +181,19 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	private MessageHandler registerHandlerBean(String beanName, Method method, final MessageHandler handler) {
-		MessageHandler handlerBean = handler;
 		String handlerBeanName = generateHandlerBeanName(beanName, method);
-		if (handlerBean instanceof ReplyProducingMessageHandlerWrapper
+		if (handler instanceof ReplyProducingMessageHandlerWrapper
 				&& StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))) {
 			handlerBeanName = handlerBeanName + ".wrapper";
 		}
-		if (handlerBean instanceof IntegrationObjectSupport) {
-			((IntegrationObjectSupport) handlerBean).setComponentName(
+		if (handler instanceof IntegrationObjectSupport) {
+			((IntegrationObjectSupport) handler).setComponentName(
 					handlerBeanName.substring(0,
 							handlerBeanName.indexOf(IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX)));
 		}
-		this.beanFactory.registerSingleton(handlerBeanName, handler);
-		handlerBean = (MessageHandler) this.beanFactory.initializeBean(handlerBean, handlerBeanName);
-		if (handlerBean instanceof DisposableBean && this.disposables != null) {
-			this.disposables.add((DisposableBean) handlerBean);
-		}
-		return handlerBean;
+		this.definitionRegistry.registerBeanDefinition(handlerBeanName,
+				new RootBeanDefinition(MessageHandler.class, () -> handler));
+		return this.beanFactory.getBean(handlerBeanName, MessageHandler.class);
 	}
 
 	private void orderable(Method method, MessageHandler handler) {
@@ -355,12 +345,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 			catch (DestinationResolutionException e) {
 				if (e.getCause() instanceof NoSuchBeanDefinitionException) {
-					inputChannel = new DirectChannel();
-					this.beanFactory.registerSingleton(inputChannelName, inputChannel);
-					inputChannel = (MessageChannel) this.beanFactory.initializeBean(inputChannel, inputChannelName);
-					if (this.disposables != null) {
-						this.disposables.add((DisposableBean) inputChannel);
-					}
+					this.definitionRegistry.registerBeanDefinition(inputChannelName,
+							new RootBeanDefinition(DirectChannel.class, DirectChannel::new));
+					inputChannel = this.beanFactory.getBean(inputChannelName, MessageChannel.class);
 				}
 				else {
 					throw e;
