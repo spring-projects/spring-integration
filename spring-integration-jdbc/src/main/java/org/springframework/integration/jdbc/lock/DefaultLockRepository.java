@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -44,11 +45,11 @@ import org.springframework.util.Assert;
  * @author Glenn Renfro
  * @author Gary Russell
  * @author Alexandre Strubel
+ * @author Ruslan Stelmachenko
  *
  * @since 4.3
  */
 @Repository
-@Transactional
 public class DefaultLockRepository implements LockRepository, InitializingBean {
 
 	/**
@@ -149,17 +150,19 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 		this.renewQuery = String.format(this.renewQuery, this.prefix);
 	}
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@Override
 	public void close() {
 		this.template.update(this.deleteAllQuery, this.region, this.id);
 	}
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@Override
 	public void delete(String lock) {
 		this.template.update(this.deleteQuery, this.region, lock, this.id);
 	}
 
-	@Transactional(isolation = Isolation.SERIALIZABLE)
+	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
 	@Override
 	public boolean acquire(String lock) {
 		if (this.template.update(this.updateQuery, this.id, new Date(), this.region, lock, this.id,
@@ -174,17 +177,20 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 		}
 	}
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
 	@Override
 	public boolean isAcquired(String lock) {
 		return this.template.queryForObject(this.countQuery, Integer.class, // NOSONAR query never returns null
 				this.region, lock, this.id, new Date(System.currentTimeMillis() - this.ttl)) == 1;
 	}
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@Override
 	public void deleteExpired() {
 		this.template.update(this.deleteExpiredQuery, this.region, new Date(System.currentTimeMillis() - this.ttl));
 	}
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@Override
 	public boolean renew(String lock) {
 		return this.template.update(this.renewQuery, new Date(), this.region, lock, this.id) > 0;
