@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -43,11 +44,11 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Glenn Renfro
  * @author Gary Russell
+ * @author Ruslan Stelmachenko
  *
  * @since 4.3
  */
 @Repository
-@Transactional
 public class DefaultLockRepository implements LockRepository, InitializingBean {
 
 	/**
@@ -142,17 +143,19 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 		this.countQuery = String.format(this.countQuery, this.prefix);
 	}
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@Override
 	public void close() {
 		this.template.update(this.deleteAllQuery, this.region, this.id);
 	}
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@Override
 	public void delete(String lock) {
 		this.template.update(this.deleteQuery, this.region, lock, this.id);
 	}
 
-	@Transactional(isolation = Isolation.SERIALIZABLE, timeout = 1)
+	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE, timeout = 1)
 	@Override
 	public boolean acquire(String lock) {
 		deleteExpired(lock);
@@ -167,6 +170,7 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 		}
 	}
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
 	@Override
 	public boolean isAcquired(String lock) {
 		deleteExpired(lock);
