@@ -110,6 +110,10 @@ public abstract class IntegrationContextUtils {
 	public static final String ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME =
 			"integrationArgumentResolverMessageConverter";
 
+	/**
+	 * @deprecated since 5.5.7 - out of use.
+	 */
+	@Deprecated
 	public static final String DISPOSABLES_BEAN_NAME = "integrationDisposableAutoCreatedBeans";
 
 	public static final String MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationMessageHandlerMethodFactory";

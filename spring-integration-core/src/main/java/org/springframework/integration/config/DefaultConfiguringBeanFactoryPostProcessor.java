@@ -35,7 +35,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.ChannelUtils;
@@ -46,14 +45,9 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.handler.LoggingHandler;
-import org.springframework.integration.handler.support.CollectionArgumentResolver;
-import org.springframework.integration.handler.support.MapArgumentResolver;
-import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
-import org.springframework.integration.handler.support.PayloadsArgumentResolver;
 import org.springframework.integration.json.JsonNodeWrapperToJsonNodeConverter;
 import org.springframework.integration.json.JsonPathUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
-import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
@@ -61,7 +55,6 @@ import org.springframework.integration.support.converter.ConfigurableCompositeMe
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ClassUtils;
 
@@ -483,32 +476,11 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	}
 
 	private static BeanDefinitionBuilder createMessageHandlerMethodFactoryBeanDefinition(boolean listCapable) {
-		return BeanDefinitionBuilder.genericBeanDefinition(DefaultMessageHandlerMethodFactory.class,
-						DefaultMessageHandlerMethodFactory::new)
-				.addPropertyReference("messageConverter",
-						IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)
-				.addPropertyValue("customArgumentResolvers", buildArgumentResolvers(listCapable));
-	}
-
-	private static ManagedList<BeanDefinition> buildArgumentResolvers(boolean listCapable) {
-		ManagedList<BeanDefinition> resolvers = new ManagedList<>();
-		resolvers.add(new RootBeanDefinition(PayloadExpressionArgumentResolver.class));
-		BeanDefinitionBuilder builder =
-				BeanDefinitionBuilder.genericBeanDefinition(NullAwarePayloadArgumentResolver.class);
-		builder.addConstructorArgReference(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
-		// TODO Validator ?
-		resolvers.add(builder.getBeanDefinition());
-		resolvers.add(new RootBeanDefinition(PayloadsArgumentResolver.class));
-
-		if (listCapable) {
-			resolvers.add(
-					BeanDefinitionBuilder.genericBeanDefinition(CollectionArgumentResolver.class)
-							.addConstructorArgValue(true)
-							.getBeanDefinition());
-		}
-
-		resolvers.add(new RootBeanDefinition(MapArgumentResolver.class));
-		return resolvers;
+		return BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerMethodFactoryCreatingFactoryBean.class,
+						() -> new MessageHandlerMethodFactoryCreatingFactoryBean(listCapable))
+				.addConstructorArgValue(listCapable)
+				.addPropertyReference("argumentResolverMessageConverter",
+						IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
 	}
 
 }
