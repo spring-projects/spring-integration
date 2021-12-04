@@ -18,6 +18,9 @@ package org.springframework.integration.jdbc.lock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.util.Map;
 import java.util.Queue;
@@ -42,6 +45,9 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * @author Dave Syer
@@ -475,6 +481,34 @@ public class JdbcLockRegistryTests {
 		assertThat(getRegistryLocks(registry)).containsKeys(toUUID("foo:3"),
 															toUUID("foo:4"),
 															toUUID("foo:5"));
+	}
+
+	@Transactional
+	@Test
+	public void testNewTransactionIsStartedWhenTransactionIsAlreadyActive() {
+		// Make sure a transaction is active
+		assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
+
+		TransactionSynchronization transactionSynchronization = spy(TransactionSynchronization.class);
+		TransactionSynchronizationManager.registerSynchronization(transactionSynchronization);
+
+		Lock lock = this.registry.obtain("foo");
+		lock.lock(); // 1
+		try {
+			this.registry.renewLock("foo"); // 2
+		}
+		finally {
+			lock.unlock(); // 3
+		}
+		this.registry.expireUnusedOlderThan(0); // 4
+		this.client.deleteExpired(); // 5
+		this.client.close(); // 6
+
+		// Make sure a transaction is still active
+		assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
+		// And was suspended for each invocation of @Transactional methods of DefaultLockRepository,
+		// that confirms that these methods were called in a separate transaction each.
+		verify(transactionSynchronization, times(6)).suspend();
 	}
 
 	@SuppressWarnings("unchecked")
