@@ -86,7 +86,7 @@ ext {
 	micrometerVersion = '1.7.6'
 	mockitoVersion = '3.12.4'
 	mongoDriverVersion = '4.3.2'
-	mysqlVersion = '8.0.26'
+	mysqlVersion = '8.0.27'
 	pahoMqttClientVersion = '1.2.5'
 	postgresVersion = '42.2.23'
 	r2dbch2Version='0.8.4.RELEASE'
@@ -105,6 +105,7 @@ ext {
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.3'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.13'
 	springWsVersion = '3.1.1'
+	testcontainersVersion = '1.16.2'
 	tomcatVersion = '9.0.52'
 	xmlUnitVersion = '2.8.2'
 	xstreamVersion = '1.4.17'
@@ -255,7 +256,7 @@ configure(javaProjects) { subproject ->
 		testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
 		testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 		testImplementation 'io.projectreactor:reactor-test'
-		testImplementation 'org.testcontainers:junit-jupiter:1.16.0'
+		testImplementation "org.testcontainers:junit-jupiter:$testcontainersVersion"
 
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -607,6 +608,7 @@ project('spring-integration-jdbc') {
 		testImplementation "org.postgresql:postgresql:$postgresVersion"
 		testImplementation "mysql:mysql-connector-java:$mysqlVersion"
 		testImplementation "org.apache.commons:commons-dbcp2:$commonsDbcp2Version"
+		testImplementation "org.testcontainers:mysql:$testcontainersVersion"
 
 		testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
 	}

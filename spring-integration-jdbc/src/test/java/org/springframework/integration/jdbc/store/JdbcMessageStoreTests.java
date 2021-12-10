@@ -30,9 +30,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -47,8 +46,7 @@ import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -60,8 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Gary Russell
  * @author Will Schipp
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext // close at the end after class
 @Transactional
 public class JdbcMessageStoreTests {
@@ -71,7 +68,7 @@ public class JdbcMessageStoreTests {
 
 	private JdbcMessageStore messageStore;
 
-	@Before
+	@BeforeEach
 	public void init() {
 		messageStore = new JdbcMessageStore(dataSource);
 	}
@@ -219,12 +216,12 @@ public class JdbcMessageStoreTests {
 	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
 		String groupId = "X";
 		this.messageStore.setRemoveBatchSize(10);
-		List<Message<?>> messages = new ArrayList<Message<?>>();
+		List<Message<?>> messages = new ArrayList<>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 			messages.add(message);
 		}
-		this.messageStore.addMessagesToGroup(groupId, messages.toArray(new Message<?>[messages.size()]));
+		this.messageStore.addMessagesToGroup(groupId, messages.toArray(new Message<?>[0]));
 		MessageGroup group = this.messageStore.getMessageGroup(groupId);
 		assertThat(group.size()).isEqualTo(25);
 		this.messageStore.removeMessagesFromGroup(groupId, messages);
@@ -261,7 +258,7 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testUpdateLastReleasedSequence() throws Exception {
+	public void testUpdateLastReleasedSequence() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessagesToGroup(groupId, message);
@@ -271,7 +268,7 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testMessageGroupCount() throws Exception {
+	public void testMessageGroupCount() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		messageStore.addMessagesToGroup(groupId, message);
@@ -279,7 +276,7 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testMessageGroupSizes() throws Exception {
+	public void testMessageGroupSizes() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		messageStore.addMessagesToGroup(groupId, message);
@@ -408,7 +405,7 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testSameMessageToMultipleGroups() throws Exception {
+	public void testSameMessageToMultipleGroups() {
 
 		final String group1Id = "group1";
 		final String group2Id = "group2";
@@ -520,6 +517,15 @@ public class JdbcMessageStoreTests {
 		messageGroup = messageStore.getMessageGroup(groupId);
 		//should be marked 'complete' --> old behavior it would not
 		assertThat(messageGroup.isComplete()).isTrue();
+	}
+
+	@Test
+	public void testMessageGroupCondition() {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		this.messageStore.addMessagesToGroup(groupId, message);
+		this.messageStore.setGroupCondition(groupId, "testCondition");
+		assertThat(this.messageStore.getMessageGroup(groupId).getCondition()).isEqualTo("testCondition");
 	}
 
 }
