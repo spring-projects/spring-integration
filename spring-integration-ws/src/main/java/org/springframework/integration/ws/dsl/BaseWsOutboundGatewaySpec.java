@@ -158,8 +158,8 @@ public abstract class BaseWsOutboundGatewaySpec<
 	protected E assemble(E gateway) {
 		gateway.setUriVariableExpressions(this.uriVariableExpressions);
 		JavaUtils.INSTANCE
-				.acceptIfNotNull(this.headerMapper, gateway::setHeaderMapper);
-		gateway.setEncodingMode(this.encodingMode);
+				.acceptIfNotNull(this.headerMapper, gateway::setHeaderMapper)
+				.acceptIfNotNull(this.encodingMode, gateway::setEncodingMode);
 		gateway.setIgnoreEmptyResponses(this.ignoreEmptyResponses);
 		gateway.setRequestCallback(this.requestCallback);
 		return gateway;
