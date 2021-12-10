@@ -25,59 +25,48 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jdbc.store.JdbcMessageStore;
-import org.springframework.integration.jdbc.store.JdbcMessageStoreTests;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.predicate.MessagePredicate;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.init.DataSourceInitializer;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.annotation.Repeat;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Based on the test for Derby:
- *
- * {@link JdbcMessageStoreTests}
- *
- * This tests requires at least MySql 5.6.4 as it uses the fractional second support
- * in that version. For more information, please see:
- *
- * https://dev.mysql.com/doc/refman/5.6/en/fractional-seconds.html
- *
- * Also, please make sure you are using the respective DDL scripts:
- *
- * schema-mysql-5_6_4.sql
- *
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-@Ignore
-public class MySqlJdbcMessageStoreTests {
+@SpringJUnitConfig
+@DirtiesContext
+public class MySqlJdbcMessageStoreTests implements MySqlContainerTest {
 
 	private static final Log LOG = LogFactory.getLog(MySqlJdbcMessageStoreTests.class);
 
@@ -89,13 +78,13 @@ public class MySqlJdbcMessageStoreTests {
 	@Autowired
 	private PlatformTransactionManager transactionManager;
 
-	@Before
+	@BeforeEach
 	public void init() {
 		messageStore = new JdbcMessageStore(dataSource);
 		messageStore.setRegion("JdbcMessageStoreTests");
 	}
 
-	@After
+	@AfterEach
 	public void afterTest() {
 		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		new TransactionTemplate(this.transactionManager).execute(status -> {
@@ -203,7 +192,7 @@ public class MySqlJdbcMessageStoreTests {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
 		Message<String> result = messageStore.addMessage(message);
-		assertThat(result).isSameAs(message);
+		assertThat(result).isEqualTo(message);
 	}
 
 	@Test
@@ -336,6 +325,7 @@ public class MySqlJdbcMessageStoreTests {
 
 	@Test
 	@Transactional
+	@Disabled("Time sensitive")
 	public void testExpireMessageGroupOnCreateOnly() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
@@ -355,6 +345,7 @@ public class MySqlJdbcMessageStoreTests {
 
 	@Test
 	@Transactional
+	@Disabled("Time sensitive")
 	public void testExpireMessageGroupOnIdleOnly() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
@@ -494,6 +485,50 @@ public class MySqlJdbcMessageStoreTests {
 				.isEqualTo(1);
 		assertThat(messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
 				.isEqualTo(2);
+	}
+
+	@Test
+	public void testMessageGroupCondition() {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		this.messageStore.addMessagesToGroup(groupId, message);
+		this.messageStore.setGroupCondition(groupId, "testCondition");
+		assertThat(this.messageStore.getMessageGroup(groupId).getCondition()).isEqualTo("testCondition");
+	}
+
+	@Configuration
+	public static class Config {
+
+		@Value("org/springframework/integration/jdbc/schema-mysql.sql")
+		Resource createSchemaScript;
+
+		@Value("org/springframework/integration/jdbc/schema-drop-mysql.sql")
+		Resource dropSchemaScript;
+
+		@Bean
+		DataSource dataSource() {
+			BasicDataSource dataSource = new BasicDataSource();
+			dataSource.setDriverClassName(MySqlContainerTest.getDriverClassName());
+			dataSource.setUrl(MySqlContainerTest.getJdbcUrl());
+			dataSource.setUsername(MySqlContainerTest.getUsername());
+			dataSource.setPassword(MySqlContainerTest.getPassword());
+			return dataSource;
+		}
+
+		@Bean
+		PlatformTransactionManager transactionManager() {
+			return new DataSourceTransactionManager(dataSource());
+		}
+
+		@Bean
+		DataSourceInitializer dataSourceInitializer() {
+			DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
+			dataSourceInitializer.setDataSource(dataSource());
+			dataSourceInitializer.setDatabasePopulator(new ResourceDatabasePopulator(this.createSchemaScript));
+			dataSourceInitializer.setDatabaseCleaner(new ResourceDatabasePopulator(this.dropSchemaScript));
+			return dataSourceInitializer;
+		}
+
 	}
 
 }

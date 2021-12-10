@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jdbc.store;
 
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -47,6 +48,9 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.support.JdbcAccessor;
+import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.jdbc.support.MetaDataAccessException;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -87,7 +91,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				"(GROUP_KEY, REGION, COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE)"
 				+ " values (?, ?, 0, 0, ?, ?)"),
 
-		UPDATE_MESSAGE_GROUP("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, CONDITION=? " +
+		UPDATE_MESSAGE_GROUP("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, \"CONDITION\"=? " +
 				"where GROUP_KEY=? and REGION=?"),
 
 		REMOVE_MESSAGE_FROM_GROUP("DELETE from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and MESSAGE_ID=? and " +
@@ -117,7 +121,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? " +
 				"and m.REGION = ?)"),
 
-		GET_GROUP_INFO("SELECT COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE, CONDITION" +
+		GET_GROUP_INFO("SELECT COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE, \"CONDITION\"" +
 				" from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?"),
 
 		GET_MESSAGE("SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES from %PREFIX%MESSAGE where MESSAGE_ID=? and " +
@@ -165,6 +169,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private final JdbcOperations jdbcTemplate;
 
+	private final String vendorName;
+
 	private final Map<Query, String> queryCache = new HashMap<>();
 
 	private String region = "DEFAULT";
@@ -195,6 +201,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		this.jdbcTemplate = jdbcOperations;
 		this.deserializer = new AllowListDeserializingConverter();
 		this.serializer = new SerializingConverter();
+		try {
+			this.vendorName =
+					JdbcUtils.extractDatabaseMetaData(((JdbcAccessor) jdbcOperations).getDataSource(), // NOSONAR
+							DatabaseMetaData::getDatabaseProductName);
+		}
+		catch (MetaDataAccessException ex) {
+			throw new IllegalStateException("Cannot extract database vendor name", ex);
+		}
 	}
 
 	/**
@@ -549,7 +563,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public Iterator<MessageGroup> iterator() {
 
 		final Iterator<String> iterator = this.jdbcTemplate.query(getQuery(Query.LIST_GROUP_KEYS),
-				new SingleColumnRowMapper<String>(), this.region)
+						new SingleColumnRowMapper<String>(), this.region)
 				.iterator();
 
 		return new Iterator<MessageGroup>() {
@@ -580,14 +594,16 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * @return a transformed query with replacements
 	 */
 	protected String getQuery(Query base) {
-		String query = this.queryCache.get(base);
+		return this.queryCache.computeIfAbsent(base,
+				query -> {
+					String parsedSql = StringUtils.replace(query.getSql(), "%PREFIX%", this.tablePrefix);
+					if ((Query.GET_GROUP_INFO.equals(base) || Query.UPDATE_MESSAGE_GROUP.equals(base))
+							&& this.vendorName.equals("MySQL")) {
 
-		if (query == null) {
-			query = StringUtils.replace(base.getSql(), "%PREFIX%", this.tablePrefix);
-			this.queryCache.put(base, query);
-		}
-
-		return query;
+						parsedSql = parsedSql.replaceFirst("\"(CONDITION)\"", "`$1`");
+					}
+					return parsedSql;
+				});
 	}
 
 	/**
