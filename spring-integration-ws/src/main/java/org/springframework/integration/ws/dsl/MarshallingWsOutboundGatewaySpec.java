@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.ws.dsl;
 
 import java.util.Arrays;
 
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
@@ -141,9 +142,10 @@ public class MarshallingWsOutboundGatewaySpec extends
 		@Override
 		protected MarshallingWebServiceOutboundGateway assemble(MarshallingWebServiceOutboundGateway gateway) {
 			MarshallingWebServiceOutboundGateway assembled = super.assemble(gateway);
-			assembled.setFaultMessageResolver(this.faultMessageResolver);
-			assembled.setMessageSenders(this.messageSenders);
-			assembled.setInterceptors(this.gatewayInterceptors);
+			JavaUtils.INSTANCE
+					.acceptIfNotNull(this.faultMessageResolver, assembled::setFaultMessageResolver)
+					.acceptIfNotNull(this.messageSenders, assembled::setMessageSenders)
+					.acceptIfNotNull(this.gatewayInterceptors, assembled::setInterceptors);
 			return assembled;
 		}
 

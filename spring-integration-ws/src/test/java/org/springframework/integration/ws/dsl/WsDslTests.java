@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,6 @@ public class WsDslTests {
 						.marshaller(marshaller)
 						.unmarshaller(unmarshaller)
 						.messageFactory(messageFactory)
-						.encodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY)
 						.faultMessageResolver(faultMessageResolver)
 						.headerMapper(headerMapper)
 						.ignoreEmptyResponses(true)
@@ -172,7 +171,6 @@ public class WsDslTests {
 		MarshallingWebServiceOutboundGateway gateway =
 				Ws.marshallingOutboundGateway(template)
 						.uri(uri)
-						.encodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY)
 						.headerMapper(headerMapper)
 						.ignoreEmptyResponses(true)
 						.requestCallback(requestCallback)
@@ -182,6 +180,10 @@ public class WsDslTests {
 		assertThat(TestUtils.getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
 		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
 		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
+		assertThat(
+				TestUtils.getPropertyValue(gateway, "uriFactory.encodingMode",
+						DefaultUriBuilderFactory.EncodingMode.class))
+				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES);
 	}
 
 	@Test
