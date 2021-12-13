@@ -133,7 +133,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private final RedisScript<Boolean> obtainLockScript;
 	private final RedisScript<Boolean> unLockScript;
-	private final RedisLockNotifyMessageListener redisLockNotifyMessageListener;
+	private final RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
 	private final RedisMessageListenerContainer redisMessageListenerContainer;
 
 	private final long expireAfter;
@@ -179,7 +179,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.registryKey = registryKey;
 		this.expireAfter = expireAfter;
 		this.unLockChannelKey = registryKey + "-channel";
-		this.redisLockNotifyMessageListener = new RedisLockNotifyMessageListener();
+		this.unlockNotifyMessageListener = new RedisUnLockNotifyMessageListener();
 		this.redisMessageListenerContainer = new RedisMessageListenerContainer();
 		unlockMessageListenerActivate(connectionFactory);
 	}
@@ -189,7 +189,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.redisMessageListenerContainer.setConnectionFactory(connectionFactory);
 		this.redisMessageListenerContainer.setTaskExecutor(this.executor);
 		this.redisMessageListenerContainer.setSubscriptionExecutor(this.executor);
-		this.redisMessageListenerContainer.addMessageListener(this.redisLockNotifyMessageListener, topic);
+		this.redisMessageListenerContainer.addMessageListener(this.unlockNotifyMessageListener, topic);
 	}
 
 	/**
@@ -348,10 +348,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				if (!RedisLockRegistry.this.redisMessageListenerContainer.isRunning()) {
 					RedisLockRegistry.this.redisMessageListenerContainer.start();
 				}
-				final Future future = RedisLockRegistry.this.redisLockNotifyMessageListener.lockWait(this.lockKey);
+				final Future future = RedisLockRegistry.this.unlockNotifyMessageListener.unlockWait(this.lockKey);
 				//DCL
 				if (!obtainLock()) {
 					try {
+						//if short expireAfter key expire for ttl, no receive unlock msg
 						long waitTime = time >= 0 ? time : RedisLockRegistry.this.expireAfter;
 						future.get(waitTime, TimeUnit.MILLISECONDS);
 					}
@@ -475,8 +476,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	}
 
-	private final class RedisLockNotifyMessageListener implements MessageListener {
-		private Map<String, LockNotifyFuture> notifyMap = new ConcurrentHashMap<>();
+	private final class RedisUnLockNotifyMessageListener implements MessageListener {
+		private final Map<String, UnLockNotifyFuture> notifyMap = new ConcurrentHashMap<>();
 
 		@Override
 		public void onMessage(Message message, byte[] pattern) {
@@ -484,8 +485,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			unlockNotify(lockKey);
 		}
 
-		public Future lockWait(String lockKey) {
-			return this.notifyMap.computeIfAbsent(lockKey, key -> new LockNotifyFuture());
+		public Future unlockWait(String lockKey) {
+			return this.notifyMap.computeIfAbsent(lockKey, key -> new UnLockNotifyFuture());
 		}
 
 		private void unlockNotify(String lockKey) {
@@ -496,8 +497,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 	}
 
-	private final class LockNotifyFuture extends FutureTask<Boolean> {
-		private LockNotifyFuture() {
+	private final class UnLockNotifyFuture extends FutureTask<Boolean> {
+		private UnLockNotifyFuture() {
 			super(DUMMY_CALLABLE);
 		}
 
