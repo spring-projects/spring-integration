@@ -18,7 +18,7 @@ package org.springframework.integration.ws.dsl;
 
 import java.util.Arrays;
 
-import org.springframework.integration.JavaUtils;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
