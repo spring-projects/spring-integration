@@ -22,18 +22,25 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -606,6 +613,85 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys("foo:3", "foo:4", "foo:5");
 	}
 
+	@RedisAvailable
+	@Test
+	public void twoRedisLockRegistryTest() throws InterruptedException {
+		RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		RedisLockRegistry registry1 = new RedisLockRegistry(connectionFactory, registryKey, 1000000L);
+		RedisLockRegistry registry2 = new RedisLockRegistry(connectionFactory, registryKey, 1000000L);
+		String lockKey = "test-1";
+
+		Lock obtainLock_1 = registry1.obtain(lockKey);
+		Lock obtainLock_2 = registry2.obtain(lockKey);
+
+		CountDownLatch registry1Lock = new CountDownLatch(1);
+		CountDownLatch endDownLatch = new CountDownLatch(2);
+
+		CompletableFuture.runAsync(() -> {
+			try {
+				obtainLock_1.lock();
+				//				for (int i = 0; i < 10; i++) {
+				//					Thread.sleep(1000);
+				//				}
+				registry1Lock.countDown();
+				obtainLock_1.unlock();
+				endDownLatch.countDown();
+			}
+			catch (Exception ignore) {
+				ignore.printStackTrace();
+			}
+		});
+
+		CompletableFuture.runAsync(() -> {
+			try {
+				registry1Lock.await();
+			}
+			catch (InterruptedException ignore) {
+			}
+			obtainLock_2.lock();
+			obtainLock_2.unlock();
+			endDownLatch.countDown();
+		});
+
+		endDownLatch.await();
+	}
+
+	@RedisAvailable
+	@Test
+	public void multiRedisLockRegistryTest() throws InterruptedException, ExecutionException {
+		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final String testKey = "testKey";
+		final long expireAfter = 100000L;
+		final int lockRegistryNum = 10;
+		final ExecutorService executorService = Executors.newFixedThreadPool(lockRegistryNum * 2);
+		final AtomicInteger atomicInteger = new AtomicInteger(0);
+		final List<Callable<Boolean>> collect = IntStream.range(0, lockRegistryNum)
+				.mapToObj((num) -> new RedisLockRegistry(
+						connectionFactory, registryKey, expireAfter))
+				.map((registry) -> {
+					final Callable<Boolean> callable = () -> {
+						Lock obtain = registry.obtain(testKey);
+						obtain.lock();
+						obtain.unlock();
+						atomicInteger.incrementAndGet();
+						return true;
+					};
+					return callable;
+				})
+				.collect(Collectors.toList());
+
+		final int testCnt = 3;
+		for (int i = 0; i < testCnt; i++) {
+			List<Future<Boolean>> futures_1 = executorService.invokeAll(collect);
+			for (Future<Boolean> fu : futures_1) {
+				fu.get();
+			}
+		}
+
+		assertThat(atomicInteger.get()).isEqualTo(testCnt * lockRegistryNum);
+	}
+
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testUlink() {
@@ -639,4 +725,5 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	private static Map<String, Lock> getRedisLockRegistryLocks(RedisLockRegistry registry) {
 		return TestUtils.getPropertyValue(registry, "locks", Map.class);
 	}
+
 }
