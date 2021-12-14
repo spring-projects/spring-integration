@@ -22,6 +22,7 @@ import java.util.List;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.handler.support.CollectionArgumentResolver;
@@ -54,7 +55,7 @@ class MessageHandlerMethodFactoryCreatingFactoryBean
 
 	private final boolean listCapable;
 
-	MessageConverter argumentResolverMessageConverter;
+	private MessageConverter argumentResolverMessageConverter;
 
 	private BeanFactory beanFactory;
 
@@ -77,7 +78,7 @@ class MessageHandlerMethodFactoryCreatingFactoryBean
 	}
 
 	@Override
-	public MessageHandlerMethodFactory getObject() throws Exception {
+	public MessageHandlerMethodFactory getObject() {
 		DefaultMessageHandlerMethodFactory handlerMethodFactory = new DefaultMessageHandlerMethodFactory();
 		handlerMethodFactory.setBeanFactory(this.beanFactory);
 		handlerMethodFactory.setMessageConverter(this.argumentResolverMessageConverter);
@@ -86,7 +87,7 @@ class MessageHandlerMethodFactoryCreatingFactoryBean
 		return handlerMethodFactory;
 	}
 
-	private List<HandlerMethodArgumentResolver> buildArgumentResolvers(boolean listCapable) throws Exception {
+	private List<HandlerMethodArgumentResolver> buildArgumentResolvers(boolean listCapable) {
 		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
 		resolvers.add(new PayloadExpressionArgumentResolver());
 		resolvers.add(new NullAwarePayloadArgumentResolver(this.argumentResolverMessageConverter));
@@ -100,7 +101,12 @@ class MessageHandlerMethodFactoryCreatingFactoryBean
 				((BeanFactoryAware) resolver).setBeanFactory(this.beanFactory);
 			}
 			if (resolver instanceof InitializingBean) {
-				((InitializingBean) resolver).afterPropertiesSet();
+				try {
+					((InitializingBean) resolver).afterPropertiesSet();
+				}
+				catch (Exception ex) {
+					throw new BeanInitializationException("Cannot initialize 'HandlerMethodArgumentResolver'", ex);
+				}
 			}
 		}
 		return resolvers;
