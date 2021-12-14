@@ -20,7 +20,6 @@ import org.springframework.aop.framework.autoproxy.AbstractBeanFactoryAwareAdvis
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 
