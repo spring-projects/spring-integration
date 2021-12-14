@@ -19,6 +19,7 @@ package org.springframework.integration.jdbc.mysql;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import org.springframework.integration.test.util.TestUtils;
 
@@ -34,7 +35,9 @@ public interface MySqlContainerTest {
 
 	@Container
 	MySQLContainer<?> MY_SQL_CONTAINER =
-			new MySQLContainer<>(TestUtils.dockerRegistryFromEnv() + "mysql:latest")
+			new MySQLContainer<>(
+					DockerImageName.parse(TestUtils.dockerRegistryFromEnv() + "mysql")
+							.asCompatibleSubstituteFor("mysql"))
 					.withReuse(true);
 
 

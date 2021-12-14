@@ -81,7 +81,7 @@ ext {
 	jythonVersion = '2.7.2'
 	kryoShadedVersion = '4.0.2'
     lettuceVersion = '6.1.5.RELEASE'
-	log4jVersion = '2.14.1'
+	log4jVersion = '2.16.0'
 	mailVersion = '1.6.7'
 	micrometerVersion = '1.7.6'
 	mockitoVersion = '3.12.4'
