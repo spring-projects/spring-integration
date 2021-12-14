@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 
 /**
  * Post-processes beans that contain the
@@ -40,7 +41,7 @@ import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
  */
 @SuppressWarnings("serial")
 public class PublisherAnnotationBeanPostProcessor extends AbstractBeanFactoryAwareAdvisingPostProcessor
-		implements BeanNameAware, InitializingBean {
+		implements BeanNameAware, SmartInitializingSingleton {
 
 	private String defaultChannelName;
 
@@ -74,7 +75,7 @@ public class PublisherAnnotationBeanPostProcessor extends AbstractBeanFactoryAwa
 	}
 
 	@Override
-	public void afterPropertiesSet() {
+	public void afterSingletonsInstantiated() {
 		try {
 			this.beanFactory.getBean(PublisherAnnotationBeanPostProcessor.class);
 		}
