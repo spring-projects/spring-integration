@@ -23,14 +23,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
@@ -55,6 +53,7 @@ import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * Implementation of {@link ExpirableLockRegistry} providing a distributed lock using Redis.
@@ -93,8 +92,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private static final int DEFAULT_CAPACITY = 100_000;
 
-	private static final Callable<Boolean> DUMMY_CALLABLE = () -> true;
-
 	private static final String OBTAIN_LOCK_SCRIPT =
 			"local lockClientId = redis.call('GET', KEYS[1])\n" +
 					"if lockClientId == ARGV[1] then\n" +
@@ -106,7 +103,14 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					"end\n" +
 					"return false";
 
-	private static final String UNLOCK_SCRIPT =
+	private static final String UNLINK_UNLOCK_SCRIPT =
+			"if (redis.call('unlink', KEYS[1]) == 1) then " +
+			"redis.call('publish', ARGV[1], KEYS[1]) " +
+			"return true " +
+			"end " +
+			"return false";
+
+	private static final String DELETE_UNLOCK_SCRIPT =
 			"if (redis.call('del', KEYS[1]) == 1) then " +
 			"redis.call('publish', ARGV[1], KEYS[1]) " +
 			"return true " +
@@ -132,7 +136,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	private final StringRedisTemplate redisTemplate;
 
 	private final RedisScript<Boolean> obtainLockScript;
-	private final RedisScript<Boolean> unLockScript;
+	private final RedisScript<Boolean> unLinkUnLockScript;
+	private final RedisScript<Boolean> deleteUnLockScript;
 	private final RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
 	private final RedisMessageListenerContainer redisMessageListenerContainer;
 
@@ -175,7 +180,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		Assert.notNull(registryKey, "'registryKey' cannot be null");
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
 		this.obtainLockScript = new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
-		this.unLockScript = new DefaultRedisScript<>(UNLOCK_SCRIPT, Boolean.class);
+		this.unLinkUnLockScript = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
+		this.deleteUnLockScript = new DefaultRedisScript<>(DELETE_UNLOCK_SCRIPT, Boolean.class);
 		this.registryKey = registryKey;
 		this.expireAfter = expireAfter;
 		this.unLockChannelKey = registryKey + "-channel";
@@ -348,17 +354,22 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				if (!RedisLockRegistry.this.redisMessageListenerContainer.isRunning()) {
 					RedisLockRegistry.this.redisMessageListenerContainer.start();
 				}
-				final Future future = RedisLockRegistry.this.unlockNotifyMessageListener.unlockWait(this.lockKey);
-				//DCL
-				if (!obtainLock()) {
-					try {
-						//if short expireAfter key expire for ttl, no receive unlock msg
-						long waitTime = time >= 0 ? time : RedisLockRegistry.this.expireAfter;
-						future.get(waitTime, TimeUnit.MILLISECONDS);
+				try {
+					final Future<String> future = RedisLockRegistry.this.unlockNotifyMessageListener.subscribeLock(this.lockKey);
+					//DCL
+					if (!obtainLock()) {
+						try {
+							//if short expireAfter key expire for ttl, no receive unlock msg
+							long waitTime = time >= 0 ? time : RedisLockRegistry.this.expireAfter;
+							future.get(waitTime, TimeUnit.MILLISECONDS);
+						}
+						catch (TimeoutException ignore) {
+						}
+						return obtainLock();
 					}
-					catch (TimeoutException ignore) {
-					}
-					return obtainLock();
+				}
+				finally {
+					RedisLockRegistry.this.unlockNotifyMessageListener.unSubscribeLock(this.lockKey);
 				}
 			}
 			return true;
@@ -413,8 +424,28 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		private void removeLockKey() {
+			try {
+				if (RedisLockRegistry.this.unlinkAvailable) {
+					RedisLockRegistry.this.redisTemplate.execute(
+							RedisLockRegistry.this.unLinkUnLockScript, Collections.singletonList(this.lockKey),
+							RedisLockRegistry.this.unLockChannelKey
+					);
+					return;
+				}
+			}
+			catch (Exception ex) {
+				RedisLockRegistry.this.unlinkAvailable = false;
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("The UNLINK command has failed (not supported on the Redis server?); " +
+								"falling back to the regular DELETE command", ex);
+				}
+				else {
+					LOGGER.warn("The UNLINK command has failed (not supported on the Redis server?); " +
+								"falling back to the regular DELETE command: " + ex.getMessage());
+				}
+			}
 			RedisLockRegistry.this.redisTemplate.execute(
-					RedisLockRegistry.this.unLockScript, Collections.singletonList(this.lockKey),
+					RedisLockRegistry.this.deleteUnLockScript, Collections.singletonList(this.lockKey),
 					RedisLockRegistry.this.unLockChannelKey
 			);
 		}
@@ -477,7 +508,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	}
 
 	private final class RedisUnLockNotifyMessageListener implements MessageListener {
-		private final Map<String, UnLockNotifyFuture> notifyMap = new ConcurrentHashMap<>();
+		private final Map<String, SettableListenableFuture<String>> notifyMap = new ConcurrentHashMap<>();
 
 		@Override
 		public void onMessage(Message message, byte[] pattern) {
@@ -485,25 +516,19 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			unlockNotify(lockKey);
 		}
 
-		public Future unlockWait(String lockKey) {
-			return this.notifyMap.computeIfAbsent(lockKey, key -> new UnLockNotifyFuture());
+		public Future<String> subscribeLock(String lockKey) {
+			return this.notifyMap.computeIfAbsent(lockKey, key -> new SettableListenableFuture<String>());
+		}
+
+		public void unSubscribeLock(String localLock) {
+			this.notifyMap.remove(localLock);
 		}
 
 		private void unlockNotify(String lockKey) {
 			this.notifyMap.computeIfPresent(lockKey, (key, lockFuture) -> {
 				lockFuture.set(key);
-				return null;
+				return lockFuture;
 			});
-		}
-	}
-
-	private final class UnLockNotifyFuture extends FutureTask<Boolean> {
-		private UnLockNotifyFuture() {
-			super(DUMMY_CALLABLE);
-		}
-
-		public void set(String v) {
-			super.set(Boolean.TRUE);
 		}
 	}
 }
