@@ -457,7 +457,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					}
 				}
 			}
-			
+
 			RedisLockRegistry.this.redisTemplate.execute(
 					RedisLockRegistry.this.deleteUnLockScript, Collections.singletonList(this.lockKey),
 					RedisLockRegistry.this.unLockChannelKey);
