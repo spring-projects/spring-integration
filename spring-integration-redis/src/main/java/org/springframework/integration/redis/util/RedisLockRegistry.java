@@ -438,27 +438,29 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		private void removeLockKey() {
-			try {
-				if (RedisLockRegistry.this.unlinkAvailable) {
+			if (RedisLockRegistry.this.unlinkAvailable) {
+				try {
 					RedisLockRegistry.this.redisTemplate.execute(
 							RedisLockRegistry.this.unLinkUnLockScript, Collections.singletonList(this.lockKey),
 							RedisLockRegistry.this.unLockChannelKey);
+					return;
+				}
+				catch (Exception ex) {
+					RedisLockRegistry.this.unlinkAvailable = false;
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("The UNLINK command has failed (not supported on the Redis server?); " +
+								"falling back to the regular DELETE command", ex);
+					}
+					else {
+						LOGGER.warn("The UNLINK command has failed (not supported on the Redis server?); " +
+								"falling back to the regular DELETE command: " + ex.getMessage());
+					}
 				}
 			}
-			catch (Exception ex) {
-				RedisLockRegistry.this.unlinkAvailable = false;
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("The UNLINK command has failed (not supported on the Redis server?); " +
-							"falling back to the regular DELETE command", ex);
-				}
-				else {
-					LOGGER.warn("The UNLINK command has failed (not supported on the Redis server?); " +
-							"falling back to the regular DELETE command: " + ex.getMessage());
-				}
-				RedisLockRegistry.this.redisTemplate.execute(
-						RedisLockRegistry.this.deleteUnLockScript, Collections.singletonList(this.lockKey),
-						RedisLockRegistry.this.unLockChannelKey);
-			}
+			
+			RedisLockRegistry.this.redisTemplate.execute(
+					RedisLockRegistry.this.deleteUnLockScript, Collections.singletonList(this.lockKey),
+					RedisLockRegistry.this.unLockChannelKey);
 		}
 
 		@Override
