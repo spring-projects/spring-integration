@@ -56,7 +56,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  * @author Gary Russell
  * @author Artem Bilan
  *
- * @since 4.0
+ * @since 5.5.5
  *
  */
 @SpringJUnitConfig
@@ -164,8 +164,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 			messageProducer.setMessageConverter(mqttStringToBytesConverter());
 			messageProducer.setManualAcks(true);
 
-			return IntegrationFlows.from(
-							messageProducer)
+			return IntegrationFlows.from(messageProducer)
 					.channel(c -> c.queue("fromMqttChannel"))
 					.get();
 		}

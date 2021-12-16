@@ -50,6 +50,12 @@ import org.springframework.util.Assert;
 /**
  * The {@link AbstractMqttMessageHandler} implementation for MQTT v5.
  *
+ * It is recommended to have the {@link MqttConnectionOptions#setAutomaticReconnect(boolean)}
+ * set to true to let an internal {@link IMqttAsyncClient} instance to handle reconnects.
+ * Otherwise, only the manual restart of this component can handle reconnects, e.g. via
+ * {@link MqttConnectionFailedEvent} handling on disconnection.
+ *
+ *
  * @author Artem Bilan
  *
  * @since 5.5.5
@@ -159,7 +165,11 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
 		}
 		catch (MqttException ex) {
-			throw new IllegalStateException("Cannot connect 'MqttAsyncClient' for: " + getComponentName(), ex);
+			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			}
+			logger.error(ex, "MQTT client failed to connect. Will retry if 'ConnectionOptions.isAutomaticReconnect()'.");
 		}
 	}
 
@@ -177,7 +187,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	public void destroy() {
 		super.destroy();
 		try {
-			this.mqttClient.close();
+			this.mqttClient.close(true);
 		}
 		catch (MqttException ex) {
 			logger.error(ex, "Failed to close 'MqttAsyncClient'");

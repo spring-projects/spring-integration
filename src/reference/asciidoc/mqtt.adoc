@@ -495,3 +495,6 @@ public IntegrationFlow mqttInFlow() {
 IMPORTANT: The `org.springframework.integration.mqtt.support.MqttMessageConverter` cannot be used with the `Mqttv5PahoMessageDrivenChannelAdapter` since its contract is aimed only for the MQTT v3 protocol.
 
 See more information in the `Mqttv5PahoMessageDrivenChannelAdapter` javadocs and its superclass.
+
+IMPORTANT: It is recommended to have the `MqttConnectionOptions#setAutomaticReconnect(boolean)` set to true to let an internal `IMqttAsyncClient` instance to handle reconnects.
+Otherwise, only the manual restart of these channel adapters can handle reconnects, e.g. via `MqttConnectionFailedEvent` handling on disconnection.
