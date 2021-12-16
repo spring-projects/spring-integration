@@ -59,7 +59,7 @@ import org.springframework.util.Assert;
  *
  * It is recommended to have the {@link MqttConnectionOptions#setAutomaticReconnect(boolean)}
  * set to true to let an internal {@link IMqttAsyncClient} instance to handle reconnects.
- * Otherwise, the manual restart of this component can only handle reconnects, e.g. via
+ * Otherwise, only the manual restart of this component can handle reconnects, e.g. via
  * {@link MqttConnectionFailedEvent} handling on disconnection.
  *
  * See {@link #setPayloadType} for more information about type conversion.
@@ -190,12 +190,24 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 		String[] topics = getTopic();
 		try {
 			this.mqttClient.unsubscribe(topics).waitForCompletion(getCompletionTimeout());
+			this.mqttClient.disconnect().waitForCompletion(getCompletionTimeout());
 		}
 		catch (MqttException ex) {
 			logger.error(ex, () -> "Error unsubscribing from " + Arrays.toString(topics));
 		}
 		finally {
 			this.topicLock.unlock();
+		}
+	}
+
+	@Override
+	public void destroy() {
+		super.destroy();
+		try {
+			this.mqttClient.close(true);
+		}
+		catch (MqttException ex) {
+			logger.error(ex, "Failed to close 'MqttAsyncClient'");
 		}
 	}
 
