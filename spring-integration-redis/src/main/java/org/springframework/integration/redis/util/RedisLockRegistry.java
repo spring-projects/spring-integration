@@ -284,10 +284,9 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			this.localLock.lock();
 			while (true) {
 				try {
-					while (!subscribeLock()) {
-						// empty
+					if (subscribeLock(-1L)) {
+						return;
 					}
-					break;
 				}
 				catch (InterruptedException e) {
 					/*
@@ -310,19 +309,21 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		@Override
 		public void lockInterruptibly() throws InterruptedException {
 			this.localLock.lockInterruptibly();
-			try {
-				while (!subscribeLock()) {
-					// empty
+			while (true) {
+				try {
+					if (subscribeLock(-1L)) {
+						return;
+					}
 				}
-			}
-			catch (InterruptedException ie) {
-				this.localLock.unlock();
-				Thread.currentThread().interrupt();
-				throw ie;
-			}
-			catch (Exception e) {
-				this.localLock.unlock();
-				rethrowAsLockException(e);
+				catch (InterruptedException ie) {
+					this.localLock.unlock();
+					Thread.currentThread().interrupt();
+					throw ie;
+				}
+				catch (Exception e) {
+					this.localLock.unlock();
+					rethrowAsLockException(e);
+				}
 			}
 		}
 
@@ -355,10 +356,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				rethrowAsLockException(e);
 			}
 			return false;
-		}
-
-		private boolean subscribeLock() throws ExecutionException, InterruptedException {
-			return subscribeLock(-1L);
 		}
 
 		private boolean subscribeLock(long time) throws ExecutionException, InterruptedException {
