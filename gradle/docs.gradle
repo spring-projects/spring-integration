@@ -18,7 +18,7 @@ task prepareAsciidocBuild(type: Sync) {
 	from {
 		configurations.docs.collect { zipTree(it) }
 	}
-	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 	from 'src/reference/asciidoc/'
 	into "$buildDir/asciidoc"
 }
@@ -85,12 +85,13 @@ asciidoctorPdf {
 }
 
 asciidoctorj {
-	version = '2.4.2'
+	version = '2.5.2'
 	options doctype: 'book', eruby: 'erubis'
 	attributes 'docinfo': 'shared',
 			stylesdir: 'css/',
 			stylesheet: 'stylesheet.css',
 			'linkcss': true,
+			'copycss': false,
 			'icons': 'font',
 			'sectanchors': '',
 			'source-highlighter': 'highlight.js',
@@ -124,4 +125,4 @@ task reference(dependsOn: asciidoctor) {
 	description = 'Generate the reference documentation'
 }
 
-reference.onlyIf { "$System.env.NO_REFERENCE_TASK" != 'true' || project.hasProperty('ignoreEnvToStopReference') }
+reference.onlyIf { 'true' != System.env['NO_REFERENCE_TASK'] || project.hasProperty('ignoreEnvToStopReference') }
