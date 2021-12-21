@@ -67,6 +67,7 @@ import java.util.function.Consumer
  *
  * @since 5.3
  */
+@IntegrationDsl
 class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: IntegrationFlowDefinition<*>) {
 
 	/**
@@ -171,7 +172,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * at the current [IntegrationFlow] chain position.
 	 * The provided `messageChannelName` is used for the bean registration
 	 * ([org.springframework.integration.channel.DirectChannel]), if there is no such a bean
-	 * in the application context. Otherwise the existing [MessageChannel] bean is used
+	 * in the application context. Otherwise, the existing [MessageChannel] bean is used
 	 * to wire integration endpoints.
 	 */
 	fun channel(messageChannelName: String) {
@@ -297,7 +298,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	fun transform(transformer: Transformer,
 				  endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}) {
 
-		this.delegate.transform(transformer, Consumer { endpointConfigurer(it) })
+		this.delegate.transform(transformer) { endpointConfigurer(it) }
 	}
 
 	/**
@@ -331,7 +332,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate the [MessageTransformingHandler] instance for the
 	 * [org.springframework.integration.handler.MessageProcessor] from provided [MessageProcessorSpec].
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun transform(messageProcessorSpec: MessageProcessorSpec<*>,
 				  endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}) {
@@ -341,7 +342,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 	/**
 	 * Populate a [MessageFilter] with [MessageSelector] for the provided SpEL expression.
-	 * In addition accept options for the integration endpoint using [KotlinFilterEndpointSpec]:
+	 * In addition, accept options for the integration endpoint using [KotlinFilterEndpointSpec]:
 	 */
 	fun filter(expression: String, filterConfigurer: KotlinFilterEndpointSpec.() -> Unit = {}) {
 		this.delegate.filter(expression) { filterConfigurer(KotlinFilterEndpointSpec(it)) }
@@ -367,7 +368,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate a [MessageFilter] with [MethodInvokingSelector]
 	 * for the [MessageProcessor] from
 	 * the provided [MessageProcessorSpec].
-	 * In addition accept options for the integration endpoint using [KotlinFilterEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [KotlinFilterEndpointSpec].
 	 */
 	fun filter(messageProcessorSpec: MessageProcessorSpec<*>,
 			   filterConfigurer: KotlinFilterEndpointSpec.() -> Unit = {}) {
@@ -378,14 +379,13 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 	/**
 	 * Populate a [MessageFilter] with the provided [MessageSelector].
-	 * In addition accept options for the integration endpoint using [KotlinFilterEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [KotlinFilterEndpointSpec].
 	 * @since 5.3.1
 	 */
 	fun filter(messageSelector: MessageSelector,
 			   filterConfigurer: KotlinFilterEndpointSpec.() -> Unit = {}) {
 
-		this.delegate.filter(Message::class.java, messageSelector,
-				Consumer { filterConfigurer(KotlinFilterEndpointSpec(it)) })
+		this.delegate.filter(Message::class.java, messageSelector) { filterConfigurer(KotlinFilterEndpointSpec(it)) }
 	}
 
 	/**
@@ -417,7 +417,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate a [ServiceActivatingHandler] for the
 	 * [org.springframework.integration.handler.MethodInvokingMessageProcessor]
 	 * to invoke the `method` for provided `bean` at runtime.
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun handle(beanName: String, methodName: String?,
 			   endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit) {
@@ -429,7 +429,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate a [ServiceActivatingHandler] for the
 	 * [org.springframework.integration.handler.MethodInvokingMessageProcessor]
 	 * to invoke the `method` for provided `bean` at runtime.
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun handle(service: Any, methodName: String? = null) {
 		this.delegate.handle(service, methodName)
@@ -439,7 +439,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate a [ServiceActivatingHandler] for the
 	 * [org.springframework.integration.handler.MethodInvokingMessageProcessor]
 	 * to invoke the `method` for provided `bean` at runtime.
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun handle(service: Any, methodName: String?,
 			   endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit) {
@@ -460,7 +460,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate a [ServiceActivatingHandler] for the
 	 * [org.springframework.integration.handler.MethodInvokingMessageProcessor]
 	 * to invoke the provided [GenericHandler] at runtime.
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	inline fun <reified P> handle(
 			crossinline handler: (P, MessageHeaders) -> Any,
@@ -471,7 +471,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 	/**
 	 * Populate a [ServiceActivatingHandler] for the [MessageProcessor] from the provided [MessageProcessorSpec].
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun handle(messageProcessorSpec: MessageProcessorSpec<*>,
 			   endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit = {}) {
@@ -482,7 +482,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate a [ServiceActivatingHandler] for the selected protocol specific
 	 * [MessageHandler] implementation from `Namespace Factory`:
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun <H : MessageHandler> handle(messageHandlerSpec: MessageHandlerSpec<*, H>,
 									endpointConfigurer: GenericEndpointSpec<H>.() -> Unit = {}) {
@@ -501,7 +501,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate a [ServiceActivatingHandler] for the provided
 	 * [MessageHandler] lambda.
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun handle(messageHandler: (Message<*>) -> Unit,
 			   endpointConfigurer: GenericEndpointSpec<MessageHandler>.() -> Unit) {
@@ -512,7 +512,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate a [ServiceActivatingHandler] for the provided
 	 * [MessageHandler] implementation.
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun <H : MessageHandler> handle(messageHandler: H, endpointConfigurer: GenericEndpointSpec<H>.() -> Unit = {}) {
 		this.delegate.handle(messageHandler, endpointConfigurer)
@@ -545,7 +545,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate a [MessageTransformingHandler] for
 	 * a [org.springframework.integration.transformer.HeaderEnricher]
 	 * using header values from provided [MapBuilder].
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun enrichHeaders(headers: MapBuilder<*, String, Any>,
 					  endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}) {
@@ -603,7 +603,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate the [MethodInvokingSplitter] to evaluate the provided
 	 * `method` of the `bean` at runtime.
-	 * In addition accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
 	 */
 	fun split(service: Any, methodName: String?,
 			  splitterConfigurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit) {
@@ -622,7 +622,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate the [MethodInvokingSplitter] to evaluate the provided
 	 * `method` of the `bean` at runtime.
-	 * In addition accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
 	 */
 	fun split(beanName: String, methodName: String?,
 			  splitterConfigurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit) {
@@ -632,9 +632,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 	/**
 	 * Populate the [MethodInvokingSplitter] to evaluate the
-	 * [MessageProcessor] at runtime
-	 * from provided [MessageProcessorSpec].
-	 * In addition accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
+	 * [MessageProcessor] at runtime from provided [MessageProcessorSpec].
+	 * In addition, accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
 	 */
 	fun split(messageProcessorSpec: MessageProcessorSpec<*>,
 			  splitterConfigurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit = {}) {
@@ -681,7 +680,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate the [MessageTransformingHandler] for the [ClaimCheckInTransformer]
 	 * with provided [MessageStore].
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun claimCheckIn(messageStore: MessageStore,
 					 endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}) {
@@ -700,7 +699,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate the [MessageTransformingHandler] for the [ClaimCheckOutTransformer]
 	 * with provided [MessageStore] and `removeMessage` flag.
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun claimCheckOut(messageStore: MessageStore, removeMessage: Boolean,
 					  endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit) {
@@ -712,7 +711,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate the
 	 * [org.springframework.integration.aggregator.ResequencingMessageHandler] with
 	 * provided options from [ResequencerSpec].
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun resequence(resequencer: ResequencerSpec.() -> Unit = {}) {
 		this.delegate.resequence(resequencer)
@@ -728,7 +727,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 	/**
 	 * Populate the [AggregatingMessageHandler] with provided options from [AggregatorSpec].
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun aggregate(aggregator: AggregatorSpec.() -> Unit = {}) {
 		this.delegate.aggregate(aggregator)
@@ -781,8 +780,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	}
 
 	/**
-	 * Populate the [MethodInvokingRouter] for the
-	 * [MessageProcessor]
+	 * Populate the [MethodInvokingRouter] for the [MessageProcessor]
 	 * from the provided [MessageProcessorSpec] with default options.
 	 */
 	fun route(messageProcessorSpec: MessageProcessorSpec<*>,
@@ -810,7 +808,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate the provided [AbstractMessageRouter] implementation to the
 	 * current integration flow position.
-	 * In addition accept options for the integration endpoint using [GenericEndpointSpec].
+	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun <R : AbstractMessageRouter?> route(router: R, endpointConfigurer: GenericEndpointSpec<R>.() -> Unit = {}) {
 		this.delegate.route(router, endpointConfigurer)
@@ -929,7 +927,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * the `org.springframework.integration.handler.LoggingHandler`
 	 * as a default logging category and SpEL expression to evaluate
 	 * logger message at runtime against the request [Message].
-	 *  When this operator is used in the end of flow, it is treated
+	 * When this operator is used in the end of flow, it is treated
 	 * as one-way handler without any replies to continue.
 	 */
 	fun log(level: LoggingHandler.Level, logExpression: Expression) {
