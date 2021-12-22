@@ -25,7 +25,7 @@ import org.springframework.messaging.MessageChannel;
  * <p>
  * The {@link StandardIntegrationFlow} implementation (produced by {@link IntegrationFlowBuilder})
  * represents a container for the integration components, which will be registered
- * in the application context. Typically is used as a {@code @Bean} definition:
+ * in the application context. Typically, is used as a {@code @Bean} definition:
  * <pre class="code">
  *  &#64;Bean
  *  public IntegrationFlow fileReadingFlow() {
@@ -47,12 +47,12 @@ import org.springframework.messaging.MessageChannel;
  *                              .subFlowMapping(true, sf -&gt; sf.&lt;Integer&gt;handle((p, h) -&gt; p * 2))
  *                              .subFlowMapping(false, sf -&gt; sf.&lt;Integer&gt;handle((p, h) -&gt; p * 3)))
  *               .aggregate()
- *               .channel(MessageChannels..queue("routerTwoSubFlowsOutput"));
+ *               .channel(MessageChannels.queue("routerTwoSubFlowsOutput"));
  * }
  *
  * </pre>
  * <p>
- * Also this interface can be implemented directly to encapsulate the integration logic
+ * Also, this interface can be implemented directly to encapsulate the integration logic
  * in the target service:
  * <pre class="code">
  *  &#64;Component
@@ -86,7 +86,7 @@ public interface IntegrationFlow {
 
 	/**
 	 * Return the first {@link MessageChannel} component
-	 * which is essential a flow input channel.
+	 * which is essentially a flow input channel.
 	 * @return the channel.
 	 * @since 5.0.4
 	 */
