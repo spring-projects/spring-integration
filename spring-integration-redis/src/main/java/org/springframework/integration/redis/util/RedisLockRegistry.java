@@ -359,31 +359,37 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		private boolean subscribeLock(long time) throws ExecutionException, InterruptedException {
-			if (!obtainLock()) {
-				if (!RedisLockRegistry.this.redisMessageListenerContainer.isRunning()) {
-					RedisLockRegistry.this.redisMessageListenerContainer.afterPropertiesSet();
-					RedisLockRegistry.this.redisMessageListenerContainer.start();
-				}
-				try {
-					Future<String> future =
-							RedisLockRegistry.this.unlockNotifyMessageListener.subscribeLock(this.lockKey);
-					//DCL
-					if (!obtainLock()) {
-						try {
-							//if short expireAfter key expire for ttl, no receive unlock msg
-							long waitTime = time >= 0 ? time : RedisLockRegistry.this.expireAfter;
-							future.get(waitTime, TimeUnit.MILLISECONDS);
+			final long expiredTime = System.currentTimeMillis() + time;
+			while (time == -1 || expiredTime >= System.currentTimeMillis()) {
+				if (!obtainLock()) {
+					if (!RedisLockRegistry.this.redisMessageListenerContainer.isRunning()) {
+						RedisLockRegistry.this.redisMessageListenerContainer.afterPropertiesSet();
+						RedisLockRegistry.this.redisMessageListenerContainer.start();
+					}
+					try {
+						Future<String> future =
+								RedisLockRegistry.this.unlockNotifyMessageListener.subscribeLock(this.lockKey);
+						//DCL
+						if (!obtainLock()) {
+							try {
+								//if short expireAfter key expire for ttl, no receive unlock msg
+								long waitTime = time >= 0 ? time : RedisLockRegistry.this.expireAfter;
+								future.get(waitTime, TimeUnit.MILLISECONDS);
+							}
+							catch (TimeoutException ignore) {
+							}
+							if (!obtainLock()) {
+								continue;
+							}
 						}
-						catch (TimeoutException ignore) {
-						}
-						return obtainLock();
+					}
+					finally {
+						RedisLockRegistry.this.unlockNotifyMessageListener.unSubscribeLock(this.lockKey);
 					}
 				}
-				finally {
-					RedisLockRegistry.this.unlockNotifyMessageListener.unSubscribeLock(this.lockKey);
-				}
+				return true;
 			}
-			return true;
+			return false;
 		}
 
 		private boolean obtainLock() {

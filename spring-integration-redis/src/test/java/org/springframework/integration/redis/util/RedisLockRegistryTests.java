@@ -692,6 +692,63 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	}
 
 
+	@Test
+	@RedisAvailable
+	public void earlyWakeUpTest() throws InterruptedException {
+		final int THREAD_CNT = 3;
+		final String testKey = "testKey";
+
+		final CountDownLatch tryLockReady = new CountDownLatch(2);
+		final CountDownLatch awaitTimeout = new CountDownLatch(2);
+		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final RedisLockRegistry registry1 = new RedisLockRegistry(connectionFactory, this.registryKey);
+		final RedisLockRegistry registry2 = new RedisLockRegistry(connectionFactory, this.registryKey);
+		final RedisLockRegistry registry3 = new RedisLockRegistry(connectionFactory, this.registryKey);
+		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
+
+		Lock lock1 = registry1.obtain(testKey);
+		Lock lock2 = registry2.obtain(testKey);
+		Lock lock3 = registry3.obtain(testKey);
+		AtomicInteger expectOne = new AtomicInteger();
+
+		lock1.lock();
+		executorService.submit(() -> {
+			try {
+				tryLockReady.countDown();
+				boolean b = lock2.tryLock(3, TimeUnit.SECONDS);
+				awaitTimeout.countDown();
+				if (b) {
+					expectOne.incrementAndGet();
+				}
+			}
+			catch (InterruptedException ignore) {
+			}
+		});
+
+		executorService.submit(() -> {
+			try {
+				tryLockReady.countDown();
+				boolean b = lock3.tryLock(3, TimeUnit.SECONDS);
+				awaitTimeout.countDown();
+				if (b) {
+					expectOne.incrementAndGet();
+				}
+			}
+			catch (InterruptedException ignore) {
+			}
+		});
+
+		Thread.sleep(100);
+		tryLockReady.await();
+		lock1.unlock();
+
+		boolean await = awaitTimeout.await(2, TimeUnit.SECONDS);
+
+		assertThat(await).isFalse();
+		assertThat(expectOne.get()).isEqualTo(1);
+	}
+
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testUlink() {
