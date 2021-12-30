@@ -788,6 +788,7 @@ public ReactiveRedisStreamMessageHandler reactiveValidatorMessageHandler(
     reactiveStreamMessageHandler.setSerializationContext(serializationContext); <2>
     reactiveStreamMessageHandler.setHashMapper(hashMapper); <3>
     reactiveStreamMessageHandler.setExtractPayload(true); <4>
+    return reactiveStreamMessageHandler;
 }
 ----
 <1> Construct an instance of `ReactiveRedisStreamMessageHandler` using `ReactiveRedisConnectionFactory` and stream name to add records.
