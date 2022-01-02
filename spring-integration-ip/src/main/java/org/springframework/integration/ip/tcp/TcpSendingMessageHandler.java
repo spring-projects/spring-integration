@@ -57,7 +57,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	 * A default retry interval for the {@link ClientModeConnectionManager} rescheduling.
 	 */
 	public static final long DEFAULT_RETRY_INTERVAL = 60000;
-
+	private static final int MAXIMUM_CONNECTIONS = 60;
 	protected final Object lifecycleMonitor = new Object(); // NOSONAR
 
 	private final Map<String, TcpConnection> connections = new ConcurrentHashMap<>();
@@ -219,24 +219,22 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	public void addNewConnection(TcpConnection connection) {
 		this.connections.put(connection.getConnectionId(), connection);
 
-		System.out.println(System.currentTimeMillis() + "," + LocalDateTime.now() + ",add," + connection.getConnectionId() + "," + this.connections.size() + "," +
-				this.hashCode());
 		logger.debug(System.currentTimeMillis() + "," + LocalDateTime.now() + ",add," + connection.getConnectionId() + "," + this.connections.size() + "," +
 				this.hashCode());
 		int leakageCount = 0;
-		if (connections.size() > 300) {
+		if (connections.size() > MAXIMUM_CONNECTIONS) {
 			for (String conn : connections.keySet()) {
 				TcpConnection curConnection = connections.get(conn);
-				//if (!curConnection.getSocketInfo().isConnected())
 				if (!curConnection.isOpen() || !curConnection.getSocketInfo().isConnected()) {
 					connections.remove(conn, curConnection);
-					System.out.println(System.currentTimeMillis() + "," + LocalDateTime.now() + ",leakage," + conn + "," + this.connections.size() + "," +
+					logger.debug(System.currentTimeMillis() + "," + LocalDateTime.now() + ",leakage," + conn + "," + this.connections.size() + "," +
 							this.hashCode() + "," + curConnection.isOpen() + "," + curConnection.getSocketInfo().isConnected());
 					leakageCount++;
 				}
 			}
-			System.out.println(System.currentTimeMillis() + "," + LocalDateTime.now() + ",leakageCount," + leakageCount + "," + this.connections.size() + "," +
-					this.hashCode());
+			if (leakageCount > 0) {
+				logger.warn(leakageCount + " disconnected entries found for connection: " + connection.getConnectionId() + " map size after clean: " + this.connections.size());
+			}
 		}
 	}
 
@@ -250,8 +248,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			else
 				sb.append(ste.getClassName() + "#" + ste.getLineNumber());
 		}*/
-		System.out.println(System.currentTimeMillis() + "," + LocalDateTime.now() + ",remove," + connection.getConnectionId() + "," + this.connections.size() + "," +
-				this.hashCode());
 		logger.debug(System.currentTimeMillis() + "," + LocalDateTime.now() + ",remove," + connection.getConnectionId() + "," + this.connections.size() + "," +
 				this.hashCode());
 	}
