@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author John Anderson
  * @author Artem Bilan
+ * @author David Herschler Shvo
  *
  * @since 2.0
  *
@@ -74,7 +75,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private final SocketChannel socketChannel;
 
-	private final ChannelOutputStream channelOutputStream;
+	private final ChannelOutputStream channelOutputStream = new ChannelOutputStream();
 
 	private final ChannelInputStream channelInputStream = new ChannelInputStream();
 
@@ -115,7 +116,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 		super(socketChannel.socket(), server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.socketChannel = socketChannel;
-		this.channelOutputStream = new ChannelOutputStream();
 	}
 
 	public void setPipeTimeout(long pipeTimeout) {
@@ -126,20 +126,25 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	public void close() {
 		setNoReadErrorOnClose(true);
 		doClose();
+		super.close();
 	}
 
 	private void doClose() {
 		try {
 			this.channelInputStream.close();
 		}
-		catch (@SuppressWarnings(UNUSED) IOException e) {
+		catch (@SuppressWarnings(UNUSED) IOException ex) {
+		}
+		try {
+			this.channelOutputStream.close();
+		}
+		catch (@SuppressWarnings(UNUSED) Exception ex) {
 		}
 		try {
 			this.socketChannel.close();
 		}
-		catch (@SuppressWarnings(UNUSED) Exception e) {
+		catch (@SuppressWarnings(UNUSED) Exception ex) {
 		}
-		super.close();
 	}
 
 	@Override
@@ -376,9 +381,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				throw new IOException("Interrupted waiting for IO", e);
 			}
 		}
-		Message<?> message = null;
 		try {
-			message = getMapper().toMessage(this);
+			return getMapper().toMessage(this);
 		}
 		catch (Exception e) {
 			closeConnection(true);
@@ -394,7 +398,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			}
 			return null;
 		}
-		return message;
 	}
 
 	private void sendToChannel(Message<?> message) {
@@ -486,7 +489,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				catch (RejectedExecutionException e) {
 					this.executionControl.decrementAndGet();
 					logger.info("Insufficient threads in the assembler fixed thread pool; consider increasing " +
-								"this task executor pool size");
+							"this task executor pool size");
 					throw e;
 				}
 			}
@@ -619,12 +622,10 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 
 		@Override
-		public void close() {
-			doClose();
-		}
-
-		@Override
-		public void flush() {
+		public void close() throws IOException {
+			if (this.selector != null) {
+				this.selector.close();
+			}
 		}
 
 		@Override
