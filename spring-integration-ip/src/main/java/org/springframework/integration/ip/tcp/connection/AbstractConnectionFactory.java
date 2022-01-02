@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -58,9 +59,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
- *
  * @since 2.0
- *
  */
 public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		implements ConnectionFactory, ApplicationEventPublisherAware {
@@ -161,6 +160,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * Sets socket attributes on the socket.
+	 *
 	 * @param socket The socket.
 	 * @throws SocketException Any SocketException.
 	 */
@@ -285,6 +285,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * Set the host; requires the factory to be stopped.
+	 *
 	 * @param host the host.
 	 * @since 5.0
 	 */
@@ -302,6 +303,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * Set the port; requires the factory to be stopped.
+	 *
 	 * @param port the port.
 	 * @since 5.0
 	 */
@@ -335,6 +337,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * Return the list of senders.
+	 *
 	 * @return the senders.
 	 * @since 5.4
 	 */
@@ -366,6 +369,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	/**
 	 * Registers a TcpListener to receive messages after
 	 * the payload has been converted from the input data.
+	 *
 	 * @param listenerToRegister the TcpListener.
 	 */
 	public void registerListener(TcpListener listenerToRegister) {
@@ -377,6 +381,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * Registers a TcpSender; for server sockets, used to
 	 * provide connection information so a sender can be used
 	 * to reply to incoming messages.
+	 *
 	 * @param senderToRegister The sender
 	 */
 	public void registerSender(TcpSender senderToRegister) {
@@ -385,6 +390,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * Unregister a TcpSender.
+	 *
 	 * @param sender the sender.
 	 * @return true if the sender was registered.
 	 */
@@ -400,7 +406,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
-	 *
 	 * @param deserializer the deserializer to set
 	 */
 	public void setDeserializer(Deserializer<?> deserializer) {
@@ -409,7 +414,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
-	 *
 	 * @param serializer the serializer to set
 	 */
 	public void setSerializer(Serializer<?> serializer) {
@@ -417,7 +421,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
-	 *
 	 * @param mapper the mapper to set; defaults to a {@link TcpMessageMapper}
 	 */
 	public void setMapper(TcpMessageMapper mapper) {
@@ -434,6 +437,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * If true, sockets created by this factory will be used once.
+	 *
 	 * @param singleUse The singleUse to set.
 	 */
 	public void setSingleUse(boolean singleUse) {
@@ -443,6 +447,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	/**
 	 * If true, sockets created by this factory will be reused.
 	 * Inverse of {@link #setSingleUse(boolean)}.
+	 *
 	 * @param leaveOpen The keepOpen to set.
 	 * @since 5.0
 	 */
@@ -457,6 +462,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	/**
 	 * If true, DNS reverse lookup is done on the remote ip address.
 	 * Default true.
+	 *
 	 * @param lookupHost the lookupHost to set
 	 */
 	public void setLookupHost(boolean lookupHost) {
@@ -475,6 +481,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * Ignored when {@code soTimeout > 0} because the clean up
 	 * process is run as part of the timeout handling.
 	 * Default 2000 milliseconds.
+	 *
 	 * @param nioHarvestInterval The interval in milliseconds.
 	 */
 	public void setNioHarvestInterval(int nioHarvestInterval) {
@@ -485,6 +492,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	/**
 	 * Set the handshake timeout used when waiting for SSL handshake data; only applies
 	 * to SSL connections, when using NIO.
+	 *
 	 * @param sslHandshakeTimeout the timeout.
 	 * @since 4.3.6
 	 */
@@ -494,8 +502,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * @return the handshake timeout.
-	 * @since 4.3.6
 	 * @see #setSslHandshakeTimeout(int)
+	 * @since 4.3.6
 	 */
 	@Nullable
 	protected Integer getSslHandshakeTimeout() {
@@ -513,6 +521,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	/**
 	 * The delay (in milliseconds) before retrying a read after the previous attempt
 	 * failed due to insufficient threads. Default 100.
+	 *
 	 * @param readDelay the readDelay to set.
 	 */
 	public void setReadDelay(long readDelay) {
@@ -539,6 +548,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * Creates a taskExecutor (if one was not provided).
+	 *
 	 * @return The executor.
 	 */
 	protected Executor getTaskExecutor() {
@@ -580,12 +590,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 							logger.debug("Executor failed to shutdown");
 						}
 					}
-				}
-				catch (@SuppressWarnings(UNUSED) InterruptedException e) {
+				} catch (@SuppressWarnings(UNUSED) InterruptedException e) {
 					executorService.shutdownNow();
 					Thread.currentThread().interrupt();
-				}
-				finally {
+				} finally {
 					this.taskExecutor = null;
 					this.privateExecutor = false;
 				}
@@ -620,25 +628,24 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				connection = wrapper;
 			}
 			return connection;
-		}
-		finally {
+		} finally {
 			addConnection(connection);
 		}
 	}
 
 	/**
-	 *
 	 * Times out any expired connections then, if {@code selectionCount > 0},
 	 * processes the selected keys.
 	 * Removes closed connections from the connections field, and from the connections parameter.
+	 *
 	 * @param selectionCount Number of IO Events, if 0 we were probably woken up by a close.
-	 * @param selector The selector.
-	 * @param server The server socket channel.
-	 * @param connectionMap Map of connections.
+	 * @param selector       The selector.
+	 * @param server         The server socket channel.
+	 * @param connectionMap  Map of connections.
 	 */
 	protected void processNioSelections(int selectionCount, final Selector selector,
-			@Nullable ServerSocketChannel server,
-			Map<SocketChannel, TcpNioConnection> connectionMap) {
+										@Nullable ServerSocketChannel server,
+										Map<SocketChannel, TcpNioConnection> connectionMap) {
 
 		final long now = System.currentTimeMillis();
 		rescheduleDelayedReads(selector, now);
@@ -656,8 +663,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		logger.trace(() -> {
 			if (this.host == null) {
 				return "Port " + this.port + " SelectionCount: " + selectionCount;
-			}
-			else {
+			} else {
 				return "Host " + this.host + " port " + this.port + " SelectionCount: " + selectionCount;
 			}
 		});
@@ -670,11 +676,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				iterator.remove();
 				try {
 					handleKey(selector, server, now, key);
-				}
-				catch (@SuppressWarnings(UNUSED) CancelledKeyException e) {
+				} catch (@SuppressWarnings(UNUSED) CancelledKeyException e) {
 					logger.debug(() -> "Selection key " + key + " cancelled");
-				}
-				catch (Exception ex) {
+				} catch (Exception ex) {
 					logger.error(ex, () -> "Exception on selection key " + key);
 				}
 			}
@@ -682,13 +686,12 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	private void checkChannel(Map<SocketChannel, TcpNioConnection> connectionMap, final long now,
-			Iterator<Entry<SocketChannel, TcpNioConnection>> it) {
+							  Iterator<Entry<SocketChannel, TcpNioConnection>> it) {
 		SocketChannel channel = it.next().getKey();
 		if (!channel.isOpen()) {
 			logger.debug("Removing closed channel");
 			it.remove();
-		}
-		else if (this.soTimeout > 0) {
+		} else if (this.soTimeout > 0) {
 			TcpNioConnection connection = connectionMap.get(channel);
 			if (now - connection.getLastRead() >= this.soTimeout) {
 				/*
@@ -700,8 +703,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						now - connection.getLastRead() < this.soTimeout * 2) {
 					logger.debug(() -> "Skipping a connection timeout because we have a recent send " +
 							connection.getConnectionId());
-				}
-				else {
+				} else {
 					logger.warn(() -> "Timing out TcpNioConnection " + connection.getConnectionId());
 					Exception exception = new SocketTimeoutException("Timing out connection");
 					connection.publishConnectionExceptionEvent(exception);
@@ -713,18 +715,15 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	private void handleKey(final Selector selector, ServerSocketChannel server, final long now,
-			final SelectionKey key) {
+						   final SelectionKey key) {
 
 		if (!key.isValid()) {
 			logger.debug("Selection key no longer valid");
-		}
-		else if (key.isReadable()) {
+		} else if (key.isReadable()) {
 			keyReadable(selector, now, key);
-		}
-		else if (key.isAcceptable()) {
+		} else if (key.isAcceptable()) {
 			keyAcceptable(selector, server, now);
-		}
-		else {
+		} else {
 			logger.error("Unexpected key: " + key);
 		}
 	}
@@ -739,19 +738,16 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				boolean delayed = false;
 				try {
 					connection.readPacket();
-				}
-				catch (@SuppressWarnings(UNUSED) RejectedExecutionException e1) {
+				} catch (@SuppressWarnings(UNUSED) RejectedExecutionException e1) {
 					delayRead(selector, now, key);
 					delayed = true;
-				}
-				catch (Exception e2) {
+				} catch (Exception e2) {
 					if (connection.isOpen()) {
 						logger.error(() -> "Exception on read " +
 								connection.getConnectionId() + " " +
 								e2.getMessage());
 						connection.close();
-					}
-					else {
+					} else {
 						logger.debug("Connection closed");
 					}
 				}
@@ -759,14 +755,12 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 					if (key.channel().isOpen()) {
 						key.interestOps(SelectionKey.OP_READ);
 						selector.wakeup();
-					}
-					else {
+					} else {
 						connection.sendExceptionToListener(new EOFException("Connection is closed"));
 					}
 				}
 			});
-		}
-		catch (@SuppressWarnings(UNUSED) RejectedExecutionException e) {
+		} catch (@SuppressWarnings(UNUSED) RejectedExecutionException e) {
 			delayRead(selector, now, key);
 		}
 	}
@@ -774,8 +768,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	private void keyAcceptable(final Selector selector, ServerSocketChannel server, final long now) {
 		try {
 			doAccept(selector, server, now);
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			logger.error(ex, "Exception accepting new connection(s)");
 		}
 	}
@@ -785,8 +778,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		if (!this.delayedReads.add(new PendingIO(now, key))) { // should never happen - unbounded queue
 			logger.error(() -> "Failed to delay read; closing " + connection.getConnectionId());
 			connection.close();
-		}
-		else {
+		} else {
 			logger.debug(() -> "No threads available, delaying read for " + connection.getConnectionId());
 			// wake the selector in case it is currently blocked, and waiting for longer than readDelay
 			selector.wakeup();
@@ -796,8 +788,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	/**
 	 * If any reads were delayed due to insufficient threads, reschedule them if
 	 * the readDelay has passed.
+	 *
 	 * @param selector the selector to wake if necessary.
-	 * @param now the current time.
+	 * @param now      the current time.
 	 */
 	private void rescheduleDelayedReads(Selector selector, long now) {
 		boolean wakeSelector = false;
@@ -810,22 +803,18 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						wakeSelector = true;
 						logger.debug(() -> "Rescheduling delayed read for " +
 								((TcpNioConnection) pendingRead.key.attachment()).getConnectionId());
-					}
-					else {
+					} else {
 						((TcpNioConnection) pendingRead.key.attachment())
 								.sendExceptionToListener(new EOFException("Connection is closed"));
 					}
-				}
-				else {
+				} else {
 					// remaining delayed reads have not expired yet.
 					break;
 				}
 			}
-		}
-		catch (@SuppressWarnings(UNUSED) InterruptedException e) {
+		} catch (@SuppressWarnings(UNUSED) InterruptedException e) {
 			Thread.currentThread().interrupt();
-		}
-		finally {
+		} finally {
 			if (wakeSelector) {
 				selector.wakeup();
 			}
@@ -834,8 +823,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * @param selector The selector.
-	 * @param server The server socket channel.
-	 * @param now The current time.
+	 * @param server   The server socket channel.
+	 * @param now      The current time.
 	 */
 	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) {
 		throw new UnsupportedOperationException("Nio server factory must override this method");
@@ -854,6 +843,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * Cleans up this.connections by removing any closed connections.
+	 *
 	 * @return a list of open connection ids.
 	 */
 	private List<String> removeClosedConnectionsAndReturnOpenConnectionIds() {
@@ -865,10 +855,11 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				TcpConnectionSupport connection = entry.getValue();
 				if (!connection.isOpen()) {
 					iterator.remove();
+					System.out.println(System.currentTimeMillis() + "," + LocalDateTime.now() + "," + getComponentName() + ",RemoveClosedConnection," +
+							connection.getConnectionId() + "," + connections.size() + "," + this.hashCode());
 					logger.debug(() -> getComponentName() + ": Removed closed connection: " +
 							connection.getConnectionId());
-				}
-				else {
+				} else {
 					openConnectionIds.add(entry.getKey());
 					logger.trace(() -> getComponentName() + ": Connection is open: " + connection.getConnectionId());
 				}
@@ -878,7 +869,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
-	 * Cleans up this.connections by removing any closed connections.
+	 * Cleans up this. Connections by removing any closed connections.
 	 */
 	protected void harvestClosedConnections() {
 		removeClosedConnectionsAndReturnOpenConnectionIds();
@@ -921,6 +912,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	/**
 	 * Returns a list of (currently) open {@link TcpConnection} connection ids; allows,
 	 * for example, broadcast operations to all open connections.
+	 *
 	 * @return the list of connection ids.
 	 */
 	public List<String> getOpenConnectionIds() {
@@ -929,6 +921,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * Close a connection with the specified connection id.
+	 *
 	 * @param connectionId the connection id.
 	 * @return true if the connection was closed.
 	 */
@@ -942,8 +935,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				try {
 					connection.close();
 					closed = true;
-				}
-				catch (Exception ex) {
+				} catch (Exception ex) {
 					logger.debug(ex, () -> "Failed to close connection " + connectionId);
 					connection.publishConnectionExceptionEvent(ex);
 				}

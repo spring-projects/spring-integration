@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,9 +84,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		try {
 			connection = this.clientConnectionFactory.getConnection();
 		} catch (Exception ex) {
-			logger.error(ex, "Error creating connection " + ((clientConnectionFactory.getComponentName() == null) ? "null" : clientConnectionFactory.getComponentName() + ":" + clientConnectionFactory.getPort()) +
-					" serverConnectionFactory " +
-					((serverConnectionFactory.getComponentName() == null) ? "null" : serverConnectionFactory.getComponentName() + ":" + serverConnectionFactory.getPort()));
+			logger.error(ex, "Error creating connection");
 			throw new MessageHandlingException(message, "Failed to obtain a connection in the [" + this + ']', ex);
 		}
 		return connection;
@@ -218,12 +216,18 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	@Override
 	public void addNewConnection(TcpConnection connection) {
 		this.connections.put(connection.getConnectionId(), connection);
-
+		StringBuilder sb = new StringBuilder();
+		for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+			if (sb.length() > 0)
+				sb.append(":" + ste.getClassName() + "#" + ste.getLineNumber());
+			else
+				sb.append(ste.getClassName() + "#" + ste.getLineNumber());
+		}
 		System.out.println(System.currentTimeMillis() + "," + LocalDateTime.now() + ",add," + connection.getConnectionId() + "," + this.connections.size() + "," +
-				this.hashCode());
+				this.hashCode() + "," + sb.toString());
 		logger.debug(System.currentTimeMillis() + "," + LocalDateTime.now() + ",add," + connection.getConnectionId() + "," + this.connections.size() + "," +
 				this.hashCode());
-		int leakageCount = 0;
+		int leakageCount = 0 ;
 		if (connections.size() > 300) {
 			for (String conn : connections.keySet()) {
 				TcpConnection curConnection = connections.get(conn);
@@ -243,15 +247,15 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	@Override
 	public void removeDeadConnection(TcpConnection connection) {
 		this.connections.remove(connection.getConnectionId());
-		/*StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
 		for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
 			if (sb.length() > 0)
 				sb.append(":" + ste.getClassName() + "#" + ste.getLineNumber());
 			else
 				sb.append(ste.getClassName() + "#" + ste.getLineNumber());
-		}*/
+		}
 		System.out.println(System.currentTimeMillis() + "," + LocalDateTime.now() + ",remove," + connection.getConnectionId() + "," + this.connections.size() + "," +
-				this.hashCode());
+				this.hashCode() + "," + sb);
 		logger.debug(System.currentTimeMillis() + "," + LocalDateTime.now() + ",remove," + connection.getConnectionId() + "," + this.connections.size() + "," +
 				this.hashCode());
 	}

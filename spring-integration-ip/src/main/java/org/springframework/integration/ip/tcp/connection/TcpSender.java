@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package org.springframework.integration.ip.tcp.connection;
 /**
  * An interface representing a sending client of a connection
  * factory.
+ *
  * @author Gary Russell
  * @since 2.0
- *
  */
 @FunctionalInterface
 public interface TcpSender {
@@ -29,6 +29,7 @@ public interface TcpSender {
 	/**
 	 * When we are using sockets owned by a {@link TcpListener}, this
 	 * method is called each time a new connection is made.
+	 *
 	 * @param connection The connection.
 	 */
 	void addNewConnection(TcpConnection connection);
@@ -36,9 +37,13 @@ public interface TcpSender {
 	/**
 	 * When we are using sockets owned by a {@link TcpListener}, this
 	 * method is called each time a connection is closed.
+	 *
 	 * @param connection The connection.
 	 */
 	default void removeDeadConnection(TcpConnection connection) {
+		System.out.println(System.currentTimeMillis() + "," + "unimplemented removeDeadConnection");
+		for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+			System.out.println(ste.getFileName() + " " + ste.getLineNumber());
+		}
 	}
-
 }

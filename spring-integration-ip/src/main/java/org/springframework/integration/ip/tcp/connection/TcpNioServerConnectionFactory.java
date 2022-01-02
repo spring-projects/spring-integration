@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,15 +36,13 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- /**
+ * /**
  * Implements a server connection factory that produces {@link TcpNioConnection}s using
  * a {@link ServerSocketChannel}. Must have a {@link TcpListener} registered.
  *
  * @author Gary Russell
  * @author Artem Bilan
- *
  * @since 2.0
- *
  */
 public class TcpNioServerConnectionFactory extends AbstractServerConnectionFactory {
 
@@ -61,6 +60,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	/**
 	 * Listens for incoming connections on the port.
+	 *
 	 * @param port The port.
 	 */
 	public TcpNioServerConnectionFactory(int port) {
@@ -72,6 +72,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	 * selector keys. This might be necessary to avoid accepts overwhelming
 	 * reads of existing sockets. By default when the {@code OP_ACCEPT} operation
 	 * is ready, we will keep accepting connections in a loop until no more arrive.
+	 *
 	 * @param multiAccept false to accept connections one-at-a-time.
 	 * @since 5.1.4
 	 */
@@ -94,8 +95,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				if (address instanceof InetSocketAddress) {
 					port = ((InetSocketAddress) address).getPort();
 				}
-			}
-			catch (IOException ex) {
+			} catch (IOException ex) {
 				logger.error(ex, "Error getting port");
 			}
 		}
@@ -108,8 +108,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		if (this.serverChannel != null) {
 			try {
 				return this.serverChannel.getLocalAddress();
-			}
-			catch (IOException ex) {
+			} catch (IOException ex) {
 				logger.error(ex, "Error getting local address");
 			}
 		}
@@ -137,8 +136,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			String localAddress = getLocalAddress();
 			if (localAddress == null) {
 				this.serverChannel.socket().bind(new InetSocketAddress(port), Math.abs(getBacklog()));
-			}
-			else {
+			} else {
 				InetAddress whichNic = InetAddress.getByName(localAddress);
 				this.serverChannel.socket().bind(new InetSocketAddress(whichNic, port), Math.abs(getBacklog()));
 			}
@@ -146,23 +144,20 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			final Selector theSelector = Selector.open();
 			if (this.serverChannel == null) {
 				logger.debug(() -> this + " stopped before registering the server channel");
-			}
-			else {
+			} else {
 				this.serverChannel.register(theSelector, SelectionKey.OP_ACCEPT);
 				setListening(true);
 				publishServerListeningEvent(getPort());
 				this.selector = theSelector;
 				doSelect(this.serverChannel, theSelector);
 			}
-		}
-		catch (IOException ex) {
+		} catch (IOException ex) {
 			if (isActive()) {
 				logger.error(ex, "Error on ServerChannel; port = " + getPort());
 				publishServerExceptionEvent(ex);
 			}
 			stop();
-		}
-		finally {
+		} finally {
 			setListening(false);
 		}
 	}
@@ -175,7 +170,8 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	 * When a socket is ready for reading, unregisters the read interest and
 	 * schedules a call to doRead which reads all available data. When the read
 	 * is complete, the socket is again registered for read interest.
-	 * @param server the ServerSocketChannel to select
+	 *
+	 * @param server           the ServerSocketChannel to select
 	 * @param selectorToSelect the Selector multiplexor
 	 * @throws IOException a thrown IO exception
 	 */
@@ -192,11 +188,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				logger.trace(() -> "Delayed reads: " + getDelayedReads().size() + " timeout " + timeoutToLog);
 				selectionCount = selectorToSelect.select(timeout);
 				processNioSelections(selectionCount, selectorToSelect, server, this.channelMap);
-			}
-			catch (@SuppressWarnings("unused") CancelledKeyException cke) {
+			} catch (@SuppressWarnings("unused") CancelledKeyException cke) {
 				logger.debug("CancelledKeyException during Selector.select()");
-			}
-			catch (ClosedSelectorException cse) {
+			} catch (ClosedSelectorException cse) {
 				if (isActive()) {
 					logger.error(cse, "Selector closed");
 					publishServerExceptionEvent(cse);
@@ -208,8 +202,8 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	/**
 	 * @param selectorForNewSocket The selector.
-	 * @param server The server socket channel.
-	 * @param now The current time.
+	 * @param server               The server socket channel.
+	 * @param now                  The current time.
 	 */
 	@Override
 	protected void doAccept(final Selector selectorForNewSocket, ServerSocketChannel server, long now) {
@@ -225,23 +219,21 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 										+ ":" + theChannel.socket().getPort()
 										+ " rejected; the server is in the process of shutting down.");
 						theChannel.close();
-					}
-					else if (createConnectionForAcceptedChannel(selectorForNewSocket, now, theChannel) == null) {
+					} else if (createConnectionForAcceptedChannel(selectorForNewSocket, now, theChannel) == null) {
 						return;
 					}
 				}
 				channel = theChannel;
 			}
 			while (this.multiAccept && channel != null);
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 	}
 
 	@Nullable
 	private TcpNioConnection createConnectionForAcceptedChannel(Selector selectorForNewSocket, long now,
-			SocketChannel channel) throws IOException {
+																SocketChannel channel) throws IOException {
 
 		TcpNioConnection connection = null;
 		try {
@@ -257,10 +249,11 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 					((TcpNioSSLConnection) connection).setHandshakeTimeout(sslHandshakeTimeout);
 				}
 				this.channelMap.put(channel, connection);
+				System.out.println(System.currentTimeMillis() + "," + LocalDateTime.now() + ",addChannel," + connection.getConnectionId() + "," + this.channelMap.size() + "," +
+						this.hashCode() + "," + channel.socket().getPort());
 				channel.register(selectorForNewSocket, SelectionKey.OP_READ, connection);
 			}
-		}
-		catch (IOException ex) {
+		} catch (IOException ex) {
 			logger.error(ex, "Exception accepting new connection from "
 					+ channel.socket().getInetAddress().getHostAddress()
 					+ ":" + channel.socket().getPort());
@@ -282,8 +275,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			initializeConnection(wrappedConnection, socketChannel.socket());
 			wrappedConnection.publishConnectionOpenEvent();
 			return connection;
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			logger.error(ex, "Failed to establish new incoming connection");
 			return null;
 		}
@@ -295,18 +287,15 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		if (this.selector != null) {
 			try {
 				this.selector.close();
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				logger.error(ex, "Error closing selector");
 			}
 		}
 		if (this.serverChannel != null) {
 			try {
 				this.serverChannel.close();
-			}
-			catch (IOException e) {
-			}
-			finally {
+			} catch (IOException e) {
+			} finally {
 				this.serverChannel = null;
 			}
 		}

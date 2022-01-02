@@ -662,6 +662,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				TcpNioConnection.this.socketChannel.write(buffer);
 				remaining = buffer.remaining();
 			}
+			selector.close();
 		}
 
 	}
