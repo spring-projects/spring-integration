@@ -476,7 +476,7 @@ project('spring-integration-core') {
 				classpath.from(sourceSets['main'].runtimeClasspath)
 				externalDocumentationLink {
 					url.set(new URL("https://docs.spring.io/spring-integration/docs/$version/api/"))
-					packageListUrl.set(file("$buildDir/api/element-list").toURI().toURL())
+					packageListUrl.set(file("$buildDir/docs/javadoc/element-list").toURI().toURL())
 				}
 				externalDocumentationLink {
 					url.set(new URL('https://projectreactor.io/docs/core/release/api/'))

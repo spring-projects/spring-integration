@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,8 @@ import org.springframework.messaging.MessageChannel
 import java.util.function.Consumer
 
 private fun buildIntegrationFlow(flowBuilder: IntegrationFlowBuilder,
-								 flow: (KotlinIntegrationFlowDefinition) -> Unit): IntegrationFlow {
-
-	flow(KotlinIntegrationFlowDefinition(flowBuilder))
-	return flowBuilder.get()
-}
+								 flow: (KotlinIntegrationFlowDefinition) -> Unit) =
+	KotlinIntegrationFlowDefinition(flowBuilder).apply(flow).delegate.get()
 
 /**
  * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow] lambdas.
@@ -38,7 +35,7 @@ private fun buildIntegrationFlow(flowBuilder: IntegrationFlowBuilder,
  */
 fun integrationFlow(flow: KotlinIntegrationFlowDefinition.() -> Unit) =
 		IntegrationFlow {
-			flow(KotlinIntegrationFlowDefinition(it))
+			KotlinIntegrationFlowDefinition(it).flow()
 		}
 
 /**
@@ -52,7 +49,7 @@ inline fun <reified T> integrationFlow(
 		flow: KotlinIntegrationFlowDefinition.() -> Unit): IntegrationFlow {
 
 	val flowBuilder = IntegrationFlows.from(T::class.java) { gateway(it) }
-	flow(KotlinIntegrationFlowDefinition(flowBuilder))
+	KotlinIntegrationFlowDefinition(flowBuilder).flow()
 	return flowBuilder.get()
 }
 
@@ -84,7 +81,7 @@ fun integrationFlow(channel: MessageChannel, flow: KotlinIntegrationFlowDefiniti
 fun integrationFlow(messageSource: MessageSource<*>,
 					options: SourcePollingChannelAdapterSpec.() -> Unit = {},
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.from(messageSource, Consumer { options(it) }), flow)
+		buildIntegrationFlow(IntegrationFlows.from(messageSource) { options(it) }, flow)
 
 /**
  * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from]  -
@@ -157,3 +154,13 @@ fun integrationFlow(producer: MessageProducerSupport,
 fun integrationFlow(producerSpec: MessageProducerSpec<*, *>,
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
 		buildIntegrationFlow(IntegrationFlows.from(producerSpec), flow)
+
+/**
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -
+ * `IntegrationFlows.from(IntegrationFlow)` factory method.
+ *
+ * @author Artem Bilan
+ */
+fun integrationFlow(sourceFlow: IntegrationFlow, flow: KotlinIntegrationFlowDefinition.() -> Unit) =
+	buildIntegrationFlow(IntegrationFlows.from(sourceFlow), flow)
+

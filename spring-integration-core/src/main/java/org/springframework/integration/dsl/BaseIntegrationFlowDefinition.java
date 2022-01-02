@@ -116,6 +116,7 @@ import reactor.util.function.Tuple2;
  *
  * @see org.springframework.integration.dsl.context.IntegrationFlowBeanPostProcessor
  */
+@IntegrationDsl
 public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlowDefinition<B>> {
 
 	private static final String UNCHECKED = "unchecked";
