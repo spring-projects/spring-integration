@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * @author Gary Russell
+ *
  * @since 5.3.10
  *
  */
@@ -70,14 +71,17 @@ public class TcpSenderTests {
 		CountDownLatch adds = new CountDownLatch(2);
 		CountDownLatch removes = new CountDownLatch(2);
 		TcpConnectionInterceptorFactoryChain chain = new TcpConnectionInterceptorFactoryChain();
-		chain.setInterceptor(new HelloWorldInterceptorFactory() {
+		chain.setInterceptors(new TcpConnectionInterceptorFactory[] {
+				new HelloWorldInterceptorFactory() {
 
-			@Override
-			public TcpConnectionInterceptorSupport getInterceptor() {
-				return new TcpConnectionInterceptorSupport() {
-				};
-			}
+					@Override
+					public TcpConnectionInterceptorSupport getInterceptor() {
+						return new TcpConnectionInterceptorSupport() {
 
+						};
+					}
+
+				}
 		});
 		client.setInterceptorFactoryChain(chain);
 		client.registerSender(new TcpSender() {
