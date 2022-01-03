@@ -552,7 +552,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				TcpConnection connection = iterator.next().getValue();
 				connection.close();
 				iterator.remove();
-				getSenders().forEach(sender -> sender.removeDeadConnection(connection));
+				if (this.sender != null) {
+					this.sender.removeDeadConnection(connection);
+				}
 			}
 		}
 		synchronized (this.lifecycleMonitor) {
@@ -843,8 +845,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				TcpConnectionSupport connection = entry.getValue();
 				if (!connection.isOpen()) {
 					iterator.remove();
-					getSenders().forEach(sender -> sender.removeDeadConnection(connection));
-				
+					if (this.sender != null) {
+						this.sender.removeDeadConnection(connection);
+					}
+
 					if (logger.isDebugEnabled()) {
 						logger.debug(getComponentName() + ": Removed closed connection: " +
 								connection.getConnectionId());
@@ -926,7 +930,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				try {
 					connection.close();
 					closed = true;
-					getSenders().forEach(sender -> sender.removeDeadConnection(connection));
+					if (this.sender != null) {
+						this.sender.removeDeadConnection(connection);
+					}
 				}
 				catch (Exception e) {
 					if (logger.isDebugEnabled()) {
