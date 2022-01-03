@@ -139,6 +139,14 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 		catch (@SuppressWarnings(UNUSED) Exception e) {
 		}
+		try {
+			// in order to prevent endless recursive calls from channelOutputStream.close() to doClose() that would call channelOutputStream.close() etc...
+			if (this.channelOutputStream != null) {
+				((OutputStream) this.channelOutputStream).close();
+			}
+		}
+		catch (@SuppressWarnings(UNUSED) Exception e) {
+		}
 		super.close();
 	}
 
