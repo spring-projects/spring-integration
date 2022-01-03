@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,6 +136,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 		try {
 			this.socketChannel.close();
+		}
+		catch (@SuppressWarnings(UNUSED) Exception e) {
+		}
+		try {
+			this.channelOutputStream.close();
 		}
 		catch (@SuppressWarnings(UNUSED) Exception e) {
 		}
@@ -669,8 +674,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				TcpNioConnection.this.socketChannel.write(buffer);
 				remaining = buffer.remaining();
 			}
-			selector.close();
-			selector = null;
 		}
 	}
 
