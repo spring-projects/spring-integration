@@ -620,6 +620,13 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 		@Override
 		public void close() {
+			if (selector != null) {
+				try {
+					selector.close();
+				} catch (IOException e) {
+					// do nothing
+				}
+			}
 			doClose();
 		}
 
@@ -665,7 +672,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			selector.close();
 			selector = null;
 		}
-
 	}
 
 	/**
