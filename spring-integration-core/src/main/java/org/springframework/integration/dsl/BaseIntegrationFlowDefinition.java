@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -496,7 +496,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * <pre class="code">
 	 * {@code
 	 *  .transform("payload")
-	 *  .wireTap(new WireTap(tapChannel().selector(m -> m.getPayload().equals("foo")))
+	 *  .wireTap(new WireTap(tapChannel()).selector(m -> m.getPayload().equals("foo")))
 	 *  .channel("foo")
 	 * }
 	 * </pre>
@@ -1721,7 +1721,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate the
 	 * {@link org.springframework.integration.aggregator.ResequencingMessageHandler} with
 	 * provided options from {@link ResequencerSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
@@ -1744,7 +1744,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B aggregate() {
-		return aggregate(null);
+		return aggregate((Consumer<AggregatorSpec>) null);
 	}
 
 	/**
@@ -1760,7 +1760,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@link AggregatingMessageHandler} with provided options from {@link AggregatorSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
