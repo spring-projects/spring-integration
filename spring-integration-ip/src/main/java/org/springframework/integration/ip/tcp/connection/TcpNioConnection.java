@@ -663,6 +663,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				remaining = buffer.remaining();
 			}
 			selector.close();
+			selector = null;
 		}
 
 	}
