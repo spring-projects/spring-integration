@@ -139,11 +139,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 		catch (@SuppressWarnings(UNUSED) Exception e) {
 		}
-		try {
-			this.channelOutputStream.close();
-		}
-		catch (@SuppressWarnings(UNUSED) Exception e) {
-		}
 		super.close();
 	}
 
@@ -625,10 +620,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 		@Override
 		public void close() {
-			if (selector != null) {
+			if (this.selector != null) {
 				try {
-					selector.close();
-				} catch (IOException e) {
+					this.selector.close();
+				}
+				catch (IOException e) {
 					// do nothing
 				}
 			}
