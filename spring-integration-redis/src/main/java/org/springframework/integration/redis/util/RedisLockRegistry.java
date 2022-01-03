@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -359,6 +359,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		private boolean subscribeLock(long time) throws ExecutionException, InterruptedException {
+			final long expiredTime = System.currentTimeMillis() + time;
 			if (obtainLock()) {
 				return true;
 			}
@@ -367,8 +368,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				RedisLockRegistry.this.redisMessageListenerContainer.afterPropertiesSet();
 				RedisLockRegistry.this.redisMessageListenerContainer.start();
 			}
-
-			final long expiredTime = System.currentTimeMillis() + time;
 			while (time == -1 || expiredTime >= System.currentTimeMillis()) {
 				try {
 					Future<String> future =

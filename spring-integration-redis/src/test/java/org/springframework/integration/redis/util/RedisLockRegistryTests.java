@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -695,11 +695,11 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void earlyWakeUpTest() throws InterruptedException {
-		final int THREAD_CNT = 3;
+		final int THREAD_CNT = 2;
 		final String testKey = "testKey";
 
-		final CountDownLatch tryLockReady = new CountDownLatch(2);
-		final CountDownLatch awaitTimeout = new CountDownLatch(2);
+		final CountDownLatch tryLockReady = new CountDownLatch(THREAD_CNT);
+		final CountDownLatch awaitTimeout = new CountDownLatch(THREAD_CNT);
 		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
 		final RedisLockRegistry registry1 = new RedisLockRegistry(connectionFactory, this.registryKey);
 		final RedisLockRegistry registry2 = new RedisLockRegistry(connectionFactory, this.registryKey);
@@ -715,7 +715,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		executorService.submit(() -> {
 			try {
 				tryLockReady.countDown();
-				boolean b = lock2.tryLock(3, TimeUnit.SECONDS);
+				boolean b = lock2.tryLock(10, TimeUnit.SECONDS);
 				awaitTimeout.countDown();
 				if (b) {
 					expectOne.incrementAndGet();
@@ -728,7 +728,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		executorService.submit(() -> {
 			try {
 				tryLockReady.countDown();
-				boolean b = lock3.tryLock(3, TimeUnit.SECONDS);
+				boolean b = lock3.tryLock(10, TimeUnit.SECONDS);
 				awaitTimeout.countDown();
 				if (b) {
 					expectOne.incrementAndGet();
@@ -738,14 +738,11 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 		});
 
-		Thread.sleep(100);
-		tryLockReady.await();
+		assertThat(tryLockReady.await(10, TimeUnit.SECONDS)).isTrue();
 		lock1.unlock();
-
-		boolean await = awaitTimeout.await(2, TimeUnit.SECONDS);
-
-		assertThat(await).isFalse();
+		assertThat(awaitTimeout.await(1, TimeUnit.SECONDS)).isFalse();
 		assertThat(expectOne.get()).isEqualTo(1);
+		executorService.shutdown();
 	}
 
 
