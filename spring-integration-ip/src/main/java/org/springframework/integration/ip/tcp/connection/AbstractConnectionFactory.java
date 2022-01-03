@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -566,6 +566,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				TcpConnection connection = iterator.next().getValue();
 				connection.close();
 				iterator.remove();
+				getSenders().forEach(sender -> sender.removeDeadConnection(connection));
 			}
 		}
 		synchronized (this.lifecycleMonitor) {
@@ -865,6 +866,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				TcpConnectionSupport connection = entry.getValue();
 				if (!connection.isOpen()) {
 					iterator.remove();
+					getSenders().forEach(sender -> sender.removeDeadConnection(connection));
 					logger.debug(() -> getComponentName() + ": Removed closed connection: " +
 							connection.getConnectionId());
 				}
@@ -937,11 +939,12 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		// closed connections are removed from #connections in #harvestClosedConnections()
 		synchronized (this.connections) {
 			boolean closed = false;
-			TcpConnectionSupport connection = this.connections.get(connectionId);
+			TcpConnectionSupport connection = this.connections.remove(connectionId);
 			if (connection != null) {
 				try {
 					connection.close();
 					closed = true;
+					getSenders().forEach(sender -> sender.removeDeadConnection(connection));
 				}
 				catch (Exception ex) {
 					logger.debug(ex, () -> "Failed to close connection " + connectionId);
