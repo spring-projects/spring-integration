@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -359,31 +359,39 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		private boolean subscribeLock(long time) throws ExecutionException, InterruptedException {
-			if (!obtainLock()) {
-				if (!RedisLockRegistry.this.redisMessageListenerContainer.isRunning()) {
-					RedisLockRegistry.this.redisMessageListenerContainer.afterPropertiesSet();
-					RedisLockRegistry.this.redisMessageListenerContainer.start();
-				}
+			final long expiredTime = System.currentTimeMillis() + time;
+			if (obtainLock()) {
+				return true;
+			}
+
+			if (!RedisLockRegistry.this.redisMessageListenerContainer.isRunning()) {
+				RedisLockRegistry.this.redisMessageListenerContainer.afterPropertiesSet();
+				RedisLockRegistry.this.redisMessageListenerContainer.start();
+			}
+			while (time == -1 || expiredTime >= System.currentTimeMillis()) {
 				try {
 					Future<String> future =
 							RedisLockRegistry.this.unlockNotifyMessageListener.subscribeLock(this.lockKey);
 					//DCL
-					if (!obtainLock()) {
-						try {
-							//if short expireAfter key expire for ttl, no receive unlock msg
-							long waitTime = time >= 0 ? time : RedisLockRegistry.this.expireAfter;
-							future.get(waitTime, TimeUnit.MILLISECONDS);
-						}
-						catch (TimeoutException ignore) {
-						}
-						return obtainLock();
+					if (obtainLock()) {
+						return true;
+					}
+					try {
+						//if short expireAfter key expire for ttl, no receive unlock msg
+						long waitTime = time >= 0 ? time : RedisLockRegistry.this.expireAfter;
+						future.get(waitTime, TimeUnit.MILLISECONDS);
+					}
+					catch (TimeoutException ignore) {
+					}
+					if (obtainLock()) {
+						return true;
 					}
 				}
 				finally {
 					RedisLockRegistry.this.unlockNotifyMessageListener.unSubscribeLock(this.lockKey);
 				}
 			}
-			return true;
+			return false;
 		}
 
 		private boolean obtainLock() {
