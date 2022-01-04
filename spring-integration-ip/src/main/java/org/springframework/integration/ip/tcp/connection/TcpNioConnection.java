@@ -641,6 +641,10 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 		@Override
 		public void flush() {
+			try {
+				super.flush();
+			} catch (@SuppressWarnings(UNUSED) Exception e) {
+			}
 		}
 
 		@Override

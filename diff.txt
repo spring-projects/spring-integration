@@ -1,0 +1,51 @@
+diff --git a/spring-integration-ip/src/main/java/org/springframework/integration/ip/tcp/connection/TcpNioConnection.java b/spring-integration-ip/src/main/java/org/springframework/integration/ip/tcp/connection/TcpNioConnection.java
+index 1d1844c08f..fdf7676e09 100644
+--- a/spring-integration-ip/src/main/java/org/springframework/integration/ip/tcp/connection/TcpNioConnection.java
++++ b/spring-integration-ip/src/main/java/org/springframework/integration/ip/tcp/connection/TcpNioConnection.java
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright 2002-2021 the original author or authors.
++ * Copyright 2002-2022 the original author or authors.
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+@@ -139,6 +139,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
+ 		}
+ 		catch (@SuppressWarnings(UNUSED) Exception e) {
+ 		}
++		try {
++			this.channelOutputStream.close();
++		}
++		catch (@SuppressWarnings(UNUSED) Exception e) {
++		}
+ 		super.close();
+ 	}
+ 
+@@ -620,7 +625,18 @@ public class TcpNioConnection extends TcpConnectionSupport {
+ 
+ 		@Override
+ 		public void close() {
+-			doClose();
++			if (this.selector != null) {
++				try {
++					this.selector.close();
++				}
++				catch (@SuppressWarnings(UNUSED) Exception e) {
++				}
++			}
++			try {
++				super.close();
++			}
++			catch (@SuppressWarnings(UNUSED) Exception e) {
++			}
+ 		}
+ 
+ 		@Override
+@@ -663,7 +679,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
+ 				remaining = buffer.remaining();
+ 			}
+ 		}
+-
+ 	}
+ 
+ 	/**
