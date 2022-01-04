@@ -624,7 +624,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 
 		@Override
-		public void close() {
+		public void close() throws IOException {
 			if (this.selector != null) {
 				try {
 					this.selector.close();
@@ -632,20 +632,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				catch (@SuppressWarnings(UNUSED) Exception e) {
 				}
 			}
-			try {
-				super.close();
-			}
-			catch (@SuppressWarnings(UNUSED) Exception e) {
-			}
-		}
-
-		@Override
-		public void flush() {
-			try {
-				super.flush();
-			}
-			catch (@SuppressWarnings(UNUSED) Exception e) {
-			}
+			super.close();
 		}
 
 		@Override
