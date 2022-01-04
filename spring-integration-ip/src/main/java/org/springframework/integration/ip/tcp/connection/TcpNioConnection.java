@@ -643,7 +643,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		public void flush() {
 			try {
 				super.flush();
-			} catch (@SuppressWarnings(UNUSED) Exception e) {
+			}
+			catch (@SuppressWarnings(UNUSED) Exception e) {
 			}
 		}
 
