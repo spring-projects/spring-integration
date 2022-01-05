@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author John Anderson
  * @author Artem Bilan
+ * @author David Herschler Shvo
  *
  * @since 2.0
  *
@@ -625,10 +626,14 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 		@Override
 		public void close() throws IOException {
-			if (this.selector != null) {
+			try {
+				if (this.selector != null) {
 					this.selector.close();
+				}
 			}
-			super.close();
+			finally {
+				super.close();
+			}
 		}
 
 		@Override
