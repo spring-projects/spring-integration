@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.http.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -55,17 +54,6 @@ import org.springframework.messaging.MessageHeaders;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DefaultHttpHeaderMapperFromMessageInboundTests {
-
-	@Test
-	public void validateAllowWithWrongMethodName() {
-		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
-		Map<String, Object> messageHeaders = new HashMap<>();
-		messageHeaders.put("Allow", "bar");
-		HttpHeaders headers = new HttpHeaders();
-
-		assertThatIllegalArgumentException()
-				.isThrownBy(() -> mapper.fromHeaders(new MessageHeaders(messageHeaders), headers));
-	}
 
 	@Test
 	public void validateAllowAsString() {

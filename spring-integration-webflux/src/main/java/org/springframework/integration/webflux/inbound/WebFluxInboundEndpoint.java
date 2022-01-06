@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +51,7 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.accept.HeaderContentTypeResolver;
@@ -463,7 +463,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		}
 
 		List<MediaType> result = new ArrayList<>(compatibleMediaTypes);
-		MediaType.sortBySpecificityAndQuality(result);
+		MimeTypeUtils.sortBySpecificity(result);
 
 		for (MediaType mediaType : result) {
 			if (mediaType.isConcrete()) {
@@ -517,9 +517,13 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 	private static MediaType selectMoreSpecificMediaType(MediaType acceptable, MediaType producible) {
-		MediaType producibleToUse = producible.copyQualityValue(acceptable);
-		Comparator<MediaType> comparator = MediaType.SPECIFICITY_COMPARATOR;
-		return (comparator.compare(acceptable, producibleToUse) <= 0 ? acceptable : producibleToUse);
+		producible = producible.copyQualityValue(acceptable);
+		if (acceptable.isLessSpecific(producible)) {
+			return producible;
+		}
+		else {
+			return acceptable;
+		}
 	}
 
 }

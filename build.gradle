@@ -1,26 +1,26 @@
 buildscript {
-	ext.kotlinVersion = '1.5.32'
-	repositories {
-		mavenCentral()
-		gradlePluginPortal()
-		maven { url 'https://repo.spring.io/plugins-release-local' }
-	}
-	dependencies {
-		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-		classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
-	}
+    ext.kotlinVersion = '1.6.10'
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url 'https://repo.spring.io/plugins-release-local' }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
+    }
 }
 
 plugins {
-	id 'org.sonarqube' version '2.8'
-	id 'io.spring.nohttp' version '0.0.10' apply false
-	id 'org.ajoberstar.grgit' version '4.1.0'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'com.jfrog.artifactory' version '4.24.20' apply false
-	id 'org.jetbrains.dokka' version '1.5.30'
-	id 'org.asciidoctor.jvm.pdf' version '3.3.2'
-	id 'org.asciidoctor.jvm.gems' version '3.3.2'
-	id 'org.asciidoctor.jvm.convert' version '3.3.2'
+    id 'org.sonarqube' version '2.8'
+    id 'io.spring.nohttp' version '0.0.10' apply false
+    id 'org.ajoberstar.grgit' version '4.1.0'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'com.jfrog.artifactory' version '4.24.20' apply false
+    id 'org.jetbrains.dokka' version '1.5.30'
+    id 'org.asciidoctor.jvm.pdf' version '3.3.2'
+    id 'org.asciidoctor.jvm.gems' version '3.3.2'
+    id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
 if (System.getenv('GITHUB_ACTION') || System.getenv('bamboo_buildKey')) {
@@ -46,66 +46,67 @@ ext {
     modifiedFiles =
             files(grgit.status().unstaged.modified).filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	apacheSshdVersion = '2.7.0'
-	artemisVersion = '2.19.0'
-	aspectjVersion = '1.9.7'
-	assertjVersion = '3.21.0'
-	assertkVersion = '0.25'
-	avroVersion = '1.10.2'
-	awaitilityVersion = '4.1.1'
-	commonsDbcp2Version = '2.9.0'
-	commonsIoVersion = '2.11.0'
-	commonsNetVersion = '3.8.0'
-	curatorVersion = '4.3.0'
-	derbyVersion = '10.14.2.0'
-	ftpServerVersion = '1.1.1'
-	googleJsr305Version = '3.0.2'
-	greenmailVersion = '2.0.0-alpha-2'
-	groovyVersion = '3.0.9'
-	hamcrestVersion = '2.2'
-	hazelcastVersion = '4.2.3'
-	hibernateVersion = '5.6.1.Final'
-	hsqldbVersion = '2.6.0'
-	h2Version = '1.4.200'
-	jacksonVersion = '2.13.0'
-	jaxbVersion = '3.0.2'
-	jeroMqVersion = '0.5.2'
-	jmsApiVersion = '3.0.0'
-	jpaApiVersion = '3.0.2'
-	jrubyVersion = '9.2.19.0'
-	jschVersion = '0.1.55'
-	jsonpathVersion = '2.6.0'
-	junit4Version = '4.13.2'
-	junitJupiterVersion = '5.8.1'
-	jythonVersion = '2.7.2'
-	kryoShadedVersion = '4.0.2'
-    lettuceVersion = '6.1.6.RELEASE'
-	log4jVersion = '2.17.1'
-	mailVersion = '2.0.1'
-	micrometerVersion = '1.7.8'
-	mockitoVersion = '4.0.0'
-	mongoDriverVersion = '4.4.0-beta2'
-	mysqlVersion = '8.0.27'
-	pahoMqttClientVersion = '1.2.5'
-	postgresVersion = '42.2.23'
-	r2dbch2Version='0.8.4.RELEASE'
-	reactorVersion = '2020.0.14'
-	resilience4jVersion = '1.7.1'
-	romeToolsVersion = '1.16.0'
-	rsocketVersion = '1.1.1'
-	saajVersion = '2.0.1'
-	servletApiVersion = '5.0.0'
-	smackVersion = '4.3.5'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '3.0.0-SNAPSHOT'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2022.1.0-SNAPSHOT'
-	springKafkaVersion = '3.0.0-SNAPSHOT'
-	springRetryVersion = '1.3.1'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '6.0.0-SNAPSHOT'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '6.0.0-SNAPSHOT'
-	springWsVersion = '4.0.0-SNAPSHOT'
-	tomcatVersion = '10.0.11'
-	xmlUnitVersion = '2.8.3'
-	xstreamVersion = '1.4.18'
+    apacheSshdVersion = '2.7.0'
+    artemisVersion = '2.19.0'
+    aspectjVersion = '1.9.7'
+    assertjVersion = '3.21.0'
+    assertkVersion = '0.25'
+    avroVersion = '1.10.2'
+    awaitilityVersion = '4.1.1'
+    commonsDbcp2Version = '2.9.0'
+    commonsIoVersion = '2.11.0'
+    commonsNetVersion = '3.8.0'
+    curatorVersion = '4.3.0'
+    derbyVersion = '10.14.2.0'
+    ftpServerVersion = '1.1.1'
+    googleJsr305Version = '3.0.2'
+    greenmailVersion = '2.0.0-alpha-2'
+    groovyVersion = '3.0.9'
+    hamcrestVersion = '2.2'
+    hazelcastVersion = '5.0.2'
+    hibernateVersion = '5.6.1.Final'
+    hsqldbVersion = '2.6.0'
+    h2Version = '1.4.200'
+    jacksonVersion = '2.13.0'
+    jaxbVersion = '3.0.2'
+    jeroMqVersion = '0.5.2'
+    jmsApiVersion = '3.0.0'
+    jpaApiVersion = '3.0.2'
+    jrubyVersion = '9.2.19.0'
+    jschVersion = '0.1.55'
+    jsonpathVersion = '2.6.0'
+    junit4Version = '4.13.2'
+    junitJupiterVersion = '5.8.1'
+    jythonVersion = '2.7.2'
+    kryoShadedVersion = '4.0.2'
+    lettuceVersion = '6.1.5.RELEASE'
+    log4jVersion = '2.17.0'
+    mailVersion = '2.0.1'
+    micrometerVersion = '1.7.7'
+    mockitoVersion = '4.0.0'
+    mongoDriverVersion = '4.4.0'
+    mysqlVersion = '8.0.27'
+    pahoMqttClientVersion = '1.2.5'
+    postgresVersion = '42.2.23'
+    r2dbch2Version = '0.9.0.M1'
+    reactorVersion = '2020.0.14'
+    resilience4jVersion = '1.7.1'
+    romeToolsVersion = '1.16.0'
+    rsocketVersion = '1.1.1'
+    saajVersion = '2.0.1'
+    servletApiVersion = '5.0.0'
+    smackVersion = '4.3.5'
+    springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '3.0.0-SNAPSHOT'
+    springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2022.1.0-SNAPSHOT'
+    springKafkaVersion = '3.0.0-SNAPSHOT'
+    springRetryVersion = '1.3.1'
+    springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '6.0.0-SNAPSHOT'
+    springVersion = project.hasProperty('springVersion') ? project.springVersion : '6.0.0-SNAPSHOT'
+    springWsVersion = '4.0.0-SNAPSHOT'
+    testcontainersVersion = '1.16.2'
+    tomcatVersion = '10.0.11'
+    xmlUnitVersion = '2.8.4'
+    xstreamVersion = '1.4.18'
 
     javaProjects = subprojects - project(':spring-integration-bom')
 }
@@ -204,14 +205,18 @@ configure(javaProjects) { subproject ->
 
     compileKotlin {
         kotlinOptions {
+            languageVersion = '1.6'
+            apiVersion = '1.6'
             jvmTarget = '16'
-            freeCompilerArgs = ['-Xjsr305=strict']
+            freeCompilerArgs = ['-Xjsr305=strict', '-Xsuppress-version-warnings', '-Xopt-in=kotlin.RequiresOptIn']
             allWarningsAsErrors = true
         }
     }
+
     compileTestKotlin {
         kotlinOptions {
             jvmTarget = '16'
+            freeCompilerArgs = ['-Xjsr305=strict']
         }
     }
 
@@ -255,10 +260,10 @@ configure(javaProjects) { subproject ->
         testImplementation("com.willowtreeapps.assertk:assertk-jvm:$assertkVersion") {
             exclude group: 'org.jetbrains.kotlin'
         }
-		testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
-		testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-		testImplementation 'io.projectreactor:reactor-test'
-		testImplementation "org.testcontainers:junit-jupiter:$testcontainersVersion"
+        testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
+        testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+        testImplementation 'io.projectreactor:reactor-test'
+        testImplementation "org.testcontainers:junit-jupiter:$testcontainersVersion"
 
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -349,10 +354,10 @@ configure(javaProjects) { subproject ->
         enableAssertions = false
     }
 
-	checkstyle {
-		configDirectory.set(rootProject.file('src/checkstyle'))
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '9.2'
-	}
+    checkstyle {
+        configDirectory.set(rootProject.file('src/checkstyle'))
+        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '9.2'
+    }
 
     jar {
         manifest {
@@ -490,25 +495,25 @@ project('spring-integration-core') {
         }
     }
 
-	dokkaHtmlPartial {
-		outputDirectory.set(new File(buildDir, 'docs/kdoc'))
-		dokkaSourceSets {
-			main {
-				sourceRoots.setFrom(file('src/main/kotlin'))
-				classpath.from(sourceSets['main'].runtimeClasspath)
-				externalDocumentationLink {
-					url.set(new URL("https://docs.spring.io/spring-integration/docs/$version/api/"))
-					packageListUrl.set(file("$buildDir/docs/javadoc/element-list").toURI().toURL())
-				}
-				externalDocumentationLink {
-					url.set(new URL('https://projectreactor.io/docs/core/release/api/'))
-				}
-				externalDocumentationLink {
-					url.set(new URL('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
-				}
-			}
-		}
-	}
+    dokkaHtmlPartial {
+        outputDirectory.set(new File(buildDir, 'docs/kdoc'))
+        dokkaSourceSets {
+            main {
+                sourceRoots.setFrom(file('src/main/kotlin'))
+                classpath.from(sourceSets['main'].runtimeClasspath)
+                externalDocumentationLink {
+                    url.set(new URL("https://docs.spring.io/spring-integration/docs/$version/api/"))
+                    packageListUrl.set(file("$buildDir/docs/javadoc/element-list").toURI().toURL())
+                }
+                externalDocumentationLink {
+                    url.set(new URL('https://projectreactor.io/docs/core/release/api/'))
+                }
+                externalDocumentationLink {
+                    url.set(new URL('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
+                }
+            }
+        }
+    }
 }
 
 project('spring-integration-event') {
@@ -634,7 +639,7 @@ project('spring-integration-jdbc') {
         testImplementation "org.postgresql:postgresql:$postgresVersion"
         testImplementation "mysql:mysql-connector-java:$mysqlVersion"
         testImplementation "org.apache.commons:commons-dbcp2:$commonsDbcp2Version"
-		testImplementation "org.testcontainers:mysql:$testcontainersVersion"
+        testImplementation "org.testcontainers:mysql:$testcontainersVersion"
 
         testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
     }
@@ -1042,9 +1047,9 @@ task api(type: Javadoc) {
 }
 
 dokkaHtmlMultiModule {
-	dependsOn api
-	moduleName.set('spring-integration')
-	outputDirectory.set(file("$buildDir/docs/kdoc"))
+    dependsOn api
+    moduleName.set('spring-integration')
+    outputDirectory.set(file("$buildDir/docs/kdoc"))
 }
 
 apply from: "${rootDir}/gradle/docs.gradle"

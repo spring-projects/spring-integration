@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,14 @@ package org.springframework.integration.http.config;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.config.annotation.AnnotationMetadataAdapter;
 
 /**
@@ -46,6 +48,11 @@ public class IntegrationGraphControllerParser implements BeanDefinitionParser {
 					@Override
 					public Map<String, Object> getAnnotationAttributes(String annotationType) {
 						return Collections.singletonMap("value", element.getAttribute("path"));
+					}
+
+					@Override
+					public Set<MethodMetadata> getDeclaredMethods() {
+						return null;
 					}
 
 				}, parserContext.getRegistry());

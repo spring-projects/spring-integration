@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,16 @@ public class RequestMapping {
 
 	public String[] getPathPatterns() {
 		return this.pathPatterns; // NOSONAR - expose internals
+	}
+
+	/**
+	 * Configure a set of supported HTTP methods from their string representations.
+	 * @param supportedMethods the array of HTTP method names.
+	 * @since 6.0
+	 */
+	public void setMethodNames(String... supportedMethods) {
+		Assert.notEmpty(supportedMethods, "at least one supported methods is required");
+		setMethods(Arrays.stream(supportedMethods).map(HttpMethod::valueOf).toArray(HttpMethod[]::new));
 	}
 
 	public void setMethods(HttpMethod... supportedMethods) {

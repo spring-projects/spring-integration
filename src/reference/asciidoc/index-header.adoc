@@ -12,7 +12,7 @@ ifdef::backend-pdf[]
 NOTE: This documentation is also available as https://docs.spring.io/spring-integration/docs/current/reference/html/index.html[multiple (faster to load) HTML pages] and as a single https://docs.spring.io/spring-integration/docs/current/reference/html/index-single.html[(more easily searchable) HTML file].
 endif::[]
 
-(C) 2009 - 2021 VMware, Inc.
+(C) 2009 - 2022 VMware, Inc.
 All rights reserved.
 
 Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
