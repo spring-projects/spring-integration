@@ -17,7 +17,7 @@ plugins {
     id 'org.ajoberstar.grgit' version '4.1.0'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'com.jfrog.artifactory' version '4.24.20' apply false
-    id 'org.jetbrains.dokka' version '1.5.30'
+    id 'org.jetbrains.dokka' version '1.6.10'
     id 'org.asciidoctor.jvm.pdf' version '3.3.2'
     id 'org.asciidoctor.jvm.gems' version '3.3.2'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
