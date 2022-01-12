@@ -262,7 +262,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 		}
 		else {
 			logger.warn(() -> "The StompInboundChannelAdapter [" + getComponentName() +
-					"] ins't connected to StompSession. Check the state of [" + this.stompSessionManager + "]");
+					"] is not connected to StompSession. Check the state of [" + this.stompSessionManager + "]");
 		}
 	}
 
