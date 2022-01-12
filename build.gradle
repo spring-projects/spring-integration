@@ -66,7 +66,7 @@ ext {
     hazelcastVersion = '5.0.2'
     hibernateVersion = '5.6.1.Final'
     hsqldbVersion = '2.6.0'
-    h2Version = '1.4.200'
+    h2Version = '2.0.206'
     jacksonVersion = '2.13.0'
     jaxbVersion = '3.0.2'
     jeroMqVersion = '0.5.2'
