@@ -186,11 +186,12 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 			else {
 				messageChannelWrapper = this.channels.get(name);
 			}
-			if (messageChannelWrapper != null) {
-				logger.debug(() -> "Retrieved " + messageChannelWrapper.getChannel() + " with " + name);
-			}
 
-			return messageChannelWrapper == null ? null : messageChannelWrapper.getChannel();
+			if (messageChannelWrapper != null) {
+				MessageChannel channel = messageChannelWrapper.channel();
+				logger.debug(() -> "Retrieved " + channel + " with " + name);
+				return channel;
+			}
 		}
 		return null;
 	}
@@ -215,8 +216,8 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		long now = System.currentTimeMillis();
 		while (iterator.hasNext()) {
 			Entry<String, MessageChannelWrapper> entry = iterator.next();
-			if (entry.getValue().getExpireAt() < now) {
-				logger.debug(() -> "Expiring " + entry.getKey() + " (" + entry.getValue().getChannel() + ")");
+			if (entry.getValue().expireAt() < now) {
+				logger.debug(() -> "Expiring " + entry.getKey() + " (" + entry.getValue().channel() + ")");
 				iterator.remove();
 			}
 		}
@@ -228,15 +229,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	}
 
 
-	protected record MessageChannelWrapper(MessageChannel channel, long expireAt) {
-
-		public long getExpireAt() {
-			return this.expireAt;
-		}
-
-		public MessageChannel getChannel() {
-			return this.channel;
-		}
+	protected static final record MessageChannelWrapper(MessageChannel channel, long expireAt) {
 
 	}
 

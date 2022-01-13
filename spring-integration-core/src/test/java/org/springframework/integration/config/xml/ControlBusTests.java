@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,8 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -34,15 +32,13 @@ import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Dave Syer
@@ -52,8 +48,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class ControlBusTests {
 
@@ -71,7 +66,10 @@ public class ControlBusTests {
 
 	@Test
 	public void testDefaultEvaluationContext() {
-		Message<?> message = MessageBuilder.withPayload("@service.convert('aardvark')+headers.foo").setHeader("foo", "bar").build();
+		Message<?> message =
+				MessageBuilder.withPayload("@service.convert('aardvark')+headers.foo")
+						.setHeader("foo", "bar")
+						.build();
 		this.input.send(message);
 		assertThat(output.receive(0).getPayload()).isEqualTo("catbar");
 		assertThat(output.receive(0)).isNull();
@@ -106,17 +104,12 @@ public class ControlBusTests {
 		// No channels in the registry
 		assertThat(result.getPayload()).isEqualTo(0);
 		this.registry.channelToChannelName(new DirectChannel());
-		// Sleep a bit to be sure that we aren't reaped by registry TTL as 60000
-		Thread.sleep(10);
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
 		result = this.output.receive(0);
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload()).isEqualTo(1);
-		// Some DirectFieldAccessor magic to modify 'expireAt' to the past to avoid timing issues on high-loaded build
-		Object messageChannelWrapper =
-				TestUtils.getPropertyValue(this.registry, "channels", Map.class).values().iterator().next();
-		DirectFieldAccessor dfa = new DirectFieldAccessor(messageChannelWrapper);
-		dfa.setPropertyValue("expireAt", System.currentTimeMillis() - 60000);
+		// Let the registry to reap old channels
+		Thread.sleep(1000);
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.runReaper()");
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
 		result = this.output.receive(0);
@@ -161,8 +154,9 @@ public class ControlBusTests {
 	}
 
 	public static class AdapterService {
+
 		public Message<String> receive() {
-			return new GenericMessage<String>(new Date().toString());
+			return new GenericMessage<>(new Date().toString());
 		}
 
 	}
