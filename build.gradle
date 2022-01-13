@@ -1,5 +1,6 @@
 buildscript {
     ext.kotlinVersion = '1.6.10'
+    ext.isCI = System.getenv('GITHUB_ACTION') || System.getenv('bamboo_buildKey')
     repositories {
         mavenCentral()
         gradlePluginPortal()
@@ -23,7 +24,7 @@ plugins {
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
-if (System.getenv('GITHUB_ACTION') || System.getenv('bamboo_buildKey')) {
+if (isCI) {
     apply plugin: 'io.spring.nohttp'
 
     nohttp {
@@ -46,7 +47,7 @@ ext {
     modifiedFiles =
             files(grgit.status().unstaged.modified).filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-    apacheSshdVersion = '2.7.0'
+    apacheSshdVersion = '2.8.0'
     artemisVersion = '2.19.0'
     aspectjVersion = '1.9.7'
     assertjVersion = '3.21.0'
@@ -280,7 +281,7 @@ configure(javaProjects) { subproject ->
     [compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg, '-parameters']
 
     task updateCopyrights {
-        onlyIf { !System.getenv('GITHUB_ACTION') && !System.getenv('bamboo_buildKey') }
+        onlyIf { !isCI }
         inputs.files(modifiedFiles.filter { f -> f.path.contains(subproject.name) })
         outputs.dir('build/classes')
 
@@ -383,7 +384,38 @@ configure(javaProjects) { subproject ->
         }
     }
 
-    check.dependsOn javadoc
+    task checkClasspathForConflicts {
+        onlyIf { isCI }
+        inputs.files(configurations.runtimeClasspath)
+
+        def ignored = ['module-info.class']
+        def errors = ['Found classpath conflicts:\n']
+        Map<String, Set<String>> classpathContents = [:]
+
+        doLast {
+            inputs.files.each { file ->
+                new java.util.jar.JarFile(file)
+                        .stream()
+                        .filter { !it.name.startsWith('META-INF/') && it.name.endsWith('.class') && !ignored.contains(it.name) }
+                        .each { classpathContents.computeIfAbsent(it.name, { [] as Set }).add(file.absolutePath) }
+            }
+
+            def conflicts = classpathContents.findAll { it.value.size() > 1 }
+
+            conflicts.each {
+                errors += "    $it.key\n"
+                it.value.each {
+                    errors += "        $it\n"
+                }
+            }
+
+            if (errors.size() > 1) {
+                throw new InvalidUserDataException(errors.toString().replaceAll(~/,\s/, '') - '[' - ']')
+            }
+        }
+    }
+
+    check.dependsOn checkClasspathForConflicts, javadoc
 
     publishing {
         publications {
@@ -566,6 +598,14 @@ project('spring-integration-gemfire') {
         api project(':spring-integration-core')
         api('org.springframework.data:spring-data-geode') {
             exclude group: 'org.springframework'
+            exclude group: 'org.apache.shiro', module: 'shiro-event'
+            exclude group: 'org.apache.shiro', module: 'shiro-lang'
+            exclude group: 'org.apache.shiro', module: 'shiro-crypto-hash'
+            exclude group: 'org.apache.shiro', module: 'shiro-crypto-cipher'
+            exclude group: 'org.apache.shiro', module: 'shiro-config-ogdl'
+            exclude group: 'org.apache.shiro', module: 'shiro-config-core'
+            exclude group: 'org.apache.shiro', module: 'shiro-cache'
+            exclude group: 'commons-logging'
         }
         api "commons-io:commons-io:$commonsIoVersion"
 
@@ -776,7 +816,9 @@ project('spring-integration-scripting') {
     description = 'Spring Integration Scripting Support'
     dependencies {
         api project(':spring-integration-core')
-        optionalApi 'org.jetbrains.kotlin:kotlin-script-util'
+        optionalApi ('org.jetbrains.kotlin:kotlin-script-util') {
+            exclude group: 'org.jetbrains.kotlin', module: 'kotlin-daemon-client'
+        }
         optionalApi 'org.jetbrains.kotlin:kotlin-compiler-embeddable'
 
         testImplementation "org.jruby:jruby-complete:$jrubyVersion"
@@ -808,7 +850,9 @@ project('spring-integration-sftp') {
         api project(':spring-integration-file')
         api "com.jcraft:jsch:$jschVersion"
         api 'org.springframework:spring-context-support'
-        optionalApi "org.apache.sshd:sshd-sftp:$apacheSshdVersion"
+        optionalApi ("org.apache.sshd:sshd-sftp:$apacheSshdVersion") {
+            exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
+        }
 
         testImplementation "org.apache.sshd:sshd-core:$apacheSshdVersion"
         testImplementation project(':spring-integration-event')

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	protected final Map<String, MessageChannelWrapper> channels = new ConcurrentHashMap<>(); // NOSONAR
 
-	protected final String uuid = UUID.randomUUID().toString() + ":"; // NOSONAR
+	protected final String uuid = UUID.randomUUID() + ":"; // NOSONAR
 
 	private boolean removeOnGet;
 
@@ -228,16 +228,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	}
 
 
-	private static final class MessageChannelWrapper {
-
-		private final MessageChannel channel;
-
-		private final long expireAt;
-
-		MessageChannelWrapper(MessageChannel channel, long expireAt) {
-			this.channel = channel;
-			this.expireAt = expireAt;
-		}
+	protected record MessageChannelWrapper(MessageChannel channel, long expireAt) {
 
 		public long getExpireAt() {
 			return this.expireAt;
