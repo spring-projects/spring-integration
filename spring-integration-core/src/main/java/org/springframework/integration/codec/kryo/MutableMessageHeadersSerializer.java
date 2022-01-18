@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,16 @@ import com.esotericsoftware.kryo.io.Input;
 
 /**
  * Kryo Serializer for {@link MutableMessageHeaders}.
+ *
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 class MutableMessageHeadersSerializer extends MessageHeadersSerializer {
 
 	@Override
-	public MessageHeaders read(Kryo kryo, Input input, Class<MessageHeaders> type) {
+	public MessageHeaders read(Kryo kryo, Input input, Class<? extends MessageHeaders> type) {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> headers = kryo.readObject(input, HashMap.class);
 		return new MutableMessageHeaders(headers);

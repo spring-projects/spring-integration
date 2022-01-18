@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.util.CollectionUtils;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy;
 
 /**
  * Kryo Codec that can encode and decode arbitrary types. Classes and associated
@@ -34,6 +35,7 @@ import com.esotericsoftware.kryo.io.Output;
  *
  * @author David Turanski
  * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class PojoCodec extends AbstractKryoCodec {
@@ -99,7 +101,7 @@ public class PojoCodec extends AbstractKryoCodec {
 
 	@Override
 	protected void configureKryoInstance(Kryo kryo) {
-		kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+		kryo.setInstantiatorStrategy(new DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
 		if (this.kryoRegistrar != null) {
 			this.kryoRegistrar.registerTypes(kryo);
 		}

@@ -26,7 +26,6 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +61,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@Disabled("H2 v2 is broken for stored procedures")
 public class StoredProcJavaConfigTests {
 
 	@Autowired

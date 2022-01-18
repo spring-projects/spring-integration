@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import com.esotericsoftware.kryo.io.Output;
  * is declared transient.
  *
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class FileSerializer extends Serializer<File> {
@@ -40,8 +42,8 @@ public class FileSerializer extends Serializer<File> {
 	}
 
 	@Override
-	public File read(Kryo kryo, Input input, Class<File> type) {
-		String path  = input.readString();
+	public File read(Kryo kryo, Input input, Class<? extends File> type) {
+		String path = input.readString();
 		return new File(path);
 	}
 

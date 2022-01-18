@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,53 +27,56 @@ import org.springframework.util.Assert;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.pool.KryoFactory;
-import com.esotericsoftware.kryo.pool.KryoPool;
+import com.esotericsoftware.kryo.util.Pool;
 
 /**
  * Base class for {@link Codec}s using {@link Kryo}.
  * Manages pooled {@link Kryo} instances.
  *
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public abstract class AbstractKryoCodec implements Codec {
 
-	protected final KryoPool pool; // NOSONAR final
+	protected final Pool<Kryo> pool; // NOSONAR final
 
 	protected AbstractKryoCodec() {
-		KryoFactory factory = () -> {
-			Kryo kryo = new Kryo();
-			kryo.setRegistrationRequired(true);
-			// configure Kryo instance, customize settings
-			configureKryoInstance(kryo);
-			return kryo;
+		this.pool = new Pool<>(true, true) {
+
+			@Override
+			protected Kryo create() {
+				Kryo kryo = new Kryo();
+				kryo.setRegistrationRequired(true);
+				// configure Kryo instance, customize settings
+				configureKryoInstance(kryo);
+				return kryo;
+			}
+
 		};
-		// Build pool with SoftReferences enabled (optional)
-		this.pool = new KryoPool.Builder(factory).softReferences().build();
 	}
 
 	@Override
 	public void encode(final Object object, OutputStream outputStream) {
 		Assert.notNull(object, "cannot encode a null object");
 		Assert.notNull(outputStream, "'outputSteam' cannot be null");
-		final Output output = (outputStream instanceof Output ? (Output) outputStream : new Output(outputStream));
-		this.pool.run(kryo -> {
+
+		Kryo kryo = this.pool.obtain();
+		try (Output output = (outputStream instanceof Output ? (Output) outputStream : new Output(outputStream))) {
 			doEncode(kryo, object, output);
-			return Void.class;
-		});
-		output.close();
+		}
+		finally {
+			this.pool.free(kryo);
+		}
+
 	}
 
 	@Override
 	public <T> T decode(byte[] bytes, Class<T> type) throws IOException {
 		Assert.notNull(bytes, "'bytes' cannot be null");
-		final Input input = new Input(bytes);
-		try {
+		try (Input input = new Input(bytes)) {
 			return decode(input, type);
-		}
-		finally {
-			input.close();
 		}
 	}
 
@@ -81,15 +84,14 @@ public abstract class AbstractKryoCodec implements Codec {
 	public <T> T decode(InputStream inputStream, final Class<T> type) {
 		Assert.notNull(inputStream, "'inputStream' cannot be null");
 		Assert.notNull(type, "'type' cannot be null");
-		final Input input = (inputStream instanceof Input ? (Input) inputStream : new Input(inputStream));
-		T result = null;
-		try {
-			result = this.pool.run(kryo -> doDecode(kryo, input, type));
+
+		Kryo kryo = this.pool.obtain();
+		try (Input input = (inputStream instanceof Input ? (Input) inputStream : new Input(inputStream))) {
+			return doDecode(kryo, input, type);
 		}
 		finally {
-			input.close();
+			this.pool.free(kryo);
 		}
-		return result;
 	}
 
 	@Override

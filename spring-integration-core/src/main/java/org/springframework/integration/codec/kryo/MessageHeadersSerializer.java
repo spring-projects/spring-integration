@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,17 @@ import com.esotericsoftware.kryo.io.Output;
 
 /**
  * Kryo Serializer for {@link MessageHeaders}.
+ *
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 class MessageHeadersSerializer extends Serializer<MessageHeaders> {
+
 	@Override
 	public void write(Kryo kryo, Output output, MessageHeaders headers) {
-		HashMap<String, Object> map = new HashMap<String, Object>();
+		HashMap<String, Object> map = new HashMap<>();
 		for (Map.Entry<String, Object> entry : headers.entrySet()) {
 			if (entry.getValue() != null) {
 				map.put(entry.getKey(), entry.getValue());
@@ -44,7 +48,7 @@ class MessageHeadersSerializer extends Serializer<MessageHeaders> {
 	}
 
 	@Override
-	public MessageHeaders read(Kryo kryo, Input input, Class<MessageHeaders> type) {
+	public MessageHeaders read(Kryo kryo, Input input, Class<? extends MessageHeaders> type) {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> headers = kryo.readObject(input, HashMap.class);
 		return new MessageHeaders(headers);
