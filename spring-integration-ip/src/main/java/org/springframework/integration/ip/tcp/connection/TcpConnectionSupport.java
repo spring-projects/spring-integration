@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2021 the original author or authors.
+ * Copyright 2001-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,9 +199,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 				outerListener = nextListener;
 			}
 			outerListener.close();
-			for (TcpSender sender : getSenders()) {
-				sender.removeDeadConnection(outerListener);
-			}
+			outerListener.removeDeadConnection(outerListener);
 			if (isException) {
 				// ensure physical close in case the interceptor did not close
 				this.close();
@@ -337,6 +335,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * @return the listener
 	 */
 	@Override
+	@Nullable
 	public TcpListener getListener() {
 		if (this.needsTest && this.testListener != null) {
 			this.needsTest = false;

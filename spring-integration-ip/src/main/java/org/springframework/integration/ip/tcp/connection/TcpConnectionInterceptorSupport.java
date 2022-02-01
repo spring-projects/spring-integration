@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.net.ssl.SSLSession;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 
@@ -38,9 +42,12 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 
 	private TcpListener tcpListener;
 
-	private TcpSender tcpSender;
+	private boolean realSender;
 
-	private Boolean realSender;
+	private List<TcpSender> interceptedSenders;
+
+	private boolean removed;
+
 
 	public TcpConnectionInterceptorSupport() {
 	}
@@ -92,8 +99,27 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 
 	@Override
 	public void registerSender(TcpSender sender) {
-		this.tcpSender = sender;
 		this.theConnection.registerSender(this);
+	}
+
+	@Override
+	public void registerSenders(List<TcpSender> sendersToRegister) {
+		this.interceptedSenders = sendersToRegister;
+		if (sendersToRegister.size() > 0) {
+			if (!(sendersToRegister.get(0) instanceof TcpConnectionInterceptorSupport)) {
+				this.realSender = true;
+			}
+			else {
+				this.realSender = ((TcpConnectionInterceptorSupport) this.interceptedSenders.get(0))
+						.hasRealSender();
+			}
+		}
+		if (this.theConnection instanceof TcpConnectionInterceptorSupport) {
+			this.theConnection.registerSenders(Collections.singletonList(this));
+		}
+		else {
+			super.registerSender(this);
+		}
 	}
 
 	/**
@@ -198,21 +224,30 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	 * @return the listener
 	 */
 	@Override
+	@Nullable
 	public TcpListener getListener() {
 		return this.tcpListener;
 	}
 
 	@Override
 	public void addNewConnection(TcpConnection connection) {
-		if (this.tcpSender != null) {
-			this.tcpSender.addNewConnection(this);
+		if (this.interceptedSenders != null) {
+			this.interceptedSenders.forEach(sender -> sender.addNewConnection(connection));
 		}
 	}
 
 	@Override
-	public void removeDeadConnection(TcpConnection connection) {
-		if (this.tcpSender != null) {
-			this.tcpSender.removeDeadConnection(this);
+	public synchronized void removeDeadConnection(TcpConnection connection) {
+		if (this.removed) {
+			return;
+		}
+		this.removed = true;
+		if (this.theConnection instanceof TcpConnectionInterceptorSupport && !this.theConnection.equals(this)) {
+			((TcpConnectionInterceptorSupport) this.theConnection).removeDeadConnection(this);
+		}
+		TcpSender sender = getSender();
+		if (sender != null && !(sender instanceof TcpConnectionInterceptorSupport)) {
+			this.interceptedSenders.forEach(snder -> snder.removeDeadConnection(connection));
 		}
 	}
 
@@ -222,19 +257,21 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	@Override
+	@Nullable
 	public TcpSender getSender() {
-		return this.tcpSender;
+		return this.interceptedSenders != null && this.interceptedSenders.size() > 0
+				? this.interceptedSenders.get(0)
+				: null;
+	}
+
+	@Override
+	public List<TcpSender> getSenders() {
+		return this.interceptedSenders == null
+				? super.getSenders()
+				: Collections.unmodifiableList(this.interceptedSenders);
 	}
 
 	protected boolean hasRealSender() {
-		if (this.realSender != null) {
-			return this.realSender;
-		}
-		TcpSender sender = getSender();
-		while (sender instanceof TcpConnectionInterceptorSupport) {
-			sender = ((TcpConnectionInterceptorSupport) sender).getSender();
-		}
-		this.realSender = sender != null;
 		return this.realSender;
 	}
 
