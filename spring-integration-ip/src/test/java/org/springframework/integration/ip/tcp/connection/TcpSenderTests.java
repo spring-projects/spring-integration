@@ -18,8 +18,13 @@ package org.springframework.integration.ip.tcp.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
@@ -69,26 +74,55 @@ public class TcpSenderTests {
 	private void senderCalledForDeadConnectionClient(AbstractClientConnectionFactory client) throws InterruptedException {
 		CountDownLatch adds = new CountDownLatch(2);
 		CountDownLatch removes = new CountDownLatch(2);
+		CountDownLatch interceptorAddCalled = new CountDownLatch(6);
+		CountDownLatch interceptorRemCalled = new CountDownLatch(6);
 		TcpConnectionInterceptorFactoryChain chain = new TcpConnectionInterceptorFactoryChain();
-		chain.setInterceptor(new HelloWorldInterceptorFactory() {
+		AtomicInteger instances = new AtomicInteger();
+		List<Integer> addOrder = Collections.synchronizedList(new ArrayList<>());
+		List<Integer> remOrder = Collections.synchronizedList(new ArrayList<>());
+		AtomicReference<Thread> thread = new AtomicReference<>();
+		class InterceptorFactory extends HelloWorldInterceptorFactory {
 
 			@Override
 			public TcpConnectionInterceptorSupport getInterceptor() {
 				return new TcpConnectionInterceptorSupport() {
+
+					private final int instance = instances.incrementAndGet();
+
+					@Override
+					public void addNewConnection(TcpConnection connection) {
+						addOrder.add(this.instance);
+						interceptorAddCalled.countDown();
+						super.addNewConnection(connection);
+					}
+
+					@Override
+					public synchronized void removeDeadConnection(TcpConnection connection) {
+						super.removeDeadConnection(connection);
+						// can be called multiple times on different threads.
+						if (!remOrder.contains(this.instance)) {
+							remOrder.add(this.instance);
+							interceptorRemCalled.countDown();
+						}
+					}
+
 				};
 			}
 
-		});
+		}
+		chain.setInterceptor(new InterceptorFactory(), new InterceptorFactory(), new InterceptorFactory());
 		client.setInterceptorFactoryChain(chain);
 		client.registerSender(new TcpSender() {
 
 			@Override
 			public void addNewConnection(TcpConnection connection) {
+				addOrder.add(99);
 				adds.countDown();
 			}
 
 			@Override
-			public void removeDeadConnection(TcpConnection connection) {
+			public synchronized void removeDeadConnection(TcpConnection connection) {
+				remOrder.add(99);
 				removes.countDown();
 			}
 
@@ -97,12 +131,18 @@ public class TcpSenderTests {
 		client.afterPropertiesSet();
 		client.start();
 		TcpConnectionSupport conn = client.getConnection();
+		assertThat(((TcpConnectionInterceptorSupport) conn).hasRealSender()).isTrue();
 		conn.close();
 		conn = client.getConnection();
 		assertThat(adds.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(addOrder).containsExactly(1, 2, 3, 99, 4, 5, 6, 99);
 		conn.close();
 		client.stop();
 		assertThat(removes.await(10, TimeUnit.SECONDS)).isTrue();
+		// 9x before 3, 6 due to ordering in overridden interceptor method
+		assertThat(remOrder).containsExactly(1, 2, 99, 3, 4, 5, 99, 6);
+		assertThat(interceptorAddCalled.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(interceptorRemCalled.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 }
