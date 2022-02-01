@@ -563,10 +563,15 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		synchronized (this.connections) {
 			Iterator<Entry<String, TcpConnectionSupport>> iterator = this.connections.entrySet().iterator();
 			while (iterator.hasNext()) {
-				TcpConnection connection = iterator.next().getValue();
+				TcpConnectionSupport connection = iterator.next().getValue();
 				connection.close();
 				iterator.remove();
-				getSenders().forEach(sender -> sender.removeDeadConnection(connection));
+				if (connection instanceof TcpConnectionInterceptorSupport) {
+					((TcpConnectionInterceptorSupport) connection).removeDeadConnection(connection);
+				}
+				else {
+					connection.getSenders().forEach(sender -> sender.removeDeadConnection(connection));
+				}
 			}
 		}
 		synchronized (this.lifecycleMonitor) {
@@ -866,7 +871,12 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				TcpConnectionSupport connection = entry.getValue();
 				if (!connection.isOpen()) {
 					iterator.remove();
-					getSenders().forEach(sender -> sender.removeDeadConnection(connection));
+					if (connection instanceof TcpConnectionInterceptorSupport) {
+						((TcpConnectionInterceptorSupport) connection).removeDeadConnection(connection);
+					}
+					else {
+						connection.getSenders().forEach(sender -> sender.removeDeadConnection(connection));
+					}
 					logger.debug(() -> getComponentName() + ": Removed closed connection: " +
 							connection.getConnectionId());
 				}
@@ -944,7 +954,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				try {
 					connection.close();
 					closed = true;
-					getSenders().forEach(sender -> sender.removeDeadConnection(connection));
+					connection.getSenders().forEach(sender -> sender.removeDeadConnection(connection));
 				}
 				catch (Exception ex) {
 					logger.debug(ex, () -> "Failed to close connection " + connectionId);
