@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -120,19 +121,19 @@ public class HttpProxyScenarioTests {
 		final String contentDispositionValue = "attachment; filename=\"test.txt\"";
 
 		Mockito.doAnswer(invocation -> {
-			String uri = invocation.getArgument(0);
-			assertThat(uri).isEqualTo("http://testServer/test?foo=bar&FOO=BAR");
-			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
-			HttpHeaders httpHeaders = httpEntity.getHeaders();
-			assertThat(httpHeaders.getIfModifiedSince()).isEqualTo(ifModifiedSince);
-			assertThat(httpHeaders.getFirst("If-Unmodified-Since")).isEqualTo(ifUnmodifiedSinceValue);
-			assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
+					String uri = invocation.getArgument(0);
+					assertThat(uri).isEqualTo("http://testServer/test?foo=bar&FOO=BAR");
+					HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
+					HttpHeaders httpHeaders = httpEntity.getHeaders();
+					assertThat(httpHeaders.getIfModifiedSince()).isEqualTo(ifModifiedSince);
+					assertThat(httpHeaders.getFirst("If-Unmodified-Since")).isEqualTo(ifUnmodifiedSinceValue);
+					assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
 
-			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<>(httpHeaders);
-			responseHeaders.set("Connection", "close");
-			responseHeaders.set("Content-Disposition", contentDispositionValue);
-			return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
-		}).when(template)
+					MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<>(httpHeaders);
+					responseHeaders.set("Connection", "close");
+					responseHeaders.set("Content-Disposition", contentDispositionValue);
+					return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
+				}).when(template)
 				.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class),
 						Mockito.any(HttpEntity.class), (Class<?>) isNull(), Mockito.anyMap());
 
@@ -160,12 +161,14 @@ public class HttpProxyScenarioTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testHttpMultipartProxyScenario() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest("POST", "/testmp");
-
-		request.addHeader("Connection", "Keep-Alive");
-		request.setContentType("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ");
-		request.setContent("foo".getBytes());
+		MockHttpServletRequest request =
+				MockMvcRequestBuilders.multipart("/testmp")
+						.file("foo", "foo".getBytes())
+						.contentType("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ")
+						.header("Connection", "Keep-Alive")
+						.buildRequest(null);
 
 		Object handler = this.handlerMapping.getHandler(request).getHandler();
 		assertThat(handler).isNotNull();
@@ -174,23 +177,24 @@ public class HttpProxyScenarioTests {
 
 		RestTemplate template = Mockito.spy(new RestTemplate());
 		Mockito.doAnswer(invocation -> {
-			String uri = invocation.getArgument(0);
-			assertThat(uri).isEqualTo("http://testServer/testmp");
-			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
-			HttpHeaders httpHeaders = httpEntity.getHeaders();
-			assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
-			assertThat(httpHeaders.getContentType().toString())
-					.isEqualTo("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ");
+					String uri = invocation.getArgument(0);
+					assertThat(uri).isEqualTo("http://testServer/testmp");
+					HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
+					HttpHeaders httpHeaders = httpEntity.getHeaders();
+					assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
+					assertThat(httpHeaders.getContentType().toString())
+							.isEqualTo("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ");
 
-			HttpEntity<?> entity = (HttpEntity<?>) invocation.getArguments()[2];
-			assertThat(entity.getBody()).isInstanceOf(byte[].class);
-			assertThat(new String((byte[]) entity.getBody())).isEqualTo("foo");
+					HttpEntity<?> entity = (HttpEntity<?>) invocation.getArguments()[2];
+					assertThat(entity.getBody()).isInstanceOf(MultiValueMap.class);
+					assertThat(((MultiValueMap<String, ?>) entity.getBody()).getFirst("foo"))
+							.isEqualTo("foo".getBytes());
 
-			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<>(httpHeaders);
-			responseHeaders.set("Connection", "close");
-			responseHeaders.set("Content-Type", "text/plain");
-			return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
-		}).when(template)
+					MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<>(httpHeaders);
+					responseHeaders.set("Connection", "close");
+					responseHeaders.set("Content-Type", "text/plain");
+					return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
+				}).when(template)
 				.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class),
 						Mockito.any(HttpEntity.class), (Class<?>) isNull(), Mockito.anyMap());
 
