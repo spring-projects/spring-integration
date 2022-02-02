@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,8 +118,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	/**
 	 * Set the encoding mode to use.
-	 * By default this is set to {@link DefaultUriBuilderFactory.EncodingMode#TEMPLATE_AND_VALUES}.
-	 * For more complicated scenarios consider to configure an {@link org.springframework.web.util.UriTemplateHandler}
+	 * By default, this is set to {@link DefaultUriBuilderFactory.EncodingMode#TEMPLATE_AND_VALUES}.
+	 * For more complicated scenarios consider configuring an {@link org.springframework.web.util.UriTemplateHandler}
 	 * on an externally provided {@link org.springframework.web.client.RestTemplate}.
 	 * @param encodingMode the mode to use for uri encoding
 	 * @since 5.3
@@ -151,7 +151,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	/**
 	 * Specify whether the outbound message's payload should be extracted
 	 * when preparing the request body.
-	 * Otherwise the Message instance itself is serialized.
+	 * Otherwise, the Message instance itself is serialized.
 	 * The default value is {@code true}.
 	 * @param extractPayload true if the payload should be extracted.
 	 */
@@ -189,7 +189,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	/**
 	 * Specify the expected response type for the REST request.
-	 * Otherwise it is null and an empty {@link ResponseEntity} is returned from HTTP client.
+	 * Otherwise, it is null and an empty {@link ResponseEntity} is returned from HTTP client.
 	 * To take advantage of the HttpMessageConverters
 	 * registered on this adapter, provide a different type).
 	 * @param expectedResponseType The expected type.
@@ -378,8 +378,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 							: resolveContentType(payload);
 			httpHeaders.setContentType(contentType);
 		}
-		if ((MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
-				MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType()))
+		if ((MediaType.APPLICATION_FORM_URLENCODED.equalsTypeAndSubtype(httpHeaders.getContentType()) ||
+				MediaType.MULTIPART_FORM_DATA.equalsTypeAndSubtype(httpHeaders.getContentType()))
 				&& !(payload instanceof MultiValueMap)) {
 
 			Assert.isInstanceOf(Map.class, payload,
@@ -471,8 +471,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 				if (value.getClass().isArray()) {
 					value = CollectionUtils.arrayToList(value);
 				}
-				if (value instanceof Collection) {
-					Collection<?> cValues = (Collection<?>) value;
+				if (value instanceof Collection<?> cValues) {
 					for (Object cValue : cValues) {
 						if (cValue != null && !(cValue instanceof String)) {
 							return true;
