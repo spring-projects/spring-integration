@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.mock.http.client.MockClientHttpResponse;
@@ -85,10 +86,12 @@ import reactor.test.StepVerifier;
  */
 public class HttpRequestExecutingMessageHandlerTests {
 
+	// Used in the HttpOutboundWithinChainTests-context.xml
 	public static ParameterizedTypeReference<List<String>> testParameterizedTypeReference() {
-		return new ParameterizedTypeReference<List<String>>() {
+		return new ParameterizedTypeReference<>() {
 
 		};
+
 	}
 
 	@Test
@@ -104,7 +107,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		form.put("a", "1");
 		form.put("b", "2");
 		form.put("c", "3");
-		Message<?> message = MessageBuilder.withPayload(form).build();
+		Message<?> message =
+				MessageBuilder.withPayload(form)
+						.setHeader(MessageHeaders.CONTENT_TYPE,
+								MediaType.APPLICATION_FORM_URLENCODED_VALUE + ";charset=UTF-8")
+				.build();
 		QueueChannel replyChannel = new QueueChannel();
 		handler.setOutputChannel(replyChannel);
 
@@ -115,12 +122,14 @@ public class HttpRequestExecutingMessageHandlerTests {
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(request.getHeaders().getContentType()).isNotNull();
-		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
+		assertThat(body).isInstanceOf(MultiValueMap.class);
 		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
 		assertThat(map.get("a").iterator().next()).isEqualTo("1");
 		assertThat(map.get("b").iterator().next()).isEqualTo("2");
 		assertThat(map.get("c").iterator().next()).isEqualTo("3");
-		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
+		assertThat(request.getHeaders().getContentType()).isNotEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
+		assertThat(request.getHeaders().getContentType().equalsTypeAndSubtype(MediaType.APPLICATION_FORM_URLENCODED))
+				.isTrue();
 	}
 
 	@Test
@@ -541,7 +550,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertThat(body instanceof byte[]).isTrue();
+		assertThat(body).isInstanceOf(byte[].class);
 		assertThat(new String(bytes)).isEqualTo("Hello World");
 		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_OCTET_STREAM);
 	}
@@ -564,7 +573,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertThat(body instanceof Source).isTrue();
+		assertThat(body).isInstanceOf(Source.class);
 		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.TEXT_XML);
 	}
 
@@ -784,7 +793,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertThat(requestHeaders.getAccept()).isNotNull();
 		assertThat(requestHeaders.getAccept().size() > 0).isTrue();
 		List<MediaType> accept = requestHeaders.getAccept();
-		assertThat(accept.size() > 0).isTrue();
+		assertThat(accept).hasSizeGreaterThan(0);
 		assertThat(accept.get(0).getType()).isEqualTo("application");
 		assertThat(accept.get(0).getSubtype()).isEqualTo("x-java-serialized-object");
 	}
@@ -815,13 +824,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertThat(requestHeaders.getAccept()).isNotNull();
 		assertThat(requestHeaders.getAccept().size() > 0).isTrue();
 		List<MediaType> accept = requestHeaders.getAccept();
-		assertThat(accept.size() > 0).isTrue();
+		assertThat(accept).hasSizeGreaterThan(0);
 		assertThat(accept.get(0).getType()).isEqualTo("application");
 		assertThat(accept.get(0).getSubtype()).isEqualTo("x-java-serialized-object");
 	}
 
 	@Test
-	public void testNoContentTypeAndSmartConverter() throws IOException {
+	public void testNoContentTypeAndSmartConverter() {
 		Sinks.One<HttpHeaders> httpHeadersSink = Sinks.one();
 		RestTemplate testRestTemplate = new RestTemplate() {
 			@Nullable
