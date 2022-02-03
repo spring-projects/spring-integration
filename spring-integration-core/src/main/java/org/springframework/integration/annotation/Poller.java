@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * for the Messaging annotations for polled endpoints. It is an analogue of the XML
  * {@code <poller/>} element, but provides only simple attributes. If the
  * {@link org.springframework.integration.scheduling.PollerMetadata} requires more options
- * (e.g. Transactional and other Advices) or {@code initialDelay, receiveTimeout} etc, the
+ * (e.g. Transactional and other Advices) or {@code initialDelay} etc., the
  * {@link org.springframework.integration.scheduling.PollerMetadata} should be configured
  * as a generic bean and its bean name can be specified as the {@code value} attribute of
  * this annotation. In that case, the other attributes are not allowed.
@@ -87,7 +87,7 @@ public @interface Poller {
 	String cron() default "";
 
 	/**
-	 * @return The the bean name of default error channel
+	 * @return The bean name of default error channel
 	 * for the underlying {@code MessagePublishingErrorHandler}.
 	 * @since 4.3.3
 	 */
@@ -97,7 +97,7 @@ public @interface Poller {
 	 * Only applies to polling consumers.
 	 * @return the time the poll thread will wait after the trigger for a new message to arrive.
 	 * Defaults to 1000 (1 second).
-	 * For polled inbound channel adapters, whether or not the polling thread blocks
+	 * For polled inbound channel adapters, whether the polling thread blocks
 	 * is dependent on the message source implementation.
 	 * Can be specified as 'property placeholder', e.g. {@code ${my.poller.receiveTimeout}}.
 	 * @since 5.1
