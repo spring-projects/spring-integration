@@ -471,7 +471,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 				if (value.getClass().isArray()) {
 					value = CollectionUtils.arrayToList(value);
 				}
-				if (value instanceof Collection<?> cValues) {
+				if (value instanceof Collection) {
+					Collection<?> cValues = (Collection<?>) value;
 					for (Object cValue : cValues) {
 						if (cValue != null && !(cValue instanceof String)) {
 							return true;
