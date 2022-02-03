@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * for the Messaging annotations for polled endpoints. It is an analogue of the XML
  * {@code <poller/>} element, but provides only simple attributes. If the
  * {@link org.springframework.integration.scheduling.PollerMetadata} requires more options
- * (e.g. Transactional and other Advices) or {@code initialDelay, receiveTimeout} etc, the
+ * (e.g. Transactional and other Advices) or {@code initialDelay} etc, the
  * {@link org.springframework.integration.scheduling.PollerMetadata} should be configured
  * as a generic bean and its bean name can be specified as the {@code value} attribute of
  * this annotation. In that case, the other attributes are not allowed.
