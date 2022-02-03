@@ -112,6 +112,7 @@ public class TcpSenderTests {
 		}
 		chain.setInterceptor(new InterceptorFactory(), new InterceptorFactory(), new InterceptorFactory());
 		client.setInterceptorFactoryChain(chain);
+		CountDownLatch firstClosed = new CountDownLatch(1);
 		client.registerSender(new TcpSender() {
 
 			@Override
@@ -124,6 +125,7 @@ public class TcpSenderTests {
 			public synchronized void removeDeadConnection(TcpConnection connection) {
 				remOrder.add(99);
 				removes.countDown();
+				firstClosed.countDown();
 			}
 
 		});
@@ -136,6 +138,7 @@ public class TcpSenderTests {
 		conn = client.getConnection();
 		assertThat(adds.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(addOrder).containsExactly(1, 2, 3, 99, 4, 5, 6, 99);
+		assertThat(firstClosed.await(10, TimeUnit.SECONDS)).isTrue();
 		conn.close();
 		client.stop();
 		assertThat(removes.await(10, TimeUnit.SECONDS)).isTrue();
