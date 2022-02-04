@@ -569,7 +569,6 @@ The affected modules are
 * `http`
 * `jms`
 * `mail`
-* `rmi`
 * `security`
 * `stream`
 * `ws`

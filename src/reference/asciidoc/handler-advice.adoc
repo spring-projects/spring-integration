@@ -41,7 +41,7 @@ The schema does not allow a `<request-handler-advice-chain>` as a child element 
 
 However, a `<request-handler-advice-chain>` can be added to individual reply-producing endpoints within a `<chain>` element.
 An exception is that, in a chain that produces no reply, because the last element in the chain is an `outbound-channel-adapter`, that last element cannot be advised.
-If you need to advise such an element, it must be moved outside of the chain (with the `output-channel` of the chain being the `input-channel` of the adapter).
+If you need to advise such an element, it must be moved outside the chain (with the `output-channel` of the chain being the `input-channel` of the adapter).
 The adapter can then be advised as usual.
 For chains that produce a reply, every child element can be advised.
 =====
@@ -247,7 +247,7 @@ A `<handler-retry-advice>` with no child element uses no back off.
 If there is no `recovery-channel`, the exception is thrown when retries are exhausted.
 The namespace can only be used with stateless retry.
 +
-For more complex environments (custom policies etc), use normal `<bean>` definitions.
+For more complex environments (custom policies etc.), use normal `<bean>` definitions.
 
 Simple Stateful Retry with Recovery::
 To make retry stateful, we need to provide the advice with a `RetryStateGenerator` implementation.
@@ -324,7 +324,7 @@ The default configuration retries for all exceptions and the exception classifie
 If you configure it to, say, retry only on `MyException` and your application throws a `SomeOtherException` where the cause is a `MyException`, retry does not occur.
 +
 Since Spring Retry 1.0.3, the `BinaryExceptionClassifier` has a property called `traverseCauses` (the default is `false`).
-When `true`, it traverses exception causes until it finds a match or runs out of causes to traverse.
+When `true`, it traverses exception causes until it finds a match or runs out of causes traversing.
 +
 To use this classifier for retry, use a `SimpleRetryPolicy` created with the constructor that takes the max attempts, the `Map` of `Exception` objects, and the `traverseCauses` boolean.
 Then you can inject this policy into the `RetryTemplate`.
@@ -692,17 +692,16 @@ For example, a `RetryOperationsInterceptor` could be applied to the whole sub-fl
 ==== Transaction Support
 
 Starting with version 5.0, a new `TransactionHandleMessageAdvice` has been introduced to make the whole downstream flow transactional, thanks to the `HandleMessageAdvice` implementation.
-When a regular `TransactionInterceptor` is used in the `<request-handler-advice-chain>` element (for example, through configuring `<tx:advice>`), a started transaction is only applied only for an internal `AbstractReplyProducingMessageHandler.handleRequestMessage()` and is not propagated to the downstream flow.
+When a regular `TransactionInterceptor` is used in the `<request-handler-advice-chain>` element (for example, through configuring `<tx:advice>`), a started transaction is applied only for an internal `AbstractReplyProducingMessageHandler.handleRequestMessage()` and is not propagated to the downstream flow.
 
 To simplify XML configuration, along with the `<request-handler-advice-chain>`, a `<transactional>` element has been added to all `<outbound-gateway>` and `<service-activator>` and related components.
 The following example shows `<transactional>` in use:
 
 [source,xml]
 ----
-<int-rmi:outbound-gateway remote-channel="foo" host="localhost"
-    request-channel="good" reply-channel="reply" port="#{@port}">
-        <int-rmi:transactional/>
-</int-rmi:outbound-gateway>
+<int-jdbc:outbound-gateway query="select * from things where id=:headers[id]">
+        <int-jdbc:transactional/>
+</int-jdbc:outbound-gateway>
 
 <bean id="transactionManager" class="org.mockito.Mockito" factory-method="mock">
     <constructor-arg value="org.springframework.transaction.TransactionManager"/>
@@ -798,14 +797,14 @@ public class MyAdvisedFilter {
 ----
 
 [[advice-order]]
-==== Ordering Advices within an Advice Chain
+==== Ordering Advices within Advice Chain
 
 Advice classes are "`around`" advices and are applied in a nested fashion.
 The first advice is the outermost, while the last advice is the innermost (that is, closest to the handler being advised).
 It is important to put the advice classes in the correct order to achieve the functionality you desire.
 
 For example, suppose you want to add a retry advice and a transaction advice.
-You may want to place the retry advice advice first, followed by the transaction advice.
+You may want to place the retry advice first, followed by the transaction advice.
 Consequently, each retry is performed in a new transaction.
 On the other hand, if you want all the attempts and any recovery operations (in the retry `RecoveryCallback`) to be scoped within the transaction, you could put the transaction advice first.
 

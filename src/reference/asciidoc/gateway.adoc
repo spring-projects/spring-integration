@@ -45,7 +45,6 @@ It lets you configure an interface as a service, as the following example shows:
 ====
 
 With this configuration defined, the `cafeService` can now be injected into other beans, and the code that invokes the methods on that proxied instance of the `Cafe` interface has no awareness of the Spring Integration API.
-The general approach is similar to that of Spring Remoting (RMI, HttpInvoker, and so on).
 See the <<./samples.adoc#samples,"`Samples`">> Appendix for an example that uses the `gateway` element (in the Cafe demo).
 
 The defaults in the preceding configuration are applied to all methods on the gateway interface.

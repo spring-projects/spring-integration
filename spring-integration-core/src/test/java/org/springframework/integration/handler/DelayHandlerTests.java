@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@ package org.springframework.integration.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -78,13 +80,13 @@ public class DelayHandlerTests {
 
 	private final CountDownLatch latch = new CountDownLatch(1);
 
+	private final ResultHandler resultHandler = new ResultHandler();
+
+	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
+
 	private ThreadPoolTaskScheduler taskScheduler;
 
 	private DelayHandler delayHandler;
-
-	private final ResultHandler resultHandler = new ResultHandler();
-
-	private TestApplicationContext context = TestUtils.createTestApplicationContext();
 
 	@BeforeEach
 	public void setup() {
@@ -172,7 +174,7 @@ public class DelayHandlerTests {
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		Thread.sleep(50);
 		assertThat(count.get()).isEqualTo(4);
-		assertThat(TestUtils.getPropertyValue(this.delayHandler, "deliveries", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(this.delayHandler, "deliveries", Map.class)).hasSize(0);
 	}
 
 	@Test
@@ -343,10 +345,10 @@ public class DelayHandlerTests {
 		input.send(message);
 		waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
-		assertThat(errorMessage.getPayload().getClass()).isEqualTo(MessageDeliveryException.class);
+		assertThat(errorMessage.getPayload()).isInstanceOf(MessageDeliveryException.class);
 		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
 		assertThat(exceptionPayload.getFailedMessage().getPayload()).isSameAs(message.getPayload());
-		assertThat(exceptionPayload.getCause().getClass()).isEqualTo(UnsupportedOperationException.class);
+		assertThat(exceptionPayload.getCause()).isInstanceOf(UnsupportedOperationException.class);
 		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
@@ -375,10 +377,10 @@ public class DelayHandlerTests {
 		input.send(message);
 		waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
-		assertThat(errorMessage.getPayload().getClass()).isEqualTo(MessageDeliveryException.class);
+		assertThat(errorMessage.getPayload()).isInstanceOf(MessageDeliveryException.class);
 		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
 		assertThat(exceptionPayload.getFailedMessage().getPayload()).isSameAs(message.getPayload());
-		assertThat(exceptionPayload.getCause().getClass()).isEqualTo(UnsupportedOperationException.class);
+		assertThat(exceptionPayload.getCause()).isInstanceOf(UnsupportedOperationException.class);
 		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
@@ -405,10 +407,10 @@ public class DelayHandlerTests {
 		input.send(message);
 		waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
-		assertThat(errorMessage.getPayload().getClass()).isEqualTo(MessageDeliveryException.class);
+		assertThat(errorMessage.getPayload()).isInstanceOf(MessageDeliveryException.class);
 		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
 		assertThat(exceptionPayload.getFailedMessage().getPayload()).isSameAs(message.getPayload());
-		assertThat(exceptionPayload.getCause().getClass()).isEqualTo(UnsupportedOperationException.class);
+		assertThat(exceptionPayload.getCause()).isInstanceOf(UnsupportedOperationException.class);
 		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
@@ -497,7 +499,7 @@ public class DelayHandlerTests {
 	}
 
 	@Test
-	public void testRescheduleForTheDateDelay() throws Exception {
+	public void testRescheduleForTheDateDelay() {
 		this.delayHandler.setDelayExpression(new SpelExpressionParser().parseExpression("payload"));
 		this.delayHandler.setOutputChannel(new DirectChannel());
 		this.delayHandler.setIgnoreExpressionFailures(false);
@@ -522,11 +524,11 @@ public class DelayHandlerTests {
 		this.taskScheduler.afterPropertiesSet();
 		this.delayHandler.reschedulePersistedMessages();
 		Queue<?> works = ((ScheduledThreadPoolExecutor) this.taskScheduler.getScheduledExecutor()).getQueue();
-		int n = 0;
-		while (n++ < 2000 && works.size() == 0) {
-			Thread.sleep(10);
-		}
-		assertThat(works.size()).isEqualTo(1);
+
+		await()
+				.atMost(Duration.ofSeconds(20))
+				.pollDelay(Duration.ofMillis(10))
+				.until(() -> works.size() == 1);
 	}
 
 

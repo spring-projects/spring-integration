@@ -12,7 +12,7 @@ If you are interested in the changes and features that were introduced in earlie
 
 If you are interested in more details, see the Issue Tracker tickets that were resolved as part of the 6.0 development process.
 
-In general the project has been moved to Java 17 base line and migrated from Java EE to Jakarta EE.
+In general the project has been moved to Java 17 baseline and migrated from Java EE to Jakarta EE.
 
 [[x6.0-new-components]]
 === New Components

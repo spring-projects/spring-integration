@@ -74,7 +74,6 @@ For example, the following root element shows several of these namespace declara
   xmlns:int-file="http://www.springframework.org/schema/integration/file"
   xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
   xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
-  xmlns:int-rmi="http://www.springframework.org/schema/integration/rmi"
   xmlns:int-ws="http://www.springframework.org/schema/integration/ws"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
     https://www.springframework.org/schema/beans/spring-beans.xsd
@@ -86,8 +85,6 @@ For example, the following root element shows several of these namespace declara
     https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
     http://www.springframework.org/schema/integration/mail
     https://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
-    http://www.springframework.org/schema/integration/rmi
-    https://www.springframework.org/schema/integration/rmi/spring-integration-rmi.xsd
     http://www.springframework.org/schema/integration/ws
     https://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd">
  ...
