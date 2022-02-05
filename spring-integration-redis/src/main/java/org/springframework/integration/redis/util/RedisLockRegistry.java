@@ -164,6 +164,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	private boolean executorExplicitlySet;
 
 	private volatile boolean unlinkAvailable = true;
+	private volatile boolean isRunningRedisMessageListenerContainer = false;
 
 	/**
 	 * Constructs a lock registry with the default (60 second) lock expiration.
@@ -364,9 +365,9 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				return true;
 			}
 
-			if (!RedisLockRegistry.this.redisMessageListenerContainer.isRunning()) {
-				RedisLockRegistry.this.redisMessageListenerContainer.afterPropertiesSet();
-				RedisLockRegistry.this.redisMessageListenerContainer.start();
+			if (!(RedisLockRegistry.this.isRunningRedisMessageListenerContainer
+					&& RedisLockRegistry.this.redisMessageListenerContainer.isRunning())) {
+				runRedisMessageListenerContainer();
 			}
 			while (time == -1 || expiredTime >= System.currentTimeMillis()) {
 				try {
@@ -523,6 +524,16 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			return RedisLockRegistry.this;
 		}
 
+		private void runRedisMessageListenerContainer() {
+			synchronized (RedisLockRegistry.this.redisMessageListenerContainer) {
+				if (!(RedisLockRegistry.this.isRunningRedisMessageListenerContainer
+						&& RedisLockRegistry.this.redisMessageListenerContainer.isRunning())) {
+					RedisLockRegistry.this.redisMessageListenerContainer.afterPropertiesSet();
+					RedisLockRegistry.this.redisMessageListenerContainer.start();
+					RedisLockRegistry.this.isRunningRedisMessageListenerContainer = true;
+				}
+			}
+		}
 	}
 
 	private static final class RedisUnLockNotifyMessageListener implements MessageListener {
