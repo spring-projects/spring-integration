@@ -30,8 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.SocketFactory;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
@@ -39,7 +38,7 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSe
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 
@@ -49,10 +48,8 @@ import org.springframework.messaging.support.ErrorMessage;
  *
  * @since 2.0
  */
+//@LongRunningTest
 public class TcpNioConnectionReadTests {
-
-	@Rule
-	public LongRunningIntegrationTest longRunningIntegrationTest = new LongRunningIntegrationTest();
 
 	private final CountDownLatch latch = new CountDownLatch(1);
 
@@ -242,6 +239,7 @@ public class TcpNioConnectionReadTests {
 	}
 
 	@Test
+	@LogLevels(categories = "org.springframework.integration.ip", level = "DEBUG")
 	public void testReadStxEtxOverflow() throws Exception {
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		serializer.setMaxMessageSize(1024);
@@ -251,6 +249,7 @@ public class TcpNioConnectionReadTests {
 
 		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
 		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<>();
+		final CountDownLatch openedLatch = new CountDownLatch(1);
 
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			if (message instanceof ErrorMessage) {
@@ -264,6 +263,7 @@ public class TcpNioConnectionReadTests {
 			public void addNewConnection(TcpConnection connection) {
 				added.add(connection);
 				semaphore.release();
+				openedLatch.countDown();
 			}
 
 			@Override
@@ -277,6 +277,7 @@ public class TcpNioConnectionReadTests {
 		// Fire up the sender.
 
 		CountDownLatch done = SocketTestUtils.testSendStxEtxOverflow(scf.getPort());
+		assertThat(openedLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		whileOpen(semaphore, added);
 		assertThat(added.size()).isEqualTo(1);
 

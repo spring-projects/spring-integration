@@ -36,7 +36,7 @@ import java.util.function.Function;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -54,6 +54,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
@@ -292,6 +293,7 @@ public class TcpInboundGatewayTests {
 	}
 
 	@Test
+	@LogLevels(categories = "org.springframework.integration.ip", level = "DEBUG")
 	public void testNetCloseStream() throws InterruptedException, IOException {
 		testCloseStream(new TcpNetServerConnectionFactory(0),
 				port -> new TcpNetClientConnectionFactory("localhost", port));
