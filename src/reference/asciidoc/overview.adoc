@@ -596,7 +596,7 @@ Its main implementations are:
 * `EventDrivenConsumer`, used when we subscribe to a `SubscribableChannel` to listen for messages.
 * `PollingConsumer`, used when we poll for messages from a `PollableChannel`.
 
-When you use messaging annotations or the Java DSL, you need to worry about these components, because the Framework automatically produces them with appropriate annotations and `BeanPostProcessor` implementations.
+When you use messaging annotations or the Java DSL, you don't need to worry about these components, because the Framework automatically produces them with appropriate annotations and `BeanPostProcessor` implementations.
 When building components manually, you should use the `ConsumerEndpointFactoryBean` to help determine the target `AbstractEndpoint` consumer implementation to create, based on the provided `inputChannel` property.
 
 On the other hand, the `ConsumerEndpointFactoryBean` delegates to an another first class citizen in the Framework - `org.springframework.messaging.MessageHandler`.
