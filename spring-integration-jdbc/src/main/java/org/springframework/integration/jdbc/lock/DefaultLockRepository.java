@@ -165,10 +165,12 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
 	@Override
 	public boolean acquire(String lock) {
+		/*
 		if (this.template.update(this.updateQuery, this.id, new Date(), this.region, lock, this.id,
 				new Date(System.currentTimeMillis() - this.ttl)) > 0) {
 			return true;
 		}
+		*/
 		try {
 			return this.template.update(this.insertQuery, this.region, lock, this.id, new Date()) > 0;
 		}
