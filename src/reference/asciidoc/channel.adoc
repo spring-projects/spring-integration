@@ -771,7 +771,7 @@ The following example shows how to set the `apply-sequence` header to `true`:
 @Bean
 public MessageChannel pubsubChannel() {
     PublishSubscribeChannel channel = new PublishSubscribeChannel();
-    channel.setApplySequence(false);
+    channel.setApplySequence(true);
     return channel;
 }
 ----
