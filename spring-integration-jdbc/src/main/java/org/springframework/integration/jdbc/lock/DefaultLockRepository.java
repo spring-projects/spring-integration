@@ -165,7 +165,8 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
 	@Override
 	public boolean acquire(String lock) {
-		/*
+		/* Distributed lock allows 2nd process to acquire lock on lockKey inspite of being locked by 1st process.
+		Commenting out below logic will prevent 2nd process to acquire lock
 		if (this.template.update(this.updateQuery, this.id, new Date(), this.region, lock, this.id,
 				new Date(System.currentTimeMillis() - this.ttl)) > 0) {
 			return true;
