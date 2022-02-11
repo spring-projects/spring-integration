@@ -191,6 +191,32 @@ public class CustomReactiveMessageSource extends MessageProducerSupport {
 }
 ```
 
+And now we will be able to use it:
+```java
+public class MainFlow {
+  @Autowired
+  private CustomReactiveSourceMessageSource customReactiveSourceMessageSource;
+  
+  @Bean
+  public IntegrationFlow buildFlow() {
+     return IntegrationFlows.from(customReactiveSourceMessageSource)
+        .channel(outputChannel)
+        .get();
+  }
+}
+```
+Or in a declarative way:
+```java
+public class MainFlow {  
+  @Bean
+  public IntegrationFlow buildFlow() {
+     return IntegrationFlows.from(new CustomReactiveSourceMessageSource(new CustomReactiveSource()))
+        .handle(outputChannel)
+        .get();
+  }
+}
+``
+
 A reactive outbound channel adapter implementation is about the initiation (or continuation) of a reactive stream to interaction with an external system according to the provided reactive API for the target protocol.
 An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of the reactive stream on top.
 A returned reactive type can be subscribed immediately if we are in a one-way, fire-and-forget scenario, or it is propagated downstream (request-reply scenarios) for further integration flow or an explicit subscription in the target business logic, but still downstream preserving reactive streams semantics.
@@ -243,14 +269,20 @@ public class CustomReactiveMessageHandler extends AbstractReactiveMessageHandler
 }
 ```
 
-And now we will be able to use it:
+And now we will be able to use both of the channel adatpers:
 ```java
 public class MainFlow {
+  @Autowired
+  private CustomReactiveSourceMessageSource customReactiveSourceMessageSource;
+  
+  @Autowired
+  private CustomReactiveMessageHandler customReactiveMessageHandler;
   
   @Bean
   public IntegrationFlow buildFlow() {
-     return IntegrationFlows.from(new ReactiveSourceMessageProducer(new ReactiveSource()))
-        .channel(outputChannel)
+     return IntegrationFlows.from(customReactiveSourceMessageSource)
+        .transform(someOperation)
+        .handle(customReactiveMessageHandler)
         .get();
   }
 }
