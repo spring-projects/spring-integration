@@ -191,7 +191,8 @@ public class CustomReactiveMessageSource extends MessageProducerSupport {
 }
 ```
 
-And now we will be able to use it:
+Usage would look like:
+
 ```java
 public class MainFlow {
   @Autowired
@@ -206,6 +207,7 @@ public class MainFlow {
 }
 ```
 Or in a declarative way:
+
 ```java
 public class MainFlow {  
   @Bean
@@ -215,8 +217,7 @@ public class MainFlow {
         .get();
   }
 }
-``
-
+```
 A reactive outbound channel adapter implementation is about the initiation (or continuation) of a reactive stream to interaction with an external system according to the provided reactive API for the target protocol.
 An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of the reactive stream on top.
 A returned reactive type can be subscribed immediately if we are in a one-way, fire-and-forget scenario, or it is propagated downstream (request-reply scenarios) for further integration flow or an explicit subscription in the target business logic, but still downstream preserving reactive streams semantics.
@@ -269,7 +270,7 @@ public class CustomReactiveMessageHandler extends AbstractReactiveMessageHandler
 }
 ```
 
-And now we will be able to use both of the channel adatpers:
+We will be able to use both of the channel adatpers:
 ```java
 public class MainFlow {
   @Autowired
