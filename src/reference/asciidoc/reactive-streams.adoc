@@ -160,22 +160,19 @@ When the target protocol for integration provides a Reactive Streams solution, i
 An inbound, event-driven channel adapter implementation is about wrapping a request (if necessary) into a deferred `Mono` or `Flux` and perform a send (and produce reply, if any) only when a protocol component initiates a subscription into a `Mono` returned from the listener method.
 This way we have a reactive stream solution encapsulated exactly in this component.
 Of course, downstream integration flow subscribed on the output channel should honor Reactive Streams specification and be performed in the on demand, back-pressure ready manner.
-This is not always available by the nature (or the current implementation) of `MessageHandler` processor used in the integration flow.
+
+This is not always available by the nature (or with the current implementation) of `MessageHandler` processor used in the integration flow.
 This limitation can be handled using thread pools and queues or `FluxMessageChannel` (see above) before and after integration endpoints when there is no reactive implementation.
 
-A reactive outbound channel adapter implementation is about initiation (or continuation) of a reactive stream to interaction with an external system according provided reactive API for the target protocol.
-An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of reactive stream on top.
-A returned reactive type can be subscribed immediately if we are in one-way, fire-and-forget scenario, or it is propagated downstream (request-reply scenarios) for further integration flow or an explicit subscription in the target business logic, but still downstream preserving reactive streams semantics.
-
-Example for a reactive inbound channel adapter:
+An example for a reactive inbound channel adapter:
 ```java
-public class ReactiveSourceMessageProducer extends MessageProducerSupport {
+public class CustomReactiveMessageSource extends MessageProducerSupport {
 
-    private final ReactiveSource myReactiveSource;
+    private final CustomReactiveSource customReactiveSource;
 
-    public ReactiveSourceMessageProducer(ReactiveSource myReactiveSource) {
-        Assert.notNull(myReactiveSource, "'myReactiveSource' must not be null");
-        this.myReactiveSource = myReactiveSource;
+    public CustomReactiveSourceMessageProducer(CustomReactiveSource customReactiveSource) {
+        Assert.notNull(customReactiveSource, "'customReactiveSource' must not be null");
+        this.customReactiveSource = customReactiveSource;
     }
 
     @Override
@@ -193,6 +190,59 @@ public class ReactiveSourceMessageProducer extends MessageProducerSupport {
 
 }
 ```
+
+A reactive outbound channel adapter implementation is about the initiation (or continuation) of a reactive stream to interaction with an external system according to the provided reactive API for the target protocol.
+An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of the reactive stream on top.
+A returned reactive type can be subscribed immediately if we are in a one-way, fire-and-forget scenario, or it is propagated downstream (request-reply scenarios) for further integration flow or an explicit subscription in the target business logic, but still downstream preserving reactive streams semantics.
+
+An example for an outbound channel adapter:
+```java
+public class CustomReactiveMessageHandler extends AbstractReactiveMessageHandler {
+
+    private final CustomEntityOperations customEntityOperations;
+
+    private Expression queryTypeExpression = new ValueExpression<>(Type.INSERT);
+
+    public CustomReactiveMessageHandler(CustomEntityOperations customEntityOperations, Expression queryTypeExpression) {
+        Assert.notNull(customEntityOperations, "'customEntityOperations' must not be null");
+        this.customEntityOperations = customEntityOperations;
+        if (queryTypeExpression != null) {
+            this.queryTypeExpression = queryTypeExpression;
+        }
+    }
+
+    @Override
+    protected Mono<Void> handleMessageInternal(Message<?> message) {
+        return Mono.fromSupplier(() -> this.queryTypeExpression.getValue(this.evaluationContext, message, Type.class))
+                .flatMap(mode -> {
+                    switch (mode) {
+                        case INSERT:
+                            return handleInsert(message);
+                        case UPDATE:
+                            return handleUpdate(message);
+                        default:
+                            return Mono.error(new IllegalArgumentException());
+                    }
+                }).then();
+    }
+
+    private Mono<Void> handleInsert(Message<?> message) {
+        return this.customEntityOperations.insert(message.getPayload())
+                .then();
+    }
+
+    private Mono<Void> handleUpdate(Message<?> message) {
+        return this.r2dbcEntityOperations.update(message.getPayload())
+                .then();
+    }
+
+    public enum Type {
+        INSERT,
+        UPDATE,
+    }
+}
+```
+
 And now we will be able to use it:
 ```java
 public class MainFlow {
@@ -205,6 +255,7 @@ public class MainFlow {
   }
 }
 ```
+
 Currently Spring Integration provides channel adapter (or gateway) implementations for <<./webflux.adoc#webflux,WebFlux>>, <<./rsocket.adoc#rsocket,RSocket>>, <<./mongodb.adoc#mongodb,MongoDb>> and <<./r2dbc.adoc#r2dbc,R2DBC>>.
 The <<./redis.adoc#redis-stream-outbound,Redis Stream Channel Adapters>> are also reactive and uses `ReactiveStreamOperations` from Spring Data.
 Also an https://github.com/spring-projects/spring-integration-extensions/tree/main/spring-integration-cassandra[Apache Cassandra Extension] provides a `MessageHandler` implementation for the Cassandra reactive driver.
