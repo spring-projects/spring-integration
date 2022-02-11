@@ -164,7 +164,7 @@ Of course, downstream integration flow subscribed on the output channel should h
 This is not always available by the nature (or with the current implementation) of `MessageHandler` processor used in the integration flow.
 This limitation can be handled using thread pools and queues or `FluxMessageChannel` (see above) before and after integration endpoints when there is no reactive implementation.
 
-An example for a reactive inbound channel adapter:
+An example for a reactive **event-driven** inbound channel adapter:
 ```java
 public class CustomReactiveMessageSource extends MessageProducerSupport {
 
@@ -178,12 +178,12 @@ public class CustomReactiveMessageSource extends MessageProducerSupport {
     @Override
     protected void doStart() {
         Flux < Message << ? >> messageFlux =
-            this.myReactiveSource
-            .map(event - >
-                MessageBuilder
-                .withPayload(event.getBody())
-                .setHeader(MyReactiveHeaders.SOURCE_NAME, event.getSourceName())
-                .build());
+            this.customReactiveSource
+                .map(event - >
+                    MessageBuilder
+                    .withPayload(event.getBody())
+                    .setHeader(MyReactiveHeaders.SOURCE_NAME, event.getSourceName())
+                    .build());
 
         subscribeToPublisher(messageFlux);
     }
