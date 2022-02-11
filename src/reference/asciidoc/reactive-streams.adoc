@@ -221,7 +221,7 @@ A reactive outbound channel adapter implementation is about the initiation (or c
 An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of the reactive stream on top.
 A returned reactive type can be subscribed immediately if we are in a one-way, fire-and-forget scenario, or it is propagated downstream (request-reply scenarios) for further integration flow or an explicit subscription in the target business logic, but still downstream preserving reactive streams semantics.
 
-An example for an outbound channel adapter:
+An example for a reactive outbound channel adapter:
 ```java
 public class CustomReactiveMessageHandler extends AbstractReactiveMessageHandler {
 
