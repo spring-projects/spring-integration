@@ -166,18 +166,18 @@ This limitation can be handled using thread pools and queues or `FluxMessageChan
 
 An example for a reactive **event-driven** inbound channel adapter:
 ```java
-public class CustomReactiveMessageSource extends MessageProducerSupport {
+public class CustomReactiveMessageProducer extends MessageProducerSupport {
 
     private final CustomReactiveSource customReactiveSource;
 
-    public CustomReactiveSourceMessageProducer(CustomReactiveSource customReactiveSource) {
+    public CustomReactiveMessageProducer(CustomReactiveSource customReactiveSource) {
         Assert.notNull(customReactiveSource, "'customReactiveSource' must not be null");
         this.customReactiveSource = customReactiveSource;
     }
 
     @Override
     protected void doStart() {
-        Flux < Message << ? >> messageFlux =
+        Flux<Message<<?>> messageFlux =
             this.customReactiveSource
                 .map(event - >
                     MessageBuilder
@@ -196,11 +196,11 @@ Usage would look like:
 ```java
 public class MainFlow {
   @Autowired
-  private CustomReactiveSourceMessageSource customReactiveSourceMessageSource;
+  private CustomReactiveMessageProducer customReactiveMessageProducer;
   
   @Bean
   public IntegrationFlow buildFlow() {
-     return IntegrationFlows.from(customReactiveSourceMessageSource)
+     return IntegrationFlows.from(customReactiveMessageProducer)
         .channel(outputChannel)
         .get();
   }
@@ -212,12 +212,29 @@ Or in a declarative way:
 public class MainFlow {  
   @Bean
   public IntegrationFlow buildFlow() {
-     return IntegrationFlows.from(new CustomReactiveSourceMessageSource(new CustomReactiveSource()))
+     return IntegrationFlows.from(new CustomReactiveMessageProducer(new CustomReactiveSource()))
         .handle(outputChannel)
         .get();
   }
 }
 ```
+Or even without a channel adapter, we can always use the JavaDSL in the following way:
+```java
+public class MainFlow {  
+  @Bean
+  public IntegrationFlow buildFlow() {
+     return IntegrationFlows.from(this.customReactiveSource
+                .map(event - >
+                    MessageBuilder
+                    .withPayload(event.getBody())
+                    .setHeader(MyReactiveHeaders.SOURCE_NAME, event.getSourceName())
+                    .build());)
+        .handle(outputChannel)
+        .get();
+  }
+}
+```
+
 A reactive outbound channel adapter implementation is about the initiation (or continuation) of a reactive stream to interaction with an external system according to the provided reactive API for the target protocol.
 An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of the reactive stream on top.
 A returned reactive type can be subscribed immediately if we are in a one-way, fire-and-forget scenario, or it is propagated downstream (request-reply scenarios) for further integration flow or an explicit subscription in the target business logic, but still downstream preserving reactive streams semantics.
@@ -240,7 +257,7 @@ public class CustomReactiveMessageHandler extends AbstractReactiveMessageHandler
 
     @Override
     protected Mono<Void> handleMessageInternal(Message<?> message) {
-        return Mono.fromSupplier(() -> this.queryTypeExpression.getValue(this.evaluationContext, message, Type.class))
+        return Mono.fromSupplier(() -> message.getHeaders().get("queryType", Type.class))
                 .flatMap(mode -> {
                     switch (mode) {
                         case INSERT:
@@ -274,14 +291,14 @@ We will be able to use both of the channel adatpers:
 ```java
 public class MainFlow {
   @Autowired
-  private CustomReactiveSourceMessageSource customReactiveSourceMessageSource;
+  private CustomReactiveMessageProducer customReactiveMessageProducer;
   
   @Autowired
   private CustomReactiveMessageHandler customReactiveMessageHandler;
   
   @Bean
   public IntegrationFlow buildFlow() {
-     return IntegrationFlows.from(customReactiveSourceMessageSource)
+     return IntegrationFlows.from(customReactiveMessageProducer)
         .transform(someOperation)
         .handle(customReactiveMessageHandler)
         .get();
