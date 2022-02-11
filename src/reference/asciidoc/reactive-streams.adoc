@@ -187,7 +187,6 @@ public class CustomReactiveMessageProducer extends MessageProducerSupport {
 
         subscribeToPublisher(messageFlux);
     }
-
 }
 ```
 
@@ -218,17 +217,18 @@ public class MainFlow {
   }
 }
 ```
-Or even without a channel adapter, we can always use the JavaDSL in the following way:
+Or even without a channel adapter, we can always use the Java DSL in the following way:
 ```java
 public class MainFlow {  
   @Bean
   public IntegrationFlow buildFlow() {
-     return IntegrationFlows.from(this.customReactiveSource
+    Flux<Message<?>> myFlux = this.customReactiveSource
                 .map(event - >
                     MessageBuilder
                     .withPayload(event.getBody())
                     .setHeader(MyReactiveHeaders.SOURCE_NAME, event.getSourceName())
-                    .build());)
+                    .build());
+     return IntegrationFlows.from(myFlux)
         .handle(outputChannel)
         .get();
   }
@@ -305,6 +305,7 @@ public class MainFlow {
   }
 }
 ```
+
 
 Currently Spring Integration provides channel adapter (or gateway) implementations for <<./webflux.adoc#webflux,WebFlux>>, <<./rsocket.adoc#rsocket,RSocket>>, <<./mongodb.adoc#mongodb,MongoDb>> and <<./r2dbc.adoc#r2dbc,R2DBC>>.
 The <<./redis.adoc#redis-stream-outbound,Redis Stream Channel Adapters>> are also reactive and uses `ReactiveStreamOperations` from Spring Data.
