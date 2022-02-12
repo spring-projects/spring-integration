@@ -245,14 +245,9 @@ public class CustomReactiveMessageHandler extends AbstractReactiveMessageHandler
 
     private final CustomEntityOperations customEntityOperations;
 
-    private Expression queryTypeExpression = new ValueExpression<>(Type.INSERT);
-
-    public CustomReactiveMessageHandler(CustomEntityOperations customEntityOperations, Expression queryTypeExpression) {
+    public CustomReactiveMessageHandler(CustomEntityOperations customEntityOperations) {
         Assert.notNull(customEntityOperations, "'customEntityOperations' must not be null");
         this.customEntityOperations = customEntityOperations;
-        if (queryTypeExpression != null) {
-            this.queryTypeExpression = queryTypeExpression;
-        }
     }
 
     @Override
