@@ -11,8 +11,8 @@ Spring Integration, together with https://projects.spring.io/spring-security/[Sp
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -20,9 +20,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-security:{project-version}"
 ----
@@ -32,12 +31,12 @@ compile "org.springframework.integration:spring-integration-security:{project-ve
 === Securing channels
 
 Spring Integration provides the `ChannelSecurityInterceptor` interceptor, which extends `AbstractSecurityInterceptor` and intercepts send and receive calls on the channel.
-Access decisions are then made with reference to a `ChannelSecurityMetadataSource`, which provides the metadata that describes the send and receive access policies for certain channels.
+Access decisions are then made with reference to a `ChannelSecurityMetadataSource`, which provides the metadata that describes the `send()` and `receive()` access policies for certain channels.
 The interceptor requires that a valid `SecurityContext` has been established by authenticating with Spring Security.
-See the https://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/[Spring Security Reference Guide] for details.
+See the https://docs.spring.io/spring-security/reference/[Spring Security Reference Guide] for details.
 
 Spring Integration provides Namespace support to allow easy configuration of security constraints.
-This support consists of the secured channels tag, which allows definition of one or more channel name patterns in conjunction with a definition of the security configuration for send and receive.
+This support consists of the secured channels tag, which allows definition of one or more channel name patterns in conjunction with a definition of the security configuration for  `send()` and `receive()`.
 The pattern is a `java.util.regexp.Pattern`.
 
 The following example shows how to configure a bean that includes security and how to set up policies with patterns:
@@ -129,8 +128,7 @@ It is accessed by an AOP (Aspect-oriented Programming) interceptor on secured me
 This works well with the current thread.
 Often, though, processing logic can be performed on another thread, on several threads, or even on external systems.
 
-Standard thread-bound behavior is easy to configure if our application is built on the Spring Integration components
-and its message channels.
+Standard thread-bound behavior is easy to configure if our application is built on the Spring Integration components and its message channels.
 In this case, the secured objects can be any service activator or transformer, secured with a
 `MethodSecurityInterceptor` in their `<request-handler-advice-chain>` (see <<./handler-advice.adoc#message-handler-advice-chain,Adding Behavior to Endpoints>>) or even `MessageChannel` (see <<securing-channels>>, earlier).
 When using `DirectChannel` communication, the `SecurityContext` is automatically available, because the downstream flow runs on the current thread.

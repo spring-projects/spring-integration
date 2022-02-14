@@ -179,7 +179,7 @@ The `org.springframework.integration.test.support` package contains various abst
 ==== JUnit Rules and Conditions
 
 The `LongRunningIntegrationTest` JUnit 4 test rule is present to indicate if test should be run if `RUN_LONG_INTEGRATION_TESTS` environment or system property is set to `true`.
-Otherwise it is skipped.
+Otherwise, it is skipped.
 For the same reason since version 5.1, a `@LongRunningTest` conditional annotation is provided for JUnit 5 tests.
 
 ==== Hamcrest and Mockito Matchers
@@ -241,7 +241,7 @@ And also ot can be configured with headers to exclude from expectation as well a
 Typically, tests for Spring applications use the Spring Test Framework.
 Since Spring Integration is based on the Spring Framework foundation, everything we can do with the Spring Test Framework also applies when testing integration flows.
 The `org.springframework.integration.test.context` package provides some components for enhancing the test context for integration needs.
-First of all, we configure our test class with a `@SpringIntegrationTest` annotation to enable the Spring Integration Test Framework, as the following example shows:
+First we configure our test class with a `@SpringIntegrationTest` annotation to enable the Spring Integration Test Framework, as the following example shows:
 
 ====
 [source,java]
@@ -282,7 +282,7 @@ public void testMockMessageSource() {
 ====
 
 NOTE: The `mySourceEndpoint` refers here to the bean name of the `SourcePollingChannelAdapter` for which we replace the real `MessageSource` with our mock.
-Similarly the `MockIntegrationContext.substituteMessageHandlerFor()` expects a bean name for the `IntegrationConsumer`, which wraps a `MessageHandler` as an endpoint.
+Similarly, the `MockIntegrationContext.substituteMessageHandlerFor()` expects a bean name for the `IntegrationConsumer`, which wraps a `MessageHandler` as an endpoint.
 
 After test is performed you can restore the state of endpoint beans to the real configuration using `MockIntegrationContext.resetBeans()`:
 

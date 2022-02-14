@@ -599,7 +599,7 @@ Default none (nacks will not be generated).
 This requires a `RabbitTemplate` configured for confirms as well as a `confirm-correlation-expression`.
 The thread will block for up to `confirm-timeout` (or 5 seconds by default).
 If a timeout occurs, a `MessageTimeoutException` will be thrown.
-If returns are enabled and a message is returned, or any other exception occurs while awaiting the confirm, a `MessageHandlingException` will be thrown, with an appropriate message.
+If returns are enabled and a message is returned, or any other exception occurs while awaiting the confirmation, a `MessageHandlingException` will be thrown, with an appropriate message.
 <15> The channel to which returned messages are sent.
 When provided, the underlying AMQP template is configured to return undeliverable messages to the adapter.
 When there is no `ErrorMessageStrategy` configured, the message is constructed from the data received from AMQP, with the following additional headers: `amqp_returnReplyCode`, `amqp_returnReplyText`, `amqp_returnExchange`, `amqp_returnRoutingKey`.
@@ -969,7 +969,7 @@ See also <<./service-activator.adoc#async-service-activator,Asynchronous Service
 .RabbitTemplate
 ====
 When you use confirmations and returns, we recommend that the `RabbitTemplate` wired into the `AsyncRabbitTemplate` be dedicated.
-Otherwise, unexpected side-effects may be encountered.
+Otherwise, unexpected side effects may be encountered.
 ====
 
 [[alternative-confirms-returns]]
@@ -1373,7 +1373,7 @@ public IntegrationFlow flow(RabbitTemplate template) {
 Suppose we send messages `A`, `B` and `C` to the gateway.
 While it is likely that messages `A`, `B`, `C` are sent in order, there is no guarantee.
 This is because the template "`borrows`" a channel from the cache for each send operation, and there is no guarantee that the same channel is used for each message.
-One solution is to start a transaction before the splitter, but transactions are expensive in RabbitMQ and can reduce performance several hundred fold.
+One solution is to start a transaction before the splitter, but transactions are expensive in RabbitMQ and can reduce performance several hundred-fold.
 
 To solve this problem in a more efficient manner, starting with version 5.1, Spring Integration provides the `BoundRabbitChannelAdvice` which is a `HandleMessageAdvice`.
 See <<./handler-advice.adoc#handle-message-advice,Handling Message Advice>>.
@@ -1417,5 +1417,4 @@ In return, that message is retrieved by Spring Integration and printed to the co
 
 The following image illustrates the basic set of Spring Integration components used in this sample.
 
-.The Spring Integration graph of the AMQP sample
-image::images/spring-integration-amqp-sample-graph.png[]
+.The Spring Integration graph of the AMQP sample image::images/spring-integration-amqp-sample-graph.png[]

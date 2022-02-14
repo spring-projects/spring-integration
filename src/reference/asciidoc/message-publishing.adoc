@@ -271,7 +271,7 @@ This means that the entire message flow has to wait until the publisher's flow c
 However, developers often want the complete opposite: to use this message-publishing feature to initiate asynchronous flows.
 For example, you might host a service (HTTP, WS, and so on) which receives a remote request.
 You may want to send this request internally into a process that might take a while.
-However you may also want to reply to the user right away.
+However, you may also want to reply to the user right away.
 So, instead of sending inbound requests for processing to the output channel (the conventional way), you can use 'output-channel' or a 'replyChannel' header to send a simple acknowledgment-like reply back to the caller while using the message-publisher feature to initiate a complex flow.
 
 The service in the following example receives a complex payload (which needs to be sent further for processing), but it also needs to reply to the caller with a simple acknowledgment:

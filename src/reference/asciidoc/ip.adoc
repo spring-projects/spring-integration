@@ -10,8 +10,8 @@ These are used when two-way communication is needed.
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -19,9 +19,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-ip:{project-version}"
 ----
@@ -239,7 +238,7 @@ public IntegrationFlow udpIn() {
 ==== Server Listening Events
 
 Starting with version 5.0.2, a `UdpServerListeningEvent` is emitted when an inbound adapter is started and has begun listening.
-This is useful when the adapter is configured to listen on port 0, meaning that the operating system chooses the port.
+This is useful when the adapter is configured to listen on port `0`, meaning that the operating system chooses the port.
 It can also be used instead of polling `isListening()`, if you need to wait before starting some other process that will connect to the socket.
 
 ==== Advanced Outbound Configuration
@@ -675,10 +674,10 @@ The `HelloWorldInterceptor` used in the test case works as follows:
 The interceptor is first configured with a client connection factory.
 When the first message is sent over an intercepted connection, the interceptor sends 'Hello' over the connection and expects to receive 'world!'.
 When that occurs, the negotiation is complete and the original message is sent.
-Further messages that use the same connection are sent without any additional negotiation.
+Further, messages that use the same connection are sent without any additional negotiation.
 
 When configured with a server connection factory, the interceptor requires the first message to be 'Hello' and, if it is, returns 'world!'.
-Otherwise it throws an exception that causes the connection to be closed.
+Otherwise, it throws an exception that causes the connection to be closed.
 
 All `TcpConnection` methods are intercepted.
 Interceptor instances are created for each connection by an interceptor factory.
@@ -748,7 +747,7 @@ Outbound gateways also publish this event when a late reply is received (the sen
 The event contains the connection ID as well as an exception in the `cause` property, which contains the failed message.
 
 Starting with version 4.3, a `TcpConnectionServerListeningEvent` is emitted when a server connection factory is started.
-This is useful when the factory is configured to listen on port 0, meaning that the operating system chooses the port.
+This is useful when the factory is configured to listen on port `0`, meaning that the operating system chooses the port.
 It can also be used instead of polling `isListening()`, if you need to wait before starting some other process that connects to the socket.
 
 IMPORTANT: To avoid delaying the listening thread from accepting connections, the event is published on a separate thread.
@@ -867,8 +866,8 @@ This topology is supported by using `client-mode="true"` on the inbound gateway.
 In this case, the connection factory must be of type `client` and must have `single-use` set to `false`.
 
 Two additional attributes support this mechanism.
-`retry-interval` specifies (in milliseconds) how often the framework tries to reconnect after a connection failure.
-`scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
+The `retry-interval` specifies (in milliseconds) how often the framework tries to reconnect after a connection failure.
+The `scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
 
 If the gateway is started, you may force the gateway to establish a connection by sending a `<control-bus/>` command: `@adapter_id.retryConnection()` and examine the current state with `@adapter_id.isClientModeConnected()`.
 
@@ -904,12 +903,11 @@ The following example shows an outbound TCP gateway:
     reply-channel="replyChannel"
     connection-factory="cfClient"
     request-timeout="10000"
-    remote-timeout="10000"/> <!-- or e.g.
-remote-timeout-expression="headers['timeout']" -->
+    remote-timeout="10000"/> <!-- or e.g. remote-timeout-expression="headers['timeout']" -->
 ----
 ====
 
-`client-mode` is not currently available with the outbound gateway.
+The `client-mode` is not currently available with the outbound gateway.
 
 Starting with version 5.2, the outbound gateway can be configured with the property `closeStreamAfterSend`.
 If the connection factory is configured for `single-use` (a new connection for each request/reply) the gateway will close the output stream; this signals EOF to the server.
@@ -1079,16 +1077,16 @@ You should consider using NIO when handling a large number of connections.
 However, the use of NIO has some other ramifications.
 A pool of threads (in the task executor) is shared across all the sockets.
 Each incoming message is assembled and sent to the configured channel as a separate unit of work on a thread selected from that pool.
-Two sequential messages arriving on the same socket might be processed by different threads.
+Two sequential messages arriving at the same socket might be processed by different threads.
 This means that the order in which the messages are sent to the channel is indeterminate.
-Strict ordering of the messages arriving on the socket is not maintained.
+Strict ordering of the messages arriving at the socket is not maintained.
 
 For some applications, this is not an issue.
 For others, it is a problem.
 If you require strict ordering, consider setting `using-nio` to `false` and using an asynchronous hand-off.
 
 Alternatively, you can insert a resequencer downstream of the inbound endpoint to return the messages to their proper sequence.
-If you set `apply-sequence` to `true` on the connection factory, messages arriving on a TCP connection have `sequenceNumber` and `correlationId` headers set.
+If you set `apply-sequence` to `true` on the connection factory, messages arriving at a TCP connection have `sequenceNumber` and `correlationId` headers set.
 The resequencer uses these headers to return the messages to their proper sequence.
 
 IMPORTANT: Starting with version 5.1.4, priority is given to accepting new connections over reading from existing connections.
@@ -1279,8 +1277,8 @@ If the timeout is exceeded, the process is stopped and the socket is closed.
 [[tcp-ssl-host-verification]]
 ==== Host Verification
 
-Starting with version 5.0.8, you can configure whether or not to enable host verification.
-Starting with version 5.1, it is enabled by default; the mechanism to disable it depends on whether or not you are using NIO.
+Starting with version 5.0.8, you can configure whether to enable host verification.
+Starting with version 5.1, it is enabled by default; the mechanism to disable it depends on whether you are using NIO.
 
 Host verification is used to ensure the server you are connected to matches information in the certificate, even if the certificate is trusted.
 
@@ -1595,7 +1593,7 @@ Default: `false`.
 | Y
 | N
 | `true`, `false`
-| When using NIO, whether or not the connection uses direct buffers.
+| When using NIO, whether the connection uses direct buffers.
 Refer to the `java.nio.ByteBuffer` documentation for more information.
 Must be `false` if `using-nio` is `false`.
 
@@ -1836,7 +1834,7 @@ For multicast udp adapters, the multicast address.
 
 | `acknowledge`
 | `true`, `false`
-| Whether or not a UDP adapter requires an acknowledgment from the destination.
+| Whether a UDP adapter requires an acknowledgment from the destination.
 When enabled, it requires setting the following four attributes: `ack-host`, `ack-port`, `ack-timeout`, and `min-acks-for- success`.
 
 | `ack-host`

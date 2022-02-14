@@ -11,7 +11,7 @@ Spring Integration enables lightweight messaging within Spring-based application
 Spring Integration’s primary goal is to provide a simple model for building enterprise integration solutions while maintaining the separation of concerns that is essential for producing maintainable, testable code.
 This goal is achieved in the target application using first class citizens like `message`, `channel` and `endpoint`, which allow us to build an integration flow (pipeline), where (in most cases) one endpoint produces messages into a channel to be consumed by another endpoint.
 This way we distinguish an integration interaction model from the target business logic.
-The crucial part here is a channel in between: the flow behavior depends from its implementation leaving endpoints untouched.
+The crucial part here is a channel in between: the flow behavior depends on its implementation leaving endpoints untouched.
 
 On the other hand, the Reactive Streams is a standard for asynchronous stream processing with non-blocking back pressure.
 The main goal of Reactive Streams is to govern the exchange of stream data across an asynchronous boundary – like passing elements on to another thread or thread-pool – while ensuring that the receiving side is not forced to buffer arbitrary amounts of data.
@@ -101,7 +101,7 @@ It is a combination of a provided `MessageSource` and event-driven production in
 Internally it wraps a `MessageSource` into the repeatedly resubscribed `Mono` producing a `Flux<Message<?>>` to be subscribed in the `subscribeToPublisher(Publisher<? extends Message<?>>)` mentioned above.
 The subscription for this `Mono` is done using `Schedulers.boundedElastic()` to avoid possible blocking in the target `MessageSource`.
 When the message source returns `null` (no data to pull), the `Mono` is turned into a `repeatWhenEmpty()` state with a `delay` for a subsequent re-subscription based on a `IntegrationReactiveUtils.DELAY_WHEN_EMPTY_KEY` `Duration` entry from the subscriber context.
-By default it is 1 second.
+By default, it is 1 second.
 If the `MessageSource` produces messages with a `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` information in the headers, it is acknowledged (if necessary) in the `doOnSuccess()` of the original `Mono` and rejected in the `doOnError()` if the downstream flow throws a `MessagingException` with the failed message to reject.
 This `ReactiveMessageSourceProducer` could be used for any use-case when a a polling channel adapter's features should be turned into a reactive, on demand solution for any existing `MessageSource<?>` implementation.
 
@@ -131,7 +131,7 @@ Starting with version 5.5.6, a `toReactivePublisher(boolean autoStartOnSubscribe
 Typically, the subscription and consumption from the reactive publisher happens in the later runtime phase, not during reactive stream composition, or even `ApplicationContext` startup.
 To avoid boilerplate code for lifecycle management of the `IntegrationFlow` at the `Publisher<Message<?>>` subscription point and for better end-user experience, this new operator with the `autoStartOnSubscribe` flag has been introduced.
 It marks (if `true`) the `IntegrationFlow` and its components for `autoStartup = false`, so an `ApplicationContext` won't initiate production and consumption of messages in the flow automatically.
-Instead the `start()` for the `IntegrationFlow` is initiated from the internal `Flux.doOnSubscribe()`.
+Instead, the `start()` for the `IntegrationFlow` is initiated from the internal `Flux.doOnSubscribe()`.
 Independently of the `autoStartOnSubscribe` value, the flow is stopped from a `Flux.doOnCancel()` and `Flux.doOnTerminate()` - it does not make sense to produce messages if there is nothing to consume them.
 
 For the exact opposite use-case, when `IntegrationFlow` should call a reactive stream and continue after completion, a `fluxTransform()` operator is provided in the `IntegrationFlowDefinition`.
@@ -147,7 +147,7 @@ Starting with version 5.3, the `ReactiveMessageHandler` is supported natively in
 This type of message handler is designed for reactive clients which return a reactive type for on-demand subscription for low-level operation execution and doesn't provide any reply data to continue a reactive stream composition.
 When a `ReactiveMessageHandler` is used in the imperative integration flow, the `handleMessage()` result in subscribed immediately after return, just because there is no reactive streams composition in such a flow to honor back-pressure.
 In this case the framework wraps this `ReactiveMessageHandler` into a `ReactiveMessageHandlerAdapter` - a plain implementation of `MessageHandler`.
-However when a `ReactiveStreamsConsumer` is involved in the flow (e.g. when channel to consume is a `FluxMessageChannel`), such a `ReactiveMessageHandler` is composed to the whole reactive stream with a `flatMap()` Reactor operator to honor back-pressure during consumption.
+However, when a `ReactiveStreamsConsumer` is involved in the flow (e.g. when channel to consume is a `FluxMessageChannel`), such a `ReactiveMessageHandler` is composed to the whole reactive stream with a `flatMap()` Reactor operator to honor back-pressure during consumption.
 
 One of the out-of-the-box `ReactiveMessageHandler` implementation is a `ReactiveMongoDbStoringMessageHandler` for Outbound Channel Adapter.
 See <<./mongodb.adoc#mongodb-reactive-channel-adapters,MongoDB Reactive Channel Adapters>> for more information.
@@ -165,7 +165,10 @@ This is not always available by the nature (or with the current implementation) 
 This limitation can be handled using thread pools and queues or `FluxMessageChannel` (see above) before and after integration endpoints when there is no reactive implementation.
 
 An example for a reactive **event-driven** inbound channel adapter:
-```java
+
+====
+[source, java]
+----
 public class CustomReactiveMessageProducer extends MessageProducerSupport {
 
     private final CustomReactiveSource customReactiveSource;
@@ -188,11 +191,14 @@ public class CustomReactiveMessageProducer extends MessageProducerSupport {
         subscribeToPublisher(messageFlux);
     }
 }
-```
+----
+====
 
 Usage would look like:
 
-```java
+====
+[source, java]
+----
 public class MainFlow {
   @Autowired
   private CustomReactiveMessageProducer customReactiveMessageProducer;
@@ -204,10 +210,14 @@ public class MainFlow {
         .get();
   }
 }
-```
+----
+====
+
 Or in a declarative way:
 
-```java
+====
+[source, java]
+----
 public class MainFlow {  
   @Bean
   public IntegrationFlow buildFlow() {
@@ -216,14 +226,19 @@ public class MainFlow {
         .get();
   }
 }
-```
+----
+====
+
 Or even without a channel adapter, we can always use the Java DSL in the following way:
-```java
+
+====
+[source, java]
+----
 public class MainFlow {  
   @Bean
   public IntegrationFlow buildFlow() {
     Flux<Message<?>> myFlux = this.customReactiveSource
-                .map(event - >
+                .map(event ->
                     MessageBuilder
                     .withPayload(event.getBody())
                     .setHeader(MyReactiveHeaders.SOURCE_NAME, event.getSourceName())
@@ -233,14 +248,18 @@ public class MainFlow {
         .get();
   }
 }
-```
+----
+====
 
 A reactive outbound channel adapter implementation is about the initiation (or continuation) of a reactive stream to interaction with an external system according to the provided reactive API for the target protocol.
 An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of the reactive stream on top.
 A returned reactive type can be subscribed immediately if we are in a one-way, fire-and-forget scenario, or it is propagated downstream (request-reply scenarios) for further integration flow or an explicit subscription in the target business logic, but still downstream preserving reactive streams semantics.
 
 An example for a reactive outbound channel adapter:
-```java
+
+====
+[source, java]
+----
 public class CustomReactiveMessageHandler extends AbstractReactiveMessageHandler {
 
     private final CustomEntityOperations customEntityOperations;
@@ -280,11 +299,16 @@ public class CustomReactiveMessageHandler extends AbstractReactiveMessageHandler
         UPDATE,
     }
 }
-```
+----
+====
 
-We will be able to use both of the channel adatpers:
-```java
+We will be able to use both of the channel adapters:
+
+====
+[source, java]
+----
 public class MainFlow {
+
   @Autowired
   private CustomReactiveMessageProducer customReactiveMessageProducer;
   
@@ -299,11 +323,11 @@ public class MainFlow {
         .get();
   }
 }
-```
+----
+====
 
-
-Currently Spring Integration provides channel adapter (or gateway) implementations for <<./webflux.adoc#webflux,WebFlux>>, <<./rsocket.adoc#rsocket,RSocket>>, <<./mongodb.adoc#mongodb,MongoDb>> and <<./r2dbc.adoc#r2dbc,R2DBC>>.
+Currently, Spring Integration provides channel adapter (or gateway) implementations for <<./webflux.adoc#webflux,WebFlux>>, <<./rsocket.adoc#rsocket,RSocket>>, <<./mongodb.adoc#mongodb,MongoDb>>, <<./r2dbc.adoc#r2dbc,R2DBC>>, <<./zeromq.adoc#zeromq,ZeroMQ>>.
 The <<./redis.adoc#redis-stream-outbound,Redis Stream Channel Adapters>> are also reactive and uses `ReactiveStreamOperations` from Spring Data.
-Also an https://github.com/spring-projects/spring-integration-extensions/tree/main/spring-integration-cassandra[Apache Cassandra Extension] provides a `MessageHandler` implementation for the Cassandra reactive driver.
+Also, an https://github.com/spring-projects/spring-integration-extensions/tree/main/spring-integration-cassandra[Apache Cassandra Extension] provides a `MessageHandler` implementation for the Cassandra reactive driver.
 More reactive channel adapters are coming, for example for Apache Kafka in <<./kafka.adoc#kafka,Kafka>> based on the `ReactiveKafkaProducerTemplate` and `ReactiveKafkaConsumerTemplate` from https://spring.io/projects/spring-kafka[Spring for Apache Kafka] etc.
 For many other non-reactive channel adapters thread pools are recommended to avoid blocking during reactive stream processing.

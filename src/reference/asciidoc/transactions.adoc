@@ -50,7 +50,7 @@ After all, every Spring Integration component is a Spring Bean.
 With this goal in mind, we can again consider the two scenarios: message flows initiated by a user process and message flows initiated by a daemon.
 
 Message flows that are initiated by a user process and configured in a Spring application context are subject to the usual transactional configuration of such processes.
-Therefore they need not be explicitly configured by Spring Integration to support transactions.
+Therefore, they need not be explicitly configured by Spring Integration to support transactions.
 The transaction could and should be initiated through Spring's standard transaction support.
 The Spring Integration message flow naturally honors the transactional semantics of the components, because it is itself configured by Spring.
 For example, a gateway or service activator method could be annotated with `@Transactional`, or a `TransactionInterceptor` could be defined in an XML configuration with a pointcut expression that points to specific methods that should be transactional.
@@ -71,7 +71,7 @@ Spring Integration provides transactional support for pollers.
 Pollers are a special type of component because, within a poller task, we can call `receive()` against a resource that is itself transactional, thus including the `receive()` call in the boundaries of the transaction, which lets it be rolled back in case of a task failure.
 If we were to add the same support for channels, the added transactions would affect all downstream components starting with the `send()` call.
 That provides a rather wide scope for transaction demarcation without any strong reason, especially when Spring already provides several ways to address the transactional needs of any component downstream.
-However the `receive()` method being included in a transaction boundary is the "`strong reason`" for pollers.
+However, the `receive()` method being included in a transaction boundary is the "`strong reason`" for pollers.
 
 Any time you configure a Poller, you can provide transactional configuration by using the `transactional` child element and its attributes,as the following example shows:
 
@@ -142,7 +142,7 @@ For example, you can use a Queue-backed Channel that delegates to a transactiona
 [[transaction-synchronization]]
 === Transaction Synchronization
 
-In some environments, it help to synchronize operations with a transaction that encompasses the entire flow.
+In some environments, it helps to synchronize operations with a transaction that encompasses the entire flow.
 For example, consider a `<file:inbound-channel-adapter/>` at the start of a flow that performs a number of database updates.
 If the transaction commits, we might want to move the file to a `success` directory, while we might want to move it to a `failure` directory if the transaction rolls back.
 

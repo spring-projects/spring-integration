@@ -20,7 +20,7 @@ IntegrationFlow { flow ->
 
 In this case Kotlin understands that the lambda should be translated into `IntegrationFlow` anonymous instance and target Java DSL processor parses this construction properly into Java objects.
 
-As an alternative to the construction above and for consistency with use-cases explained below, a Kotlin-specif DSL should be used for declaring integration flows in the *builder* pattern style:
+As an alternative to the construction above and for consistency with use-cases explained below, a Kotlin-specific DSL should be used for declaring integration flows in the *builder* pattern style:
 
 ====
 [source, kotlin]

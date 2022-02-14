@@ -6,8 +6,8 @@ Spring Integration provides channel adapters for receiving and sending messages 
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,9 +15,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-r2dbc:{project-version}"
 ----
@@ -29,7 +28,7 @@ compile "org.springframework.integration:spring-integration-r2dbc:{project-versi
 The `R2dbcMessageSource` is a pollable `MessageSource` implementation based on the `R2dbcEntityOperations` and produces messages with a `Flux` or `Mono` as a payload for data fetched from database according an `expectSingleResult` option.
 The query to `SELECT` can be statically provided or based on a SpEL expression which is evaluated on every `receive()` call.
 The `R2dbcMessageSource.SelectCreator` is present as a root object for evaluation context to allow to use a `StatementMapper.SelectSpec` fluent API.
-By default this channel adapter maps records from the select into a `LinkedCaseInsensitiveMap` instances.
+By default, this channel adapter maps records from the select into a `LinkedCaseInsensitiveMap` instances.
 It can be customized providing a `payloadType` options which is used underneath by the `EntityRowMapper` based on the `this.r2dbcEntityOperations.getConverter()`.
 The `updateSql` is optional and used to mark read records in the databased for skipping from the subsequent polls.
 The `UPDATE` operation can be supplied with a `BiFunction<DatabaseClient.GenericExecuteSpec, ?, DatabaseClient.GenericExecuteSpec>` to bind values into an `UPDATE` based on records in the `SELECT` result.

@@ -36,7 +36,7 @@ In other words, the messaging and integration concerns are handled by the framew
 Business components are further isolated from the infrastructure, and developers are relieved of complex integration responsibilities.
 
 As an extension of the Spring programming model, Spring Integration provides a wide variety of configuration options, including annotations, XML with namespace support, XML with generic "`bean`" elements, and direct usage of the underlying API.
-That API is based upon well defined strategy interfaces and non-invasive, delegating adapters.
+That API is based upon well-defined strategy interfaces and non-invasive, delegating adapters.
 Spring Integration's design is inspired by the recognition of a strong affinity between common patterns within Spring and the well known patterns described in https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_], by Gregor Hohpe and Bobby Woolf (Addison Wesley, 2004).
 Developers who have read that book should be immediately comfortable with the Spring Integration concepts and terminology.
 
@@ -128,7 +128,7 @@ This is similar to the role of a controller in the MVC paradigm.
 Just as a controller handles HTTP requests, the message endpoint handles messages.
 Just as controllers are mapped to URL patterns, message endpoints are mapped to message channels.
 The goal is the same in both cases: isolate application code from the infrastructure.
-These concepts and all of the patterns that follow are discussed at length in the https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_] book.
+These concepts and all the patterns that follow are discussed at length in the https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_] book.
 Here, we provide only a high-level description of the main endpoint types supported by Spring Integration and the roles associated with those types.
 The chapters that follow elaborate and provide sample code as well as configuration examples.
 
@@ -339,7 +339,7 @@ There is one special case where a third bean is created: For architectural reaso
 This wrapper supports request handler advice handling and emits the normal 'produced no reply' debug log messages.
 Its bean name is the handler bean name plus `.wrapper` (when there is an `@EndpointId` -- otherwise, it is the normal generated handler name).
 
-Similarly <<./polling-consumer.adoc#pollable-message-source, Pollable Message Sources>> create two beans, a `SourcePollingChannelAdapter` (SPCA) and a `MessageSource`.
+Similarly, <<./polling-consumer.adoc#pollable-message-source, Pollable Message Sources>> create two beans, a `SourcePollingChannelAdapter` (SPCA) and a `MessageSource`.
 
 Consider the following XML configuration:
 
@@ -539,7 +539,7 @@ You can add a property for `${spring.boot.version}` or use an explicit version.
 [[programming-tips]]
 === Programming Tips and Tricks
 
-This section documents some of the ways to get the most from Spring Integration.
+This section documents some ways to get the most from Spring Integration.
 
 ==== XML Schemas
 
@@ -556,8 +556,8 @@ Each of these online schemas has a warning similar to the following:
 ====
 This schema is for the 1.0 version of Spring Integration Core.
 We cannot update it to the current schema because that will break any applications using 1.0.3 or lower.
-For subsequent versions, the unversioned schema is resolved from the classpath and obtained from the jar.
-Please refer to github:
+For subsequent versions, the "unversioned" schema is resolved from the classpath and obtained from the jar.
+Please refer to GitHub:
 
 https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config
 ====

@@ -55,7 +55,7 @@ If that value is available, it then checks its type.
 If it is a `MessageChannel`, the reply message is sent to that channel.
 If it is a `String`, the endpoint tries to resolve the channel name to a channel instance.
 If the channel cannot be resolved, a `DestinationResolutionException` is thrown.
-It it can be resolved, the message is sent there.
+If it can be resolved, the message is sent there.
 If the request message does not have a `replyChannel` header and the `reply` object is a `Message`, its `replyChannel` header is consulted for a target destination.
 This is the technique used for request-reply messaging in Spring Integration, and it is also an example of the return address pattern.
 
@@ -174,7 +174,7 @@ In this case a new `Message<?>` object is created and all the headers from a req
 This works the same way for most Spring Integration `MessageHandler` implementations, when interaction is based on a POJO method invocation.
 
 A complete `Message<?>` object can also be returned from the method.
-However keep in mind that, unlike <<./transformer.adoc#transformer, transformers>>, for a Service Activator this message will be modified by copying the headers from the request message if they are not already present in the returned message.
+However, keep in mind that, unlike <<./transformer.adoc#transformer, transformers>>, for a Service Activator this message will be modified by copying the headers from the request message if they are not already present in the returned message.
 So, if your method parameter is a `Message<?>` and you copy some, but not all, existing headers in your service method, they will reappear in the reply message.
 It is not a Service Activator responsibility to remove headers from a reply message and, pursuing the loosely-coupled principle, it is better to add a `HeaderFilter` in the integration flow.
 Alternatively, a Transformer can be used instead of a Service Activator but, in that case, when returning a full `Message<?>` the method is completely responsible for the message, including copying request message headers (if needed).

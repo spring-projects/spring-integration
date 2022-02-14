@@ -18,8 +18,8 @@ Spring integration provides support for XMPP by providing XMPP adapters, which s
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -28,8 +28,8 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-xmpp:{project-version}"
 ----
@@ -52,7 +52,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
 
 Before using inbound or outbound XMPP adapters to participate in the XMPP network, an actor must establish its XMPP connection.
 All XMPP adapters connected to a particular account can share this connection object.
-Typically this requires (at a minimum) `user`, `password`, and `host`.
+Typically, this requires (at a minimum) `user`, `password`, and `host`.
 To create a basic XMPP connection, you can use the convenience of the namespace, as the following example shows:
 
 ====
@@ -195,7 +195,7 @@ Starting with version 4.3, the packet extension support has been added to the `C
 Along with the regular `String` and `org.jivesoftware.smack.packet.Message` payload, now you can send a message with a payload of `org.jivesoftware.smack.packet.ExtensionElement` (which is populated to the `org.jivesoftware.smack.packet.Message.addExtension()`) instead of `setBody()`.
 For convenience, we added an `extension-provider` option for the `ChatMessageSendingMessageHandler`.
 It lets you inject `org.jivesoftware.smack.provider.ExtensionElementProvider`, which builds an `ExtensionElement` against the payload at runtime.
-For this case, the payload must be a string in JSON or XML format, depending of the XEP protocol.
+For this case, the payload must be a string in JSON or XML format, depending on the XEP protocol.
 
 [[xmpp-presence]]
 === XMPP Presence
@@ -302,7 +302,7 @@ For more complex cases (such as registering a SASL mechanism), you may need to e
 One of those static initializers is `SASLAuthentication`, which lets you register supported SASL mechanisms.
 For that level of complexity, we recommend using Spring Java configuration for the XMPP connection configuration.
 That way, you can configure the entire component through Java code and execute all other necessary Java code, including static initializers, at the appropriate time.
-The following exampe shows how to configure an XMPP connection with an SASL (Simple Authentication and Security Layer) in Java:
+The following example shows how to configure an XMPP connection with an SASL (Simple Authentication and Security Layer) in Java:
 
 ====
 [source,java]
@@ -329,8 +329,7 @@ For more information on using Java for application context configuration, see th
 === XMPP Message Headers
 
 The Spring Integration XMPP Adapters automatically map standard XMPP properties.
-By default, these properties are copied to and from Spring Integration `MessageHeaders` by using
-https://docs.spring.io/spring-integration/api/org/springframework/integration/xmpp/support/DefaultXmppHeaderMapper.html[`DefaultXmppHeaderMapper`].
+By default, these properties are copied to and from Spring Integration `MessageHeaders` by using https://docs.spring.io/spring-integration/api/org/springframework/integration/xmpp/support/DefaultXmppHeaderMapper.html[`DefaultXmppHeaderMapper`].
 
 Any user-defined headers are not copied to or from an XMPP Message, unless explicitly specified by the `requestHeaderNames` or `replyHeaderNames` properties of the `DefaultXmppHeaderMapper`.
 

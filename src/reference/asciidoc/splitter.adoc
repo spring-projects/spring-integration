@@ -101,11 +101,11 @@ Required.
 <5> The channel to which the splitter sends the results of splitting the incoming message.
 Optional (because incoming messages can specify a reply channel themselves).
 <6> The channel to which the request message is sent in case of empty splitting result.
-Optional (the will stop as in case of `null` result).
+Optional (they will stop as in case of `null` result).
 ====
 
 We recommend using a `ref` attribute if the custom splitter implementation can be referenced in other `<splitter>` definitions.
-However if the custom splitter handler implementation should be scoped to a single definition of the `<splitter>`, you can configure an inner bean definition, as the following example follows:
+However, if the custom splitter handler implementation should be scoped to a single definition of the `<splitter>`, you can configure an inner bean definition, as the following example follows:
 
 ====
 [source,xml]

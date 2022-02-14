@@ -4,11 +4,6 @@
 This section describes how to capture metrics for Spring Integration.
 In recent versions, we have relied more on Micrometer (see https://micrometer.io), and we plan to use Micrometer even more in future releases.
 
-[[legacy-metrics]]
-==== Legacy Metrics
-
-Legacy metrics were removed in Version 5.4; see Micrometer Integration below.
-
 ==== Disabling Logging in High Volume Environments
 
 You can control debug logging in the main message flow.
@@ -122,7 +117,6 @@ and
 
 ===== Disabling Meters
 
-With the <<legacy-metrics>> (which have now been removed), you could specify which integration components would collect metrics.
 By default, all meters are registered when first used.
 Now, with Micrometer, you can add `MeterFilter` s to the `MeterRegistry` to prevent some or all from being registered.
 You can filter out (deny) meters by any of the properties provided, `name`, `tag`, etc.

@@ -132,7 +132,7 @@ The startup order proceeds from lowest to highest, and the shutdown order is fro
 By default, this value is `Integer.MAX_VALUE`, meaning that this container starts as late as possible and stops as soon as possible.
 Optional.
 <9> The timeout interval to wait when sending a reply `Message` to the `output-channel`.
-By default, the send blocks for one second.
+By default, the `send()` blocks for one second.
 It applies only if the output channel has some 'sending' limitations -- for example, a `QueueChannel` with a fixed 'capacity' that is full.
 In this case, a `MessageDeliveryException` is thrown.
 The `send-timeout` is ignored for `AbstractSubscribableChannel` implementations.
@@ -211,5 +211,5 @@ NOTE: Before sending scattering results to the gatherer, `ScatterGatherHandler` 
 This way errors from the `AggregatingMessageHandler` are going to be propagated to the caller, even if an async hand off is applied in scatter recipient subflows.
 For successful operation, a `gatherResultChannel`, `originalReplyChannel` and `originalErrorChannel` headers must be transferred back to replies from scatter recipient subflows.
 In this case a reasonable, finite `gatherTimeout` must be configured for the `ScatterGatherHandler`.
-Otherwise it is going to be blocked waiting for a reply from the gatherer forever, by default.
+Otherwise, it is going to be blocked waiting for a reply from the gatherer forever, by default.
 

@@ -7,8 +7,8 @@ For more information about Groovy, see the Groovy documentation, which you can f
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,9 +16,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-groovy:{project-version}"
 ----
@@ -28,7 +27,7 @@ compile "org.springframework.integration:spring-integration-groovy:{project-vers
 ==== Groovy Configuration
 
 With Spring Integration 2.1, the configuration namespace for the Groovy support is an extension of Spring Integration's scripting support and shares the core configuration and behavior described in detail in the <<./scripting.adoc#scripting,Scripting Support>> section.
-Even though Groovy scripts are well supported by generic scripting support, the Groovy support provides the `Groovy` configuration namespace, which is backed by the Spring Framework's `org.springframework.scripting.groovy.GroovyScriptFactory` and related components, offering extended capabilities for using Groovy.
+Even though Groovy scripts are well-supported by generic scripting support, the Groovy support provides the `Groovy` configuration namespace, which is backed by the Spring Framework's `org.springframework.scripting.groovy.GroovyScriptFactory` and related components, offering extended capabilities for using Groovy.
 The following listing shows two sample configurations:
 
 .Filter
@@ -124,8 +123,7 @@ With that, the `filter()` method is transformed and compiled to static Java code
 dynamic phases of invocation, such as `getProperty()` factories and `CallSite` proxies.
 
 Starting with version 4.3, you can configure the Spring Integration Groovy components with the `compile-static` `boolean` option, specifying that `ASTTransformationCustomizer` for `@CompileStatic` should be added to the internal `CompilerConfiguration`.
-With that in place, you can omit the method declaration with `@CompileStatic` in our script code and still get compiled
-plain Java code.
+With that in place, you can omit the method declaration with `@CompileStatic` in our script code and still get compiled plain Java code.
 In this case, the preceding script can be short but still needs to be a little more verbose than interpreted script, as the following example shows:
 
 ====

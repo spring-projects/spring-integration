@@ -60,7 +60,7 @@ See <<gateway-configuration-annotations>>.
 Typically, you need not specify the `default-reply-channel`, since a Gateway auto-creates a temporary, anonymous reply channel, where it listens for the reply.
 However, some cases may prompt you to define a `default-reply-channel` (or `reply-channel` with adapter gateways, such as HTTP, JMS, and others).
 
-For some background, we briefly discuss some of the inner workings of the gateway.
+For some background, we briefly discuss some inner workings of the gateway.
 A gateway creates a temporary point-to-point reply channel.
 It is anonymous and is added to the message headers with the name, `replyChannel`.
 When providing an explicit `default-reply-channel` (`reply-channel` with remote adapter gateways), you can point to a publish-subscribe channel, which is so named because you can add more than one subscriber to it.
@@ -131,7 +131,7 @@ If you prefer the XML approach to configuring gateway methods, you can add `meth
 ====
 
 You can also use XML to provide individual headers for each method invocation.
-This could be useful if the headers you want to set are static in nature and you do not want to embed them in the gateway's method signature by using `@Header` annotations.
+This could be useful if the headers you want to set are static in nature, and you do not want to embed them in the gateway's method signature by using `@Header` annotations.
 For example, in the loan broker example, we want to influence how aggregation of the loan quotes is done, based on what type of request was initiated (single quote or all quotes).
 Determining the type of the request by evaluating which gateway method was invoked, although possible, would violate the separation of concerns paradigm (the method is a Java artifact).
 However, expressing your intention (meta information) in message headers is natural in a messaging architecture.
@@ -433,7 +433,7 @@ public interface RequestReplyExchanger {
 Before version 5.0, this `exchange` method did not have a `throws` clause and, as a result, the exception was unwrapped.
 If you use this interface and want to restore the previous unwrap behavior, use a custom `service-interface` instead or access the `cause` of the  `MessagingException` yourself.
 
-However, you may want to log the error rather than propagating it or you may want to treat an exception as a valid reply (by mapping it to a message that conforms to some "error message" contract that the caller understands).
+However, you may want to log the error rather than propagating it, or you may want to treat an exception as a valid reply (by mapping it to a message that conforms to some "error message" contract that the caller understands).
 To accomplish this, the gateway provides support for a message channel dedicated to the errors by including support for the `error-channel` attribute.
 In the following example, a 'transformer' creates a reply `Message` from the `Exception`:
 
@@ -487,10 +487,10 @@ Finally, you might want to consider setting downstream flags, such as 'requires-
 
 NOTE: If the downstream flow returns an `ErrorMessage`, its `payload` (a `Throwable`) is treated as a regular downstream error.
 If there is an `error-channel` configured, it is sent to the error flow.
-Otherwise the payload is thrown to the caller of the gateway.
+Otherwise, the payload is thrown to the caller of the gateway.
 Similarly, if the error flow on the `error-channel` returns an `ErrorMessage`, its payload is thrown to the caller.
 The same applies to any message with a `Throwable` payload.
-This can be useful in asynchronous situations when when you need to propagate an `Exception` directly to the caller.
+This can be useful in asynchronous situations when you need to propagate an `Exception` directly to the caller.
 To do so, you can either return an `Exception` (as the `reply` from some service) or throw it.
 Generally, even with an asynchronous flow, the framework takes care of propagating an exception thrown by the downstream flow back to the gateway.
 The https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/tcp-client-server-multiplex[TCP Client-Server Multiplex] sample demonstrates both techniques to return the exception to the caller.
@@ -539,7 +539,7 @@ When configuring with XML, the timeout attributes can be a long value or a SpEL 
 As a pattern, the messaging gateway offers a nice way to hide messaging-specific code while still exposing the full capabilities of the messaging system.
 As <<gateway-proxy,described earlier>>, the `GatewayProxyFactoryBean` provides a convenient way to expose a proxy over a service-interface giving you POJO-based access to a messaging system (based on objects in your own domain, primitives/Strings, or other objects).
 However, when a gateway is exposed through simple POJO methods that return values, it implies that, for each request message (generated when the method is invoked), there must be a reply message (generated when the method has returned).
-Since messaging systems are naturally asynchronous, you may not always be able to guarantee the contract where "`for each request, there will always be be a reply`". Spring Integration 2.0 introduced support for an asynchronous gateway, which offers a convenient way to initiate flows when you may not know if a reply is expected or how long it takes for replies to arrive.
+Since messaging systems are naturally asynchronous, you may not always be able to guarantee the contract where "`for each request, there will always be a reply`". Spring Integration 2.0 introduced support for an asynchronous gateway, which offers a convenient way to initiate flows when you may not know if a reply is expected or how long it takes for replies to arrive.
 
 To handle these types of scenarios, Spring Integration uses `java.util.concurrent.Future` instances to support an asynchronous gateway.
 
@@ -755,7 +755,7 @@ The following example shows how to create a gateway with Project Reactor:
 [source,java]
 ----
 @MessagingGateway
-public static interface TestGateway {
+public interface TestGateway {
 
 	@Gateway(requestChannel = "promiseChannel")
 	Mono<Integer> multiply(Integer value);
@@ -867,7 +867,7 @@ IMPORTANT: You should understand that, by default, `reply-timeout` is unbounded.
 Consequently, if you do not explicitly set the `reply-timeout`, your gateway method invocation might hang indefinitely.
 So, to make sure you analyze your flow and if there is even a remote possibility of one of these scenarios to occur, you should set the `reply-timeout` attribute to a "'safe'" value.
 Even better, you can set the `requires-reply` attribute of the downstream component to 'true' to ensure a timely response, as produced by the throwing of an exception as soon as that downstream component returns null internally.
-However you should also realize that there are some scenarios (see <<long-running-process-downstream,the first one>>) where `reply-timeout` does not help.
+However, you should also realize that there are some scenarios (see <<long-running-process-downstream,the first one>>) where `reply-timeout` does not help.
 That means it is also important to analyze your message flow and decide when to use a synchronous gateway rather than an asynchrnous gateway.
 As <<async-gateway,described earlier>>, the latter case is a matter of defining gateway methods that return `Future` instances.
 Then you are guaranteed to receive that return value, and you have more granular control over the results of the invocation.

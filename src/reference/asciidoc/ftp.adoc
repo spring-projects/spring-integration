@@ -9,8 +9,8 @@ FTPS stands for "`FTP over SSL`".
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -18,9 +18,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-ftp:{project-version}"
 ----
@@ -164,7 +163,7 @@ Currently, the Apache FTPSClient does not support this feature.
 See https://issues.apache.org/jira/browse/NET-408[NET-408].
 
 The following solution, courtesy of https://stackoverflow.com/questions/32398754/how-to-connect-to-ftps-server-with-data-connection-using-same-tls-session[Stack Overflow], uses reflection on the `sun.security.ssl.SSLSessionContextImpl`, so it may not work on other JVMs.
-The stack overflow answer was submitted in 2015, and the solution has been tested by the Spring Integration team recently on JDK 1.8.0_112.
+The stack overflow answer was submitted in 2015, and the solution has been tested by the Spring Integration team on JDK 1.8.0_112.
 
 The following example shows how to create an FTPS session:
 
@@ -699,7 +698,7 @@ public class FtpJavaApplication {
 ----
 ====
 
-Notice that, in this example, the message handler downstream of the transformer has an advice that removes the remote file after processing.
+Notice that, in this example, the message handler downstream of the transformer has an `advice` that removes the remote file after processing.
 
 [[ftp-rotating-server-advice]]
 === Inbound Channel Adapters: Polling Multiple Servers and Directories
@@ -1199,7 +1198,7 @@ See also <<ftp-partial>>.
 [[ftp-put-command]]
 ==== Using the `put` Command
 
-The `put` commad sends a file to the remote server.
+The `put` command sends a file to the remote server.
 The payload of the message can be a `java.io.File`, a `byte[]`, or a `String`.
 A `remote-filename-generator` (or expression) is used to name the remote file.
 Other available attributes include `remote-directory`, `temporary-remote-directory`, and their `*-expression` equivalents: `use-temporary-file-name` and `auto-create-directory`.
@@ -1402,8 +1401,7 @@ public class FtpJavaApplication {
 
 When you perform operations on multiple files (by using `mget` and `mput`), an exception can occur some time after one or more files have been transferred.
 In this case (starting with version 4.2), a `PartialSuccessException` is thrown.
-As well as the usual `MessagingException` properties (`failedMessage` and `cause`), this exception has two additional
-properties:
+As well as the usual `MessagingException` properties (`failedMessage` and `cause`), this exception has two additional properties:
 
 * `partialResults`: The successful transfer results.
 * `derivedInput`: The list of files generated from the request message (for example, local files to transfer for an `mput`).
@@ -1426,10 +1424,8 @@ root/
 ----
 ====
 
-If the exception occurs on `file3.txt`, the `PartialSuccessException` thrown by the gateway has `derivedInput`
-of `file1.txt`, `subdir`, and `zoo.txt` and `partialResults` of `file1.txt`.
-Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.txt` and `file3.txt` and
-`partialResults` of `file2.txt`.
+If the exception occurs on `file3.txt`, the `PartialSuccessException` thrown by the gateway has `derivedInput` of `file1.txt`, `subdir`, and `zoo.txt` and `partialResults` of `file1.txt`.
+Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.txt` and `file3.txt` and `partialResults` of `file2.txt`.
 
 [[ftp-session-caching]]
 === FTP Session Caching
@@ -1465,8 +1461,7 @@ The following example shows how to do so:
 ----
 ====
 
-The preceding example shows a `CachingSessionFactory` created with the `sessionCacheSize` set to `10` and the
-`sessionWaitTimeout` set to one second (its value is in milliseconds).
+The preceding example shows a `CachingSessionFactory` created with the `sessionCacheSize` set to `10` and the `sessionWaitTimeout` set to one second (its value is in milliseconds).
 
 Starting with Spring Integration 3.0, the `CachingConnectionFactory` provides a `resetCache()` method.
 When invoked, all idle sessions are immediately closed and in-use sessions are closed when they are returned to the cache.
@@ -1480,17 +1475,17 @@ When true, the session will be tested by sending a NOOP command to ensure it is 
 
 Starting with Spring Integration 3.0, a new abstraction is provided over the `FtpSession` object.
 The template provides methods to send, retrieve (as an `InputStream`), remove, and rename files.
-In addition an `execute` method is provided allowing the caller to execute multiple operations on the session.
+In addition, an `execute` method is provided allowing the caller to execute multiple operations on the session.
 In all cases, the template takes care of reliably closing the session.
 For more information, see the
 https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[Javadoc for `RemoteFileTemplate`].
 There is a subclass for FTP: `FtpRemoteFileTemplate`.
 
-Version 4.1 added added additional methods, including `getClientInstance()`, which provides access to the underlying `FTPClient` and thus gives you access to low-level APIs.
+Version 4.1 added additional methods, including `getClientInstance()`, which provides access to the underlying `FTPClient` and thus gives you access to low-level APIs.
 
 Not all FTP servers properly implement the `STAT <path>` command.
 Some return a positive result for a non-existent path.
-The `NLST` command reliably returns the name when the path is a file and it exists.
+The `NLST` command reliably returns the name when the path is a file, and it exists.
 However, this does not support checking that an empty directory exists since `NLST` always returns an empty list when the path is a directory.
 Since the template does not know whether the path represents a directory, it has to perform additional checks when the path does not appear to exist (when using `NLST`).
 This adds overhead, requiring several requests to the server.
@@ -1517,9 +1512,7 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 [[ftp-session-callback]]
 === Using `MessageSessionCallback`
 
-Starting with Spring Integration 4.2, you can use a `MessageSessionCallback<F, T>` implementation with the
-`<int-ftp:outbound-gateway/>` (`FtpOutboundGateway` in Java) to perform any operations on the `Session<FTPFile>` with
-the `requestMessage` context.
+Starting with Spring Integration 4.2, you can use a `MessageSessionCallback<F, T>` implementation with the `<int-ftp:outbound-gateway/>` (`FtpOutboundGateway` in Java) to perform any operations on the `Session<FTPFile>` with the `requestMessage` context.
 It can be used for any non-standard or low-level FTP operations and allows access from an integration flow definition and functional interface (Lambda) implementation injection, as the following example shows:
 
 ====
@@ -1546,7 +1539,7 @@ When configuring with Java, different constructors are available in the https://
 
 The `ApacheMinaFtplet`, added in version 5.2, listens for certain Apache Mina FTP server events and publishes them as `ApplicationEvent` s which can be received by any `ApplicationListener` bean, `@EventListener` bean method, or <<./event.adoc#appevent-inbound, Event Inbound Channel Adapter>>.
 
-Currently supported events are:
+Currently, supported events are:
 
 * `SessionOpenedEvent` - a client session was opened
 * `DirectoryCreatedEvent` - a directory was created
@@ -1555,7 +1548,7 @@ Currently supported events are:
 * `PathRemovedEvent` - a file or directory was removed
 * `SessionClosedEvent` - the client has disconnected
 
-Each of these is a subclass of `ApacheMinaFtpEvent`; you can configure a single listener to receive all of the event types.
+Each of these is a subclass of `ApacheMinaFtpEvent`; you can configure a single listener to receive all the event types.
 The `source` property of each event is a `FtpSession`, from which you can obtain information such as the client address; a convenient `getSession()` method is provided on the abstract event.
 
 Events other than session open/close have another property `FtpRequest` which has properties such as the command and arguments.
@@ -1605,5 +1598,5 @@ Since the `FtpInboundFileSynchronizingMessageSource` doesn't produce messages ag
 This metadata is retrieved by the `FtpInboundFileSynchronizingMessageSource` when local file is polled.
 When local file is deleted, it is recommended to remove its metadata entry.
 The `AbstractInboundFileSynchronizer` provides a `removeRemoteFileMetadata()` callback for this purpose.
-In addition there is a `setMetadataStorePrefix()` to be used in the metadata keys.
+In addition, there is a `setMetadataStorePrefix()` to be used in the metadata keys.
 It is recommended to have this prefix be different from the one used in the `MetadataStore`-based `FileListFilter` implementations, when the same `MetadataStore` instance is shared between these components, to avoid entry overriding because both filter and `AbstractInboundFileSynchronizer` use the same local file name for the metadata entry key.

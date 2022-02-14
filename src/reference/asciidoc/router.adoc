@@ -28,12 +28,12 @@ Spring Integration provides the following routers:
 
 Router implementations share many configuration parameters.
 However, certain differences exist between routers.
-Furthermore, the availability of configuration parameters depends on whether routers are used inside or outside of a chain.
+Furthermore, the availability of configuration parameters depends on whether routers are used inside or outside a chain.
 In order to provide a quick overview, all available attributes are listed in the two following tables .
 
-The following table shows the configuration parameters available for a router outside of a chain:
+The following table shows the configuration parameters available for a router outside a chain:
 
-.Routers Outside of a Chain
+.Routers Outside a Chain
 [cols="2,1,1,1,1,1,1", options="header"]
 |===
 | Attribute
@@ -174,9 +174,9 @@ a| image::images/tickmark.png[]
 |===
 
 
-The following table shows the configuration parameters available for a router inside of a chain:
+The following table shows the configuration parameters available for a router inside a chain:
 
-.Routers Inside of a Chain
+.Routers Inside a Chain
 [cols="2,1,1,1,1,1,1", options="header"]
 |===
 | Attribute
@@ -336,7 +336,7 @@ If you do desire to drop messages silently, you can set `default-output-channel=
 This section describes the parameters common to all router parameters (the parameters with all their boxes ticked in the two tables shown earlier in this chapter).
 
 [[router-common-parameters-all]]
-===== Inside and Outside of a Chain
+===== Inside and Outside a Chain
 
 The following parameters are valid for all routers inside and outside of chains.
 
@@ -354,7 +354,7 @@ NOTE: A message is sent only to the `default-output-channel` if `resolution-requ
 `resolution-required`::
 This attribute specifies whether channel names must always be successfully resolved to channel instances that exist.
 If set to `true`, a `MessagingException` is raised when the channel cannot be resolved.
-Setting this attribute to `false` causes any unresovable channels to be ignored.
+Setting this attribute to `false` causes any unresolvable channels to be ignored.
 This optional attribute defaults to `true`.
 +
 NOTE: A Message is sent only to the `default-output-channel`, if specified, when `resolution-required` is `false` and the channel is not resolved.
@@ -380,7 +380,7 @@ The `timeout` attribute specifies the maximum amount of time in milliseconds to 
 By default, the send operation blocks indefinitely.
 
 [[router-common-parameters-top]]
-===== Top-Level (Outside of a Chain)
+===== Top-Level (Outside a Chain)
 
 The following parameters are valid only across all top-level routers that are outside of chains.
 
@@ -702,7 +702,7 @@ However, in this case, it is all combined rather concisely into the router's con
 ----
 
 In the preceding configuration, a SpEL expression identified by the `selector-expression` attribute is evaluated to determine whether this recipient should be included in the recipient list for a given input message.
-The evaluation result of the expression must be a boolean.
+The evaluation result of the expression must be a `boolean`.
 If this attribute is not defined, the channel is always among the list of recipients.
 
 [[recipient-list-router-management]]
@@ -814,7 +814,7 @@ The following example defines a router that points to a POJO in its `ref` attrib
 ====
 
 We generally recommend using a `ref` attribute if the custom router implementation is referenced in other `<router>` definitions.
-However if the custom router implementation should be scoped to a single definition of the `<router>`, you can provide an inner bean definition, as the following example shows:
+However, if the custom router implementation should be scoped to a single definition of the `<router>`, you can provide an inner bean definition, as the following example shows:
 
 ====
 [source,xml]
@@ -1026,7 +1026,7 @@ All of these type of routers exhibit some dynamic characteristics.
 
 However, these routers all require static configuration.
 Even in the case of expression-based routers, the expression itself is defined as part of the router configuration, which means that the same expression operating on the same value always results in the computation of the same channel.
-This is acceptable in most cases, since such routes are well defined and therefore predictable.
+This is acceptable in most cases, since such routes are well-defined and therefore predictable.
 But there are times when we need to change router configurations dynamically so that message flows may be routed to a different channel.
 
 For example, you might want to bring down some part of your system for maintenance and temporarily re-reroute messages to a different message flow.
@@ -1083,7 +1083,7 @@ Now consider an example of a header value router:
 Now we can consider how the three steps work for a header value router:
 
 . Compute a channel identifier that is the value of the header identified by the `header-name` attribute.
-. Resolve the channel identifier a to channel name, where the result of the previous step is used to select the appropriate value from the general mapping defined in the `mapping` element.
+. Resolve the channel identifier to a channel name, where the result of the previous step is used to select the appropriate value from the general mapping defined in the `mapping` element.
 . Resolve the channel name to the actual instance of the `MessageChannel` as a reference to a bean within the application context (which is hopefully a `MessageChannel`) identified by the result of the previous step.
 
 The preceding two configurations of two different router types look almost identical.
@@ -1113,7 +1113,7 @@ That basically involves a bean lookup for the provided name.
 Now all messages that contain the header-value pair as `testHeader=kermit` are going to be routed to a `MessageChannel` whose bean name (its `id`) is 'kermit'.
 
 But what if you want to route these messages to the 'simpson' channel? Obviously changing a static configuration works, but doing so also requires bringing your system down.
-However, if you had access to the channel identifier map, you could introduce a new mapping where the header-value pair is now `kermit=simpson`, thus letting the second step treat 'kermit' as a channel identifier while resolving it to 'simpson' as the channel name.
+However, if you have had an access to the channel identifier map, you could introduce a new mapping where the header-value pair is now `kermit=simpson`, thus letting the second step treat 'kermit' as a channel identifier while resolving it to 'simpson' as the channel name.
 
 The same obviously applies for `PayloadTypeRouter`, where you can now remap or remove a particular payload type mapping.
 In fact, it applies to every other router, including expression-based routers, since their computed values now have a chance to go through the second step to be resolved to the actual `channel name`.
@@ -1135,8 +1135,7 @@ One way to manage the router mappings is through the https://www.enterpriseinteg
 
 NOTE: For more information about the control bus, see <<./control-bus.adoc#control-bus,Control Bus>>.
 
-Typically, you would send a control message asking to invoke a particular operation on a particular managed component (such as a
-router).
+Typically, you would send a control message asking to invoke a particular operation on a particular managed component (such as a router).
 The following managed operations (methods) are specific to changing the router resolution process:
 
 * `public void setChannelMapping(String key, String channelName)`: Lets you add a new or modify an existing mapping between `channel identifier` and `channel name`

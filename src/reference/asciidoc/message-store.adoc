@@ -92,7 +92,7 @@ When used internally by the aggregator, this property was set to `false` to impr
 It is now `false` by default.
 
 Users accessing the group store outside of components such as aggregators now get a direct reference to the group being used by the aggregator instead of a copy.
-Manipulation of the group outside of the aggregator may cause unpredictable results.
+Manipulation of the group outside the aggregator may cause unpredictable results.
 
 For this reason, you should either not perform such manipulation or set the `copyOnGet` property to `true`.
 =====
@@ -103,7 +103,7 @@ For this reason, you should either not perform such manipulation or set the `cop
 Starting with version 4.3, some `MessageGroupStore` implementations can be injected with a custom `MessageGroupFactory` strategy to create and customize the `MessageGroup` instances used by the `MessageGroupStore`.
 This defaults to a `SimpleMessageGroupFactory`, which produces `SimpleMessageGroup` instances based on the `GroupType.HASH_SET` (`LinkedHashSet`) internal collection.
 Other possible options are `SYNCHRONISED_SET` and `BLOCKING_QUEUE`, where the last one can be used to reinstate the previous `SimpleMessageGroup` behavior.
-Also the `PERSISTENT` option is available.
+Also, the `PERSISTENT` option is available.
 See the next section for more information.
 Starting with version 5.0.1, the `LIST` option is also available for when the order and uniqueness of messages in the group does not matter.
 
@@ -143,7 +143,7 @@ ms     %     Task name
 ----
 ====
 
-However starting with version 5.5, all the persistent `MessageGroupStore` implementations provide a `streamMessagesForGroup(Object groupId)` contract based on the target database streaming API.
+However, starting with version 5.5, all the persistent `MessageGroupStore` implementations provide a `streamMessagesForGroup(Object groupId)` contract based on the target database streaming API.
 This improves resources utilization when groups are very big in the store.
 Internally in the framework this new API is used in the <<./delayer.adoc#delayer,Delayer>> (for example) when it reschedules persisted messages on startup.
 A returned `Stream<Message<?>>` must be closed in the end of processing, e.g. via auto-close by the `try-with-resources`.

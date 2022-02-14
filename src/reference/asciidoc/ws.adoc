@@ -13,8 +13,8 @@ This chapter describes Spring Integration's support for web services, including:
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -22,9 +22,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-ws:{project-version}"
 ----
@@ -216,7 +215,7 @@ IntegrationFlow inboundMarshalled() {
 ----
 ====
 
-Other properties can be set on the endpoint specs in a fluent manner (with the properties depending on whether or not an external `WebServiceTemplate` has been provided for outbound gateways).
+Other properties can be set on the endpoint specs in a fluent manner (with the properties depending on whether an external `WebServiceTemplate` has been provided for outbound gateways).
 Examples:
 
 ====

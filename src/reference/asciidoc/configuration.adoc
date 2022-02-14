@@ -762,12 +762,12 @@ The input parameter is a message payload.
 If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
 The return value is a newly constructed message that is sent to the next destination.
 
-The followig example shows a single parameter that is a message (or one of its subclasses) with an arbitrary object or primitive return type:
+The following example shows a single parameter that is a message (or one of its subclasses) with an arbitrary object or primitive return type:
 
 ====
 [source,java]
 ----
-public int doSomething(Message  msg);
+public int doSomething(Message msg);
 ----
 ====
 
@@ -822,7 +822,7 @@ public String doSomething();
 ====
 
 This message handler method is invoked based on the Message sent to the input channel to which this handler is connected.
-However no `Message` data is mapped, thus making the `Message` act as event or trigger to invoke the handler.
+However, no `Message` data is mapped, thus making the `Message` act as event or trigger to invoke the handler.
 The output is mapped according to the rules <<message-mapping-rules,described earlier>>.
 
 The following example shows no parameters and a void return:
@@ -892,7 +892,7 @@ The payload is not being mapped to any argument.
 
 The following example uses multiple parameters:
 
-Multiple parameters can create a lot of ambiguity with regards to determining the appropriate mappings.
+Multiple parameters can create a lot of ambiguity in regards to determining the appropriate mappings.
 The general advice is to annotate your method parameters with `@Payload`, `@Header`, and `@Headers`.
 The examples in this section show ambiguous conditions that result in an exception being raised.
 
@@ -929,9 +929,9 @@ public String foo(Map m, Map f)
 
 Although one might argue that one `Map` could be mapped to the message payload and the other one to the message headers, we cannot rely on the order.
 
-TIP: Any method signature with more than one method argument that is not (Map, <T>) and with unannotated parameters results in an ambiguous condition and triggers an exception.
+TIP: Any method signature with more than one method argument that is not (`Map`, `<T>`) and with unannotated parameters results in an ambiguous condition and triggers an exception.
 
-The next set of examples each show mutliple methods that result in ambiguity.
+The next set of examples each show multiple methods that result in ambiguity.
 
 Message handlers with multiple methods are mapped based on the same rules that are described earlier (in the examples).
 However, some scenarios might still look confusing.

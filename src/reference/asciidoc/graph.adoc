@@ -101,8 +101,7 @@ The `name` can be customized on the `IntegrationGraphServer` bean or in the `spr
 Other properties are provided by the framework and let you distinguish a similar model from other sources.
 
 The `links` graph element represents connections between nodes from the `nodes` graph element and, therefore, between integration components in the source Spring Integration application.
-For example, from a `MessageChannel` to an `EventDrivenConsumer` with some `MessageHandler`
-or from an `AbstractReplyProducingMessageHandler` to a `MessageChannel`.
+For example, from a `MessageChannel` to an `EventDrivenConsumer` with some `MessageHandler` or from an `AbstractReplyProducingMessageHandler` to a `MessageChannel`.
 For convenience and to let you determine a link's purpose, the model includes the `type` attribute.
 The possible types are:
 
@@ -112,7 +111,7 @@ The possible types are:
 * `discard`: From `DiscardingMessageHandler` (such as `MessageFilter`) to the `MessageChannel` through an `errorChannel` property.
 * `route`: From `AbstractMappingMessageRouter` (such as `HeaderValueRouter`) to the `MessageChannel`.
 Similar to `output` but determined at run-time.
-May be a configured channel mapping or a dynamically resolved channel.
+Maybe a configured channel mapping or a dynamically resolved channel.
 Routers typically retain only up to 100 dynamic routes for this purpose, but you can modify this value by setting the `dynamicChannelLimit` property.
 
 The information from this element can be used by a visualization tool to render connections between nodes from the `nodes` graph element, where the `from` and `to` numbers represent the value from the `nodeId` property of the linked nodes.
@@ -150,7 +149,7 @@ The `input` and `output` attributes are for the `inputChannel` and `outputChanne
 See the next section for more information.
 
 Starting with version 5.1, the `IntegrationGraphServer` accepts a `Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback` for population of additional properties on the `IntegrationNode` for a particular `NamedComponent`.
-For example you can expose the `SmartLifecycle` `autoStartup` and `running` properties into the target graph:
+For example, you can expose the `SmartLifecycle` `autoStartup` and `running` properties into the target graph:
 
 ====
 [source,java]

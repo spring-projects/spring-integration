@@ -253,7 +253,7 @@ The following XPath expression (which use the `myorder` namespace prefix) also m
 ====
 
 The namespace URI is the really important piece of information, not the prefix.
-Thehttps://github.com/jaxen-xpath/jaxen[Jaxen] summarizes the point very well:
+The https://github.com/jaxen-xpath/jaxen[Jaxen] summarizes the point very well:
 
 [quote]
 In XPath 1.0, all unprefixed names are unqualified.
@@ -274,10 +274,10 @@ This section will explain the workings of the following transformers and how to 
 * link:#xml-marshalling-transformer[MarshallingTransformer]
 * link:#xml-xslt-payload-transformers[XsltPayloadTransformer]
 
-All of the XML transformers extend either https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/AbstractTransformer.html[`AbstractTransformer`] or  https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/AbstractPayloadTransformer.html[`AbstractPayloadTransformer`] and therefore implement  https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/Transformer.html[`Transformer`].
+All the XML transformers extend either https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/AbstractTransformer.html[`AbstractTransformer`] or  https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/AbstractPayloadTransformer.html[`AbstractPayloadTransformer`] and therefore implement  https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/Transformer.html[`Transformer`].
 When configuring XML transformers as beans in Spring Integration, you would normally configure the `Transformer` in conjunction with a  https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/MessageTransformingHandler.html[`MessageTransformingHandler`].
 This lets the transformer be used as an endpoint.
-Finally, we discuss the namespace support , which allows for configuring the transformers as elements in XML.
+Finally, we discuss the namespace support, which allows for configuring the transformers as elements in XML.
 
 [[xml-unmarshalling-transformer]]
 ===== UnmarshallingTransformer
@@ -907,7 +907,7 @@ The following listing shows all the available configuration parameters:
 ----
 
 <1> Specifies the default boolean value for whether to overwrite existing header values.
-This takes effect only for child elements that do not provide their own 'overwrite' attribute.
+It takes effect only for child elements that do not provide their own 'overwrite' attribute.
 If you do not set the 'default- overwrite' attribute, the specified header values do not overwrite any existing ones with the same header names.
 Optional.
 <2> ID for the underlying bean definition.
@@ -946,7 +946,7 @@ You must set either this attribute or `xpath-expression`, but not both.
 === Using the XPath Filter
 
 This component defines an XPath-based message filter.
-Internally, this components uses a `MessageFilter` that wraps an instance of `AbstractXPathMessageSelector`.
+Internally, these components uses a `MessageFilter` that wraps an instance of `AbstractXPathMessageSelector`.
 
 NOTE: See <<./filter.adoc#filter,Filter>> for further details.
 
@@ -1000,7 +1000,7 @@ If you do not set this attribute, the XPath evaluation must produce a boolean re
 Optional.
 <6> The channel to which messages that matched the filter criteria are dispatched.
 Optional.
-<7> By default, this property is set to `false` and rejected messages (messages that did not match the filter criteria) are silently dropped.
+<7> By default, this property is set to `false` and rejected messages (those did not match the filter criteria) are silently dropped.
 However, if set to `true`, message rejection results in an error condition and an exception being propagated upstream to the caller.
 Optional.
 <8> Reference to an XPath expression instance to evaluate.

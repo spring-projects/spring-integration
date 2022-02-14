@@ -6,8 +6,8 @@ The RSocket Spring Integration module (`spring-integration-rsocket`) allows for 
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,8 +16,8 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-rsocket:{project-version}"
 ----
@@ -32,7 +32,7 @@ For this purpose, Spring Integration RSocket support provides the `ServerRSocket
 The `ServerRSocketConnector` exposes a listener on the host and port according to provided `io.rsocket.transport.ServerTransport` for accepting connections from clients.
 An internal `RSocketServer` instance can be customized with the `setServerConfigurer()`, as well as other options that can be configured, e.g. `RSocketStrategies` and `MimeType` for payload data and headers metadata.
 When a `setupRoute` is provided from the client requester (see `ClientRSocketConnector` below), a connected client is stored as a `RSocketRequester` under the key determined by the `clientRSocketKeyStrategy` `BiFunction<Map<String, Object>, DataBuffer, Object>`.
-By default a connect data is used for the key as a converted value to string with UTF-8 charset.
+By default, a connection data is used for the key as a converted value to string with UTF-8 charset.
 Such an `RSocketRequester` registry can be used in the application logic to determine a particular client connection for interaction with it, or for publishing the same message to all connected clients.
 When a connection is established from the client, an `RSocketConnectedEvent` is emitted from the `ServerRSocketConnector`.
 This is similar to what is provided by the `@ConnectMapping` annotation in Spring Messaging module.
@@ -76,7 +76,7 @@ See `ServerRSocketConnector` JavaDocs for more information.
 
 Starting with version 5.2.1, the `ServerRSocketMessageHandler` is extracted to a public, top-level class for possible connection with an existing RSocket server.
 When a `ServerRSocketConnector` is supplied with an external instance of `ServerRSocketMessageHandler`, it doesn't create an RSocket server internally and just delegates all the handling logic to the provided instance.
-In addition the `ServerRSocketMessageHandler` can be configured with a `messageMappingCompatible` flag to handle also `@MessageMapping` for an RSocket controller, fully replacing the functionality provided by the standard `RSocketMessageHandler`.
+In addition, the `ServerRSocketMessageHandler` can be configured with a `messageMappingCompatible` flag to handle also `@MessageMapping` for an RSocket controller, fully replacing the functionality provided by the standard `RSocketMessageHandler`.
 This can be useful in mixed configurations, when classic `@MessageMapping` methods are present in the same application along with RSocket channel adapters and an externally configured RSocket server is present in the application.
 
 The `ClientRSocketConnector` serves as a holder for `RSocketRequester` based on the `RSocket` connected via the provided `ClientTransport`.
@@ -122,8 +122,8 @@ See the next section for more information.
 
 The `RSocketInboundGateway` is responsible for receiving RSocket requests and producing responses (if any).
 It requires an array of `path` mapping which could be as patterns similar to MVC request mapping or `@MessageMapping` semantics.
-In addition (since version 5.2.2), a set of interaction models (see `RSocketInteractionModel`) can be configured on the `RSocketInboundGateway` to restrict RSocket requests to this endpoint by the particular frame type.
-By default all the interaction models are supported.
+In addition, (since version 5.2.2), a set of interaction models (see `RSocketInteractionModel`) can be configured on the `RSocketInboundGateway` to restrict RSocket requests to this endpoint by the particular frame type.
+By default, all the interaction models are supported.
 Such a bean, according its `IntegrationRSocketEndpoint` implementation (extension of a `ReactiveMessageHandler`), is auto detected either by the `ServerRSocketConnector` or `ClientRSocketConnector` for a routing logic in the internal `IntegrationRSocketMessageHandler` for incoming requests.
 An `AbstractRSocketConnector` can be provided to the `RSocketInboundGateway` for explicit endpoint registration.
 This way, the auto-detection option is disabled on that `AbstractRSocketConnector`.
@@ -131,14 +131,14 @@ The `RSocketStrategies` can also be injected into the `RSocketInboundGateway` or
 Decoders are used from those `RSocketStrategies` to decode a request payload according to the provided `requestElementType`.
 If an `RSocketPayloadReturnValueHandler.RESPONSE_HEADER` header is not provided in incoming the `Message`, the `RSocketInboundGateway` treats a request as a `fireAndForget` RSocket interaction model.
 In this case, an `RSocketInboundGateway` performs a plain `send` operation into the `outputChannel`.
-Otherwise a `MonoProcessor` value from the `RSocketPayloadReturnValueHandler.RESPONSE_HEADER` header is used for sending a reply to the RSocket.
+Otherwise, a `MonoProcessor` value from the `RSocketPayloadReturnValueHandler.RESPONSE_HEADER` header is used for sending a reply to the RSocket.
 For this purpose, an `RSocketInboundGateway` performs a `sendAndReceiveMessageReactive` operation on the `outputChannel`.
 The `payload` of the message to send downstream is always a `Flux` according to `MessagingRSocket` logic.
 When in a `fireAndForget` RSocket interaction model, the message has a plain converted `payload`.
 The reply `payload` could be a plain object or a `Publisher` - the `RSocketInboundGateway` converts both of them properly into an RSocket response according to the encoders provided in the `RSocketStrategies`.
 
 Starting with version 5.3, a `decodeFluxAsUnit` option (default `false`) is added to the `RSocketInboundGateway`.
-By default incoming `Flux` is transformed the way that each its event is decoded separately.
+By default, incoming `Flux` is transformed the way that each its event is decoded separately.
 This is an exact behavior present currently with `@MessageMapping` semantics.
 To restore a previous behavior or decode the whole `Flux` as single unit according application requirements, the `decodeFluxAsUnit` has to be set to `true`.
 However the target decoding logic depends on the `Decoder` selected, e.g. a `StringDecoder` requires a new line separator (by default) to be present in the stream to indicate a byte buffer end.
@@ -156,7 +156,7 @@ See  `ServerRSocketConnector` JavaDocs for more information.
 The `route` to send request has to be configured explicitly (together with path variables) or via a SpEL expression which is evaluated against request message.
 
 The RSocket interaction model can be provided via `RSocketInteractionModel` option or respective expression setting.
-By default a `requestResponse` is used for common gateway use-cases.
+By default, a `requestResponse` is used for common gateway use-cases.
 
 When request message payload is a `Publisher`, a `publisherElementType` option can be provided to encode its elements according an `RSocketStrategies` supplied in the target `RSocketRequester`.
 An expression for this option can evaluate to a `ParameterizedTypeReference`.
@@ -189,7 +189,7 @@ public Flux<?> flattenRSocketResponse(Flux<?> payload) {
 Or subscribed explicitly in the target application logic.
 
 The expected response type can also be configured (or evaluated via expression) to `void` treating this gateway as an outbound channel adapter.
-However the `outputChannel` still has to be configured (even if it just a `NullChannel`) to initiate a subscription to the returned `Mono`.
+However, the `outputChannel` still has to be configured (even if it just a `NullChannel`) to initiate a subscription to the returned `Mono`.
 
 See <<rsocket-java-config>> for samples how to configure an `RSocketOutboundGateway` endpoint a deal with payloads downstream.
 

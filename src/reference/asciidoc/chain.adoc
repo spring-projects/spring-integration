@@ -123,7 +123,7 @@ Its `componentName` is based on its position in the `<chain>`.
 In this case, it is 'somethingChain$child#1'.
 (The final element of the name is the order within the chain, beginning with '#0').
 Note, this transformer is not registered as a bean within the application context, so it does not get a `beanName`.
-However its `componentName` has a value that is useful for logging and other purposes.
+However, its `componentName` has a value that is useful for logging and other purposes.
 
 The `id` attribute for `<chain>` elements lets them be eligible for <<./jmx.adoc#jmx-mbean-exporter,JMX export>>, and they are trackable in the <<./message-history.adoc#message-history,message history>>.
 You can access them from the `BeanFactory` by using the appropriate bean name, as discussed earlier.

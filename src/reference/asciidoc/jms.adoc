@@ -22,7 +22,7 @@ compile "org.springframework.integration:spring-integration-jms:{project-version
 ----
 ====
 
-The `javax.jms:javax.jms-api` must be added explicitly via some JMS vendor-specific implementation, e.g. Apache ActiveMQ.
+The `jakarta.jms:jakarta.jms-api` must be added explicitly via some JMS vendor-specific implementation, e.g. Apache ActiveMQ.
 
 There are actually two JMS-based inbound Channel Adapters.
 The first uses Spring's `JmsTemplate` to receive based on a polling period.
@@ -38,7 +38,7 @@ The inbound gateway relies on one of Spring's `MessageListener` container implem
 It is also capable of sending a return value to the `reply-to` destination, as provided by the received message.
 The outbound gateway sends a JMS message to a `request-destination` (or `request-destination-name` or `request-destination-expression`) and then receives a reply message.
 You can explicitly configure the `reply-destination` reference (or `reply-destination-name` or `reply-destination-expression`).
-Otherwise, the outbound gateway uses a JMS https://docs.oracle.com/javaee/6/api/javax/jms/TemporaryQueue.html[TemporaryQueue].
+Otherwise, the outbound gateway uses a JMS https://javadoc.io/doc/jakarta.jms/jakarta.jms-api/latest/jakarta/jms/TemporaryQueue.html[TemporaryQueue].
 
 Prior to Spring Integration 2.2, if necessary, a `TemporaryQueue` was created (and removed) for each request or reply.
 Beginning with Spring Integration 2.2, you can configure the outbound gateway to use a `MessageListener` container to receive replies instead of directly using a new (or cached) `Consumer` to receive the reply for each request.
@@ -101,7 +101,7 @@ That means that it invokes `receive()` when triggered.
 You should use this should only in situations where polling is done relatively infrequently and timeliness is not important.
 For all other situations (a vast majority of JMS-based use-cases), the `message-driven-channel-adapter` (<<jms-message-driven-channel-adapter,described later>>) is a better option.
 
-NOTE:  By default, all of the JMS adapters that require a reference to the `ConnectionFactory` automatically look for a bean named `jmsConnectionFactory`.
+NOTE:  By default, all JMS adapters that require a reference to the `ConnectionFactory` automatically look for a bean named `jmsConnectionFactory`.
 That is why you do not see a `connection-factory` attribute in many of the examples.
 However, if your JMS `ConnectionFactory` has a different bean name, you need to provide that attribute.
 
@@ -240,7 +240,7 @@ The following example shows how to set an error channel on a message-driven chan
 
 When comparing the preceding example to the generic gateway configuration or the JMS 'inbound-gateway' that we discuss later, the key difference is that we are in a one-way flow, since this is a 'channel-adapter', not a gateway.
 Therefore, the flow downstream from the 'error-channel' should also be one-way.
-For example, it could send to a logging handler or it could connect to a different JMS `<outbound-channel-adapter>` element.
+For example, it could send to a logging handler, or it could connect to a different JMS `<outbound-channel-adapter>` element.
 
 When consuming from topics, set the `pub-sub-domain` attribute to true.
 Set `subscription-durable` to `true` for a durable subscription or `subscription-shared` for a shared subscription (which requires a JMS 2.0 broker and has been available since version 4.2).
@@ -258,7 +258,7 @@ Previously, if a JMS `<message-driven-channel-adapter/>` or `<inbound-gateway/>`
 If the container is configured to use transactions, the message is rolled back and redelivered repeatedly.
 The conversion process occurs before and during message construction so that such errors are not sent to the 'error-channel'.
 Now such conversion exceptions result in an `ErrorMessage` being sent to the 'error-channel', with the exception as the `payload`.
-If you wish the transaction to roll back and you have an 'error-channel' defined, the integration flow on the 'error-channel' must re-throw the exception (or another exception).
+If you wish the transaction to roll back, and you have an 'error-channel' defined, the integration flow on the 'error-channel' must re-throw the exception (or another exception).
 If the error flow does not throw an exception, the transaction is committed and the message is removed.
 If no 'error-channel' is defined, the exception is thrown back to the container, as before.
 
@@ -504,7 +504,7 @@ A `TemporaryQueue` is created for each request and deleted when the request is c
 
 . A `reply-destination*` property is provided and neither a `<reply-listener/>` nor a `correlation-key` is provided
 +
-The `JMSCorrelationID` equal to the outgoing message IS is used as a message selector for the consumer:
+The `JMSCorrelationID` equal to the outgoing message is used as a message selector for the consumer:
 +
 `messageSelector = "JMSCorrelationID = '" + messageId + "'"`
 +
@@ -601,7 +601,7 @@ Starting with version 4.3, you can now specify `async="true"` (or `setAsync(true
 
 By default, when a request is sent to the gateway, the requesting thread is suspended until the reply is received.
 The flow then continues on that thread.
-If `async` is `true`, the requesting thread is released immediately after the send completes, and the reply is returned (and the flow continues) on the listener container thread.
+If `async` is `true`, the requesting thread is released immediately after the `send()` completes, and the reply is returned (and the flow continues) on the listener container thread.
 This can be useful when the gateway is invoked on a poller thread.
 The thread is released and is available for other tasks within the framework.
 
@@ -648,7 +648,7 @@ The following listing shows all the available attributes for an `outbound-gatewa
 </int-jms:outbound-gateway>
 ----
 
-<1> Reference to a `javax.jms.ConnectionFactory`.
+<1> Reference to a `jakarta.jms.ConnectionFactory`.
 The default `jmsConnectionFactory`.
 <2> The name of a property that contains correlation data to correlate responses with replies.
 If omitted, the gateway expects the responding system to return the value of the outbound `JMSMessageID` header in the `JMSCorrelationID` header.
@@ -877,7 +877,7 @@ Use `subscription` to name the subscription.
 [[jms-selectors]]
 === Using JMS Message Selectors
 
-With JMS message selectors, you can filter https://docs.oracle.com/javaee/6/api/javax/jms/Message.html[JMS Messages] based on JMS headers as well as JMS properties.
+With JMS message selectors, you can filter https://javadoc.io/doc/jakarta.jms/jakarta.jms-api/latest/jakarta/jms/Message.html[JMS Messages] based on JMS headers as well as JMS properties.
 For example, if you want to listen to messages whose custom JMS header property, `myHeaderProperty`, equals `something`, you can specify the following expression:
 
 ====

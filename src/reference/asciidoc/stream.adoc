@@ -2,14 +2,14 @@
 == Stream Support
 
 In many cases, application data is obtained from a stream.
-It is not recommended to send a reference to a stream as a message payload to a consumer.
+It is not recommended sending a reference to a stream as a message payload to a consumer.
 Instead, messages are created from data that is read from an input stream, and message payloads are written to an output stream one by one.
 
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -17,9 +17,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-stream:{project-version}"
 ----
@@ -33,7 +32,7 @@ Both `ByteStreamReadingMessageSource` and `CharacterStreamReadingMessageSource` 
 By configuring one of these within a channel-adapter element, the polling period can be configured and the message bus can automatically detect and schedule them.
 The byte stream version requires an `InputStream`, and the character stream version requires a `Reader` as the single constructor argument.
 The `ByteStreamReadingMessageSource` also accepts the 'bytesPerMessage' property to determine how many bytes it tries to read into each `Message`.
-The default value is 1024.
+The default value is `1024`.
 The following example creates an input stream that creates messages that each contain 2048 bytes:
 
 ====

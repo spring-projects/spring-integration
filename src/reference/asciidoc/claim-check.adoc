@@ -162,7 +162,7 @@ Optional.
 
 Sometimes, a particular message must be claimed only once.
 As an analogy, consider process of handling airplane luggage.
-You checking in your luggage on departure and claiming it on arrival.
+You're checking in your luggage on departure and claiming it on arrival.
 Once the luggage has been claimed, it can not be claimed again without first checking it back in.
 To accommodate such cases, we introduced a `remove-message` boolean attribute on the `claim-check-out` transformer.
 This attribute is set to `false` by default.

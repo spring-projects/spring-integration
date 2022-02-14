@@ -6,8 +6,8 @@ Spring Integration provides channel Adapters for receiving and publishing JMX No
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,9 +15,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-jmx:{project-version}"
 ----
@@ -129,7 +128,7 @@ Alternatively, you can provide a fallback `default-notification-type` attribute 
 ==== Attribute-polling Channel Adapter
 
 The attribute-polling channel adapter is useful when you need to periodically check on some value that is available through an MBean as a managed attribute.
-You can configured the poller in the same way as any other polling adapter in Spring Integration (or you can rely on the default poller).
+You can configure the poller in the same way as any other polling adapter in Spring Integration (or you can rely on the default poller).
 The `object-name` and the `attribute-name` are required.
 An MBeanServer reference is also required.
 However, by default, it automatically checks for a bean named `mbeanServer`, same as the notification-listening channel adapter <<jmx-notification-listening-channel-adapter,described earlier>>.
@@ -155,7 +154,7 @@ By default, the MBeans are mapped to primitives and simple objects, such as `Map
 Doing so permits simple transformation to (for example) JSON.
 An MBeanServer reference is also required.
 However, by default, it automatically checks for a bean named `mbeanServer`, same as the notification-listening channel adapter <<jmx-notification-listening-channel-adapter,described earlier>>.
-The following example shows how to configure an tree-polling channel adapter with XML:
+The following example shows how to configure a tree-polling channel adapter with XML:
 
 ====
 [source,xml]
@@ -168,7 +167,7 @@ The following example shows how to configure an tree-polling channel adapter wit
 ----
 ====
 
-The preceding example includes all of the attributes on the selected MBeans.
+The preceding example includes all the attributes on the selected MBeans.
 You can filter the attributes by providing an `MBeanObjectConverter` that has an appropriate filter configured.
 You can provide the converter as a reference to a bean definition by using the `converter` attribute, or you can use an inner `<bean/>` definition.
 Spring Integration provides a `DefaultMBeanObjectConverter` that can take a `MBeanAttributeFilter` in its constructor argument.
@@ -275,9 +274,7 @@ public class ContextConfiguration {
 ----
 ====
 
-If you need to provide more options or have several `IntegrationMBeanExporter` beans (such as
-for different MBean Servers or to avoid conflicts with the standard Spring `MBeanExporter` -- such as through
-`@EnableMBeanExport`), you can configure an `IntegrationMBeanExporter` as a generic bean.
+If you need to provide more options or have several `IntegrationMBeanExporter` beans (such as for different MBean Servers or to avoid conflicts with the standard Spring `MBeanExporter` -- such as through `@EnableMBeanExport`), you can configure an `IntegrationMBeanExporter` as a generic bean.
 
 [[jmx-mbean-features]]
 ===== MBean Object Names
@@ -355,7 +352,7 @@ The exporter propagates the `default-domain` to that object to let it generate a
 If your custom naming strategy is a `MetadataNamingStrategy` (or a subclass of it), the exporter does not propagate the `default-domain`.
 You must configure it on your strategy bean.
 
-Starting with version 5.1; any bean names (represented by the `name` key in the object name) will be quoted if they contain any characters that are not allowed in a Java identifier (or period `.`).
+Starting with version 5.1, any bean names (represented by the `name` key in the object name) will be quoted if they contain any characters that are not allowed in a Java identifier (or period `.`).
 
 [[jmx-42-improvements]]
 ===== JMX Improvements

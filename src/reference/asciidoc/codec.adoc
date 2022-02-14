@@ -94,9 +94,9 @@ For an example, see the https://github.com/spring-projects/spring-integration/bl
 
 ====== Implementing KryoSerializable
 
-If you have write access to the domain object source code, you can implement `KryoSerializable` as described https://github.com/EsotericSoftware/kryo#kryoserializable[here].
+If you have `write` access to the domain object source code, you can implement `KryoSerializable` as described https://github.com/EsotericSoftware/kryo#kryoserializable[here].
 In this case, the class provides the serialization methods itself and no further configuration is required.
-However benchmarks have shown this is not quite as efficient as registering a custom serializer explicitly.
+However, benchmarks have shown this is not quite as efficient as registering a custom serializer explicitly.
 The following example shows a custom Kryo serializer:
 
 ====
@@ -138,5 +138,5 @@ public class SomeClass {
 ----
 ====
 
-If you have write access to the domain object, this may be a simpler way to specify a custom serializer.
+If you have `write` access to the domain object, this may be a simpler way to specify a custom serializer.
 Note that this does not register the class with an ID, which may make the technique unhelpful for certain situations.

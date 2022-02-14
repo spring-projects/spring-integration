@@ -46,7 +46,7 @@ However, you can provide a reference to an instance of your own implementation o
 
 You may have a use case where you need to further filter the collection of resources resolved by the `ResourcePatternResolver`.
 For example, you may want to prevent resources that were already resolved from appearing in a collection of resolved resources ever again.
-On the other hand, your resources might be updated rather often and you _do_ want them to be picked up again.
+On the other hand, your resources might be updated rather often, and you _do_ want them to be picked up again.
 In other words, both defining an additional filter and disabling filtering altogether are valid use cases.
 You can provide your own implementation of the `org.springframework.integration.util.CollectionFilter` strategy interface, as the following example shows:
 

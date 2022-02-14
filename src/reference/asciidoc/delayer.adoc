@@ -81,8 +81,7 @@ For any message that has a delay of `0` (or less), the message is sent immediate
 NOTE: The XML parser uses a message group ID of `<beanName>.messageGroupId`.
 
 TIP: The delay handler supports expression evaluation results that represent an interval in milliseconds (any `Object` whose `toString()` method produces a value that can be parsed into a `Long`) as well as `java.util.Date` instances representing an absolute time.
-In the first case, the milliseconds are counted from the current time (for example
-a value of `5000` would delay the message for at least five seconds from the time it is received by the delayer).
+In the first case, the milliseconds are counted from the current time (for example a value of `5000` would delay the message for at least five seconds from the time it is received by the delayer).
 With a `Date` instance, the message is not released until the time represented by that `Date` object.
 A value that equates to a non-positive delay or a Date in the past results in no delay.
 Instead, it is sent directly to the output channel on the original sender's thread.
@@ -112,7 +111,7 @@ The second results in something similar to the following:
 ----
 ====
 
-Consequently, if there is a possibility of the header being omitted and you want to fall back to the default delay, it is generally more efficient (and recommended) to use the indexer syntax instead of dot property accessor syntax, because detecting the null is faster than catching an exception.
+Consequently, if there is a possibility of the header being omitted and you want to fall back to the default delay, it is generally more efficient (and recommended) using the indexer syntax instead of dot property accessor syntax, because detecting the null is faster than catching an exception.
 =====
 
 The delayer delegates to an instance of Spring's `TaskScheduler` abstraction.

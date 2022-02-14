@@ -50,7 +50,7 @@ public interface WebSocketGateway {
 [[web-socket-overview]]
 === Overview
 
-Since the WebSocket protocol is streaming by definition and we can send and receive messages to and from a WebSocket at the same time, we can deal with an appropriate `WebSocketSession`, regardless of being on the client or server side.
+Since the WebSocket protocol is streaming by definition, and we can send and receive messages to and from a WebSocket at the same time, we can deal with an appropriate `WebSocketSession`, regardless of being on the client or server side.
 To encapsulate the connection management and `WebSocketSession` registry, the `IntegrationWebSocketContainer` is provided with `ClientWebSocketContainer` and `ServerWebSocketContainer` implementations.
 Thanks to the https://www.jcp.org/en/jsr/detail?id=356[WebSocket API] and its implementation in the Spring Framework (with many extensions), the same classes are used on the server side as well as the client side (from a Java perspective, of course).
 Consequently, most connection and `WebSocketSession` registry options are the same on both sides.
@@ -95,7 +95,7 @@ You must supply it with a `IntegrationWebSocketContainer`, and the adapter regis
 
 NOTE: Only one `WebSocketListener` can be registered in the `IntegrationWebSocketContainer`.
 
-For WebSocket subprotocols, the `WebSocketInboundChannelAdapter` can be configured with `SubProtocolHandlerRegistry` as the second constructor argument.
+For WebSocket sub-protocols, the `WebSocketInboundChannelAdapter` can be configured with `SubProtocolHandlerRegistry` as the second constructor argument.
 The adapter delegates to the `SubProtocolHandlerRegistry` to determine the appropriate `SubProtocolHandler` for the accepted `WebSocketSession` and to convert a `WebSocketMessage` to a `Message` according to the sub-protocol implementation.
 
 NOTE: By default, the `WebSocketInboundChannelAdapter` relies only on the raw `PassThruSubProtocolHandler` implementation, which converts the `WebSocketMessage` to a `Message`.

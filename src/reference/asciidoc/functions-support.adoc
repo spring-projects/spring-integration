@@ -84,7 +84,7 @@ public Supplier<String> pojoSupplier() {
 ====
 
 With the Java DSL we just need to use a reference to the function bean in the endpoint definitions.
-Meanwhile an implementation of the `Supplier` interface can be used as regular `MessageSource` definition:
+Meanwhile, an implementation of the `Supplier` interface can be used as regular `MessageSource` definition:
 
 ====
 [source, java]
@@ -114,7 +114,7 @@ This function support is useful when used together with the https://cloud.spring
 [[kotlin-functions-support]]
 ==== Kotlin Lambdas
 
-The Framework also has been improved to support Kotlin lambdas for functions so now you can use a combination of the Kotlin language and Spring Integration flow definitions:
+The Framework also has been improved to support Kotlin lambdas for functions, so now you can use a combination of the Kotlin language and Spring Integration flow definitions:
 
 ====
 [source, java]

@@ -151,7 +151,7 @@ What if we wish to take some action depending on the result of the `receive` par
 Version 5.3 introduced the `ReceiveMessageAdvice` interface.
 (The `AbstractMessageSourceAdvice` has been deprecated in favor of `default` methods in the `MessageSourceMutator`.)
 Any `Advice` objects in the `advice-chain` that implement this interface are applied only to the receive operation - `MessageSource.receive()` and `PollableChannel.receive(timeout)`.
-Therefore they can be applied only for the `SourcePollingChannelAdapter` or `PollingConsumer`.
+Therefore, they can be applied only for the `SourcePollingChannelAdapter` or `PollingConsumer`.
 Such classes implement the following methods:
 
 * `beforeReceive(Object source)`
@@ -167,8 +167,8 @@ You can even return a different message
 .Thread safety
 [IMPORTANT]
 ====
-If an advice mutates the, you should not configure the poller with a `TaskExecutor`.
-If an advice mutates the source, such mutations are not thread safe and could cause unexpected results, especially with high frequency pollers.
+If an `Advice` mutates the source, you should not configure the poller with a `TaskExecutor`.
+If an `Advice` mutates the source, such mutations are not thread safe and could cause unexpected results, especially with high frequency pollers.
 If you need to process poll results concurrently, consider using a downstream `ExecutorChannel` instead of adding an executor to the poller.
 ====
 

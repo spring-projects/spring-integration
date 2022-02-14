@@ -13,8 +13,8 @@ It also provides convenient namespace configuration to define these client compo
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -22,9 +22,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-sftp:{project-version}"
 ----
@@ -162,18 +161,15 @@ If `false`, a pre-populated `knownHosts` file is required.
 `userInfo`::Set a custom `UserInfo` to be used during authentication.
 In particular, `promptYesNo()` is invoked when an unknown (or changed) host key is received.
 See also <<sftp-unk-keys,`allowUnknownKeys`>>.
-When you provide a `UserInfo`, the `password` and private key `passphrase` are obtained from it, and you cannot set discrete
-`password` and `privateKeyPassphrase` properties.
+When you provide a `UserInfo`, the `password` and private key `passphrase` are obtained from it, and you cannot set discrete `password` and `privateKeyPassphrase` properties.
 
 [[sftp-proxy-factory-bean]]
 === Proxy Factory Bean
 
 `Jsch` provides a mechanism to connect to the server over an HTTP or SOCKS proxy.
-To use this feature, configure the `Proxy` and provide a reference to the `DefaultSftpSessionFactory`, as discussed
-earlier.
+To use this feature, configure the `Proxy` and provide a reference to the `DefaultSftpSessionFactory`, as discussed earlier.
 Three implementations are provided by `Jsch`: `HTTP`, `SOCKS4`, and `SOCKS5`.
-Spring Integration 4.3 introduced a `FactoryBean`, easing configuration of these proxies by allowing property
-injection, as the following example shows:
+Spring Integration 4.3 introduced a `FactoryBean`, easing configuration of these proxies by allowing property injection, as the following example shows:
 
 ====
 [source, xml]
@@ -198,8 +194,7 @@ injection, as the following example shows:
 [[sftp-dsf]]
 === Delegating Session Factory
 
-Version 4.2 introduced the `DelegatingSessionFactory`, which allows the selection of the actual session factory at
-runtime.
+Version 4.2 introduced the `DelegatingSessionFactory`, which allows the selection of the actual session factory at runtime.
 Prior to invoking the SFTP endpoint, you can call `setThreadKey()` on the factory to associate a key with the current thread.
 That key is then used to look up the actual session factory to be used.
 You can clear the key by calling `clearThreadKey()` after use.
@@ -345,8 +340,7 @@ Starting with Spring Integration 3.0, you can specify the `preserve-timestamp` a
 When `true`, the local file's modified timestamp is set to the value retrieved from the server.
 Otherwise, it is set to the current time.
 
-Starting with version 4.2, you can specify `remote-directory-expression` instead of `remote-directory`, which lets
-you dynamically determine the directory on each poll -- for example, `remote-directory-expression="@myBean.determineRemoteDir()"`.
+Starting with version 4.2, you can specify `remote-directory-expression` instead of `remote-directory`, which lets you dynamically determine the directory on each poll -- for example, `remote-directory-expression="@myBean.determineRemoteDir()"`.
 
 Sometimes, file filtering based on the simple pattern specified via `filename-pattern` attribute might not suffice.
 If this is the case, you can use the `filename-regex` attribute to specify a regular expression (for example, `filename-regex=".*\.test$"`).
@@ -397,7 +391,7 @@ Once the file has been transferred to a local directory, a message with `java.io
 ==== More on File Filtering and Large Files
 
 Sometimes, a file that just appeared in the monitored (remote) directory is not complete.
-Typically such a file is written with some temporary extension (such as `.writing` on a file named `something.txt.writing`) and then renamed after the writing process completes.
+Typically, such a file is written with some temporary extension (such as `.writing` on a file named `something.txt.writing`) and then renamed after the writing process completes.
 In most cases, developers are interested only in files that are complete and would like to filter only those files.
 To handle these scenarios, you can use the filtering support provided by the `filename-pattern`, `filename-regex`, and `filter` attributes.
 If you need a custom filter implementation, you can include a reference in your adapter by setting the `filter` attribute.
@@ -424,20 +418,17 @@ The following example shows how to do so:
 You should understand the architecture of the adapter.
 A file synchronizer fetches the files, and a `FileReadingMessageSource` emits a message for each synchronized file.
 As <<sftp-inbound,discussed earlier>>, two filters are involved.
-The `filter` attribute (and patterns) refers to the remote (SFTP) file list, to avoid fetching files that have already
-been fetched.
+The `filter` attribute (and patterns) refers to the remote (SFTP) file list, to avoid fetching files that have already been fetched.
 the `FileReadingMessageSource` uses the `local-filter` to determine which files are to be sent as messages.
 
 The synchronizer lists the remote files and consults its filter.
 The files are then transferred.
-If an IO error occurs during file transfer, any files that have already been added to the filter are removed so that they
-are eligible to be re-fetched on the next poll.
+If an IO error occurs during file transfer, any files that have already been added to the filter are removed so that they are eligible to be re-fetched on the next poll.
 This applies only if the filter implements `ReversibleFileListFilter` (such as the `AcceptOnceFileListFilter`).
 
 If, after synchronizing the files, an error occurs on the downstream flow processing a file, no automatic rollback of the filter occurs, so the failed file is not reprocessed by default.
 
-If you wish to reprocess such files after a failure, you can use a configuration similar to the following to facilitate
-the removal of the failed file from the filter:
+If you wish to reprocess such files after a failure, you can use a configuration similar to the following to facilitate the removal of the failed file from the filter:
 
 ====
 [source, xml]
@@ -852,7 +843,7 @@ As with many other components in Spring Integration, you can use the Spring Expr
 The expression evaluation context has the message as its root object, which lets you use expressions that can dynamically compute the file name or the existing directory path based on the data in the message (from either the 'payload' or the 'headers').
 In the preceding example, we define the `remote-filename-generator-expression` attribute with an expression value that computes the file name based on its original name while also appending a suffix: '-mysuffix'.
 
-Starting with version 4.1, you can specify the `mode` when you transferring the file.
+Starting with version 4.1, you can specify the `mode` when you are transferring the file.
 By default, an existing file is overwritten.
 The modes are defined by the `FileExistsMode` enumeration, which includes the following values:
 
@@ -1037,8 +1028,7 @@ The `file_remoteDirectory` header holds the remote directory, and the `file_remo
 
 The message payload resulting from a `get` operation is a `File` object representing the retrieved file.
 If you use the `-stream` option, the payload is an `InputStream` rather than a `File`.
-For text files, a common use case is to combine this operation with a <<./file.adoc#file-splitter,file splitter>> or a
-<<./transformer.adoc#stream-transformer,stream transformer>>.
+For text files, a common use case is to combine this operation with a <<./file.adoc#file-splitter,file splitter>> or a <<./transformer.adoc#stream-transformer,stream transformer>>.
 When consuming remote files as streams, you are responsible for closing the `Session` after the stream is consumed.
 For convenience, the `Session` is provided in the `closeableResource` header, and `IntegrationMessageHeaderAccessor` offers convenience method:
 
@@ -1052,8 +1042,7 @@ if (closeable != null) {
 ----
 ====
 
-Framework components, such as the <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>>,
-automatically close the session after the data is transferred.
+Framework components, such as the <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>>, automatically close the session after the data is transferred.
 
 The following example shows how to consume a file as a stream:
 
@@ -1414,7 +1403,7 @@ When configuring with Java, the `SftpOutboundGateway` class offers different con
 
 The `ApacheMinaSftpEventListener`, added in version 5.2, listens for certain Apache Mina SFTP server events and publishes them as `ApplicationEvent` s which can be received by any `ApplicationListener` bean, `@EventListener` bean method, or <<./event.adoc#appevent-inbound, Event Inbound Channel Adapter>>.
 
-Currently supported events are:
+Currently, supported events are:
 
 * `SessionOpenedEvent` - a client session was opened
 * `DirectoryCreatedEvent` - a directory was created
@@ -1468,5 +1457,5 @@ Since the `SftpInboundFileSynchronizingMessageSource` doesn't produce messages a
 This metadata is retrieved by the `SftpInboundFileSynchronizingMessageSource` when local file is polled.
 When local file is deleted, it is recommended to remove its metadata entry.
 The `AbstractInboundFileSynchronizer` provides a `removeRemoteFileMetadata()` callback for this purpose.
-In addition there is a `setMetadataStorePrefix()` to be used in the metadata keys.
+In addition, there is a `setMetadataStorePrefix()` to be used in the metadata keys.
 It is recommended to have this prefix be different from the one used in the `MetadataStore`-based `FileListFilter` implementations, when the same `MetadataStore` instance is shared between these components, to avoid entry overriding because both filter and `AbstractInboundFileSynchronizer` use the same local file name for the metadata entry key.

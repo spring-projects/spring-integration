@@ -57,7 +57,7 @@ Note that custom functions are static methods.
 In the preceding example, the custom function is a static method called `calc` on a class called `MyFunctions` and takes a single parameter of type `MyThing`.
 
 Suppose you have a `Message` with a payload that has a type of `MyThing`.
-Further suppose that you need to perform some action to create an object called `MyObject` from `MyThing` and then invoke a custom function called `calc` on that object.
+Further, suppose that you need to perform some action to create an object called `MyObject` from `MyThing` and then invoke a custom function called `calc` on that object.
 
 The standard property accessors do not know how to get a `MyObject` from a `MyThing`, so you could write and configure a custom property accessor to do so.
 As a result, your final expression might be `"#barcalc(payload.myObject)"`.
@@ -154,7 +154,7 @@ The following listing shows some usage examples:
 `#jsonPath` also supports a third (optional) parameter: an array of https://github.com/json-path/JsonPath#filter-predicates[`com.jayway.jsonpath.Filter`], which can be provided by a reference to a bean or bean method (for example).
 +
 NOTE: Using this function requires the Jayway JsonPath library (`json-path.jar`) to be on the classpath.
-Otherwise the `#jsonPath` SpEL function is not registered.
+Otherwise, the `#jsonPath` SpEL function is not registered.
 +
 For more information regarding JSON see 'JSON Transformers' in <<./transformer.adoc#transformer,Transformer>>.
 

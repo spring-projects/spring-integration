@@ -75,7 +75,7 @@ The following list includes the common DSL method names and the associated EIP e
 Conceptually, integration processes are constructed by composing these endpoints into one or more message flows.
 Note that EIP does not formally define the term 'message flow', but it is useful to think of it as a unit of work that uses well known messaging patterns.
 The DSL provides an `IntegrationFlow` component to define a composition of channels and endpoints between them, but now `IntegrationFlow` plays only the configuration role to populate real beans in the application context and is not used at runtime.
-However the bean for `IntegrationFlow` can be autowired as a `Lifecycle` to control `start()` and `stop()` for the whole flow which is delegated to all the Spring Integration components associated with this `IntegrationFlow`.
+However, the bean for `IntegrationFlow` can be autowired as a `Lifecycle` to control `start()` and `stop()` for the whole flow which is delegated to all the Spring Integration components associated with this `IntegrationFlow`.
 The following example uses the `IntegrationFlows` factory to define an `IntegrationFlow` bean by using EIP-methods from `IntegrationFlowBuilder`:
 
 ====
@@ -145,7 +145,7 @@ Instead, use:
 ====
 The Java DSL can register beans for the object defined in-line in the flow definition, as well as can reuse existing, injected beans.
 In case of the same bean name defined for in-line object and existing bean definition, a `BeanDefinitionOverrideException` is thrown indicating that such a configuration is wrong.
-However when you deal with `prototype` beans, there is no way to detect from the integration flow processor an existing bean definition because every time we call a `prototype` bean from the `BeanFactory` we get a new instance.
+However, when you deal with `prototype` beans, there is no way to detect from the integration flow processor an existing bean definition because every time we call a `prototype` bean from the `BeanFactory` we get a new instance.
 This way a provided instance is used in the `IntegrationFlow` as is without any bean registration and any possible check against existing `prototype` bean definition.
 However `BeanFactory.initializeBean()` is called for this object if it has an explicit `id` and bean definition for this name is in `prototype` scope.
 ====
@@ -172,7 +172,7 @@ public MessageChannel priorityChannel() {
 The same `MessageChannels` builder factory can be used in the `channel()` EIP method from `IntegrationFlowBuilder` to wire endpoints, similar to wiring an `input-channel`/`output-channel` pair in the XML configuration.
 By default, endpoints are wired with `DirectChannel` instances where the bean name is based on the following pattern: `[IntegrationFlow.beanName].channel#[channelNameIndex]`.
 This rule is also applied for unnamed channels produced by inline `MessageChannels` builder factory usage.
-However all `MessageChannels` methods have a variant that is aware of the `channelId` that you can use to set the bean names for `MessageChannel` instances.
+However, all `MessageChannels` methods have a variant that is aware of the `channelId` that you can use to set the bean names for `MessageChannel` instances.
 The `MessageChannel` references and `beanName` can be used as bean-method invocations.
 The following example shows the possible ways to use the `channel()` EIP method:
 
@@ -329,7 +329,7 @@ public IntegrationFlow clientTcpFlow() {
 }
 ----
 
-That is they are not merged, only the `testAdvice()` bean is used in this case.
+They are not merged, only the `testAdvice()` bean is used in this case.
 
 [[java-dsl-transformers]]
 === Transformers
@@ -612,7 +612,7 @@ This operator has several overloads for different goals:
 - `gateway(IntegrationFlow flow)` to send a message to the input channel of the provided `IntegrationFlow`.
 
 All of these have a variant with the second `Consumer<GatewayEndpointSpec>` argument to configure the target `GatewayMessageHandler` and respective `AbstractEndpoint`.
-Also the `IntegrationFlow`-based methods allows calling existing `IntegrationFlow` bean or declare the flow as a sub-flow via an in-place lambda for an `IntegrationFlow` functional interface or have it extracted in a `private` method cleaner code style:
+Also, the `IntegrationFlow`-based methods allows calling existing `IntegrationFlow` bean or declare the flow as a sub-flow via an in-place lambda for an `IntegrationFlow` functional interface or have it extracted in a `private` method cleaner code style:
 
 ====
 [source,java]
@@ -825,7 +825,7 @@ You can achieve the same result with separate `IntegrationFlow` `@Bean` definiti
 We find that it results in shorter (and so more readable) code.
 
 Starting with version 5.3, a `BroadcastCapableChannel`-based `publishSubscribeChannel()` implementation is provided to configure sub-flow subscribers on broker-backed message channels.
-For example we now can configure several subscribers as sub-flows on the `Jms.publishSubscribeChannel()`:
+For example, we now can configure several subscribers as sub-flows on the `Jms.publishSubscribeChannel()`:
 
 ====
 [source,java]
@@ -953,7 +953,7 @@ With an inline subflow, the input channel is not yet available.
 [[java-dsl-protocol-adapters]]
 === Using Protocol Adapters
 
-All of the examples shown so far illustrate how the DSL supports a messaging architecture by using the Spring Integration programming model.
+All the examples shown so far illustrate how the DSL supports a messaging architecture by using the Spring Integration programming model.
 However, we have yet to do any real integration.
 Doing so requires access to remote resources over HTTP, JMS, AMQP, TCP, JDBC, FTP, SMTP, and so on or access to the local file system.
 Spring Integration supports all of these and more.
@@ -1184,7 +1184,7 @@ public void testTcpGateways() {
 
 This is useful when we have multiple configuration options and have to create several instances of similar flows.
 To do so, we can iterate our options and create and register `IntegrationFlow` instances within a loop.
-Another variant is when our source of data is not Spring-based and we must create it on the fly.
+Another variant is when our source of data is not Spring-based, so we must create it on the fly.
 Such a sample is Reactive Streams event source, as the following example shows:
 
 ====
@@ -1286,9 +1286,9 @@ You can mark the service interface with the `@MessagingGateway` annotation and m
 Nevertheless, the `requestChannel` is ignored and overridden with that internal channel for the next component in the `IntegrationFlow`.
 Otherwise, creating such a configuration by using `IntegrationFlow` does not make sense.
 
-By default a `GatewayProxyFactoryBean` gets a conventional bean name, such as `[FLOW_BEAN_NAME.gateway]`.
+By default, a `GatewayProxyFactoryBean` gets a conventional bean name, such as `[FLOW_BEAN_NAME.gateway]`.
 You can change that ID by using the `@MessagingGateway.name()` attribute or the overloaded `IntegrationFlows.from(Class<?> serviceInterface, Consumer<GatewayProxySpec> endpointConfigurer)` factory method.
-Also all the attributes from the `@MessagingGateway` annotation on the interface are applied to the target `GatewayProxyFactoryBean`.
+Also, all the attributes from the `@MessagingGateway` annotation on the interface are applied to the target `GatewayProxyFactoryBean`.
 When annotation configuration is not applicable, the `Consumer<GatewayProxySpec>` variant can be used for providing appropriate option for the target proxy.
 This DSL method is available starting with version 5.2.
 
@@ -1409,7 +1409,7 @@ IntegrationFlow compositionMainFlow(IntegrationFlow templateSourceFlow) {
 ----
 ====
 
-On the other hand,  the `IntegrationFlowDefinition` has added a `to(IntegrationFlow)` terminal operator to continue the current flow at the input channel of some other flow:
+On the other hand, the `IntegrationFlowDefinition` has added a `to(IntegrationFlow)` terminal operator to continue the current flow at the input channel of some other flow:
 
 ====
 [source,java]

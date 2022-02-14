@@ -27,7 +27,7 @@ To enable message history, you need only define the `message-history` element (o
 ----
 ====
 
-Now every named component (component that has an 'id' defined) is tracked.
+Now every named component (that has an 'id' defined) is tracked.
 The framework sets the 'history' header in your message.
 Its value a `List<Properties>`.
 
@@ -88,7 +88,7 @@ assertEquals("sampleChain", chainHistory.get("name"));
 ----
 ====
 
-You might not want to track all of the components.
+You might not want to track all the components.
 To limit the history to certain components based on their names, you can provide the `tracked-components` attribute and specify a comma-delimited list of component names and patterns that match the components you want to track.
 The following example shows how to do so:
 

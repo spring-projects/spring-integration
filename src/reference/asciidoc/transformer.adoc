@@ -255,7 +255,7 @@ Spring Integration provides namespace support for Map-to-Object, as the followin
 ----
 ====
 
-Alterately, you could use a `ref` attribute and a prototype-scoped bean, as the following example shows:
+Alternatively, you could use a `ref` attribute and a prototype-scoped bean, as the following example shows:
 [source,xml]
 ----
 <int:map-to-object-transformer input-channel="inputA" 
@@ -378,7 +378,7 @@ The following example shows how to do the same thing in XML
 ====
 Beginning with version 2.2, the `object-to-json-transformer` sets the `content-type` header to `application/json`, by default, if the input message does not already have that header.
 
-It you wish to set the `content-type` header to some other value or explicitly overwrite any existing header with some value (including `application/json`), use the `content-type` attribute.
+If you wish to set the `content-type` header to some other value or explicitly overwrite any existing header with some value (including `application/json`), use the `content-type` attribute.
 If you wish to suppress the setting of the header, set the `content-type` attribute to an empty string (`""`).
 Doing so results in a message with no `content-type` header, unless such a header was present on the input message.
 ====
@@ -422,11 +422,11 @@ See <<./spel.adoc#spel-property-accessors,Property Accessors>> for more informat
 Beginning with version 5.1, the `resultType` can be configured as `BYTES` to produce a message with the `byte[]` payload for convenience when working with downstream handlers which operate with this data type.
 
 Starting with version 5.2, the `JsonToObjectTransformer` can be configured with a `ResolvableType` to support generics during deserialization with the target JSON processor.
-Also this component now consults request message headers first for the presence of the `JsonHeaders.RESOLVABLE_TYPE` or `JsonHeaders.TYPE_ID` and falls back to the configured type otherwise.
+Also, this component now consults request message headers first for the presence of the `JsonHeaders.RESOLVABLE_TYPE` or `JsonHeaders.TYPE_ID` and falls back to the configured type otherwise.
 The `ObjectToJsonTransformer` now also populates a `JsonHeaders.RESOLVABLE_TYPE` header based on the request message payload for any possible downstream scenarios.
 
 Starting with version 5.2.6, the `JsonToObjectTransformer` can be supplied with a `valueTypeExpression` to resolve a `ResolvableType` for the payload to convert from JSON at runtime against the request message.
-By default it consults `JsonHeaders` in the request message.
+By default, it consults `JsonHeaders` in the request message.
 If this expression returns `null` or `ResolvableType` building throws a `ClassNotFoundException`, the transformer falls back to the provided `targetType`.
 This logic is present as an expression because `JsonHeaders` may not have real class values, but rather some type ids which have to be mapped to target classes according some external registry.
 

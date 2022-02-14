@@ -6,7 +6,7 @@ For example, you may want to connect a `PollableChannel` to a `SubscribableChann
 Instead, the messaging bridge provides the polling configuration.
 
 By providing an intermediary poller between two channels, you can use a messaging bridge to throttle inbound messages.
-The poller's trigger determines the rate at which messages arrive on the second channel, and the poller's `maxMessagesPerPoll` property enforces a limit on the throughput.
+The poller's trigger determines the rate at which messages arrive at the second channel, and the poller's `maxMessagesPerPoll` property enforces a limit on the throughput.
 
 Another valid use for a messaging bridge is to connect two different systems.
 In such a scenario, Spring Integration's role is limited to making the connection between these systems and managing a poller, if necessary.

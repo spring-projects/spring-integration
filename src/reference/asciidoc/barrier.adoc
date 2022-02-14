@@ -51,7 +51,7 @@ public BarrierMessageHandler barrier(MessageChannel out, MessageChannel lateTrig
 @ServiceActivator (inputChannel="release")
 @Bean
 public MessageHandler releaser(MessageTriggerAction barrier) {
-    return barrier::trigger(message);
+    return barrier::trigger;
 }
 ----
 [source, xml, role="secondary"]

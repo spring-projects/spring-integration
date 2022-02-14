@@ -1,13 +1,13 @@
 [[gemfire]]
-== Pivotal GemFire and Apache Geode Support
+== VMware Tanzu GemFire and Apache Geode Support
 
-Spring Integration provides support for Pivotal GemFire and Apache Geode.
+Spring Integration provides support for VMware Tanzu GemFire and Apache Geode.
 
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,22 +15,21 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-gemfire:{project-version}"
 ----
 ====
 
 GemFire is a distributed data management platform that provides a key-value data grid along with advanced distributed system features, such as event processing, continuous querying, and remote function execution.
-This guide assumes some familiarity with the commercial https://pivotal.io/pivotal-gemfire[Pivotal GemFire] or Open Source https://geode.apache.org[Apache Geode].
+This guide assumes some familiarity with the commercial https://tanzu.vmware.com/gemfire[VMware Tanzu GemFire] or Open Source https://geode.apache.org[Apache Geode].
 
 Spring integration provides support for GemFire by implementing inbound adapters for entry and continuous query events, an outbound adapter to write entries to the cache, and message and metadata stores and `GemfireLockRegistry` implementations.
-Spring integration leverages the https://projects.spring.io/spring-data-gemfire[Spring Data for Pivotal GemFire] project, providing a thin wrapper over its components.
+Spring integration leverages the https://projects.spring.io/spring-data-gemfire[Spring Data for VMware Tanzu GemFire] project, providing a thin wrapper over its components.
 
 Starting with version 5.1, the Spring Integration GemFire module uses the https://github.com/spring-projects/spring-data-geode[Spring Data for Apache Geode] transitive dependency by default.
-To switch to the commercial Pivotal GemFire-based Spring Data for Pivotal GemFire, exclude `spring-data-geode` from dependencies and add `spring-data-gemfire`, as the following Maven snippet shows:
+To switch to the commercial VMware Tanzu GemFire-based Spring Data for VMware Tanzu GemFire, exclude `spring-data-geode` from dependencies and add `spring-data-gemfire`, as the following Maven snippet shows:
 
 ====
 [source,xml]
@@ -114,7 +113,7 @@ The continuous query acts as an event source that fires whenever its result set 
 
 NOTE: GemFire queries are written in OQL and are scoped to the entire cache (not just one region).
 Additionally, continuous queries require a remote (that is, running in a separate process or remote host) cache server.
-See the https://gemfire82.docs.pivotal.io/docs-gemfire/gemfire_nativeclient/continuous-querying/continuous-querying.html[GemFire documentation] for more information on implementing continuous queries.
+See the https://gemfire82.docs.VMware Tanzu.io/docs-gemfire/gemfire_nativeclient/continuous-querying/continuous-querying.html[GemFire documentation] for more information on implementing continuous queries.
 
 The following configuration creates a GemFire client cache (recall that a remote cache server is required for this implementation and its address is configured as a child element of the pool), a client region, and a `ContinuousQueryListenerContainer` that uses Spring Data:
 

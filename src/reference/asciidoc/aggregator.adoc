@@ -127,7 +127,7 @@ See <<./splitter.adoc#splitter,Splitter>> for more information.
 
 [[agg-message-collection]]
 IMPORTANT: The `SimpleMessageGroup.getMessages()` method returns an `unmodifiableCollection`.
-Therefore, if your aggregating POJO method has a `Collection<Message>` parameter, the argument passed in is exactly that `Collection` instance and, when you use a `SimpleMessageStore` for the aggregator, that original `Collection<Message>` is cleared after releasing the group.
+Therefore, if an aggregating POJO method has a `Collection<Message>` parameter, the argument passed in is exactly that `Collection` instance and, when you use a `SimpleMessageStore` for the aggregator, that original `Collection<Message>` is cleared after releasing the group.
 Consequently, the `Collection<Message>` variable in the POJO is cleared too, if it is passed out of the aggregator.
 If you wish to simply release that collection as-is for further processing, you must build a new `Collection` (for example, `new ArrayList<Message>(messages)`).
 Starting with version 4.3, the framework no longer copies the messages to a new collection, to avoid undesired extra object creation.
@@ -195,7 +195,7 @@ public class MyReleaseStrategy {
 
 Based on the signatures in the preceding two examples, the POJO-based release strategy is passed a `Collection` of not-yet-released messages (if you need access to the whole `Message`) or a `Collection` of payload objects (if the type parameter is anything other than `Message`).
 This satisfies the majority of use cases.
-However if, for some reason, you need to access the full `MessageGroup`, you should provide an implementation of the `ReleaseStrategy` interface.
+However, if, for some reason, you need to access the full `MessageGroup`, you should provide an implementation of the `ReleaseStrategy` interface.
 
 [WARNING]
 =====
@@ -218,7 +218,7 @@ You can release partial sequences by using a `MessageGroupStoreReaper` together 
 IMPORTANT: To facilitate discarding of late-arriving messages, the aggregator must maintain state about the group after it has been released.
 This can eventually cause out-of-memory conditions.
 To avoid such situations, you should consider configuring a `MessageGroupStoreReaper` to remove the group metadata.
-The expiry parameters should be set to expire groups once a point has been reach after after which late messages are not expected to arrive.
+The expiry parameters should be set to expire groups once a point has been reach after which late messages are not expected to arrive.
 For information about configuring a reaper, see <<reaper>>.
 
 Spring Integration provides an implementation for `ReleaseStrategy`: `SimpleSequenceSizeReleaseStrategy`.
@@ -422,7 +422,7 @@ See <<./message-store.adoc#message-store,Message Store>> for more information.
 Optional.
 <8> Indicates that expired messages should be aggregated and sent to the 'output-channel' or 'replyChannel' once their containing `MessageGroup` is expired (see https://docs.spring.io/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html#expireMessageGroups-long[`MessageGroupStore.expireMessageGroups(long)`]).
 One way of expiring a `MessageGroup` is by configuring a `MessageGroupStoreReaper`.
-However you can alternatively expire `MessageGroup` by calling `MessageGroupStore.expireMessageGroups(timeout)`.
+However, you can alternatively expire `MessageGroup` by calling `MessageGroupStore.expireMessageGroups(timeout)`.
 You can accomplish that through a Control Bus operation or, if you have a reference to the `MessageGroupStore` instance, by invoking `expireMessageGroups(timeout)`.
 Otherwise, by itself, this attribute does nothing.
 It serves only as an indicator of whether to discard or send to the output or reply channel any messages that are still in the `MessageGroup` that is about to be expired.
@@ -433,7 +433,7 @@ Defaults to `-1`, which results in blocking indefinitely.
 It is applied only if the output channel has some 'sending' limitations, such as a `QueueChannel` with a fixed 'capacity'.
 In this case, a `MessageDeliveryException` is thrown.
 For `AbstractSubscribableChannel` implementations, the `send-timeout` is ignored .
-For `group-timeout(-expression)`, the `MessageDeliveryException` from the scheduled expire task leads this task to be rescheduled.
+For `group-timeout(-expression)`, the `MessageDeliveryException` from the scheduled expiring task leads this task to be rescheduled.
 Optional.
 <10> A reference to a bean that implements the message correlation (grouping) algorithm.
 The bean can be an implementation of the `CorrelationStrategy` interface or a POJO.
@@ -549,7 +549,7 @@ Such a periodic purge functionality is useful when a message store is needed to 
 In most cases this happens after an application restart, when using a persistent message group store.
 The functionality is similar to the `MessageGroupStoreReaper` with a scheduled task, but provides a convenient way to deal with old groups within specific components, when using group timeout instead of a reaper.
 The `MessageGroupStore` must be provided exclusively for the current correlation endpoint.
-Otherwise one aggregator may purge groups from another.
+Otherwise, one aggregator may purge groups from another.
 With the aggregator, groups expired using this technique will either be discarded or released as a partial group, depending on the `expireGroupsUponCompletion` property.
 =====
 
@@ -920,11 +920,11 @@ In version 5.2, the `FluxAggregatorMessageHandler` component has been introduced
 It is based on the Project Reactor `Flux.groupBy()` and `Flux.window()` operators.
 The incoming messages are emitted into the `FluxSink` initiated by the `Flux.create()` in the constructor of this component.
 If the `outputChannel` is not provided or it is not an instance of `ReactiveStreamsSubscribableChannel`, the subscription to the main `Flux` is done from the `Lifecycle.start()` implementation.
-Otherwise it is postponed to the subscription done by the `ReactiveStreamsSubscribableChannel` implementation.
+Otherwise, it is postponed to the subscription done by the `ReactiveStreamsSubscribableChannel` implementation.
 The messages are grouped by the `Flux.groupBy()` using a `CorrelationStrategy` for the group key.
 By default, the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header of the message is consulted.
 
-By default every closed window is released as a `Flux` in payload of a message to produce.
+By default, every closed window is released as a `Flux` in payload of a message to produce.
 This message contains all the headers from the first message in the window.
 This `Flux` in the output message payload must be subscribed and processed downstream.
 Such a logic can be customized (or superseded) by the `setCombineFunction(Function<Flux<Message<?>>, Mono<Message<?>>>)` configuration option of the `FluxAggregatorMessageHandler`.
@@ -948,8 +948,8 @@ There are several options in the `FluxAggregatorMessageHandler` to select an app
 See its JavaDocs for more information.
 Has a precedence over all other window options.
 * `setWindowSize(int)` and `setWindowSizeFunction(Function<Message<?>, Integer>)` - is propagated to the `Flux.window(int)` or `windowTimeout(int, Duration)`.
-By default a window size is calculated from the first message in group and its `IntegrationMessageHeaderAccessor.SEQUENCE_SIZE` header.
-* `setWindowTimespan(Duration)` - is propagated to the `Flux.window(Duration)` or `windowTimeout(int, Duration)` depending in the window size configuration.
+By default, a window size is calculated from the first message in group and its `IntegrationMessageHeaderAccessor.SEQUENCE_SIZE` header.
+* `setWindowTimespan(Duration)` - is propagated to the `Flux.window(Duration)` or `windowTimeout(int, Duration)` depending on the window size configuration.
 * `setWindowConfigurer(Function<Flux<Message<?>>, Flux<Flux<Message<?>>>>)` - a function to apply a transformation into the grouped fluxes for any custom window operation not covered by the exposed options.
 
 Since this component is a `MessageHandler` implementation it can simply be used as a `@Bean` definition together with a `@ServiceActivator` messaging annotation.

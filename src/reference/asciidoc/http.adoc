@@ -720,7 +720,7 @@ By default, the URL string is encoded (see https://docs.spring.io/spring/docs/cu
 In some scenarios with a non-standard URI (such as the RabbitMQ REST API), it is undesirable to perform the encoding.
 The `<http:outbound-gateway/>` and `<http:outbound-channel-adapter/>` provide an `encoding-mode` attribute.
 To disable encoding the URL, set this attribute to `NONE` (by default, it is `TEMPLATE_AND_VALUES`).
-If you wish to partially encode some of the URL, use an `expression` within a `<uri-variable/>`, as the following example shows:
+If you wish to partially encode some part of the URL, use an `expression` within a `<uri-variable/>`, as the following example shows:
 
 ====
 [source,xml]
@@ -861,7 +861,7 @@ For example, from the Java™ Platform, Standard Edition 6 API Specification on 
 
 [quote]
 Some non-standard implementation of this method may ignore the specified timeout.
-To see the connect timeout set, please call getConnectTimeout().
+To see the `connect timeout` set, please call getConnectTimeout().
 
 If you have specific needs, you should test your timeouts.
 Consider using the `HttpComponentsClientHttpRequestFactory`, which, in turn, uses https://hc.apache.org/httpcomponents-client-ga/[Apache HttpComponents HttpClient] rather than relying on implementations provided by a JVM.
@@ -975,7 +975,7 @@ However, if you do need further customization, you can provide additional config
 You can provide a comma-separated list of header names, and you can include simple patterns with the '*' character acting as a wildcard.
 Provide such values overrides the default behavior.
 Basically, it assumes you are in complete control at that point.
-However, if you do want to include all of the standard HTTP headers, you can use the shortcut patterns: `HTTP_REQUEST_HEADERS` and `HTTP_RESPONSE_HEADERS`.
+However, if you do want to include all the standard HTTP headers, you can use the shortcut patterns: `HTTP_REQUEST_HEADERS` and `HTTP_RESPONSE_HEADERS`.
 The following listing shows two examples (the first of which uses a wildcard):
 
 ====

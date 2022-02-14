@@ -7,8 +7,8 @@ Through those adapters, Spring Integration supports not only plain JDBC SQL quer
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,9 +16,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-jdbc:{project-version}"
 ----
@@ -200,7 +199,7 @@ By default, the message payload and headers are available as input parameters to
 ----
 ====
 
-In the preceding example, messages arriving on the channel labelled `input` have a payload of a map with a key of `something`, so the `[]` operator dereferences that value from the map.
+In the preceding example, messages arriving at the channel labelled `input` have a payload of a map with a key of `something`, so the `[]` operator dereferences that value from the map.
 The headers are also accessed as a map.
 
 NOTE: The parameters in the preceding query are bean property expressions on the incoming message (not SpEL expressions).
@@ -224,8 +223,7 @@ The following example uses a `ExpressionEvaluatingSqlParameterSourceFactory` to 
 [source,xml]
 ----
 <jdbc:outbound-channel-adapter data-source="dataSource" channel="input"
-    query="insert into MESSAGES (MESSAGE_ID,PAYLOAD,CREATED_DATE)     \
-    values (:id, :payload, :createdDate)"
+    query="insert into MESSAGES (MESSAGE_ID,PAYLOAD,CREATED_DATE) values (:id, :payload, :createdDate)"
     sql-parameter-source-factory="spelSource"/>
 
 <bean id="spelSource"
@@ -426,7 +424,7 @@ The table name prefix defaults to `INT_`.
 [[jdbc-message-store-channels]]
 ==== Backing Message Channels
 
-If you intend to backing message channels with JDBC, we recommend using the `JdbcChannelMessageStore` implementation.
+If you intend to back message channels with JDBC, we recommend using the `JdbcChannelMessageStore` implementation.
 It works only in conjunction with Message Channels.
 
 ===== Supported Databases
@@ -615,7 +613,7 @@ If you want to execute stored functions instead, the following databases are ful
 =====
 Even though your particular database may not be fully supported, chances are that you can use the stored procedure Spring Integration components quite successfully anyway, provided your RDBMS supports stored procedures or stored functions.
 
-As a matter of fact, some of the provided integration tests use the https://www.h2database.com/[H2 database].
+As a matter of fact, some provided integration tests use the https://www.h2database.com/[H2 database].
 Nevertheless, it is very important to thoroughly test those usage scenarios.
 =====
 
@@ -1077,13 +1075,13 @@ The `INT_` can be changed according to the target database design requirements.
 Therefore, you must use `prefix` property on the `DefaultLockRepository` bean definition.
 
 Sometimes, one application has moved to such a state that it cannot release the distributed lock and remove the particular record in the database.
-For this purpose, such dead locks can be expired by the other application on the next locking invocation.
+For this purpose, such dead-locks can be expired by the other application on the next locking invocation.
 The `timeToLive` (TTL) option on the `DefaultLockRepository` is provided for this purpose.
 You may also want to specify `CLIENT_ID` for the locks stored for a given `DefaultLockRepository` instance.
 If so, you can specify the `id` to be associated with the `DefaultLockRepository` as a constructor parameter.
 
 Starting with version 5.1.8, the `JdbcLockRegistry` can be configured with the `idleBetweenTries` - a `Duration` to sleep between lock record insert/update executions.
-By default it is `100` milliseconds and in some environments non-leaders pollute connections with data source too often.
+By default, it is `100` milliseconds and in some environments non-leaders pollute connections with data source too often.
 
 Starting with version 5.4, the `RenewableLockRegistry` interface has been introduced and added to `JdbcLockRegistry`.
 The `renewLock()` method must be called during locked process in case of the locked process would be longer than time to live of the lock.

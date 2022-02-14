@@ -8,7 +8,7 @@ Some things become more complicated in a loosely coupled environment, and one ex
 
 When sending a message to a channel, the component that ultimately handles that message may or may not be operating within the same thread as the sender.
 If using a simple default `DirectChannel` (when the `<channel>` element that has no `<queue>` child element and no 'task-executor' attribute), the message handling occurs in the same thread that sends the initial message.
-In that case, if an `Exception` is thrown, it can be caught by the sender (or it may propagate past the sender if it is an uncaught `RuntimeException`).
+In that case, if an `Exception` is thrown, it can be caught by the sender, or it may propagate past the sender if it is an uncaught `RuntimeException`.
 This is the same behavior as an exception-throwing operation in a normal Java call stack.
 
 A message flow that runs on a caller thread might be invoked through a messaging gateway (see <<./gateway.adoc#gateway,Messaging Gateways>>) or a `MessagingTemplate` (see <<./channel.adoc#channel-template,`MessagingTemplate`>>).

@@ -167,7 +167,7 @@ consumer.setTaskExecutor(taskExecutor);
 ====
 
 Furthermore, a `PollingConsumer` has a property called `adviceChain`.
-This property lets you to specify a `List` of AOP advices for handling additional cross cutting concerns including transactions.
+This property lets you to specify a `List` of AOP advices for handling additional cross-cutting concerns including transactions.
 These advices are applied around the `doPoll()` method.
 For more in-depth information, see the sections on AOP advice chains and transaction support under <<endpoint-namespace>>.
 
@@ -323,7 +323,6 @@ A single top-level poller component in XML DSL may have the `default` attribute 
 For Java configuration a `PollerMetadata` bean with the `PollerMetadata.DEFAULT_POLLER` name must be declared in this case.
 In that case, any endpoint with a `PollableChannel` for its input channel, that is defined within the same `ApplicationContext`, and has no explicitly configured `poller` uses that default.
 The following example shows such a poller and a transformer that uses it:
-
 
 ====
 [source, java, role="primary"]
@@ -635,7 +634,7 @@ By default, this converter provides (in strict order):
 . https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/converter/GenericMessageConverter.html[`GenericMessageConverter`]
 
 See the Javadoc (linked in the preceding list) for more information about their purpose and appropriate `contentType` values for conversion.
-The `ConfigurableCompositeMessageConverter` is used because it can be be supplied with any other `MessageConverter` implementations, including or excluding the previously mentioned default converters.
+The `ConfigurableCompositeMessageConverter` is used because it can be supplied with any other `MessageConverter` implementations, including or excluding the previously mentioned default converters.
 It can also be registered as an appropriate bean in the application context, overriding the default converter, as the following example shows:
 
 ====
@@ -851,7 +850,7 @@ An example of this is a file inbound channel adapter that is polling a shared di
 
 To participate in a leader election and be notified when elected leader, when leadership is revoked, or on failure to acquire the resources to become leader, an application creates a component in the application context called a "`leader initiator`".
 Normally, a leader initiator is a `SmartLifecycle`, so it starts (optionally) when the context starts and then publishes notifications when leadership changes.
-You can also receive failure notifications by setting the `publishFailedEvents` to `true` (starting with version 5.0), for cases when you want take a specific action if a failure occurs.
+You can also receive failure notifications by setting the `publishFailedEvents` to `true` (starting with version 5.0), for cases when you want to take a specific action if a failure occurs.
 By convention, you should provide a `Candidate` that receives the callbacks.
 You can also revoke the leadership through a `Context` object provided by the framework.
 Your code can also listen for `o.s.i.leader.event.AbstractLeaderEvent` instances (the super class of `OnGrantedEvent` and `OnRevokedEvent`) and respond accordingly (for instance, by using a `SmartLifecycleRoleController`).
@@ -890,6 +889,6 @@ public LockRegistryLeaderInitiator leaderInitiator(LockRegistry locks) {
 
 If the lock registry is implemented correctly, there is only ever at most one leader.
 If the lock registry also provides locks that throw exceptions (ideally, `InterruptedException`) when they expire or are broken, the duration of the leaderless periods can be as short as is allowed by the inherent latency in the lock implementation.
-By default, the `busyWaitMillis` property adds some additional latency to prevent CPU starvation in the (more usual) case that the locks are imperfect and you only know they expired when you try to obtain one again.
+By default, the `busyWaitMillis` property adds some additional latency to prevent CPU starvation in the (more usual) case that the locks are imperfect, and you only know they expired when you try to obtain one again.
 
 See <<./zookeeper.adoc#zk-leadership,Zookeeper Leadership Event Handling>> for more information about leadership election and events that use Zookeeper.

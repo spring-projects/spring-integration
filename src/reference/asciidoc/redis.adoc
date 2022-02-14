@@ -34,7 +34,7 @@ To download, install, and run Redis, see the https://redis.io/download[Redis doc
 To begin interacting with Redis, you first need to connect to it.
 Spring Integration uses support provided by another Spring project, https://github.com/SpringSource/spring-data-redis[Spring Data Redis], which provides typical Spring constructs: `ConnectionFactory` and `Template`.
 Those abstractions simplify integration with several Redis client Java APIs.
-Currently Spring Data Redis supports https://github.com/xetorthio/jedis[Jedis] and https://lettuce.io/[Lettuce].
+Currently, Spring Data Redis supports https://github.com/xetorthio/jedis[Jedis] and https://lettuce.io/[Lettuce].
 
 ==== Using `RedisConnectionFactory`
 
@@ -117,7 +117,7 @@ As with JMS and AMQP, Spring Integration provides message channels and adapters 
 ==== Redis Publish/Subscribe channel
 
 Similarly to JMS, there are cases where both the producer and consumer are intended to be part of the same application, running within the same process.
-You can accomplished this by using a pair of inbound and outbound channel adapters.
+You can accomplish this by using a pair of inbound and outbound channel adapters.
 However, as with Spring Integration's JMS support, there is a simpler way to address this use case.
 You can create a publish-subscribe channel, as the following example shows:
 
@@ -263,7 +263,7 @@ By default, the underlying `MessagePublishingErrorHandler` uses the default `err
 <8> The `RedisSerializer` bean reference.
 It can be an empty string, which means 'no serializer'.
 In this case, the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
-By default it is a `JdkSerializationRedisSerializer`.
+By default, it is a `JdkSerializationRedisSerializer`.
 <9> The timeout in milliseconds for 'pop' operation to wait for a Redis message from the queue.
 The default is 1 second.
 <10> The time in milliseconds for which the listener task should sleep after exceptions on the 'pop' operation, before restarting the listener task.
@@ -281,7 +281,7 @@ Since version 4.3.
 ====
 
 IMPORTANT: The `task-executor` has to be configured with more than one thread for processing; otherwise there is a possible deadlock when the `RedisQueueMessageDrivenEndpoint` tries to restart the listener task after an error.
-The `errorChannel` can be used to process those errors, to avoid restarts, but it preferable to not expose your application to the possible deadlock situation.
+The `errorChannel` can be used to process those errors, to avoid restarts, but it is preferable to not expose your application to the possible deadlock situation.
 See Spring Framework https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling-task-executor-types[Reference Manual] for possible `TaskExecutor` implementations.
 
 [[redis-queue-outbound-channel-adapter]]
@@ -515,7 +515,7 @@ Sometimes, you may need to change the value of the key at runtime based on some 
 To do so, use `key-expression` instead, where the provided expression can be any valid SpEL expression.
 
 Also, you may wish to perform some post-processing on the successfully processed data that was read from the Redis collection.
-For example, you may want to move or remove the value after its been processed.
+For example, you may want to move or remove the value after it has been processed.
 You can do so by using the transaction synchronization feature that was added with Spring Integration 2.2.
 The following example uses `key-expression` and transaction synchronization:
 
@@ -647,7 +647,7 @@ Mutually exclusive with the `arguments-strategy` attribute.
 If you provide neither attribute, the `payload` is used as the command arguments.
 The argument expressions can evaluate to 'null' to support a variable number of arguments.
 <10> A `boolean` flag to specify whether the evaluated Redis command string is made available as the `#cmd` variable in the expression evaluation context in the `o.s.i.redis.outbound.ExpressionArgumentsStrategy` when `argument-expressions` is configured.
-Otherwise this attribute is ignored.
+Otherwise, this attribute is ignored.
 <11> Reference to an instance of `o.s.i.redis.outbound.ArgumentsStrategy`.
 It is mutually exclusive with `argument-expressions` attribute.
 If you provide neither attribute, the `payload` is used as the command arguments.
@@ -755,7 +755,7 @@ It is mutually exclusive with 'redis-template' attribute.
 <8> The `RedisSerializer` bean reference.
 It can be an empty string, which means "`no serializer`".
 In this case, the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
-It default to a `JdkSerializationRedisSerializer`.
+It defaults to a `JdkSerializationRedisSerializer`.
 (Note that, in releases before version 4.3, it was a `StringRedisSerializer` by default.
 To restore that behavior, provide a reference to a `StringRedisSerializer`).
 <9> The timeout (in milliseconds) to wait until the receive message is fetched.
@@ -766,7 +766,7 @@ If this attribute is set to `true`, the `serializer` cannot be an empty string, 
 ====
 
 IMPORTANT: The `task-executor` has to be configured with more than one thread for processing; otherwise there is a possible deadlock when the `RedisQueueMessageDrivenEndpoint` tries to restart the listener task after an error.
-The `errorChannel` can be used to process those errors, to avoid restarts, but it preferable to not expose your application to the possible deadlock situation.
+The `errorChannel` can be used to process those errors, to avoid restarts, but it is preferable to not expose your application to the possible deadlock situation.
 See Spring Framework https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling-task-executor-types[Reference Manual] for possible `TaskExecutor` implementations.
 
 [[redis-stream-outbound]]
@@ -850,14 +850,14 @@ Reads message as `my-consumer` from group `my-group`.
 <9> Define the offset to read message.
 It defaults to `ReadOffset.latest()`.
 <10> If 'true', channel adapter will extract payload value from the `Record`.
-Otherwise the whole `Record` is used as a payload.
+Otherwise, the whole `Record` is used as a payload.
 It defaults to `true`.
 ====
 
 If the `autoAck` is set to `false`, the `Record` in Redis Stream is not acknowledge automatically by the Redis driver, instead an `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` header is added into a message to produce with a `SimpleAcknowledgment` instance as a value.
 It is a target integration flow responsibility to call its `acknowledge()` callback whenever the business logic is done for the message based on such a record.
 Similar logic is required even when an exception happens during deserialization and `errorChannel` is configured.
-So, target error handler must decided to ack or nack such a failed message.
+So, target error handler must decide to ack or nack such a failed message.
 Alongside with `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK`, the `ReactiveRedisStreamMessageProducer` also populates these headers into the message to produce: `RedisHeaders.STREAM_KEY`, `RedisHeaders.STREAM_MESSAGE_ID`, `RedisHeaders.CONSUMER_GROUP` and `RedisHeaders.CONSUMER`.
 
 Starting with version 5.5, you can configure `StreamReceiver.StreamReceiverOptionsBuilder` options explicitly on the `ReactiveRedisStreamMessageProducer`, including the newly introduced `onErrorResume` function, which is required if the Redis Stream consumer should continue polling when deserialization errors occur.

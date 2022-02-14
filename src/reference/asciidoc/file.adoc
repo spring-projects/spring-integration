@@ -669,8 +669,7 @@ To customize the suffix, you can set the `temporary-file-suffix` attribute on bo
 
 NOTE: When using the `APPEND` file `mode`, the `temporary-file-suffix` attribute is ignored, since the data is appended to the file directly.
 
-Starting with ,version 4.2.5, the generated file name (as a result of `filename-generator` or `filename-generator-expression`
-evaluation) can represent a child path together with the target file name.
+Starting with ,version 4.2.5, the generated file name (as a result of `filename-generator` or `filename-generator-expression` evaluation) can represent a child path together with the target file name.
 It is used as a second constructor argument for `File(File parent, String child)` as before.
 However, in the past we did not create (`mkdirs()`) directories for the child path, assuming only the file name.
 This approach is useful for cases when we need to restore the file system tree to match the source directory -- for example, when unzipping the archive and saving all the files in the target directory in the original order.
@@ -697,7 +696,7 @@ This attribute accepts a SpEL expression that is evaluated for each message bein
 Thus, you have full access to a message's payload and its headers when you dynamically specify the output file directory.
 
 The SpEL expression must resolve to either a `String`, `java.io.File` or `org.springframework.core.io.Resource`.
-(The later is evaluated into a `File` anyway.)
+(The latter is evaluated into a `File` anyway.)
 Furthermore, the resulting `String` or `File` must point to a directory.
 If you do not specify the `directory-expression` attribute, then you must set the `directory` attribute.
 

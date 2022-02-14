@@ -6,8 +6,8 @@ Spring Integration's JPA (Java Persistence API) module provides components for p
 You need to include this dependency into your project:
 
 ====
+[source, xml, subs="normal", role="primary"]
 .Maven
-[source, xml, subs="normal"]
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,9 +15,8 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
-
+[source, groovy, subs="normal", role="secondary"]
 .Gradle
-[source, groovy, subs="normal"]
 ----
 compile "org.springframework.integration:spring-integration-jpa:{project-version}"
 ----
@@ -60,12 +59,7 @@ The following sections describe each of these components in more detail.
 [[jpa-supported-persistence-providers]]
 === Supported Persistence Providers
 
-The Spring Integration JPA support has been tested against the following persistence providers:
-
-* Hibernate
-* EclipseLink
-
-When using a persistence provider, you should ensure that the provider is compatible with JPA 2.1.
+The Spring Integration JPA support has been tested against Hibernate persistence provider.
 
 [[jpa-java-implementation]]
 === Java Implementation
@@ -157,7 +151,7 @@ If you use the `jpa-operations` attribute, you must not provide the JPA entity m
 
 `entity-class`::
 The fully qualified name of the entity class.
-The exact semantics of this attribute vary, depending on whether we are performing a persist or update operation or whether we are retrieving objects from the database.
+The exact semantics of this attribute vary, depending on whether we are performing a `persist` or `update` operation or whether we are retrieving objects from the database.
 +
 When retrieving data, you can specify the `entity-class` attribute to indicate that you would like to retrieve objects of this type from the database.
 In that case, you must not define any of the query attributes (`jpa-query`, `native-query`, or `named-query`).
@@ -352,14 +346,14 @@ You must ensure that the component operates as part of a transaction.
 Otherwise, you may encounter an exception, such as: `java.lang.IllegalArgumentException: Removing a detached instance ...`.
 Optional.
 <4> A boolean flag that indicates whether the records can be deleted in bulk or must be deleted one record at a time.
-By default the value is `false` (that is, the records can be bulk-deleted).
+By default, the value is `false` (that is, the records can be bulk-deleted).
 Optional.
 <5> The fully qualified name of the entity class to be queried from the database.
 The adapter automatically builds a JPA Query based on the entity class name.
 Optional.
-<6> An instance of `javax.persistence.EntityManager` used to perform the JPA operations.
+<6> An instance of `jakarta.persistence.EntityManager` used to perform the JPA operations.
 Optional.
-<7> An instance of `javax.persistence.EntityManagerFactory` used to obtain an instance of `javax.persistence.EntityManager` that performs the JPA operations.
+<7> An instance of `jakarta.persistence.EntityManagerFactory` used to obtain an instance of `jakarta.persistence.EntityManager` that performs the JPA operations.
 Optional.
 <8> A boolean flag indicating whether the select operation is expected to return a single result or a `List` of results.
 If this flag is set to `true`, the single entity selected is sent as the payload of the message.
@@ -497,7 +491,7 @@ The default value is `MERGE`.
 
 These four attributes of the `outbound-channel-adapter` configure it to accept entities over the input channel and process them to `PERSIST`, `MERGE`, or `DELETE` the entities from the underlying data source.
 
-NOTE: As of Spring Integration 3.0, payloads to `PERSIST` or `MERGE` can also be of type `https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
+NOTE: As of Spring Integration 3.0, payloads to `PERSIST` or `MERGE` can also be of type `https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Iterable.html[java.lang.Iterable]`.
 In that case, each object returned by the `Iterable` is treated as an entity and persisted or merged using the underlying `EntityManager`.
 Null values returned by the iterator are ignored.
 
@@ -690,9 +684,9 @@ Optional.
 <3> The fully qualified name of the entity class for the JPA Operation.
 The `entity-class`, `query`, and `named-query` attributes are mutually exclusive.
 Optional.
-<4> An instance of `javax.persistence.EntityManager` used to perform the JPA operations.
+<4> An instance of `jakarta.persistence.EntityManager` used to perform the JPA operations.
 Optional.
-<5> An instance of `javax.persistence.EntityManagerFactory` used to obtain an instance of `javax.persistence.EntityManager`, which performs the JPA operations.
+<5> An instance of `jakarta.persistence.EntityManagerFactory` used to obtain an instance of `jakarta.persistence.EntityManager`, which performs the JPA operations.
 Optional.
 <6> An implementation of `org.springframework.integration.jpa.core.JpaOperations` used to perform the JPA operations.
 We recommend not providing an implementation of your own but using the default `org.springframework.integration.jpa.core.DefaultJpaOperations` implementation.
@@ -1163,7 +1157,7 @@ public class JpaJavaApplication {
 
 [IMPORTANT]
 ====
-When you choose to delete entities upon retrieval and you have retrieved a collection of entities, by default, entities are deleted on a per-entity basis.
+When you choose to delete entities upon retrieval, and you have retrieved a collection of entities, by default, entities are deleted on a per-entity basis.
 This may cause performance issues.
 
 Alternatively, you can set attribute `deleteInBatch` to `true`, which performs a batch delete.

@@ -67,7 +67,7 @@ The following example shows how to configure a filter that uses the `method` att
 
 ====
 If the selector or adapted POJO method returns `false`, a few settings  control the handling of the rejected message.
-By default (if configured as in the preceding example), rejected messages are silently dropped.
+By default, (if configured as in the preceding example) rejected messages are silently dropped.
 If rejection should instead result in an error condition, set the `throw-exception-on-rejection` attribute to `true`, as the following example shows:
 
 ====
@@ -91,7 +91,7 @@ If you want rejected messages to be routed to a specific channel, provide that r
 See also <<./handler-advice.adoc#advising-filters,Advising Filters>>.
 
 NOTE: Message filters are commonly used in conjunction with a publish-subscribe channel.
-Many filter endpoints may be subscribed to the same channel, and they decide whether or not to pass the message to the next endpoint, which could be any of the supported types (such as a service activator).
+Many filter endpoints may be subscribed to the same channel, and they decide whether to pass the message to the next endpoint, which could be any of the supported types (such as a service activator).
 This provides a reactive alternative to the more proactive approach of using a message router with a single point-to-point input channel and multiple output channels.
 
 We recommend using a `ref` attribute if the custom filter implementation is referenced in other `<filter>` definitions.
@@ -146,7 +146,7 @@ All of this is demonstrated in the following configuration example, where the ex
     <int:expression key="filterPatterns.example" source="myExpressions"/>
 </int:filter>
 
-<beans:bean id="myExpressions" id="myExpressions"
+<beans:bean id="myExpressions"
     class="o.s.i.expression.ReloadableResourceBundleExpressionSource">
     <beans:property name="basename" value="config/integration/expressions"/>
     <beans:property name="cacheSeconds" value="60"/>
@@ -191,7 +191,7 @@ public class PetFilter {
 It must be specified if this class is to be used as a filter.
 
 
-All of the configuration options provided by the XML element are also available for the `@Filter` annotation.
+All the configuration options provided by the XML element are also available for the `@Filter` annotation.
 
 The filter can be either referenced explicitly from XML or, if the `@MessageEndpoint` annotation is defined on the class, detected automatically through classpath scanning.
 

@@ -23,7 +23,7 @@ compile "org.springframework.integration:spring-integration-mail:{project-versio
 ----
 ====
 
-The `javax.mail:javax.mail-api` must be included via vendor-specific implementation.
+The `jakarta.mail:jakarta.mail-api` must be included via vendor-specific implementation.
 
 [[mail-outbound]]
 === Mail-sending Channel Adapter
@@ -50,7 +50,7 @@ In that case, a `MailMessage` is created with that `String` as the text content.
 If you work with a message payload type whose `toString()` method returns appropriate mail text content, consider adding Spring Integration's `ObjectToStringTransformer` prior to the outbound mail adapter (see the example in <<./transformer.adoc#transformer-namespace,Configuring a Transformer with XML>> for more detail).
 
 You can also configure the outbound `MailMessage` with certain values from `MessageHeaders`.
-If available, values are mapped to the outbound mail's properties, such as the recipients (To, Cc, and BCc), the from, the reply-to, and the subject.
+If available, values are mapped to the outbound mail's properties, such as the recipients (To, Cc, and BCc), the `from`, the `reply-to`, and the `subject`.
 The header names are defined by the following constants:
 
 ====
@@ -74,7 +74,7 @@ For example, if `MailMessage.to` is set to 'thing1@things.com' and the `MailHead
 Spring Integration also provides support for inbound email with the `MailReceivingMessageSource`.
 It delegates to a configured instance of Spring Integration's own `MailReceiver` interface.
 There are two implementations: `Pop3MailReceiver` and `ImapMailReceiver`.
-The easiest way to instantiate either of these is by passing the 'uri' for a mail store to the receiver's constructor, as the following example shows:
+The easiest way to instantiate either of these is bypassing the 'uri' for a mail store to the receiver's constructor, as the following example shows:
 
 ====
 [source,java]
@@ -110,10 +110,10 @@ With a simple `MimeMessage`, `getContent()` returns the mail body (`something` i
 Starting with version 2.2, the framework eagerly fetches IMAP messages and exposes them as an internal subclass of `MimeMessage`.
 This had the undesired side effect of changing the `getContent()` behavior.
 This inconsistency was further exacerbated by the <<mail-mapping, Mail Mapping>> enhancement introduced in version 4.3, because, when a header mapper was provided, the payload was rendered by the `IMAPMessage.getContent()` method.
-This meant that the IMAP content differed, depending on whether or not a header mapper was provided.
+This meant that the IMAP content differed, depending on whether a header mapper was provided.
 
 Starting with version 5.0, messages originating from an IMAP source render the content in accordance with `IMAPMessage.getContent()` behavior, regardless of whether a header mapper is provided.
-If you do not use a header mapper and you wish to revert to the previous behavior of rendering only the body, set the `simpleContent` boolean property on the mail receiver to `true`.
+If you do not use a header mapper, and you wish to revert to the previous behavior of rendering only the body, set the `simpleContent` boolean property on the mail receiver to `true`.
 This property now controls the rendering regardless of whether a header mapper is used.
 It now allows body-only rendering when a header mapper is provided.
 
@@ -138,7 +138,7 @@ The `close()` on the `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` heade
 Starting with version 5.4, it is possible now to return a `MimeMessage` as is without any conversion or eager content loading.
 This functionality is enabled with this combination of options: no `headerMapper` provided, the `simpleContent` property is `false` and the `autoCloseFolder` property is `false`.
 The `MimeMessage` is present as the payload of the Spring message produced.
-In this case, the only header populated is the above mentioned `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` for the folder which must be closed when processing of the `MimeMessage` is complete.
+In this case, the only header populated is the mentioned above `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` for the folder which must be closed when processing of the `MimeMessage` is complete.
 
 [[mail-mapping]]
 === Inbound Mail Message Mapping
@@ -168,7 +168,7 @@ Email contents are usually rendered by a `DataHandler` within the `MimeMessage`.
 
 For a `text/*` email, the payload is a `String` and the `contentType` header is the same as `mail_contentType`.
 
-For a messages with embedded `javax.mail.Part` instances, the `DataHandler` usually renders a `Part` object.
+For a messages with embedded `jakarta.mail.Part` instances, the `DataHandler` usually renders a `Part` object.
 These objects are not `Serializable` and are not suitable for serialization with alternative technologies such as `Kryo`.
 For this reason, by default, when mapping is enabled, such payloads are rendered as a raw `byte[]` containing the `Part` data.
 Examples of `Part` are `Message` and `Multipart`.
@@ -176,7 +176,7 @@ The `contentType` header is `application/octet-stream` in this case.
 To change this behavior and receive a `Multipart` object payload, set `embeddedPartsAsBytes` to `false` on `MailReceiver`.
 For content types that are unknown to the `DataHandler`, the contents are rendered as a `byte[]` with a `contentType` header of `application/octet-stream`.
 
-When you do not provide a header mapper, the message payload is the `MimeMessage` presented by `javax.mail`.
+When you do not provide a header mapper, the message payload is the `MimeMessage` presented by `jakarta.mail`.
 The framework provides a `MailToStringTransformer` that you can use to convert the message by using a strategy to convert the mail contents to a `String`:
 
 ====
@@ -216,7 +216,7 @@ If you wish to perform some other transformation on the message, consider subcla
 
 Starting with version 5.4, when no `headerMapper` is provided, `autoCloseFolder` is `false` and `simpleContent` is `false`, the `MimeMessage` is returned as-is in the payload of the Spring message produced.
 This way, the content of the `MimeMessage` is loaded on demand when referenced, later in the flow.
-All of the mentioned above transformations are still valid.
+All the mentioned above transformations are still valid.
 
 [[mail-namespace]]
 === Mail Namespace Support
@@ -259,7 +259,7 @@ Alternatively, you can provide the host, username, and password, as the followin
 ====
 
 Starting with version 5.1.3, the `host`, `username` ane `mail-sender` can be omitted, if `java-mail-properties` is provided.
-However the `host` and `username` has to be configured with appropriate Java mail properties, e.g. for SMTP:
+However, the `host` and `username` has to be configured with appropriate Java mail properties, e.g. for SMTP:
 
 ====
 [source]
@@ -375,7 +375,7 @@ public interface SearchTermStrategy {
 ----
 ====
 
-The following example relies `TestSearchTermStrategy` rather than the default `SearchTermStrategy`:
+The following example relies on `TestSearchTermStrategy` rather than the default `SearchTermStrategy`:
 
 ====
 [source,xml]
@@ -406,10 +406,10 @@ If not specified, the previous behavior is retained (peek is `true`).
 
 When using an IMAP `idle` channel adapter, connections to the server may be lost (for example, through network failure) and, since the JavaMail documentation explicitly states that the actual IMAP API is experimental, it is important to understand the differences in the API and how to deal with them when configuring IMAP `idle` adapters.
 Currently, Spring Integration mail adapters were tested with JavaMail 1.4.1 and JavaMail 1.4.3.
-Depending on which one is used, you must pay special attention to some of the JavaMail properties that need to be set with regard to auto-reconnect.
+Depending on which one is used, you must pay special attention to some JavaMail properties that need to be set with regard to auto-reconnect.
 
 NOTE: The following behavior was observed with Gmail but should provide you with some tips on how to solve re-connect issue with other providers.
-However feedback is always welcome.
+However, feedback is always welcome.
 Again, the following notes are based on Gmail.
 
 With JavaMail 1.4.1, if you set the `mail.imaps.timeout` property to a relatively short period of time (approximately 5 min in our testing), `IMAPFolder.idle()` throws `FolderClosedException` after this timeout.
@@ -419,7 +419,7 @@ However, if the connection was lost for a long period of time (over 10 min), `IM
 Consequently, the only way to make re-connecting work with JavaMail 1.4.1 is to set the `mail.imaps.timeout` property explicitly to some value, but it also means that such value should be relatively short (under 10 min) and the connection should be re-established relatively quickly.
 Again, it may be different with providers other than Gmail.
 With JavaMail 1.4.3 introduced significant improvements to the API, ensuring that there is always a condition that forces the `IMAPFolder.idle()` method to return  `StoreClosedException` or `FolderClosedException` or to simply return, thus letting you proceed with auto-reconnecting.
-Currently auto-reconnecting runs infinitely making attempts to reconnect every ten seconds.
+Currently, auto-reconnecting runs infinitely making attempts to reconnect every ten seconds.
 
 IMPORTANT: In both configurations, `channel` and `should-delete-messages` are required attributes.
 You should understand why `should-delete-messages` is required.
@@ -447,7 +447,7 @@ RFC 2177 recommends an interval no larger than 29 minutes.
 
 [IMPORTANT]
 =====
-You should understand that that these actions (marking messages read and deleting messages) are performed after the messages are received but before they are processed.
+You should understand that these actions (marking messages read and deleting messages) are performed after the messages are received but before they are processed.
 This can cause messages to be lost.
 
 You may wish to consider using transaction synchronization instead.
@@ -491,7 +491,7 @@ Spring Integration 2.0.4 introduced the `mail-filter-expression` attribute on `i
 This attribute lets you provide an expression that is a combination of SpEL and a regular expression.
 For example if you would like to read only emails that contain 'Spring Integration' in the subject line, you would configure the `mail-filter-expression` attribute like as follows: `mail-filter-expression="subject matches '(?i).*Spring Integration.*"`.
 
-Since `javax.mail.internet.MimeMessage` is the root context of the SpEL evaluation context, you can filter on any value available through `MimeMessage`, including the actual body of the message.
+Since `jakarta.mail.internet.MimeMessage` is the root context of the SpEL evaluation context, you can filter on any value available through `MimeMessage`, including the actual body of the message.
 This one is particularly important, since reading the body of the message typically results in such messages being marked as `SEEN` by default.
 However, since we now set the `PEEK` flag of every incoming message to 'true', only messages that were explicitly marked as `SEEN` are marked as read.
 
@@ -529,7 +529,7 @@ You can enable transaction synchronization by adding a `<transactional/>` elemen
 Even if there is no 'real' transaction involved, you can still enable this feature by using a `PseudoTransactionManager` with the `<transactional/>` element.
 For more information, see <<./transactions.adoc#transaction-synchronization,Transaction Synchronization>>.
 
-Because of the many different mail servers and specifically the limitations that some have, at this time we provide only a strategy for these transaction synchronizations.
+Because of the different mail servers and specifically the limitations that some have, at this time we provide only a strategy for these transaction synchronizations.
 You can send the messages to some other Spring Integration components or invoke a custom bean to perform some action.
 For example, to move an IMAP message to a different folder after the transaction commits, you might use something similar to the following:
 
@@ -593,7 +593,7 @@ IMPORTANT: For the message to be still available for manipulation after the tran
 [[mail-java-dsl-configuration]]
 === Configuring channel adapters with the Java DSL
 
-To configure mail mail component in Java DSL, the framework provides a `o.s.i.mail.dsl.Mail` factory, which can be used like this:
+To configure mail component in Java DSL, the framework provides a `o.s.i.mail.dsl.Mail` factory, which can be used like this:
 
 ====
 [source, java]

@@ -51,7 +51,7 @@ We greatly appreciate any effort toward improving the samples, including the sha
 [[samples-how-can-i-contribute]]
 ==== How Can I Contribute My Own Samples?
 
-Github is for social coding: if you want to submit your own code examples to the Spring Integration Samples project, we encourage contributions through https://help.github.com/en/articles/creating-a-pull-request/[pull requests] from https://help.github.com/en/articles/fork-a-repo[forks] of this repository.
+GitHub is for social coding: if you want to submit your own code examples to the Spring Integration Samples project, we encourage contributions through https://help.github.com/en/articles/creating-a-pull-request/[pull requests] from https://help.github.com/en/articles/fork-a-repo[forks] of this repository.
 If you want to contribute code this way, please reference, if possible, a https://github.com/spring-projects/spring-integration-samples/issues[GutHub issue] that provides some details regarding your sample.
 
 [IMPORTANT]
@@ -93,7 +93,7 @@ However, they differ in that some samples concentrate on a technical use case, w
 Also, some samples are about showcasing various techniques that could be applied to address certain scenarios (both technical and business).
 The new categorization of samples lets us better organize them based on the problem each sample addresses while giving you a simpler way of finding the right sample for your needs.
 
-Currently there are four categories.
+Currently, there are four categories.
 Within the samples repository, each category has its own directory, which is named after the category name:
 
 Basic (`samples/basic`)::
@@ -122,14 +122,14 @@ In other words, the emphasis of the samples in this category is business use cas
 For example, if you want to see how a loan broker or travel agent process could be implemented and automated with Spring Integration, this is the right place to find these types of samples.
 
 IMPORTANT: Spring Integration is a community-driven framework.
-Therefore community participation is IMPORTANT.
+Therefore, community participation is IMPORTANT.
 That includes samples.
 If you cannot find what you are looking for, let us know!
 
 [[samples-impl]]
 === Samples
 
-Currently, Spring Integration comes with quite a few samples and you can only expect more.
+Currently, Spring Integration comes with quite a few samples, and you can only expect more.
 To help you better navigate through them, each sample comes with its own `readme.txt` file which covers several details about the sample (for example, what EIP patterns it addresses, what problem it is trying to solve, how to run the sample, and other details).
 However, certain samples require a more detailed and sometimes graphical explanation.
 In this section, you can find details on samples that we believe require special attention.

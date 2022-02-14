@@ -6,7 +6,7 @@ It lets you use scripts written in any supported language (including Ruby, JRuby
 For more information about JSR223, see the https://docs.oracle.com/javase/8/docs/technotes/guides/scripting/prog_guide/api.html[documentation].
 
 NOTE: Starting with Java 11, the Nashorn JavaScript Engine has been deprecated with possible removal in Java 15.
-It is recommended to reconsider in favor of other scripting language from now on.
+It is recommended to reconsider it in favor of other scripting language from now on.
 
 You need to include this dependency into your project:
 
@@ -27,7 +27,7 @@ compile "org.springframework.integration:spring-integration-scripting:{project-v
 ----
 ====
 
-In addition you need to add a script engine implementation, e.g. JRuby, Jython.
+In addition, you need to add a script engine implementation, e.g. JRuby, Jython.
 
 Starting with version 5.2, Spring Integration provides a Kotlin Jsr223 support.
 You need to add these dependencies into your project to make it working:

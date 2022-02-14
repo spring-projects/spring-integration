@@ -236,5 +236,5 @@ Each of these works without requiring any source-level dependencies on Spring In
 The equivalent of an outbound gateway in this context is using a service activator (see <<./service-activator.adoc#service-activator,Service Activator>>) to invoke a method that returns an `Object` of some kind.
 
 Starting with version `5.2.2`, all the inbound gateways can be configured with an `errorOnTimeout` boolean flag to throw a `MessageTimeoutException` when the downstream flow doesn't return a reply during the reply timeout.
-The timer is not started until the thread returns control to the gateway, so usually it is only useful when the downstream flow is asynchronous or it stops because of a `null` return from some handler, e.g. <<./filter.adoc#filter,filter>>.
+The timer is not started until the thread returns control to the gateway, so usually it is only useful when the downstream flow is asynchronous, or it stops because of a `null` return from some handler, e.g. <<./filter.adoc#filter,filter>>.
 Such an exception can be handled on the `errorChannel` flow, e.g. producing a compensation reply for requesting client.
