@@ -177,7 +177,7 @@ public class CustomReactiveMessageProducer extends MessageProducerSupport {
 
     @Override
     protected void doStart() {
-        Flux<Message<<?>> messageFlux =
+        Flux<Message<?>> messageFlux =
             this.customReactiveSource
                 .map(event - >
                     MessageBuilder
