@@ -1,0 +1,20 @@
+type Query {
+    testQuery: QueryResult
+    testQueryById(id: String): QueryResult
+}
+
+type Mutation {
+    update(id: String!): Update!
+}
+
+type Subscription {
+    results: QueryResult
+}
+
+type QueryResult {
+    id: String
+}
+
+type Update {
+    id: String
+}
