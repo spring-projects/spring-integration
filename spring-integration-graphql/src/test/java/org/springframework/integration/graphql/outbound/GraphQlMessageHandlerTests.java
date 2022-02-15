@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2021-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.graphql.GraphQlService;
 import org.springframework.graphql.RequestInput;
+import org.springframework.graphql.RequestOutput;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
@@ -54,9 +56,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.util.AlternativeJdkIdGenerator;
+import org.springframework.util.IdGenerator;
 
-import graphql.ExecutionResult;
-import graphql.ExecutionResultImpl;
 import graphql.execution.reactive.SubscriptionPublisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -86,17 +88,26 @@ public class GraphQlMessageHandlerTests {
 	@Autowired
 	private UpdateRepository updateRepository;
 
+	@Autowired
+	private IdGenerator idGenerator;
+
+
 	@Test
 	@SuppressWarnings("unchecked")
 	void testHandleMessageForQueryWithRequestInputProvided() {
 
+		Locale locale = Locale.getDefault();
+		String executionId = this.idGenerator.generateId().toString();
+		this.graphQlMessageHandler.setLocale(locale);
+		this.graphQlMessageHandler.setExecutionId(executionId);
+
 		StepVerifier verifier = StepVerifier.create(
 				Flux.from(this.resultChannel)
 						.map(Message::getPayload)
-						.cast(ExecutionResult.class)
+						.cast(RequestOutput.class)
 				)
 				.consumeNextWith(result -> {
-					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
+					assertThat(result).isInstanceOf(RequestOutput.class);
 					Map<String, Object> data = result.getData();
 					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
 					assertThat(testQuery.get("id")).isEqualTo("test-data");
@@ -106,7 +117,7 @@ public class GraphQlMessageHandlerTests {
 
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload(new RequestInput("{ testQuery { id } }", null, Collections.emptyMap()))
+						.withPayload(new RequestInput("{ testQuery { id } }", null, Collections.emptyMap(), locale, executionId))
 						.build()
 		);
 
@@ -117,14 +128,17 @@ public class GraphQlMessageHandlerTests {
 	@SuppressWarnings("unchecked")
 	void testHandleMessageForQueryWithQueryProvided() {
 
+		String executionId = this.idGenerator.generateId().toString();
+		this.graphQlMessageHandler.setExecutionId(executionId);
+
 		String fakeQuery = "{ testQuery { id } }";
 		this.graphQlMessageHandler.setQuery(fakeQuery);
 
 		StepVerifier.create(
-				Mono.from((Mono<ExecutionResult>) this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
+				Mono.from((Mono<RequestOutput>) this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
 		)
 				.consumeNextWith(result -> {
-					assertThat(result).isInstanceOf(ExecutionResultImpl.class);
+					assertThat(result).isInstanceOf(RequestOutput.class);
 					Map<String, Object> data = result.getData();
 					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
 					assertThat(testQuery.get("id")).isEqualTo("test-data");
@@ -137,16 +151,19 @@ public class GraphQlMessageHandlerTests {
 	@SuppressWarnings("unchecked")
 	void testHandleMessageForMutationWithRequestInputProvided() {
 
+		String executionId = this.idGenerator.generateId().toString();
+		this.graphQlMessageHandler.setExecutionId(executionId);
+
 		String fakeId = UUID.randomUUID().toString();
 		Update expected = new Update(fakeId);
 
 		StepVerifier verifier = StepVerifier.create(
 						Flux.from(this.resultChannel)
 								.map(Message::getPayload)
-								.cast(ExecutionResult.class)
+								.cast(RequestOutput.class)
 				)
 				.consumeNextWith(result -> {
-							assertThat(result).isInstanceOf(ExecutionResultImpl.class);
+							assertThat(result).isInstanceOf(RequestOutput.class);
 							Map<String, Object> data = result.getData();
 							Map<String, Object> update = (Map<String, Object>) data.get("update");
 							assertThat(update.get("id")).isEqualTo(fakeId);
@@ -159,7 +176,7 @@ public class GraphQlMessageHandlerTests {
 
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload(new RequestInput("mutation { update(id: \"" + fakeId + "\") { id } }", null, Collections.emptyMap()))
+						.withPayload(new RequestInput("mutation { update(id: \"" + fakeId + "\") { id } }", null, Collections.emptyMap(), null, executionId))
 						.build()
 		);
 
@@ -176,17 +193,20 @@ public class GraphQlMessageHandlerTests {
 	@SuppressWarnings("unchecked")
 	void testHandleMessageForSubscriptionWithRequestInputProvided() {
 
+		String executionId = this.idGenerator.generateId().toString();
+		this.graphQlMessageHandler.setExecutionId(executionId);
+
 		StepVerifier verifier = StepVerifier.create(
 						Flux.from(this.resultChannel)
 								.map(Message::getPayload)
-								.cast(ExecutionResult.class)
-								.map(ExecutionResult::getData)
+								.cast(RequestOutput.class)
+								.mapNotNull(RequestOutput::getData)
 								.cast(SubscriptionPublisher.class)
 								.map(Flux::from)
 								.flatMap(data -> data)
 				)
-				.consumeNextWith(executionResult -> {
-					Map<String, Object> results = (Map<String, Object>) executionResult.getData();
+				.consumeNextWith(requestOutput -> {
+					Map<String, Object> results = (Map<String, Object>) requestOutput.getData();
 					assertThat(results).containsKey("results");
 
 					Map<String, Object> queryResult = (Map<String, Object>) results.get("results");
@@ -201,7 +221,7 @@ public class GraphQlMessageHandlerTests {
 
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload(new RequestInput("subscription { results { id } }", null, Collections.emptyMap()))
+						.withPayload(new RequestInput("subscription { results { id } }", null, Collections.emptyMap(), null, executionId))
 						.build()
 		);
 
@@ -381,6 +401,12 @@ public class GraphQlMessageHandlerTests {
 		AnnotatedControllerConfigurer annotatedDataFetcherConfigurer() {
 
 			return new AnnotatedControllerConfigurer();
+		}
+
+		@Bean
+		IdGenerator idGenerator() {
+
+			return new AlternativeJdkIdGenerator();
 		}
 
 	}
