@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,7 @@ public class ZeroMqMessageHandlerTests {
 		Mono<ZMQ.Socket> socketMono = TestUtils.getPropertyValue(messageHandler, "socketMono", Mono.class);
 		ZMQ.Socket socketInUse = socketMono.block(Duration.ofSeconds(10));
 		assertThat(socketInUse.getZapDomain()).isEqualTo("global");
+		messageHandler.start();
 
 		Message<?> testMessage = new GenericMessage<>("test");
 		messageHandler.handleMessage(testMessage).subscribe();
@@ -99,6 +100,7 @@ public class ZeroMqMessageHandlerTests {
 				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
 		messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
 		messageHandler.afterPropertiesSet();
+		messageHandler.start();
 
 		Message<?> testMessage = MessageBuilder.withPayload("test").setHeader("topic", "testTopic").build();
 
@@ -137,6 +139,7 @@ public class ZeroMqMessageHandlerTests {
 		messageHandler.setBeanFactory(mock(BeanFactory.class));
 		messageHandler.setMessageConverter(new ByteArrayMessageConverter());
 		messageHandler.afterPropertiesSet();
+		messageHandler.start();
 
 		Message<?> testMessage = new GenericMessage<>("test".getBytes());
 		messageHandler.handleMessage(testMessage).subscribe();

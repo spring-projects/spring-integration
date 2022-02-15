@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Artem Bilan
@@ -54,8 +53,6 @@ import org.springframework.util.SocketUtils;
 @SpringJUnitConfig
 @DirtiesContext
 public class ZeroMqDslTests {
-
-	private static final int PROXY_PUB_PORT = SocketUtils.findAvailableTcpPort();
 
 	@Autowired
 	ZContext context;
@@ -82,10 +79,10 @@ public class ZeroMqDslTests {
 		for (int i = 0; i < 2; i++) {
 			IntegrationFlow consumerFlow =
 					IntegrationFlows.from(
-							ZeroMq.inboundChannelAdapter(this.context, SocketType.SUB)
-									.connectUrl("tcp://localhost:" + this.subPubZeroMqProxy.getBackendPort())
-									.topics("someTopic")
-									.consumeDelay(Duration.ofMillis(100)))
+									ZeroMq.inboundChannelAdapter(this.context, SocketType.SUB)
+											.connectUrl("tcp://localhost:" + this.subPubZeroMqProxy.getBackendPort())
+											.topics("someTopic")
+											.consumeDelay(Duration.ofMillis(100)))
 							.channel(ZeroMq.zeroMqChannel(this.context).zeroMqProxy(this.pullPushZeroMqProxy))
 							.transform(Transformers.objectToString())
 							.handle(results::offer)
@@ -130,9 +127,7 @@ public class ZeroMqDslTests {
 
 		@Bean
 		ZeroMqProxy subPubZeroMqProxy() {
-			ZeroMqProxy zeroMqProxy = new ZeroMqProxy(context(), ZeroMqProxy.Type.SUB_PUB);
-			zeroMqProxy.setFrontendPort(PROXY_PUB_PORT);
-			return zeroMqProxy;
+			return new ZeroMqProxy(context(), ZeroMqProxy.Type.SUB_PUB);
 		}
 
 		@Bean
@@ -141,10 +136,14 @@ public class ZeroMqDslTests {
 		}
 
 		@Bean
-		IntegrationFlow publishToZeroMqPubSubFlow() {
+		IntegrationFlow publishToZeroMqPubSubFlow(ZeroMqProxy subPubZeroMqProxy) {
 			return flow ->
-					flow.handle(ZeroMq.outboundChannelAdapter(context(), "tcp://localhost:" + PROXY_PUB_PORT,
-							SocketType.PUB)
+					flow.handle(ZeroMq.outboundChannelAdapter(context(),
+									() -> {
+										await().until(() -> subPubZeroMqProxy.getFrontendPort() > 0);
+										return "tcp://localhost:" + subPubZeroMqProxy.getFrontendPort();
+									},
+									SocketType.PUB)
 							.topic("someTopic"));
 		}
 

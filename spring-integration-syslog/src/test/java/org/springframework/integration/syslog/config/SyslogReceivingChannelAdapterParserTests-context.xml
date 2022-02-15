@@ -9,9 +9,7 @@
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="socketUtils" class="org.springframework.util.SocketUtils" />
-
-	<int-syslog:inbound-channel-adapter id="foo" port="#{socketUtils.findAvailableUdpPort(1514)}" />
+	<int-syslog:inbound-channel-adapter id="foo" port="0" />
 
 	<int-syslog:inbound-channel-adapter id="foobar" channel="foo" port="1514" auto-startup="false" />
 
@@ -42,7 +40,7 @@
 	<bean id="converter"
 		class="org.springframework.integration.syslog.config.SyslogReceivingChannelAdapterParserTests$PassThruConverter" />
 
-	<int-syslog:inbound-channel-adapter id="bar" protocol="tcp" port="#{socketUtils.findAvailableTcpPort(1514)}" />
+	<int-syslog:inbound-channel-adapter id="bar" protocol="tcp" port="0" />
 
 	<int:channel id="bar">
 		<int:queue/>
