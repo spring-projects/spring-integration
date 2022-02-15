@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2021-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,10 @@
 package org.springframework.integration.graphql.outbound;
 
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
@@ -48,6 +51,10 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	private Expression operationNameExpression = new SupplierExpression<>(() -> null);
 
 	private Expression variablesExpression = new SupplierExpression<>(() -> Collections.emptyMap());
+
+	private Locale locale = null;
+
+	private String executionId = null;
 
 	public GraphQlMessageHandler(final GraphQlService graphQlService) {
 		Assert.notNull(graphQlService, "'graphQlService' must not be null");
@@ -100,6 +107,23 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 		this.variablesExpression = variablesExpression;
 	}
 
+	/**
+	 * Set a Locale for GraphQL Query to execute.
+	 * @param locale the locale to use.
+	 */
+	public void setLocale(@Nullable Locale locale) {
+		this.locale = locale;
+	}
+
+	/**
+	 * Set a Execution Id for GraphQL Query to execute.
+	 * @param executionId the executionId to use.
+	 */
+	public void setExecutionId(String executionId) {
+		Assert.hasText(executionId, "'executionId' must not be empty");
+		this.executionId = executionId;
+	}
+
 	@Override
 	protected final void doInit() {
 		BeanFactory beanFactory = getBeanFactory();
@@ -116,10 +140,11 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 		}
 		else  {
 			Assert.notNull(this.queryExpression, "'queryExpression' must not be null");
+			Assert.hasText(this.executionId, "'executionId' must not be empty");
 			String query = evaluateQueryExpression(requestMessage);
 			String operationName = evaluateOperationNameExpression(requestMessage);
 			Map<String, Object> variables = evaluateVariablesExpression(requestMessage);
-			requestInput = new RequestInput(query, operationName, variables);
+			requestInput = new RequestInput(query, operationName, variables, this.locale, this.executionId);
 		}
 
 		return this.graphQlService
