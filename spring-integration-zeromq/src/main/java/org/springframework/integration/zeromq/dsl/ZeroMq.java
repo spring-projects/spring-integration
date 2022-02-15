@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.zeromq.dsl;
+
+import java.util.function.Supplier;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -53,6 +55,18 @@ public final class ZeroMq {
 	 * @return the spec.
 	 */
 	public static ZeroMqMessageHandlerSpec outboundChannelAdapter(ZContext context, String connectUrl) {
+		return outboundChannelAdapter(context, () -> connectUrl);
+	}
+
+	/**
+	 * Create an instance of {@link ZeroMqMessageHandlerSpec} for the provided {@link ZContext}
+	 * and connection URL supplier.
+	 * @param context the {@link ZContext} to use.
+	 * @param connectUrl the supplier for URL to connect a ZeroMq socket to.
+	 * @return the spec.
+	 * @since 5.5.9
+	 */
+	public static ZeroMqMessageHandlerSpec outboundChannelAdapter(ZContext context, Supplier<String> connectUrl) {
 		return new ZeroMqMessageHandlerSpec(context, connectUrl);
 	}
 
@@ -65,6 +79,21 @@ public final class ZeroMq {
 	 * @return the spec.
 	 */
 	public static ZeroMqMessageHandlerSpec outboundChannelAdapter(ZContext context, String connectUrl,
+			SocketType socketType) {
+
+		return new ZeroMqMessageHandlerSpec(context, connectUrl, socketType);
+	}
+
+	/**
+	 * Create an instance of {@link ZeroMqMessageHandlerSpec} for the provided {@link ZContext},
+	 * connection URL supplier and {@link SocketType}.
+	 * @param context the {@link ZContext} to use.
+	 * @param connectUrl the supplier for URL to connect a ZeroMq socket to.
+	 * @param socketType the {@link SocketType} for ZeroMq socket.
+	 * @return the spec.
+	 * @since 5.5.9
+	 */
+	public static ZeroMqMessageHandlerSpec outboundChannelAdapter(ZContext context, Supplier<String> connectUrl,
 			SocketType socketType) {
 
 		return new ZeroMqMessageHandlerSpec(context, connectUrl, socketType);

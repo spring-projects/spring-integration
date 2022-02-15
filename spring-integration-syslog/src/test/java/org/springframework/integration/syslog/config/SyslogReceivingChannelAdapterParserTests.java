@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,18 @@
 package org.springframework.integration.syslog.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 import javax.net.SocketFactory;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,19 +43,21 @@ import org.springframework.integration.syslog.inbound.UdpSyslogReceivingChannelA
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class SyslogReceivingChannelAdapterParserTests {
 
-	@Autowired @Qualifier("foo.adapter")
+	@Autowired
+	@Qualifier("foo.adapter")
 	private UdpSyslogReceivingChannelAdapter adapter1;
 
 	@Autowired
@@ -63,7 +66,8 @@ public class SyslogReceivingChannelAdapterParserTests {
 	@Autowired
 	private PollableChannel foo;
 
-	@Autowired @Qualifier("explicitUdp.adapter")
+	@Autowired
+	@Qualifier("explicitUdp.adapter")
 	private UdpSyslogReceivingChannelAdapter explicitUdpAdapter;
 
 	@Autowired
@@ -81,7 +85,8 @@ public class SyslogReceivingChannelAdapterParserTests {
 	@Autowired
 	private RFC5424MessageConverter rfc5424;
 
-	@Autowired @Qualifier("bar.adapter")
+	@Autowired
+	@Qualifier("bar.adapter")
 	private TcpSyslogReceivingChannelAdapter adapter2;
 
 	@Autowired
@@ -95,8 +100,10 @@ public class SyslogReceivingChannelAdapterParserTests {
 
 	@Test
 	public void testSimplestUdp() throws Exception {
-		int port = TestUtils.getPropertyValue(adapter1, "udpAdapter.port", Integer.class);
-		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes("UTF-8");
+		Method getPort = ReflectionUtils.findMethod(UdpSyslogReceivingChannelAdapter.class, "getPort");
+		ReflectionUtils.makeAccessible(getPort);
+		int port = (int) ReflectionUtils.invokeMethod(getPort, this.adapter1);
+		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes(StandardCharsets.UTF_8);
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost", port));
 		DatagramSocket socket = new DatagramSocket();
 		Thread.sleep(1000);
@@ -108,13 +115,13 @@ public class SyslogReceivingChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testExplicitChannelUdp() throws Exception {
+	public void testExplicitChannelUdp() {
 		assertThat(TestUtils.getPropertyValue(foobar, "udpAdapter.port")).isEqualTo(1514);
 		assertThat(TestUtils.getPropertyValue(foobar, "outputChannel")).isSameAs(foo);
 	}
 
 	@Test
-	public void testExplicitUdp() throws Exception {
+	public void testExplicitUdp() {
 		assertThat(TestUtils.getPropertyValue(explicitUdpAdapter, "outputChannel")).isSameAs(explicitUdp);
 	}
 
@@ -133,9 +140,9 @@ public class SyslogReceivingChannelAdapterParserTests {
 	public void testSimplestTcp() throws Exception {
 		AbstractServerConnectionFactory connectionFactory = TestUtils.getPropertyValue(adapter2, "connectionFactory",
 				AbstractServerConnectionFactory.class);
-		int port = connectionFactory.getPort();
 		waitListening(connectionFactory, 10000L);
-		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE\n".getBytes("UTF-8");
+		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE\n".getBytes(StandardCharsets.UTF_8);
+		int port = connectionFactory.getPort();
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		Thread.sleep(1000);
 		socket.getOutputStream().write(buf);
@@ -159,57 +166,40 @@ public class SyslogReceivingChannelAdapterParserTests {
 
 	@Test
 	public void testPortOnUdpChild() {
-		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail1-context.xml", this.getClass())
-					.close();
-			fail("Expected exception");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage().startsWith(
-					"Configuration problem: When child element 'udp-attributes' is present, 'port' must be defined " +
-							"there"))
-					.isTrue();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-fail1-context.xml",
+								getClass()))
+				.withMessageStartingWith(
+						"Configuration problem: " +
+								"When child element 'udp-attributes' is present, 'port' must be defined there");
 	}
 
 	@Test
 	public void testPortWithTCPFactory() {
-		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail2-context.xml", this.getClass())
-					.close();
-			fail("Expected exception");
-		}
-		catch (BeanCreationException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("Cannot specify both 'port' and 'connectionFactory'");
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-fail2-context.xml",
+								getClass()))
+				.withStackTraceContaining("Cannot specify both 'port' and 'connectionFactory'");
 	}
 
 	@Test
 	public void testUdpChildWithTcp() {
-		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail3-context.xml", this.getClass())
-					.close();
-			fail("Expected exception");
-		}
-		catch (BeanCreationException e) {
-			e.printStackTrace();
-
-			assertThat(e.getCause().getMessage())
-					.isEqualTo("Cannot specify 'udp-attributes' when the protocol is 'tcp'");
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-fail3-context.xml",
+								getClass()))
+				.withStackTraceContaining("Cannot specify 'udp-attributes' when the protocol is 'tcp'");
 	}
 
 	@Test
 	public void testUDPWithTCPFactory() {
-		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail4-context.xml", this.getClass())
-					.close();
-			fail("Expected exception");
-		}
-		catch (BeanCreationException e) {
-			assertThat(e.getCause().getMessage())
-					.isEqualTo("Cannot specify 'connection-factory' unless the protocol is 'tcp'");
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail4-context.xml",
+								getClass()))
+				.withStackTraceContaining("Cannot specify 'connection-factory' unless the protocol is 'tcp'");
 	}
 
 	public static class PassThruConverter implements MessageConverter {
@@ -229,7 +219,7 @@ public class SyslogReceivingChannelAdapterParserTests {
 	 * @throws IllegalStateException
 	 */
 	private void waitListening(AbstractServerConnectionFactory serverConnectionFactory, Long delay)
-		throws IllegalStateException {
+			throws IllegalStateException {
 		if (delay == null) {
 			delay = 100L;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.junit.runners.model.Statement;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Artem Bilan
@@ -76,7 +75,7 @@ public class MulticastRule extends TestWatcher {
 		}
 		try {
 			MulticastSocket socket = new MulticastSocket();
-			socket.joinGroup(new InetSocketAddress(this.group, SocketUtils.findAvailableUdpPort()), nic);
+			socket.joinGroup(new InetSocketAddress(this.group, 0), nic);
 			socket.close();
 		}
 		catch (Exception e) {

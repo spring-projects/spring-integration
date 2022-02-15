@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
+import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.junit.jupiter.api.AfterAll;
@@ -57,7 +58,6 @@ import org.springframework.messaging.simp.stomp.ReactorNettyTcpStompClient;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Artem Bilan
@@ -73,7 +73,6 @@ public class StompServerIntegrationTests {
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		int port = SocketUtils.findAvailableTcpPort(61613);
 		ConfigurationImpl configuration =
 				new ConfigurationImpl()
 						.setName("embedded-server")
@@ -81,14 +80,14 @@ public class StompServerIntegrationTests {
 						.setSecurityEnabled(false)
 						.setJMXManagementEnabled(false)
 						.setJournalDatasync(false)
-						.addAcceptorConfiguration("stomp", "tcp://127.0.0.1:" + port)
+						.addAcceptorConfiguration("stomp", "tcp://127.0.0.1:" + TransportConstants.DEFAULT_STOMP_PORT)
 						.addAddressesSetting("#",
 								new AddressSettings()
 										.setDeadLetterAddress(SimpleString.toSimpleString("dla"))
 										.setExpiryAddress(SimpleString.toSimpleString("expiry")));
 		broker.setConfiguration(configuration).start();
 
-		stompClient = new ReactorNettyTcpStompClient("127.0.0.1", port);
+		stompClient = new ReactorNettyTcpStompClient("127.0.0.1", TransportConstants.DEFAULT_STOMP_PORT);
 		stompClient.setMessageConverter(new PassThruMessageConverter());
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
