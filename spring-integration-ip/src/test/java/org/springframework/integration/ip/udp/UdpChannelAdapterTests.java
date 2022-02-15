@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.util.SocketUtils;
 
 /**
  *
@@ -284,8 +283,7 @@ public class UdpChannelAdapterTests {
 			}
 
 		}
-		DatagramSocket datagramSocket =
-				new DatagramSocket(SocketUtils.findAvailableUdpPort(), inetAddress);
+		DatagramSocket datagramSocket = new DatagramSocket(0, inetAddress);
 		datagramSocket.send(packet);
 		datagramSocket.close();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,6 @@ import org.springframework.messaging.simp.stomp.ReactorNettyTcpStompClient;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Artem Bilan
@@ -70,9 +69,8 @@ public class StompServerIntegrationTests {
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		int port = SocketUtils.findAvailableTcpPort(61613);
 		activeMQBroker = new BrokerService();
-		activeMQBroker.addConnector("stomp://127.0.0.1:" + port);
+		activeMQBroker.addConnector("stomp://127.0.0.1:" + BrokerService.DEFAULT_PORT);
 		activeMQBroker.setPersistent(false);
 		activeMQBroker.setUseJmx(false);
 		activeMQBroker.setEnableStatistics(false);
@@ -80,7 +78,7 @@ public class StompServerIntegrationTests {
 		activeMQBroker.getSystemUsage().getTempUsage().setLimit(1024 * 1024 * 5);
 		activeMQBroker.start();
 
-		stompClient = new ReactorNettyTcpStompClient("127.0.0.1", port);
+		stompClient = new ReactorNettyTcpStompClient("127.0.0.1", Integer.parseInt(BrokerService.DEFAULT_PORT));
 		stompClient.setMessageConverter(new PassThruMessageConverter());
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();

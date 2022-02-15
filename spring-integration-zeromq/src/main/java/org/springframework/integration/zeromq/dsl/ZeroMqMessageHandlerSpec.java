@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.zeromq.dsl;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -47,8 +48,19 @@ public class ZeroMqMessageHandlerSpec
 	 * @param connectUrl the URL to connect the socket to.
 	 */
 	protected ZeroMqMessageHandlerSpec(ZContext context, String connectUrl) {
+		this(context, () -> connectUrl);
+	}
+
+	/**
+	 * Create an instance based on the provided {@link ZContext} and connection string supplier.
+	 * @param context the {@link ZContext} to use for creating sockets.
+	 * @param connectUrl the supplier for URL to connect the socket to.
+	 * @since 5.5.9
+	 */
+	protected ZeroMqMessageHandlerSpec(ZContext context, Supplier<String> connectUrl) {
 		super(new ZeroMqMessageHandler(context, connectUrl));
 	}
+
 
 	/**
 	 * Create an instance based on the provided {@link ZContext}, connection string and {@link SocketType}.
@@ -58,6 +70,17 @@ public class ZeroMqMessageHandlerSpec
 	 *    only {@link SocketType#PAIR}, {@link SocketType#PUB} and {@link SocketType#PUSH} are supported.
 	 */
 	protected ZeroMqMessageHandlerSpec(ZContext context, String connectUrl, SocketType socketType) {
+		this(context, () -> connectUrl, socketType);
+	}
+
+	/**
+	 * Create an instance based on the provided {@link ZContext}, connection string supplier and {@link SocketType}.
+	 * @param context the {@link ZContext} to use for creating sockets.
+	 * @param connectUrl the supplier for URL to connect the socket to.
+	 * @param socketType the {@link SocketType} to use;
+	 *    only {@link SocketType#PAIR}, {@link SocketType#PUB} and {@link SocketType#PUSH} are supported.
+	 */
+	protected ZeroMqMessageHandlerSpec(ZContext context, Supplier<String> connectUrl, SocketType socketType) {
 		super(new ZeroMqMessageHandler(context, connectUrl, socketType));
 	}
 

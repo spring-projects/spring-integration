@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,7 +212,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 
 	/**
 	 * Return the address an {@code inproc} control socket is bound or null if this proxy has not been started yet.
-	 * @return the the address for control socket or null
+	 * @return the address for control socket or null
 	 */
 	@Nullable
 	public String getControlAddress() {
@@ -222,7 +222,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	/**
 	 * Return the address an {@code inproc} capture socket is bound or null if this proxy has not been started yet
 	 * or {@link #captureAddress} is false.
-	 * @return the the address for capture socket or null
+	 * @return the address for capture socket or null
 	 */
 	@Nullable
 	public String getCaptureAddress() {

@@ -69,56 +69,6 @@ The `createTestApplicationContext()` factory method produces a `TestApplicationC
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/test/util/TestUtils.html[Javadoc] of other `TestUtils` methods for more information about this class.
 
-==== Using the `SocketUtils` Class
-
-The https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/util/SocketUtils.html[`SocketUtils` class] provides several methods that select one or more random ports for exposing server-side components without conflicts, as the following example shows:
-
-====
-[source,xml]
-----
-<bean id="socketUtils" class="org.springframework.util.SocketUtils" />
-
-<int-syslog:inbound-channel-adapter id="syslog"
-            channel="sysLogs"
-            port="#{socketUtils.findAvailableUdpPort(1514)}" />
-
-<int:channel id="sysLogs">
-    <int:queue/>
-</int:channel>
-----
-====
-
-The following example shows how the preceding configuration is used from the unit test:
-
-====
-[source,java]
-----
-@Autowired @Qualifier("syslog.adapter")
-private UdpSyslogReceivingChannelAdapter adapter;
-
-@Autowired
-private PollableChannel sysLogs;
-
-@Test
-public void testSimplestUdp() throws Exception {
-    int port = TestUtils.getPropertyValue(adapter1, "udpAdapter.port", Integer.class);
-    byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes("UTF-8");
-    DatagramPacket packet = new DatagramPacket(buf, buf.length,
-                              new InetSocketAddress("localhost", port));
-    DatagramSocket socket = new DatagramSocket();
-    socket.send(packet);
-    socket.close();
-    Message<?> message = foo.receive(10000);
-    assertNotNull(message);
-}
-----
-====
-
-NOTE: This technique is not foolproof.
-Some other process could be allocated the "`free`" port before your test opens it.
-It is generally more preferable to use server port `0`, let the operating system select the port for you, and then discover the selected port in your test.
-We have converted most framework tests to use this preferred technique.
-
 ==== Using `OnlyOnceTrigger`
 
 https://docs.spring.io/spring-integration/api/org/springframework/integration/test/util/OnlyOnceTrigger.html[`OnlyOnceTrigger`] is useful for polling endpoints when you need to produce only one test message and verify the behavior without impacting other period messages.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package org.springframework.integration.zeromq.outbound;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -36,10 +38,12 @@ import org.springframework.integration.handler.AbstractReactiveMessageHandler;
 import org.springframework.integration.mapping.ConvertingBytesMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
+import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
@@ -61,10 +65,13 @@ import zmq.socket.pubsub.Pub;
  *
  * @since 5.4
  */
-public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler {
+public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
+		implements ManageableLifecycle {
 
 	private static final List<SocketType> VALID_SOCKET_TYPES =
 			Arrays.asList(SocketType.PAIR, SocketType.PUSH, SocketType.PUB);
+
+	private final AtomicBoolean running = new AtomicBoolean();
 
 	private final Scheduler publisherScheduler = Schedulers.newSingle("zeroMqMessageHandlerScheduler");
 
@@ -80,12 +87,24 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler {
 
 	private volatile boolean initialized;
 
+	private volatile Disposable socketMonoSubscriber;
+
 	/**
 	 * Create an instance based on the provided {@link ZContext} and connection string.
 	 * @param context the {@link ZContext} to use for creating sockets.
 	 * @param connectUrl the URL to connect the socket to.
 	 */
 	public ZeroMqMessageHandler(ZContext context, String connectUrl) {
+		this(context, connectUrl, SocketType.PAIR);
+	}
+
+	/**
+	 * Create an instance based on the provided {@link ZContext} and connection string supplier.
+	 * @param context the {@link ZContext} to use for creating sockets.
+	 * @param connectUrl the supplier for URL to connect the socket to.
+	 * @since 5.5.9
+	 */
+	public ZeroMqMessageHandler(ZContext context, Supplier<String> connectUrl) {
 		this(context, connectUrl, SocketType.PAIR);
 	}
 
@@ -97,15 +116,29 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler {
 	 *    only {@link SocketType#PAIR}, {@link SocketType#PUB} and {@link SocketType#PUSH} are supported.
 	 */
 	public ZeroMqMessageHandler(ZContext context, String connectUrl, SocketType socketType) {
-		Assert.notNull(context, "'context' must not be null");
+		this(context, () -> connectUrl, socketType);
 		Assert.hasText(connectUrl, "'connectUrl' must not be empty");
+	}
+
+
+	/**
+	 * Create an instance based on the provided {@link ZContext}, connection string supplier and {@link SocketType}.
+	 * @param context the {@link ZContext} to use for creating sockets.
+	 * @param connectUrl the supplier for URL to connect the socket to.
+	 * @param socketType the {@link SocketType} to use;
+	 *    only {@link SocketType#PAIR}, {@link SocketType#PUB} and {@link SocketType#PUSH} are supported.
+	 * @since 5.5.9
+	 */
+	public ZeroMqMessageHandler(ZContext context, Supplier<String> connectUrl, SocketType socketType) {
+		Assert.notNull(context, "'context' must not be null");
+		Assert.notNull(connectUrl, "'connectUrl' must not be null");
 		Assert.state(VALID_SOCKET_TYPES.contains(socketType),
 				() -> "'socketType' can only be one of the: " + VALID_SOCKET_TYPES);
 		this.socketMono =
 				Mono.just(context.createSocket(socketType))
 						.publishOn(this.publisherScheduler)
 						.doOnNext((socket) -> this.socketConfigurer.accept(socket))
-						.doOnNext((socket) -> socket.connect(connectUrl))
+						.doOnNext((socket) -> socket.connect(connectUrl.get()))
 						.cache()
 						.publishOn(this.publisherScheduler);
 	}
@@ -176,8 +209,26 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler {
 			messageConverter.afterPropertiesSet();
 			this.messageMapper = new ConvertingBytesMessageMapper(messageConverter);
 		}
-		this.socketMono.subscribe();
 		this.initialized = true;
+	}
+
+	@Override
+	public void start() {
+		if (!this.running.getAndSet(true)) {
+			this.socketMonoSubscriber = this.socketMono.subscribe();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.running.getAndSet(false)) {
+			this.socketMonoSubscriber.dispose();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running.get();
 	}
 
 	@Override
@@ -209,6 +260,7 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler {
 		this.initialized = false;
 		super.destroy();
 		this.socketMono.doOnNext(ZMQ.Socket::close).block();
+		this.socketMonoSubscriber.dispose();
 		this.publisherScheduler.dispose();
 	}
 
