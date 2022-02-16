@@ -20,8 +20,6 @@ import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.annotation.Nullable;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -31,6 +29,7 @@ import org.springframework.graphql.RequestInput;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -46,13 +45,14 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 
 	private StandardEvaluationContext evaluationContext;
 
-	private Expression queryExpression;
+	private Expression operationExpression;
 
 	private Expression operationNameExpression = new SupplierExpression<>(() -> null);
 
 	private Expression variablesExpression = new SupplierExpression<>(() -> Collections.emptyMap());
 
-	private Locale locale = null;
+	@Nullable
+	private Locale locale;
 
 	private String executionId = null;
 
@@ -64,21 +64,21 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	}
 
 	/**
-	 * Specify a GraphQL Query.
-	 * @param query the GraphQL query to use.
+	 * Specify a GraphQL Operation.
+	 * @param operation the GraphQL operation to use.
 	 */
-	public void setQuery(String query) {
-		Assert.hasText(query, "'query' must not be empty");
-		setQueryExpression(new LiteralExpression(query));
+	public void setOperation(String operation) {
+		Assert.hasText(operation, "'operation' must not be empty");
+		setOperationExpression(new LiteralExpression(operation));
 	}
 
 	/**
-	 * Specify a SpEL expression to evaluate a GraphQL Query
-	 * @param queryExpression the expression to evaluate a GraphQL query.
+	 * Specify a SpEL expression to evaluate a GraphQL Operation
+	 * @param operationExpression the expression to evaluate a GraphQL Operation.
 	 */
-	public void setQueryExpression(Expression queryExpression) {
-		Assert.notNull(queryExpression, "'queryExpression' must not be null");
-		this.queryExpression = queryExpression;
+	public void setOperationExpression(Expression operationExpression) {
+		Assert.notNull(operationExpression, "'queryExpression' must not be null");
+		this.operationExpression = operationExpression;
 	}
 
 	/**
@@ -99,7 +99,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	}
 
 	/**
-	 * Set a SpEL expression to evaluate Variables for GraphQL Query to execute.
+	 * Set a SpEL expression to evaluate Variables for GraphQL Operation to execute.
 	 * @param variablesExpression the expression to use.
 	 */
 	public void setVariablesExpression(Expression variablesExpression) {
@@ -108,7 +108,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	}
 
 	/**
-	 * Set a Locale for GraphQL Query to execute.
+	 * Set a Locale for GraphQL Operation to execute.
 	 * @param locale the locale to use.
 	 */
 	public void setLocale(@Nullable Locale locale) {
@@ -116,7 +116,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	}
 
 	/**
-	 * Set a Execution Id for GraphQL Query to execute.
+	 * Set a Execution Id for GraphQL Operation to execute.
 	 * @param executionId the executionId to use.
 	 */
 	public void setExecutionId(String executionId) {
@@ -139,9 +139,9 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 			requestInput = (RequestInput) requestMessage.getPayload();
 		}
 		else  {
-			Assert.notNull(this.queryExpression, "'queryExpression' must not be null");
-			Assert.hasText(this.executionId, "'executionId' must not be empty");
-			String query = evaluateQueryExpression(requestMessage);
+			Assert.notNull(this.operationExpression, "'operationExpression' must not be null");
+//			Assert.hasText(this.executionId, "'executionId' must not be empty");
+			String query = evaluateOperationExpression(requestMessage);
 			String operationName = evaluateOperationNameExpression(requestMessage);
 			Map<String, Object> variables = evaluateVariablesExpression(requestMessage);
 			requestInput = new RequestInput(query, operationName, variables, this.locale, this.executionId);
@@ -152,10 +152,10 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 
 	}
 
-	private String evaluateQueryExpression(Message<?> message) {
-		String query = this.queryExpression.getValue(this.evaluationContext, message, String.class);
-		Assert.notNull(query, "'queryExpression' must not evaluate to null");
-		return query;
+	private String evaluateOperationExpression(Message<?> message) {
+		String operation = this.operationExpression.getValue(this.evaluationContext, message, String.class);
+		Assert.notNull(operation, "'operationExpression' must not evaluate to null");
+		return operation;
 	}
 
 	private String evaluateOperationNameExpression(Message<?> message) {
