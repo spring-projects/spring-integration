@@ -22,7 +22,6 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -56,8 +55,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.util.AlternativeJdkIdGenerator;
-import org.springframework.util.IdGenerator;
 
 import graphql.execution.reactive.SubscriptionPublisher;
 import reactor.core.publisher.Flux;
@@ -124,9 +121,6 @@ public class GraphQlMessageHandlerTests {
 
 		Locale locale = Locale.getDefault();
 		this.graphQlMessageHandler.setLocale(locale);
-
-		String executionId = UUID.randomUUID().toString();
-		this.graphQlMessageHandler.setExecutionId(executionId);
 
 		StepVerifier.create(
 				Mono.from((Mono<RequestOutput>) this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
