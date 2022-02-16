@@ -304,13 +304,12 @@ public class GraphQlMessageHandlerTests {
 			return new GraphQlMessageHandler(graphQlService);
 		}
 
-		// @artem
 		@Bean
 		IntegrationFlow graphqlQueryMessageHandlerFlow(GraphQlMessageHandler handler) {
 
-			return IntegrationFlows.from(MessageChannels.flux("inputChannel").datatype(Object.class, RequestInput.class))
+			return IntegrationFlows.from(MessageChannels.flux("inputChannel"))
 					.handle(handler)
-					.channel(c -> c.flux("resultChannel").datatype(RequestOutput.class))
+					.channel(c -> c.flux("resultChannel"))
 					.get();
 		}
 
@@ -354,71 +353,8 @@ public class GraphQlMessageHandlerTests {
 
 	}
 
-	static class QueryResult {
+	record QueryResult(String id) {}
 
-		private final String id;
-
-		QueryResult(final String id) {
-			this.id = id;
-		}
-
-		String getId() {
-			return this.id;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (!(o instanceof QueryResult)) {
-				return false;
-			}
-			QueryResult that = (QueryResult) o;
-			return getId().equals(that.getId());
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(getId());
-		}
-
-		@Override
-		public String toString() {
-			return "QueryResult{" +
-					"id='" + id + '\'' +
-					'}';
-		}
-	}
-
-	static class Update {
-
-		private final String id;
-
-		Update(final String id) {
-			this.id = id;
-		}
-
-		String getId() {
-			return this.id;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (!(o instanceof Update)) {
-				return false;
-			}
-			Update update = (Update) o;
-			return getId().equals(update.getId());
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(getId());
-		}
-	}
+	record Update(String id) {}
 
 }
