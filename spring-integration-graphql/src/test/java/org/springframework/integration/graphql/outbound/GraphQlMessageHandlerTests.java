@@ -88,18 +88,9 @@ public class GraphQlMessageHandlerTests {
 	@Autowired
 	private UpdateRepository updateRepository;
 
-	@Autowired
-	private IdGenerator idGenerator;
-
-
 	@Test
 	@SuppressWarnings("unchecked")
 	void testHandleMessageForQueryWithRequestInputProvided() {
-
-		Locale locale = Locale.getDefault();
-		String executionId = this.idGenerator.generateId().toString();
-		this.graphQlMessageHandler.setLocale(locale);
-		this.graphQlMessageHandler.setExecutionId(executionId);
 
 		StepVerifier verifier = StepVerifier.create(
 				Flux.from(this.resultChannel)
@@ -117,7 +108,7 @@ public class GraphQlMessageHandlerTests {
 
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload(new RequestInput("{ testQuery { id } }", null, Collections.emptyMap(), locale, executionId))
+						.withPayload(new RequestInput("{ testQuery { id } }", null, Collections.emptyMap(), null, UUID.randomUUID().toString()))
 						.build()
 		);
 
@@ -128,11 +119,14 @@ public class GraphQlMessageHandlerTests {
 	@SuppressWarnings("unchecked")
 	void testHandleMessageForQueryWithQueryProvided() {
 
-		String executionId = this.idGenerator.generateId().toString();
-		this.graphQlMessageHandler.setExecutionId(executionId);
-
 		String fakeQuery = "{ testQuery { id } }";
-		this.graphQlMessageHandler.setQuery(fakeQuery);
+		this.graphQlMessageHandler.setOperation(fakeQuery);
+
+		Locale locale = Locale.getDefault();
+		this.graphQlMessageHandler.setLocale(locale);
+
+		String executionId = UUID.randomUUID().toString();
+		this.graphQlMessageHandler.setExecutionId(executionId);
 
 		StepVerifier.create(
 				Mono.from((Mono<RequestOutput>) this.graphQlMessageHandler.handleRequestMessage(MessageBuilder.withPayload(fakeQuery).build()))
@@ -150,9 +144,6 @@ public class GraphQlMessageHandlerTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	void testHandleMessageForMutationWithRequestInputProvided() {
-
-		String executionId = this.idGenerator.generateId().toString();
-		this.graphQlMessageHandler.setExecutionId(executionId);
 
 		String fakeId = UUID.randomUUID().toString();
 		Update expected = new Update(fakeId);
@@ -176,7 +167,7 @@ public class GraphQlMessageHandlerTests {
 
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload(new RequestInput("mutation { update(id: \"" + fakeId + "\") { id } }", null, Collections.emptyMap(), null, executionId))
+						.withPayload(new RequestInput("mutation { update(id: \"" + fakeId + "\") { id } }", null, Collections.emptyMap(), null, UUID.randomUUID().toString()))
 						.build()
 		);
 
@@ -193,9 +184,6 @@ public class GraphQlMessageHandlerTests {
 	@SuppressWarnings("unchecked")
 	void testHandleMessageForSubscriptionWithRequestInputProvided() {
 
-		String executionId = this.idGenerator.generateId().toString();
-		this.graphQlMessageHandler.setExecutionId(executionId);
-
 		StepVerifier verifier = StepVerifier.create(
 						Flux.from(this.resultChannel)
 								.map(Message::getPayload)
@@ -209,8 +197,8 @@ public class GraphQlMessageHandlerTests {
 					Map<String, Object> results = (Map<String, Object>) requestOutput.getData();
 					assertThat(results).containsKey("results");
 
-					Map<String, Object> queryResult = (Map<String, Object>) results.get("results");
-					assertThat(queryResult)
+					Map<String, Object> operationResult = (Map<String, Object>) results.get("results");
+					assertThat(operationResult)
 							.containsKey("id")
 							.containsValue("test-data-01");
 
@@ -221,7 +209,7 @@ public class GraphQlMessageHandlerTests {
 
 		this.inputChannel.send(
 				MessageBuilder
-						.withPayload(new RequestInput("subscription { results { id } }", null, Collections.emptyMap(), null, executionId))
+						.withPayload(new RequestInput("subscription { results { id } }", null, Collections.emptyMap(), null, UUID.randomUUID().toString()))
 						.build()
 		);
 
@@ -229,7 +217,7 @@ public class GraphQlMessageHandlerTests {
 	}
 
 	@Test
-	void testHandleMessageForQueryWithInvalidPayload() {
+	void testHandleMessageWithInvalidPayload() {
 
 		this.inputChannel.send(
 				MessageBuilder
@@ -244,47 +232,7 @@ public class GraphQlMessageHandlerTests {
 				.isInstanceOf(MessageHandlingException.class)
 				.satisfies((ex) -> assertThat((Exception) ex)
 						.hasMessageContaining(
-								"'queryExpression' must not be null"));
-
-	}
-
-	@Test
-	void testHandleMessageForMutationWithInvalidPayload() {
-
-		this.inputChannel.send(
-				MessageBuilder
-						.withPayload(new Object())
-						.build()
-		);
-
-		Message<?> errorMessage = errorChannel.receive(10_000);
-		assertThat(errorMessage).isNotNull()
-				.isInstanceOf(ErrorMessage.class)
-				.extracting(Message::getPayload)
-				.isInstanceOf(MessageHandlingException.class)
-				.satisfies((ex) -> assertThat((Exception) ex)
-						.hasMessageContaining(
-								"'queryExpression' must not be null"));
-
-	}
-
-	@Test
-	void testHandleMessageForSubscriptionWithInvalidPayload() {
-
-		this.inputChannel.send(
-				MessageBuilder
-						.withPayload(new Object())
-						.build()
-		);
-
-		Message<?> errorMessage = errorChannel.receive(10_000);
-		assertThat(errorMessage).isNotNull()
-				.isInstanceOf(ErrorMessage.class)
-				.extracting(Message::getPayload)
-				.isInstanceOf(MessageHandlingException.class)
-				.satisfies((ex) -> assertThat((Exception) ex)
-						.hasMessageContaining(
-								"'queryExpression' must not be null"));
+								"'operationExpression' must not be null"));
 
 	}
 
@@ -356,12 +304,13 @@ public class GraphQlMessageHandlerTests {
 			return new GraphQlMessageHandler(graphQlService);
 		}
 
+		// @artem
 		@Bean
 		IntegrationFlow graphqlQueryMessageHandlerFlow(GraphQlMessageHandler handler) {
 
-			return IntegrationFlows.from(MessageChannels.flux("inputChannel"))
+			return IntegrationFlows.from(MessageChannels.flux("inputChannel").datatype(Object.class, RequestInput.class))
 					.handle(handler)
-					.channel(c -> c.flux("resultChannel"))
+					.channel(c -> c.flux("resultChannel").datatype(RequestOutput.class))
 					.get();
 		}
 
@@ -401,12 +350,6 @@ public class GraphQlMessageHandlerTests {
 		AnnotatedControllerConfigurer annotatedDataFetcherConfigurer() {
 
 			return new AnnotatedControllerConfigurer();
-		}
-
-		@Bean
-		IdGenerator idGenerator() {
-
-			return new AlternativeJdkIdGenerator();
 		}
 
 	}
