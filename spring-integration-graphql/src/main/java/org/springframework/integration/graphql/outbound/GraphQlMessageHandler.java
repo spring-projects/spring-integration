@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
@@ -29,6 +28,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.graphql.GraphQlService;
 import org.springframework.graphql.RequestInput;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.lang.Nullable;
@@ -57,7 +57,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	@Nullable
 	private Locale locale;
 
-	private Expression idExpression = new SupplierExpression<>(() -> null);
+	private Expression executionIdExpression = new FunctionExpression<Message<?>>(message -> message.getHeaders().getId());
 
 	public GraphQlMessageHandler(final GraphQlService graphQlService) {
 		Assert.notNull(graphQlService, "'graphQlService' must not be null");
@@ -119,12 +119,12 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	}
 
 	/**
-	 * Set a SpEL expression to evaluate Id for GraphQL Operation Request to execute.
-	 * @param idExpression the idExpression to use.
+	 * Set a SpEL expression to evaluate Execution Id for GraphQL Operation Request to execute.
+	 * @param executionIdExpression the executionIdExpression to use.
 	 */
-	public void setIdExpression(Expression idExpression) {
-		Assert.notNull(idExpression, "'idExpression' must not be null");
-		this.idExpression = idExpression;
+	public void setIdExpression(Expression executionIdExpression) {
+		Assert.notNull(executionIdExpression, "'executionIdExpression' must not be null");
+		this.executionIdExpression = executionIdExpression;
 	}
 
 	@Override
@@ -143,11 +143,11 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 		}
 		else  {
 			Assert.notNull(this.operationExpression, "'operationExpression' must not be null");
-			Assert.notNull(this.idExpression, "'idExpression' must not be null");
+			Assert.notNull(this.executionIdExpression, "'executionIdExpression' must not be null");
 			String query = evaluateOperationExpression(requestMessage);
 			String operationName = evaluateOperationNameExpression(requestMessage);
 			Map<String, Object> variables = evaluateVariablesExpression(requestMessage);
-			String id = evaluateIdExpression(requestMessage);
+			String id = evaluateExecutionIdExpression(requestMessage);
 			requestInput = new RequestInput(query, operationName, variables, this.locale, id);
 		}
 
@@ -171,13 +171,8 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 		return this.variablesExpression.getValue(this.evaluationContext, message, Map.class);
 	}
 
-	private String evaluateIdExpression(Message<?> message) {
-		String id = this.idExpression.getValue(this.evaluationContext, message, String.class);
-		if (id == null) {
-			return Objects.requireNonNull(message.getHeaders().get(MessageHeaders.ID)).toString();
-		}
-
-		return id;
+	private String evaluateExecutionIdExpression(Message<?> message) {
+		return this.executionIdExpression.getValue(this.evaluationContext, message, String.class);
 	}
 
 }
