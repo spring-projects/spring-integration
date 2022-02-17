@@ -122,7 +122,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	 * Set a SpEL expression to evaluate Execution Id for GraphQL Operation Request to execute.
 	 * @param executionIdExpression the executionIdExpression to use.
 	 */
-	public void setIdExpression(Expression executionIdExpression) {
+	public void setExecutionIdExpression(Expression executionIdExpression) {
 		Assert.notNull(executionIdExpression, "'executionIdExpression' must not be null");
 		this.executionIdExpression = executionIdExpression;
 	}
@@ -143,7 +143,6 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 		}
 		else  {
 			Assert.notNull(this.operationExpression, "'operationExpression' must not be null");
-			Assert.notNull(this.executionIdExpression, "'executionIdExpression' must not be null");
 			String query = evaluateOperationExpression(requestMessage);
 			String operationName = evaluateOperationNameExpression(requestMessage);
 			Map<String, Object> variables = evaluateVariablesExpression(requestMessage);
