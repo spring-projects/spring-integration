@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,16 @@ package org.springframework.integration.feed.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.io.File;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mockito;
 
 import org.springframework.context.ConfigurableApplicationContext;
@@ -58,8 +57,8 @@ import com.rometools.rome.io.SyndFeedInput;
  */
 public class FeedInboundChannelAdapterParserTests {
 
-	@ClassRule
-	public static final TemporaryFolder tempFolder = new TemporaryFolder();
+	@TempDir
+	public static File tempFolder;
 
 
 	private static CountDownLatch latch;
@@ -91,20 +90,20 @@ public class FeedInboundChannelAdapterParserTests {
 	@Test
 	public void validateSuccessfulNewsRetrievalWithFileUrlAndMessageHistory() throws Exception {
 		//Test file samples.rss has 3 news items
-		latch = spy(new CountDownLatch(3));
+		latch = new CountDownLatch(3);
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());
 		latch.await(10, TimeUnit.SECONDS);
-		verify(latch, times(3)).countDown();
+		assertThat(latch.getCount()).isEqualTo(0);
 		context.close();
 
 		// since we are not deleting the persister file
 		// in this iteration no new feeds will be received and the latch will timeout
-		latch = spy(new CountDownLatch(3));
+		latch = new CountDownLatch(3);
 		context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());
 		latch.await(500, TimeUnit.MILLISECONDS);
-		verify(latch, times(0)).countDown();
+		assertThat(latch.getCount()).isEqualTo(3);
 
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapterUsage", SourcePollingChannelAdapter.class);
 		assertThat(TestUtils.getPropertyValue(adapter, "source.syndFeedInput.preserveWireFeed", Boolean.class))
@@ -114,7 +113,7 @@ public class FeedInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	@Ignore // goes against the real feed
+	@Disabled("Goes against the real feed")
 	public void validateSuccessfulNewsRetrievalWithHttpUrl() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(3);
 		MessageHandler handler = spy(message -> latch.countDown());

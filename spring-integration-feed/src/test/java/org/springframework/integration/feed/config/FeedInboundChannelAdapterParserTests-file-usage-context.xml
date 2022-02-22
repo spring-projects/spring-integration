@@ -21,7 +21,7 @@
 
 	<bean id="metadataStore" class="org.springframework.integration.metadata.PropertiesPersistingMetadataStore">
 		<property name="baseDirectory"
-				  value="#{T (org.springframework.integration.feed.config.FeedInboundChannelAdapterParserTests).tempFolder.root.absolutePath}"/>
+				  value="#{T (org.springframework.integration.feed.config.FeedInboundChannelAdapterParserTests).tempFolder.absolutePath}"/>
 	</bean>
 
 </beans>

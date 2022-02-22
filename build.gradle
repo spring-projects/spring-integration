@@ -46,10 +46,10 @@ ext {
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.16.3'
+	activeMqVersion = '5.16.4'
 	apacheSshdVersion = '2.7.0'
-	aspectjVersion = '1.9.7'
-	assertjVersion = '3.21.0'
+	aspectjVersion = '1.9.8'
+	assertjVersion = '3.22.0'
 	assertkVersion = '0.25'
 	avroVersion = '1.10.2'
 	awaitilityVersion = '4.1.1'
@@ -63,7 +63,7 @@ ext {
 	greenmailVersion = '1.6.5'
 	groovyVersion = '3.0.9'
 	hamcrestVersion = '2.2'
-	hazelcastVersion = '4.2.3'
+	hazelcastVersion = '4.2.4'
 	hibernateVersion = '5.5.9.Final'
 	hsqldbVersion = '2.6.0'
 	h2Version = '1.4.200'
@@ -83,7 +83,7 @@ ext {
     lettuceVersion = '6.1.6.RELEASE'
 	log4jVersion = '2.17.1'
 	mailVersion = '1.6.7'
-	micrometerVersion = '1.7.8'
+	micrometerVersion = '1.7.9'
 	mockitoVersion = '3.12.4'
 	mongoDriverVersion = '4.3.2'
 	mysqlVersion = '8.0.27'
@@ -99,14 +99,14 @@ ext {
 	smackVersion = '4.3.5'
 	soapVersion = '1.4.0'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.14'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.8'
-	springKafkaVersion = '2.7.10'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.9'
+	springKafkaVersion = '2.7.11'
 	springRetryVersion = '1.3.1'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.4'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.15'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.5'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.16'
 	springWsVersion = '3.1.2'
-	testcontainersVersion = '1.16.2'
-	tomcatVersion = '9.0.56'
+	testcontainersVersion = '1.16.3'
+	tomcatVersion = '9.0.58'
 	xmlUnitVersion = '2.8.2'
 	xstreamVersion = '1.4.17'
 
@@ -220,6 +220,11 @@ configure(javaProjects) { subproject ->
 
 	tasks.withType(JavaCompile).configureEach {
 		options.fork = true
+	}
+
+	tasks.withType(Javadoc) {
+		options.addBooleanOption('Xdoclint:syntax', true) // only check syntax with doclint
+		options.addBooleanOption('Werror', true) // fail build on Javadoc warnings
 	}
 
 	eclipse {
@@ -349,7 +354,7 @@ configure(javaProjects) { subproject ->
 
 	checkstyle {
 		configDirectory.set(rootProject.file('src/checkstyle'))
-		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '9.2'
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '9.3'
 	}
 
 	jar {
@@ -996,6 +1001,7 @@ task api(type: Javadoc) {
 	options.overview = 'src/api/overview.html'
 	options.stylesheetFile = file('src/api/stylesheet.css')
 	options.links(project.ext.javadocLinks)
+	options.addBooleanOption('Xdoclint:syntax', true) // only check syntax with doclint
 	source javaProjects.collect { project ->
 		project.sourceSets.main.allJava
 	}
