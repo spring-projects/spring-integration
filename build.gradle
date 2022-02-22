@@ -222,11 +222,6 @@ configure(javaProjects) { subproject ->
 		options.fork = true
 	}
 
-	tasks.withType(Javadoc) {
-		options.addBooleanOption('Xdoclint:syntax', true) // only check syntax with doclint
-		options.addBooleanOption('Werror', true) // fail build on Javadoc warnings
-	}
-
 	eclipse {
 		project {
 			natures += 'org.springframework.ide.eclipse.core.springnature'
@@ -1001,7 +996,6 @@ task api(type: Javadoc) {
 	options.overview = 'src/api/overview.html'
 	options.stylesheetFile = file('src/api/stylesheet.css')
 	options.links(project.ext.javadocLinks)
-	options.addBooleanOption('Xdoclint:syntax', true) // only check syntax with doclint
 	source javaProjects.collect { project ->
 		project.sourceSets.main.allJava
 	}
