@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,9 +62,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
@@ -208,9 +206,9 @@ public class WebFluxDslTests {
 				.setPropertyValue("webClient", webClient);
 
 		this.mockMvc.perform(
-				get("/service2")
-						.with(httpBasic("guest", "guest"))
-						.param("name", "foo"))
+						get("/service2")
+								.with(httpBasic("guest", "guest"))
+								.param("name", "foo"))
 				.andExpect(
 						content()
 								.string("FOO"));
@@ -269,8 +267,8 @@ public class WebFluxDslTests {
 	public void testDynamicHttpEndpoint() {
 		IntegrationFlow flow =
 				IntegrationFlows.from(WebFlux.inboundGateway("/dynamic")
-						.requestMapping(r -> r.params("name"))
-						.payloadExpression("#requestParams.name[0]"))
+								.requestMapping(r -> r.params("name"))
+								.payloadExpression("#requestParams.name[0]"))
 						.<String, String>transform(String::toLowerCase)
 						.get();
 
@@ -299,13 +297,13 @@ public class WebFluxDslTests {
 	public void testValidation() {
 		IntegrationFlow flow =
 				IntegrationFlows.from(
-						WebFlux.inboundGateway("/validation")
-								.requestMapping((mapping) -> mapping
-										.methods(HttpMethod.POST)
-										.consumes(MediaType.APPLICATION_JSON_VALUE))
-								.requestPayloadType(
-										ResolvableType.forClassWithGenerics(Flux.class, TestModel.class))
-								.validator(this.validator))
+								WebFlux.inboundGateway("/validation")
+										.requestMapping((mapping) -> mapping
+												.methods(HttpMethod.POST)
+												.consumes(MediaType.APPLICATION_JSON_VALUE))
+										.requestPayloadType(
+												ResolvableType.forClassWithGenerics(Flux.class, TestModel.class))
+										.validator(this.validator))
 						.bridge()
 						.get();
 
@@ -326,16 +324,16 @@ public class WebFluxDslTests {
 	public void testErrorChannelFlow() {
 		IntegrationFlow flow =
 				IntegrationFlows.from(
-						WebFlux.inboundGateway("/errorFlow")
-								.errorChannel(new FixedSubscriberChannel(
-										new AbstractReplyProducingMessageHandler() {
+								WebFlux.inboundGateway("/errorFlow")
+										.errorChannel(new FixedSubscriberChannel(
+												new AbstractReplyProducingMessageHandler() {
 
-											@Override
-											protected Object handleRequestMessage(Message<?> requestMessage) {
-												return "Error Response";
-											}
+													@Override
+													protected Object handleRequestMessage(Message<?> requestMessage) {
+														return "Error Response";
+													}
 
-										})))
+												})))
 						.channel(MessageChannels.flux())
 						.transform((payload) -> {
 							throw new RuntimeException("Error!");
@@ -361,7 +359,7 @@ public class WebFluxDslTests {
 	@EnableWebSecurity
 	@EnableWebFluxSecurity
 	@EnableIntegration
-	public static class ContextConfiguration extends WebSecurityConfigurerAdapter implements WebFluxConfigurer {
+	public static class ContextConfiguration implements WebFluxConfigurer {
 
 		@Override
 		public Validator getValidator() {
@@ -377,7 +375,6 @@ public class WebFluxDslTests {
 					.build();
 		}
 
-		@Override
 		@Bean
 		public UserDetailsService userDetailsService() {
 			return new InMemoryUserDetailsManager(userDetails());
@@ -398,17 +395,6 @@ public class WebFluxDslTests {
 					.and()
 					.csrf().disable()
 					.build();
-		}
-
-		@Override
-		protected void configure(HttpSecurity http) throws Exception {
-			http.authorizeRequests()
-					.anyRequest().hasRole("ADMIN")
-					.and()
-					.httpBasic()
-					.and()
-					.csrf().disable()
-					.anonymous().disable();
 		}
 
 		@Bean
@@ -437,10 +423,10 @@ public class WebFluxDslTests {
 					.from(Http.inboundGateway("/service2")
 							.requestMapping(r -> r.params("name")))
 					.handle(WebFlux.<MultiValueMap<String, String>>outboundGateway(m ->
-							UriComponentsBuilder.fromUriString("https://www.springsource.org/spring-integration")
-									.queryParams(m.getPayload())
-									.build()
-									.toUri())
+									UriComponentsBuilder.fromUriString("https://www.springsource.org/spring-integration")
+											.queryParams(m.getPayload())
+											.build()
+											.toUri())
 							.httpMethod(HttpMethod.GET)
 							.expectedResponseType(String.class))
 					.get();

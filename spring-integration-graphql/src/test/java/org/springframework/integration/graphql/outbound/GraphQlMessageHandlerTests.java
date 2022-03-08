@@ -64,6 +64,7 @@ import reactor.test.StepVerifier;
 /**
  *
  * @author Daniel Frey
+ * @author Artem Bilan
  *
  * @since 6.0
  */
@@ -104,7 +105,7 @@ public class GraphQlMessageHandlerTests {
 						.thenCancel()
 						.verifyLater();
 
-		RequestInput payload = new RequestInput("{ testQuery { id } }", null, null, null, UUID.randomUUID().toString());
+		RequestInput payload = new RequestInput("{ testQuery { id } }", null, null, UUID.randomUUID().toString(), null);
 		this.inputChannel.send(MessageBuilder.withPayload(payload).build());
 
 		verifier.verify(Duration.ofSeconds(10));
@@ -156,8 +157,8 @@ public class GraphQlMessageHandlerTests {
 				.verifyLater();
 
 		RequestInput payload =
-				new RequestInput("mutation { update(id: \"" + fakeId + "\") { id } }", null, null, null,
-						UUID.randomUUID().toString());
+				new RequestInput("mutation { update(id: \"" + fakeId + "\") { id } }", null, null,
+						UUID.randomUUID().toString(), null);
 		this.inputChannel.send(MessageBuilder.withPayload(payload).build());
 
 		verifier.verify(Duration.ofSeconds(10));
@@ -195,7 +196,7 @@ public class GraphQlMessageHandlerTests {
 				.verifyLater();
 
 		RequestInput payload =
-				new RequestInput("subscription { results { id } }", null, null, null, UUID.randomUUID().toString());
+				new RequestInput("subscription { results { id } }", null, null, UUID.randomUUID().toString(), null);
 		this.inputChannel.send(MessageBuilder.withPayload(payload).build());
 
 		verifier.verify(Duration.ofSeconds(10));

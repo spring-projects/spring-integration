@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public abstract class RedisAvailableTests {
 		int n = 0;
 		while (n++ < 300 &&
 				(connection =
-						TestUtils.getPropertyValue(container, "subscriptionTask.connection", RedisConnection.class))
+						TestUtils.getPropertyValue(container, "subscriber.connection", RedisConnection.class))
 						== null) {
 
 			Thread.sleep(100);
@@ -84,7 +84,7 @@ public abstract class RedisAvailableTests {
 
 	protected void awaitContainerSubscribedWithPatterns(RedisMessageListenerContainer container) throws Exception {
 		this.awaitContainerSubscribed(container);
-		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriptionTask.connection",
+		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriber.connection",
 				RedisConnection.class);
 
 		int n = 0;

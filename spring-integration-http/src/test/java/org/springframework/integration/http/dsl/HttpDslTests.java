@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,13 +63,14 @@ import org.springframework.mock.web.MockPart;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
@@ -124,15 +125,15 @@ public class HttpDslTests {
 		this.serviceInternalGatewayHandler.setRequestFactory(mockRequestFactory);
 
 		this.mockMvc.perform(
-				get("/service")
-						.with(httpBasic("admin", "admin"))
-						.param("name", "foo"))
+						get("/service")
+								.with(httpBasic("admin", "admin"))
+								.param("name", "foo"))
 				.andExpect(content().string("FOO"));
 
 		this.mockMvc.perform(
-				get("/service")
-						.with(httpBasic("user", "user"))
-						.param("name", "name"))
+						get("/service")
+								.with(httpBasic("user", "user"))
+								.param("name", "name"))
 				.andExpect(status().isForbidden())
 				.andExpect(content().string("Error"));
 	}
@@ -141,8 +142,8 @@ public class HttpDslTests {
 	public void testDynamicHttpEndpoint() throws Exception {
 		IntegrationFlow flow =
 				IntegrationFlows.from(Http.inboundGateway("/dynamic")
-						.requestMapping(r -> r.params("name"))
-						.payloadExpression("#requestParams.name[0]"))
+								.requestMapping(r -> r.params("name"))
+								.payloadExpression("#requestParams.name[0]"))
 						.<String, String>transform(String::toLowerCase)
 						.get();
 
@@ -150,17 +151,17 @@ public class HttpDslTests {
 				this.integrationFlowContext.registration(flow).register();
 
 		this.mockMvc.perform(
-				get("/dynamic")
-						.with(httpBasic("user", "user"))
-						.param("name", "BAR"))
+						get("/dynamic")
+								.with(httpBasic("user", "user"))
+								.param("name", "BAR"))
 				.andExpect(content().string("bar"));
 
 		flowRegistration.destroy();
 
 		this.mockMvc.perform(
-				get("/dynamic")
-						.with(httpBasic("user", "user"))
-						.param("name", "BAZ"))
+						get("/dynamic")
+								.with(httpBasic("user", "user"))
+								.param("name", "BAZ"))
 				.andExpect(status().isNotFound());
 	}
 
@@ -176,9 +177,9 @@ public class HttpDslTests {
 		MockPart mockPart2 = new MockPart("a1", "file2", "DEF".getBytes(StandardCharsets.UTF_8));
 		mockPart2.getHeaders().setContentType(MediaType.TEXT_PLAIN);
 		this.mockMvc.perform(
-				multipart("/multiPartFiles")
-						.part(mockPart1, mockPart2)
-						.with(httpBasic("user", "user")))
+						multipart("/multiPartFiles")
+								.part(mockPart1, mockPart2)
+								.with(httpBasic("user", "user")))
 				.andExpect(status().isOk());
 
 		Message<?> result = this.multiPartFilesChannel.receive(10_000);
@@ -214,12 +215,12 @@ public class HttpDslTests {
 	public void testValidation() throws Exception {
 		IntegrationFlow flow =
 				IntegrationFlows.from(
-						Http.inboundChannelAdapter("/validation")
-								.requestMapping((mapping) -> mapping
-										.methods(HttpMethod.POST)
-										.consumes(MediaType.APPLICATION_JSON_VALUE))
-								.requestPayloadType(TestModel.class)
-								.validator(this.validator))
+								Http.inboundChannelAdapter("/validation")
+										.requestMapping((mapping) -> mapping
+												.methods(HttpMethod.POST)
+												.consumes(MediaType.APPLICATION_JSON_VALUE))
+										.requestPayloadType(TestModel.class)
+										.validator(this.validator))
 						.bridge()
 						.get();
 
@@ -227,10 +228,10 @@ public class HttpDslTests {
 				this.integrationFlowContext.registration(flow).register();
 
 		this.mockMvc.perform(
-				post("/validation")
-						.with(httpBasic("user", "user"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"name\": \"\"}"))
+						post("/validation")
+								.with(httpBasic("user", "user"))
+								.contentType(MediaType.APPLICATION_JSON)
+								.content("{\"name\": \"\"}"))
 				.andExpect(status().isBadRequest())
 				.andExpect(status().reason("Validation failure"));
 
@@ -241,21 +242,21 @@ public class HttpDslTests {
 	public void testBadRequest() throws Exception {
 		IntegrationFlow flow =
 				IntegrationFlows.from(
-						Http.inboundGateway("/badRequest")
-								.errorChannel((message, timeout) -> {
-									throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-											"Not valid request param", ((ErrorMessage) message).getPayload());
-								})
-								.payloadExpression("#requestParams.p1"))
+								Http.inboundGateway("/badRequest")
+										.errorChannel((message, timeout) -> {
+											throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+													"Not valid request param", ((ErrorMessage) message).getPayload());
+										})
+										.payloadExpression("#requestParams.p1"))
 						.get();
 
 		IntegrationFlowContext.IntegrationFlowRegistration flowRegistration =
 				this.integrationFlowContext.registration(flow).register();
 
 		this.mockMvc.perform(
-				get("/badRequest")
-						.with(httpBasic("user", "user"))
-						.param("p2", "P2"))
+						get("/badRequest")
+								.with(httpBasic("user", "user"))
+								.param("p2", "P2"))
 				.andExpect(status().isBadRequest())
 				.andExpect(status().reason("Not valid request param"));
 
@@ -266,16 +267,16 @@ public class HttpDslTests {
 	public void testErrorChannelFlow() throws Exception {
 		IntegrationFlow flow =
 				IntegrationFlows.from(
-						Http.inboundGateway("/errorFlow")
-								.errorChannel(new FixedSubscriberChannel(
-										new AbstractReplyProducingMessageHandler() {
+								Http.inboundGateway("/errorFlow")
+										.errorChannel(new FixedSubscriberChannel(
+												new AbstractReplyProducingMessageHandler() {
 
-											@Override
-											protected Object handleRequestMessage(Message<?> requestMessage) {
-												return "Error Response";
-											}
+													@Override
+													protected Object handleRequestMessage(Message<?> requestMessage) {
+														return "Error Response";
+													}
 
-										})))
+												})))
 						.transform((payload) -> {
 							throw new RuntimeException("Error!");
 						})
@@ -285,8 +286,8 @@ public class HttpDslTests {
 				this.integrationFlowContext.registration(flow).register();
 
 		this.mockMvc.perform(
-				get("/errorFlow")
-						.with(httpBasic("user", "user")))
+						get("/errorFlow")
+								.with(httpBasic("user", "user")))
 				.andExpect(status().isOk())
 				.andExpect(content().string("Error Response"));
 
@@ -296,9 +297,8 @@ public class HttpDslTests {
 	@Configuration
 	@EnableWebSecurity
 	@EnableIntegration
-	public static class ContextConfiguration extends WebSecurityConfigurerAdapter {
+	public static class ContextConfiguration {
 
-		@Override
 		@Bean
 		public UserDetailsService userDetailsService() {
 			InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
@@ -320,16 +320,18 @@ public class HttpDslTests {
 			return manager;
 		}
 
-		@Override
-		protected void configure(HttpSecurity http) throws Exception {
-			http.authorizeRequests()
+		@Bean
+		public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+			return http.
+					authorizeRequests()
 					.antMatchers("/service/internal/**").hasRole("ADMIN")
 					.anyRequest().permitAll()
 					.and()
 					.httpBasic()
 					.and()
 					.csrf().disable()
-					.anonymous().disable();
+					.anonymous().disable()
+					.build();
 		}
 
 		@Bean
@@ -397,10 +399,11 @@ public class HttpDslTests {
 		}
 
 		@Bean
-		public ChannelSecurityInterceptor channelSecurityInterceptor(AccessDecisionManager accessDecisionManager)
-				throws Exception {
+		public ChannelSecurityInterceptor channelSecurityInterceptor(AccessDecisionManager accessDecisionManager,
+				AuthenticationManagerBuilder authenticationManagerBuilder) {
+
 			ChannelSecurityInterceptor channelSecurityInterceptor = new ChannelSecurityInterceptor();
-			channelSecurityInterceptor.setAuthenticationManager(authenticationManager());
+			channelSecurityInterceptor.setAuthenticationManager(authenticationManagerBuilder.getOrBuild());
 			channelSecurityInterceptor.setAccessDecisionManager(accessDecisionManager);
 			return channelSecurityInterceptor;
 		}

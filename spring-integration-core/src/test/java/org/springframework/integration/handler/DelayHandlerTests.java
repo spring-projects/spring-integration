@@ -139,6 +139,7 @@ public class DelayHandlerTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void errorFlowAndRetries() throws Exception {
 		delayHandler.setDefaultDelay(10);
 		delayHandler.setRetryDelay(15);

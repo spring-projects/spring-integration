@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -442,8 +442,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = whereGroupIdOrder(groupId);
 		Stream<MessageWrapper> messageWrappers =
-				this.template.stream(query, MessageWrapper.class, this.collectionName)
-						.stream();
+				this.template.stream(query, MessageWrapper.class, this.collectionName);
 
 		return messageWrappers.map(MessageWrapper::getMessage);
 	}

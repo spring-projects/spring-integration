@@ -23,7 +23,7 @@
 	                               output-channel="outputA"
 	                               ref="person"/>
 
-	<bean id="conversionService" name="integrationConversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+	<bean id="integrationConversionService" name="integrationConversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
 		<property name="converters">
 			<list>
 				<bean class="org.springframework.integration.config.xml.MapToObjectTransformerParserTests$StringToAddressConverter" />

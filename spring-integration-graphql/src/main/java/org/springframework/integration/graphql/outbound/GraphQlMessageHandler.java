@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  * GraphQL Query, Mutation and Subscription requests.
  *
  * @author Daniel Frey
+ * @author Artem Bilan
  *
  * @since 6.0
  */
@@ -145,7 +146,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 			String operationName = evaluateOperationNameExpression(requestMessage);
 			Map<String, Object> variables = evaluateVariablesExpression(requestMessage);
 			String id = evaluateExecutionIdExpression(requestMessage);
-			requestInput = new RequestInput(query, operationName, variables, this.locale, id);
+			requestInput = new RequestInput(query, operationName, variables, id, this.locale);
 		}
 
 		return this.graphQlService.execute(requestInput);

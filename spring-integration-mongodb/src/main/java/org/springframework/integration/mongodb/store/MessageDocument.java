@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.UUID;
 
 import org.springframework.data.annotation.AccessType;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.PersistenceConstructor;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -77,7 +77,7 @@ public class MessageDocument {
 	 * @param messageId the id of the {@link Message} as a separate persistent property.
 	 * @since 5.1
 	 */
-	@PersistenceConstructor
+	@PersistenceCreator
 	MessageDocument(Message<?> message, UUID messageId) {
 		Assert.notNull(message, "'message' must not be null");
 		Assert.notNull(messageId, "'message' ID header must not be null");
