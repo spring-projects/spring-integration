@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -63,6 +64,7 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.record.TimestampType;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -251,16 +253,20 @@ class MessageSourceTests {
 		}).given(consumer).commitAsync(any(), any());
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
 		records1.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
+				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "foo",
+						new RecordHeaders(), Optional.empty())));
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar")));
+				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "bar",
+						new RecordHeaders(), Optional.empty())));
 		Map<TopicPartition, List<ConsumerRecord>> records3 = new LinkedHashMap<>();
 		records3.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 2L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "baz")));
+				new ConsumerRecord("foo", 0, 2L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "baz",
+						new RecordHeaders(), Optional.empty())));
 		Map<TopicPartition, List<ConsumerRecord>> records4 = new LinkedHashMap<>();
 		records4.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 3L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "qux")));
+				new ConsumerRecord("foo", 0, 3L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "qux",
+						new RecordHeaders(), Optional.empty())));
 		ConsumerRecords cr1 = new ConsumerRecords(records1);
 		ConsumerRecords cr2 = new ConsumerRecords(records2);
 		ConsumerRecords cr3 = new ConsumerRecords(records3);
@@ -375,22 +381,28 @@ class MessageSourceTests {
 		willAnswer(i -> paused.get()).given(consumer).paused();
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
 		records1.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
+				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "foo",
+						new RecordHeaders(), Optional.empty())));
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar")));
+				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "bar",
+						new RecordHeaders(), Optional.empty())));
 		Map<TopicPartition, List<ConsumerRecord>> records3 = new LinkedHashMap<>();
 		records3.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 2L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "baz")));
+				new ConsumerRecord("foo", 0, 2L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "baz",
+						new RecordHeaders(), Optional.empty())));
 		Map<TopicPartition, List<ConsumerRecord>> records4 = new LinkedHashMap<>();
 		records4.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 3L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "qux")));
+				new ConsumerRecord("foo", 0, 3L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "qux",
+						new RecordHeaders(), Optional.empty())));
 		Map<TopicPartition, List<ConsumerRecord>> records5 = new LinkedHashMap<>();
 		records5.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 4L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "fiz")));
+				new ConsumerRecord("foo", 0, 4L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "fiz",
+						new RecordHeaders(), Optional.empty())));
 		Map<TopicPartition, List<ConsumerRecord>> records6 = new LinkedHashMap<>();
 		records6.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 5L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "buz")));
+				new ConsumerRecord("foo", 0, 5L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "buz",
+						new RecordHeaders(), Optional.empty())));
 		ConsumerRecords cr1 = new ConsumerRecords(records1);
 		ConsumerRecords cr2 = new ConsumerRecords(records2);
 		ConsumerRecords cr3 = new ConsumerRecords(records3);
@@ -465,11 +477,13 @@ class MessageSourceTests {
 		willAnswer(i -> paused.get()).given(consumer).paused();
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
 		records1.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
+				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "foo",
+						new RecordHeaders(), Optional.empty())));
 		ConsumerRecords cr1 = new ConsumerRecords(records1);
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar")));
+				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "bar",
+						new RecordHeaders(), Optional.empty())));
 		ConsumerRecords cr2 = new ConsumerRecords(records2);
 		ConsumerRecords cr3 = new ConsumerRecords(Collections.emptyMap());
 		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr1, cr2, cr2, cr3);
@@ -534,11 +548,13 @@ class MessageSourceTests {
 		willAnswer(i -> paused.get()).given(consumer).paused();
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
 		records1.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
+				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "foo",
+						new RecordHeaders(), Optional.empty())));
 		ConsumerRecords cr1 = new ConsumerRecords(records1);
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar")));
+				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "bar",
+						new RecordHeaders(), Optional.empty())));
 		ConsumerRecords cr2 = new ConsumerRecords(records2);
 		ConsumerRecords cr3 = new ConsumerRecords(Collections.emptyMap());
 		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr2, cr1, cr2, cr3);
@@ -635,12 +651,14 @@ class MessageSourceTests {
 
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
 		records1.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
+				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "foo",
+						new RecordHeaders(), Optional.empty())));
 		ConsumerRecords cr1 = new ConsumerRecords(records1);
 		given(consumer.poll(Duration.of(20 * 5000, ChronoUnit.MILLIS))).willReturn(cr1, ConsumerRecords.EMPTY);
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Collections.singletonList(
-				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
+				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "foo",
+						new RecordHeaders(), Optional.empty())));
 		ConsumerRecords cr2 = new ConsumerRecords(records2);
 		given(consumer.poll(Duration.of(5000, ChronoUnit.MILLIS))).willReturn(cr2, ConsumerRecords.EMPTY);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
@@ -698,10 +716,14 @@ class MessageSourceTests {
 		willDoNothing().given(consumer).resume(partitions.capture());
 		Map<TopicPartition, List<ConsumerRecord>> records = new LinkedHashMap<>();
 		records.put(topicPartition, Arrays.asList(
-				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo"),
-				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar"),
-				new ConsumerRecord("foo", 0, 2L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "baz"),
-				new ConsumerRecord("foo", 0, 3L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "qux")));
+				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "foo",
+						new RecordHeaders(), Optional.empty()),
+				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "bar",
+						new RecordHeaders(), Optional.empty()),
+				new ConsumerRecord("foo", 0, 2L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "baz",
+						new RecordHeaders(), Optional.empty()),
+				new ConsumerRecord("foo", 0, 3L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "qux",
+						new RecordHeaders(), Optional.empty())));
 		ConsumerRecords cr1 = new ConsumerRecords(records);
 		ConsumerRecords cr2 = new ConsumerRecords(Collections.emptyMap());
 		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr2);

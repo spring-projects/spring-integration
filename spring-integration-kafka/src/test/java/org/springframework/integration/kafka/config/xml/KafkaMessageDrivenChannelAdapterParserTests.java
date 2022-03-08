@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
-import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
@@ -110,7 +109,7 @@ class KafkaMessageDrivenChannelAdapterParserTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	void testKafkaMessageDrivenChannelAdapterOptions() {
 		DefaultKafkaConsumerFactory<Integer, String> cf =
 				new DefaultKafkaConsumerFactory<>(Collections.emptyMap());
@@ -137,7 +136,8 @@ class KafkaMessageDrivenChannelAdapterParserTests {
 		adapter.afterPropertiesSet();
 
 		messageListener = containerProps.getMessageListener();
-		assertThat(messageListener).isInstanceOf(RetryingMessageListenerAdapter.class);
+		assertThat(messageListener).isInstanceOf(
+				org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.class);
 
 		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
 
@@ -151,13 +151,15 @@ class KafkaMessageDrivenChannelAdapterParserTests {
 
 		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
 
-		assertThat(delegate).isInstanceOf(RetryingMessageListenerAdapter.class);
+		assertThat(delegate).isInstanceOf(
+				org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.class);
 
 		adapter.setFilterInRetry(true);
 		adapter.afterPropertiesSet();
 
 		messageListener = containerProps.getMessageListener();
-		assertThat(messageListener).isInstanceOf(RetryingMessageListenerAdapter.class);
+		assertThat(messageListener).isInstanceOf(
+				org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.class);
 
 		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
 

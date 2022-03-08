@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.listener.GenericErrorHandler;
 import org.springframework.kafka.support.TopicPartitionOffset;
 
 /**
@@ -88,7 +87,10 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	 * @return the spec.
 	 * @see org.springframework.kafka.listener.ErrorHandler
 	 */
-	public KafkaMessageListenerContainerSpec<K, V> errorHandler(GenericErrorHandler<?> errorHandler) {
+	@SuppressWarnings("deprecation")
+	public KafkaMessageListenerContainerSpec<K, V> errorHandler(
+			org.springframework.kafka.listener.GenericErrorHandler<?> errorHandler) {
+
 		this.target.setGenericErrorHandler(errorHandler);
 		return this;
 	}
