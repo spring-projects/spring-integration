@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,10 +55,10 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
 import org.springframework.kafka.listener.ConsumerProperties;
-import org.springframework.kafka.listener.ListenerUtils;
 import org.springframework.kafka.listener.LoggingCommitCallback;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.KafkaUtils;
 import org.springframework.kafka.support.LogIfLevelEnabled;
 import org.springframework.kafka.support.TopicPartitionOffset;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
@@ -656,21 +656,13 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	/**
 	 * AcknowledgmentCallbackFactory for KafkaAckInfo.
+	 * @param consumerProperties the properties.
 	 * @param <K> the key type.
 	 * @param <V> the value type.
 	 *
 	 */
-	public static class KafkaAckCallbackFactory<K, V> implements AcknowledgmentCallbackFactory<KafkaAckInfo<K, V>> {
-
-		private final ConsumerProperties consumerProperties;
-
-		/**
-		 * Construct an instance with the provided properties.
-		 * @param consumerProperties the properties.
-		 */
-		public KafkaAckCallbackFactory(ConsumerProperties consumerProperties) {
-			this.consumerProperties = consumerProperties;
-		}
+	public record KafkaAckCallbackFactory<K, V>(ConsumerProperties consumerProperties)
+			implements AcknowledgmentCallbackFactory<KafkaAckInfo<K, V>> {
 
 		@Override
 		public AcknowledgmentCallback createCallback(KafkaAckInfo<K, V> info) {
@@ -737,15 +729,10 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				try {
 					ConsumerRecord<K, V> record = this.ackInfo.getRecord();
 					switch (status) {
-						case ACCEPT:
-						case REJECT:
-							commitIfPossible(record);
-							break;
-						case REQUEUE:
-							rollback(record);
-							break;
-						default:
-							break;
+						case ACCEPT, REJECT -> commitIfPossible(record);
+						case REQUEUE -> rollback(record);
+						default -> {
+						}
 					}
 				}
 				catch (WakeupException e) {
@@ -774,7 +761,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 									})
 									.collect(Collectors.toList());
 					if (rewound.size() > 0) {
-						this.logger.warn(() -> "Rolled back " + ListenerUtils.recordToString(record, this.logOnlyMetadata)
+						KafkaUtils.setLogOnlyMetadata(this.logOnlyMetadata);
+						this.logger.warn(() -> "Rolled back " + KafkaUtils.format(record)
 								+ " later in-flight offsets "
 								+ rewound + " will also be re-fetched");
 					}
@@ -783,9 +771,10 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 
 		private void commitIfPossible(ConsumerRecord<K, V> record) { // NOSONAR
+			KafkaUtils.setLogOnlyMetadata(this.logOnlyMetadata);
 			if (this.ackInfo.isRolledBack()) {
 				this.logger.warn(() -> "Cannot commit offset for "
-						+ ListenerUtils.recordToString(record, this.logOnlyMetadata)
+						+ KafkaUtils.format(record)
 						+ "; an earlier offset was rolled back");
 			}
 			else {
@@ -809,16 +798,14 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 							ackInformation = toCommit.get(toCommit.size() - 1);
 							KafkaAckInfo<K, V> ackInformationToLog = ackInformation;
 							this.commitLogger.log(() -> "Committing pending offsets for "
-									+ ListenerUtils.recordToString(record, this.logOnlyMetadata)
+									+ KafkaUtils.format(record)
 									+ " and all deferred to "
-									+ ListenerUtils.recordToString(ackInformationToLog.getRecord(),
-									this.logOnlyMetadata));
-							candidates.removeAll(toCommit);
+									+ KafkaUtils.format(ackInformationToLog.getRecord()));
+							toCommit.forEach(candidates::remove);
 						}
 						else {
 							ackInformation = this.ackInfo;
-							this.commitLogger.log(() -> "Committing offset for "
-									+ ListenerUtils.recordToString(record, this.logOnlyMetadata));
+							this.commitLogger.log(() -> "Committing offset for " + KafkaUtils.format(record));
 						}
 					}
 					else { // earlier offsets present

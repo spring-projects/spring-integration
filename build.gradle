@@ -84,7 +84,7 @@ ext {
     log4jVersion = '2.17.1'
     mailVersion = '2.0.1'
 	micrometerVersion = '2.0.0-SNAPSHOT'
-    mockitoVersion = '4.2.0'
+    mockitoVersion = '4.3.1'
     mongoDriverVersion = '4.5.0'
     mysqlVersion = '8.0.28'
     pahoMqttClientVersion = '1.2.5'
@@ -158,6 +158,7 @@ allprojects {
             mavenBom "io.projectreactor:reactor-bom:$reactorVersion"
             mavenBom "org.apache.logging.log4j:log4j-bom:$log4jVersion"
             mavenBom "org.springframework.data:spring-data-bom:$springDataVersion"
+            mavenBom "org.mockito:mockito-bom:$mockitoVersion"
         }
 
     }
@@ -445,7 +446,8 @@ project('spring-integration-test-support') {
     dependencies {
         compileOnly 'org.apiguardian:apiguardian-api:1.0.0'
         api "org.hamcrest:hamcrest-library:$hamcrestVersion"
-        api "org.mockito:mockito-core:$mockitoVersion"
+        api 'org.mockito:mockito-core'
+        api 'org.mockito:mockito-inline'
         api "org.assertj:assertj-core:$assertjVersion"
         api 'org.springframework:spring-context'
         api 'org.springframework:spring-messaging'
