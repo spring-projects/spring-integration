@@ -185,7 +185,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 * Execute an update for the provided message and generated keys flag.
 	 * @param message the message to use for update query params.
 	 * @param keysGenerated generate key or not.
-	 * @return a generated keys for udapte.
+	 * @return a generated keys for update.
 	 */
 	protected List<? extends Map<String, Object>> executeUpdateQuery(final Message<?> message, boolean keysGenerated) {
 		if (keysGenerated) {
