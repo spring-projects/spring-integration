@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,11 +49,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Chris Bono
  *
  * @since 2.0
  */
-@SuppressWarnings("serial")
 public final class MessageHistory implements List<Properties>, Serializable {
+
+	private static final long serialVersionUID = -2340400235574314134L;
 
 	private static final Log LOGGER = LogFactory.getLog(MessageHistory.class);
 
@@ -303,11 +305,12 @@ public final class MessageHistory implements List<Properties>, Serializable {
 		return entry;
 	}
 
-
 	/**
 	 * Inner class for each Entry in the history.
 	 */
 	public static class Entry extends Properties {
+
+		private static final long serialVersionUID = -8225834391885601079L;
 
 		public String getName() {
 			return this.getProperty(NAME_PROPERTY);
