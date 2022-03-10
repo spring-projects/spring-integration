@@ -26,6 +26,9 @@ See <<./graphql.adoc#graphql,GraphQL Support>> for more information.
 [[x6.0-general]]
 === General Changes
 
+The messaging annotations don't require a poller attribute as an array of @Poller any more.
+See <<./configuration.adoc#configuration-using-poller-annotation,Using the @Poller Annotation>> for more information.
+
 [[x6.0-http]]
 === HTTP Changes
 
@@ -37,20 +40,3 @@ See <<./http.adoc#http,HTTP Support>> for more information.
 
 The `spring-integration-rmi` module has been removed altogether after being deprecated in previous versions.
 There is no replacement: it is recommended to migrate to more secure network and application protocols, such as WebSockets, RSockets, gRPC or REST.
-
-[[x6.0-poller]]
-==== @Poller (Messaging Annotations)
-
-The messaging annotations
-
-- `@Aggregator`
-- `@BridgeFrom`
-- `@BridgeTo`
-- `@Filter`
-- `@InboundChannelAdapter`
-- `@Router`
-- `@ServiceActivator`
-- `@Splitter`
-- `@Transformer`
-
-used to contain a `Poller[]` attribute but now contain a single element. The array was only in place  to allow an empty default (no poller). This is now accomplished with a single element using the special value of `ValueConstants.DEFAULT_NONE`.

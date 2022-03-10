@@ -84,7 +84,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.messaging.handler.annotation.ValueConstants;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -365,19 +364,17 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			List<Annotation> annotations) {
 
 		Poller poller = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller.class);
-		boolean pollerProvided = poller != null && !ValueConstants.DEFAULT_NONE.equals(poller.value());
 
 		Reactive reactive = MessagingAnnotationUtils.resolveAttribute(annotations, "reactive", Reactive.class);
-		boolean reactiveProvided = reactive != null && !ValueConstants.DEFAULT_NONE.equals(reactive.value());
 
-		Assert.state(!reactiveProvided || !pollerProvided,
+		Assert.state(reactive == null || poller == null,
 				"The 'poller' and 'reactive' are mutually exclusive.");
 
-		if (inputChannel instanceof Publisher || handler instanceof ReactiveMessageHandlerAdapter || reactiveProvided) {
-			return reactiveStreamsConsumer(inputChannel, handler, reactiveProvided ? reactive : null);
+		if (inputChannel instanceof Publisher || handler instanceof ReactiveMessageHandlerAdapter || reactive != null) {
+			return reactiveStreamsConsumer(inputChannel, handler, reactive);
 		}
 		else if (inputChannel instanceof SubscribableChannel) {
-			Assert.state(!pollerProvided, () ->
+			Assert.state(poller == null, () ->
 					"A '@Poller' should not be specified for Annotation-based " +
 							"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
 			return new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
@@ -425,7 +422,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, Poller poller) {
 		PollerMetadata pollerMetadata;
-		if (poller != null && !ValueConstants.DEFAULT_NONE.equals(poller.value())) {
+		if (poller != null) {
 			String ref = poller.value();
 			String triggerRef = poller.trigger();
 			String executorRef = poller.taskExecutor();
