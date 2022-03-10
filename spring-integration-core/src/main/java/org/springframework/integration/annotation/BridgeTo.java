@@ -43,6 +43,7 @@ import org.springframework.messaging.handler.annotation.ValueConstants;
  * If no output channel is provided and no reply-channel exists, an exception is thrown.
  *
  * @author Artem Bilan
+ * @author Chris Bono
  *
  * @since 4.0
  */

@@ -103,6 +103,7 @@ import reactor.core.publisher.Flux;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Chris Bono
  */
 public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation>
 		implements MethodAnnotationPostProcessor<T> {

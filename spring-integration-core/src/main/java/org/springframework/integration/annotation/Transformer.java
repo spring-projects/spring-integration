@@ -31,6 +31,7 @@ import org.springframework.messaging.handler.annotation.ValueConstants;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Chris Bono
  */
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)

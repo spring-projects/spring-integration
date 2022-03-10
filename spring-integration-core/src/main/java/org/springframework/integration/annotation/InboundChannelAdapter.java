@@ -46,6 +46,7 @@ import org.springframework.messaging.handler.annotation.ValueConstants;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Chris Bono
  *
  * @since 4.0
  */

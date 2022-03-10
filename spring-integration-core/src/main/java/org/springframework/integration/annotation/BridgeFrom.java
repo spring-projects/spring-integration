@@ -38,6 +38,7 @@ import org.springframework.messaging.handler.annotation.ValueConstants;
  * is used as the {@code outputChannel} of the {@link org.springframework.integration.handler.BridgeHandler}.
  *
  * @author Artem Bilan
+ * @author Chris Bono
  *
  * @since 4.0
  */
