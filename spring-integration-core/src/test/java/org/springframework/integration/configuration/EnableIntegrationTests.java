@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,6 +127,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.ValueConstants;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.Trigger;
@@ -148,6 +149,7 @@ import reactor.core.publisher.Mono;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Michael Wiles
+ * @author Chris Bono
  *
  * @since 4.0
  */
@@ -1506,7 +1508,7 @@ public class EnableIntegrationTests {
 
 		String phase() default "";
 
-		Poller[] poller() default { };
+		Poller poller() default @Poller(ValueConstants.DEFAULT_NONE);
 
 	}
 
@@ -1525,7 +1527,7 @@ public class EnableIntegrationTests {
 
 		String phase() default "";
 
-		Poller[] poller() default { };
+		Poller poller() default @Poller(ValueConstants.DEFAULT_NONE);
 
 	}
 
@@ -1631,7 +1633,7 @@ public class EnableIntegrationTests {
 
 		String phase() default "";
 
-		Poller[] poller() default { };
+		Poller poller() default @Poller(ValueConstants.DEFAULT_NONE);
 
 	}
 
@@ -1664,7 +1666,7 @@ public class EnableIntegrationTests {
 
 		String phase() default "";
 
-		Poller[] poller() default { };
+		Poller poller() default @Poller(ValueConstants.DEFAULT_NONE);
 
 	}
 

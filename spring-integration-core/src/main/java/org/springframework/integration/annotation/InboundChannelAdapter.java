@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.messaging.handler.annotation.ValueConstants;
 
 /**
  * Indicates that a method is capable of producing a {@link org.springframework.messaging.Message}
@@ -45,6 +46,7 @@ import org.springframework.core.annotation.AliasFor;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Chris Bono
  *
  * @since 4.0
  */
@@ -86,10 +88,8 @@ public @interface InboundChannelAdapter {
 	/**
 	 * @return the {@link org.springframework.integration.annotation.Poller} options for a polled endpoint
 	 * ({@link org.springframework.integration.scheduling.PollerMetadata}).
-	 * This attribute is an {@code array} just to allow an empty default (no poller).
-	 * Only one {@link org.springframework.integration.annotation.Poller} element is allowed.
 	 * NOTE: a {@link Poller} here has {@link Poller#maxMessagesPerPoll()} set to 1 by default.
 	 */
-	Poller[] poller() default { };
+	Poller poller() default @Poller(ValueConstants.DEFAULT_NONE);
 
 }

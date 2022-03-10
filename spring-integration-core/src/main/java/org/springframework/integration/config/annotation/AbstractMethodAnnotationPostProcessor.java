@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.messaging.handler.annotation.ValueConstants;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -103,6 +102,7 @@ import reactor.core.publisher.Flux;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Chris Bono
  */
 public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation>
 		implements MethodAnnotationPostProcessor<T> {
@@ -363,24 +363,24 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel,
 			List<Annotation> annotations) {
 
-		Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
-		Reactive reactive = MessagingAnnotationUtils.resolveAttribute(annotations, "reactive", Reactive.class);
-		boolean reactiveProvided = reactive != null && !ValueConstants.DEFAULT_NONE.equals(reactive.value());
+		Poller poller = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller.class);
 
-		Assert.state(!reactiveProvided || ObjectUtils.isEmpty(pollers),
+		Reactive reactive = MessagingAnnotationUtils.resolveAttribute(annotations, "reactive", Reactive.class);
+
+		Assert.state(reactive == null || poller == null,
 				"The 'poller' and 'reactive' are mutually exclusive.");
 
-		if (inputChannel instanceof Publisher || handler instanceof ReactiveMessageHandlerAdapter || reactiveProvided) {
-			return reactiveStreamsConsumer(inputChannel, handler, reactiveProvided ? reactive : null);
+		if (inputChannel instanceof Publisher || handler instanceof ReactiveMessageHandlerAdapter || reactive != null) {
+			return reactiveStreamsConsumer(inputChannel, handler, reactive);
 		}
 		else if (inputChannel instanceof SubscribableChannel) {
-			Assert.state(ObjectUtils.isEmpty(pollers), () ->
+			Assert.state(poller == null, () ->
 					"A '@Poller' should not be specified for Annotation-based " +
 							"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
 			return new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
 		}
 		else if (inputChannel instanceof PollableChannel) {
-			return pollingConsumer(inputChannel, handler, pollers);
+			return pollingConsumer(inputChannel, handler, poller);
 		}
 		else {
 			throw new IllegalArgumentException("Unsupported 'inputChannel' type: '"
@@ -414,19 +414,15 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return reactiveStreamsConsumer;
 	}
 
-	private PollingConsumer pollingConsumer(MessageChannel inputChannel, MessageHandler handler, Poller[] pollers) {
+	private PollingConsumer pollingConsumer(MessageChannel inputChannel, MessageHandler handler, Poller poller) {
 		PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
-		configurePollingEndpoint(pollingConsumer, pollers);
+		configurePollingEndpoint(pollingConsumer, poller);
 		return pollingConsumer;
 	}
 
-	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, Poller[] pollers) {
+	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, Poller poller) {
 		PollerMetadata pollerMetadata;
-		if (!ObjectUtils.isEmpty(pollers)) {
-			Assert.state(pollers.length == 1,
-					"The 'poller' for an Annotation-based endpoint can have only one '@Poller'.");
-			Poller poller = pollers[0];
-
+		if (poller != null) {
 			String ref = poller.value();
 			String triggerRef = poller.trigger();
 			String executorRef = poller.taskExecutor();

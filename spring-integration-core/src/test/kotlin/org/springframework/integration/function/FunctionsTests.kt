@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import java.util.stream.Collectors
 
 /**
  * @author Artem Bilan
+ * @author Chris Bono
  *
  * @since 5.1
  */
@@ -171,7 +172,7 @@ class FunctionsTests {
 
 		@Bean
 		@InboundChannelAdapter(value = "counterChannel", autoStartup = "false",
-				poller = [Poller(fixedRate = "10", maxMessagesPerPoll = "1")])
+				poller = Poller(fixedRate = "10", maxMessagesPerPoll = "1"))
 		@EndpointId("kotlinSupplierChannelAdapter")
 		fun kotlinSupplier(): () -> String {
 			return { "baz" }

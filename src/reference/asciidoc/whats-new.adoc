@@ -26,6 +26,9 @@ See <<./graphql.adoc#graphql,GraphQL Support>> for more information.
 [[x6.0-general]]
 === General Changes
 
+The messaging annotations don't require a poller attribute as an array of @Poller any more.
+See <<./configuration.adoc#configuration-using-poller-annotation,Using the @Poller Annotation>> for more information.
+
 [[x6.0-http]]
 === HTTP Changes
 

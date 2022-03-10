@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.messaging.handler.annotation.ValueConstants;
  * is used as the {@code outputChannel} of the {@link org.springframework.integration.handler.BridgeHandler}.
  *
  * @author Artem Bilan
+ * @author Chris Bono
  *
  * @since 4.0
  */
@@ -70,10 +71,9 @@ public @interface BridgeFrom {
 	/**
 	 * @return the {@link Poller} options for a polled endpoint
 	 * ({@link org.springframework.integration.scheduling.PollerMetadata}).
-	 * This attribute is an {@code array} just to allow an empty default (no poller).
 	 * Mutually exclusive with {@link #reactive()}.
 	 */
-	Poller[] poller() default { };
+	Poller poller() default @Poller(ValueConstants.DEFAULT_NONE);
 
 	/**
 	 * @return the {@link Reactive} marker for a consumer endpoint.
