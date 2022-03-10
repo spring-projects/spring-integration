@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -31,7 +32,6 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.ConnectException;
 import java.net.ServerSocket;
@@ -91,7 +91,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StopWatch;
 
 
@@ -248,10 +247,9 @@ public class TcpNioConnectionTests {
 	@Test
 	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
 			disabledReason = "Timing is too short for CI")
-	public void testCleanup() throws Exception {
+	public void testCleanup() {
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0);
 		factory.setApplicationEventPublisher(nullPublisher);
-		factory.setNioHarvestInterval(100);
 		Map<SocketChannel, TcpNioConnection> connections = new HashMap<>();
 		SocketChannel chan1 = mock(SocketChannel.class);
 		SocketChannel chan2 = mock(SocketChannel.class);
@@ -262,49 +260,41 @@ public class TcpNioConnectionTests {
 		connections.put(chan1, conn1);
 		connections.put(chan2, conn2);
 		connections.put(chan3, conn3);
-		boolean java8 = System.getProperty("java.version").startsWith("1.8");
-		final List<Field> fields = new ArrayList<>();
-		if (java8) {
-			ReflectionUtils.doWithFields(SocketChannel.class, field -> {
-				field.setAccessible(true);
-				fields.add(field);
-			}, field -> field.getName().equals("open"));
-		}
-		else {
-			ReflectionUtils.doWithFields(SocketChannel.class, field -> {
-				field.setAccessible(true);
-				fields.add(field);
-			}, field -> field.getName().equals("closed"));
-		}
-		Field field = fields.get(0);
-		// Can't use Mockito because isOpen() is final
-		ReflectionUtils.setField(field, chan1, java8);
-		ReflectionUtils.setField(field, chan2, java8);
-		ReflectionUtils.setField(field, chan3, java8);
+		willReturn(true).given(chan1).isOpen();
+		willReturn(true).given(chan2).isOpen();
+		willReturn(true).given(chan3).isOpen();
 		Selector selector = mock(Selector.class);
 		HashSet<SelectionKey> keys = new HashSet<>();
 		when(selector.selectedKeys()).thenReturn(keys);
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(3); // all open
 
-		ReflectionUtils.setField(field, chan1, !java8);
+		DirectFieldAccessor factoryFieldAccessor = new DirectFieldAccessor(factory);
+
+		willReturn(false).given(chan1).isOpen();
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(3); // interval didn't pass
-		Thread.sleep(110);
+
+		factoryFieldAccessor.setPropertyValue("nextCheckForClosedNioConnections", System.currentTimeMillis() - 10);
+
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(2); // first is closed
 
-		ReflectionUtils.setField(field, chan2, !java8);
+		willReturn(false).given(chan2).isOpen();
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(2); // interval didn't pass
-		Thread.sleep(110);
+
+		factoryFieldAccessor.setPropertyValue("nextCheckForClosedNioConnections", System.currentTimeMillis() - 10);
+
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(1); // second is closed
 
-		ReflectionUtils.setField(field, chan3, !java8);
+		willReturn(false).given(chan3).isOpen();
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(1); // interval didn't pass
-		Thread.sleep(110);
+
+		factoryFieldAccessor.setPropertyValue("nextCheckForClosedNioConnections", System.currentTimeMillis() - 10);
+
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections.size()).isEqualTo(0); // third is closed
 
