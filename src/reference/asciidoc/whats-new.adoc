@@ -37,3 +37,20 @@ See <<./http.adoc#http,HTTP Support>> for more information.
 
 The `spring-integration-rmi` module has been removed altogether after being deprecated in previous versions.
 There is no replacement: it is recommended to migrate to more secure network and application protocols, such as WebSockets, RSockets, gRPC or REST.
+
+[[x6.0-poller]]
+==== @Poller (Messaging Annotations)
+
+The messaging annotations
+
+- `@Aggregator`
+- `@BridgeFrom`
+- `@BridgeTo`
+- `@Filter`
+- `@InboundChannelAdapter`
+- `@Router`
+- `@ServiceActivator`
+- `@Splitter`
+- `@Transformer`
+
+used to contain a `Poller[]` attribute but now contain a single element. The array was only in place  to allow an empty default (no poller). This is now accomplished with a single element using the special value of `ValueConstants.DEFAULT_NONE`.

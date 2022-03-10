@@ -26,7 +26,6 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Payloads;
-import org.springframework.integration.annotation.Poller;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -71,12 +70,10 @@ public final class MessagingAnnotationUtils {
 	}
 
 	/**
-	 * Determines if the value of a named attribute from an annotation instance contains an actual value.
-	 * <p>It is considered to NOT contain a value if it is null, an empty string, an empty array, or a {@link Poller}
-	 * whose 'value' field is set to {@link ValueConstants#DEFAULT_NONE}.
-	 *
+	 * Determine if the value of a named attribute from an annotation instance contains an actual value.
 	 * @param annotationValue the value of the annotation attribute
-	 * @return whether {@code annotationValue} is set to a non-empty value
+	 * @return {@code false} when {@code annotationValue} is null, an empty string, an empty array, or any annotation
+	 * whose 'value' field is set to {@link ValueConstants#DEFAULT_NONE} - {@code true} otherwise
 	 */
 	public static boolean hasValue(Object annotationValue) {
 		if (annotationValue == null) {
@@ -90,8 +87,9 @@ public final class MessagingAnnotationUtils {
 		if ((annotationValue instanceof String) && ObjectUtils.isEmpty(annotationValue)) {
 			return false;
 		}
-		// Poller with special 'none' value
-		if ((annotationValue instanceof Poller) && ValueConstants.DEFAULT_NONE.equals(((Poller) annotationValue).value())) {
+		// Annotation with 'value' set to special 'none' string
+		if ((annotationValue instanceof Annotation) &&
+				ValueConstants.DEFAULT_NONE.equals(AnnotationUtils.getValue((Annotation) annotationValue))) {
 			return false;
 		}
 		return true;

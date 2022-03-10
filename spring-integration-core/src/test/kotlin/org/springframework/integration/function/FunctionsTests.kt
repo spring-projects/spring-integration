@@ -58,7 +58,6 @@ import java.util.stream.Collectors
  * @author Artem Bilan
  * @author Chris Bono
  *
- *
  * @since 5.1
  */
 @SpringJUnitConfig
