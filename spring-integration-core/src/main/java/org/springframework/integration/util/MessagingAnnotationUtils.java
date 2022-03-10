@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,14 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Payloads;
+import org.springframework.integration.annotation.Poller;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.ValueConstants;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Utility methods to support annotation processing.
@@ -41,17 +43,16 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Soby Chacko
  * @author Artem Bilan
+ * @author Chris Bono
  *
  * @since 4.0
  */
 public final class MessagingAnnotationUtils {
 
 	/**
-	 * Get the attribute value from the annotation hierarchy, returning the first non-empty
-	 * value closest to the annotated method. While traversing up the hierarchy, for string-valued
-	 * attributes, an empty string is ignored. For array-valued attributes, an empty
-	 * array is ignored.
-	 * The overridden attribute must be the same type.
+	 * Get the attribute value from the annotation hierarchy, returning the first
+	 * {@link MessagingAnnotationUtils#hasValue non-empty}) value closest to the annotated method.
+	 *
 	 * @param annotations The meta-annotations in order (closest first).
 	 * @param name The attribute name.
 	 * @param requiredType The expected type.
@@ -69,9 +70,31 @@ public final class MessagingAnnotationUtils {
 		return null;
 	}
 
-	public static boolean hasValue(Object value) {
-		return value != null && (!(value instanceof String) || (StringUtils.hasText((String) value))) // NOSONAR
-				&& (!value.getClass().isArray() || ((Object[]) value).length > 0);
+	/**
+	 * Determines if the value of a named attribute from an annotation instance contains an actual value.
+	 * <p>It is considered to NOT contain a value if it is null, an empty string, an empty array, or a {@link Poller}
+	 * whose 'value' field is set to {@link ValueConstants#DEFAULT_NONE}.
+	 *
+	 * @param annotationValue the value of the annotation attribute
+	 * @return whether {@code annotationValue} is set to a non-empty value
+	 */
+	public static boolean hasValue(Object annotationValue) {
+		if (annotationValue == null) {
+			return false;
+		}
+		// Empty array
+		if (ObjectUtils.isArray(annotationValue) && ObjectUtils.isEmpty(annotationValue)) {
+			return false;
+		}
+		// Empty string
+		if ((annotationValue instanceof String) && ObjectUtils.isEmpty(annotationValue)) {
+			return false;
+		}
+		// Poller with special 'none' value
+		if ((annotationValue instanceof Poller) && ValueConstants.DEFAULT_NONE.equals(((Poller) annotationValue).value())) {
+			return false;
+		}
+		return true;
 	}
 
 	public static Method findAnnotatedMethod(Object target, final Class<? extends Annotation> annotationType) {

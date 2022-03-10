@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,10 +151,9 @@ public @interface Router {
 	/**
 	 * @return the {@link Poller} options for a polled endpoint
 	 * ({@link org.springframework.integration.scheduling.PollerMetadata}).
-	 * This attribute is an {@code array} just to allow an empty default (no poller).
 	 * Mutually exclusive with {@link #reactive()}.
 	 */
-	Poller[] poller() default { };
+	Poller poller() default @Poller(ValueConstants.DEFAULT_NONE);
 
 	/**
 	 * @return the {@link Reactive} marker for a consumer endpoint.
