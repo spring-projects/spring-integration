@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Mikhail Polivakha
  *
  * @since 5.5.5
  *
@@ -72,6 +74,18 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 
 	@Autowired
 	private Config config;
+
+	@Test //GH-3732
+	public void testNoNpeIsNotThrownInCaseDoInitIsNotInvokedBeforeTopicAddition() {
+		Mqttv5PahoMessageDrivenChannelAdapter channelAdapter = new Mqttv5PahoMessageDrivenChannelAdapter("tcp://mock-url.com:8091", "mock-client-id", "123");
+		Assertions.assertDoesNotThrow(() -> channelAdapter.addTopic("abc", 1));
+	}
+
+	@Test //GH-3732
+	public void testNoNpeIsNotThrownInCaseDoInitIsNotInvokedBeforeTopicRemoval() {
+		Mqttv5PahoMessageDrivenChannelAdapter channelAdapter = new Mqttv5PahoMessageDrivenChannelAdapter("tcp://mock-url.com:8091", "mock-client-id", "123");
+		Assertions.assertDoesNotThrow(() -> channelAdapter.removeTopic("abc"));
+	}
 
 	@Test
 	public void testSimpleMqttv5Interaction() {
