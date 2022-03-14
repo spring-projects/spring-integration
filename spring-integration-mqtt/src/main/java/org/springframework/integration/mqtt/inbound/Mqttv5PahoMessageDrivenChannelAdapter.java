@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2021-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,7 @@ import org.springframework.util.Assert;
  * See {@link #setPayloadType} for more information about type conversion.
  *
  * @author Artem Bilan
+ * @author Mikhail Polivakha
  *
  * @since 5.5.5
  *
@@ -141,13 +142,15 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	@Override
 	protected void onInit() {
 		super.onInit();
-		try {
-			this.mqttClient = new MqttAsyncClient(getUrl(), getClientId(), this.persistence);
-			this.mqttClient.setCallback(this);
-			this.mqttClient.setManualAcks(isManualAcks());
-		}
-		catch (MqttException ex) {
-			throw new BeanCreationException("Cannot create 'MqttAsyncClient' for: " + getComponentName(), ex);
+		if (this.mqttClient == null) {
+			try {
+				this.mqttClient = new MqttAsyncClient(getUrl(), getClientId(), this.persistence);
+				this.mqttClient.setCallback(this);
+				this.mqttClient.setManualAcks(isManualAcks());
+			}
+			catch (MqttException ex) {
+				throw new BeanCreationException("Cannot create 'MqttAsyncClient' for: " + getComponentName(), ex);
+			}
 		}
 		if (this.messageConverter == null) {
 			setMessageConverter(getBeanFactory()
@@ -189,8 +192,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 		this.topicLock.lock();
 		String[] topics = getTopic();
 		try {
-			this.mqttClient.unsubscribe(topics).waitForCompletion(getCompletionTimeout());
-			this.mqttClient.disconnect().waitForCompletion(getCompletionTimeout());
+			if (this.mqttClient != null && this.mqttClient.isConnected()) {
+				this.mqttClient.unsubscribe(topics).waitForCompletion(getCompletionTimeout());
+				this.mqttClient.disconnect().waitForCompletion(getCompletionTimeout());
+			}
 		}
 		catch (MqttException ex) {
 			logger.error(ex, () -> "Error unsubscribing from " + Arrays.toString(topics));
@@ -204,7 +209,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	public void destroy() {
 		super.destroy();
 		try {
-			this.mqttClient.close(true);
+			if (this.mqttClient != null) {
+				this.mqttClient.close(true);
+			}
 		}
 		catch (MqttException ex) {
 			logger.error(ex, "Failed to close 'MqttAsyncClient'");
@@ -215,8 +222,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	public void addTopic(String topic, int qos) {
 		this.topicLock.lock();
 		try {
-			this.mqttClient.subscribe(topic, qos).waitForCompletion(getCompletionTimeout());
 			super.addTopic(topic, qos);
+			if (this.mqttClient != null && this.mqttClient.isConnected()) {
+				this.mqttClient.subscribe(topic, qos).waitForCompletion(getCompletionTimeout());
+			}
 		}
 		catch (MqttException ex) {
 			throw new MessagingException("Failed to subscribe to topic " + topic, ex);
@@ -230,7 +239,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	public void removeTopic(String... topic) {
 		this.topicLock.lock();
 		try {
-			this.mqttClient.unsubscribe(topic).waitForCompletion(getCompletionTimeout());
+			if (this.mqttClient != null && this.mqttClient.isConnected()) {
+				this.mqttClient.unsubscribe(topic).waitForCompletion(getCompletionTimeout());
+			}
 			super.removeTopic(topic);
 		}
 		catch (MqttException ex) {

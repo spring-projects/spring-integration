@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.mqtt.inbound;
 
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -40,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Trung Pham
+ * @author Mikhail Polivakha
  *
  * @since 4.0
  *
@@ -331,15 +333,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 				return false;
 			}
 			Topic other = (Topic) obj;
-			if (this.topic == null) {
-				if (other.topic != null) {
-					return false;
-				}
-			}
-			else if (!this.topic.equals(other.topic)) {
-				return false;
-			}
-			return true;
+			return Objects.equals(this.topic, other.topic);
 		}
 
 		@Override
