@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 
 package org.springframework.integration.endpoint;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.FluxMessageChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -49,12 +54,36 @@ public class ReactiveMessageProducerTests {
 	public MessageProducerSupport producer;
 
 	@Test
-	public void test() {
+	public void testEmptyPublisherUnsubscription() throws InterruptedException {
+		CountDownLatch cancelLatch = new CountDownLatch(1);
+		MessageProducerSupport producer =
+				new MessageProducerSupport() {
+
+					@Override
+					protected void doStart() {
+						super.doStart();
+						subscribeToPublisher(
+								Flux.just("test1")
+										.delayElements(Duration.ofSeconds(10))
+										.map(GenericMessage::new)
+										.doOnCancel(cancelLatch::countDown));
+					}
+
+				};
+		producer.setOutputChannel(new NullChannel());
+		producer.start();
+		producer.stop();
+
+		assertThat(cancelLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	public void testReactiveMessageProducerFromContext() {
 		StepVerifier stepVerifier =
 				StepVerifier.create(
-						Flux.from(this.fluxMessageChannel)
-								.map(Message::getPayload)
-								.cast(String.class))
+								Flux.from(this.fluxMessageChannel)
+										.map(Message::getPayload)
+										.cast(String.class))
 						.expectNext("test1", "test2")
 						.thenCancel()
 						.verifyLater();

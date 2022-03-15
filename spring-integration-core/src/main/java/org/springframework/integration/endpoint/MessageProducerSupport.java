@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -65,6 +66,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	private String errorChannelName;
 
 	private boolean shouldTrack = false;
+
+	private volatile Subscription subscription;
 
 	protected MessageProducerSupport() {
 		this.setPhase(Integer.MAX_VALUE / 2);
@@ -206,6 +209,11 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 */
 	@Override
 	protected void doStop() {
+		Subscription subscriptionToCancel = this.subscription;
+		if (subscriptionToCancel != null) {
+			this.subscription = null;
+			subscriptionToCancel.cancel();
+		}
 	}
 
 	protected void sendMessage(Message<?> messageArg) {
@@ -232,7 +240,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 						.map(this::trackMessageIfAny)
 						.doOnComplete(this::stop)
 						.doOnCancel(this::stop)
-						.takeWhile((message) -> isActive());
+						.doOnSubscribe((subscription) -> this.subscription = subscription);
 
 		if (channelForSubscription instanceof ReactiveStreamsSubscribableChannel) {
 			((ReactiveStreamsSubscribableChannel) channelForSubscription).subscribeTo(messageFlux);
