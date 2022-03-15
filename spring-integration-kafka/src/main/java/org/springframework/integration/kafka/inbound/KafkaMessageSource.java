@@ -691,8 +691,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 		private final boolean isSyncCommits;
 
-		private final boolean logOnlyMetadata;
-
 		private volatile boolean acknowledged;
 
 		private boolean autoAckEnabled = true;
@@ -716,7 +714,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 					consumerProperties != null
 							? consumerProperties.getCommitLogLevel()
 							: LogIfLevelEnabled.Level.DEBUG);
-			this.logOnlyMetadata = consumerProperties != null && consumerProperties.isOnlyLogRecordMetadata();
 		}
 
 		@Override
@@ -761,7 +758,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 									})
 									.collect(Collectors.toList());
 					if (rewound.size() > 0) {
-						KafkaUtils.setLogOnlyMetadata(this.logOnlyMetadata);
 						this.logger.warn(() -> "Rolled back " + KafkaUtils.format(record)
 								+ " later in-flight offsets "
 								+ rewound + " will also be re-fetched");
@@ -771,7 +767,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 
 		private void commitIfPossible(ConsumerRecord<K, V> record) { // NOSONAR
-			KafkaUtils.setLogOnlyMetadata(this.logOnlyMetadata);
 			if (this.ackInfo.isRolledBack()) {
 				this.logger.warn(() -> "Cannot commit offset for "
 						+ KafkaUtils.format(record)
