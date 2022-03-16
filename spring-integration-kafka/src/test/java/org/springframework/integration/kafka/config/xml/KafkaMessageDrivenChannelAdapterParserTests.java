@@ -109,7 +109,7 @@ class KafkaMessageDrivenChannelAdapterParserTests {
 	}
 
 	@Test
-	@SuppressWarnings({ "unchecked", "deprecation" })
+	@SuppressWarnings("unchecked")
 	void testKafkaMessageDrivenChannelAdapterOptions() {
 		DefaultKafkaConsumerFactory<Integer, String> cf =
 				new DefaultKafkaConsumerFactory<>(Collections.emptyMap());
@@ -136,12 +136,7 @@ class KafkaMessageDrivenChannelAdapterParserTests {
 		adapter.afterPropertiesSet();
 
 		messageListener = containerProps.getMessageListener();
-		assertThat(messageListener).isInstanceOf(
-				org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.class);
-
-		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
-
-		assertThat(delegate.getClass().getName()).contains("$IntegrationRecordMessageListener");
+		assertThat(messageListener.getClass().getName()).contains("$IntegrationRecordMessageListener");
 
 		adapter.setRecordFilterStrategy(mock(RecordFilterStrategy.class));
 		adapter.afterPropertiesSet();
@@ -151,19 +146,15 @@ class KafkaMessageDrivenChannelAdapterParserTests {
 
 		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
 
-		assertThat(delegate).isInstanceOf(
-				org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.class);
+		assertThat(delegate.getClass().getName()).contains("$IntegrationRecordMessageListener");
 
 		adapter.setFilterInRetry(true);
 		adapter.afterPropertiesSet();
 
 		messageListener = containerProps.getMessageListener();
-		assertThat(messageListener).isInstanceOf(
-				org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.class);
+		assertThat(messageListener.getClass().getName()).contains("$IntegrationRecordMessageListener");
 
-		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
-
-		assertThat(delegate).isInstanceOf(FilteringMessageListenerAdapter.class);
+		assertThat(adapter).extracting("doFilterInRetry").isEqualTo(Boolean.TRUE);
 	}
 
 }

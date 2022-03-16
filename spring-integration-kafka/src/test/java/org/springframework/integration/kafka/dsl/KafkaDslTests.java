@@ -45,13 +45,13 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
-import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.kafka.channel.PollableKafkaChannel;
+import org.springframework.integration.kafka.inbound.KafkaErrorSendingMessageRecoverer;
+import org.springframework.integration.kafka.inbound.KafkaInboundGateway;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.integration.kafka.support.KafkaIntegrationHeaders;
-import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -61,9 +61,11 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.ContainerProperties.AckMode;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.GenericMessageListenerContainer;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListenerContainer;
@@ -83,6 +85,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.util.backoff.FixedBackOff;
 
 /**
  * @author Artem Bilan
@@ -163,6 +166,15 @@ public class KafkaDslTests {
 	@Autowired
 	private Gate gate;
 
+	@Autowired
+	private KafkaInboundGateway<?, ?, ?> server;
+
+	@Autowired
+	private CommonErrorHandler eh;
+
+	@Autowired
+	private QueueChannel recoveringErrorChannel;
+
 	@Test
 	void testKafkaAdapters() throws Exception {
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo", Collections.singletonMap("foo", "bar")));
@@ -234,6 +246,12 @@ public class KafkaDslTests {
 	void testGateways() throws Exception {
 		assertThat(this.config.replyContainerLatch.await(30, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.gate.exchange(TEST_TOPIC4, "foo")).isEqualTo("FOO");
+		assertThat(this.server).extracting("messageListenerContainer")
+				.extracting("commonErrorHandler")
+				.isSameAs(this.eh);
+		Message<?> received = this.recoveringErrorChannel.receive(10_000);
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(KafkaHeaders.RAW_DATA)).isNotNull();
 	}
 
 	@Test
@@ -290,10 +308,8 @@ public class KafkaDslTests {
 									c.ackMode(ContainerProperties.AckMode.MANUAL)
 											.idleEventInterval(100L)
 											.id("topic1ListenerContainer"))
-							.recoveryCallback(new ErrorMessageSendingRecoverer(errorChannel(),
-									new RawRecordHeaderErrorMessageStrategy()))
+							.errorChannel(errorChannel())
 							.retryTemplate(new RetryTemplate())
-							.filterInRetry(true)
 							.onPartitionsAssignedSeekCallback((map, callback) ->
 									ContextConfiguration.this.onPartitionsAssignedCalledLatch.countDown()))
 					.filter(Message.class, m ->
@@ -304,16 +320,12 @@ public class KafkaDslTests {
 					.get();
 		}
 
-		@SuppressWarnings("deprecation")
 		@Bean
 		public ConcurrentKafkaListenerContainerFactory<Integer, String> kafkaListenerContainerFactory() {
 			ConcurrentKafkaListenerContainerFactory<Integer, String> factory =
 					new ConcurrentKafkaListenerContainerFactory<>();
 			factory.setConsumerFactory(consumerFactory());
 			factory.getContainerProperties().setAckMode(AckMode.MANUAL);
-			factory.setRecoveryCallback(new ErrorMessageSendingRecoverer(errorChannel(),
-					new RawRecordHeaderErrorMessageStrategy()));
-			factory.setRetryTemplate(new RetryTemplate());
 			return factory;
 		}
 
@@ -322,8 +334,7 @@ public class KafkaDslTests {
 			return IntegrationFlows
 					.from(Kafka
 							.messageDrivenChannelAdapter(kafkaListenerContainerFactory().createContainer(TEST_TOPIC2),
-									KafkaMessageDrivenChannelAdapter.ListenerMode.record)
-							.filterInRetry(true))
+									KafkaMessageDrivenChannelAdapter.ListenerMode.record))
 					.filter(Message.class, m ->
 									m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
 							f -> f.throwExceptionOnRejection(true))
@@ -469,9 +480,44 @@ public class KafkaDslTests {
 		public IntegrationFlow serverGateway() {
 			return IntegrationFlows
 					.from(Kafka.inboundGateway(consumerFactory(), containerProperties(),
-							producerFactory()))
+							producerFactory())
+								.configureListenerContainer(container -> container.errorHandler(eh())))
 					.<String, String>transform(String::toUpperCase)
 					.get();
+		}
+
+		@Bean
+		CommonErrorHandler eh() {
+			return new DefaultErrorHandler();
+		}
+
+		@Bean
+		IntegrationFlow withRecoveringErrorHandler() {
+			ContainerProperties props = containerProperties();
+			props.setGroupId("wreh");
+			return IntegrationFlows.from(Kafka.messageDrivenChannelAdapter(consumerFactory(), props)
+						.configureListenerContainer(container -> {
+							container.errorHandler(recoveringErrorHandler());
+						}))
+					.handle(p -> {
+						throw new RuntimeException("test");
+					})
+					.get();
+		}
+
+		@Bean
+		CommonErrorHandler recoveringErrorHandler() {
+			return new DefaultErrorHandler(recoverer(), new FixedBackOff(0L, 0L));
+		}
+
+		@Bean
+		KafkaErrorSendingMessageRecoverer recoverer() {
+			return new KafkaErrorSendingMessageRecoverer(recoveringErrorChannel());
+		}
+
+		@Bean
+		QueueChannel recoveringErrorChannel() {
+			return new QueueChannel();
 		}
 
 		private ContainerProperties containerProperties() {
