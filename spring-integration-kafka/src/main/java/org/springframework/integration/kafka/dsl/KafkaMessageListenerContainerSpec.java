@@ -87,7 +87,9 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	 * @param errorHandler the {@link org.springframework.kafka.listener.ErrorHandler}.
 	 * @return the spec.
 	 * @see org.springframework.kafka.listener.ErrorHandler
+	 * @deprecated - will be replaced in 6.0 with {@code CommonErrorHandler}.
 	 */
+	@Deprecated
 	public KafkaMessageListenerContainerSpec<K, V> errorHandler(GenericErrorHandler<?> errorHandler) {
 		this.target.setGenericErrorHandler(errorHandler);
 		return this;
