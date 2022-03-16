@@ -35,11 +35,9 @@ import static org.springframework.kafka.test.assertj.KafkaConditions.timestamp;
 import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -90,7 +88,6 @@ import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
 import org.springframework.kafka.support.SendResult;
-import org.springframework.kafka.support.TransactionSupport;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
@@ -525,13 +522,8 @@ class KafkaProducerMessageHandlerTests {
 			return null;
 		}).given(producer).close(any());
 		ProducerFactory pf = mock(ProducerFactory.class);
-		given(pf.isProducerPerConsumerPartition()).willReturn(true);
 		given(pf.transactionCapable()).willReturn(true);
-		final List<String> transactionalIds = new ArrayList<>();
-		willAnswer(i -> {
-			transactionalIds.add(TransactionSupport.getTransactionIdSuffix());
-			return producer;
-		}).given(pf).createProducer(isNull());
+		willReturn(producer).given(pf).createProducer(isNull());
 		PlatformTransactionManager ptm = new KafkaTransactionManager(pf);
 		ContainerProperties props = new ContainerProperties("foo");
 		props.setGroupId("group");
@@ -567,8 +559,6 @@ class KafkaProducerMessageHandlerTests {
 		container.stop();
 		verify(pf, times(2)).createProducer(isNull());
 		verifyNoMoreInteractions(producer);
-		assertThat(transactionalIds.get(0)).isEqualTo("group.foo.0");
-		assertThat(transactionalIds.get(1)).isEqualTo("group.foo.0");
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -670,16 +660,13 @@ class KafkaProducerMessageHandlerTests {
 			return null;
 		}).given(producer).close(any());
 		AtomicReference<String> txId = new AtomicReference<>();
-		final List<String> transactionalIds = new ArrayList<>();
 		DefaultKafkaProducerFactory pf = new DefaultKafkaProducerFactory(Collections.emptyMap()) {
 
 			@Override
-			protected Producer createTransactionalProducerForPartition(String txIdPrefix) {
+			protected Producer createTransactionalProducer(String txIdPrefix) {
 				txId.set(txIdPrefix);
-				transactionalIds.add(TransactionSupport.getTransactionIdSuffix());
 				return producer;
 			}
-
 
 		};
 		pf.setTransactionIdPrefix("default.tx.id.");
@@ -719,9 +706,6 @@ class KafkaProducerMessageHandlerTests {
 		inOrder.verify(producer).close(any());
 		container.stop();
 		verifyNoMoreInteractions(producer);
-		assertThat(transactionalIds).hasSizeGreaterThanOrEqualTo(2);
-		assertThat(transactionalIds.get(0)).isEqualTo("group.foo.0");
-		assertThat(transactionalIds.get(1)).isEqualTo("group.foo.0");
 		assertThat(txId.get()).isEqualTo("tm.tx.id.");
 	}
 
