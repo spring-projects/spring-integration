@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -299,14 +299,24 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	/**
-	 * Set an {@link ErrorMessageStrategy} to use to build an error message when a exception occurs.
-	 * Default is the {@link DefaultErrorMessageStrategy}.
+	 * Set an {@link ErrorMessageStrategy} to use to build an error message when a
+	 * exception occurs. Default is the {@link DefaultErrorMessageStrategy}.
 	 * @param errorMessageStrategy the {@link ErrorMessageStrategy}.
 	 * @since 4.3.10
 	 */
 	public final void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
 		Assert.notNull(errorMessageStrategy, "'errorMessageStrategy' cannot be null");
 		this.errorMessageStrategy = errorMessageStrategy;
+	}
+
+	/**
+	 * Get an {@link ErrorMessageStrategy} to use to build an error message when a
+	 * exception occurs. Default is the {@link DefaultErrorMessageStrategy}.
+	 * @return the errorMessageStrategy.
+	 * @since 6.0
+	 */
+	protected ErrorMessageStrategy getErrorMessageStrategy() {
+		return this.errorMessageStrategy;
 	}
 
 	@Override

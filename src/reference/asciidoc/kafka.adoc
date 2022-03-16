@@ -93,46 +93,13 @@ The `KafkaProducerMessageHandler.sendTimeoutExpression` default has changed from
 This has been changed for consistency because you may get unexpected behavior (Spring may timeout the send, while it is actually, eventually, successful).
 IMPORTANT: That timeout is 120 seconds by default so you may wish to reduce it to get more timely failures.
 
-==== Java Configuration
+==== Configuration
 
-The following example shows how to configure the outbound channel adapter for Apache Kafka with Java:
-
-====
-[source, java]
-----
-@Bean
-@ServiceActivator(inputChannel = "toKafka")
-public MessageHandler handler() throws Exception {
-    KafkaProducerMessageHandler<String, String> handler =
-            new KafkaProducerMessageHandler<>(kafkaTemplate());
-    handler.setTopicExpression(new LiteralExpression("someTopic"));
-    handler.setMessageKeyExpression(new LiteralExpression("someKey"));
-    handler.setSuccessChannel(successes());
-    handler.setFailureChannel(failures());
-    return handler;
-}
-
-@Bean
-public KafkaTemplate<String, String> kafkaTemplate() {
-    return new KafkaTemplate<>(producerFactory());
-}
-
-@Bean
-public ProducerFactory<String, String> producerFactory() {
-    Map<String, Object> props = new HashMap<>();
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.brokerAddress);
-    // set more properties
-    return new DefaultKafkaProducerFactory<>(props);
-}
-----
-====
-
-==== Java DSL Configuration
-
-The following example shows how to configure the outbound channel adapter for Apache Kafka with Spring Integration Java DSL:
+The following example shows how to configure the outbound channel adapter for Apache Kafka:
 
 ====
-[source, java]
+[source, java, role="primary"]
+.Java DSL
 ----
 @Bean
 public ProducerFactory<Integer, String> producerFactory() {
@@ -173,14 +140,36 @@ private KafkaProducerMessageHandlerSpec<Integer, String, ?> kafkaMessageHandler(
             .configureKafkaTemplate(t -> t.id("kafkaTemplate:" + topic));
 }
 ----
-====
+[source, java, role="secondary"]
+.Java
+----
+@Bean
+@ServiceActivator(inputChannel = "toKafka")
+public MessageHandler handler() throws Exception {
+    KafkaProducerMessageHandler<String, String> handler =
+            new KafkaProducerMessageHandler<>(kafkaTemplate());
+    handler.setTopicExpression(new LiteralExpression("someTopic"));
+    handler.setMessageKeyExpression(new LiteralExpression("someKey"));
+    handler.setSuccessChannel(successes());
+    handler.setFailureChannel(failures());
+    return handler;
+}
 
-==== XML Configuration
+@Bean
+public KafkaTemplate<String, String> kafkaTemplate() {
+    return new KafkaTemplate<>(producerFactory());
+}
 
-The following example shows how to configure the Kafka outbound channel adapter with XML:
-
-====
-[source, xml]
+@Bean
+public ProducerFactory<String, String> producerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.brokerAddress);
+    // set more properties
+    return new DefaultKafkaProducerFactory<>(props);
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int-kafka:outbound-channel-adapter id="kafkaOutboundChannelAdapter"
                                     kafka-template="template"
@@ -229,19 +218,45 @@ You must invoke its methods only on the thread that calls the listener within th
 If you hand off the message to another thread, you must not call its methods.
 
 When a `retry-template` is provided, delivery failures are retried according to its retry policy.
-An `error-channel` is not allowed in this case.
-You can use the `recovery-callback` to handle the error when retries are exhausted.
-In most cases, this is an `ErrorMessageSendingRecoverer` that sends the `ErrorMessage` to a channel.
+If an `error-channel` is also supplied, a default `ErrorMessageSendingRecoverer` will be used as the recovery callback after retries are exhausted.
+You can also use the `recovery-callback` to specify some other action to take in that case, or set it to `null` to throw the final exception to the listener container so it is handled there.
 
 When building an `ErrorMessage` (for use in the `error-channel` or `recovery-callback`), you can customize the error message by setting the `error-message-strategy` property.
 By default, a `RawRecordHeaderErrorMessageStrategy` is used, to provide access to the converted message as well as the raw `ConsumerRecord`.
 
-==== Java Configuration
+IMPORTANT: This form of retry is blocking and could cause a rebalance if the aggregate retry delays across all polled records might exceed the `{@code `max.poll.interval.ms` consumer property.
+Instead, consider adding a `DefaultErrorHandler` to the listener container, configured with a `KafkaErrorSendingMessageRecoverer`.
 
-The following example shows how to configure a message-driven channel adapter with Java:
+==== Configuration
+
+The following example shows how to configure a message-driven channel adapter:
 
 ====
-[source, java]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow topic1ListenerFromKafkaFlow() {
+    return IntegrationFlows
+            .from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
+                    KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
+                    .configureListenerContainer(c ->
+                            c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL)
+                                    .id("topic1ListenerContainer"))
+                    .recoveryCallback(new ErrorMessageSendingRecoverer(errorChannel(),
+                            new RawRecordHeaderErrorMessageStrategy()))
+                    .retryTemplate(new RetryTemplate())
+                    .filterInRetry(true))
+            .filter(Message.class, m ->
+                            m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
+                    f -> f.throwExceptionOnRejection(true))
+            .<String, String>transform(String::toUpperCase)
+            .channel(c -> c.queue("listeningFromKafkaResults1"))
+            .get();
+}
+----
+[source, java, role="secondary"]
+.Java
 ----
 @Bean
 public KafkaMessageDrivenChannelAdapter<String, String>
@@ -267,69 +282,8 @@ public ConsumerFactory<String, String> consumerFactory() {
     return new DefaultKafkaConsumerFactory<>(props);
 }
 ----
-====
-
-==== Java DSL Configuration
-
-The following example shows how to configure a message-driven channel adapter with the Spring Integration Java DSL:
-
-====
-[source, java]
-----
-@Bean
-public IntegrationFlow topic1ListenerFromKafkaFlow() {
-    return IntegrationFlows
-            .from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
-                    KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
-                    .configureListenerContainer(c ->
-                            c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL)
-                                    .id("topic1ListenerContainer"))
-                    .recoveryCallback(new ErrorMessageSendingRecoverer(errorChannel(),
-                            new RawRecordHeaderErrorMessageStrategy()))
-                    .retryTemplate(new RetryTemplate())
-                    .filterInRetry(true))
-            .filter(Message.class, m ->
-                            m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
-                    f -> f.throwExceptionOnRejection(true))
-            .<String, String>transform(String::toUpperCase)
-            .channel(c -> c.queue("listeningFromKafkaResults1"))
-            .get();
-}
-----
-====
-
-You can also use the container factory that is used for `@KafkaListener` annotations to create `ConcurrentMessageListenerContainer` instances for other purposes.
-See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] for an example.
-
-With the Java DSL, the container does not have to be configured as a `@Bean`, because the DSL registers the container as a bean.
-The following example shows how to do so:
-
-====
-[source, java]
-----
-@Bean
-public IntegrationFlow topic2ListenerFromKafkaFlow() {
-    return IntegrationFlows
-            .from(Kafka.messageDrivenChannelAdapter(kafkaListenerContainerFactory().createContainer(TEST_TOPIC2),
-            KafkaMessageDrivenChannelAdapter.ListenerMode.record)
-                .id("topic2Adapter"))
-            ...
-            get();
-}
-----
-====
-
-Notice that, in this case, the adapter is given an `id` (`topic2Adapter`).
-The container is registered in the application context with a name of `topic2Adapter.container`.
-If the adapter does not have an `id` property, the container's bean name is the container's fully qualified class name plus `#n`, where `n` is incremented for each container.
-
-==== XML Configuration
-
-
-The following example shows how to configure a message-driven channel adapter with XML:
-
-====
-[source, xml]
+[source, xml, role="secondary"]
+.XML
 ----
 <int-kafka:message-driven-channel-adapter
         id="kafkaListener"
@@ -365,15 +319,52 @@ The following example shows how to configure a message-driven channel adapter wi
 ----
 ====
 
+You can also use the container factory that is used for `@KafkaListener` annotations to create `ConcurrentMessageListenerContainer` instances for other purposes.
+See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] for an example.
+
+With the Java DSL, the container does not have to be configured as a `@Bean`, because the DSL registers the container as a bean.
+The following example shows how to do so:
+
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow topic2ListenerFromKafkaFlow() {
+    return IntegrationFlows
+            .from(Kafka.messageDrivenChannelAdapter(kafkaListenerContainerFactory().createContainer(TEST_TOPIC2),
+            KafkaMessageDrivenChannelAdapter.ListenerMode.record)
+                .id("topic2Adapter"))
+            ...
+            get();
+}
+----
+====
+
+Notice that, in this case, the adapter is given an `id` (`topic2Adapter`).
+The container is registered in the application context with a name of `topic2Adapter.container`.
+If the adapter does not have an `id` property, the container's bean name is the container's fully qualified class name plus `#n`, where `n` is incremented for each container.
+
 [[kafka-inbound-pollable]]
 === Inbound Channel Adapter
 
 The `KafkaMessageSource` provides a pollable channel adapter implementation.
 
-==== Java Configuration
+==== Configuration
 
 ====
-[source, java]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow flow(ConsumerFactory<String, String> cf)  {
+    return IntegrationFlows.from(Kafka.inboundChannelAdapter(cf, "myTopic")
+                .groupId("myDslGroupId"), e -> e.poller(Pollers.fixedDelay(5000)))
+            .handle(System.out::println)
+            .get();
+}
+----
+[source, java, role="secondary"]
+.Java
 ----
 @InboundChannelAdapter(channel = "fromKafka", poller = @Poller(fixedDelay = "5000"))
 @Bean
@@ -384,38 +375,8 @@ public KafkaMessageSource<String, String> source(ConsumerFactory<String, String>
     return source;
 }
 ----
-====
-
-Refer to the javadocs for available properties.
-
-[[max-poll-records]]
-By default, `max.poll.records` must be either explicitly set in the consumer factory, or it will be forced to 1 if the consumer factory is a `DefaultKafkaConsumerFactory`.
-You can set the property `allowMultiFetch` to `true` to override this behavior.
-
-IMPORTANT: You must poll the consumer within `max.poll.interval.ms` to avoid a rebalance.
-If you set `allowMultiFetch` to `true` you must process all the retrieved records, and poll again, within `max.poll.interval.ms`.
-
-Messages emitted by this adapter contain a header `kafka_remainingRecords` with a count of records remaining from the previous poll.
-
-==== Java DSL Configuration
-
-====
-[source, java]
-----
-@Bean
-public IntegrationFlow flow(ConsumerFactory<String, String> cf)  {
-    return IntegrationFlows.from(Kafka.inboundChannelAdapter(cf, "myTopic")
-                .groupId("myDslGroupId"), e -> e.poller(Pollers.fixedDelay(5000)))
-            .handle(System.out::println)
-            .get();
-}
-----
-====
-
-==== XML Configuration
-
-====
-[source, xml]
+[source, xml, role="secondary"]
+.XML
 ----
 <int-kafka:inbound-channel-adapter
         id="adapter1"
@@ -435,6 +396,17 @@ public IntegrationFlow flow(ConsumerFactory<String, String> cf)  {
 ----
 ====
 
+Refer to the javadocs for available properties.
+
+[[max-poll-records]]
+By default, `max.poll.records` must be either explicitly set in the consumer factory, or it will be forced to 1 if the consumer factory is a `DefaultKafkaConsumerFactory`.
+You can set the property `allowMultiFetch` to `true` to override this behavior.
+
+IMPORTANT: You must poll the consumer within `max.poll.interval.ms` to avoid a rebalance.
+If you set `allowMultiFetch` to `true` you must process all the retrieved records, and poll again, within `max.poll.interval.ms`.
+
+Messages emitted by this adapter contain a header `kafka_remainingRecords` with a count of records remaining from the previous poll.
+
 [[kafka-outbound-gateway]]
 === Outbound Gateway
 
@@ -449,42 +421,13 @@ The `KafkaProducerMessageHandler` `sendTimeoutExpression` default is `delivery.t
 This has been changed for consistency because you may get unexpected behavior (Spring may timeout the `send()`, while it is actually, eventually, successful).
 IMPORTANT: That timeout is 120 seconds by default so you may wish to reduce it to get more timely failures.
 
-==== Java Configuration
+==== Configuration
 
-The following example shows how to configure a gateway with Java:
-
-====
-[source, java]
-----
-@Bean
-@ServiceActivator(inputChannel = "kafkaRequests", outputChannel = "kafkaReplies")
-public KafkaProducerMessageHandler<String, String> outGateway(
-        ReplyingKafkaTemplate<String, String, String> kafkaTemplate) {
-    return new KafkaProducerMessageHandler<>(kafkaTemplate);
-}
-----
-====
-
-Refer to the javadocs for available properties.
-
-Notice that the same class as the <<kafka-outbound,outbound channel adapter>> is used, the only difference being that the `KafkaTemplate` passed into the constructor is a `ReplyingKafkaTemplate`.
-See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation]  for more information.
-
-The outbound topic, partition, key, and so on are determined in the same way as the outbound adapter.
-The reply topic is determined as follows:
-
-. A message header named `KafkaHeaders.REPLY_TOPIC` (if present, it must have a `String` or `byte[]` value) is validated against the template's reply container's subscribed topics.
-. If the template's `replyContainer` is subscribed to only one topic, it is used.
-
-You can also specify a `KafkaHeaders.REPLY_PARTITION` header to determine a specific partition to be used for replies.
-Again, this is validated against the template's reply container's subscriptions.
-
-==== Java DSL Configuration
-
-The following example shows how to configure an outbound gateway with the Java DSL:
+The following example shows how to configure a gateway:
 
 ====
-[source, java]
+[source, java, role="primary"]
+.Java DSL
 ----
 @Bean
 public IntegrationFlow outboundGateFlow(
@@ -496,28 +439,18 @@ public IntegrationFlow outboundGateFlow(
             .get();
 }
 ----
-====
-
-Alternatively, you can also use a configuration similar to the following bean:
-
-====
-[source, java]
+[source, java, role="secondary"]
+.Java
 ----
 @Bean
-public IntegrationFlow outboundGateFlow() {
-    return IntegrationFlows.from("kafkaRequests")
-            .handle(Kafka.outboundGateway(producerFactory(), replyContainer())
-                .configureKafkaTemplate(t -> t.replyTimeout(30_000)))
-            .channel("kafkaReplies")
-            .get();
+@ServiceActivator(inputChannel = "kafkaRequests", outputChannel = "kafkaReplies")
+public KafkaProducerMessageHandler<String, String> outGateway(
+        ReplyingKafkaTemplate<String, String, String> kafkaTemplate) {
+    return new KafkaProducerMessageHandler<>(kafkaTemplate);
 }
 ----
-====
-
-==== XML Configuration
-
-====
-[source, xml]
+[source, xml, role="secondary"]
+.XML
 ----
 <int-kafka:outbound-gateway
     id="allProps"
@@ -539,15 +472,62 @@ public IntegrationFlow outboundGateFlow() {
 ----
 ====
 
+Refer to the javadocs for available properties.
+
+Notice that the same class as the <<kafka-outbound,outbound channel adapter>> is used, the only difference being that the `KafkaTemplate` passed into the constructor is a `ReplyingKafkaTemplate`.
+See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation]  for more information.
+
+The outbound topic, partition, key, and so on are determined in the same way as the outbound adapter.
+The reply topic is determined as follows:
+
+. A message header named `KafkaHeaders.REPLY_TOPIC` (if present, it must have a `String` or `byte[]` value) is validated against the template's reply container's subscribed topics.
+. If the template's `replyContainer` is subscribed to only one topic, it is used.
+
+You can also specify a `KafkaHeaders.REPLY_PARTITION` header to determine a specific partition to be used for replies.
+Again, this is validated against the template's reply container's subscriptions.
+
+Alternatively, you can also use a configuration similar to the following bean:
+
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow outboundGateFlow() {
+    return IntegrationFlows.from("kafkaRequests")
+            .handle(Kafka.outboundGateway(producerFactory(), replyContainer())
+                .configureKafkaTemplate(t -> t.replyTimeout(30_000)))
+            .channel("kafkaReplies")
+            .get();
+}
+----
+====
+
 [[kafka-inbound-gateway]]
 === Inbound Gateway
 
 The inbound gateway is for request/reply operations.
 
-The following example shows how to configure an inbound gateway with Java:
+==== Configuration
+
+The following example shows how to configure an inbound gateway:
 
 ====
-[source, java]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow serverGateway(
+        ConcurrentMessageListenerContainer<Integer, String> container,
+        KafkaTemplate<Integer, String> replyTemplate) {
+    return IntegrationFlows
+            .from(Kafka.inboundGateway(container, replyTemplate)
+                .replyTimeout(30_000))
+            .<String, String>transform(String::toUpperCase)
+            .get();
+}
+----
+[source, java, role="secondary"]
+.Java
 ----
 @Bean
 public KafkaInboundGateway<Integer, String, String> inboundGateway(
@@ -562,27 +542,40 @@ public KafkaInboundGateway<Integer, String, String> inboundGateway(
     return gateway;
 }
 ----
+[source, xml, role="secondary"]
+.XML
+----
+<int-kafka:inbound-gateway
+        id="gateway1"
+        listener-container="container1"
+        kafka-template="template"
+        auto-startup="false"
+        phase="100"
+        request-timeout="5000"
+        request-channel="nullChannel"
+        reply-channel="errorChannel"
+        reply-timeout="43"
+        message-converter="messageConverter"
+        payload-type="java.lang.String"
+        error-message-strategy="ems"
+        retry-template="retryTemplate"
+        recovery-callback="recoveryCallback"/>
+----
 ====
 
 Refer to the javadocs for available properties.
 
-The following example shows how to configure a simple upper case converter with the Java DSL:
+When a `RetryTemplate` is provided, delivery failures are retried according to its retry policy.
+If an `error-channel` is also supplied, a default `ErrorMessageSendingRecoverer` will be used as the recovery callback after retries are exhausted.
+You can also use the `recovery-callback` to specify some other action to take in that case, or set it to `null` to throw the final exception to the listener container so it is handled there.
 
-====
-[source, java]
-----
-@Bean
-public IntegrationFlow serverGateway(
-        ConcurrentMessageListenerContainer<Integer, String> container,
-        KafkaTemplate<Integer, String> replyTemplate) {
-    return IntegrationFlows
-            .from(Kafka.inboundGateway(container, replyTemplate)
-                .replyTimeout(30_000))
-            .<String, String>transform(String::toUpperCase)
-            .get();
-}
-----
-====
+When building an `ErrorMessage` (for use in the `error-channel` or `recovery-callback`), you can customize the error message by setting the `error-message-strategy` property.
+By default, a `RawRecordHeaderErrorMessageStrategy` is used, to provide access to the converted message as well as the raw `ConsumerRecord`.
+
+IMPORTANT: This form of retry is blocking and could cause a rebalance if the aggregate retry delays across all polled records might exceed the `{@code `max.poll.interval.ms` consumer property.
+Instead, consider adding a `DefaultErrorHandler` to the listener container, configured with a `KafkaErrorSendingMessageRecoverer`.
+
+The following example shows how to configure a simple upper case converter with the Java DSL:
 
 Alternatively, you could configure an upper-case converter by using code similar to the following:
 
@@ -604,31 +597,6 @@ public IntegrationFlow serverGateway() {
 You can also use the container factory that is used for `@KafkaListener` annotations to create `ConcurrentMessageListenerContainer` instances for other purposes.
 See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] and <<kafka-inbound>> for examples.
 
-==== XML Configuration
-
-====
-[source, xml]
-----
-<int-kafka:inbound-gateway
-        id="gateway1"
-        listener-container="container1"
-        kafka-template="template"
-        auto-startup="false"
-        phase="100"
-        request-timeout="5000"
-        request-channel="nullChannel"
-        reply-channel="errorChannel"
-        reply-timeout="43"
-        message-converter="messageConverter"
-        payload-type="java.lang.String"
-        error-message-strategy="ems"
-        retry-template="retryTemplate"
-        recovery-callback="recoveryCallback"/>
-----
-====
-
-See the XML schema for a description of each property.
-
 [[kafka-channels]]
 === Channels Backed by Apache Kafka Topics
 
@@ -639,7 +607,8 @@ Each channel requires a `KafkaTemplate` for the sending side and either a listen
 ==== Java DSL Configuration
 
 ====
-[source, java]
+[source, java, role="primary"]
+.Java DSL
 ----
 @Bean
 public IntegrationFlow flowWithSubscribable(KafkaTemplate<Integer, String> template,
@@ -686,12 +655,8 @@ public IntegrationFlow flowWithPollable(KafkaTemplate<Integer, String> template,
             .get();
 }
 ----
-====
-
-==== Java Configuration
-
-====
-[source, java]
+[source, java, role="secondary"]
+.Java
 ----
 /**
  * Channel for a single subscriber.
@@ -732,12 +697,8 @@ PollableKafkaChannel pollable(KafkaTemplate<String, String> template,
     return channel;
 }
 ----
-====
-
-==== XML Configuration
-
-====
-[source, xml]
+[source, xml, role="secondary"]
+.XML
 ----
 <int-kafka:channel kafka-template="template" id="ptp" topic="ptpTopic" group-id="ptpGroup"
     container-factory="containerFactory" />
@@ -771,7 +732,7 @@ The following example shows how to do so in XML configuration:
         send-timeout="5000"
         channel="nullChannel"
         message-converter="messageConverter"
-        payload-type="com.example.Foo"
+        payload-type="com.example.Thing"
         error-channel="errorChannel" />
 
 <bean id="messageConverter"
@@ -792,7 +753,7 @@ public KafkaMessageDrivenChannelAdapter<String, String>
             new KafkaMessageDrivenChannelAdapter<>(container, ListenerMode.record);
     kafkaMessageDrivenChannelAdapter.setOutputChannel(received());
     kafkaMessageDrivenChannelAdapter.setMessageConverter(converter());
-    kafkaMessageDrivenChannelAdapter.setPayloadType(Foo.class);
+    kafkaMessageDrivenChannelAdapter.setPayloadType(Thing.class);
     return kafkaMessageDrivenChannelAdapter;
 }
 ----

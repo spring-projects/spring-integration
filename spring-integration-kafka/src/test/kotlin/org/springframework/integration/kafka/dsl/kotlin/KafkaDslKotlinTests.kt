@@ -36,11 +36,9 @@ import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.Pollers
 import org.springframework.integration.dsl.integrationFlow
-import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer
 import org.springframework.integration.kafka.dsl.Kafka
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler
-import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.integration.test.util.TestUtils
 import org.springframework.kafka.annotation.EnableKafka
@@ -239,8 +237,7 @@ class KafkaDslKotlinTests {
 									it.ackMode(ContainerProperties.AckMode.MANUAL)
 											.id("topic1ListenerContainer")
 								}
-								.recoveryCallback(ErrorMessageSendingRecoverer(errorChannel(),
-										RawRecordHeaderErrorMessageStrategy()))
+								.errorChannel(errorChannel())
 								.retryTemplate(RetryTemplate())
 								.filterInRetry(true)) {
 					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_MESSAGE_KEY] as Int) < 101 }) { throwExceptionOnRejection(true) }
@@ -254,8 +251,7 @@ class KafkaDslKotlinTests {
 						Kafka.messageDrivenChannelAdapter(consumerFactory(),
 								KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC2)
 								.configureListenerContainer { it.ackMode(ContainerProperties.AckMode.MANUAL) }
-								.recoveryCallback(ErrorMessageSendingRecoverer(errorChannel(),
-										RawRecordHeaderErrorMessageStrategy()))
+								.errorChannel(errorChannel())
 								.retryTemplate(RetryTemplate())
 								.filterInRetry(true)) {
 					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_MESSAGE_KEY] as Int) < 101 }) { throwExceptionOnRejection(true) }

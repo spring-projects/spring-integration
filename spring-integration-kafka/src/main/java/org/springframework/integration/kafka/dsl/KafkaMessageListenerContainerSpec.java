@@ -24,6 +24,7 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.TopicPartitionOffset;
@@ -81,17 +82,15 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	}
 
 	/**
-	 * Specify an {@link org.springframework.kafka.listener.ErrorHandler} for the
+	 * Specify an {@link org.springframework.kafka.listener.CommonErrorHandler} for the
 	 * {@link org.springframework.kafka.listener.AbstractMessageListenerContainer}.
-	 * @param errorHandler the {@link org.springframework.kafka.listener.ErrorHandler}.
+	 * @param errorHandler the {@link org.springframework.kafka.listener.CommonErrorHandler}.
 	 * @return the spec.
-	 * @see org.springframework.kafka.listener.ErrorHandler
+	 * @since 6.0
+	 * @see org.springframework.kafka.listener.CommonErrorHandler
 	 */
-	@SuppressWarnings("deprecation")
-	public KafkaMessageListenerContainerSpec<K, V> errorHandler(
-			org.springframework.kafka.listener.GenericErrorHandler<?> errorHandler) {
-
-		this.target.setGenericErrorHandler(errorHandler);
+	public KafkaMessageListenerContainerSpec<K, V> errorHandler(CommonErrorHandler errorHandler) {
+		this.target.setCommonErrorHandler(errorHandler);
 		return this;
 	}
 

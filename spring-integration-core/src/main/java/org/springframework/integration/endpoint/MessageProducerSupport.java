@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,6 +153,16 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	public final void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
 		Assert.notNull(errorMessageStrategy, "'errorMessageStrategy' cannot be null");
 		this.errorMessageStrategy = errorMessageStrategy;
+	}
+
+	/**
+	 * Get an {@link ErrorMessageStrategy} to use to build an error message when a
+	 * exception occurs. Default is the {@link DefaultErrorMessageStrategy}.
+	 * @return the errorMessageStrategy
+	 * @since 6.0
+	 */
+	protected ErrorMessageStrategy getErrorMessageStrategy() {
+		return this.errorMessageStrategy;
 	}
 
 	protected MessagingTemplate getMessagingTemplate() {

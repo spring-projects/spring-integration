@@ -40,3 +40,11 @@ See <<./http.adoc#http,HTTP Support>> for more information.
 
 The `spring-integration-rmi` module has been removed altogether after being deprecated in previous versions.
 There is no replacement: it is recommended to migrate to more secure network and application protocols, such as WebSockets, RSockets, gRPC or REST.
+
+=== Apache Kafka Changes
+
+When providing a `RetryTemplate` on the inbound gateway or message-driven channel adapter, if an `errorChannel` is also provided, an `ErrorMessageSendingRecoverer` is automatically configured.
+
+In addition, the new `KafkaErrorMessageSendingRecoverer` is provided; this can be used with a `DefaultErrorHandler` to avoid issues with long aggregated retry delays causing partitions rebalances.
+
+See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.

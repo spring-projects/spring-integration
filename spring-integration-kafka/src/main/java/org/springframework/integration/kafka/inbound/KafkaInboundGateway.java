@@ -31,6 +31,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.ErrorMessageUtils;
@@ -39,13 +40,13 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConsumerSeekAware;
 import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -70,7 +71,8 @@ import org.springframework.util.Assert;
  * @since 5.4
  *
  */
-public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implements Pausable, OrderlyShutdownCapable {
+public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
+		implements KafkaInboundEndpoint, Pausable, OrderlyShutdownCapable {
 
 	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
@@ -130,6 +132,12 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	 * Specify a {@link RetryTemplate} instance to wrap
 	 * {@link KafkaInboundGateway.IntegrationRecordMessageListener} into
 	 * {@code RetryingMessageListenerAdapter}.
+	 * <p>
+	 * IMPORTANT: This form of retry is blocking and could cause a rebalance if the
+	 * aggregate retry delays across all polled records might exceed the
+	 * {@code max.poll.interval.ms}. Instead, consider adding a
+	 * {@code DefaultErrorHandler} to the listener container, configured with a
+	 * {@link KafkaErrorSendingMessageRecoverer}.
 	 * @param retryTemplate the {@link RetryTemplate} to use.
 	 */
 	public void setRetryTemplate(RetryTemplate retryTemplate) {
@@ -137,10 +145,13 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	}
 
 	/**
-	 * A {@link RecoveryCallback} instance for retry operation;
-	 * if null, the exception will be thrown to the container after retries are exhausted
-	 * (unless an error channel is configured).
-	 * Does not make sense if {@link #setRetryTemplate(RetryTemplate)} isn't specified.
+	 * A {@link RecoveryCallback} instance for retry operation; if null, the exception
+	 * will be thrown to the container after retries are exhausted (unless an error
+	 * channel is configured). Only used if
+	 * {@link #setRetryTemplate(RetryTemplate)} is specified. Default is an
+	 * {@link ErrorMessageSendingRecoverer} if an error channel has been provided. Set to
+	 * null if you wish to throw the exception back to the container after retries are
+	 * exhausted.
 	 * @param recoveryCallback the recovery callback.
 	 */
 	public void setRecoveryCallback(RecoveryCallback<?> recoveryCallback) {
@@ -170,19 +181,21 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 		this.bindSourceRecord = bindSourceRecord;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void onInit() {
 		super.onInit();
-		MessageListener<K, V> kafkaListener = this.listener;
 		if (this.retryTemplate != null) {
-			kafkaListener =
-					new org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter<>(kafkaListener,
-							this.retryTemplate, this.recoveryCallback);
 			this.retryTemplate.registerListener(this.listener);
+			MessageChannel errorChannel = getErrorChannel();
+			if (this.recoveryCallback != null && errorChannel != null) {
+				this.recoveryCallback = new ErrorMessageSendingRecoverer(errorChannel, getErrorMessageStrategy());
+			}
 		}
 		ContainerProperties containerProperties = this.messageListenerContainer.getContainerProperties();
-		containerProperties.setMessageListener(kafkaListener);
+		Object existing = containerProperties.getMessageListener();
+		Assert.state(existing == null, () -> "listener container cannot have an existing message listener (" + existing
+					+ ")");
+		containerProperties.setMessageListener(this.listener);
 		this.containerDeliveryAttemptPresent = containerProperties.isDeliveryAttemptHeader();
 	}
 
@@ -236,9 +249,11 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	 * attributes for use by the {@link org.springframework.integration.support.ErrorMessageStrategy}.
 	 * @param record the record.
 	 * @param message the message.
+	 * @param conversionError a conversion error occurred.
 	 */
-	private void setAttributesIfNecessary(Object record, Message<?> message) {
-		boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
+	private void setAttributesIfNecessary(Object record, @Nullable Message<?> message, boolean conversionError) {
+		boolean needHolder = ATTRIBUTES_HOLDER.get() == null
+				&& (getErrorChannel() != null && (this.retryTemplate == null || conversionError));
 		boolean needAttributes = needHolder | this.retryTemplate != null;
 		if (needHolder) {
 			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
@@ -281,36 +296,63 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment, Consumer<?, ?> consumer) {
 			Message<?> message = null;
 			try {
-				message = enhanceHeaders(toMessagingMessage(record, acknowledgment, consumer), record);
-				setAttributesIfNecessary(record, message);
+				message = toMessagingMessage(record, acknowledgment, consumer);
 			}
-			catch (RuntimeException e) {
+			catch (RuntimeException ex) {
+				if (KafkaInboundGateway.this.retryTemplate == null) {
+					setAttributesIfNecessary(record, null, true);
+				}
 				MessageChannel errorChannel = getErrorChannel();
 				if (errorChannel != null) {
 					KafkaInboundGateway.this.messagingTemplate.send(errorChannel, buildErrorMessage(null,
-							new ConversionException("Failed to convert to message", record, e)));
+							new ConversionException("Failed to convert to message", record, ex)));
+				}
+				else {
+					throw ex;
 				}
 			}
 			if (message != null) {
-				try {
-					Message<?> reply = sendAndReceiveMessage(message);
-					if (reply != null) {
-						reply = enhanceReply(message, reply);
-						KafkaInboundGateway.this.kafkaTemplate.send(reply);
-					}
-				}
-				finally {
-					if (KafkaInboundGateway.this.retryTemplate == null) {
-						ATTRIBUTES_HOLDER.remove();
-					}
-				}
+				sendAndReceive(record, message, acknowledgment, consumer);
 			}
 			else {
 				KafkaInboundGateway.this.logger.debug(() -> "Converter returned a null message for: " + record);
 			}
 		}
 
-		private Message<?> enhanceHeaders(Message<?> message, ConsumerRecord<K, V> record) {
+		private void sendAndReceive(ConsumerRecord<K, V> record, Message<?> message, Acknowledgment acknowledgment,
+				Consumer<?, ?> consumer) {
+
+			RetryTemplate template = KafkaInboundGateway.this.retryTemplate;
+			if (template != null) {
+				doWithRetry(template, KafkaInboundGateway.this.recoveryCallback, record, acknowledgment, consumer,
+						() -> {
+							doSendAndReceive(enhanceHeadersAndSaveAttributes(message, record));
+						});
+			}
+			else {
+				doSendAndReceive(enhanceHeadersAndSaveAttributes(message, record));
+			}
+		}
+
+		private void doSendAndReceive(Message<?> message) {
+			try {
+				Message<?> reply = sendAndReceiveMessage(message);
+				if (reply != null) {
+					reply = enhanceReply(message, reply);
+					KafkaInboundGateway.this.kafkaTemplate.send(reply);
+				}
+				else {
+					this.logger.debug(() -> "No reply received for " + message);
+				}
+			}
+			finally {
+				if (KafkaInboundGateway.this.retryTemplate == null) {
+					ATTRIBUTES_HOLDER.remove();
+				}
+			}
+		}
+
+		private Message<?> enhanceHeadersAndSaveAttributes(Message<?> message, ConsumerRecord<K, V> record) {
 			Message<?> messageToReturn = message;
 			if (message.getHeaders() instanceof KafkaMessageHeaders) {
 				Map<String, Object> rawHeaders = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
@@ -345,6 +387,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 				}
 				messageToReturn = builder.build();
 			}
+			setAttributesIfNecessary(record, messageToReturn, false);
 			return messageToReturn;
 		}
 
