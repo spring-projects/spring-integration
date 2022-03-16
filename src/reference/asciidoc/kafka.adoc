@@ -219,7 +219,7 @@ If you hand off the message to another thread, you must not call its methods.
 
 When a `retry-template` is provided, delivery failures are retried according to its retry policy.
 If an `error-channel` is also supplied, a default `ErrorMessageSendingRecoverer` will be used as the recovery callback after retries are exhausted.
-You can also use the `recovery-callback` to specify some other action to take in that case.
+You can also use the `recovery-callback` to specify some other action to take in that case, or set it to `null` to throw the final exception to the listener container so it is handled there.
 
 When building an `ErrorMessage` (for use in the `error-channel` or `recovery-callback`), you can customize the error message by setting the `error-message-strategy` property.
 By default, a `RawRecordHeaderErrorMessageStrategy` is used, to provide access to the converted message as well as the raw `ConsumerRecord`.
@@ -567,7 +567,7 @@ Refer to the javadocs for available properties.
 
 When a `RetryTemplate` is provided, delivery failures are retried according to its retry policy.
 If an `error-channel` is also supplied, a default `ErrorMessageSendingRecoverer` will be used as the recovery callback after retries are exhausted.
-You can also use the `recovery-callback` to specify some other action to take in that case.
+You can also use the `recovery-callback` to specify some other action to take in that case, or set it to `null` to throw the final exception to the listener container so it is handled there.
 
 When building an `ErrorMessage` (for use in the `error-channel` or `recovery-callback`), you can customize the error message by setting the `error-message-strategy` property.
 By default, a `RawRecordHeaderErrorMessageStrategy` is used, to provide access to the converted message as well as the raw `ConsumerRecord`.

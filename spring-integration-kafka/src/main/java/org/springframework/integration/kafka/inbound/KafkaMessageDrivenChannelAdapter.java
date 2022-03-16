@@ -281,11 +281,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 		ContainerProperties containerProperties = this.messageListenerContainer.getContainerProperties();
 		Object existing = containerProperties.getMessageListener();
-		if (existing != null) {
-			logger.warn(() -> "Container's existing message listener ("
-					+ existing
-					+ ") replaced by this endpoint");
-		}
+		Assert.state(existing == null, () -> "listener container cannot have an existing message listener (" + existing
+				+ ")");
 		if (this.mode.equals(ListenerMode.record)) {
 			MessageListener<K, V> listener = this.recordListener;
 
@@ -360,9 +357,11 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * attributes for use by the {@link org.springframework.integration.support.ErrorMessageStrategy}.
 	 * @param record the record.
 	 * @param message the message.
+	 * @param conversionError a conversion error occurred.
 	 */
-	private void setAttributesIfNecessary(Object record, Message<?> message) {
-		boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
+	private void setAttributesIfNecessary(Object record, @Nullable Message<?> message, boolean conversionError) {
+		boolean needHolder = ATTRIBUTES_HOLDER.get() == null
+				&& (getErrorChannel() != null && (this.retryTemplate == null || conversionError));
 		boolean needAttributes = needHolder | this.retryTemplate != null;
 		if (needHolder) {
 			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
@@ -438,19 +437,35 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		@Override
 		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment, Consumer<?, ?> consumer) {
 
+			Message<?> message = null;
+			try {
+				message = toMessagingMessage(record, acknowledgment, consumer);
+			}
+			catch (RuntimeException ex) {
+				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate == null) {
+					setAttributesIfNecessary(record, null, true);
+				}
+				MessageChannel errorChannel = getErrorChannel();
+				if (errorChannel != null) {
+					RuntimeException exception = new ConversionException("Failed to convert to message", record, ex);
+					sendErrorMessageIfNecessary(null, exception);
+				}
+				else {
+					throw ex;
+				}
+			}
 			RetryTemplate template = KafkaMessageDrivenChannelAdapter.this.retryTemplate;
 			if (template != null) {
+				Message<?> toSend = message;
 				doWithRetry(template, KafkaMessageDrivenChannelAdapter.this.recoveryCallback, record, acknowledgment,
 						consumer, () -> {
-							Message<?> message = enhanceHeaders(record, acknowledgment, consumer);
 							if (!KafkaMessageDrivenChannelAdapter.this.filterInRetry || passesFilter(record)) {
-								sendMessageIfAny(message, record);
+								sendMessageIfAny(enhanceHeadersAndSaveAttributes(toSend, record), record);
 							}
 						});
 			}
 			else {
-				Message<?> message = enhanceHeaders(record, acknowledgment, consumer);
-				sendMessageIfAny(message, record);
+				sendMessageIfAny(enhanceHeadersAndSaveAttributes(message, record), record);
 			}
 		}
 
@@ -459,22 +474,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			return filter == null || !filter.filter(record);
 		}
 
-		private Message<?> enhanceHeaders(ConsumerRecord<K, V> record, Acknowledgment acknowledgment,
-				Consumer<?, ?> consumer) {
-
-			Message<?> message = null;
-			try {
-				message = enhanceHeaders(toMessagingMessage(record, acknowledgment, consumer), record);
-				setAttributesIfNecessary(record, message);
-			}
-			catch (RuntimeException e) {
-				RuntimeException exception = new ConversionException("Failed to convert to message", record, e);
-				sendErrorMessageIfNecessary(null, exception);
-			}
-			return message;
-		}
-
-		private Message<?> enhanceHeaders(Message<?> message, ConsumerRecord<K, V> record) {
+		private Message<?> enhanceHeadersAndSaveAttributes(Message<?> message, ConsumerRecord<K, V> record) {
 			Message<?> messageToReturn = message;
 			if (message.getHeaders() instanceof KafkaMessageHeaders) {
 				Map<String, Object> rawHeaders = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
@@ -509,6 +509,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				}
 				messageToReturn = builder.build();
 			}
+			setAttributesIfNecessary(record, messageToReturn, false);
 			return messageToReturn;
 		}
 
@@ -592,7 +593,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			Message<?> message = null;
 			try {
 				message = toMessagingMessage(records, acknowledgment, consumer);
-				setAttributesIfNecessary(records, message);
+				setAttributesIfNecessary(records, message, false);
 			}
 			catch (RuntimeException ex) {
 				Exception exception = new ConversionException("Failed to convert to message",

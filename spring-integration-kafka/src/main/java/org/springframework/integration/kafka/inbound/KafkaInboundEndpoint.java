@@ -24,6 +24,9 @@ import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetryTemplate;
 
 /**
+ * Implementations of this interface will generally support a retry template for retrying
+ * incoming deliveries and this supports adding common attributes to the retry context.
+ *
  * @author Gary Russell
  * @since 6.0
  *

@@ -193,11 +193,8 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		}
 		ContainerProperties containerProperties = this.messageListenerContainer.getContainerProperties();
 		Object existing = containerProperties.getMessageListener();
-		if (existing != null) {
-			logger.warn(() -> "Container's existing message listener ("
-					+ existing
-					+ ") replaced by this endpoint");
-		}
+		Assert.state(existing == null, () -> "listener container cannot have an existing message listener (" + existing
+					+ ")");
 		containerProperties.setMessageListener(this.listener);
 		this.containerDeliveryAttemptPresent = containerProperties.isDeliveryAttemptHeader();
 	}
@@ -252,9 +249,11 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	 * attributes for use by the {@link org.springframework.integration.support.ErrorMessageStrategy}.
 	 * @param record the record.
 	 * @param message the message.
+	 * @param conversionError a conversion error occurred.
 	 */
-	private void setAttributesIfNecessary(Object record, Message<?> message) {
-		boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
+	private void setAttributesIfNecessary(Object record, @Nullable Message<?> message, boolean conversionError) {
+		boolean needHolder = ATTRIBUTES_HOLDER.get() == null
+				&& (getErrorChannel() != null && (this.retryTemplate == null || conversionError));
 		boolean needAttributes = needHolder | this.retryTemplate != null;
 		if (needHolder) {
 			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
@@ -299,14 +298,17 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 			try {
 				message = toMessagingMessage(record, acknowledgment, consumer);
 			}
-			catch (RuntimeException e) {
+			catch (RuntimeException ex) {
 				if (KafkaInboundGateway.this.retryTemplate == null) {
-					message = enhanceHeaders(message, record);
+					setAttributesIfNecessary(record, null, true);
 				}
 				MessageChannel errorChannel = getErrorChannel();
 				if (errorChannel != null) {
 					KafkaInboundGateway.this.messagingTemplate.send(errorChannel, buildErrorMessage(null,
-							new ConversionException("Failed to convert to message", record, e)));
+							new ConversionException("Failed to convert to message", record, ex)));
+				}
+				else {
+					throw ex;
 				}
 			}
 			if (message != null) {
@@ -324,39 +326,11 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 			if (template != null) {
 				doWithRetry(template, KafkaInboundGateway.this.recoveryCallback, record, acknowledgment, consumer,
 						() -> {
-							Message<?> toSend = enhanceHeaders(message, record, acknowledgment, consumer);
-							if (toSend != null) {
-								doSendAndReceive(message);
-							}
+							doSendAndReceive(enhanceHeadersAndSaveAttributes(message, record));
 						});
 			}
 			else {
-				Message<?> toSend = enhanceHeaders(message, record, acknowledgment, consumer);
-				if (toSend != null) {
-					doSendAndReceive(toSend);
-				}
-			}
-		}
-
-		@Nullable
-		private Message<?> enhanceHeaders(Message<?> message, ConsumerRecord<K, V> record,
-				Acknowledgment acknowledgment, Consumer<?, ?> consumer) {
-
-			try {
-				Message<?> message2 = enhanceHeaders(message, record);
-				setAttributesIfNecessary(record, message2);
-				return message2;
-			}
-			catch (RuntimeException ex) {
-				MessageChannel errorChannel = getErrorChannel();
-				if (errorChannel != null) {
-					KafkaInboundGateway.this.messagingTemplate.send(errorChannel, buildErrorMessage(null,
-							new ConversionException("Failed to convert to message", record, ex)));
-					return null;
-				}
-				else {
-					throw ex;
-				}
+				doSendAndReceive(enhanceHeadersAndSaveAttributes(message, record));
 			}
 		}
 
@@ -367,6 +341,9 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 					reply = enhanceReply(message, reply);
 					KafkaInboundGateway.this.kafkaTemplate.send(reply);
 				}
+				else {
+					this.logger.debug(() -> "No reply received for " + message);
+				}
 			}
 			finally {
 				if (KafkaInboundGateway.this.retryTemplate == null) {
@@ -375,7 +352,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 			}
 		}
 
-		private Message<?> enhanceHeaders(Message<?> message, ConsumerRecord<K, V> record) {
+		private Message<?> enhanceHeadersAndSaveAttributes(Message<?> message, ConsumerRecord<K, V> record) {
 			Message<?> messageToReturn = message;
 			if (message.getHeaders() instanceof KafkaMessageHeaders) {
 				Map<String, Object> rawHeaders = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
@@ -410,6 +387,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 				}
 				messageToReturn = builder.build();
 			}
+			setAttributesIfNecessary(record, messageToReturn, false);
 			return messageToReturn;
 		}
 

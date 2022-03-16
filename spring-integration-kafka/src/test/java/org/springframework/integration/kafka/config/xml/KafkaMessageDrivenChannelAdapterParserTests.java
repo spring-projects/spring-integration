@@ -133,12 +133,14 @@ class KafkaMessageDrivenChannelAdapterParserTests {
 
 		adapter.setRecordFilterStrategy(null);
 		adapter.setRetryTemplate(new RetryTemplate());
+		container.getContainerProperties().setMessageListener(null);
 		adapter.afterPropertiesSet();
 
 		messageListener = containerProps.getMessageListener();
 		assertThat(messageListener.getClass().getName()).contains("$IntegrationRecordMessageListener");
 
 		adapter.setRecordFilterStrategy(mock(RecordFilterStrategy.class));
+		container.getContainerProperties().setMessageListener(null);
 		adapter.afterPropertiesSet();
 
 		messageListener = containerProps.getMessageListener();
@@ -149,6 +151,7 @@ class KafkaMessageDrivenChannelAdapterParserTests {
 		assertThat(delegate.getClass().getName()).contains("$IntegrationRecordMessageListener");
 
 		adapter.setFilterInRetry(true);
+		container.getContainerProperties().setMessageListener(null);
 		adapter.afterPropertiesSet();
 
 		messageListener = containerProps.getMessageListener();
