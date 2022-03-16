@@ -47,4 +47,4 @@ When providing a `RetryTemplate` on the inbound gateway or message-driven channe
 
 In addition, the new `KafkaErrorMessageSendingRecoverer` is provided; this can be used with a `DefaultErrorHandler` to avoid issues with long aggregated retry delays causing partitions rebalances.
 
-See <<>> and <<>> for more information.
+See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
