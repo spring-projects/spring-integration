@@ -17,8 +17,8 @@
 package org.springframework.integration.xmpp.ignore;
 
 import org.jivesoftware.smack.packet.StanzaBuilder;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -32,10 +32,10 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Artem Bilan
  * @author Florian Schmaus
  */
+@Disabled
 public class SmackMessageSampleTests {
 
 	@Test
-	@Ignore
 	public void validateSmackMessageSent() throws XmppStringprepException {
 		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("SmackMessageSampleTest-context.xml",
 				this.getClass());

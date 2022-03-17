@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.MessageBuilder;
 import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.jxmpp.jid.impl.JidCreate;
 import org.mockito.Mockito;
 
@@ -40,8 +39,7 @@ import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -51,8 +49,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Florian Schmaus
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class ChatMessageInboundChannelAdapterParserTests {
 
@@ -70,7 +67,7 @@ public class ChatMessageInboundChannelAdapterParserTests {
 	private ChatMessageListeningEndpoint autoChannelAdapter;
 
 	@Test
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testInboundAdapter() {
 		ChatMessageListeningEndpoint adapter = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
 		MessageChannel errorChannel = (MessageChannel) TestUtils.getPropertyValue(adapter, "errorChannel");

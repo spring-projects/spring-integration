@@ -17,11 +17,13 @@
 package org.springframework.integration.xmpp.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.StanzaBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -46,13 +48,13 @@ public class PresenceSendingMessageHandlerTests {
 		handler.handleMessage(new GenericMessage<>(StanzaBuilder.buildPresence().build()));
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void testWrongPayload() {
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler(mock(XMPPConnection.class));
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		handler.handleMessage(new GenericMessage(new Object()));
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>(new Object())));
 	}
 
 	@Test
@@ -65,11 +67,12 @@ public class PresenceSendingMessageHandlerTests {
 		assertThat(TestUtils.getPropertyValue(handler, "xmppConnection")).isNotNull();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testNoXmppConnection() {
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler();
 		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.afterPropertiesSet();
+		assertThatIllegalArgumentException()
+				.isThrownBy(handler::afterPropertiesSet);
 	}
 
 }

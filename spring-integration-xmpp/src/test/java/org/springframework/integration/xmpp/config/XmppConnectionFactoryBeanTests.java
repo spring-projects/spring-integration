@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@
 package org.springframework.integration.xmpp.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -47,9 +48,12 @@ public class XmppConnectionFactoryBeanTests {
 	}
 
 	@Test
-	public void testXmppConnectionFactoryBeanViaConfig() throws Exception {
-		new ClassPathXmlApplicationContext("XmppConnectionFactoryBeanTests-context.xml", this.getClass()).close();
-		// the fact that no exception was thrown satisfies this test
+	public void testXmppConnectionFactoryBeanViaConfig() {
+		assertThatNoException()
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("XmppConnectionFactoryBeanTests-context.xml",
+								this.getClass())
+								.close());
 	}
 
 	@Test

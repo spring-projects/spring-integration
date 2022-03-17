@@ -17,6 +17,7 @@
 package org.springframework.integration.xmpp.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 
 import java.util.Set;
@@ -26,7 +27,7 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterListener;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -67,10 +68,11 @@ public class PresenceListeningEndpointTests {
 		assertThat(rosterSet.size()).isEqualTo(0);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testNonInitializedFailure() {
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(mock(XMPPConnection.class));
-		rosterEndpoint.start();
+		assertThatIllegalArgumentException()
+				.isThrownBy(rosterEndpoint::start);
 	}
 
 	@Test
@@ -104,11 +106,12 @@ public class PresenceListeningEndpointTests {
 		assertThat(TestUtils.getPropertyValue(endpoint, "xmppConnection")).isNotNull();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testNoXmppConnection() {
 		PresenceListeningEndpoint handler = new PresenceListeningEndpoint();
 		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.afterPropertiesSet();
+		assertThatIllegalArgumentException()
+				.isThrownBy(handler::afterPropertiesSet);
 	}
 
 	@Test

@@ -18,17 +18,15 @@ package org.springframework.integration.xmpp.ignore;
 
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.StanzaBuilder;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.xmpp.outbound.PresenceSendingMessageHandler;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * Tests {@link PresenceSendingMessageHandler} to ensure that we are able to publish status.
@@ -38,8 +36,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@Disabled
 public class OutboundPresenceTests {
 
 	@Autowired
@@ -47,7 +45,6 @@ public class OutboundPresenceTests {
 	private DirectChannel input;
 
 	@Test
-	@Ignore
 	public void testOutbound() throws Throwable {
 		Presence presence = StanzaBuilder.buildPresence().build();
 		input.send(new GenericMessage<>(presence));

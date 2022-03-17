@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package org.springframework.integration.xmpp.ignore;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * this class demonstrates that when I launch this and then manipulate the status of the
@@ -30,12 +29,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Josh Long
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@Disabled
 public class InboundPresenceTests {
 
 	@Test
-	@Ignore
 	public void run() throws Exception {
 		Thread.sleep(60 * 1000 * 1000);
 	}

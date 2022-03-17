@@ -40,7 +40,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * MessageHandler that sends an XMPP Chat Message. Supported payload types are Smack Message
- * (org.jivesoftware.smack.packet.Message) or String.
+ * {@link org.jivesoftware.smack.packet.Message} or String.
  *
  * @author Josh Long
  * @author Mario Gray

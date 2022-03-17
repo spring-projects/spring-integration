@@ -17,6 +17,8 @@
 package org.springframework.integration.xmpp.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -28,7 +30,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
 import org.jivesoftware.smackx.gcm.provider.GcmExtensionProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -49,7 +51,6 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Florian Schmaus
  */
 public class ChatMessageSendingMessageHandlerTests {
-
 
 	@Test
 	public void testSendMessages() throws Exception {
@@ -184,16 +185,18 @@ public class ChatMessageSendingMessageHandlerTests {
 	}
 
 
-	@Test(expected = MessageHandlingException.class)
-	public void validateFailureNoChatToUser() throws Exception {
+	@Test
+	public void validateFailureNoChatToUser() {
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(mock(XMPPConnection.class));
-		handler.handleMessage(new GenericMessage<>("hello"));
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("hello")));
 	}
 
-	@Test(expected = MessageHandlingException.class)
-	public void validateMessageWithUnsupportedPayload() throws Exception {
+	@Test
+	public void validateMessageWithUnsupportedPayload() {
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(mock(XMPPConnection.class));
-		handler.handleMessage(new GenericMessage<>(123));
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>(123)));
 	}
 
 	@Test
@@ -206,11 +209,12 @@ public class ChatMessageSendingMessageHandlerTests {
 		assertThat(TestUtils.getPropertyValue(handler, "xmppConnection")).isNotNull();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testNoXmppConnection() {
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler();
 		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.afterPropertiesSet();
+		assertThatIllegalArgumentException()
+				.isThrownBy(handler::afterPropertiesSet);
 	}
 
 }

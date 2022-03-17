@@ -105,7 +105,6 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<MessageBuilder
 			target.setThread(threadId);
 		}
 		populateToHeader(headers, target);
-
 		populateFromHeader(headers, target);
 
 		String subject = getHeaderIfAvailable(headers, XmppHeaders.SUBJECT, String.class);
@@ -119,10 +118,8 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<MessageBuilder
 				typeHeader = Message.Type.valueOf((String) typeHeader);
 			}
 			catch (Exception e) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("XMPP Type must be either a valid [Message.Type] " +
-							"enum value or a String representation of such.");
-				}
+				logger.warn("XMPP Type must be either a valid [Message.Type] " +
+						"enum value or a String representation of such.");
 			}
 		}
 		if (typeHeader instanceof Message.Type messageType) {

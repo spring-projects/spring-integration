@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,15 +218,15 @@ public class ChatMessageListeningEndpointTests {
 
 	@Test
 	public void testGcmExtension() throws Exception {
-		String data = "{\n" +
-				"      \"to\":\"me\",\n" +
-				"     \"notification\": {\n" +
-				"        \"title\": \"Something interesting\",\n" +
-				"        \"text\": \"Here we go\"\n" +
-				"           },\n" +
-				"      \"time_to_live\":\"600\"\n" +
-				"      }\n" +
-				"}";
+		String data = """
+				{
+					"to":"me",
+					"notification": {
+						"title": "Something interesting",
+						"text": "Here we go"
+					},
+					"time_to_live":"600"
+				}""";
 		GcmPacketExtension packetExtension = new GcmPacketExtension(data);
 		MessageBuilder smackMessage = StanzaBuilder.buildMessage();
 		smackMessage.addExtension(packetExtension);
