@@ -17,11 +17,11 @@
 package org.springframework.integration.kafka.inbound;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -37,6 +37,7 @@ import org.springframework.integration.handler.advice.ErrorMessageSendingRecover
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.BatchMessageListener;
 import org.springframework.kafka.listener.ConsumerSeekAware;
@@ -48,11 +49,14 @@ import org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapte
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
+import org.springframework.kafka.support.JacksonPresent;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.BatchMessageConverter;
 import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessageConverter;
+import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -106,8 +110,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	private boolean containerDeliveryAttemptPresent;
 
-	private boolean doFilterInRetry;
-
 	/**
 	 * Construct an instance with mode {@link ListenerMode#record}.
 	 * @param messageListenerContainer the container.
@@ -131,6 +133,15 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		this.messageListenerContainer.setAutoStartup(false);
 		this.mode = mode;
 		setErrorMessageStrategy(new RawRecordHeaderErrorMessageStrategy());
+
+		if (JacksonPresent.isJackson2Present()) {
+			MessagingMessageConverter messageConverter = new MessagingMessageConverter();
+			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
+			headerMapper.addTrustedPackages(JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES.toArray(new String[0]));
+			messageConverter.setHeaderMapper(headerMapper);
+			this.recordListener.setMessageConverter(messageConverter);
+			this.batchListener.setMessageConverter(messageConverter);
+		}
 	}
 
 	/**
@@ -149,7 +160,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			throw new IllegalArgumentException(
 					"Message converter must be a 'RecordMessageConverter' or 'BatchMessageConverter'");
 		}
-
 	}
 
 	/**
@@ -280,14 +290,11 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		super.onInit();
 
 		ContainerProperties containerProperties = this.messageListenerContainer.getContainerProperties();
-		Object existing = containerProperties.getMessageListener();
-		Assert.state(existing == null, () -> "listener container cannot have an existing message listener (" + existing
-				+ ")");
 		if (this.mode.equals(ListenerMode.record)) {
 			MessageListener<K, V> listener = this.recordListener;
 
-			this.doFilterInRetry = this.filterInRetry && this.retryTemplate != null
-					&& this.recordFilterStrategy != null;
+			boolean doFilterInRetry =
+					this.filterInRetry && this.retryTemplate != null && this.recordFilterStrategy != null;
 
 			if (this.retryTemplate != null) {
 				MessageChannel errorChannel = getErrorChannel();
@@ -296,7 +303,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				}
 				this.retryTemplate.registerListener(this.recordListener);
 			}
-			if (!this.doFilterInRetry && this.recordFilterStrategy != null) {
+			if (!doFilterInRetry && this.recordFilterStrategy != null) {
 				listener = new FilteringMessageListenerAdapter<>(listener, this.recordFilterStrategy,
 						this.ackDiscarded);
 			}
@@ -597,7 +604,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			}
 			catch (RuntimeException ex) {
 				Exception exception = new ConversionException("Failed to convert to message",
-						records.stream().collect(Collectors.toList()), ex);
+						new ArrayList<>(records), ex);
 				MessageChannel errorChannel = getErrorChannel();
 				if (errorChannel != null) {
 					getMessagingTemplate().send(errorChannel, buildErrorMessage(message, exception));

@@ -29,6 +29,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.kafka.channel.PollableKafkaChannel;
 import org.springframework.integration.kafka.channel.PublishSubscribeKafkaChannel;
 import org.springframework.integration.kafka.channel.SubscribableKafkaChannel;
@@ -53,6 +55,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.4
  *
@@ -70,10 +73,18 @@ public class ChannelTests {
 			latch.countDown();
 		});
 		Message<?> msg = new GenericMessage<>("foo");
+		NullChannel component = new NullChannel();
+		component.setBeanName("myNullChannel");
+		msg = MessageHistory.write(msg, component);
 		ptp.send(msg, 10_000L);
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(message.get().getPayload()).isEqualTo("foo");
-		assertThat(message.get().getHeaders().get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo("channel.1");
+		Message<?> received = message.get();
+		assertThat(received.getPayload()).isEqualTo("foo");
+		assertThat(received.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo("channel.1");
+
+		MessageHistory messageHistory = MessageHistory.read(received);
+		assertThat(messageHistory).isNotNull();
+		assertThat(messageHistory.toString()).isEqualTo("myNullChannel");
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.support.json;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -50,6 +51,20 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
  *
  */
 public final class JacksonJsonUtils {
+
+	/**
+	 * The packages to trust on JSON deserialization by default.
+	 */
+	public static final List<String> DEFAULT_TRUSTED_PACKAGES =
+			List.of(
+					"java.util",
+					"java.lang",
+					"org.springframework.messaging.support",
+					"org.springframework.integration.support",
+					"org.springframework.integration.message",
+					"org.springframework.integration.store",
+					"org.springframework.integration.history"
+			);
 
 	private JacksonJsonUtils() {
 	}
@@ -99,17 +114,16 @@ public final class JacksonJsonUtils {
 
 	/**
 	 * An implementation of {@link ObjectMapper.DefaultTypeResolverBuilder}
-	 * that wraps a default {@link TypeIdResolver} to the {@link AllowlistTypeIdResolver}.
+	 * that wraps a default {@link TypeIdResolver} to the {@link AllowListTypeIdResolver}.
 	 *
 	 * @author Rob Winch
 	 * @author Artem Bilan
 	 * @author Filip Hanik
 	 * @author Gary Russell
-	 *
-	 * @since 4.3.11
 	 */
 	private static final class AllowListTypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuilder {
 
+		@Serial
 		private static final long serialVersionUID = 1L;
 
 		private final String[] trustedPackages;
@@ -133,8 +147,9 @@ public final class JacksonJsonUtils {
 				JavaType baseType,
 				PolymorphicTypeValidator subtypeValidator,
 				Collection<NamedType> subtypes, boolean forSer, boolean forDeser) {
+
 			TypeIdResolver result = super.idResolver(config, baseType, subtypeValidator, subtypes, forSer, forDeser);
-			return new AllowlistTypeIdResolver(result, this.trustedPackages);
+			return new AllowListTypeIdResolver(result, this.trustedPackages);
 		}
 
 	}
@@ -146,27 +161,14 @@ public final class JacksonJsonUtils {
 	 *
 	 * @author Rob Winch
 	 * @author Artem Bilan
-	 *
-	 * @since 4.3.11
 	 */
-	private static final class AllowlistTypeIdResolver implements TypeIdResolver {
-
-		private static final List<String> TRUSTED_PACKAGES =
-				Arrays.asList(
-						"java.util",
-						"java.lang",
-						"org.springframework.messaging.support",
-						"org.springframework.integration.support",
-						"org.springframework.integration.message",
-						"org.springframework.integration.store",
-						"org.springframework.integration.history"
-				);
+	private static final class AllowListTypeIdResolver implements TypeIdResolver {
 
 		private final TypeIdResolver delegate;
 
-		private final Set<String> trustedPackages = new LinkedHashSet<>(TRUSTED_PACKAGES);
+		private final Set<String> trustedPackages = new LinkedHashSet<>(DEFAULT_TRUSTED_PACKAGES);
 
-		AllowlistTypeIdResolver(TypeIdResolver delegate, String... trustedPackages) {
+		AllowListTypeIdResolver(TypeIdResolver delegate, String... trustedPackages) {
 			this.delegate = delegate;
 			if (trustedPackages != null) {
 				for (String trustedPackage : trustedPackages) {

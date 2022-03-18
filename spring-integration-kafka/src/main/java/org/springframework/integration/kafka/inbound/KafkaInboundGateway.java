@@ -36,15 +36,19 @@ import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessage
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConsumerSeekAware;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
+import org.springframework.kafka.support.JacksonPresent;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
+import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -108,6 +112,13 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		this.messageListenerContainer.setAutoStartup(false);
 		this.kafkaTemplate = kafkaTemplate;
 		setErrorMessageStrategy(new RawRecordHeaderErrorMessageStrategy());
+		if (JacksonPresent.isJackson2Present()) {
+			MessagingMessageConverter messageConverter = new MessagingMessageConverter();
+			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
+			headerMapper.addTrustedPackages(JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES.toArray(new String[0]));
+			messageConverter.setHeaderMapper(headerMapper);
+			this.listener.setMessageConverter(messageConverter);
+		}
 	}
 
 	/**
@@ -169,6 +180,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	 */
 	public void setOnPartitionsAssignedSeekCallback(
 			BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedCallback) {
+
 		this.onPartitionsAssignedSeekCallback = onPartitionsAssignedCallback;
 	}
 
@@ -192,9 +204,6 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 			}
 		}
 		ContainerProperties containerProperties = this.messageListenerContainer.getContainerProperties();
-		Object existing = containerProperties.getMessageListener();
-		Assert.state(existing == null, () -> "listener container cannot have an existing message listener (" + existing
-					+ ")");
 		containerProperties.setMessageListener(this.listener);
 		this.containerDeliveryAttemptPresent = containerProperties.isDeliveryAttemptHeader();
 	}
