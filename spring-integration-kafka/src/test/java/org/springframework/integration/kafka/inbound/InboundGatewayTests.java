@@ -29,8 +29,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -53,6 +51,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
@@ -76,38 +75,32 @@ import org.springframework.retry.support.RetryTemplate;
  * @since 5.4
  *
  */
+@EmbeddedKafka(controlledShutdown = true,
+		topics = { InboundGatewayTests.topic1,
+				InboundGatewayTests.topic2,
+				InboundGatewayTests.topic3,
+				InboundGatewayTests.topic4,
+				InboundGatewayTests.topic5,
+				InboundGatewayTests.topic6,
+				InboundGatewayTests.topic7 })
 class InboundGatewayTests {
 
-	private static String topic1 = "testTopic1";
+	static final String topic1 = "testTopic1";
 
-	private static String topic2 = "testTopic2";
+	static final String topic2 = "testTopic2";
 
-	private static String topic3 = "testTopic3";
+	static final String topic3 = "testTopic3";
 
-	private static String topic4 = "testTopic4";
+	static final String topic4 = "testTopic4";
 
-	private static String topic5 = "testTopic5";
+	static final String topic5 = "testTopic5";
 
-	private static String topic6 = "testTopic6";
+	static final String topic6 = "testTopic6";
 
-	private static String topic7 = "testTopic7";
-
-	private static EmbeddedKafkaBroker embeddedKafka;
-
-	@BeforeAll
-	static void setup() {
-		embeddedKafka = new EmbeddedKafkaBroker(1, true,
-				topic1, topic2, topic3, topic4, topic5, topic6, topic7);
-		embeddedKafka.afterPropertiesSet();
-	}
-
-	@AfterAll
-	static void tearDown() {
-		embeddedKafka.destroy();
-	}
+	static final String topic7 = "testTopic7";
 
 	@Test
-	void testInbound() throws Exception {
+	void testInbound(EmbeddedKafkaBroker embeddedKafka) throws Exception {
 		Map<String, Object> consumerProps =
 				KafkaTestUtils.consumerProps("replyHandler1", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -199,7 +192,7 @@ class InboundGatewayTests {
 	}
 
 	@Test
-	void testInboundErrorRecover() {
+	void testInboundErrorRecover(EmbeddedKafkaBroker embeddedKafka) {
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler2", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
@@ -278,7 +271,7 @@ class InboundGatewayTests {
 	}
 
 	@Test
-	void testInboundRetryErrorRecover() {
+	void testInboundRetryErrorRecover(EmbeddedKafkaBroker embeddedKafka) {
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler3", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
@@ -362,7 +355,7 @@ class InboundGatewayTests {
 	}
 
 	@Test
-	void testInboundRetryErrorRecoverWithoutRecocveryCallback() throws Exception {
+	void testInboundRetryErrorRecoverWithoutRecoveryCallback(EmbeddedKafkaBroker embeddedKafka) throws Exception {
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler4", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);

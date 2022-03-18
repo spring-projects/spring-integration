@@ -51,6 +51,7 @@ import org.springframework.integration.acks.AcknowledgmentCallbackFactory;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
@@ -58,6 +59,8 @@ import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.listener.ListenerUtils;
 import org.springframework.kafka.listener.LoggingCommitCallback;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
+import org.springframework.kafka.support.JacksonPresent;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.LogIfLevelEnabled;
 import org.springframework.kafka.support.TopicPartitionOffset;
@@ -233,6 +236,12 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		this.assignTimeout =
 				Duration.ofMillis(Math.max(this.pollTimeout.toMillis() * 20, MIN_ASSIGN_TIMEOUT)); // NOSONAR - magic
 		this.commitTimeout = consumerProperties.getSyncCommitTimeout();
+
+		if (JacksonPresent.isJackson2Present()) {
+			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
+			headerMapper.addTrustedPackages(JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES.toArray(new String[0]));
+			((MessagingMessageConverter) this.messageConverter).setHeaderMapper(headerMapper);
+		}
 	}
 
 	/**

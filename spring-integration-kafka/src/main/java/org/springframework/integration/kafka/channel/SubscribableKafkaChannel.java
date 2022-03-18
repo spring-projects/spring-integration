@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.KafkaOperations;
@@ -29,6 +30,10 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
+import org.springframework.kafka.support.JacksonPresent;
+import org.springframework.kafka.support.converter.MessagingMessageConverter;
+import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
@@ -48,6 +53,8 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 	private static final int DEFAULT_PHASE = Integer.MAX_VALUE / 2; // same as MessageProducerSupport
 
 	private final KafkaListenerContainerFactory<?> factory;
+
+	private final IntegrationRecordMessageListener recordListener = new IntegrationRecordMessageListener();
 
 	private MessageDispatcher dispatcher;
 
@@ -71,6 +78,24 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 		super(template, channelTopic);
 		Assert.notNull(factory, "'factory' cannot be null");
 		this.factory = factory;
+
+		if (JacksonPresent.isJackson2Present()) {
+			MessagingMessageConverter messageConverter = new MessagingMessageConverter();
+			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
+			headerMapper.addTrustedPackages(JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES.toArray(new String[0]));
+			messageConverter.setHeaderMapper(headerMapper);
+			this.recordListener.setMessageConverter(messageConverter);
+		}
+	}
+
+
+	/**
+	 * Set the {@link RecordMessageConverter} to the listener.
+	 * @param messageConverter the converter.
+	 * @since 6.0
+	 */
+	public void setMessageConverter(RecordMessageConverter messageConverter) {
+		this.recordListener.setMessageConverter(messageConverter);
 	}
 
 	@Override
@@ -113,7 +138,7 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 		String groupId = getGroupId();
 		ContainerProperties containerProperties = this.container.getContainerProperties();
 		containerProperties.setGroupId(groupId != null ? groupId : getBeanName());
-		containerProperties.setMessageListener(new IntegrationRecordMessageListener());
+		containerProperties.setMessageListener(this.recordListener);
 	}
 
 	protected MessageDispatcher createDispatcher() {

@@ -26,17 +26,19 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.common.TopicPartition;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
@@ -46,25 +48,13 @@ import org.springframework.messaging.Message;
  * @since 5.4
  *
  */
+@EmbeddedKafka(controlledShutdown = true, topics = MessageSourceIntegrationTests.TOPIC1, partitions = 1)
 class MessageSourceIntegrationTests {
 
-	private static final String TOPIC1 = "MessageSourceIntegrationTests1";
-
-	private static EmbeddedKafkaBroker embeddedKafka;
-
-	@BeforeAll
-	static void setup() {
-		embeddedKafka = new EmbeddedKafkaBroker(1, true, 1, TOPIC1);
-		embeddedKafka.afterPropertiesSet();
-	}
-
-	@AfterAll
-	static void tearDown() {
-		embeddedKafka.destroy();
-	}
+	static final String TOPIC1 = "MessageSourceIntegrationTests1";
 
 	@Test
-	void testSource() throws Exception {
+	void testSource(EmbeddedKafkaBroker embeddedKafka) throws Exception {
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testSource", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -94,10 +84,16 @@ class MessageSourceIntegrationTests {
 		Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
 		DefaultKafkaProducerFactory<Object, Object> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		KafkaTemplate<Object, Object> template = new KafkaTemplate<>(producerFactory);
-		template.send(TOPIC1, "foo");
-		template.send(TOPIC1, "bar");
-		template.send(TOPIC1, "baz");
-		template.send(TOPIC1, "qux");
+		template.setDefaultTopic(TOPIC1);
+		template.sendDefault("foo");
+		template.sendDefault("bar");
+		template.sendDefault("baz");
+		template.sendDefault("qux");
+		Message<?> msg = new GenericMessage<>("msg");
+		NullChannel component = new NullChannel();
+		component.setBeanName("myNullChannel");
+		msg = MessageHistory.write(msg, component);
+		template.send(msg);
 		Message<Object> received = source.receive();
 		assertThat(assigned.await(10, TimeUnit.SECONDS)).isTrue();
 		int n = 0;
@@ -115,6 +111,12 @@ class MessageSourceIntegrationTests {
 		received = source.receive();
 		assertThat(received).isNotNull();
 		assertThat(received.getPayload()).isEqualTo("qux");
+		received = source.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo("msg");
+		MessageHistory messageHistory = MessageHistory.read(received);
+		assertThat(messageHistory).isNotNull();
+		assertThat(messageHistory.toString()).isEqualTo("myNullChannel");
 		received = source.receive();
 		assertThat(received).isNull();
 		assertThat(KafkaTestUtils.getPropertyValue(source, "consumer.fetcher.minBytes")).isEqualTo(2);
