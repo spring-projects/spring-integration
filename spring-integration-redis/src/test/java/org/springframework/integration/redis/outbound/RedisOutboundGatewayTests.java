@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testGetCommand() {
-		this.setDelCommandChannel.send(MessageBuilder.withPayload(new String[] { "foo", "bar" })
+		this.setDelCommandChannel.send(MessageBuilder.withPayload(new String[]{ "foo", "bar" })
 				.setHeader(RedisHeaders.COMMAND, "SET").build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertThat(receive).isNotNull();
@@ -158,13 +158,13 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 		RedisConnection connection = this.getConnectionFactoryForTest().getConnection();
 		byte[] value1 = "bar1".getBytes();
 		byte[] value2 = "bar2".getBytes();
-		connection.set("foo1".getBytes(), value1);
-		connection.set("foo2".getBytes(), value2);
-		this.mgetCommandChannel.send(MessageBuilder.withPayload(new String[] { "foo1", "foo2" }).build());
+		connection.stringCommands().set("foo1".getBytes(), value1);
+		connection.stringCommands().set("foo2".getBytes(), value2);
+		this.mgetCommandChannel.send(MessageBuilder.withPayload(new String[]{ "foo1", "foo2" }).build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertThat(receive).isNotNull();
 		assertThat((List<byte[]>) receive.getPayload()).containsExactly(value1, value2);
-		connection.del("foo1".getBytes(), "foo2".getBytes());
+		connection.keyCommands().del("foo1".getBytes(), "foo2".getBytes());
 	}
 
 }
