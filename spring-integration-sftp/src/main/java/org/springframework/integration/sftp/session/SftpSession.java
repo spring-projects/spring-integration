@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.core.NestedIOException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -99,8 +98,8 @@ public class SftpSession implements Session<LsEntry> {
 			this.channel.rm(path);
 			return true;
 		}
-		catch (SftpException e) {
-			throw new NestedIOException("Failed to remove file.", e);
+		catch (SftpException ex) {
+			throw new IOException("Failed to remove file.", ex);
 		}
 	}
 
@@ -119,8 +118,8 @@ public class SftpSession implements Session<LsEntry> {
 				return entries;
 			}
 		}
-		catch (SftpException e) {
-			throw new NestedIOException("Failed to list files", e);
+		catch (SftpException ex) {
+			throw new IOException("Failed to list files", ex);
 		}
 		return new LsEntry[0];
 	}
@@ -147,8 +146,8 @@ public class SftpSession implements Session<LsEntry> {
 			InputStream is = this.channel.get(source);
 			FileCopyUtils.copy(is, os);
 		}
-		catch (SftpException e) {
-			throw new NestedIOException("failed to read file " + source, e);
+		catch (SftpException ex) {
+			throw new IOException("failed to read file " + source, ex);
 		}
 	}
 
@@ -157,8 +156,8 @@ public class SftpSession implements Session<LsEntry> {
 		try {
 			return this.channel.get(source);
 		}
-		catch (SftpException e) {
-			throw new NestedIOException("failed to read file " + source, e);
+		catch (SftpException ex) {
+			throw new IOException("failed to read file " + source, ex);
 		}
 	}
 
@@ -173,8 +172,8 @@ public class SftpSession implements Session<LsEntry> {
 		try {
 			this.channel.put(inputStream, destination);
 		}
-		catch (SftpException e) {
-			throw new NestedIOException("failed to write file", e);
+		catch (SftpException ex) {
+			throw new IOException("failed to write file", ex);
 		}
 	}
 
@@ -184,8 +183,8 @@ public class SftpSession implements Session<LsEntry> {
 		try {
 			this.channel.put(inputStream, destination, ChannelSftp.APPEND);
 		}
-		catch (SftpException e) {
-			throw new NestedIOException("failed to write file", e);
+		catch (SftpException ex) {
+			throw new IOException("failed to write file", ex);
 		}
 	}
 
@@ -227,19 +226,19 @@ public class SftpSession implements Session<LsEntry> {
 				}
 			}
 			catch (IOException ioex) {
-				NestedIOException exception = new NestedIOException("Failed to delete file " + pathTo, sftpex);
+				IOException exception = new IOException("Failed to delete file " + pathTo, sftpex);
 				exception.addSuppressed(ioex);
-				throw exception; // NOSONAR - added to suppressed exceptions
+				throw exception;
 			}
 			try {
 				// attempt to rename again
 				this.channel.rename(pathFrom, pathTo);
 			}
 			catch (SftpException sftpex2) {
-				NestedIOException exception =
-						new NestedIOException("failed to rename from " + pathFrom + " to " + pathTo, sftpex);
+				IOException exception =
+						new IOException("failed to rename from " + pathFrom + " to " + pathTo, sftpex);
 				exception.addSuppressed(sftpex2);
-				throw exception; // NOSONAR - added to suppressed exceptions
+				throw exception;
 			}
 		}
 		if (LOGGER.isDebugEnabled()) {
@@ -254,7 +253,7 @@ public class SftpSession implements Session<LsEntry> {
 		}
 		catch (SftpException ex) {
 			if (ex.id != ChannelSftp.SSH_FX_FAILURE || !exists(remoteDirectory)) {
-				throw new NestedIOException("failed to create remote directory '" + remoteDirectory + "'.", ex);
+				throw new IOException("failed to create remote directory '" + remoteDirectory + "'.", ex);
 			}
 		}
 		return true;
@@ -265,8 +264,8 @@ public class SftpSession implements Session<LsEntry> {
 		try {
 			this.channel.rmdir(remoteDirectory);
 		}
-		catch (SftpException e) {
-			throw new NestedIOException("failed to remove remote directory '" + remoteDirectory + "'.", e);
+		catch (SftpException ex) {
+			throw new IOException("failed to remove remote directory '" + remoteDirectory + "'.", ex);
 		}
 		return true;
 	}
