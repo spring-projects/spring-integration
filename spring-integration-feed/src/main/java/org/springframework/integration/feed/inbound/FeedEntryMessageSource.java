@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.feed.inbound;
 
 import java.io.Reader;
-import java.io.Serializable;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.Date;
@@ -66,7 +65,9 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private final Object monitor = new Object();
 
-	private final Comparator<SyndEntry> syndEntryComparator = new SyndEntryPublishedDateComparator();
+	private final Comparator<SyndEntry> syndEntryComparator =
+			Comparator.comparing(FeedEntryMessageSource::getLastModifiedDate,
+					Comparator.nullsFirst(Comparator.naturalOrder()));
 
 	private final Object feedMonitor = new Object();
 
@@ -90,9 +91,9 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	 */
 	public FeedEntryMessageSource(URL feedUrl, String metadataKey) {
 		Assert.notNull(feedUrl, "'feedUrl' must not be null");
-		Assert.notNull(metadataKey, "'metadataKey' must not be null");
+		Assert.hasText(metadataKey, "'metadataKey' must not be empty");
 		this.feedUrl = feedUrl;
-		this.metadataKey = metadataKey + "." + feedUrl;
+		this.metadataKey = metadataKey;
 		this.feedResource = null;
 	}
 
@@ -104,7 +105,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	 */
 	public FeedEntryMessageSource(Resource feedResource, String metadataKey) {
 		Assert.notNull(feedResource, "'feedResource' must not be null");
-		Assert.notNull(metadataKey, "'metadataKey' must not be null");
+		Assert.hasText(metadataKey, "'metadataKey' must not be empty");
 		this.feedResource = feedResource;
 		this.metadataKey = metadataKey;
 		this.feedUrl = null;
@@ -223,7 +224,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 						? new XmlReader(this.feedUrl)
 						: new XmlReader(this.feedResource.getInputStream());
 				SyndFeed feed = this.syndFeedInput.build(reader);
-					logger.debug(() -> "Retrieved feed for [" + this + "]");
+				logger.debug(() -> "Retrieved feed for [" + this + "]");
 				if (feed == null) {
 					logger.debug(() -> "No feeds updated for [" + this + "], returning null");
 				}
@@ -247,28 +248,6 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private static Date getLastModifiedDate(SyndEntry entry) {
 		return (entry.getUpdatedDate() != null) ? entry.getUpdatedDate() : entry.getPublishedDate();
-	}
-
-
-	@SuppressWarnings("serial")
-	private static final class SyndEntryPublishedDateComparator implements Comparator<SyndEntry>, Serializable {
-
-		SyndEntryPublishedDateComparator() {
-		}
-
-		@Override
-		public int compare(SyndEntry entry1, SyndEntry entry2) {
-			Date date1 = getLastModifiedDate(entry1);
-			Date date2 = getLastModifiedDate(entry2);
-			if (date1 != null && date2 != null) {
-				return date1.compareTo(date2);
-			}
-			if (date1 == null && date2 == null) {
-				return 0;
-			}
-			return date2 == null ? -1 : 1;
-		}
-
 	}
 
 }

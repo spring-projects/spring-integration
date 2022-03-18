@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,8 @@ import org.springframework.util.DefaultPropertiesPersister;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStore, InitializingBean, DisposableBean,
@@ -95,7 +97,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	@Override
 	public void afterPropertiesSet() {
 		File baseDir = new File(this.baseDirectory);
-		if (!baseDir.mkdirs() && this.logger.isWarnEnabled()) {
+		if (!baseDir.mkdirs() && !baseDir.exists() && this.logger.isWarnEnabled()) {
 			this.logger.warn("Failed to create directories for " + baseDir);
 		}
 		this.file = new File(baseDir, this.fileName);
@@ -104,11 +106,11 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 				this.logger.warn("Failed to create file " + this.file);
 			}
 		}
-		catch (Exception e) {
+		catch (Exception ex) {
 			throw new IllegalArgumentException("Failed to create metadata-store file '"
-					+ this.file.getAbsolutePath() + "'", e);
+					+ this.file.getAbsolutePath() + "'", ex);
 		}
-		this.loadMetadata();
+		loadMetadata();
 	}
 
 	@Override
@@ -218,50 +220,24 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			return;
 		}
 		this.dirty = false;
-		OutputStream outputStream = null;
-		try {
-			outputStream = new BufferedOutputStream(new FileOutputStream(this.file));
+		try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(this.file))) {
 			this.persister.store(this.metadata, outputStream, "Last entry");
 		}
-		catch (IOException e) {
+		catch (IOException ex) {
 			// not fatal for the functionality of the component
 			this.logger.warn("Failed to persist entry. This may result in a duplicate "
-					+ "entry after this component is restarted.", e);
-		}
-		finally {
-			try {
-				if (outputStream != null) {
-					outputStream.close();
-				}
-			}
-			catch (IOException e) {
-				// not fatal for the functionality of the component
-				this.logger.warn("Failed to close OutputStream to " + this.file.getAbsolutePath(), e);
-			}
+					+ "entry after this component is restarted.", ex);
 		}
 	}
 
 	private void loadMetadata() {
-		InputStream inputStream = null;
-		try {
-			inputStream = new BufferedInputStream(new FileInputStream(this.file));
+		try (InputStream inputStream = new BufferedInputStream(new FileInputStream(this.file))) {
 			this.persister.load(this.metadata, inputStream);
 		}
 		catch (Exception e) {
 			// not fatal for the functionality of the component
 			this.logger.warn("Failed to load entry from the persistent store. This may result in a duplicate " +
 					"entry after this component is restarted", e);
-		}
-		finally {
-			try {
-				if (inputStream != null) {
-					inputStream.close();
-				}
-			}
-			catch (@SuppressWarnings("unused") Exception e2) {
-				// non fatal
-				this.logger.warn("Failed to close InputStream for: " + this.file.getAbsolutePath());
-			}
 		}
 	}
 
