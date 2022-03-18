@@ -40,6 +40,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -49,15 +50,15 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.kafka.dsl.Kafka;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter.ListenerMode;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
@@ -85,6 +86,7 @@ import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.kafka.support.converter.StringJsonMessageConverter;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
@@ -109,36 +111,29 @@ import org.springframework.retry.support.RetryTemplate;
  * @since 5.4
  *
  */
+@EmbeddedKafka(controlledShutdown = true,
+		topics = { MessageDrivenAdapterTests.topic1,
+				MessageDrivenAdapterTests.topic2,
+				MessageDrivenAdapterTests.topic3,
+				MessageDrivenAdapterTests.topic4,
+				MessageDrivenAdapterTests.topic5,
+				MessageDrivenAdapterTests.topic6 })
 class MessageDrivenAdapterTests {
 
-	private static String topic1 = "testTopic1";
+	static final String topic1 = "testTopic1";
 
-	private static String topic2 = "testTopic2";
+	static final String topic2 = "testTopic2";
 
-	private static String topic3 = "testTopic3";
+	static final String topic3 = "testTopic3";
 
-	private static String topic4 = "testTopic4";
+	static final String topic4 = "testTopic4";
 
-	private static String topic5 = "testTopic5";
+	static final String topic5 = "testTopic5";
 
-	private static String topic6 = "testTopic6";
-
-	private static EmbeddedKafkaBroker embeddedKafka;
-
-	@BeforeAll
-	static void setup() {
-		embeddedKafka = new EmbeddedKafkaBroker(1, true,
-				topic1, topic2, topic3, topic4, topic5, topic6);
-		embeddedKafka.afterPropertiesSet();
-	}
-
-	@AfterAll
-	static void tearDown() {
-		embeddedKafka.destroy();
-	}
+	static final String topic6 = "testTopic6";
 
 	@Test
-	void testInboundRecord() {
+	void testInboundRecord(EmbeddedKafkaBroker embeddedKafka) {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -224,7 +219,7 @@ class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	void testInboundRecordRetryRecover() {
+	void testInboundRecordRetryRecover(EmbeddedKafkaBroker embeddedKafka) {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test4", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -232,10 +227,12 @@ class MessageDrivenAdapterTests {
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
 		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container);
+		AtomicReference<MessageHistory> receivedMessageHistory = new AtomicReference<>();
 		MessageChannel out = new DirectChannel() {
 
 			@Override
 			protected boolean doSend(Message<?> message, long timeout) {
+				receivedMessageHistory.set(MessageHistory.read(message));
 				throw new RuntimeException("intended");
 			}
 
@@ -257,7 +254,11 @@ class MessageDrivenAdapterTests {
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic4);
-		template.sendDefault(1, "foo");
+		Message<?> msg = MessageBuilder.withPayload("foo").setHeader(KafkaHeaders.MESSAGE_KEY, 1).build();
+		NullChannel component = new NullChannel();
+		component.setBeanName("myNullChannel");
+		msg = MessageHistory.write(msg, component);
+		template.send(msg);
 
 		Message<?> received = errorChannel.receive(10000);
 		assertThat(received).isInstanceOf(ErrorMessage.class);
@@ -273,6 +274,9 @@ class MessageDrivenAdapterTests {
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(originalMessage).get()).isEqualTo(2);
 
+		assertThat(receivedMessageHistory.get()).isNotNull();
+		assertThat(receivedMessageHistory.get().toString()).isEqualTo("myNullChannel");
+
 		adapter.stop();
 	}
 
@@ -282,7 +286,7 @@ class MessageDrivenAdapterTests {
 	 * to the consumer.
 	 */
 	@Test
-	void testInboundRecordRetryRecoverWithoutRecoveryCallback() throws Exception {
+	void testInboundRecordRetryRecoverWithoutRecoveryCallback(EmbeddedKafkaBroker embeddedKafka) throws Exception {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test6", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -332,7 +336,7 @@ class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	void testInboundRecordNoRetryRecover() {
+	void testInboundRecordNoRetryRecover(EmbeddedKafkaBroker embeddedKafka) {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test5", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -387,7 +391,7 @@ class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	void testInboundBatch() throws Exception {
+	void testInboundBatch(EmbeddedKafkaBroker embeddedKafka) throws Exception {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test2", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -475,7 +479,7 @@ class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	void testInboundJson() {
+	void testInboundJson(EmbeddedKafkaBroker embeddedKafka) {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test3", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -517,7 +521,7 @@ class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	void testInboundJsonWithPayload() {
+	void testInboundJsonWithPayload(EmbeddedKafkaBroker embeddedKafka) {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test6", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, Foo> cf = new DefaultKafkaConsumerFactory<>(props);

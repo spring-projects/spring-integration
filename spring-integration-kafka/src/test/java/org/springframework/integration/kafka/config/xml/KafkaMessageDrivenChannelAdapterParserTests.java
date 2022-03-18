@@ -156,8 +156,6 @@ class KafkaMessageDrivenChannelAdapterParserTests {
 
 		messageListener = containerProps.getMessageListener();
 		assertThat(messageListener.getClass().getName()).contains("$IntegrationRecordMessageListener");
-
-		assertThat(adapter).extracting("doFilterInRetry").isEqualTo(Boolean.TRUE);
 	}
 
 }
