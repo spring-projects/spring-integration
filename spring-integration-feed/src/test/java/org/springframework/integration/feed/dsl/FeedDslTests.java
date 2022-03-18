@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,12 @@ package org.springframework.integration.feed.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.File;
 import java.io.FileReader;
 import java.util.Properties;
 
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +38,7 @@ import org.springframework.integration.metadata.PropertiesPersistingMetadataStor
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 
@@ -48,12 +47,12 @@ import com.rometools.rome.feed.synd.SyndEntry;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class FeedDslTests {
 
-	@ClassRule
-	public static final TemporaryFolder tempFolder = new TemporaryFolder();
+	@TempDir
+	public static File tempFolder;
 
 	@Autowired
 	private PollableChannel entries;
@@ -80,12 +79,14 @@ public class FeedDslTests {
 		this.metadataStore.flush();
 
 		FileReader metadataStoreFile =
-				new FileReader(tempFolder.getRoot().getAbsolutePath() + "/metadata-store.properties");
+				new FileReader(tempFolder.getAbsolutePath() + "/metadata-store.properties");
 		Properties metadataStoreProperties = new Properties();
 		metadataStoreProperties.load(metadataStoreFile);
 		assertThat(metadataStoreProperties.isEmpty()).isFalse();
 		assertThat(metadataStoreProperties.size()).isEqualTo(1);
 		assertThat(metadataStoreProperties.containsKey("feedTest")).isTrue();
+
+		metadataStoreFile.close();
 	}
 
 	@Configuration
@@ -98,7 +99,7 @@ public class FeedDslTests {
 		@Bean
 		public MetadataStore metadataStore() {
 			PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
-			metadataStore.setBaseDirectory(tempFolder.getRoot().getAbsolutePath());
+			metadataStore.setBaseDirectory(tempFolder.getAbsolutePath());
 			return metadataStore;
 		}
 
