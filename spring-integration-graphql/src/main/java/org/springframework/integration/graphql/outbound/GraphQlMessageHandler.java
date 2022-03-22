@@ -23,8 +23,9 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.graphql.GraphQlService;
-import org.springframework.graphql.RequestInput;
+import org.springframework.graphql.ExecutionGraphQlRequest;
+import org.springframework.graphql.ExecutionGraphQlService;
+import org.springframework.graphql.support.DefaultExecutionGraphQlRequest;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.SupplierExpression;
@@ -44,7 +45,7 @@ import org.springframework.util.Assert;
  */
 public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	private final GraphQlService graphQlService;
+	private final ExecutionGraphQlService graphQlService;
 
 	private StandardEvaluationContext evaluationContext;
 
@@ -60,7 +61,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	private Expression executionIdExpression =
 			new FunctionExpression<Message<?>>(message -> message.getHeaders().getId());
 
-	public GraphQlMessageHandler(final GraphQlService graphQlService) {
+	public GraphQlMessageHandler(final ExecutionGraphQlService graphQlService) {
 		Assert.notNull(graphQlService, "'graphQlService' must not be null");
 		this.graphQlService = graphQlService;
 		setAsync(true);
@@ -135,10 +136,10 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		RequestInput requestInput;
+		ExecutionGraphQlRequest graphQlRequest;
 
-		if (requestMessage.getPayload() instanceof RequestInput) {
-			requestInput = (RequestInput) requestMessage.getPayload();
+		if (requestMessage.getPayload() instanceof ExecutionGraphQlRequest) {
+			graphQlRequest = (ExecutionGraphQlRequest) requestMessage.getPayload();
 		}
 		else {
 			Assert.notNull(this.operationExpression, "'operationExpression' must not be null");
@@ -146,10 +147,10 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 			String operationName = evaluateOperationNameExpression(requestMessage);
 			Map<String, Object> variables = evaluateVariablesExpression(requestMessage);
 			String id = evaluateExecutionIdExpression(requestMessage);
-			requestInput = new RequestInput(query, operationName, variables, id, this.locale);
+			graphQlRequest = new DefaultExecutionGraphQlRequest(query, operationName, variables, id, this.locale);
 		}
 
-		return this.graphQlService.execute(requestInput);
+		return this.graphQlService.execute(graphQlRequest);
 
 	}
 
