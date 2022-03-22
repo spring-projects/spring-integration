@@ -27,21 +27,24 @@ compile "org.springframework.integration:spring-integration-graphql:{project-ver
 === GraphQL Outbound Gateway
 
 The `GraphQlMessageHandler` is an `AbstractReplyProducingMessageHandler` extension representing an outbound gateway contract to perform GraphQL `query`, `mutation` or `subscription` operation and produce their result.
-It requires a `org.springframework.graphql.GraphQlService` for execution of `operation`, which can be configured statically or via SpEL expression against a request message.
+It requires a `org.springframework.graphql.ExecutionGraphQlService` for execution of `operation`, which can be configured statically or via SpEL expression against a request message.
 The `operationName` is optional and also can be configured statically or via SpEL expression.
 The `variablesExpression` is also optional and used for parametrized operations.
 The `locale` is optional and used for operation execution context in the https://www.graphql-java.com/[GraphQL Java] library.
 The `executionId` can be configured via SpEL expression and defaults to `id` header of the request message.
 
-The `GraphQlMessageHandler` is a reactive streams component and produces a `Mono<RequestOutput>` reply as a result of the `GraphQlService.execute(RequestInput)`.
+If the payload of request message is an instance of `ExecutionGraphQlRequest`, then there's no any setup actions are performed in the `GraphQlMessageHandler` and such an input is used as is for the `ExecutionGraphQlService.execute()`.
+Otherwise, the `operation`, `operationName`, `variables` and `executionId` are determined against request message using SpEL expressions mentioned above.
+
+The `GraphQlMessageHandler` is a reactive streams component and produces a `Mono<ExecutionGraphQlResponse>` reply as a result of the `ExecutionGraphQlService.execute(ExecutionGraphQlRequest)`.
 Such a `Mono` is subscribed by the framework in the `ReactiveStreamsSubscribableChannel` output channel or in the `AbstractMessageProducingHandler` asynchronously when the output channel is not reactive.
-See documentation for the  `RequestOutput` how to process the GraphQL operation result.
+See documentation for the `ExecutionGraphQlResponse` how to process the GraphQL operation result.
 
 ====
 [source, java]
 ----
 @Bean
-GraphQlMessageHandler handler(GraphQlService graphQlService) {
+GraphQlMessageHandler handler(ExecutionGraphQlService graphQlService) {
     GraphQlMessageHandler graphQlMessageHandler = new GraphQlMessageHandler(graphQlService);
     graphQlMessageHandler.setOperation("""
             query HeroNameAndFriends($episode: Episode) {
@@ -65,8 +68,8 @@ IntegrationFlow graphqlQueryMessageHandlerFlow(GraphQlMessageHandler handler) {
 }
 
 @Bean
-GraphQlService graphQlService(GraphQlSource graphQlSource) {
-    return new ExecutionGraphQlService(graphQlSource);
+ExecutionGraphQlService graphQlService(GraphQlSource graphQlSource) {
+    return new DefaultExecutionGraphQlService(graphQlSource);
 }
 
 @Bean

@@ -29,16 +29,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.graphql.GraphQlService;
-import org.springframework.graphql.RequestInput;
-import org.springframework.graphql.RequestOutput;
+import org.springframework.graphql.ExecutionGraphQlRequest;
+import org.springframework.graphql.ExecutionGraphQlResponse;
+import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SubscriptionMapping;
 import org.springframework.graphql.data.method.annotation.support.AnnotatedControllerConfigurer;
-import org.springframework.graphql.execution.ExecutionGraphQlService;
+import org.springframework.graphql.execution.DefaultExecutionGraphQlService;
 import org.springframework.graphql.execution.GraphQlSource;
+import org.springframework.graphql.support.DefaultExecutionGraphQlRequest;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -94,10 +95,10 @@ public class GraphQlMessageHandlerTests {
 				StepVerifier.create(
 								Flux.from(this.resultChannel)
 										.map(Message::getPayload)
-										.cast(RequestOutput.class)
+										.cast(ExecutionGraphQlResponse.class)
 						)
 						.consumeNextWith(result -> {
-							assertThat(result).isInstanceOf(RequestOutput.class);
+							assertThat(result).isInstanceOf(ExecutionGraphQlResponse.class);
 							Map<String, Object> data = result.getData();
 							Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
 							assertThat(testQuery.get("id")).isEqualTo("test-data");
@@ -105,7 +106,8 @@ public class GraphQlMessageHandlerTests {
 						.thenCancel()
 						.verifyLater();
 
-		RequestInput payload = new RequestInput("{ testQuery { id } }", null, null, UUID.randomUUID().toString(), null);
+		ExecutionGraphQlRequest payload = new DefaultExecutionGraphQlRequest("{ testQuery { id } }", null, null,
+				UUID.randomUUID().toString(), null);
 		this.inputChannel.send(MessageBuilder.withPayload(payload).build());
 
 		verifier.verify(Duration.ofSeconds(10));
@@ -120,11 +122,11 @@ public class GraphQlMessageHandlerTests {
 		Locale locale = Locale.getDefault();
 		this.graphQlMessageHandler.setLocale(locale);
 
-		Mono<RequestOutput> resultMono =
-				(Mono<RequestOutput>) this.graphQlMessageHandler.handleRequestMessage(new GenericMessage<>(fakeQuery));
+		Mono<ExecutionGraphQlResponse> resultMono =
+				(Mono<ExecutionGraphQlResponse>) this.graphQlMessageHandler.handleRequestMessage(new GenericMessage<>(fakeQuery));
 		StepVerifier.create(resultMono)
 				.consumeNextWith(result -> {
-					assertThat(result).isInstanceOf(RequestOutput.class);
+					assertThat(result).isInstanceOf(ExecutionGraphQlResponse.class);
 					Map<String, Object> data = result.getData();
 					Map<String, Object> testQuery = (Map<String, Object>) data.get("testQuery");
 					assertThat(testQuery.get("id")).isEqualTo("test-data");
@@ -142,10 +144,10 @@ public class GraphQlMessageHandlerTests {
 		StepVerifier verifier = StepVerifier.create(
 						Flux.from(this.resultChannel)
 								.map(Message::getPayload)
-								.cast(RequestOutput.class)
+								.cast(ExecutionGraphQlResponse.class)
 				)
 				.consumeNextWith(result -> {
-							assertThat(result).isInstanceOf(RequestOutput.class);
+							assertThat(result).isInstanceOf(ExecutionGraphQlResponse.class);
 							Map<String, Object> data = result.getData();
 							Map<String, Object> update = (Map<String, Object>) data.get("update");
 							assertThat(update.get("id")).isEqualTo(fakeId);
@@ -156,8 +158,8 @@ public class GraphQlMessageHandlerTests {
 				.thenCancel()
 				.verifyLater();
 
-		RequestInput payload =
-				new RequestInput("mutation { update(id: \"" + fakeId + "\") { id } }", null, null,
+		ExecutionGraphQlRequest payload =
+				new DefaultExecutionGraphQlRequest("mutation { update(id: \"" + fakeId + "\") { id } }", null, null,
 						UUID.randomUUID().toString(), null);
 		this.inputChannel.send(MessageBuilder.withPayload(payload).build());
 
@@ -175,8 +177,8 @@ public class GraphQlMessageHandlerTests {
 		StepVerifier verifier = StepVerifier.create(
 						Flux.from(this.resultChannel)
 								.map(Message::getPayload)
-								.cast(RequestOutput.class)
-								.mapNotNull(RequestOutput::getData)
+								.cast(ExecutionGraphQlResponse.class)
+								.mapNotNull(ExecutionGraphQlResponse::getData)
 								.cast(SubscriptionPublisher.class)
 								.map(Flux::from)
 								.flatMap(data -> data)
@@ -195,8 +197,9 @@ public class GraphQlMessageHandlerTests {
 				.thenCancel()
 				.verifyLater();
 
-		RequestInput payload =
-				new RequestInput("subscription { results { id } }", null, null, UUID.randomUUID().toString(), null);
+		ExecutionGraphQlRequest payload =
+				new DefaultExecutionGraphQlRequest("subscription { results { id } }", null, null,
+						UUID.randomUUID().toString(), null);
 		this.inputChannel.send(MessageBuilder.withPayload(payload).build());
 
 		verifier.verify(Duration.ofSeconds(10));
@@ -279,8 +282,7 @@ public class GraphQlMessageHandlerTests {
 	static class TestConfig {
 
 		@Bean
-		GraphQlMessageHandler handler(GraphQlService graphQlService) {
-
+		GraphQlMessageHandler handler(ExecutionGraphQlService graphQlService) {
 			return new GraphQlMessageHandler(graphQlService);
 		}
 
@@ -308,8 +310,8 @@ public class GraphQlMessageHandlerTests {
 		}
 
 		@Bean
-		GraphQlService graphQlService(GraphQlSource graphQlSource) {
-			return new ExecutionGraphQlService(graphQlSource);
+		ExecutionGraphQlService graphQlService(GraphQlSource graphQlSource) {
+			return new DefaultExecutionGraphQlService(graphQlSource);
 		}
 
 		@Bean
