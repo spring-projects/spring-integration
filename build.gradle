@@ -58,7 +58,7 @@ ext {
     commonsIoVersion = '2.11.0'
     commonsNetVersion = '3.8.0'
     curatorVersion = '4.3.0'
-    derbyVersion = '10.15.2.0'
+    derbyVersion = '10.14.2.0'
     ftpServerVersion = '1.2.0'
     googleJsr305Version = '3.0.2'
     greenmailVersion = '2.0.0-alpha-2'
