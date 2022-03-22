@@ -84,6 +84,12 @@ The following table summarizes the various endpoints with quick links to the app
 | N
 | N
 
+| *GraphQL*
+| N
+| N
+| N
+| <<./graphql.adoc#graphql-outbound-gateway,GraphQL Outbound Gateway>>
+
 | *HTTP*
 | <<./http.adoc#http-namespace,HTTP Namespace Support>>
 | <<./http.adoc#http-namespace,HTTP Namespace Support>>
