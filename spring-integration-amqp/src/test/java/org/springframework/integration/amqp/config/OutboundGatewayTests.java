@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,20 @@ package org.springframework.integration.amqp.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -41,6 +43,7 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -51,26 +54,22 @@ import org.springframework.test.util.ReflectionTestUtils;
  *
  * @since 2.1
  */
+@SpringJUnitConfig
 public class OutboundGatewayTests {
 
 	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
-	private final ClassPathXmlApplicationContext context =
-			new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
-
-	@After
-	public void tearDown() {
-		context.close();
-	}
+	@Autowired
+	ConfigurableApplicationContext context;
 
 	@Test
-	public void testVanillaConfiguration() throws Exception {
+	public void testVanillaConfiguration() {
 		assertThat(context.getBeanFactory().containsBeanDefinition("vanilla")).isTrue();
 		context.getBean("vanilla");
 	}
 
 	@Test
-	public void testExpressionBasedConfiguration() throws Exception {
+	public void testExpressionBasedConfiguration() {
 		assertThat(context.getBeanFactory().containsBeanDefinition("expression")).isTrue();
 		Object target = context.getBean("expression");
 		assertThat(ReflectionTestUtils.getField(ReflectionTestUtils.getField(target, "handler"),
@@ -79,7 +78,7 @@ public class OutboundGatewayTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testExpressionsBeanResolver() throws Exception {
+	public void testExpressionsBeanResolver() {
 		ApplicationContext context = mock(ApplicationContext.class);
 		doAnswer(invocation -> invocation.getArguments()[0] + "bar").when(context).getBean(anyString());
 		when(context.containsBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)).thenReturn(true);
@@ -92,8 +91,9 @@ public class OutboundGatewayTests {
 		StandardEvaluationContext evalContext = integrationEvaluationContextFactoryBean.getObject();
 		when(context.getBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 				StandardEvaluationContext.class))
-			.thenReturn(evalContext);
+				.thenReturn(evalContext);
 		RabbitTemplate template = spy(new RabbitTemplate());
+		willReturn(mock(ConnectionFactory.class)).given(template).getConnectionFactory();
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(template);
 		endpoint.setRoutingKeyExpression(PARSER.parseExpression("@foo"));
 		endpoint.setExchangeNameExpression(PARSER.parseExpression("@bar"));

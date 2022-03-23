@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.amqp.core.Queue;
@@ -40,7 +38,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.connection.CorrelationData.Confirm;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.BrokerRunning;
+import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.factory.BeanFactory;
@@ -59,8 +57,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Oleg Zhurakousky
@@ -71,13 +68,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 2.1
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@RabbitAvailable
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class AmqpOutboundEndpointTests {
-
-	@Rule
-	public BrokerRunning brokerRunning = BrokerRunning.isRunning();
 
 	@Autowired
 	private MessageChannel pcRequestChannel;
@@ -192,6 +186,7 @@ public class AmqpOutboundEndpointTests {
 		willDoNothing().given(template).send(isNull(), isNull(), any(), any());
 		List<CorrelationData> correlationList = new ArrayList<>();
 		willReturn(correlationList).given(template).getUnconfirmed(100L);
+		willReturn(mock(ConnectionFactory.class)).given(template).getConnectionFactory();
 		ArgumentCaptor<CorrelationData> correlationCaptor = ArgumentCaptor.forClass(CorrelationData.class);
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(template);
 		PollableChannel nacks = new QueueChannel();
@@ -215,7 +210,7 @@ public class AmqpOutboundEndpointTests {
 		assertThat(nack.getPayload()).isInstanceOf(NackedAmqpMessageException.class);
 		assertThat(((NackedAmqpMessageException) nack.getPayload()).getFailedMessage()).isSameAs(message);
 		assertThat(((NackedAmqpMessageException) nack.getPayload()).getCorrelationData())
-			.isSameAs(message.getHeaders().getId());
+				.isSameAs(message.getHeaders().getId());
 		assertThat(((NackedAmqpMessageException) nack.getPayload()).getNackReason()).isEqualTo("Confirm timed out");
 		endpoint.stop();
 		sched.destroy();
