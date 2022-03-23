@@ -137,11 +137,19 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 			Assert.notNull(this.rabbitTemplate,
 					"RabbitTemplate implementation is required for publisher confirms");
 			this.rabbitTemplate.setConfirmCallback(this);
+			if (!this.rabbitTemplate.getConnectionFactory().isPublisherConfirms()) {
+				this.logger.warn("A confirm correlation expression is provided but the underlying connection factory "
+						+ "does not support correlated delivery confirmations; no confirmations will be received");
+			}
 		}
 		if (getReturnChannel() != null) {
 			Assert.notNull(this.rabbitTemplate,
 					"RabbitTemplate implementation is required for publisher confirms");
 			this.rabbitTemplate.setReturnsCallback(this);
+			if (!this.rabbitTemplate.getConnectionFactory().isPublisherReturns()) {
+				this.logger.warn("A return channel is provided but the underlying connection factory "
+						+ "does not support returned messages; none will be received");
+			}
 		}
 		Duration confirmTimeout = getConfirmTimeout();
 		if (confirmTimeout != null) {
