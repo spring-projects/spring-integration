@@ -55,7 +55,7 @@ public final class JacksonJsonUtils {
 	 * The packages to trust on JSON deserialization by default.
 	 */
 	public static final List<String> DEFAULT_TRUSTED_PACKAGES =
-			List.of(
+			Arrays.asList(
 					"java.util",
 					"java.lang",
 					"org.springframework.messaging.support",
