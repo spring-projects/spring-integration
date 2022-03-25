@@ -141,9 +141,10 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	 * {@link IntegrationMessageHeaderAccessor#CORRELATION_ID} header value.
 	 * @param correlationStrategy the {@link CorrelationStrategy} to use.
 	 */
-	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
+	public FluxAggregatorMessageHandler setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
 		Assert.notNull(correlationStrategy, "'correlationStrategy' must not be null");
 		this.correlationStrategy = correlationStrategy;
+		return this;
 	}
 
 	/**
@@ -155,9 +156,10 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	 * and consumed downstream.
 	 * @param combineFunction the {@link Function} to use for result windows transformation.
 	 */
-	public void setCombineFunction(Function<Flux<Message<?>>, Mono<Message<?>>> combineFunction) {
+	public FluxAggregatorMessageHandler setCombineFunction(Function<Flux<Message<?>>, Mono<Message<?>>> combineFunction) {
 		Assert.notNull(combineFunction, "'combineFunction' must not be null");
 		this.combineFunction = combineFunction;
+		return this;
 	}
 
 	/**
@@ -167,8 +169,9 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	 * @param boundaryTrigger the {@link Predicate} to use for window boundary.
 	 * @see Flux#windowUntil(Predicate)
 	 */
-	public void setBoundaryTrigger(Predicate<Message<?>> boundaryTrigger) {
+	public FluxAggregatorMessageHandler setBoundaryTrigger(Predicate<Message<?>> boundaryTrigger) {
 		this.boundaryTrigger = boundaryTrigger;
+		return this;
 	}
 
 	/**
@@ -178,8 +181,9 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	 * @see Flux#window(int)
 	 * @see Flux#windowTimeout(int, Duration)
 	 */
-	public void setWindowSize(int windowSize) {
+	public FluxAggregatorMessageHandler setWindowSize(int windowSize) {
 		setWindowSizeFunction((message) -> windowSize);
+		return this;
 	}
 
 	/**
@@ -191,9 +195,10 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	 * @see Flux#window(int)
 	 * @see Flux#windowTimeout(int, Duration)
 	 */
-	public void setWindowSizeFunction(Function<Message<?>, Integer> windowSizeFunction) {
+	public FluxAggregatorMessageHandler setWindowSizeFunction(Function<Message<?>, Integer> windowSizeFunction) {
 		Assert.notNull(windowSizeFunction, "'windowSizeFunction' must not be null");
 		this.windowSizeFunction = windowSizeFunction;
+		return this;
 	}
 
 	/**
@@ -203,8 +208,9 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	 * @see Flux#window(Duration)
 	 * @see Flux#windowTimeout(int, Duration)
 	 */
-	public void setWindowTimespan(Duration windowTimespan) {
+	public FluxAggregatorMessageHandler setWindowTimespan(Duration windowTimespan) {
 		this.windowTimespan = windowTimespan;
+		return this;
 	}
 
 	/**
@@ -213,8 +219,9 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	 * Has a precedence over any other window configuration options.
 	 * @param windowConfigurer the {@link Function} to apply any custom window transformation.
 	 */
-	public void setWindowConfigurer(Function<Flux<Message<?>>, Flux<Flux<Message<?>>>> windowConfigurer) {
+	public FluxAggregatorMessageHandler setWindowConfigurer(Function<Flux<Message<?>>, Flux<Flux<Message<?>>>> windowConfigurer) {
 		this.windowConfigurer = windowConfigurer;
+		return this;
 	}
 
 	@Override
