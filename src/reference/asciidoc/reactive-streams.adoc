@@ -199,13 +199,15 @@ Usage would look like:
 ====
 [source, java]
 ----
-public class MainFlow {
+@Component
+public class MainFlow extends IntegrationFlowAdapter {
   @Autowired
   private CustomReactiveMessageProducer customReactiveMessageProducer;
   
   @Bean
-  public IntegrationFlow buildFlow() {
-     return IntegrationFlows.from(customReactiveMessageProducer)
+  @Override
+  public IntegrationFlowAdapter<?> buildFlow() {
+     return from(customReactiveMessageProducer)
         .channel(outputChannel)
         .get();
   }
@@ -218,10 +220,12 @@ Or in a declarative way:
 ====
 [source, java]
 ----
-public class MainFlow {  
+@Component
+public class MainFlow extends IntegrationFlowAdapter {  
   @Bean
-  public IntegrationFlow buildFlow() {
-     return IntegrationFlows.from(new CustomReactiveMessageProducer(new CustomReactiveSource()))
+  @Override
+  public IntegrationFlowAdapter<?> buildFlow() {
+     return from(new CustomReactiveMessageProducer(new CustomReactiveSource()))
         .handle(outputChannel)
         .get();
   }
@@ -234,16 +238,18 @@ Or even without a channel adapter, we can always use the Java DSL in the followi
 ====
 [source, java]
 ----
-public class MainFlow {  
+@Component
+public class MainFlow extends IntegrationFlowAdapter {  
   @Bean
-  public IntegrationFlow buildFlow() {
+  @Override
+  public IntegrationFlowAdapter<?> buildFlow() {
     Flux<Message<?>> myFlux = this.customReactiveSource
                 .map(event ->
                     MessageBuilder
                     .withPayload(event.getBody())
                     .setHeader(MyReactiveHeaders.SOURCE_NAME, event.getSourceName())
                     .build());
-     return IntegrationFlows.from(myFlux)
+    return from(myFlux)
         .handle(outputChannel)
         .get();
   }
@@ -307,7 +313,8 @@ We will be able to use both of the channel adapters:
 ====
 [source, java]
 ----
-public class MainFlow {
+@Component
+public class MainFlow extends IntegrationFlowAdapter {
 
   @Autowired
   private CustomReactiveMessageProducer customReactiveMessageProducer;
@@ -316,8 +323,9 @@ public class MainFlow {
   private CustomReactiveMessageHandler customReactiveMessageHandler;
   
   @Bean
-  public IntegrationFlow buildFlow() {
-     return IntegrationFlows.from(customReactiveMessageProducer)
+  @Override
+  public IntegrationFlowAdapter<?> buildFlow() {
+     return from(customReactiveMessageProducer)
         .transform(someOperation)
         .handle(customReactiveMessageHandler)
         .get();
