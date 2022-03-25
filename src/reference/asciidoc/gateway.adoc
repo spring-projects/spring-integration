@@ -756,27 +756,51 @@ The following example shows how to create a gateway with Project Reactor:
 ----
 @MessagingGateway
 public interface TestGateway {
-
 	@Gateway(requestChannel = "promiseChannel")
 	Mono<Integer> multiply(Integer value);
-
-	}
-
-	    ...
-
+}
+----
+It's implementation looks like:
+====
+[source,java]
+----
+@Component
+public class MyServiceActivators {
 	@ServiceActivator(inputChannel = "promiseChannel")
 	public Integer multiply(Integer value) {
 			return value * 2;
 	}
+}
+----
 
-		...
-
-    Flux.just("1", "2", "3", "4", "5")
-            .map(Integer::parseInt)
-            .flatMap(this.testGateway::multiply)
-            .collectList()
-            .subscribe(integers -> ...);
-
+And the usage of it looks like this:
+====
+[source,java]
+----
+@Component
+public class MainFlow {
+  @Bean
+  public IntegrationFlow buildFlow() {
+     return IntegrationFlows.from(someReactiveMessageProducer)
+        .transform(someOperation)
+        .gateway(MyServiceActivators::multiply)
+        .get();
+  }
+}
+----
+Or within the Project Reactor DSL:
+[source,java]
+----
+@Component
+public class MainFlow {
+  @Bean
+  public IntegrationFlow buildFlow() {
+     return IntegrationFlows.from(someReactiveMessageProducer)
+        .transform(someOperation)
+        .bridge(e -> e.reactive(flux -> flux.flatMap(MyServiceActivators::multiply)))
+        .get();
+  }
+}
 ----
 ====
 
