@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -380,14 +381,21 @@ public class FileSplitterTests {
 		});
 		FileSplitter splitter = new FileSplitter(true, true);
 		splitter.setOutputChannel(outputChannel);
-		FileReader fileReader = Mockito.spy(new FileReader(file));
+		AtomicBoolean closeCalled = new AtomicBoolean();
+		FileReader fileReader = new FileReader(file) {
+
+			@Override public void close() throws IOException {
+				super.close();
+				closeCalled.set(true);
+			}
+		};
 		try {
 			splitter.handleMessage(new GenericMessage<>(fileReader));
 		}
 		catch (RuntimeException e) {
 			// ignore
 		}
-		Mockito.verify(fileReader).close();
+		assertThat(closeCalled.get()).isTrue();
 	}
 
 	@Configuration

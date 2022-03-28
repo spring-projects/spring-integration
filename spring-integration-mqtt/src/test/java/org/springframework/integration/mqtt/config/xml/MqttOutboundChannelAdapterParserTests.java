@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,8 +89,7 @@ public class MqttOutboundChannelAdapterParserTests {
 
 		assertThat(this.withConverterHandler).isSameAs(((Advised) handler).getTargetSource().getTarget());
 
-		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"))
-				.isInstanceOf(RequestHandlerRetryAdvice.class);
+		assertThat(((Advised) handler).getAdvisors()[0].getAdvice()).isInstanceOf(RequestHandlerRetryAdvice.class);
 	}
 
 	@Test

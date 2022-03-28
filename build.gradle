@@ -194,8 +194,7 @@ configure(javaProjects) { subproject ->
 	}
 
 	compileJava {
-		sourceCompatibility = 1.8
-		targetCompatibility = 1.8
+		options.release = 8
 	}
 
 	compileTestJava {
@@ -220,6 +219,12 @@ configure(javaProjects) { subproject ->
 
 	tasks.withType(JavaCompile).configureEach {
 		options.fork = true
+	}
+
+
+	tasks.withType(Javadoc) {
+		options.addBooleanOption('Xdoclint:syntax', true) // only check syntax with doclint
+		options.addBooleanOption('Werror', true) // fail build on Javadoc warnings
 	}
 
 	eclipse {
@@ -996,6 +1001,7 @@ task api(type: Javadoc) {
 	options.overview = 'src/api/overview.html'
 	options.stylesheetFile = file('src/api/stylesheet.css')
 	options.links(project.ext.javadocLinks)
+	options.addBooleanOption('Xdoclint:syntax', true) // only check syntax with doclint
 	source javaProjects.collect { project ->
 		project.sourceSets.main.allJava
 	}

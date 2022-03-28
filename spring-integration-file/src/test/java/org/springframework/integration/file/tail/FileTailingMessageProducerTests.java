@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,7 @@ package org.springframework.integration.file.tail;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -156,7 +154,19 @@ public class FileTailingMessageProducerTests {
 			}
 		});
 
-		File file = spy(new File(this.testDir, "foo"));
+		AtomicBoolean existsCalled = new AtomicBoolean();
+		File file = new File(this.testDir, "foo") {
+
+			@Override
+			public boolean exists() {
+				try {
+					return super.exists();
+				}
+				finally {
+					existsCalled.set(true);
+				}
+			}
+		};
 		file.delete();
 		adapter.setFile(file);
 
@@ -169,7 +179,7 @@ public class FileTailingMessageProducerTests {
 		assertThat(noFile).as("file does not exist event did not emit ").isTrue();
 		boolean noEvent = idleCountDownLatch.await(100, TimeUnit.MILLISECONDS);
 		assertThat(noEvent).as("event should not emit when no file exit").isFalse();
-		verify(file, atLeastOnce()).exists();
+		assertThat(existsCalled.get()).isTrue();
 
 		file.createNewFile();
 		boolean eventRaised = idleCountDownLatch.await(10, TimeUnit.SECONDS);

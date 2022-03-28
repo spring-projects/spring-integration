@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,16 +124,7 @@ public class FileInboundChannelAdapterParserTests {
 		Object priorityQueue = accessor.getPropertyValue("toBeReceived");
 		assertThat(priorityQueue).isInstanceOf(PriorityBlockingQueue.class);
 		Object expected = context.getBean("testComparator");
-		DirectFieldAccessor queueAccessor = new DirectFieldAccessor(priorityQueue);
-		Object innerQueue = queueAccessor.getPropertyValue("q");
-		Object actual;
-		if (innerQueue != null) {
-			actual = new DirectFieldAccessor(innerQueue).getPropertyValue("comparator");
-		}
-		else {
-			// probably running under JDK 7
-			actual = queueAccessor.getPropertyValue("comparator");
-		}
+		Object actual = ((PriorityBlockingQueue) priorityQueue).comparator();
 		assertThat(actual).as("comparator reference not set, ").isSameAs(expected);
 	}
 

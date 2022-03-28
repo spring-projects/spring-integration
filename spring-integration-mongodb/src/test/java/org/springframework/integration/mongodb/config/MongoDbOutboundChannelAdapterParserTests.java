@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,9 @@ package org.springframework.integration.mongodb.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
-
 import org.junit.Test;
 
+import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -33,6 +32,7 @@ import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.mongodb.outbound.MongoDbStoringMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
+
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
@@ -129,9 +129,7 @@ public class MongoDbOutboundChannelAdapterParserTests {
 		assertThat(endpoint).isInstanceOf(PollingConsumer.class);
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
 		assertThat(AopUtils.isAopProxy(handler)).isTrue();
-		List<?> advisors = TestUtils.getPropertyValue(handler, "h.advised.advisors", List.class);
-		assertThat(TestUtils.getPropertyValue(advisors.get(0), "advice")).isInstanceOf(RequestHandlerRetryAdvice.class);
-		context.close();
+		assertThat(((Advised) handler).getAdvisors()[0].getAdvice()).isInstanceOf(RequestHandlerRetryAdvice.class);
 	}
 
 }
