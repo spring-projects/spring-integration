@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mail;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -46,12 +48,12 @@ import org.springframework.beans.DirectFieldAccessor;
 public class MailReceiverTests {
 
 	@Test
-	public void testStoreConnect() throws Exception {
+	public void testStoreConnectAndFolderCloseWhenNoMessages() throws Exception {
 		AbstractMailReceiver receiver = new AbstractMailReceiver() {
 
 			@Override
 			protected Message[] searchForNewMessages() {
-				return null;
+				return new Message[0];
 			}
 
 		};
@@ -59,18 +61,24 @@ public class MailReceiverTests {
 		Session session = Session.getInstance(props);
 		receiver.setSession(session);
 		receiver.setProtocol("imap");
+		receiver.setAutoCloseFolder(false);
 		Store store = session.getStore("imap");
 		store = spy(store);
 		new DirectFieldAccessor(receiver).setPropertyValue("store", store);
 		when(store.isConnected()).thenReturn(false);
 		Folder folder = mock(Folder.class);
 		when(folder.exists()).thenReturn(true);
-		when(folder.isOpen()).thenReturn(false);
+		when(folder.isOpen()).thenReturn(false, true);
 		doReturn(folder).when(store).getFolder((URLName) null);
 		doNothing().when(store).connect();
 		receiver.openFolder();
 		receiver.openFolder();
 		verify(store, times(2)).connect();
+
+		Object[] receive = receiver.receive();
+		assertThat(receive).isEmpty();
+
+		verify(folder).close(anyBoolean());
 	}
 
 }
