@@ -656,9 +656,9 @@ The following example shows how to use `LoggingHandler`:
 
 In the preceding example, an `id` header is logged at the `ERROR` level onto `test.category` only for messages that passed the filter and before routing.
 
-When this operator is used at the end of a flow, it is a one-way handler and the flow ends.
-To make it as a reply-producing flow, you can either use a simple `bridge()` after the `log()` or,  starting with version 5.1, you can use a `logAndReply()` operator instead.
-`logAndReply` can only be used at the end of a flow.
+Starting with version 6.0, the behavior of this operator in the end of flow is aligned with its usage in the middle.
+In other words the behavior of the flow remains the same even if the `log()` operator is removed.
+So, if a reply is not expected to be produced in the end of the flow, the `nullChannel()` is recommended to be used after the last `log()`.
 
 [[java-dsl-intercept]]
 === Operator intercept()
