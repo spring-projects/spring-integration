@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,33 +42,19 @@ import org.springframework.integration.support.management.micrometer.MicrometerM
 @Import({ MicrometerMetricsCaptorImportSelector.class, IntegrationManagementConfiguration.class })
 public @interface EnableIntegrationManagement {
 
-	/**
-	 * @deprecated this property is no longer used.
-	 * @return the patterns.
-	 */
-	@Deprecated
-	String[] metersEnabled() default "*";
 
 	/**
-	 * @deprecated this property is no longer used.
-	 * @return the value; false by default, or true when JMX is enabled.
-	 */
-	@Deprecated
-	String defaultCountsEnabled() default "false";
-
-	/**
-	 * Use to disable all logging in the main message flow in framework components. When 'false', such logging will be
-	 * skipped, regardless of logging level. When 'true', the logging is controlled as normal by the logging
-	 * subsystem log level configuration.
+	 * Use for disabling all logging in the main message flow in framework components. When 'false',
+	 * such logging will be skipped, regardless of logging level. When 'true',
+	 * the logging is controlled as normal by the logging subsystem log level configuration.
 	 * <p>
 	 * It has been found that in high-volume messaging environments, calls to methods such as
 	 * {@code logger.isDebuggingEnabled()} can be quite expensive and account for an inordinate amount of CPU
 	 * time.
 	 * <p>
-	 * Set this to false to disable logging by default in all framework components that implement
+	 * Set this to false for disabling logging by default in all framework components that implement
 	 * {@link org.springframework.integration.support.management.IntegrationManagement}
-	 * (channels, message handlers etc). This turns off logging such as
-	 * "PreSend on channel", "Received message" etc.
+	 * (channels, message handlers etc). It turns off logging such as "PreSend on channel", "Received message" etc.
 	 * <p>
 	 * After the context is initialized, individual components can have their setting changed by invoking
 	 * {@link org.springframework.integration.support.management.IntegrationManagement#setLoggingEnabled(boolean)}.

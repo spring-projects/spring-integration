@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,12 +110,6 @@ public abstract class IntegrationContextUtils {
 	public static final String ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME =
 			"integrationArgumentResolverMessageConverter";
 
-	/**
-	 * @deprecated since 5.5.7 - out of use.
-	 */
-	@Deprecated
-	public static final String DISPOSABLES_BEAN_NAME = "integrationDisposableAutoCreatedBeans";
-
 	public static final String MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationMessageHandlerMethodFactory";
 
 	public static final String LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationListMessageHandlerMethodFactory";
@@ -209,8 +203,7 @@ public abstract class IntegrationContextUtils {
 					propertiesToRegister.putAll(userProperties);
 				}
 
-				if (beanFactory instanceof BeanDefinitionRegistry) {
-					BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+				if (beanFactory instanceof BeanDefinitionRegistry registry) {
 					RootBeanDefinition beanDefinition = new RootBeanDefinition(Properties.class);
 					beanDefinition.setInstanceSupplier(() -> propertiesToRegister);
 

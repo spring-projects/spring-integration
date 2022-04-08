@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
  * Shared utility methods for Integration configuration.
@@ -30,12 +29,6 @@ import org.springframework.integration.context.IntegrationContextUtils;
  * @since 4.0
  */
 public final class IntegrationConfigUtils {
-
-	/**
-	 * @deprecated in favor of {@link IntegrationContextUtils#BASE_PACKAGE}.
-	 */
-	@Deprecated
-	public static final String BASE_PACKAGE = IntegrationContextUtils.BASE_PACKAGE;
 
 	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -242,8 +242,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	private void populateMessageHandlers() {
-		Map<String, MessageHandler> messageHandlers = this.applicationContext
-				.getBeansOfType(MessageHandler.class);
+		Map<String, MessageHandler> messageHandlers = this.applicationContext.getBeansOfType(MessageHandler.class);
 		for (Entry<String, MessageHandler> entry : messageHandlers.entrySet()) {
 
 			String beanName = entry.getKey();
@@ -264,8 +263,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	private void populateMessageSources() {
-		this.applicationContext.getBeansOfType(
-				IntegrationInboundManagement.class)
+		this.applicationContext.getBeansOfType(IntegrationInboundManagement.class)
 				.values()
 				.stream()
 				// If the source is proxied, we have to extract the target to expose as an MBean.
@@ -332,8 +330,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	private void postProcessAbstractEndpoint(Object bean) {
-		if (bean instanceof IntegrationConsumer) {
-			IntegrationConsumer integrationConsumer = (IntegrationConsumer) bean;
+		if (bean instanceof IntegrationConsumer integrationConsumer) {
 			MessageHandler handler = integrationConsumer.getHandler();
 			MessageHandler monitor = (MessageHandler) extractTarget(handler);
 			if (monitor instanceof IntegrationManagement) {
@@ -344,8 +341,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			}
 			return;
 		}
-		else if (bean instanceof SourcePollingChannelAdapter) {
-			SourcePollingChannelAdapter pollingChannelAdapter = (SourcePollingChannelAdapter) bean;
+		else if (bean instanceof SourcePollingChannelAdapter pollingChannelAdapter) {
 			MessageSource<?> messageSource = pollingChannelAdapter.getMessageSource();
 			if (messageSource instanceof IntegrationInboundManagement) {
 				IntegrationInboundManagement monitor = (IntegrationInboundManagement) extractTarget(messageSource);
@@ -388,14 +384,14 @@ public class IntegrationMBeanExporter extends MBeanExporter
 				else {
 
 					this.endpointsByMonitor.remove(bean);
-					if (bean instanceof IntegrationManagement) {
+					if (bean instanceof IntegrationManagement && bean instanceof MessageChannel) {
 						this.channels.remove(((NamedComponent) bean).getComponentName());
 					}
-					else if (bean instanceof IntegrationManagement) {
+					else if (bean instanceof IntegrationManagement && bean instanceof MessageHandler) {
 						this.handlers.remove(((NamedComponent) bean).getComponentName());
 						this.endpointNames.remove(((NamedComponent) bean).getComponentName());
 					}
-					else if (bean instanceof IntegrationInboundManagement) {
+					else if (bean instanceof IntegrationInboundManagement && bean instanceof MessageSource) {
 						this.sources.remove(((NamedComponent) bean).getComponentName());
 						this.endpointNames.remove(((NamedComponent) bean).getComponentName());
 					}
@@ -428,7 +424,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	 * Copy of private method in super class. Needed so we can avoid using the bean factory to extract the bean again,
 	 * and risk it being a proxy (which it almost certainly is by now).
 	 * @param bean the bean instance to register
-	 * @param beanKey the bean name or human readable version if auto-generated
+	 * @param beanKey the bean name or human-readable version if auto-generated
 	 * @return the JMX object name of the MBean that was registered
 	 */
 	private ObjectName registerBeanInstance(Object bean, String beanKey) {
@@ -550,12 +546,11 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	public void stopActiveChannels() {
 		// Stop any "active" channels (JMS etc).
 		for (IntegrationManagement metrics : this.channels.values()) {
-			IntegrationManagement channel = metrics;
-			if (channel instanceof Lifecycle) {
+			if (metrics instanceof Lifecycle) {
 				if (logger.isInfoEnabled()) {
-					logger.info("Stopping channel " + channel);
+					logger.info("Stopping channel " + metrics);
 				}
-				((Lifecycle) channel).stop();
+				((Lifecycle) metrics).stop();
 			}
 		}
 	}
@@ -604,20 +599,8 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	@ManagedAttribute
 	public String[] getHandlerNames() {
 		return this.handlers.values().stream()
-				.map(hand -> hand.getManagedName())
-				.toArray(n -> new String[n]);
-	}
-
-	@Deprecated
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "No longer supported")
-	public int getActiveHandlerCount() {
-		return 0;
-	}
-
-	@Deprecated
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "No longer supported")
-	public long getActiveHandlerCountLong() {
-		return 0;
+				.map(IntegrationManagement::getManagedName)
+				.toArray(String[]::new);
 	}
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Queued Message Count")
@@ -631,14 +614,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	@ManagedAttribute
 	public String[] getChannelNames() {
-		return this.channels.keySet().stream()
-				.toArray(n -> new String[n]);
-	}
-
-	@Nullable
-	@Deprecated
-	public AbstractMessageHandler getHandlerMetrics(String name) {
-		return null;
+		return this.channels.keySet().toArray(String[]::new);
 	}
 
 	@Nullable
@@ -648,18 +624,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	@ManagedAttribute
 	public String[] getSourceNames() {
-		return this.sources.keySet().stream()
-				.toArray(n -> new String[n]);
-	}
-
-	@Deprecated
-	public IntegrationInboundManagement getSourceMetrics(String name) {
-		return this.sources.get(name);
-	}
-
-	@Deprecated
-	public IntegrationManagement getChannelMetrics(String name) {
-		return this.channels.get(name);
+		return this.sources.keySet().toArray(String[]::new);
 	}
 
 	public IntegrationInboundManagement getSource(String name) {
@@ -732,7 +697,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	private void registerEndpoints() {
 		String[] names = this.applicationContext.getBeanNamesForType(AbstractEndpoint.class);
 		for (String name : names) {
-			if (!this.endpointsByMonitor.values().contains(name)) {
+			if (!this.endpointsByMonitor.containsValue(name)) {
 				AbstractEndpoint endpoint = this.applicationContext.getBean(name, AbstractEndpoint.class);
 				registerEndpoint(endpoint);
 			}
@@ -778,14 +743,13 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	 */
 	private boolean matches(String[] patterns, String name) {
 		Boolean match = PatternMatchUtils.smartMatch(name, patterns);
-		return match == null ? false : match;
+		return match != null && match;
 	}
 
 	private Object extractTarget(Object bean) {
-		if (!(bean instanceof Advised)) {
+		if (!(bean instanceof Advised advised)) {
 			return bean;
 		}
-		Advised advised = (Advised) bean;
 		try {
 			return extractTarget(advised.getTargetSource().getTarget());
 		}
@@ -824,7 +788,6 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	/*
 	 * https://www.oracle.com/technetwork/java/javase/tech/best-practices-jsp-136021.html
-	 *
 	 * The set of characters in a value is also limited. If special characters may
 	 * occur, it is recommended that the value be quoted, using ObjectName.quote. If
 	 * the value for a given key is sometimes quoted, then it should always be quoted.
@@ -890,7 +853,6 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			IntegrationManagement monitor2,
 			String name, String source, IntegrationConsumer endpoint) {
 
-		IntegrationManagement result = monitor2;
 		String managedType = source;
 		String managedName = name;
 
@@ -914,16 +876,16 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			managedType = "handler";
 		}
 
-		result.setManagedType(managedType);
-		result.setManagedName(managedName);
-		return result;
+		monitor2.setManagedType(managedType);
+		monitor2.setManagedName(managedName);
+		return monitor2;
 	}
 
 	private String buildAnonymousManagedName(Map<Object, AtomicLong> anonymousCache, MessageChannel messageChannel) {
 		AtomicLong count = anonymousCache.computeIfAbsent(messageChannel, (key) -> new AtomicLong());
 		long total = count.incrementAndGet();
 		/*
-		 * Short hack to makes sure object names are unique if more than one endpoint has the same input
+		 * Short hack to make sure object names are unique if more than one endpoint has the same input
 		 * channel
 		 */
 
@@ -966,9 +928,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		return messageSourceMetrics;
 	}
 
-	@SuppressWarnings("unlikely-arg-type")
 	private AbstractEndpoint getEndpointForMonitor(IntegrationInboundManagement source2) {
-
 		for (AbstractEndpoint endpoint : this.applicationContext.getBeansOfType(AbstractEndpoint.class).values()) {
 			Object target = null;
 			if (source2 instanceof MessagingGatewaySupport && endpoint.equals(source2)) {
@@ -988,7 +948,6 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			IntegrationInboundManagement source2, String name,
 			String source, Object endpoint) {
 
-		IntegrationInboundManagement result = source2;
 		String managedType = source;
 		String managedName = name;
 
@@ -1019,13 +978,13 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		}
 
 		if (managedName == null) {
-			managedName = result.toString();
+			managedName = source2.toString();
 			managedType = "source";
 		}
 
-		result.setManagedType(managedType);
-		result.setManagedName(managedName);
-		return result;
+		source2.setManagedType(managedType);
+		source2.setManagedName(managedName);
+		return source2;
 	}
 
 }

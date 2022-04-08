@@ -21,7 +21,7 @@
 	<ws:outbound-gateway request-channel="inputJms"
 						 uri="jms:{destination}?deliveryMode={deliveryMode}&amp;priority={priority}"
 						 interceptor="interceptor"
-						 message-sender="jmsMessageSender">
+						 message-senders="jmsMessageSender">
 		<ws:uri-variable name="destination" expression="headers.jmsQueue"/>
 		<ws:uri-variable name="deliveryMode" expression="headers.deliveryMode"/>
 		<ws:uri-variable name="priority" expression="headers.jms_priority"/>
@@ -44,7 +44,7 @@
 						 uri="mailto:{to}?subject={subject}"
 						 encoding-mode="VALUES_ONLY"
 						 interceptor="emailInterceptor"
-						 message-sender="emailMessageSender">
+						 message-senders="emailMessageSender">
 		<ws:uri-variable name="to" expression="headers.to"/>
 		<ws:uri-variable name="subject" expression="headers.subject"/>
 	</ws:outbound-gateway>
@@ -61,7 +61,7 @@
 	<ws:outbound-gateway request-channel="inputXmpp"
 						 uri="xmpp:{user}@jabber.org"
 						 interceptor="interceptor"
-						 message-sender="xmppMessageSender">
+						 message-senders="xmppMessageSender">
 		<ws:uri-variable name="user" expression="headers.to"/>
 	</ws:outbound-gateway>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -618,25 +618,6 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 				: getMessageBuilderFactory().withPayload(replyObject);
 	}
 
-	/**
-	 * Build Spring message object based on the provided returned AMQP message info.
-	 * @param message the returned AMQP message
-	 * @param replyCode the returned message reason code
-	 * @param replyText the returned message reason text
-	 * @param exchange the exchange the message returned from
-	 * @param returnedRoutingKey the routing key for returned message
-	 * @param converter the converter to deserialize body of the returned AMQP message
-	 * @return the Spring message which represents a returned AMQP message
-	 * @deprecated since 5.4 in favor of {@link #buildReturnedMessage(ReturnedMessage, MessageConverter)}
-	 */
-	@Deprecated
-	protected Message<?> buildReturnedMessage(org.springframework.amqp.core.Message message,
-			int replyCode, String replyText, String exchange, String returnedRoutingKey, MessageConverter converter) {
-
-		return buildReturnedMessage(new ReturnedMessage(message, replyCode, replyText, exchange, returnedRoutingKey),
-				converter);
-	}
-
 	protected Message<?> buildReturnedMessage(ReturnedMessage returnedMessage, MessageConverter converter) {
 		org.springframework.amqp.core.Message amqpMessage = returnedMessage.getMessage();
 		Object returnedObject = converter.fromMessage(amqpMessage);
@@ -729,15 +710,6 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 			else {
 				return super.getFuture();
 			}
-		}
-
-		@Override
-		@Deprecated
-		public void setReturnedMessage(org.springframework.amqp.core.Message returnedMessage) {
-			if (this.userData instanceof CorrelationData) {
-				((CorrelationData) this.userData).setReturnedMessage(returnedMessage);
-			}
-			super.setReturnedMessage(returnedMessage);
 		}
 
 		@Override

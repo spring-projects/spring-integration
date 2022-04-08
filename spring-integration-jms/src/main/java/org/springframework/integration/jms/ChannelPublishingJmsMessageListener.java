@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -392,8 +392,8 @@ public class ChannelPublishingJmsMessageListener
 		this.gatewayDelegate.stop();
 	}
 
-	private void copyCorrelationIdFromRequestToReply(jakarta.jms.Message requestMessage, jakarta.jms.Message replyMessage)
-			throws JMSException {
+	private void copyCorrelationIdFromRequestToReply(jakarta.jms.Message requestMessage,
+			jakarta.jms.Message replyMessage) throws JMSException {
 
 		if (this.correlationKey != null) {
 			if (this.correlationKey.equals("JMSCorrelationID")) {
@@ -417,9 +417,8 @@ public class ChannelPublishingJmsMessageListener
 
 	/**
 	 * Determine a reply destination for the given message.
-	 * <p>
-	 * This implementation first checks the boolean 'error' flag which signifies that the reply is an error message. If
-	 * reply is not an error it will first check the JMS Reply-To {@link Destination} of the supplied request message;
+	 * <p> This implementation first checks the boolean 'error' flag which signifies that the reply is an error message.
+	 * If reply is not an error it will first check the JMS Reply-To {@link Destination} of the supplied request message;
 	 * if that is not <code>null</code> it is returned; if it is <code>null</code>, then the configured
 	 * {@link #resolveDefaultReplyDestination default reply destination} is returned; if this too is <code>null</code>,
 	 * then an {@link InvalidDestinationException} is thrown.
@@ -458,8 +457,7 @@ public class ChannelPublishingJmsMessageListener
 		if (this.defaultReplyDestination instanceof Destination) {
 			return (Destination) this.defaultReplyDestination;
 		}
-		if (this.defaultReplyDestination instanceof DestinationNameHolder) {
-			DestinationNameHolder nameHolder = (DestinationNameHolder) this.defaultReplyDestination;
+		if (this.defaultReplyDestination instanceof DestinationNameHolder nameHolder) {
 			return this.destinationResolver.resolveDestinationName(session, nameHolder.name, nameHolder.isTopic);
 		}
 		return null;
@@ -486,16 +484,7 @@ public class ChannelPublishingJmsMessageListener
 	 * Internal class combining a destination name
 	 * and its target destination type (queue or topic).
 	 */
-	private static final class DestinationNameHolder {
-
-		private final String name;
-
-		private final boolean isTopic;
-
-		DestinationNameHolder(String name, boolean isTopic) {
-			this.name = name;
-			this.isTopic = isTopic;
-		}
+	private record DestinationNameHolder(String name, boolean isTopic) {
 
 	}
 

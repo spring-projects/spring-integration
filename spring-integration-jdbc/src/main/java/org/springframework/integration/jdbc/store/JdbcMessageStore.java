@@ -566,7 +566,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 						new SingleColumnRowMapper<String>(), this.region)
 				.iterator();
 
-		return new Iterator<MessageGroup>() {
+		return new Iterator<>() {
 
 			@Override
 			public boolean hasNext() {

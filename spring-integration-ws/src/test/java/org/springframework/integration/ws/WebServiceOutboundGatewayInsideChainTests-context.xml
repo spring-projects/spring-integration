@@ -16,7 +16,7 @@
 
 	<si:chain input-channel="wsOutboundGatewayInsideChain" output-channel="replyChannel">
 		<ws:outbound-gateway uri="http://test.example.org"
-							 message-sender="mockMessageSender"/>
+							 message-senders="mockMessageSender"/>
 	</si:chain>
 
 	<bean id="mockMessageSender" class="org.springframework.integration.ws.SimpleWebServiceOutboundGatewayTests"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,7 @@ package org.springframework.integration.support.management.micrometer;
 import java.util.concurrent.TimeUnit;
 import java.util.function.ToDoubleFunction;
 
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.GaugeFacade;
 import org.springframework.integration.support.management.metrics.MeterFacade;
@@ -95,38 +92,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 		return facade.remove();
 	}
 
-	/**
-	 * Add a MicrometerMetricsCaptor to the context if there's a MeterRegistry; if
-	 * there's already a {@link MetricsCaptor} bean, return that.
-	 * @param applicationContext the application context.
-	 * @return the instance.
-	 * @deprecated since 5.2.9 in favor of {@code @Import(MicrometerMetricsCaptorRegistrar.class)};
-	 * will be removed in 6.0.
-	 */
-	@Deprecated
-	public static MetricsCaptor loadCaptor(ApplicationContext applicationContext) {
-		try {
-			MeterRegistry registry = applicationContext.getBean(MeterRegistry.class);
-			if (applicationContext instanceof GenericApplicationContext
-					&& !applicationContext.containsBean(MICROMETER_CAPTOR_NAME)) {
-				((GenericApplicationContext) applicationContext).registerBean(MICROMETER_CAPTOR_NAME,
-						MicrometerMetricsCaptor.class,
-						() -> new MicrometerMetricsCaptor(registry));
-			}
-			return applicationContext.getBean(MICROMETER_CAPTOR_NAME, MetricsCaptor.class);
-		}
-		catch (NoSuchBeanDefinitionException e) {
-			return null;
-		}
-	}
-
-	private static class MicroSample implements SampleFacade {
-
-		private final Timer.Sample sample;
-
-		MicroSample(Timer.Sample sample) {
-			this.sample = sample;
-		}
+	private record MicroSample(Timer.Sample sample) implements SampleFacade {
 
 		@SuppressWarnings("unchecked")
 		@Override

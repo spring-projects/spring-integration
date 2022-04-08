@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.springframework.util.MimeType;
 import io.rsocket.transport.ClientTransport;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.client.WebsocketClientTransport;
-import reactor.core.publisher.Mono;
 
 /**
  * A client {@link AbstractRSocketConnector} extension to the RSocket connection.
@@ -188,16 +187,6 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 	 */
 	public void connect() {
 		this.rsocketRequester.rsocketClient().source().subscribe();
-	}
-
-	/**
-	 * Return the {@link Mono} for the {@link RSocketRequester}.
-	 * @return the {@link Mono} for the {@link RSocketRequester}.
-	 * @deprecated since 5.4 in favor of {@link #getRequester()}
-	 */
-	@Deprecated
-	public Mono<RSocketRequester> getRSocketRequester() {
-		return Mono.just(getRequester());
 	}
 
 	/**

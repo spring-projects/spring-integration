@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -203,7 +203,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	/**
 	 * The {@link org.springframework.jdbc.core.JdbcOperations}
-	 *  to use when interacting with the database. Either
+	 * to use when interacting with the database. Either
 	 * this property can be set or the {@link #setDataSource(DataSource) dataSource}.
 	 * Please consider passing in a {@link JdbcTemplate} with a fetchSize property
 	 * of 1. This is particularly important for Oracle to ensure First In, First Out (FIFO)
@@ -457,8 +457,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	/**
 	 * Replace patterns in the input to produce a valid SQL query. This implementation lazily initializes a
-	 * simple map-based cache, only replacing the table prefix on the first access to a named query. Further
-	 * accesses will be resolved from the cache.
+	 * simple map-based cache, only replacing the table prefix on the first access to a named query.
+	 * Subsequent accesses will be resolved from the cache.
 	 * @param queryName The {@link Query} to be transformed.
 	 * @param queryProvider a supplier to provide the query template.
 	 * @return A transformed query with replacements.

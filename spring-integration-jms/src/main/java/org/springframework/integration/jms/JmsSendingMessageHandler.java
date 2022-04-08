@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.jms;
 
 import jakarta.jms.Destination;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -60,6 +61,7 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 
 
 	public JmsSendingMessageHandler(JmsTemplate jmsTemplate) {
+		Assert.notNull(jmsTemplate, "'jmsTemplate' must not be null");
 		this.jmsTemplate = jmsTemplate;
 	}
 
@@ -145,14 +147,15 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 
 	@Override
 	protected void onInit() {
+		BeanFactory beanFactory = getBeanFactory();
 		if (this.destinationExpressionProcessor != null) {
-			this.destinationExpressionProcessor.setBeanFactory(getBeanFactory());
+			this.destinationExpressionProcessor.setBeanFactory(beanFactory);
 			ConversionService conversionService = getConversionService();
 			if (conversionService != null) {
 				this.destinationExpressionProcessor.setConversionService(conversionService);
 			}
 		}
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 	}
 
 	@Override
@@ -201,7 +204,8 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 			Object result = this.destinationExpressionProcessor.processMessage(message);
 			if (!(result instanceof Destination || result instanceof String)) {
 				throw new MessageDeliveryException(message,
-						"Evaluation of destinationExpression failed to produce a Destination or destination name. Result was: " + result);
+						"Evaluation of destinationExpression failed to produce a Destination or destination name. " +
+								"Result was: " + result);
 			}
 			return result;
 		}
@@ -221,16 +225,8 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 	}
 
 
-	private static final class HeaderMappingMessagePostProcessor implements MessagePostProcessor {
-
-		private final Message<?> integrationMessage;
-
-		private final JmsHeaderMapper headerMapper;
-
-		HeaderMappingMessagePostProcessor(Message<?> integrationMessage, JmsHeaderMapper headerMapper) {
-			this.integrationMessage = integrationMessage;
-			this.headerMapper = headerMapper;
-		}
+	private record HeaderMappingMessagePostProcessor(Message<?> integrationMessage, JmsHeaderMapper headerMapper)
+			implements MessagePostProcessor {
 
 		@Override
 		public jakarta.jms.Message postProcessMessage(jakarta.jms.Message jmsMessage) {

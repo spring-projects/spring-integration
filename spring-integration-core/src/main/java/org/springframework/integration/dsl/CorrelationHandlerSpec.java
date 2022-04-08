@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,19 +181,14 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * @see AbstractCorrelatingMessageHandler#setReleaseStrategy(ReleaseStrategy)
 	 */
 	public S processor(Object target) {
-		try {
-			CorrelationStrategyFactoryBean correlationStrategyFactoryBean = new CorrelationStrategyFactoryBean();
-			correlationStrategyFactoryBean.setTarget(target);
-			correlationStrategyFactoryBean.afterPropertiesSet();
-			ReleaseStrategyFactoryBean releaseStrategyFactoryBean = new ReleaseStrategyFactoryBean();
-			releaseStrategyFactoryBean.setTarget(target);
-			releaseStrategyFactoryBean.afterPropertiesSet();
-			return correlationStrategy(correlationStrategyFactoryBean.getObject())
-					.releaseStrategy(releaseStrategyFactoryBean.getObject());
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+		CorrelationStrategyFactoryBean correlationStrategyFactoryBean = new CorrelationStrategyFactoryBean();
+		correlationStrategyFactoryBean.setTarget(target);
+		correlationStrategyFactoryBean.afterPropertiesSet();
+		ReleaseStrategyFactoryBean releaseStrategyFactoryBean = new ReleaseStrategyFactoryBean();
+		releaseStrategyFactoryBean.setTarget(target);
+		releaseStrategyFactoryBean.afterPropertiesSet();
+		return correlationStrategy(correlationStrategyFactoryBean.getObject())
+				.releaseStrategy(releaseStrategyFactoryBean.getObject());
 	}
 
 	/**
@@ -217,16 +212,11 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * @see AbstractCorrelatingMessageHandler#setCorrelationStrategy(CorrelationStrategy)
 	 */
 	public S correlationStrategy(Object target, String methodName) {
-		try {
-			CorrelationStrategyFactoryBean correlationStrategyFactoryBean = new CorrelationStrategyFactoryBean();
-			correlationStrategyFactoryBean.setTarget(target);
-			correlationStrategyFactoryBean.setMethodName(methodName);
-			correlationStrategyFactoryBean.afterPropertiesSet();
-			return correlationStrategy(correlationStrategyFactoryBean.getObject());
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+		CorrelationStrategyFactoryBean correlationStrategyFactoryBean = new CorrelationStrategyFactoryBean();
+		correlationStrategyFactoryBean.setTarget(target);
+		correlationStrategyFactoryBean.setMethodName(methodName);
+		correlationStrategyFactoryBean.afterPropertiesSet();
+		return correlationStrategy(correlationStrategyFactoryBean.getObject());
 	}
 
 	/**
@@ -242,7 +232,6 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	/**
 	 * Configure the handler with an {@link ExpressionEvaluatingReleaseStrategy} for the
 	 * given expression.
-	 *
 	 * @param releaseExpression the correlation expression.
 	 * @return the handler spec.
 	 * @see AbstractCorrelatingMessageHandler#setReleaseStrategy(ReleaseStrategy)
@@ -261,16 +250,11 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * @see AbstractCorrelatingMessageHandler#setReleaseStrategy(ReleaseStrategy)
 	 */
 	public S releaseStrategy(Object target, String methodName) {
-		try {
-			ReleaseStrategyFactoryBean releaseStrategyFactoryBean = new ReleaseStrategyFactoryBean();
-			releaseStrategyFactoryBean.setTarget(target);
-			releaseStrategyFactoryBean.setMethodName(methodName);
-			releaseStrategyFactoryBean.afterPropertiesSet();
-			return releaseStrategy(releaseStrategyFactoryBean.getObject());
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+		ReleaseStrategyFactoryBean releaseStrategyFactoryBean = new ReleaseStrategyFactoryBean();
+		releaseStrategyFactoryBean.setTarget(target);
+		releaseStrategyFactoryBean.setMethodName(methodName);
+		releaseStrategyFactoryBean.afterPropertiesSet();
+		return releaseStrategy(releaseStrategyFactoryBean.getObject());
 	}
 
 	/**
@@ -339,38 +323,12 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * Configure a timeout for old groups in the store to purge.
 	 * @param expireTimeout the timeout in milliseconds to use.
 	 * @return the endpoint spec.
-	 * @since 5.4
-	 * @deprecated since 5.5 in favor of {@link #expireTimeout(long)}
-	 * @see AbstractCorrelatingMessageHandler#setExpireTimeout(long)
-	 */
-	@Deprecated
-	public S setExpireTimeout(long expireTimeout) {
-		return expireTimeout(expireTimeout);
-	}
-
-	/**
-	 * Configure a timeout for old groups in the store to purge.
-	 * @param expireTimeout the timeout in milliseconds to use.
-	 * @return the endpoint spec.
 	 * @since 5.5
 	 * @see AbstractCorrelatingMessageHandler#setExpireTimeout(long)
 	 */
 	public S expireTimeout(long expireTimeout) {
 		this.handler.setExpireTimeout(expireTimeout);
 		return _this();
-	}
-
-	/**
-	 * Configure a {@link Duration} how often to run a scheduled purge task.
-	 * @param expireDuration the duration for scheduled purge task.
-	 * @return the endpoint spec.
-	 * @since 5.4
-	 * @deprecated since 5.5 in favor of {@link #expireDuration(Duration)}
-	 * @see AbstractCorrelatingMessageHandler#setExpireDuration(Duration)
-	 */
-	@Deprecated
-	public S setExpireDuration(Duration expireDuration) {
-		return expireDuration(expireDuration);
 	}
 
 	/**

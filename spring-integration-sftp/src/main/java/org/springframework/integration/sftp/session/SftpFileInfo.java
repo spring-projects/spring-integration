@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import com.jcraft.jsch.SftpATTRS;
  * A {@link org.springframework.integration.file.remote.FileInfo} implementation for SFTP.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
@@ -42,7 +44,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	}
 
 	/**
-	 * @see com.jcraft.jsch.SftpATTRS#isDir()
+	 * @see SftpATTRS#isDir()
 	 */
 	@Override
 	public boolean isDirectory() {
@@ -50,7 +52,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	}
 
 	/**
-	 * @see com.jcraft.jsch.SftpATTRS#isLink()
+	 * @see SftpATTRS#isLink()
 	 */
 	@Override
 	public boolean isLink() {
@@ -58,7 +60,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	}
 
 	/**
-	 * @see com.jcraft.jsch.SftpATTRS#getSize()
+	 * @see SftpATTRS#getSize()
 	 */
 	@Override
 	public long getSize() {
@@ -66,7 +68,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	}
 
 	/**
-	 * @see com.jcraft.jsch.SftpATTRS#getMTime()
+	 * @see SftpATTRS#getMTime()
 	 */
 	@Override
 	public long getModified() {
@@ -74,7 +76,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	}
 
 	/**
-	 * @see com.jcraft.jsch.ChannelSftp.LsEntry#getFilename()
+	 * @see LsEntry#getFilename()
 	 */
 	@Override
 	public String getFilename() {

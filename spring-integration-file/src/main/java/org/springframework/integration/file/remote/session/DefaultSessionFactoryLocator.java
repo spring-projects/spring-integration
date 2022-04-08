@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,17 +57,6 @@ public class DefaultSessionFactoryLocator<F> implements SessionFactoryLocator<F>
 
 		this.factories.putAll(factories);
 		this.defaultFactory = defaultFactory;
-	}
-
-	/**
-	 * Add a session factory.
-	 * @param key the lookup key.
-	 * @param factory the factory.
-	 * @deprecated since 5.3 in favor of {@link #addSessionFactory(Object, SessionFactory)}
-	 */
-	@Deprecated
-	public void addSessionFactory(String key, SessionFactory<F> factory) {
-		addSessionFactory((Object) key, factory);
 	}
 
 	/**

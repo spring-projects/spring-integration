@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -29,8 +28,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -43,8 +41,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -54,8 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 2.1
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class CookieTests {
 
@@ -65,9 +61,9 @@ public class CookieTests {
 	@Autowired
 	private QueueChannel ch6;
 
-	private static ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	private static final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-	private static List<HttpHeaders> allHeaders = new ArrayList<>();
+	private static final List<HttpHeaders> allHeaders = new ArrayList<>();
 
 	@Test
 	public void testCookie() throws Exception {
@@ -93,8 +89,7 @@ public class CookieTests {
 
 		private int count = 123;
 
-		public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod)
-				throws IOException {
+		public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) {
 
 			return new ClientHttpRequest() {
 
@@ -104,7 +99,7 @@ public class CookieTests {
 					return headers;
 				}
 
-				public OutputStream getBody() throws IOException {
+				public OutputStream getBody() {
 					return bos;
 				}
 
@@ -122,7 +117,7 @@ public class CookieTests {
 					return null;
 				}
 
-				public ClientHttpResponse execute() throws IOException {
+				public ClientHttpResponse execute() {
 					allHeaders.add(headers);
 					return new ClientHttpResponse() {
 
@@ -134,22 +129,22 @@ public class CookieTests {
 							return headers;
 						}
 
-						public InputStream getBody() throws IOException {
+						public InputStream getBody() {
 							return new ByteArrayInputStream("OK".getBytes());
 						}
 
-						public String getStatusText() throws IOException {
+						public String getStatusText() {
 							return "OK";
 						}
 
-						public HttpStatus getStatusCode() throws IOException {
+						public HttpStatus getStatusCode() {
 							return HttpStatus.OK;
 						}
 
 						public void close() {
 						}
 
-						public int getRawStatusCode() throws IOException {
+						public int getRawStatusCode() {
 							return 200;
 						}
 

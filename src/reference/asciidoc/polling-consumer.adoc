@@ -149,8 +149,7 @@ What if we wish to take some action depending on the result of the `receive` par
 ===== "`Smart`" Polling
 
 Version 5.3 introduced the `ReceiveMessageAdvice` interface.
-(The `AbstractMessageSourceAdvice` has been deprecated in favor of `default` methods in the `MessageSourceMutator`.)
-Any `Advice` objects in the `advice-chain` that implement this interface are applied only to the receive operation - `MessageSource.receive()` and `PollableChannel.receive(timeout)`.
+Any `Advice` objects in the `advice-chain` that implement this interface are applied only to the `receive()` operation - `MessageSource.receive()` and `PollableChannel.receive(timeout)`.
 Therefore, they can be applied only for the `SourcePollingChannelAdapter` or `PollingConsumer`.
 Such classes implement the following methods:
 
@@ -185,9 +184,8 @@ If you wish to change the order, you must wire up the proxy yourself.
 
 ===== `SimpleActiveIdleReceiveMessageAdvice`
 
-(The previous `SimpleActiveIdleMessageSourceAdvice` for only `MessageSource` is deprecated.)
 This advice is a simple implementation of `ReceiveMessageAdvice`.
-When used in conjunction with a `DynamicPeriodicTrigger`, it adjusts the polling frequency, depending on whether or not the previous poll resulted in a message or not.
+When used in conjunction with a `DynamicPeriodicTrigger`, it adjusts the polling frequency, depending on whether the previous poll resulted in a message or not.
 The poller must also have a reference to the same `DynamicPeriodicTrigger`.
 
 .Important: Async Handoff
@@ -250,5 +248,4 @@ To use this advice where you wish to use async operations after the result of a 
 
 Some advices might be applied only for the `MessageSource.receive()` and they don't make sense for `PollableChannel`.
 For this purpose a `MessageSourceMutator` interface (an extension of the `ReceiveMessageAdvice`) is still present.
-With `default` methods it fully replaces already deprecated `AbstractMessageSourceAdvice` and should be used in those implementations where only `MessageSource` proxying is expected.
 See <<./ftp.adoc#ftp-rotating-server-advice,Inbound Channel Adapters: Polling Multiple Servers and Directories>> for more information.

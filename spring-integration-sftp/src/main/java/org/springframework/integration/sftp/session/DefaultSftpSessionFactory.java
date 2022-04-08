@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -182,21 +181,6 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 */
 	public void setPassword(String password) {
 		this.password = password;
-	}
-
-	/**
-	 * Specifies the filename that will be used for a host key repository.
-	 * The file has the same format as OpenSSH's known_hosts file.
-	 * <p>
-	 * <b>Required if {@link #setAllowUnknownKeys(boolean) allowUnknownKeys} is
-	 * false (default).</b>
-	 * @param knownHosts The known hosts.
-	 * @deprecated since 5.2.5 in favor of {@link #setKnownHostsResource(Resource)}
-	 * @see JSch#setKnownHosts(String)
-	 */
-	@Deprecated
-	public void setKnownHosts(String knownHosts) {
-		setKnownHostsResource(new FileSystemResource(knownHosts));
 	}
 
 	/**

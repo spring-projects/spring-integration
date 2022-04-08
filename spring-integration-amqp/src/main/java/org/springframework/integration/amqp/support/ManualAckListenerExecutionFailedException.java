@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.amqp.support;
 
+import java.io.Serial;
+
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 
@@ -26,36 +28,19 @@ import com.rabbitmq.client.Channel;
  * Used for conversion errors when using manual acks.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.1.3
  *
  */
 public class ManualAckListenerExecutionFailedException extends ListenerExecutionFailedException {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private final Channel channel;
 
 	private final long deliveryTag;
-
-	/**
-	 * Construct an instance with the provided properties.
-	 * @param msg the exception message.
-	 * @param cause the cause.
-	 * @param failedMessage the failed message.
-	 * @param channel the channel.
-	 * @param deliveryTag the delivery tag for the message.
-	 * @deprecated in favor of
-	 * {@link #ManualAckListenerExecutionFailedException(String, Throwable, Channel, long, Message...)}.
-	 */
-	@Deprecated
-	public ManualAckListenerExecutionFailedException(String msg, Throwable cause, Message failedMessage,
-			Channel channel, long deliveryTag) {
-
-		super(msg, cause, failedMessage);
-		this.channel = channel;
-		this.deliveryTag = deliveryTag;
-	}
 
 	/**
 	 * Construct an instance with the provided properties.

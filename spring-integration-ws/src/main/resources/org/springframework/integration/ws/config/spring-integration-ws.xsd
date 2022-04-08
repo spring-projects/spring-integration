@@ -124,19 +124,6 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="encode-uri" default="true">
-				<xsd:annotation>
-					<xsd:documentation>
-						[DEPRECATED] When set to "false", the URI won't be encoded before the request is sent. This may be useful
-						in some scenarios as it allows user control over the encoding, if needed. Default is "true".
-						This attribute is ignored, if 'destination-provider' is specified.
-						Deprecated since 5.3 in favor of 'encoding-mode'.
-					</xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:union memberTypes="xsd:boolean xsd:string"/>
-				</xsd:simpleType>
-			</xsd:attribute>
 			<xsd:attribute name="encoding-mode" default="TEMPLATE_AND_VALUES">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -236,18 +223,6 @@
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.ws.client.core.FaultMessageResolver"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="message-sender" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Reference to the bean definition of a WebServiceMessageSender.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.ws.transport.WebServiceMessageSender"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>

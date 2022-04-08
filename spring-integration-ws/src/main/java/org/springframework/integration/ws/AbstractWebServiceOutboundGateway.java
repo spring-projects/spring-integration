@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,22 +115,6 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	}
 
 	/**
-	 * Specify whether the URI should be encoded after any <code>uriVariables</code>
-	 * are expanded and before sending the request. The default value is <code>true</code>.
-	 * @param encodeUri true if the URI should be encoded.
-	 * @since 4.1
-	 * @deprecated since 5.3 in favor of {@link #setEncodingMode}
-	 * @see org.springframework.web.util.UriComponentsBuilder
-	 */
-	@Deprecated
-	public void setEncodeUri(boolean encodeUri) {
-		setEncodingMode(
-				encodeUri
-						? DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES
-						: DefaultUriBuilderFactory.EncodingMode.NONE);
-	}
-
-	/**
 	 * Set the encoding mode to use.
 	 * By default, this is set to {@link DefaultUriBuilderFactory.EncodingMode#TEMPLATE_AND_VALUES}.
 	 * @param encodingMode the mode to use for uri encoding
@@ -181,16 +165,6 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		this.webServiceTemplate.setFaultMessageResolver(faultMessageResolver);
 	}
 
-	/**
-	 * Specify the {@link WebServiceMessageSender} to use.
-	 * @param messageSender the sender.
-	 * @deprecated in favor of {@link #setMessageSenders(WebServiceMessageSender...)}
-	 */
-	@Deprecated
-	public void setMessageSender(WebServiceMessageSender messageSender) {
-		setMessageSenders(messageSender);
-	}
-
 	public void setMessageSenders(WebServiceMessageSender... messageSenders) {
 		Assert.state(!this.webServiceTemplateExplicitlySet,
 				() -> "'messageSenders' must be specified on the provided: " + this.webServiceTemplate);
@@ -205,7 +179,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	@Override
 	protected void doInit() {
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		Assert.state(this.destinationProvider == null || CollectionUtils.isEmpty(this.uriVariableExpressions),
 				"uri variables are not supported when a DestinationProvider is supplied.");
 	}

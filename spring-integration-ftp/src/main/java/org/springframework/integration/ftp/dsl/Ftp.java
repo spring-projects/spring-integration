@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,31 +106,6 @@ public final class Ftp {
 			FileExistsMode fileExistsMode) {
 
 		return outboundAdapter(new FtpRemoteFileTemplate(sessionFactory), fileExistsMode);
-	}
-
-	/**
-	 * A {@link FtpMessageHandlerSpec} factory for an outbound channel adapter spec.
-	 * @param remoteFileTemplate the remote file template.
-	 * @return the spec.
-	 * @deprecated in favor of {@link #outboundAdapter(FtpRemoteFileTemplate)}
-	 */
-	@Deprecated
-	public static FtpMessageHandlerSpec outboundAdapter(RemoteFileTemplate<FTPFile> remoteFileTemplate) {
-		return new FtpMessageHandlerSpec(remoteFileTemplate);
-	}
-
-	/**
-	 * A {@link FtpMessageHandlerSpec} factory for an outbound channel adapter spec.
-	 * @param remoteFileTemplate the remote file template.
-	 * @param fileExistsMode the file exists mode.
-	 * @return the spec.
-	 * @deprecated in favor of {@link #outboundAdapter(FtpRemoteFileTemplate, FileExistsMode)}
-	 */
-	@Deprecated
-	public static FtpMessageHandlerSpec outboundAdapter(RemoteFileTemplate<FTPFile> remoteFileTemplate,
-			FileExistsMode fileExistsMode) {
-
-		return new FtpMessageHandlerSpec(remoteFileTemplate, fileExistsMode);
 	}
 
 	/**

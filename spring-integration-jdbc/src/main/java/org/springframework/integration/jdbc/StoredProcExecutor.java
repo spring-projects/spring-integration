@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -103,7 +104,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	private List<SqlParameter> sqlParameters = new ArrayList<>(0);
 
 	/**
-	 * By default bean properties of the passed in {@link Message} will be used
+	 * By default, bean properties of the passed in {@link Message} will be used
 	 * as a source for the Stored Procedure's input parameters. By default a
 	 * {@link BeanPropertySqlParameterSourceFactory} will be used.
 	 * This may be sufficient for basic use cases. For more sophisticated options
@@ -191,9 +192,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	}
 
 	private Map<String, SimpleJdbcCallOperations> buildJdbcCallOperationsMap() {
-		return new LinkedHashMap<String, SimpleJdbcCallOperations>(this.jdbcCallOperationsCacheSize + 1, LOAD_FACTOR,
-				true) {
+		return new LinkedHashMap<>(this.jdbcCallOperationsCacheSize + 1, LOAD_FACTOR, true) {
 
+			@Serial
 			private static final long serialVersionUID = 3801124242820219131L;
 
 			@Override

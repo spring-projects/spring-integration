@@ -631,7 +631,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the
 	 * {@link org.springframework.integration.handler.MessageProcessor} from provided {@link MessageProcessorSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * <pre class="code">
 	 * {@code
 	 *  .transform(Scripts.script("classpath:myScript.py").variable("foo", bar()),
@@ -708,7 +708,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}
 	 * for the specific {@code expectedType} to convert at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param expectedType the {@link Class} for expected payload type. It can also be
 	 * {@code Message.class} if you wish to access the entire message in the transformer.
 	 * Conversion to this type will be attempted, if necessary.
@@ -744,7 +744,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate a {@link MessageFilter} with {@link MessageSelector} for the provided SpEL expression.
-	 * In addition accept options for the integration endpoint using {@link FilterEndpointSpec}:
+	 * In addition, accept options for the integration endpoint using {@link FilterEndpointSpec}:
 	 * <pre class="code">
 	 * {@code
 	 *  .filter("payload.hot"), e -> e.autoStartup(false))
@@ -820,7 +820,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link MessageFilter} with {@link MethodInvokingSelector}
 	 * for the {@link MessageProcessor} from
 	 * the provided {@link MessageProcessorSpec}.
-	 * In addition accept options for the integration endpoint using {@link FilterEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link FilterEndpointSpec}.
 	 * <pre class="code">
 	 * {@code
 	 *  .filter(Scripts.script(scriptResource).lang("ruby"),
@@ -910,7 +910,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate a {@link ServiceActivatingHandler} for the provided
 	 * {@link MessageHandler} implementation.
-	 * Can be used as Java 8 Lambda expression:
+	 * Can be used as Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .handle(m -> logger.info(m.getPayload())
@@ -939,7 +939,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link ServiceActivatingHandler} for the
 	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
 	 * to invoke the {@code method} for provided {@code bean} at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param beanName the bean name to use.
 	 * @param methodName the method to invoke.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
@@ -966,7 +966,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link ServiceActivatingHandler} for the
 	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
 	 * to invoke the {@code method} for provided {@code bean} at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param service the service object to use.
 	 * @param methodName the method to invoke.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
@@ -979,7 +979,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link ServiceActivatingHandler} for the
 	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
 	 * to invoke the {@code method} for provided {@code bean} at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param service the service object to use.
 	 * @param methodName the method to invoke.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
@@ -1002,7 +1002,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link ServiceActivatingHandler} for the
 	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
 	 * to invoke the provided {@link GenericHandler} at runtime.
-	 * Typically, used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .handle(Integer.class, (p, h) -> p / 2)
@@ -1024,8 +1024,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link ServiceActivatingHandler} for the
 	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
 	 * to invoke the provided {@link GenericHandler} at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .handle(Integer.class, (p, h) -> p / 2, e -> e.autoStartup(false))
@@ -1076,7 +1076,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link ServiceActivatingHandler} for the
 	 * {@link MessageProcessor} from the provided
 	 *  {@link MessageProcessorSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * <pre class="code">
 	 * {@code
 	 *  .handle(Scripts.script("classpath:myScript.ruby"), e -> e.autoStartup(false))
@@ -1098,8 +1098,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate a {@link ServiceActivatingHandler} for the selected protocol specific
 	 * {@link MessageHandler} implementation from {@code Namespace Factory}:
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .handle(Amqp.outboundAdapter(this.amqpTemplate).routingKeyExpression("headers.routingKey"),
@@ -1125,8 +1125,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate a {@link ServiceActivatingHandler} for the provided
 	 * {@link MessageHandler} implementation.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Can be used as Java 8 Lambda expression:
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Can be used as Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .handle(m -> logger.info(m.getPayload()), e -> e.autoStartup(false))
@@ -1153,7 +1153,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate a {@link BridgeHandler} to the current integration flow position.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .bridge(s -> s.poller(Pollers.fixedDelay(100))
@@ -1196,7 +1196,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link org.springframework.integration.transformer.ContentEnricher}
 	 * to the current integration flow position
 	 * with provided options.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .enrich(e -> e.requestChannel("enrichChannel")
@@ -1239,7 +1239,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link MessageTransformingHandler} for
 	 * a {@link org.springframework.integration.transformer.HeaderEnricher}
 	 * using header values from provided {@link MapBuilder}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * Can be used together with {@code Namespace Factory}:
 	 * <pre class="code">
 	 * {@code
@@ -1297,7 +1297,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link MessageTransformingHandler} for
 	 * a {@link org.springframework.integration.transformer.HeaderEnricher}
 	 * as the result of provided {@link Consumer}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .enrichHeaders(h -> h.header(FileHeaders.FILENAME, "foo.sitest")
@@ -1325,7 +1325,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link DefaultMessageSplitter} with provided options
 	 * to the current integration flow position.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .split(s -> s.applySequence(false).delimiters(","))
@@ -1341,8 +1341,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
-	 * Populate the {@link ExpressionEvaluatingSplitter} with provided
-	 * SpEL expression.
+	 * Populate the {@link ExpressionEvaluatingSplitter} with provided SpEL expression.
 	 * @param expression the splitter SpEL expression.
 	 * and for {@link ExpressionEvaluatingSplitter}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
@@ -1353,8 +1352,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
-	 * Populate the {@link ExpressionEvaluatingSplitter} with provided
-	 * SpEL expression.
+	 * Populate the {@link ExpressionEvaluatingSplitter} with provided SpEL expression.
 	 * @param expression the splitter SpEL expression.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link ExpressionEvaluatingSplitter}.
@@ -1392,7 +1390,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
 	 * {@code method} of the {@code bean} at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param service the service to use.
 	 * @param methodName the method to invoke.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
@@ -1428,7 +1426,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
 	 * {@code method} of the {@code bean} at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param beanName the bean name to use.
 	 * @param methodName the method to invoke at runtime.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
@@ -1464,7 +1462,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate the {@link MethodInvokingSplitter} to evaluate the
 	 * {@link MessageProcessor} at runtime
 	 * from provided {@link MessageProcessorSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * <pre class="code">
 	 * {@code
 	 *  .split(Scripts.script(myScriptResource).lang("groovy").refreshCheckDelay(1000),
@@ -1489,7 +1487,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
 	 * {@link Function} at runtime.
-	 * Typically, used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .split(String.class, p ->
@@ -1516,7 +1514,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
 	 * {@link Function} at runtime.
 	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically, used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .split(String.class, p ->
@@ -1627,8 +1625,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
-	 * Populate the provided {@link MessageTransformingHandler} for the provided
-	 * {@link HeaderFilter}.
+	 * Populate the provided {@link MessageTransformingHandler} for the provided {@link HeaderFilter}.
 	 * @param headerFilter the {@link HeaderFilter} to use.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
@@ -1653,7 +1650,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link MessageTransformingHandler} for the {@link ClaimCheckInTransformer}
 	 * with provided {@link MessageStore}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param messageStore the {@link MessageStore} to use.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
@@ -1691,7 +1688,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link MessageTransformingHandler} for the {@link ClaimCheckOutTransformer}
 	 * with provided {@link MessageStore} and {@code removeMessage} flag.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param messageStore the {@link MessageStore} to use.
 	 * @param removeMessage the removeMessage boolean flag.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
@@ -1722,7 +1719,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * {@link org.springframework.integration.aggregator.ResequencingMessageHandler} with
 	 * provided options from {@link ResequencerSpec}.
 	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .resequence(r -> r.releasePartialSequences(true)
@@ -1761,7 +1758,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link AggregatingMessageHandler} with provided options from {@link AggregatorSpec}.
 	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .aggregate(a -> a.correlationExpression("1")
@@ -1875,7 +1872,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link MethodInvokingRouter} for provided {@link Function}
 	 * and payload type with default options.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .route(Integer.class, p -> p % 2 == 0)
@@ -1898,7 +1895,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate the {@link MethodInvokingRouter} for provided {@link Function}
 	 * and payload type and options from {@link RouterSpec}.
 	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically, used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .route(Integer.class, p -> p % 2 == 0,
@@ -1992,8 +1989,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		if (!CollectionUtils.isEmpty(componentsToRegister)) {
 			for (Map.Entry<Object, String> entry : componentsToRegister.entrySet()) {
 				Object component = entry.getKey();
-				if (component instanceof BaseIntegrationFlowDefinition) {
-					BaseIntegrationFlowDefinition<?> flowBuilder = (BaseIntegrationFlowDefinition<?>) component;
+				if (component instanceof BaseIntegrationFlowDefinition<?> flowBuilder) {
 					if (flowBuilder.isOutputChannelRequired()) {
 						registerSubflowBridge = true;
 						flowBuilder.channel(new FixedSubscriberChannel(bridgeHandler));
@@ -2020,7 +2016,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@link RecipientListRouter} with options from the {@link RecipientListRouterSpec}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .routeToRecipients(r -> r
@@ -2040,7 +2036,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@link ErrorMessageExceptionTypeRouter} with options from the {@link RouterSpec}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .routeByException(r -> r
@@ -2072,7 +2068,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the provided {@link AbstractMessageRouter} implementation to the
 	 * current integration flow position.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param router the {@link AbstractMessageRouter} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <R> the {@link AbstractMessageRouter} type.
@@ -2144,7 +2140,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate the "artificial"
 	 * {@link org.springframework.integration.gateway.GatewayMessageHandler} for the
 	 * provided {@code subflow}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with aLambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .gateway(f -> f.transform("From Gateway SubFlow: "::concat))
@@ -2161,7 +2157,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate the "artificial"
 	 * {@link org.springframework.integration.gateway.GatewayMessageHandler} for the
 	 * provided {@code subflow} with options from {@link GatewayEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
+	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .gateway(f -> f.transform("From Gateway SubFlow: "::concat), e -> e.replyTimeout(100L))
@@ -3009,8 +3005,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 					channelName = ((MessageChannelReference) outputChannel).getName();
 				}
 
-				if (currComponent instanceof MessageProducer) {
-					MessageProducer messageProducer = (MessageProducer) currComponent;
+				if (currComponent instanceof MessageProducer messageProducer) {
 					checkReuse(messageProducer);
 					if (channelName != null) {
 						messageProducer.setOutputChannelName(channelName);
@@ -3108,10 +3103,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	protected static Object extractProxyTarget(Object target) {
-		if (!(target instanceof Advised)) {
+		if (!(target instanceof Advised advised)) {
 			return target;
 		}
-		Advised advised = (Advised) target;
 		try {
 			return extractProxyTarget(advised.getTargetSource().getTarget());
 		}

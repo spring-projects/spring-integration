@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,6 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-empty-responses");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding-mode");
 		postProcessGateway(builder, element, parserContext);
 
@@ -121,9 +120,6 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		if (StringUtils.hasText(messageSenderRef) && StringUtils.hasText(messageSenderListRef)) {
 			parserContext.getReaderContext().error(
 					"Only one of message-sender or message-senders should be specified.", element);
-		}
-		if (StringUtils.hasText(messageSenderRef)) {
-			builder.addPropertyReference("messageSender", messageSenderRef);
 		}
 		if (StringUtils.hasText(messageSenderListRef)) {
 			builder.addPropertyReference("messageSenders", messageSenderListRef);
