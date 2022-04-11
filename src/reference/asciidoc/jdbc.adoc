@@ -1092,6 +1092,8 @@ NOTE: The lock renewal can be done only if the lock is held by the current threa
 String with version 5.5.6, the `JdbcLockRegistry` is support automatically clean up cache for JdbcLock in `JdbcLockRegistry.locks` via `JdbcLockRegistry.setCacheCapacity()`.
 See its JavaDocs for more information.
 
+String with version 6.0, the `DefaultLockRepository` can be supplied with a `PlatformTransactionManager` instead of relying on the primary bean from the application context.
+
 [[jdbc-metadata-store]]
 === JDBC Metadata Store
 

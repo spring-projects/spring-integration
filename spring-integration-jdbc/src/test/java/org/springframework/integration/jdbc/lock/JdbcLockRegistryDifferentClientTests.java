@@ -79,7 +79,7 @@ public class JdbcLockRegistryDifferentClientTests {
 		this.registry.expireUnusedOlderThan(0);
 		this.client.close();
 		this.child = new AnnotationConfigApplicationContext();
-		this.child.register(DefaultLockRepository.class);
+		this.child.registerBean("childLockRepository", DefaultLockRepository.class, this.dataSource);
 		this.child.setParent(this.context);
 		this.child.refresh();
 	}
@@ -195,7 +195,9 @@ public class JdbcLockRegistryDifferentClientTests {
 			for (int j = 0; j < 20; j++) {
 				Callable<Boolean> task = () -> {
 					DefaultLockRepository client = new DefaultLockRepository(this.dataSource);
+					client.setApplicationContext(this.context);
 					client.afterPropertiesSet();
+					client.afterSingletonsInstantiated();
 					Lock lock = new JdbcLockRegistry(client).obtain("foo");
 					try {
 						if (locked.isEmpty() && lock.tryLock(Long.MAX_VALUE, TimeUnit.MILLISECONDS)) {
@@ -231,9 +233,13 @@ public class JdbcLockRegistryDifferentClientTests {
 	@Test
 	public void testExclusiveAccess() throws Exception {
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
+		client1.setApplicationContext(this.context);
 		client1.afterPropertiesSet();
-		final DefaultLockRepository client2 = new DefaultLockRepository(dataSource);
+		client1.afterSingletonsInstantiated();
+		DefaultLockRepository client2 = new DefaultLockRepository(dataSource);
+		client2.setApplicationContext(this.context);
 		client2.afterPropertiesSet();
+		client2.afterSingletonsInstantiated();
 		Lock lock1 = new JdbcLockRegistry(client1).obtain("foo");
 		final BlockingQueue<Integer> data = new LinkedBlockingQueue<>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
@@ -278,10 +284,14 @@ public class JdbcLockRegistryDifferentClientTests {
 	public void testOutOfDateLockTaken() throws Exception {
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
 		client1.setTimeToLive(100);
+		client1.setApplicationContext(this.context);
 		client1.afterPropertiesSet();
+		client1.afterSingletonsInstantiated();
 		DefaultLockRepository client2 = new DefaultLockRepository(dataSource);
 		client2.setTimeToLive(100);
+		client2.setApplicationContext(this.context);
 		client2.afterPropertiesSet();
+		client2.afterSingletonsInstantiated();
 		Lock lock1 = new JdbcLockRegistry(client1).obtain("foo");
 		final BlockingQueue<Integer> data = new LinkedBlockingQueue<>();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -316,10 +326,14 @@ public class JdbcLockRegistryDifferentClientTests {
 	public void testRenewLock() throws Exception {
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
 		client1.setTimeToLive(500);
+		client1.setApplicationContext(this.context);
 		client1.afterPropertiesSet();
+		client1.afterSingletonsInstantiated();
 		DefaultLockRepository client2 = new DefaultLockRepository(dataSource);
 		client2.setTimeToLive(500);
+		client2.setApplicationContext(this.context);
 		client2.afterPropertiesSet();
+		client2.afterSingletonsInstantiated();
 		JdbcLockRegistry registry = new JdbcLockRegistry(client1);
 		Lock lock1 = registry.obtain("foo");
 		final BlockingQueue<Integer> data = new LinkedBlockingQueue<>();

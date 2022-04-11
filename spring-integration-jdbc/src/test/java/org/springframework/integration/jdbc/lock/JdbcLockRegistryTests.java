@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.test.util.TestUtils;
@@ -66,6 +67,9 @@ public class JdbcLockRegistryTests {
 
 	@Autowired
 	private DataSource dataSource;
+
+	@Autowired
+	private ApplicationContext context;
 
 	@BeforeEach
 	public void clear() {
@@ -143,7 +147,9 @@ public class JdbcLockRegistryTests {
 	public void testReentrantLockAfterExpiration() throws Exception {
 		DefaultLockRepository client = new DefaultLockRepository(dataSource);
 		client.setTimeToLive(1);
+		client.setApplicationContext(this.context);
 		client.afterPropertiesSet();
+		client.afterSingletonsInstantiated();
 		JdbcLockRegistry registry = new JdbcLockRegistry(client);
 		Lock lock1 = registry.obtain("foo");
 		assertThat(lock1.tryLock()).isTrue();
