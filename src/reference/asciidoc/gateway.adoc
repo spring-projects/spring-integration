@@ -757,26 +757,33 @@ The following example shows how to create a gateway with Project Reactor:
 @MessagingGateway
 public interface TestGateway {
 
-	@Gateway(requestChannel = "promiseChannel")
-	Mono<Integer> multiply(Integer value);
+    @Gateway(requestChannel = "multiplyChannel")
+    Mono<Integer> multiply(Integer value);
 
-	}
+}
 
-	    ...
+@ServiceActivator(inputChannel = "multiplyChannel")
+public Integer multiply(Integer value) {
+    return value * 2;
+}
+----
+====
 
-	@ServiceActivator(inputChannel = "promiseChannel")
-	public Integer multiply(Integer value) {
-			return value * 2;
-	}
+where such a gateway can be used in some service which deals with the `Flux` of data:
 
-		...
+====
+[source,java]
+----
+@Autowired
+TestGateway testGateway;
 
+public void hadnleFlux() {
     Flux.just("1", "2", "3", "4", "5")
             .map(Integer::parseInt)
             .flatMap(this.testGateway::multiply)
             .collectList()
-            .subscribe(integers -> ...);
-
+            .subscribe(System.out::println);
+}
 ----
 ====
 
