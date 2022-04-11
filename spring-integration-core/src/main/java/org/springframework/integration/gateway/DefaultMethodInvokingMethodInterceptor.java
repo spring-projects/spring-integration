@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -119,29 +120,36 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 		 */
 		OPEN {
 
-			@Nullable
-			private final transient Constructor<Lookup> constructor;
+			private volatile boolean constructorResolved;
 
-			{
-				Constructor<Lookup> ctor = null;
-				try {
-					ctor = Lookup.class.getDeclaredConstructor(Class.class);
-					ReflectionUtils.makeAccessible(ctor);
-				}
-				catch (Exception ex) {
-					// this is the signal that we are on Java 9 (encapsulated) and can't use the accessible constructor
-					// approach.
-					if (!ex.getClass().getName().equals("java.lang.reflect.InaccessibleObjectException")) {
-						throw new IllegalStateException(ex);
-					}
-				}
-				this.constructor = ctor;
-			}
+			private Constructor<Lookup> constructor;
+
+			private final Supplier<Constructor<Lookup>> constructorSupplier =
+					() -> {
+						if (!this.constructorResolved) {
+							Constructor<Lookup> ctor = null;
+							try {
+								ctor = Lookup.class.getDeclaredConstructor(Class.class);
+								ReflectionUtils.makeAccessible(ctor);
+							}
+							catch (Exception ex) {
+								// this is the signal that we are on Java 9 (encapsulated) and can't use the accessible
+								// constructor approach.
+								if (!ex.getClass().getName().equals("java.lang.reflect.InaccessibleObjectException")) {
+									throw new IllegalStateException(ex);
+								}
+							}
+							this.constructor = ctor;
+							this.constructorResolved = true;
+						}
+						return this.constructor;
+					};
 
 			@Override
 			MethodHandle lookup(Method method) throws ReflectiveOperationException {
-				if (this.constructor != null) {
-					return this.constructor.newInstance(method.getDeclaringClass())
+				Constructor<Lookup> lookupConstructor = this.constructorSupplier.get();
+				if (lookupConstructor != null) {
+					return lookupConstructor.newInstance(method.getDeclaringClass())
 							.unreflectSpecial(method, method.getDeclaringClass());
 				}
 				else {
@@ -151,7 +159,7 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 
 			@Override
 			boolean isAvailable() {
-				return this.constructor != null;
+				return this.constructorSupplier.get() != null;
 			}
 
 		},
@@ -160,7 +168,6 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 		 * Fallback {@link MethodHandle} lookup using {@link MethodHandles#lookup() public lookup}.
 		 */
 		FALLBACK {
-
 			@Override
 			MethodHandle lookup(Method method) throws ReflectiveOperationException {
 				return doLookup(method, MethodHandles.lookup());
@@ -191,7 +198,7 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 		 * @return the {@link MethodHandleLookup}
 		 * @throws IllegalStateException if no {@link MethodHandleLookup} is available.
 		 */
-		public static MethodHandleLookup getMethodHandleLookup() {
+		static MethodHandleLookup getMethodHandleLookup() {
 			for (MethodHandleLookup it : MethodHandleLookup.values()) {
 				if (it.isAvailable()) {
 					return it;
