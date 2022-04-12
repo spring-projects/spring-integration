@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.jdbc.lock.DefaultLockRepository;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
@@ -34,6 +34,7 @@ import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -49,7 +50,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 
 	public static EmbeddedDatabase dataSource;
 
-	@BeforeClass
+	@BeforeAll
 	public static void init() {
 		dataSource = new EmbeddedDatabaseBuilder()
 				.setType(EmbeddedDatabaseType.H2)
@@ -58,7 +59,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 				.build();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void destroy() {
 		dataSource.shutdown();
 	}
@@ -70,7 +71,9 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 		List<LockRegistryLeaderInitiator> initiators = new ArrayList<>();
 		for (int i = 0; i < 2; i++) {
 			DefaultLockRepository lockRepository = new DefaultLockRepository(dataSource);
+			lockRepository.setTransactionManager(new DataSourceTransactionManager(dataSource));
 			lockRepository.afterPropertiesSet();
+			lockRepository.afterSingletonsInstantiated();
 			LockRegistryLeaderInitiator initiator = new LockRegistryLeaderInitiator(
 					new JdbcLockRegistry(lockRepository),
 					new DefaultCandidate("foo", "bar"));
@@ -170,7 +173,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 	}
 
 	@Test
-	@Ignore("Looks like an embedded DBd is not fully cleared if we don't close application context")
+	@Disabled("Looks like an embedded DBd is not fully cleared if we don't close application context")
 	public void testLostConnection() throws InterruptedException {
 		CountDownLatch granted = new CountDownLatch(1);
 		CountingPublisher countingPublisher = new CountingPublisher(granted);
