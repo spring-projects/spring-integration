@@ -22,6 +22,7 @@ import java.util.UUID;
 import javax.sql.DataSource;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
@@ -97,6 +98,10 @@ public class DefaultLockRepository
 	private PlatformTransactionManager transactionManager;
 
 	private TransactionTemplate defaultTransactionTemplate;
+
+	private TransactionTemplate readOnlyTransactionTemplate;
+
+	private TransactionTemplate serializableTransactionTemplate;
 
 	/**
 	 * Constructor that initializes the client id that will be associated for
@@ -177,11 +182,31 @@ public class DefaultLockRepository
 	@Override
 	public void afterSingletonsInstantiated() {
 		if (this.transactionManager == null) {
-			this.transactionManager = this.applicationContext.getBean(PlatformTransactionManager.class);
+			try {
+				this.transactionManager = this.applicationContext.getBean(PlatformTransactionManager.class);
+			}
+			catch (BeansException ex) {
+				throw new BeanInitializationException(
+						"The unique or primary 'PlatformTransactionManager' bean " +
+								"must be present in the application context.", ex);
+			}
 		}
+
+		DefaultTransactionDefinition transactionDefinition =
+				new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
 		this.defaultTransactionTemplate =
-				new TransactionTemplate(this.transactionManager,
-						new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
+				new TransactionTemplate(this.transactionManager, transactionDefinition);
+
+		// It is safe to reuse the transactionDefinition - the TransactionTemplate makes copy of its properties.
+		transactionDefinition.setReadOnly(true);
+
+		this.readOnlyTransactionTemplate = new TransactionTemplate(this.transactionManager, transactionDefinition);
+
+		transactionDefinition.setReadOnly(false);
+		transactionDefinition.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
+
+		this.serializableTransactionTemplate = new TransactionTemplate(this.transactionManager, transactionDefinition);
 	}
 
 	@Override
@@ -198,34 +223,26 @@ public class DefaultLockRepository
 
 	@Override
 	public boolean acquire(String lock) {
-		DefaultTransactionDefinition transactionDefinition =
-				new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-		transactionDefinition.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
-		return new TransactionTemplate(this.transactionManager, transactionDefinition)
-				.execute(transactionStatus -> {
-					if (this.template.update(this.updateQuery, this.id, new Date(), this.region, lock, this.id,
-							new Date(System.currentTimeMillis() - this.ttl)) > 0) {
-						return true;
-					}
-					try {
-						return this.template.update(this.insertQuery, this.region, lock, this.id, new Date()) > 0;
-					}
-					catch (DuplicateKeyException e) {
-						return false;
-					}
-				});
+		return this.serializableTransactionTemplate.execute(transactionStatus -> {
+			if (this.template.update(this.updateQuery, this.id, new Date(), this.region, lock, this.id,
+					new Date(System.currentTimeMillis() - this.ttl)) > 0) {
+				return true;
+			}
+			try {
+				return this.template.update(this.insertQuery, this.region, lock, this.id, new Date()) > 0;
+			}
+			catch (DuplicateKeyException e) {
+				return false;
+			}
+		});
 	}
 
 	@Override
 	public boolean isAcquired(String lock) {
-		DefaultTransactionDefinition transactionDefinition =
-				new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-		transactionDefinition.setReadOnly(true);
-		return new TransactionTemplate(this.transactionManager, transactionDefinition)
-				.execute(transactionStatus ->
-						this.template.queryForObject(this.countQuery, // NOSONAR query never returns null
-								Integer.class, this.region, lock, this.id, new Date(System.currentTimeMillis() - this.ttl))
-								== 1);
+		return this.readOnlyTransactionTemplate.execute(transactionStatus ->
+				this.template.queryForObject(this.countQuery, // NOSONAR query never returns null
+						Integer.class, this.region, lock, this.id, new Date(System.currentTimeMillis() - this.ttl))
+						== 1);
 	}
 
 	@Override
