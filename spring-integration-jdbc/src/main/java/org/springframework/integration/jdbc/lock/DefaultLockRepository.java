@@ -187,7 +187,7 @@ public class DefaultLockRepository
 			}
 			catch (BeansException ex) {
 				throw new BeanInitializationException(
-						"The unique or primary 'PlatformTransactionManager' bean " +
+						"A unique or primary 'PlatformTransactionManager' bean " +
 								"must be present in the application context.", ex);
 			}
 		}
