@@ -144,6 +144,7 @@ public class CookieTests {
 						public void close() {
 						}
 
+						@Deprecated
 						public int getRawStatusCode() {
 							return 200;
 						}

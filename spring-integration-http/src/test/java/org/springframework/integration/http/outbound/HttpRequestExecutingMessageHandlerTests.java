@@ -881,7 +881,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		when(requestFactory.createRequest(any(URI.class), any(HttpMethod.class))).thenReturn(clientRequest);
 
 		ClientHttpResponse response = mock(ClientHttpResponse.class);
-		when(response.getRawStatusCode()).thenReturn(HttpStatus.NOT_FOUND.value());
+		when(response.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
 		when(response.getStatusText()).thenReturn("Not Found");
 		when(response.getBody()).thenReturn(new ByteArrayInputStream(new byte[0]));
 
@@ -895,21 +895,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		return headers;
 	}
 
-	public static class City {
-
-		private final String name;
-
-		public City(String name) {
-			this.name = name;
-		}
-
-		public String getName() {
-			return this.name;
-		}
+	public record City(String name) {
 
 		@Override
 		public String toString() {
-			return name;
+			return this.name;
 		}
 
 	}
