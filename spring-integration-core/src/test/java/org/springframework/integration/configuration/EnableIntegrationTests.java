@@ -251,6 +251,9 @@ public class EnableIntegrationTests {
 	private PollableChannel messageChannel;
 
 	@Autowired
+	private PollableChannel messageChannel2;
+
+	@Autowired
 	private PollableChannel fooChannel;
 
 	@Autowired
@@ -427,6 +430,12 @@ public class EnableIntegrationTests {
 		assertThat(this.fooChannel.receive(10)).isNull();
 
 		message = this.messageChannel.receive(10_000);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("bar");
+		assertThat(message.getHeaders().containsKey("foo")).isTrue();
+		assertThat(message.getHeaders().get("foo")).isEqualTo("FOO");
+
+		message = this.messageChannel2.receive(10_000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("bar");
 		assertThat(message.getHeaders().containsKey("foo")).isTrue();
@@ -1163,6 +1172,11 @@ public class EnableIntegrationTests {
 		}
 
 		@Bean
+		public PollableChannel messageChannel2() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		public QueueChannel numberChannel() {
 			QueueChannel channel = new QueueChannel();
 			channel.setDatatypes(Number.class);
@@ -1354,6 +1368,7 @@ public class EnableIntegrationTests {
 
 		@InboundChannelAdapter(value = "messageChannel", poller = @Poller(fixedDelay = "${poller.interval}",
 				maxMessagesPerPoll = "1"))
+		@InboundChannelAdapter(value = "messageChannel2", poller = @Poller(fixedDelay = "100"))
 		public Message<?> message() {
 			return MessageBuilder.withPayload("bar").setHeader("foo", "FOO").build();
 		}

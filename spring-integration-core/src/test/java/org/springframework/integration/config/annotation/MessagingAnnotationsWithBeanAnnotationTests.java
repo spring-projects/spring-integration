@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -385,9 +385,9 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 		@Bean
 		@ServiceActivator(inputChannel = "skippedChannel")
-		@Splitter(inputChannel = "skippedChannel2")
+		@ServiceActivator(inputChannel = "skippedChannel2")
 		@Router(inputChannel = "skippedChannel3")
-		@Transformer(inputChannel = "skippedChannel4")
+		@Filter(inputChannel = "skippedChannel4")
 		@Filter(inputChannel = "skippedChannel5")
 		@Profile("foo")
 		public MessageHandler skippedMessageHandler() {
@@ -396,6 +396,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		}
 
 		@Bean
+		@BridgeFrom("skippedChannel5")
 		@BridgeFrom("skippedChannel6")
 		@Profile("foo")
 		public MessageChannel skippedChannel1() {
