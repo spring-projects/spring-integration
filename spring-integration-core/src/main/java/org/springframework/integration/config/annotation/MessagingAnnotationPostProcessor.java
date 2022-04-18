@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -42,13 +41,13 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
+import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Role;
@@ -161,28 +160,34 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	private void doWithMethod(Method method, Object bean, String beanName, Class<?> beanClass) {
-		Map<Class<? extends Annotation>, List<Annotation>> annotationChains = new HashMap<>();
-		for (Class<? extends Annotation> annotationType :
-				this.postProcessors.keySet()) {
-			if (AnnotatedElementUtils.isAnnotated(method, annotationType.getName())) {
-				List<Annotation> annotationChain = getAnnotationChain(method, annotationType);
-				if (annotationChain.size() > 0) {
-					annotationChains.put(annotationType, annotationChain);
-				}
-			}
+		MergedAnnotations mergedAnnotations =
+				MergedAnnotations.search(MergedAnnotations.SearchStrategy.DIRECT)
+						.from(method);
+
+		List<MessagingMetaAnnotation> messagingAnnotations = new ArrayList<>();
+
+		for (Class<? extends Annotation> annotationType : this.postProcessors.keySet()) {
+			mergedAnnotations.stream()
+					.filter((ann) -> ann.getType().equals(annotationType))
+					.map(MergedAnnotation::getRoot)
+					.map(MergedAnnotation::synthesize)
+					.map((ann) -> new MessagingMetaAnnotation(ann, annotationType))
+					.forEach(messagingAnnotations::add);
 		}
-		if (StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))
-				&& annotationChains.keySet().size() > 1) {
+		if (mergedAnnotations.get(EndpointId.class, (ann) -> ann.hasNonDefaultValue("value")).isPresent()
+				&& messagingAnnotations.size() > 1) {
+
 			throw new IllegalStateException("@EndpointId on " + method.toGenericString()
-					+ " can only have one EIP annotation, found: " + annotationChains.keySet().size());
-		}
-		for (Entry<Class<? extends Annotation>, List<Annotation>> entry : annotationChains.entrySet()) {
-			Class<? extends Annotation> annotationType = entry.getKey();
-			List<Annotation> annotations = entry.getValue();
-			processAnnotationTypeOnMethod(bean, beanName, method, annotationType, annotations);
+					+ " can only have one EIP annotation, found: " + messagingAnnotations.size());
 		}
 
-		if (annotationChains.size() == 0) {
+		for (MessagingMetaAnnotation messagingAnnotation : messagingAnnotations) {
+			Class<? extends Annotation> annotationType = messagingAnnotation.messagingAnnotationType;
+			List<Annotation> annotationChain = getAnnotationChain(messagingAnnotation.annotation, annotationType);
+			processAnnotationTypeOnMethod(bean, beanName, method, annotationType, annotationChain);
+		}
+
+		if (messagingAnnotations.size() == 0) {
 			this.noAnnotationsCache.add(beanClass);
 		}
 	}
@@ -226,10 +231,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		Object result = postProcessor.postProcess(bean, beanName, targetMethod, annotations);
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 		BeanDefinitionRegistry definitionRegistry = (BeanDefinitionRegistry) beanFactory;
-		if (result instanceof AbstractEndpoint) {
-			AbstractEndpoint endpoint = (AbstractEndpoint) result;
-			String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, "autoStartup",
-					String.class);
+		if (result instanceof AbstractEndpoint endpoint) {
+			String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, "autoStartup", String.class);
 			if (StringUtils.hasText(autoStartup)) {
 				autoStartup = beanFactory.resolveEmbeddedValue(autoStartup);
 				if (StringUtils.hasText(autoStartup)) {
@@ -259,20 +262,19 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	/**
-	 * @param method         the method.
+	 * @param messagingAnnotation the {@link Annotation} to take a chain for its meta-annotations.
 	 * @param annotationType the annotation type.
 	 * @return the hierarchical list of annotations in top-bottom order.
 	 */
-	protected List<Annotation> getAnnotationChain(Method method, Class<? extends Annotation> annotationType) {
+	protected List<Annotation> getAnnotationChain(Annotation messagingAnnotation,
+			Class<? extends Annotation> annotationType) {
+
 		List<Annotation> annotationChain = new LinkedList<>();
 		Set<Annotation> visited = new HashSet<>();
 
-		for (MergedAnnotation<Annotation> mergedAnnotation : MergedAnnotations.from(method)) {
-			recursiveFindAnnotation(annotationType, mergedAnnotation.synthesize(), annotationChain, visited);
-			if (annotationChain.size() > 0) {
-				Collections.reverse(annotationChain);
-				return annotationChain;
-			}
+		recursiveFindAnnotation(annotationType, messagingAnnotation, annotationChain, visited);
+		if (annotationChain.size() > 0) {
+			Collections.reverse(annotationChain);
 		}
 
 		return annotationChain;
@@ -280,6 +282,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	protected boolean recursiveFindAnnotation(Class<? extends Annotation> annotationType, Annotation ann,
 			List<Annotation> annotationChain, Set<Annotation> visited) {
+
 		if (ann.annotationType().equals(annotationType)) {
 			annotationChain.add(ann);
 			return true;
@@ -299,6 +302,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	protected String generateBeanName(String originalBeanName, Method method,
 			Class<? extends Annotation> annotationType) {
+
 		String name = MessagingAnnotationUtils.endpointIdValue(method);
 		if (!StringUtils.hasText(name)) {
 			String baseName = originalBeanName + "." + method.getName() + "."
@@ -314,6 +318,10 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	protected Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> getPostProcessors() {
 		return this.postProcessors;
+	}
+
+	private record MessagingMetaAnnotation(Annotation annotation, Class<? extends Annotation> messagingAnnotationType) {
+
 	}
 
 }

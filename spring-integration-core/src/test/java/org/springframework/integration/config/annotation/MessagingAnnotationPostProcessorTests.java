@@ -298,6 +298,12 @@ public class MessagingAnnotationPostProcessorTests {
 		inputChannel.send(new GenericMessage<>("foo"));
 		Message<?> reply = outputChannel.receive(0);
 		assertThat(reply.getPayload()).isEqualTo("FOO");
+
+		MessageChannel inputChannel2 = context.getBean("inputChannel2", MessageChannel.class);
+		inputChannel2.send(new GenericMessage<>("test2"));
+		reply = outputChannel.receive(0);
+		assertThat(reply.getPayload()).isEqualTo("TEST2");
+
 		context.close();
 	}
 
@@ -386,6 +392,7 @@ public class MessagingAnnotationPostProcessorTests {
 	public static class TransformerAnnotationTestBean {
 
 		@Transformer(inputChannel = "inputChannel", outputChannel = "outputChannel")
+		@Transformer(inputChannel = "inputChannel2", outputChannel = "outputChannel")
 		public String transformBefore(String input) {
 			return input.toUpperCase();
 		}
