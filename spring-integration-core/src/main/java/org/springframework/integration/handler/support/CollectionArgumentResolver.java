@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.TypeDescriptor;
@@ -71,17 +72,16 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 		if (this.canProcessMessageList) {
 			Assert.state(value instanceof Collection,
 					"This Argument Resolver only supports messages with a payload of Collection<Message<?>>, "
-					+ "payload is: " + value.getClass());
+							+ "payload is: " + value.getClass());
 
 			Collection<Message<?>> messages = (Collection<Message<?>>) value;
 
-			if (Message.class.isAssignableFrom(parameter.nested().getNestedParameterType())) {
-				value = messages;
-			}
-			else {
-				value = messages.stream()
-						.map(Message::getPayload)
-						.collect(Collectors.toList());
+			if (!Message.class.isAssignableFrom(parameter.nested().getNestedParameterType())) {
+				try (Stream<Message<?>> messageStream = messages.stream()) {
+					value = messageStream
+							.map(Message::getPayload)
+							.collect(Collectors.toList());
+				}
 			}
 		}
 
