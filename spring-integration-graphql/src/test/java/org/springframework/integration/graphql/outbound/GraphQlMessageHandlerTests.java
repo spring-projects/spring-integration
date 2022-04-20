@@ -316,7 +316,7 @@ public class GraphQlMessageHandlerTests {
 
 		@Bean
 		GraphQlSource graphQlSource(AnnotatedControllerConfigurer annotatedDataFetcherConfigurer) {
-			return GraphQlSource.builder()
+			return GraphQlSource.schemaResourceBuilder()
 					.schemaResources(new ClassPathResource("graphql/test-schema.graphqls"))
 					.configureRuntimeWiring(annotatedDataFetcherConfigurer)
 					.build();
