@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.domain.Sort;
@@ -63,6 +62,7 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
@@ -496,9 +496,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Query query = Query.query(Criteria.where("_id").is(SEQUENCE_NAME));
 		query.fields().include(SEQUENCE);
 		return ((Number) this.template.findAndModify(query,
-				new Update().inc(SEQUENCE, 1L),
-				FindAndModifyOptions.options().returnNew(true).upsert(true),
-				Map.class, this.collectionName)
+						new Update().inc(SEQUENCE, 1L),
+						FindAndModifyOptions.options().returnNew(true).upsert(true),
+						Map.class, this.collectionName)
 				.get(SEQUENCE))  // NOSONAR - never returns null
 				.longValue();
 	}
@@ -590,9 +590,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			if (!MessageWrapper.class.equals(clazz)) {
 				return super.read(clazz, source);
 			}
+
+			return (S) readAsMessageWrapper(source);
+		}
+
+		private MessageWrapper readAsMessageWrapper(Bson source) {
 			if (source != null) {
 				Map<String, Object> sourceMap = asMap(source);
-				Message<?> message = null;
+				Message<?> message;
 				Object messageType = sourceMap.get("_messageType");
 				if (messageType == null) {
 					messageType = GenericMessage.class.getName();
@@ -630,9 +635,19 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				}
 				wrapper.setCondition((String) sourceMap.get("_condition"));
 
-				return (S) wrapper;
+				return wrapper;
 			}
 			return null;
+		}
+
+		@Override
+		@SuppressWarnings({ UNCHECKED })
+		protected <S> S read(TypeInformation<S> type, Bson source) {
+			if (!MessageWrapper.class.equals(type.getType())) {
+				return super.read(type, source);
+			}
+
+			return (S) readAsMessageWrapper(source);
 		}
 
 		private Map<String, Object> normalizeHeaders(Map<String, Object> headers) {
@@ -644,7 +659,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					Bson source = (Bson) headerValue;
 					Map<String, Object> document = asMap(source);
 					try {
-						Class<?> typeClass = null;
+						Class<?> typeClass;
 						if (document.containsKey(CLASS)) {
 							Object type = document.get(CLASS);
 							typeClass = ClassUtils.forName(type.toString(), MongoDbMessageStore.this.classLoader);
@@ -846,7 +861,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		private volatile Object _groupId; // NOSONAR name
 
-		@Transient
+		//		@Transient
 		private final Message<?> message; // NOSONAR name
 
 		@SuppressWarnings(UNUSED)
