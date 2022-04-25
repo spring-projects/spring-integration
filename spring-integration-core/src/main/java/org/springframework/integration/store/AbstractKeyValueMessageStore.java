@@ -244,17 +244,17 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
 
-			List<UUID> ids =
-					messages.stream()
-							.map(messageToRemove -> messageToRemove.getHeaders().getId())
-							.collect(Collectors.toList());
+			List<UUID> ids = new ArrayList<>();
+			for (Message<?> messageToRemove : messages) {
+				ids.add(messageToRemove.getHeaders().getId());
+			}
 
 			messageGroupMetadata.removeAll(ids);
 
-			List<Object> messageIds =
-					ids.stream()
-							.map(id -> this.messagePrefix + id)
-							.collect(Collectors.toList());
+			List<Object> messageIds = new ArrayList<>();
+			for (UUID id : ids) {
+				messageIds.add(this.messagePrefix + id);
+			}
 
 			doRemoveAll(messageIds);
 

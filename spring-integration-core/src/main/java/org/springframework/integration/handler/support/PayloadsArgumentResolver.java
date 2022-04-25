@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.TypeDescriptor;
@@ -78,15 +79,17 @@ public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 			return evaluateExpression(expression, messages, parameter.getParameterType());
 		}
 		else {
-			List<?> payloads = messages.stream()
-					.map(Message::getPayload)
-					.collect(Collectors.toList());
+			try (Stream<Message<?>> messageStream = messages.stream()) {
+				List<?> payloads = messageStream
+						.map(Message::getPayload)
+						.collect(Collectors.toList());
+				return getEvaluationContext()
+						.getTypeConverter()
+						.convertValue(payloads,
+								TypeDescriptor.forObject(payloads),
+								TypeDescriptor.valueOf(parameter.getParameterType()));
+			}
 
-			return getEvaluationContext()
-					.getTypeConverter()
-					.convertValue(payloads,
-							TypeDescriptor.forObject(payloads),
-							TypeDescriptor.valueOf(parameter.getParameterType()));
 		}
 	}
 

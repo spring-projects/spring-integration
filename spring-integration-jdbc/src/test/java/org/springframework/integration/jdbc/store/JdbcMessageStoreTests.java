@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -30,12 +32,23 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.dbcp2.DataSourceConnectionFactory;
+import org.apache.commons.dbcp2.PoolableConnection;
+import org.apache.commons.dbcp2.PoolableConnectionFactory;
+import org.apache.commons.dbcp2.PoolingDataSource;
+import org.apache.commons.pool2.ObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.core.MethodParameter;
+import org.springframework.core.annotation.SynthesizingMethodParameter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.handler.support.CollectionArgumentResolver;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
@@ -47,6 +60,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -90,7 +104,6 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	public void testWithMessageHistory() {
-
 		Message<?> message = new GenericMessage<>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
@@ -185,14 +198,14 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testAddAndRemoveMessageGroup() throws Exception {
+	public void testAddAndRemoveMessageGroup() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
 		assertThat(messageStore.removeMessage(message.getHeaders().getId())).isNotNull();
 	}
 
 	@Test
-	public void testAddAndGetMessageGroup() throws Exception {
+	public void testAddAndGetMessageGroup() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		long now = System.currentTimeMillis();
@@ -203,7 +216,7 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testAddAndRemoveMessageFromMessageGroup() throws Exception {
+	public void testAddAndRemoveMessageFromMessageGroup() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessagesToGroup(groupId, message);
@@ -213,7 +226,7 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
+	public void testAddAndRemoveMessagesFromMessageGroup() {
 		String groupId = "X";
 		this.messageStore.setRemoveBatchSize(10);
 		List<Message<?>> messages = new ArrayList<>();
@@ -230,7 +243,7 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testRemoveMessageGroup() throws Exception {
+	public void testRemoveMessageGroup() {
 		JdbcTemplate template = new JdbcTemplate(this.dataSource);
 		template.afterPropertiesSet();
 		String groupId = "X";
@@ -247,7 +260,7 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testCompleteMessageGroup() throws Exception {
+	public void testCompleteMessageGroup() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessagesToGroup(groupId, message);
@@ -319,7 +332,7 @@ public class JdbcMessageStoreTests {
 		template.afterPropertiesSet();
 
 		template.update("UPDATE INT_MESSAGE_GROUP set CREATED_DATE=? where GROUP_KEY=? and REGION=?",
-				(PreparedStatementSetter) ps -> {
+				ps -> {
 					ps.setTimestamp(1, new Timestamp(System.currentTimeMillis() - 10000));
 					ps.setString(2, UUIDConverter.getUUID(groupId).toString());
 					ps.setString(3, "DEFAULT");
@@ -333,7 +346,7 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testExpireMessageGroupOnIdleOnly() throws Exception {
+	public void testExpireMessageGroupOnIdleOnly() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.setTimeoutOnIdle(true);
@@ -406,7 +419,6 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	public void testSameMessageToMultipleGroups() {
-
 		final String group1Id = "group1";
 		final String group2Id = "group2";
 
@@ -436,7 +448,7 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testSameMessageAndGroupToMultipleRegions() throws Exception {
+	public void testSameMessageAndGroupToMultipleRegions() {
 
 		final String groupId = "myGroup";
 		final String region1 = "region1";
@@ -474,7 +486,7 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testCompletedNotExpiredGroupINT3037() throws Exception {
+	public void testCompletedNotExpiredGroupINT3037() {
 		/*
 		 * based on the aggregator scenario as follows;
 		 *
@@ -526,6 +538,46 @@ public class JdbcMessageStoreTests {
 		this.messageStore.addMessagesToGroup(groupId, message);
 		this.messageStore.setGroupCondition(groupId, "testCondition");
 		assertThat(this.messageStore.getMessageGroup(groupId).getCondition()).isEqualTo("testCondition");
+	}
+
+
+	@Test
+	@Transactional(propagation = Propagation.NEVER)
+	public void testMessageGroupStreamNoConnectionPoolLeak() throws NoSuchMethodException {
+		DataSourceConnectionFactory connFactory = new DataSourceConnectionFactory(this.dataSource);
+		PoolableConnectionFactory poolFactory = new PoolableConnectionFactory(connFactory, null);
+		GenericObjectPoolConfig<PoolableConnection> config = new GenericObjectPoolConfig<>();
+		config.setMaxTotal(2);
+		config.setMaxWaitMillis(500);
+		ObjectPool<PoolableConnection> connPool = new GenericObjectPool<>(poolFactory, config);
+		poolFactory.setPool(connPool);
+		PoolingDataSource<PoolableConnection> poolingDataSource = new PoolingDataSource<>(connPool);
+
+		JdbcMessageStore pooledMessageStore = new JdbcMessageStore(poolingDataSource);
+
+		CollectionArgumentResolver collectionArgumentResolver = new CollectionArgumentResolver(true);
+		collectionArgumentResolver.setBeanFactory(new DefaultListableBeanFactory());
+		Method methodForCollectionOfPayloads = getClass().getMethod("methodForCollectionOfPayloads", Collection.class);
+		MethodParameter methodParameter = SynthesizingMethodParameter.forExecutable(methodForCollectionOfPayloads, 0);
+
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("test data").build();
+		pooledMessageStore.addMessagesToGroup(groupId, message);
+
+		// Before the stream close fix in the 'CollectionArgumentResolver'
+		// it failed with "Cannot get a connection, pool error Timeout waiting for idle object"
+		for (int i = 0; i < 3; i++) {
+			Object result =
+					collectionArgumentResolver.resolveArgument(methodParameter,
+							new GenericMessage<>(pooledMessageStore.getMessageGroup(groupId).getMessages()));
+
+			assertThat(result).isInstanceOf(Collection.class).asList().hasSize(1).contains("test data");
+		}
+
+		pooledMessageStore.removeMessageGroup(groupId);
+	}
+
+	public void methodForCollectionOfPayloads(Collection<String> payloads) {
 	}
 
 }
