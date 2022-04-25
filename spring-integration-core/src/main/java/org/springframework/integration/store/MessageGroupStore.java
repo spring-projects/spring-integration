@@ -156,6 +156,9 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 
 	/**
 	 * Return a stream for messages stored in the provided group.
+	 * The persistent implementations return a Stream which has
+	 * to be closed once fully processed (e.g. through a try-with-resources clause).
+	 * By default, it streams a result of {@link #getMessagesForGroup(Object)}.
 	 * @param groupId the group id to retrieve messages.
 	 * @return the {@link Stream} for messages in this group.
 	 * @since 5.5
