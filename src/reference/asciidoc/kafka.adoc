@@ -93,6 +93,7 @@ The `KafkaProducerMessageHandler.sendTimeoutExpression` default has changed from
 This has been changed for consistency because you may get unexpected behavior (Spring may timeout the send, while it is actually, eventually, successful).
 IMPORTANT: That timeout is 120 seconds by default so you may wish to reduce it to get more timely failures.
 
+[[kakfa-outbound-adapter-coniguration]]
 ==== Configuration
 
 The following example shows how to configure the outbound channel adapter for Apache Kafka:
@@ -227,6 +228,7 @@ By default, a `RawRecordHeaderErrorMessageStrategy` is used, to provide access t
 IMPORTANT: This form of retry is blocking and could cause a rebalance if the aggregate retry delays across all polled records might exceed the `{@code `max.poll.interval.ms` consumer property.
 Instead, consider adding a `DefaultErrorHandler` to the listener container, configured with a `KafkaErrorSendingMessageRecoverer`.
 
+[[kafka-inbound-adapter-configuration]]
 ==== Configuration
 
 The following example shows how to configure a message-driven channel adapter:
@@ -349,6 +351,7 @@ If the adapter does not have an `id` property, the container's bean name is the 
 
 The `KafkaMessageSource` provides a pollable channel adapter implementation.
 
+[[kafka-message-source-configuration]]
 ==== Configuration
 
 ====
@@ -421,6 +424,7 @@ The `KafkaProducerMessageHandler` `sendTimeoutExpression` default is `delivery.t
 This has been changed for consistency because you may get unexpected behavior (Spring may timeout the `send()`, while it is actually, eventually, successful).
 IMPORTANT: That timeout is 120 seconds by default so you may wish to reduce it to get more timely failures.
 
+[[kafka-outbound-gateway-configuration]]
 ==== Configuration
 
 The following example shows how to configure a gateway:
@@ -507,6 +511,7 @@ public IntegrationFlow outboundGateFlow() {
 
 The inbound gateway is for request/reply operations.
 
+[[kafka-inbound-gateway-configurartion]]
 ==== Configuration
 
 The following example shows how to configure an inbound gateway:
