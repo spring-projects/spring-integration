@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlinVersion = '1.6.10'
+    ext.kotlinVersion = '1.6.21'
     ext.isCI = System.getenv('GITHUB_ACTION') || System.getenv('bamboo_buildKey')
     repositories {
         mavenCentral()
@@ -196,8 +196,7 @@ configure(javaProjects) { subproject ->
     }
 
     compileJava {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        options.release = 17
     }
 
     compileTestJava {
@@ -210,15 +209,15 @@ configure(javaProjects) { subproject ->
         kotlinOptions {
             languageVersion = '1.6'
             apiVersion = '1.6'
-            jvmTarget = '16'
-            freeCompilerArgs = ['-Xjsr305=strict', '-Xsuppress-version-warnings', '-Xopt-in=kotlin.RequiresOptIn']
+            jvmTarget = '17'
+            freeCompilerArgs = ['-Xjsr305=strict', '-Xsuppress-version-warnings', '-opt-in=kotlin.RequiresOptIn']
             allWarningsAsErrors = true
         }
     }
 
     compileTestKotlin {
         kotlinOptions {
-            jvmTarget = '16'
+            jvmTarget = '17'
             freeCompilerArgs = ['-Xjsr305=strict']
         }
     }
