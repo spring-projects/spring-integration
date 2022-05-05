@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,25 @@
 
 package org.springframework.integration.test.context;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.IntegrationConsumer;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -57,7 +62,7 @@ import reactor.util.function.Tuples;
  *
  * @see SpringIntegrationTest
  */
-public class MockIntegrationContext implements BeanFactoryAware {
+public class MockIntegrationContext implements BeanPostProcessor, SmartInitializingSingleton, BeanFactoryAware {
 
 	private static final String HANDLER = "handler";
 
@@ -68,6 +73,8 @@ public class MockIntegrationContext implements BeanFactoryAware {
 
 	private final Map<String, Object> beans = new HashMap<>();
 
+	private final List<AbstractEndpoint> autoStartupCandidates = new ArrayList<>();
+
 	private ConfigurableListableBeanFactory beanFactory;
 
 	@Override
@@ -77,9 +84,35 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
 	}
 
+	@Override
+	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		if (bean instanceof AbstractEndpoint endpoint && endpoint.isAutoStartup()) {
+			addAutoStartupCandidates(endpoint);
+		}
+		return bean;
+	}
+
+	private void addAutoStartupCandidates(AbstractEndpoint endpoint) {
+		endpoint.setAutoStartup(false);
+		this.autoStartupCandidates.add(endpoint);
+	}
+
+	@Override
+	public void afterSingletonsInstantiated() {
+		this.beanFactory.getBeansOfType(AbstractEndpoint.class)
+				.values()
+				.stream()
+				.filter(AbstractEndpoint::isAutoStartup)
+				.forEach(this::addAutoStartupCandidates);
+	}
+
+	List<AbstractEndpoint> getAutoStartupCandidates() {
+		return this.autoStartupCandidates;
+	}
+
 	/**
 	 * Reinstate the mocked beans after execution test to their real state.
-	 * Typically is used from JUnit clean up method.
+	 * Typically, this method is used from JUnit clean up methods.
 	 * @param beanNames the bean names to reset.
 	 * If {@code null}, all the mocked beans are reset
 	 */

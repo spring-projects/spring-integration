@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.test.context.TestExecutionListeners;
+
 /**
  * Annotation that can be specified on a test class that runs Spring Integration based tests.
  * Provides the following features over and above the regular <em>Spring TestContext
@@ -32,15 +34,15 @@ import java.lang.annotation.Target;
  * {@link MockIntegrationContext#MOCK_INTEGRATION_CONTEXT_BEAN_NAME} which can be used
  * in tests for mocking and verifying integration flows.
  * </li>
- * <li>Registers an {@link IntegrationEndpointsInitializer} bean which is used
+ * <li>Registers an {@link SpringIntegrationTestExecutionListener} which is used
  * to customize {@link org.springframework.integration.endpoint.AbstractEndpoint}
- * beans with provided options on this annotation.
+ * beans with provided options on this annotation before/after the test class.
  * </li>
  * </ul>
  * <p>
  * The typical usage of this annotation is like:
  * <pre class="code">
- * &#064;RunWith(SpringRunner.class)
+ * &#064;SpringJUnitConfig
  * &#064;SpringIntegrationTest
  * public class MyIntegrationTests {
  *
@@ -60,6 +62,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
+@TestExecutionListeners(listeners = SpringIntegrationTestExecutionListener.class,
+		mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 public @interface SpringIntegrationTest {
 
 	/**
@@ -68,9 +72,9 @@ public @interface SpringIntegrationTest {
 	 * bean names to mark them as {@code autoStartup = false}
 	 * during context initialization.
 	 * @return the endpoints name patterns to stop during context initialization
-	 * @see IntegrationEndpointsInitializer
+	 * @see SpringIntegrationTestExecutionListener
 	 * @see org.springframework.util.PatternMatchUtils
 	 */
-	String[] noAutoStartup() default {};
+	String[] noAutoStartup() default { };
 
 }
