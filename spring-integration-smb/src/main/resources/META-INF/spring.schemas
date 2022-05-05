@@ -1,0 +1,4 @@
+http\://www.springframework.org/schema/integration/smb/spring-integration-smb-1.0.xsd=org/springframework/integration/smb/config/spring-integration-smb.xsd
+http\://www.springframework.org/schema/integration/smb/spring-integration-smb.xsd=org/springframework/integration/smb/config/spring-integration-smb.xsd
+https\://www.springframework.org/schema/integration/smb/spring-integration-smb-1.0.xsd=org/springframework/integration/smb/config/spring-integration-smb.xsd
+https\://www.springframework.org/schema/integration/smb/spring-integration-smb.xsd=org/springframework/integration/smb/config/spring-integration-smb.xsd

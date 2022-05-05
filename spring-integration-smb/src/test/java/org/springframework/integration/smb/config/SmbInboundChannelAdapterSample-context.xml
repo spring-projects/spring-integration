@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-smb="http://www.springframework.org/schema/integration/smb"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/smb https://www.springframework.org/schema/integration/smb/spring-integration-smb.xsd">
+
+	<bean id="smbSessionFactory"
+		class="org.springframework.integration.smb.session.SmbSessionFactory"
+		p:host="localhost"
+		p:port="0"
+		p:domain="sambaguest"
+		p:username="sambaguest"
+		p:password="sambaguest"
+		p:shareAndDir="smb-share/"/>
+
+	<int-smb:inbound-channel-adapter id="smbInboundChannelAdapter"
+		channel="smbInboundChannel"
+		session-factory="smbSessionFactory"
+		charset="UTF-8"
+		remote-directory="test-temp/remote-4"
+		remote-file-separator="/"
+		filename-regex=".*\.txt$"
+		delete-remote-files="true"
+		temporary-file-suffix=".working.tmp"
+		auto-create-local-directory="true"
+		local-directory="file:test-temp/local-4">
+		<int:poller fixed-rate="5000" error-channel="nullChannel"/>
+	</int-smb:inbound-channel-adapter>
+
+	<int:channel id="smbInboundChannel">
+		<int:queue/>
+	</int:channel>
+
+</beans>

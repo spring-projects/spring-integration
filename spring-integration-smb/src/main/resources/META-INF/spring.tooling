@@ -1,0 +1,4 @@
+# Tooling related information for the integration smb namespace
+http\://www.springframework.org/schema/integration/smb@name=Integration SMB Namespace
+http\://www.springframework.org/schema/integration/smb@prefix=int-smb
+http\://www.springframework.org/schema/integration/smb@icon=org/springframework/integration/smb/config/spring-integration-smb.gif
