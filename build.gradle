@@ -613,6 +613,10 @@ project('spring-integration-gemfire') {
 
         testImplementation project(':spring-integration-stream')
     }
+
+    tasks.withType(JavaForkOptions) {
+        jvmArgs '--add-opens', 'jdk.management/com.sun.management.internal=ALL-UNNAMED'
+    }
 }
 
 project('spring-integration-graphql') {
