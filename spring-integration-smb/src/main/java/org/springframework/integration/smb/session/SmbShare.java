@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2019 the original author or authors.
+ * Copyright 2012-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.core.NestedIOException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -98,7 +97,7 @@ public class SmbShare extends SmbFile {
 		this.closeContext.set(true);
 	}
 
-	public void init() throws NestedIOException {
+	public void init() throws IOException {
 		boolean canRead = false;
 		try {
 			if (!exists()) {
@@ -116,7 +115,7 @@ public class SmbShare extends SmbFile {
 					logger.error("Unable to close share: " + this);
 				}
 			}
-			throw new NestedIOException("Unable to initialize share: " + this, _ex);
+			throw new IOException("Unable to initialize share: " + this, _ex);
 		}
 		Assert.isTrue(canRead, "Share is not accessible " + this);
 		this.open.set(true);

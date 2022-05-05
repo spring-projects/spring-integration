@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2019 the original author or authors.
+ * Copyright 2012-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import java.util.Arrays;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.core.NestedIOException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -145,13 +144,13 @@ public class SmbSession implements Session<SmbFile> {
 				return files;
 			}
 			else if (!smbDir.isDirectory()) {
-				throw new NestedIOException("Resource [" + _path + "] is not a directory. Cannot list resources.");
+				throw new IOException("Resource [" + _path + "] is not a directory. Cannot list resources.");
 			}
 
 			files = smbDir.listFiles();
 		}
 		catch (SmbException _ex) {
-			throw new NestedIOException("Failed to list resources in [" + _path + "].", _ex);
+			throw new IOException("Failed to list resources in [" + _path + "].", _ex);
 		}
 
 		if (logger.isDebugEnabled()) {
@@ -180,12 +179,12 @@ public class SmbSession implements Session<SmbFile> {
 		try {
 			SmbFile remoteFile = createSmbFileObject(_path);
 			if (!remoteFile.isFile()) {
-				throw new NestedIOException("Resource [" + _path + "] is not a file.");
+				throw new IOException("Resource [" + _path + "] is not a file.");
 			}
 			FileCopyUtils.copy(remoteFile.getInputStream(), _outputStream);
 		}
 		catch (SmbException _ex) {
-			throw new NestedIOException("Failed to read resource [" + _path + "].", _ex);
+			throw new IOException("Failed to read resource [" + _path + "].", _ex);
 		}
 
 		if (logger.isInfoEnabled()) {
@@ -231,7 +230,7 @@ public class SmbSession implements Session<SmbFile> {
 
 		}
 		catch (SmbException _ex) {
-			throw new NestedIOException("Failed to write resource [" + _path + "].", _ex);
+			throw new IOException("Failed to write resource [" + _path + "].", _ex);
 		}
 		if (logger.isInfoEnabled()) {
 			logger.info("Successfully wrote remote file [" + _path + "].");
@@ -287,7 +286,7 @@ public class SmbSession implements Session<SmbFile> {
 			return true;
 		}
 		catch (SmbException _ex) {
-			throw new NestedIOException("Failed to create directory [" + _path + "].", _ex);
+			throw new IOException("Failed to create directory [" + _path + "].", _ex);
 		}
 	}
 
@@ -353,7 +352,7 @@ public class SmbSession implements Session<SmbFile> {
 
 		}
 		catch (SmbException _ex) {
-			throw new NestedIOException("Failed to rename [" + _pathFrom + "] to [" + _pathTo + "].", _ex);
+			throw new IOException("Failed to rename [" + _pathFrom + "] to [" + _pathTo + "].", _ex);
 		}
 		if (logger.isInfoEnabled()) {
 			logger.info("Successfully renamed remote resource [" + _pathFrom + "] to [" + _pathTo + "].");
@@ -390,7 +389,7 @@ public class SmbSession implements Session<SmbFile> {
 	public InputStream readRaw(String source) throws IOException {
 		SmbFile remoteFile = createSmbFileObject(source);
 		if (!remoteFile.isFile()) {
-			throw new NestedIOException("Resource [" + source + "] is not a file.");
+			throw new IOException("Resource [" + source + "] is not a file.");
 		}
 		return remoteFile.getInputStream();
 	}
