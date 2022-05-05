@@ -70,6 +70,7 @@ ext {
     h2Version = '2.1.210'
     jacksonVersion = '2.13.2'
     jaxbVersion = '3.0.2'
+    jcifsVersion = '2.1.29'
     jeroMqVersion = '0.5.2'
     jmsApiVersion = '3.0.0'
     jpaApiVersion = '3.0.2'
@@ -870,6 +871,16 @@ project('spring-integration-sftp') {
 
         testImplementation "org.apache.sshd:sshd-core:$apacheSshdVersion"
         testImplementation project(':spring-integration-event')
+        testImplementation project(':spring-integration-file').sourceSets.test.output
+    }
+}
+
+project('spring-integration-smb') {
+    description = 'Spring Integration SMB Support'
+    dependencies {
+        api project(':spring-integration-file')
+        api "org.codelibs:jcifs:$jcifsVersion"
+
         testImplementation project(':spring-integration-file').sourceSets.test.output
     }
 }

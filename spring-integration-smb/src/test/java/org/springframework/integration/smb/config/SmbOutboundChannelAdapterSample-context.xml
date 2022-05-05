@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-smb="http://www.springframework.org/schema/integration/smb"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/smb https://www.springframework.org/schema/integration/smb/spring-integration-smb.xsd">
+
+	<bean id="smbSessionFactory"
+		class="org.springframework.integration.smb.session.SmbSessionFactory"
+		p:host="localhost"
+		p:port="0"
+		p:domain="sambaguest"
+		p:username="sambaguest"
+		p:password="sambaguest"
+		p:shareAndDir="smb-share/"/>
+
+	<int:channel id="smbOutboundChannel" />
+
+	<int-smb:outbound-channel-adapter id="smbOutboundChannelAdapter"
+		session-factory="smbSessionFactory"
+		remote-directory="test-temp/remote-8"
+		channel="smbOutboundChannel"/>
+</beans>
