@@ -66,7 +66,6 @@ public class SmbSessionFactory extends SmbConfig implements SessionFactory<SmbFi
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	protected SmbSession createSession() throws IOException {
 		SmbShare smbShare;
 		if (this.context != null) {
@@ -79,9 +78,6 @@ public class SmbSessionFactory extends SmbConfig implements SessionFactory<SmbFi
 
 			smbShare = new SmbShare(this, props);
 		}
-
-		smbShare.setReplaceFile(isReplaceFile());
-		smbShare.setUseTempFile(isUseTempFile());
 
 		if (logger.isInfoEnabled()) {
 			logger.info(String.format("SMB share init: %s/%s", getHostPort(), getShareAndDir()));

@@ -75,16 +75,11 @@ public class SmbSession implements Session<SmbFile> {
 	 * @param _user case-sensitive user name
 	 * @param _password case-sensitive password
 	 * @param _shareAndDir server root SMB directory
-	 * @param _replaceFile replace existing files if true
-	 * @param _useTempFile make use temporary files when writing
 	 * @throws IOException in case of I/O errors
 	 */
-	SmbSession(String _host, int _port, String _domain, String _user, String _password, String _shareAndDir,
-			boolean _replaceFile, boolean _useTempFile) throws IOException {
+	SmbSession(String _host, int _port, String _domain, String _user, String _password, String _shareAndDir)
+			throws IOException {
 		this(new SmbShare(new SmbConfig(_host, _port, _domain, _user, _password, _shareAndDir)));
-
-		this.smbShare.setReplaceFile(_replaceFile);
-		this.smbShare.setUseTempFile(_useTempFile);
 	}
 
 	/**
@@ -205,29 +200,9 @@ public class SmbSession implements Session<SmbFile> {
 		Assert.hasText(_path, "path must not be null");
 
 		try {
-
 			mkdirs(_path);
-
 			SmbFile targetFile = createSmbFileObject(_path);
-
-			if (this.smbShare.isUseTempFile()) {
-
-				String tempFileName = _path + this.smbShare.newTempFileSuffix();
-				SmbFile tempFile = createSmbFileObject(tempFileName);
-				tempFile.createNewFile();
-				Assert.isTrue(tempFile.canWrite(), "Temporary file [" + tempFileName + "] is not writable.");
-
-				FileCopyUtils.copy(_inputStream, tempFile.getOutputStream());
-
-				if (targetFile.exists() && this.smbShare.isReplaceFile()) {
-					targetFile.delete();
-				}
-				tempFile.renameTo(targetFile);
-			}
-			else {
-				FileCopyUtils.copy(_inputStream, targetFile.getOutputStream());
-			}
-
+			FileCopyUtils.copy(_inputStream, targetFile.getOutputStream());
 		}
 		catch (SmbException _ex) {
 			throw new IOException("Failed to write resource [" + _path + "].", _ex);
@@ -345,7 +320,7 @@ public class SmbSession implements Session<SmbFile> {
 
 			SmbFile smbFileFrom = createSmbFileObject(_pathFrom);
 			SmbFile smbFileTo = createSmbFileObject(_pathTo);
-			if (this.smbShare.isReplaceFile() && smbFileTo.exists()) {
+			if (smbFileTo.exists()) {
 				smbFileTo.delete();
 			}
 			smbFileFrom.renameTo(smbFileTo);

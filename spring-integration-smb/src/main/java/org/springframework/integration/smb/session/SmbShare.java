@@ -48,10 +48,6 @@ public class SmbShare extends SmbFile {
 
 	private final AtomicBoolean open = new AtomicBoolean(false);
 
-	private final AtomicBoolean replaceFile = new AtomicBoolean(false);
-
-	private final AtomicBoolean useTempFile = new AtomicBoolean(false);
-
 	private final AtomicBoolean closeContext = new AtomicBoolean(false);
 
 	/**
@@ -119,22 +115,6 @@ public class SmbShare extends SmbFile {
 		}
 		Assert.isTrue(canRead, "Share is not accessible " + this);
 		this.open.set(true);
-	}
-
-	public boolean isReplaceFile() {
-		return this.replaceFile.get();
-	}
-
-	public void setReplaceFile(boolean _replace) {
-		this.replaceFile.set(_replace);
-	}
-
-	public boolean isUseTempFile() {
-		return this.useTempFile.get();
-	}
-
-	public void setUseTempFile(boolean _useTempFile) {
-		this.useTempFile.set(_useTempFile);
 	}
 
 	/**
