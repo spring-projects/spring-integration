@@ -30,7 +30,7 @@ import jcifs.smb.SmbFile;
 * @author Gregory Bragg
 * @author Artem Bilan
 *
-* @since 1.2.2
+* @since 6.0
 *
 * @see SmbRemoteFileTemplate
 */

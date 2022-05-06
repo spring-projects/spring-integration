@@ -34,6 +34,8 @@ import jcifs.DialectVersion;
  * @author Prafull Kumar Soni
  * @author Artem Bilan
  * @author Gregory Bragg
+ *
+ * @since 6.0
  */
 public class SmbConfig {
 

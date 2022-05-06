@@ -41,6 +41,8 @@ import jcifs.smb.SmbFile;
  * @author Markus Spann
  * @author Gregory Bragg
  * @author Adam Jones
+ *
+ * @since 6.0
  */
 public class SmbShare extends SmbFile {
 
