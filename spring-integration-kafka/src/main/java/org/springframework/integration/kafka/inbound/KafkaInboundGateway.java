@@ -416,12 +416,12 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 				}
 				builder.setHeader(KafkaHeaders.TOPIC, requestHeaders.get(KafkaHeaders.REPLY_TOPIC));
 			}
-			if (replyHeaders.get(KafkaHeaders.PARTITION_ID) == null &&
+			if (replyHeaders.get(KafkaHeaders.PARTITION) == null &&
 					requestHeaders.get(KafkaHeaders.REPLY_PARTITION) != null) {
 				if (builder == null) {
 					builder = getMessageBuilderFactory().fromMessage(reply);
 				}
-				builder.setHeader(KafkaHeaders.PARTITION_ID, requestHeaders.get(KafkaHeaders.REPLY_PARTITION));
+				builder.setHeader(KafkaHeaders.PARTITION, requestHeaders.get(KafkaHeaders.REPLY_PARTITION));
 			}
 			if (builder != null) {
 				return builder.build();

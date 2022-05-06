@@ -209,7 +209,7 @@ Also, the `mode` attribute is available.
 It can accept values of `record` or `batch` (default: `record`).
 For `record` mode, each message payload is converted from a single `ConsumerRecord`.
 For `batch` mode, the payload is a list of objects that are converted from all the `ConsumerRecord` instances returned by the consumer poll.
-As with the batched `@KafkaListener`, the `KafkaHeaders.RECEIVED_MESSAGE_KEY`, `KafkaHeaders.RECEIVED_PARTITION_ID`, `KafkaHeaders.RECEIVED_TOPIC`, and `KafkaHeaders.OFFSET` headers are also lists, with positions corresponding to the position in the payload.
+As with the batched `@KafkaListener`, the `KafkaHeaders.RECEIVED_KEY`, `KafkaHeaders.RECEIVED_PARTITION`, `KafkaHeaders.RECEIVED_TOPIC`, and `KafkaHeaders.OFFSET` headers are also lists, with positions corresponding to the position in the payload.
 
 Received messages have certain headers populated.
 See the https://docs.spring.io/spring-kafka/api/org/springframework/kafka/support/KafkaHeaders.html[`KafkaHeaders` class] for more information.
@@ -779,7 +779,7 @@ The following example shows how to do so:
 [source, java]
 ----
 @ServiceActivator(inputChannel = "fromSomeKafkaInboundEndpoint")
-public void in(@Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key,
+public void in(@Header(KafkaHeaders.RECEIVED_KEY) String key,
                @Payload(required = false) Customer customer) {
     // customer is null if a tombstone record
     ...

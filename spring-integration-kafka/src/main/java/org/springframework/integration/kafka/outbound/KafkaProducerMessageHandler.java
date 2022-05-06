@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,7 +174,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		if (this.isGateway) {
 			setAsync(true);
 			updateNotPropagatedHeaders(
-					new String[]{KafkaHeaders.TOPIC, KafkaHeaders.PARTITION_ID, KafkaHeaders.MESSAGE_KEY}, false);
+					new String[]{KafkaHeaders.TOPIC, KafkaHeaders.PARTITION, KafkaHeaders.KEY}, false);
 		}
 		if (JacksonPresent.isJackson2Present()) {
 			this.headerMapper = new DefaultKafkaHeaderMapper();
@@ -565,11 +565,11 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 		Integer partitionId = this.partitionIdExpression != null ?
 				this.partitionIdExpression.getValue(this.evaluationContext, message, Integer.class)
-				: messageHeaders.get(KafkaHeaders.PARTITION_ID, Integer.class);
+				: messageHeaders.get(KafkaHeaders.PARTITION, Integer.class);
 
 		Object messageKey = this.messageKeyExpression != null
 				? this.messageKeyExpression.getValue(this.evaluationContext, message)
-				: messageHeaders.get(KafkaHeaders.MESSAGE_KEY);
+				: messageHeaders.get(KafkaHeaders.KEY);
 
 		Long timestamp = this.timestampExpression != null
 				? this.timestampExpression.getValue(this.evaluationContext, message, Long.class)

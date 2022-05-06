@@ -166,9 +166,9 @@ class InboundGatewayTests {
 		assertThat(received).isNotNull();
 
 		MessageHeaders headers = received.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048607L);
 		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
@@ -254,9 +254,9 @@ class InboundGatewayTests {
 		MessageHeaders headers = failed.getHeaders();
 		reply.send(MessageBuilder.withPayload("ERROR").copyHeaders(headers).build());
 
-		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic3);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048607L);
 		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
@@ -338,9 +338,9 @@ class InboundGatewayTests {
 		MessageHeaders headers = failed.getHeaders();
 		reply.send(MessageBuilder.withPayload("ERROR").copyHeaders(headers).build());
 
-		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic5);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048607L);
 		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");

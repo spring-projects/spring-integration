@@ -165,8 +165,8 @@ class KafkaProducerMessageHandlerTests {
 
 		Message<?> message = MessageBuilder.withPayload("foo")
 				.setHeader(KafkaHeaders.TOPIC, topic1)
-				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
-				.setHeader(KafkaHeaders.PARTITION_ID, 1)
+				.setHeader(KafkaHeaders.KEY, 2)
+				.setHeader(KafkaHeaders.PARTITION, 1)
 				.build();
 		handler.handleMessage(message);
 
@@ -177,7 +177,7 @@ class KafkaProducerMessageHandlerTests {
 
 		message = MessageBuilder.withPayload("bar")
 				.setHeader(KafkaHeaders.TOPIC, topic1)
-				.setHeader(KafkaHeaders.PARTITION_ID, 0)
+				.setHeader(KafkaHeaders.PARTITION, 0)
 				.build();
 		handler.handleMessage(message);
 		record = KafkaTestUtils.getSingleRecord(consumer, topic1);
@@ -197,8 +197,8 @@ class KafkaProducerMessageHandlerTests {
 
 		message = MessageBuilder.withPayload(KafkaNull.INSTANCE)
 				.setHeader(KafkaHeaders.TOPIC, topic1)
-				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
-				.setHeader(KafkaHeaders.PARTITION_ID, "1")
+				.setHeader(KafkaHeaders.KEY, 2)
+				.setHeader(KafkaHeaders.PARTITION, "1")
 				.build();
 		handler.handleMessage(message);
 
@@ -221,8 +221,8 @@ class KafkaProducerMessageHandlerTests {
 
 		Message<?> message = MessageBuilder.withPayload("foo")
 				.setHeader(KafkaHeaders.TOPIC, topic2)
-				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
-				.setHeader(KafkaHeaders.PARTITION_ID, 1)
+				.setHeader(KafkaHeaders.KEY, 2)
+				.setHeader(KafkaHeaders.PARTITION, 1)
 				.setHeader(KafkaHeaders.TIMESTAMP, 1487694048607L)
 				.setHeader("baz", "qux")
 				.build();
@@ -252,8 +252,8 @@ class KafkaProducerMessageHandlerTests {
 
 		Message<?> message = MessageBuilder.withPayload("foo")
 				.setHeader(KafkaHeaders.TOPIC, topic3)
-				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
-				.setHeader(KafkaHeaders.PARTITION_ID, 1)
+				.setHeader(KafkaHeaders.KEY, 2)
+				.setHeader(KafkaHeaders.PARTITION, 1)
 				.build();
 
 		handler.setTimestampExpression(new ValueExpression<>(1487694048633L));
@@ -293,8 +293,8 @@ class KafkaProducerMessageHandlerTests {
 
 		Message<?> message = MessageBuilder.withPayload("foo")
 				.setHeader(KafkaHeaders.TOPIC, topic4)
-				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
-				.setHeader(KafkaHeaders.PARTITION_ID, 1)
+				.setHeader(KafkaHeaders.KEY, 2)
+				.setHeader(KafkaHeaders.PARTITION, 1)
 				.build();
 		handler.handleMessage(message);
 
@@ -326,7 +326,7 @@ class KafkaProducerMessageHandlerTests {
 		handler.afterPropertiesSet();
 		message = MessageBuilder.withPayload("bar")
 				.setHeader(KafkaHeaders.TOPIC, "foo")
-				.setHeader(KafkaHeaders.PARTITION_ID, 0)
+				.setHeader(KafkaHeaders.PARTITION, 0)
 				.build();
 		handler.handleMessage(message);
 
@@ -409,8 +409,8 @@ class KafkaProducerMessageHandlerTests {
 		if (payload == null) {
 			message = MessageBuilder.withPayload("foo")
 					.setHeader(KafkaHeaders.TOPIC, topic5)
-					.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
-					.setHeader(KafkaHeaders.PARTITION_ID, 1)
+					.setHeader(KafkaHeaders.KEY, 2)
+					.setHeader(KafkaHeaders.PARTITION, 1)
 					.build();
 		}
 		else {
@@ -435,8 +435,8 @@ class KafkaProducerMessageHandlerTests {
 
 		final Message<?> messageToHandle1 = MessageBuilder.withPayload("foo")
 				.setHeader(KafkaHeaders.TOPIC, topic5)
-				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
-				.setHeader(KafkaHeaders.PARTITION_ID, 1)
+				.setHeader(KafkaHeaders.KEY, 2)
+				.setHeader(KafkaHeaders.PARTITION, 1)
 				.setHeader(KafkaHeaders.REPLY_TOPIC, "bad")
 				.build();
 
@@ -447,8 +447,8 @@ class KafkaProducerMessageHandlerTests {
 
 		final Message<?> messageToHandle2 = MessageBuilder.withPayload("foo")
 				.setHeader(KafkaHeaders.TOPIC, topic5)
-				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
-				.setHeader(KafkaHeaders.PARTITION_ID, 1)
+				.setHeader(KafkaHeaders.KEY, 2)
+				.setHeader(KafkaHeaders.PARTITION, 1)
 				.setHeader(KafkaHeaders.REPLY_PARTITION, 999)
 				.build();
 
