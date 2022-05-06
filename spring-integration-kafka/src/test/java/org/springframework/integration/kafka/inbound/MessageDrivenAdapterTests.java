@@ -167,9 +167,9 @@ class MessageDrivenAdapterTests {
 		assertThat(received).isNotNull();
 
 		MessageHeaders headers = received.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048607L);
 		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
@@ -183,9 +183,9 @@ class MessageDrivenAdapterTests {
 		assertThat(received.getPayload()).isInstanceOf(KafkaNull.class);
 
 		headers = received.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(1L);
 		assertThat((Long) headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isGreaterThan(0L);
 		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
@@ -254,7 +254,7 @@ class MessageDrivenAdapterTests {
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic4);
-		Message<?> msg = MessageBuilder.withPayload("foo").setHeader(KafkaHeaders.MESSAGE_KEY, 1).build();
+		Message<?> msg = MessageBuilder.withPayload("foo").setHeader(KafkaHeaders.KEY, 1).build();
 		NullChannel component = new NullChannel();
 		component.setBeanName("myNullChannel");
 		msg = MessageHistory.write(msg, component);
@@ -268,9 +268,9 @@ class MessageDrivenAdapterTests {
 		assertThat(originalMessage).isNotNull();
 		assertThat(originalMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA)).isNull();
 		headers = originalMessage.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic4);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(originalMessage).get()).isEqualTo(2);
 
@@ -381,9 +381,9 @@ class MessageDrivenAdapterTests {
 		assertThat(originalMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA))
 				.isSameAs(headers.get(KafkaHeaders.RAW_DATA));
 		headers = originalMessage.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic5);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(originalMessage).get()).isEqualTo(1);
 
@@ -438,9 +438,9 @@ class MessageDrivenAdapterTests {
 		assertThat(list.size()).isGreaterThan(0);
 
 		MessageHeaders headers = received.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(Arrays.asList(1, 1));
+		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(Arrays.asList(1, 1));
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(Arrays.asList("testTopic2", "testTopic2"));
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(Arrays.asList(0, 0));
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(Arrays.asList(0, 0));
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(Arrays.asList(0L, 1L));
 		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE))
 				.isEqualTo(Arrays.asList("CREATE_TIME", "CREATE_TIME"));
@@ -507,9 +507,9 @@ class MessageDrivenAdapterTests {
 		assertThat(received).isNotNull();
 
 		MessageHeaders headers = received.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic3);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048607L);
@@ -554,9 +554,9 @@ class MessageDrivenAdapterTests {
 		assertThat(received).isNotNull();
 
 		MessageHeaders headers = received.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic6);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		assertThat((Long) headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isGreaterThan(0L);
 		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");

@@ -151,8 +151,8 @@ class KafkaDslKotlinTests {
 			val acknowledgment = headers[KafkaHeaders.ACKNOWLEDGMENT] as Acknowledgment
 			acknowledgment.acknowledge()
 			assertThat(headers[KafkaHeaders.RECEIVED_TOPIC]).isEqualTo(TEST_TOPIC1)
-			assertThat(headers[KafkaHeaders.RECEIVED_MESSAGE_KEY]).isEqualTo(i + 1)
-			assertThat(headers[KafkaHeaders.RECEIVED_PARTITION_ID]).isEqualTo(0)
+			assertThat(headers[KafkaHeaders.RECEIVED_KEY]).isEqualTo(i + 1)
+			assertThat(headers[KafkaHeaders.RECEIVED_PARTITION]).isEqualTo(0)
 			assertThat(headers[KafkaHeaders.OFFSET]).isEqualTo(i.toLong())
 			assertThat(headers[KafkaHeaders.TIMESTAMP_TYPE]).isEqualTo("CREATE_TIME")
 			assertThat(headers[KafkaHeaders.RECEIVED_TIMESTAMP]).isEqualTo(1487694048633L)
@@ -168,8 +168,8 @@ class KafkaDslKotlinTests {
 			val acknowledgment = headers[KafkaHeaders.ACKNOWLEDGMENT] as Acknowledgment
 			acknowledgment.acknowledge()
 			assertThat(headers[KafkaHeaders.RECEIVED_TOPIC]).isEqualTo(TEST_TOPIC2)
-			assertThat(headers[KafkaHeaders.RECEIVED_MESSAGE_KEY]).isEqualTo(i + 1)
-			assertThat(headers[KafkaHeaders.RECEIVED_PARTITION_ID]).isEqualTo(0)
+			assertThat(headers[KafkaHeaders.RECEIVED_KEY]).isEqualTo(i + 1)
+			assertThat(headers[KafkaHeaders.RECEIVED_PARTITION]).isEqualTo(0)
 			assertThat(headers[KafkaHeaders.OFFSET]).isEqualTo(i.toLong())
 			assertThat(headers[KafkaHeaders.TIMESTAMP_TYPE]).isEqualTo("CREATE_TIME")
 			assertThat(headers[KafkaHeaders.RECEIVED_TIMESTAMP]).isEqualTo(1487694048644L)
@@ -240,7 +240,7 @@ class KafkaDslKotlinTests {
 								.errorChannel(errorChannel())
 								.retryTemplate(RetryTemplate())
 								.filterInRetry(true)) {
-					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_MESSAGE_KEY] as Int) < 101 }) { throwExceptionOnRejection(true) }
+					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_KEY] as Int) < 101 }) { throwExceptionOnRejection(true) }
 					transform<String> { it.uppercase() }
 					channel { queue("listeningFromKafkaResults1") }
 				}
@@ -254,7 +254,7 @@ class KafkaDslKotlinTests {
 								.errorChannel(errorChannel())
 								.retryTemplate(RetryTemplate())
 								.filterInRetry(true)) {
-					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_MESSAGE_KEY] as Int) < 101 }) { throwExceptionOnRejection(true) }
+					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_KEY] as Int) < 101 }) { throwExceptionOnRejection(true) }
 					transform<String> { it.uppercase() }
 					channel { queue("listeningFromKafkaResults2") }
 				}

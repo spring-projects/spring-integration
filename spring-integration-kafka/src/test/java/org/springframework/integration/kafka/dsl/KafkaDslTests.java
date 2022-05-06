@@ -196,8 +196,8 @@ public class KafkaDslTests {
 			Acknowledgment acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
 			acknowledgment.acknowledge();
 			assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(TEST_TOPIC1);
-			assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(i + 1);
-			assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+			assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(i + 1);
+			assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 			assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo((long) i);
 			assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
 			assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048633L);
@@ -213,8 +213,8 @@ public class KafkaDslTests {
 			Acknowledgment acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
 			acknowledgment.acknowledge();
 			assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(TEST_TOPIC2);
-			assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(i + 1);
-			assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+			assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(i + 1);
+			assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 			assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo((long) i);
 			assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
 			assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048644L);
@@ -313,7 +313,7 @@ public class KafkaDslTests {
 							.onPartitionsAssignedSeekCallback((map, callback) ->
 									ContextConfiguration.this.onPartitionsAssignedCalledLatch.countDown()))
 					.filter(Message.class, m ->
-									m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
+									m.getHeaders().get(KafkaHeaders.RECEIVED_KEY, Integer.class) < 101,
 							f -> f.throwExceptionOnRejection(true))
 					.<String, String>transform(String::toUpperCase)
 					.channel(c -> c.queue("listeningFromKafkaResults1"))
@@ -336,7 +336,7 @@ public class KafkaDslTests {
 							.messageDrivenChannelAdapter(kafkaListenerContainerFactory().createContainer(TEST_TOPIC2),
 									KafkaMessageDrivenChannelAdapter.ListenerMode.record))
 					.filter(Message.class, m ->
-									m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
+									m.getHeaders().get(KafkaHeaders.RECEIVED_KEY, Integer.class) < 101,
 							f -> f.throwExceptionOnRejection(true))
 					.<String, String>transform(String::toUpperCase)
 					.channel(c -> c.queue("listeningFromKafkaResults2"))
