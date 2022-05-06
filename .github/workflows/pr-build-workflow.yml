@@ -16,7 +16,6 @@ jobs:
         ports:
           - 5672:5672
           - 15672:15672
-          - 1883:1883
 
       mongodb:
         image: mongo
@@ -30,15 +29,15 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v1
         with:
           java-version: 17
 
       - name: Run Gradle
-        uses: burrunan/gradle-cache-action@v1
+        uses: gradle/gradle-build-action
         env:
           SI_FATAL_WHEN_NO_BEANFACTORY: true
           NO_REFERENCE_TASK: true
@@ -47,7 +46,7 @@ jobs:
 
       - name: Capture Test Results
         if: failure()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-results
           path: '*/build/reports/tests/**/*.*'
