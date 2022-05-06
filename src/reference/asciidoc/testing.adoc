@@ -196,7 +196,7 @@ First we configure our test class with a `@SpringIntegrationTest` annotation to 
 ====
 [source,java]
 ----
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @SpringIntegrationTest(noAutoStartup = {"inboundChannelAdapter", "*Source*"})
 public class MyIntegrationTests {
 
