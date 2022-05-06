@@ -32,12 +32,12 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: 17
 
       - name: Run Gradle
-        uses: gradle/gradle-build-action
+        uses: gradle/gradle-build-action@v2
         env:
           SI_FATAL_WHEN_NO_BEANFACTORY: true
           NO_REFERENCE_TASK: true
