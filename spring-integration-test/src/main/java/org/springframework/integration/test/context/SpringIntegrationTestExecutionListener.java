@@ -61,8 +61,9 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 	}
 
 	private boolean match(String name, String[] patterns) {
-		return Arrays.stream(patterns)
-				.anyMatch(pattern -> PatternMatchUtils.simpleMatch(pattern, name));
+		return patterns.length > 0 &&
+				Arrays.stream(patterns)
+						.anyMatch(pattern -> PatternMatchUtils.simpleMatch(pattern, name));
 	}
 
 }

@@ -48,7 +48,7 @@ public abstract class CachedSpringIntegrationTestAnnotationTests {
 		@Test
 		public void testSingleApplicationContext() {
 			assertThat(beanFactoryPostProcessorCallCounter).isEqualTo(1);
-			assertThat(this.someEndpoint.isAutoStartup()).isTrue();
+			assertThat(this.someEndpoint.isRunning()).isTrue();
 		}
 
 	}
@@ -60,7 +60,7 @@ public abstract class CachedSpringIntegrationTestAnnotationTests {
 		@Test
 		public void testSingleApplicationContext() {
 			assertThat(beanFactoryPostProcessorCallCounter).isEqualTo(1);
-			assertThat(this.someEndpoint.isAutoStartup()).isFalse();
+			assertThat(this.someEndpoint.isRunning()).isFalse();
 		}
 
 	}

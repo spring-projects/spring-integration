@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@ package org.springframework.integration.test.mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,16 +46,14 @@ import org.springframework.integration.test.context.SpringIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = MockMessageSourceTests.Config.class)
+@SpringJUnitConfig(classes = MockMessageSourceTests.Config.class)
 @SpringIntegrationTest(noAutoStartup = { "inboundChannelAdapter", "*Source*" })
 @DirtiesContext
 public class MockMessageSourceTests {
@@ -73,7 +70,7 @@ public class MockMessageSourceTests {
 	@Autowired
 	private IntegrationFlowContext integrationFlowContext;
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.mockIntegrationContext.resetBeans("mySourceEndpoint", "inboundChannelAdapter");
 		this.results.purge(null);
