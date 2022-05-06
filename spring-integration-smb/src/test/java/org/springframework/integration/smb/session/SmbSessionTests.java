@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2019 the original author or authors.
+ * Copyright 2012-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.smb.session;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -45,7 +45,7 @@ public class SmbSessionTests {
 		SmbSession smbSession = new SmbSession(smbShare);
 
 		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba\\");
-		assertEquals("smb://myshare/blubba/", smbFile.getPath());
+		assertThat("smb://myshare/blubba/").isEqualTo(smbFile.getPath());
 		smbSession.close();
 	}
 
@@ -60,7 +60,7 @@ public class SmbSessionTests {
 		SmbSession smbSession = new SmbSession(smbShare);
 
 		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba\\");
-		assertEquals("smb://myshare/blubba/", smbFile.getPath());
+		assertThat("smb://myshare/blubba/").isEqualTo(smbFile.getPath());
 		smbSession.close();
 	}
 
@@ -75,7 +75,7 @@ public class SmbSessionTests {
 		SmbSession smbSession = new SmbSession(smbShare);
 
 		SmbFile smbFile = smbSession.createSmbFileObject("..\\another");
-		assertEquals("smb://myshare:445/another", smbFile.getPath());
+		assertThat("smb://myshare:445/another").isEqualTo(smbFile.getPath());
 		smbSession.close();
 	}
 
@@ -90,7 +90,7 @@ public class SmbSessionTests {
 		SmbSession smbSession = new SmbSession(smbShare);
 
 		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba\\");
-		assertEquals("smb://myshare/blubba/", smbFile.getPath());
+		assertThat("smb://myshare/blubba/").isEqualTo(smbFile.getPath());
 		smbSession.close();
 	}
 
@@ -104,7 +104,7 @@ public class SmbSessionTests {
 		SmbSession smbSession = new SmbSession(smbShare);
 
 		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba");
-		assertEquals("smb://myshare/blubba", smbFile.getPath());
+		assertThat("smb://myshare/blubba").isEqualTo(smbFile.getPath());
 		smbSession.close();
 	}
 
@@ -118,7 +118,7 @@ public class SmbSessionTests {
 		SmbSession smbSession = new SmbSession(smbShare);
 
 		SmbFile smbFile = smbSession.createSmbFileObject(".");
-		assertEquals("smb://myshare:445/shared/", smbFile.getPath());
+		assertThat("smb://myshare:445/shared/").isEqualTo(smbFile.getPath());
 		smbSession.close();
 	}
 
@@ -132,7 +132,7 @@ public class SmbSessionTests {
 		SmbSession smbSession = new SmbSession(smbShare);
 
 		SmbFile smbFile = smbSession.createSmbFileObject("../anotherShare");
-		assertEquals("smb://myshare:445/anotherShare", smbFile.getPath());
+		assertThat("smb://myshare:445/anotherShare").isEqualTo(smbFile.getPath());
 		smbSession.close();
 	}
 
@@ -154,7 +154,7 @@ public class SmbSessionTests {
 		SmbSession smbSession = new SmbSession(smbShare);
 
 		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba");
-		assertEquals("smb://myshare/blubba", smbFile.getPath());
+		assertThat("smb://myshare/blubba").isEqualTo(smbFile.getPath());
 		smbSession.close();
 	}
 
@@ -176,7 +176,7 @@ public class SmbSessionTests {
 		SmbSession smbSession = new SmbSession(smbShare);
 
 		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba");
-		assertEquals("smb://myshare/blubba", smbFile.getPath());
+		assertThat("smb://myshare/blubba").isEqualTo(smbFile.getPath());
 		smbSession.close();
 	}
 
@@ -198,7 +198,7 @@ public class SmbSessionTests {
 		SmbSession smbSession = new SmbSession(smbShare);
 
 		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba");
-		assertEquals("smb://myshare/blubba", smbFile.getPath());
+		assertThat("smb://myshare/blubba").isEqualTo(smbFile.getPath());
 		smbSession.close();
 	}
 }

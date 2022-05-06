@@ -883,7 +883,6 @@ project('spring-integration-smb') {
         api "org.codelibs:jcifs:$jcifsVersion"
 
         testImplementation project(':spring-integration-file').sourceSets.test.output
-        testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
     }
 }
 

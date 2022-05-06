@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.smb.config;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
@@ -45,6 +45,7 @@ import org.springframework.messaging.support.GenericMessage;
  *
  * @author Markus Spann
  * @author Gunnar Hillert
+ * @author Gregory Bragg
  */
 public class SmbInboundOutboundSample extends AbstractBaseTests {
 
@@ -60,9 +61,9 @@ public class SmbInboundOutboundSample extends AbstractBaseTests {
 		ApplicationContext ac = new ClassPathXmlApplicationContext(INBOUND_APPLICATION_CONTEXT_XML, this.getClass());
 
 		Object consumer = ac.getBean("smbInboundChannelAdapter");
-		assertTrue(consumer instanceof SourcePollingChannelAdapter);
+		assertThat(consumer).isInstanceOf(SourcePollingChannelAdapter.class);
 		Object messageSource = TestUtils.getPropertyValue(consumer, "source");
-		assertTrue(messageSource instanceof SmbInboundFileSynchronizingMessageSource);
+		assertThat(messageSource).isInstanceOf(SmbInboundFileSynchronizingMessageSource.class);
 
 		// retrieve the session factory bean to place a couple of test files remotely using a new session
 		SmbSessionFactory smbSessionFactory = ac.getBean("smbSessionFactory", SmbSessionFactory.class);
@@ -103,9 +104,9 @@ public class SmbInboundOutboundSample extends AbstractBaseTests {
 		ApplicationContext ac = new ClassPathXmlApplicationContext(OUTBOUND_APPLICATION_CONTEXT_XML, this.getClass());
 
 		Object consumer = ac.getBean("smbOutboundChannelAdapter");
-		assertTrue(consumer instanceof EventDrivenConsumer);
+		assertThat(consumer).isInstanceOf(EventDrivenConsumer.class);
 		Object messageSource = TestUtils.getPropertyValue(consumer, "handler");
-		assertTrue(messageSource instanceof FileTransferringMessageHandler);
+		assertThat(messageSource).isInstanceOf(FileTransferringMessageHandler.class);
 
 		MessageChannel smbChannel = ac.getBean("smbOutboundChannel", MessageChannel.class);
 
@@ -121,7 +122,7 @@ public class SmbInboundOutboundSample extends AbstractBaseTests {
 
 		for (int i = 0; i < fileNames.length; i++) {
 			String remoteFile = testRemoteDir + fileNames[i];
-			assertTrue("Remote file [" + remoteFile + "] does not exist.", smbSession.exists(remoteFile));
+			assertThat(smbSession.exists(remoteFile)).as("Remote file [" + remoteFile + "] does not exist.").isTrue();
 		}
 
 	}

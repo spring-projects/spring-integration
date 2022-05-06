@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2018 the original author or authors.
+ * Copyright 2012-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.smb.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.Charset;
 import java.util.Iterator;
@@ -41,6 +38,7 @@ import org.springframework.messaging.MessageHandler;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Prafull Kumar Soni
+ * @author Gregory Bragg
  */
 public class SmbOutboundChannelAdapterParserTests extends AbstractBaseTests {
 
@@ -49,36 +47,35 @@ public class SmbOutboundChannelAdapterParserTests extends AbstractBaseTests {
 		ApplicationContext ac = getApplicationContext();
 
 		Object consumer = ac.getBean("smbOutboundChannelAdapter");
-		assertTrue(consumer instanceof EventDrivenConsumer);
+		assertThat(consumer).isInstanceOf(EventDrivenConsumer.class);
 
 		PublishSubscribeChannel channel = ac.getBean("smbPubSubChannel", PublishSubscribeChannel.class);
-		assertEquals(channel, TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertEquals("smbOutboundChannelAdapter", ((EventDrivenConsumer) consumer).getComponentName());
+		assertThat(channel).isEqualTo(TestUtils.getPropertyValue(consumer, "inputChannel"));
+		assertThat("smbOutboundChannelAdapter").isEqualTo(((EventDrivenConsumer) consumer).getComponentName());
 
 		Object messageHandler = TestUtils.getPropertyValue(consumer, "handler");
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.remoteFileSeparator");
-		assertNotNull(remoteFileSeparator);
-		assertEquals(".working.tmp", TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.temporaryFileSuffix", String.class));
-		assertEquals(".", remoteFileSeparator);
-		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.fileNameGenerator"));
-		assertEquals("UTF-8", TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.charset", Charset.class).name());
+		assertThat(remoteFileSeparator).isNotNull();
+		assertThat(".working.tmp").isEqualTo(TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.temporaryFileSuffix", String.class));
+		assertThat(".").isEqualTo(remoteFileSeparator);
+		assertThat(ac.getBean("fileNameGenerator")).isEqualTo(TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.fileNameGenerator"));
+		assertThat("UTF-8").isEqualTo(TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.charset", Charset.class).name());
 
 		Object sessionFactoryProp = TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.sessionFactory");
-		assertEquals(SmbSessionFactory.class, sessionFactoryProp.getClass());
+		assertThat(SmbSessionFactory.class).isEqualTo(sessionFactoryProp.getClass());
 
 		SmbSessionFactory smbSessionFactory = (SmbSessionFactory) sessionFactoryProp;
-		assertEquals("localhost", TestUtils.getPropertyValue(smbSessionFactory, "host"));
-		assertEquals(0, TestUtils.getPropertyValue(smbSessionFactory, "port"));
-		assertEquals(23, TestUtils.getPropertyValue(messageHandler, "order"));
+		assertThat("localhost").isEqualTo(TestUtils.getPropertyValue(smbSessionFactory, "host"));
+		assertThat(0).isEqualTo(TestUtils.getPropertyValue(smbSessionFactory, "port"));
+		assertThat(23).isEqualTo(TestUtils.getPropertyValue(messageHandler, "order"));
 
 		// verify subscription order
 		@SuppressWarnings("unchecked")
 		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(channel, "dispatcher"), "handlers");
 		Iterator<MessageHandler> iterator = handlers.iterator();
-		assertSame(TestUtils.getPropertyValue(ac.getBean("smbOutboundChannelAdapter2"), "handler"),
-				iterator.next());
-		assertSame(messageHandler, iterator.next());
+		assertThat(TestUtils.getPropertyValue(ac.getBean("smbOutboundChannelAdapter2"), "handler")).isSameAs(iterator.next());
+		assertThat(messageHandler).isSameAs(iterator.next());
 	}
 
 	@Test
@@ -86,7 +83,7 @@ public class SmbOutboundChannelAdapterParserTests extends AbstractBaseTests {
 		ApplicationContext ac = new ClassPathXmlApplicationContext(getApplicationContextXmlFile(), this.getClass());
 		Object adapter = ac.getBean("simpleAdapter");
 		Object sfProperty = TestUtils.getPropertyValue(adapter, "handler.remoteFileTemplate.sessionFactory");
-		assertEquals(SmbSessionFactory.class, sfProperty.getClass());
+		assertThat(SmbSessionFactory.class).isEqualTo(sfProperty.getClass());
 	}
 
 }

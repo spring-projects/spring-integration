@@ -17,7 +17,6 @@
 package org.springframework.integration.smb.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -60,7 +59,7 @@ public class SmbSessionFactoryWithCIFSContextTests extends AbstractBaseTests {
 		smbSession = mock(SmbSession.class);
 
 		smbSessionFactory = new TestSmbSessionFactory(SingletonContext.getInstance());
-		assertNotNull("TestSmbSessionFactory object is null.", smbSessionFactory);
+		assertThat(smbSessionFactory).as("TestSmbSessionFactory object is null.").isNotNull();
 
 		smbSessionFactory.setHost("localhost");
 		smbSessionFactory.setPort(445);
@@ -93,7 +92,7 @@ public class SmbSessionFactoryWithCIFSContextTests extends AbstractBaseTests {
 		private CIFSContext context;
 
 		protected TestSmbSessionFactory(CIFSContext _context) {
-			assertNotNull("CIFSContext object is null.", _context);
+			assertThat(_context).as("CIFSContext object is null.").isNotNull();
 			this.context = _context;
 		}
 
@@ -102,7 +101,7 @@ public class SmbSessionFactoryWithCIFSContextTests extends AbstractBaseTests {
 			try {
 				// test for a constructor with a CIFSContext
 				SmbShare smbShare = new SmbShare(this, this.context);
-				assertNotNull("SmbShare object is null.", smbShare);
+				assertThat(smbShare).as("SmbShare object is null.").isNotNull();
 				assertThat(smbShare.toString()).isEqualTo("smb://sambaguest:sambaguest@localhost:445/smb-share/");
 
 				// the rest has been copied from SmbSendingMessageHandlerTests

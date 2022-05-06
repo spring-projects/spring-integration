@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.smb;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,7 +38,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * Assorted test utils for the library.
+ *
  * @author Markus Spann
+ * @author Gregory Bragg
  */
 public abstract class AbstractBaseTests {
 
@@ -230,12 +231,12 @@ public abstract class AbstractBaseTests {
 	 * @return the file object
 	 */
 	private static File assertFileExists(File _file, boolean _exists) {
-		assertNotNull("File object is null.", _file);
+		assertThat(_file).as("File object is null.").isNotNull();
 		if (_exists) {
-			assertTrue("File [" + _file.getAbsolutePath() + "] does not exist.", _file.exists());
+			assertThat(_file.exists()).as("File [" + _file.getAbsolutePath() + "] does not exist.").isTrue();
 		}
 		else {
-			assertTrue("File [" + _file.getAbsolutePath() + "] exists.", !_file.exists());
+			assertThat(!_file.exists()).as("File [" + _file.getAbsolutePath() + "] exists.").isTrue();
 		}
 		return _file;
 	}
@@ -250,6 +251,7 @@ public abstract class AbstractBaseTests {
 	 * @param _testClass test class object
 	 * @param _methodNames String method names to invoke in order, no parameters expected
 	 */
+	@SuppressWarnings("deprecation")
 	protected static void runTests(Class<? extends AbstractBaseTests> _testClass, String... _methodNames)
 			throws Exception {
 		AbstractBaseTests test;
