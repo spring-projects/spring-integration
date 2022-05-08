@@ -17,6 +17,12 @@ In general the project has been moved to Java 17 baseline and migrated from Java
 [[x6.0-new-components]]
 === New Components
 
+[[x6.0-smb]]
+=== SMB Adapter
+
+The SMB adapter has been added from the Spring Integration Extensions project.
+See <<./smb.adoc#smb,SMB Adapter>> for more information.
+
 [[x6.0-graphql]]
 === GraphQL Support
 
