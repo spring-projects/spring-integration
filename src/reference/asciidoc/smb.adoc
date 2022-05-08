@@ -1,0 +1,144 @@
+[[smb]]
+== SMB Support
+
+Spring Integration provides support for file transfer operations with SMB.
+
+The https://en.wikipedia.org/wiki/Server_Message_Block[Server Message Block] (SMB) is a simple network protocol that lets you transfer files to a shared file server.
+
+You need to include this dependency into your project:
+
+====
+[source, xml, subs="normal", role="primary"]
+.Maven
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-smb</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+[source, groovy, subs="normal", role="secondary"]
+.Gradle
+----
+compile "org.springframework.integration:spring-integration-smb:{project-version}"
+----
+====
+
+=== Overview
+
+The https://github.com/codelibs/jcifs[Java CIFS] Client Library has been chosen as a Java implementation for the CIFS/SMB networking protocol.
+Its `SmbFile` abstraction is simply wrapped to the Spring Integration "Remote File" foundations like `SmbSession`, `SmbRemoteFileTemplate`, etc.
+
+The SMB Channel Adapters and support classes implementations are fully similar to existing components for (S)FTP or AWS S3 protocols.
+So, if you familiar with those components it is pretty straightforward to use.
+
+[[smb-session-factory]]
+=== SMB Session Factory
+
+Before configuring the SMB adapter, you must configure an SMB session factory.
+You can configure the SMB session factory with a regular bean definition, as the following examples show:
+
+The `SmbSessionFactory` exposes options to set the SMB protocol with Min/Max versions.
+For example, supporting a minimum version of SMB 2.1 and a maximum version of the SMB 3.1.1:
+
+[source,java]
+----
+@Bean
+public SmbSessionFactory smbSessionFactory() {
+    SmbSessionFactory smbSession = new SmbSessionFactory();
+    smbSession.setHost("myHost");
+    smbSession.setPort(445);
+    smbSession.setDomain("myDomain");
+    smbSession.setUsername("myUser");
+    smbSession.setPassword("myPassword");
+    smbSession.setShareAndDir("myShareAndDir");
+    smbSession.setSmbMinVersion(DialectVersion.SMB210);
+    smbSession.setSmbMaxVersion(DialectVersion.SMB311);
+    return smbSession;
+}
+----
+
+The `SmbSessionFactory` can be initialized with a custom `jcifs.CIFSContext`.
+
+NOTE: Setting of the SMB protocol Min/Max versions must be done in your implementation of `jcifs.CIFSContext`.
+
+[source,java]
+----
+@Bean
+public SmbSessionFactory smbSessionFactory() {
+    SmbSessionFactory smbSession = new SmbSessionFactory(new MyCIFSContext());
+    smbSession.setHost("myHost");
+    smbSession.setPort(445);
+    smbSession.setDomain("myDomain");
+    smbSession.setUsername("myUser");
+    smbSession.setPassword("myPassword");
+    smbSession.setShareAndDir("myShareAndDir");
+    return smbSession;
+}
+----
+
+[[smb-inbound]]
+=== SMB Inbound Channel Adapter
+
+To download SMB files locally the `SmbInboundFileSynchronizingMessageSource` is provided.
+It is simple extension of the `AbstractInboundFileSynchronizingMessageSource` which  requires `SmbInboundFileSynchronizer` injection.
+For filtering remote files you still can use any existing `FileListFilter` implementations, but particular `SmbRegexPatternFileListFilter` and `SmbSimplePatternFileListFilter` are provided.
+
+[source,java]
+----
+@Bean
+public SmbInboundFileSynchronizer smbInboundFileSynchronizer() {
+    SmbInboundFileSynchronizer fileSynchronizer =
+        new SmbInboundFileSynchronizer(smbSessionFactory());
+    fileSynchronizer.setFilter(compositeFileListFilter());
+    fileSynchronizer.setRemoteDirectory("mySharedDirectoryPath");
+    fileSynchronizer.setDeleteRemoteFiles(true);
+    return fileSynchronizer;
+}
+
+@Bean
+public CompositeFileListFilter<SmbFile> compositeFileListFilter() {
+    CompositeFileListFilter<SmbFile> filters = new CompositeFileListFilter<>();
+    filters.addFilter(new SmbRegexPatternFileListFilter("^(?i).+((\\.txt))$"));
+    return filters;
+}
+
+@Bean
+public MessageChannel smbFileInputChannel() {
+    return new DirectChannel();
+}
+
+@Bean
+@InboundChannelAdapter(value = "smbFileInputChannel",
+                       poller = @Poller(fixedDelay = "2000"))
+public MessageSource<File> smbMessageSource() {
+    SmbInboundFileSynchronizingMessageSource messageSource =
+        new SmbInboundFileSynchronizingMessageSource(smbInboundFileSynchronizer());
+    messageSource.setLocalDirectory(new File("myLocalDirectoryPath"));
+    messageSource.setAutoCreateLocalDirectory(true);
+    return messageSource;
+}
+----
+
+For XML configuration the `<int-smb:inbound-channel-adapter>` component is provided.
+
+[[smb-outbound]]
+=== SMB Outbound Channel Adapter
+
+For writing files to an SMB share, and for XML `<int-smb:outbound-channel-adapter>` component we use the `SmbMessageHandler`.
+In case of Java configuration a `SmbMessageHandler` should be supplied with the `SmbSessionFactory` (or `SmbRemoteFileTemplate`).
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "storeToSmbShare")
+public MessageHandler smbMessageHandler(SmbSessionFactory smbSessionFactory) {
+    SmbMessageHandler handler = new SmbMessageHandler(smbSessionFactory);
+    handler.setRemoteDirectoryExpression(
+        new LiteralExpression("remote-target-dir"));
+    handler.setFileNameGenerator(m ->
+        m.getHeaders().get(FileHeaders.FILENAME, String.class) + ".test");
+    handler.setAutoCreateDirectory(true);
+    return handler;
+}
+----

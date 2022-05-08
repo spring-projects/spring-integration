@@ -23,6 +23,12 @@ In general the project has been moved to Java 17 baseline and migrated from Java
 The GraphQL support has been added.
 See <<./graphql.adoc#graphql,GraphQL Support>> for more information.
 
+[[x6.0-smb]]
+=== SMB Support
+
+SMB support has been added from the Spring Integration Extensions project.
+See <<./smb.adoc#smb,SMB Support>> for more information.
+
 [[x6.0-general]]
 === General Changes
 

@@ -71,6 +71,8 @@ include::./rsocket.adoc[]
 
 include::./sftp.adoc[]
 
+include::./smb.adoc[]
+
 include::./stomp.adoc[]
 
 include::./stream.adoc[]

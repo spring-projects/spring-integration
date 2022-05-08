@@ -45,6 +45,7 @@ This documentation is also available as single searchable link:index-single.html
 <<./resource.adoc#resource,Resource Support>> ::
 <<./rsocket.adoc#rsocket,RSocket Support>> ::
 <<./sftp.adoc#sftp,SFTP Adapters>> ::
+<<./smb.adoc#smb,SMB Support>> ::
 <<./stomp.adoc#stomp,STOMP Support>> ::
 <<./stream.adoc#stream,Stream Support>> ::
 <<./syslog.adoc#syslog,Syslog Support>> ::

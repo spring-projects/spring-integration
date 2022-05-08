@@ -22,26 +22,31 @@ import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
 
 import jcifs.smb.SmbFile;
+import reactor.core.publisher.Mono;
 
 /**
-* The SMB specific {@link FileTransferringMessageHandler} extension. Based on the
-* {@link SmbRemoteFileTemplate}.
-*
-* @author Gregory Bragg
-* @author Artem Bilan
-*
-* @since 6.0
-*
-* @see SmbRemoteFileTemplate
-*/
+ * The SMB specific {@link FileTransferringMessageHandler} extension. Based on the
+ * {@link SmbRemoteFileTemplate}.
+ *
+ * @author Gregory Bragg
+ * @author Artem Bilan
+ *
+ * @since 6.0
+ *
+ * @see SmbRemoteFileTemplate
+ */
 public class SmbMessageHandler extends FileTransferringMessageHandler<SmbFile> {
 
 	public SmbMessageHandler(SessionFactory<SmbFile> sessionFactory) {
-		this(sessionFactory, FileExistsMode.REPLACE);
+		this(new SmbRemoteFileTemplate(sessionFactory));
 	}
 
-	public SmbMessageHandler(SessionFactory<SmbFile> sessionFactory, FileExistsMode mode) {
-		super(new SmbRemoteFileTemplate(sessionFactory), mode);
+	public SmbMessageHandler(SmbRemoteFileTemplate remoteFileTemplate) {
+		super(remoteFileTemplate);
+	}
+
+	public SmbMessageHandler(SmbRemoteFileTemplate remoteFileTemplate, FileExistsMode mode) {
+		super(remoteFileTemplate, mode);
 	}
 
 }
