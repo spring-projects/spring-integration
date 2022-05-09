@@ -30,7 +30,7 @@
 
 	<!--Distribution scenario-->
 	<scatter-gather input-channel="inputDistribution" output-channel="output" gather-channel="gatherChannel">
-		<scatterer apply-sequence="true">
+		<scatterer>
 			<recipient channel="distribution1Channel"/>
 			<recipient channel="distribution2Channel"/>
 			<recipient channel="distribution3Channel"/>

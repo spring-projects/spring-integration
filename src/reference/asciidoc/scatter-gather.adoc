@@ -35,6 +35,9 @@ Unlike the `PublishSubscribeChannel` variant (the auction variant), having a `re
 With `apply-sequence="true"`, the default `sequenceSize` is supplied, and the `aggregator` can release the group correctly.
 The distribution option is mutually exclusive with the auction option.
 
+NOTE: The `applySequence=true` is required only for plain Java configuration based on the `ScatterGatherHandler(MessageHandler scatterer, MessageHandler gatherer)` constructor configuration since the framework cannot mutate externally provided components.
+For convenience, the XML and Java DSL for `Scatter-Gather` sets `applySequence` to true starting with version 6.0.
+
 For both the auction and the distribution variants, the request (scatter) message is enriched with the `gatherResultChannel` header to wait for a reply message from the `aggregator`.
 
 By default, all suppliers should send their result to the `replyChannel` header (usually by omitting the `output-channel` from the ultimate endpoint).
@@ -183,7 +186,6 @@ public IntegrationFlow scatterGatherAndExecutorChannelSubFlow(TaskExecutor taskE
     return f -> f
             .scatterGather(
                     scatterer -> scatterer
-                            .applySequence(true)
                             .recipientFlow(f1 -> f1.transform(p -> "Sub-flow#1"))
                             .recipientFlow(f2 -> f2
                                     .channel(c -> c.executor(taskExecutor))

@@ -31,6 +31,10 @@ The messaging annotations don't require a `poller` attribute as an array of `@Po
 
 See <<./configuration.adoc#annotations,Annotation Support>> for more information.
 
+For convenience, the XML and Java DSL for Scatter-Gather, based on the `RecipientListRouter`, now sets an `applySequence = true`, so the gatherer part can rely on the default correlation strategies.
+
+See <<./scatter-gather.adoc#scatter-gather,Scatter-Gather>> for more information.
+
 [[x6.0-http]]
 === HTTP Changes
 

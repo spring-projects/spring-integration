@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 			builder.addConstructorArgReference(scatterChannel);
 		}
 		else {
-			BeanDefinition scattererDefinition = null;
+			BeanDefinition scattererDefinition;
 			if (!hasScatterer) {
 				scattererDefinition = new RootBeanDefinition(RecipientListRouter.class);
 			}
@@ -103,6 +103,11 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 			if (hasScatterer && scatterer.hasAttribute(ID_ATTRIBUTE)) {
 				scattererId = scatterer.getAttribute(ID_ATTRIBUTE);
 			}
+
+			if (!scatterer.hasAttribute("apply-sequence")) {
+				scattererDefinition.getPropertyValues().addPropertyValue("applySequence", true);
+			}
+
 			parserContext.getRegistry().registerBeanDefinition(scattererId, scattererDefinition); // NOSONAR not null
 			builder.addConstructorArgValue(new RuntimeBeanReference(scattererId));
 		}
@@ -113,7 +118,7 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 
 		Element gatherer = DomUtils.getChildElementByTagName(element, "gatherer");
 
-		BeanDefinition gathererDefinition = null;
+		BeanDefinition gathererDefinition;
 		if (gatherer == null) {
 			try {
 				gatherer = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder().newDocument().createElement("aggregator");
@@ -125,7 +130,7 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 		}
 		gathererDefinition = GATHERER_PARSER.parse(gatherer, // NOSONAR
 				new ParserContext(parserContext.getReaderContext(),
-				parserContext.getDelegate(), scatterGatherDefinition));
+						parserContext.getDelegate(), scatterGatherDefinition));
 		String gathererId = id + ".gatherer";
 		if (gatherer != null && gatherer.hasAttribute(ID_ATTRIBUTE)) {
 			gathererId = gatherer.getAttribute(ID_ATTRIBUTE);

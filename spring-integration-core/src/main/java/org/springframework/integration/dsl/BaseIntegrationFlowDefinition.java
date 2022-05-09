@@ -2749,6 +2749,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link ScatterGatherHandler} to the current integration flow position
 	 * based on the provided {@link RecipientListRouterSpec} for scattering function
 	 * and {@link AggregatorSpec} for gathering function.
+	 * For convenience, the {@link RecipientListRouterSpec#applySequence(boolean)} is set to true by default.
 	 * @param scatterer the {@link Consumer} for {@link RecipientListRouterSpec} to configure scatterer.
 	 * @param gatherer the {@link Consumer} for {@link AggregatorSpec} to configure gatherer.
 	 * @param scatterGather the {@link Consumer} for {@link ScatterGatherSpec} to configure
@@ -2760,6 +2761,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 		Assert.notNull(scatterer, "'scatterer' must not be null");
 		RecipientListRouterSpec recipientListRouterSpec = new RecipientListRouterSpec();
+		recipientListRouterSpec.applySequence(true);
 		scatterer.accept(recipientListRouterSpec);
 		AggregatorSpec aggregatorSpec = new AggregatorSpec();
 		if (gatherer != null) {
