@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -857,7 +857,6 @@ public class RouterTests {
 		public IntegrationFlow scatterGatherFlow() {
 			return f -> f
 					.scatterGather(scatterer -> scatterer
-									.applySequence(true)
 									.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
 									.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
 									.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10)),
@@ -878,8 +877,7 @@ public class RouterTests {
 					.scatterGather(
 							scatterer -> scatterer
 									.recipientFlow(f1 -> f1.handle((p, h) -> p + " - flow 1"))
-									.recipientFlow(f2 -> f2.handle((p, h) -> p + " - flow 2"))
-									.applySequence(true),
+									.recipientFlow(f2 -> f2.handle((p, h) -> p + " - flow 2")),
 							gatherer -> gatherer
 									.outputProcessor(mg -> mg
 											.getMessages()
@@ -900,7 +898,6 @@ public class RouterTests {
 			return f -> f
 					.scatterGather(
 							scatterer -> scatterer
-									.applySequence(true)
 									.recipientFlow(f1 -> f1.transform(p -> "Sub-flow#1"))
 									.recipientFlow(f2 -> f2
 											.channel(c -> c.executor(taskExecutor))
@@ -923,7 +920,6 @@ public class RouterTests {
 		public IntegrationFlow propagateErrorFromGatherer(TaskExecutor taskExecutor) {
 			return IntegrationFlows.from(Function.class)
 					.scatterGather(s -> s
-									.applySequence(true)
 									.recipientFlow(subFlow -> subFlow
 											.channel(c -> c.executor(taskExecutor))
 											.transform(p -> "foo")),
@@ -943,9 +939,9 @@ public class RouterTests {
 
 		@Bean
 		public IntegrationFlow scatterGatherInSubFlow() {
-			return flow -> flow.scatterGather(s -> s.applySequence(true)
+			return flow -> flow.scatterGather(s -> s
 							.recipientFlow(inflow -> inflow.wireTap(scatterGatherWireTapChannel())
-									.scatterGather(s1 -> s1.applySequence(true)
+									.scatterGather(s1 -> s1
 													.recipientFlow(IntegrationFlowDefinition::bridge)
 													.recipientFlow("sequencetest"::equals,
 															IntegrationFlowDefinition::bridge),

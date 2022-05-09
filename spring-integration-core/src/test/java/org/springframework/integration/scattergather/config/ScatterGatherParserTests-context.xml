@@ -14,7 +14,7 @@
 	<bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
 
 	<int:scatter-gather id="scatterGather2" input-channel="input2" gather-channel="gatherChannel" gather-timeout="100">
-		<int:scatterer id="myScatterer" apply-sequence="true">
+		<int:scatterer id="myScatterer">
 			<int:recipient channel="distributionChannel"/>
 		</int:scatterer>
 		<int:gatherer id="myGatherer" message-store="messageStore"/>
