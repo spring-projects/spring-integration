@@ -1,5 +1,5 @@
 [[smb]]
-== SMB Adapter
+== SMB Support
 
 Spring Integration provides support for file transfer operations with SMB.
 
