@@ -26,7 +26,7 @@ compile "org.springframework.integration:spring-integration-smb:{project-version
 
 === Overview
 
-The Java CIFS Client Library has been chosen as a Java implementation for the CIFS/SMB networking protocol.
+The https://github.com/codelibs/jcifs[Java CIFS] Client Library has been chosen as a Java implementation for the CIFS/SMB networking protocol.
 Its `SmbFile` abstraction is simply wrapped to the Spring Integration "Remote File" foundations like `SmbSession`, `SmbRemoteFileTemplate`, etc.
 
 The SMB Channel Adapters and support classes implementations are fully similar to existing components for (S)FTP or AWS S3 protocols.
@@ -60,7 +60,7 @@ public SmbSessionFactory smbSessionFactory() {
 
 ==== Initializing SmbSessionFactory with a custom implementation of the jcifs.CIFSContext interface
 
-NOTE: Setting of the SMB protocol Min/Max versions must be done in your implementation of jcifs.CIFSContext
+NOTE: Setting of the SMB protocol Min/Max versions must be done in your implementation of `jcifs.CIFSContext`
 
 [source,java]
 ----
@@ -82,8 +82,43 @@ public SmbSessionFactory smbSessionFactory() {
 
 To download SMB files locally the `SmbInboundFileSynchronizingMessageSource` is provided.
 It is simple extension of the `AbstractInboundFileSynchronizingMessageSource` which  requires `SmbInboundFileSynchronizer` injection.
-For filtering remote files you still can use any existing `FileListFilter` implementations, but particular `SmbRegexPatternFileListFilter` 
-and `SmbSimplePatternFileListFilter` are provided.
+For filtering remote files you still can use any existing `FileListFilter` implementations, but particular `SmbRegexPatternFileListFilter` and `SmbSimplePatternFileListFilter` are provided.
+
+[source,java]
+----
+@Bean
+public SmbInboundFileSynchronizer smbInboundFileSynchronizer() {
+    SmbInboundFileSynchronizer fileSynchronizer =
+        new SmbInboundFileSynchronizer(smbSessionFactory());
+    fileSynchronizer.setFilter(compositeFileListFilter());
+    fileSynchronizer.setRemoteDirectory("mySharedDirectoryPath");
+    fileSynchronizer.setDeleteRemoteFiles(true);
+    return fileSynchronizer;
+}
+
+@Bean
+public CompositeFileListFilter<SmbFile> compositeFileListFilter() {
+    CompositeFileListFilter<SmbFile> filters = new CompositeFileListFilter<>();
+    filters.addFilter(new SmbRegexPatternFileListFilter("^(?i).+((\\.txt))$"));
+    return filters;
+}
+
+@Bean
+public MessageChannel smbFileInputChannel() {
+    return new DirectChannel();
+}
+
+@Bean
+@InboundChannelAdapter(value = "smbFileInputChannel",
+                       poller = @Poller(fixedDelay = "myDelayAmount"))
+public MessageSource<File> smbMessageSource() {
+    SmbInboundFileSynchronizingMessageSource messageSource =
+        new SmbInboundFileSynchronizingMessageSource(smbInboundFileSynchronizer());
+    messageSource.setLocalDirectory(new File("myLocalDirectoryPath"));
+    messageSource.setAutoCreateLocalDirectory(true);
+    return messageSource;
+}
+----
 
 For XML configuration the `<int-smb:inbound-channel-adapter>` component is provided.
 
@@ -100,9 +135,9 @@ In case of Java configuration a `SmbMessageHandler` should be supplied with the 
 public MessageHandler smbMessageHandler(SmbSessionFactory smbSessionFactory) {
     SmbMessageHandler handler = new SmbMessageHandler(smbSessionFactory);
     handler.setRemoteDirectoryExpression(
-                new LiteralExpression("remote-target-dir"));
+        new LiteralExpression("remote-target-dir"));
     handler.setFileNameGenerator(m ->
-                m.getHeaders().get(FileHeaders.FILENAME, String.class) + ".test");
+        m.getHeaders().get(FileHeaders.FILENAME, String.class) + ".test");
     handler.setAutoCreateDirectory(true);
     return handler;
 }
