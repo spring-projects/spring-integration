@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.test.context;
 
-import java.beans.Introspector;
-
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -30,19 +27,13 @@ import org.springframework.util.Assert;
 /**
  * The {@link ContextCustomizer} implementation for Spring Integration specific environment.
  * <p>
- * Registers {@link MockIntegrationContext}, {@link IntegrationEndpointsInitializer} beans.
+ * Registers {@link MockIntegrationContext} bean.
  *
  * @author Artem Bilan
  *
  * @since 5.0
  */
 class MockIntegrationContextCustomizer implements ContextCustomizer {
-
-	private final SpringIntegrationTest springIntegrationTest;
-
-	MockIntegrationContextCustomizer(SpringIntegrationTest springIntegrationTest) {
-		this.springIntegrationTest = springIntegrationTest;
-	}
 
 	@Override
 	public void customizeContext(ConfigurableApplicationContext context, MergedContextConfiguration mergedConfig) {
@@ -52,29 +43,16 @@ class MockIntegrationContextCustomizer implements ContextCustomizer {
 
 		registry.registerBeanDefinition(MockIntegrationContext.MOCK_INTEGRATION_CONTEXT_BEAN_NAME,
 				new RootBeanDefinition(MockIntegrationContext.class));
-
-		String endpointsInitializer = Introspector.decapitalize(IntegrationEndpointsInitializer.class.getSimpleName());
-
-		registry.registerBeanDefinition(endpointsInitializer,
-				BeanDefinitionBuilder.genericBeanDefinition(IntegrationEndpointsInitializer.class)
-						.addConstructorArgValue(this.springIntegrationTest)
-						.getBeanDefinition());
-
 	}
 
 	@Override
 	public int hashCode() {
-		return this.springIntegrationTest.hashCode();
+		return MockIntegrationContextCustomizer.class.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null || obj.getClass() != getClass()) {
-			return false;
-		}
-
-		MockIntegrationContextCustomizer customizer = (MockIntegrationContextCustomizer) obj;
-		return this.springIntegrationTest.equals(customizer.springIntegrationTest);
+		return obj != null && obj.getClass() == getClass();
 	}
 
 }
