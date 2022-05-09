@@ -30,7 +30,52 @@ The Java CIFS Client Library has been chosen as a Java implementation for the CI
 Its `SmbFile` abstraction is simply wrapped to the Spring Integration "Remote File" foundations like `SmbSession`, `SmbRemoteFileTemplate`, etc.
 
 The SMB Channel Adapters and support classes implementations are fully similar to existing components for (S)FTP or AWS S3 protocols.
-So, if you familiar with those components, it is pretty straightforward to use, here are several words about existing components.
+So, if you familiar with those components it is pretty straightforward to use.
+
+[[smb-session-factory]]
+=== SMB Session Factory
+
+Before configuring the SMB adapter, you must configure a SMB session factory.
+You can configure the SMB session factory with a regular bean definition, as the following examples show:
+
+==== Setting the SMB protocol with Min/Max versions
+For supporting a minimum version of SMB 2.1 and a maximum version of the SMB 3.1.1
+
+[source,java]
+----
+@Bean
+public SmbSessionFactory smbSessionFactory() {
+    SmbSessionFactory smbSession = new SmbSessionFactory();
+    smbSession.setHost("myHost");
+    smbSession.setPort(445);
+    smbSession.setDomain("myDomain");
+    smbSession.setUsername("myUser");
+    smbSession.setPassword("myPassword");
+    smbSession.setShareAndDir("myShareAndDir");
+    smbSession.setSmbMinVersion(DialectVersion.SMB210);
+    smbSession.setSmbMaxVersion(DialectVersion.SMB311);
+    return smbSession;
+}
+----
+
+==== Initializing SmbSessionFactory with a custom implementation of the jcifs.CIFSContext interface
+
+NOTE: Setting of the SMB protocol Min/Max versions must be done in your implementation of jcifs.CIFSContext
+
+[source,java]
+----
+@Bean
+public SmbSessionFactory smbSessionFactory() {
+    SmbSessionFactory smbSession = new SmbSessionFactory(new MyCIFSContext());
+    smbSession.setHost("myHost");
+    smbSession.setPort(445);
+    smbSession.setDomain("myDomain");
+    smbSession.setUsername("myUser");
+    smbSession.setPassword("myPassword");
+    smbSession.setShareAndDir("myShareAndDir");
+    return smbSession;
+}
+----
 
 [[smb-inbound]]
 === SMB Inbound Channel Adapter
@@ -60,45 +105,5 @@ public MessageHandler smbMessageHandler(SmbSessionFactory smbSessionFactory) {
                 m.getHeaders().get(FileHeaders.FILENAME, String.class) + ".test");
     handler.setAutoCreateDirectory(true);
     return handler;
-}
-----
-
-=== Setting SMB Protocol Min/Max Versions
-
-Example: To set a minimum version of SMB 2.1 and a maximum version of SMB 3.1.1
-
-[source,java]
-----
-@Bean
-public SmbSessionFactory smbSessionFactory() {
-    SmbSessionFactory smbSession = new SmbSessionFactory();
-    smbSession.setHost("myHost");
-    smbSession.setPort(445);
-    smbSession.setDomain("myDomain");
-    smbSession.setUsername("myUser");
-    smbSession.setPassword("myPassword");
-    smbSession.setShareAndDir("myShareAndDir");
-    smbSession.setSmbMinVersion(DialectVersion.SMB210);
-    smbSession.setSmbMaxVersion(DialectVersion.SMB311);
-    return smbSession;
-}
-----
-
-=== Intializing SmbSessionFactory with a custom implementation of the jcifs.CIFSContext interface
-
-NOTE: Setting of the SMB protocol min/max versions must be done in your implementation of jcifs.CIFSContext
-
-[source,java]
-----
-@Bean
-public SmbSessionFactory smbSessionFactory() {
-    SmbSessionFactory smbSession = new SmbSessionFactory(new MyCIFSContext());
-    smbSession.setHost("myHost");
-    smbSession.setPort(445);
-    smbSession.setDomain("myDomain");
-    smbSession.setUsername("myUser");
-    smbSession.setPassword("myPassword");
-    smbSession.setShareAndDir("myShareAndDir");
-    return smbSession;
 }
 ----
