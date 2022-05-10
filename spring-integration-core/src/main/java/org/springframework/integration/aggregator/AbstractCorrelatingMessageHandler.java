@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -579,7 +579,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 					afterRelease(messageGroup, completedMessages);
 				}
 				if (!isExpireGroupsUponCompletion() && this.minimumTimeoutForEmptyGroups > 0) {
-					removeEmptyGroupAfterTimeout(messageGroup, this.minimumTimeoutForEmptyGroups);
+					removeEmptyGroupAfterTimeout(groupIdUuid, this.minimumTimeoutForEmptyGroups);
 				}
 			}
 			else {
@@ -616,29 +616,27 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		return false;
 	}
 
-	private void removeEmptyGroupAfterTimeout(MessageGroup messageGroup, long timeout) {
-		Object groupId = messageGroup.getGroupId();
-		UUID groupUuid = UUIDConverter.getUUID(groupId);
+	private void removeEmptyGroupAfterTimeout(UUID groupId, long timeout) {
 		ScheduledFuture<?> scheduledFuture =
 				getTaskScheduler()
 						.schedule(() -> {
-							Lock lock = this.lockRegistry.obtain(groupUuid.toString());
+							Lock lock = this.lockRegistry.obtain(groupId.toString());
 
 							try {
 								lock.lockInterruptibly();
 								try {
-									this.expireGroupScheduledFutures.remove(groupUuid);
+									this.expireGroupScheduledFutures.remove(groupId);
 									/*
 									 * Obtain a fresh state for group from the MessageStore,
 									 * since it could be changed while we have waited for lock.
 									 */
-									MessageGroup groupNow = this.messageStore.getMessageGroup(groupUuid);
+									MessageGroup groupNow = this.messageStore.getMessageGroup(groupId);
 									boolean removeGroup = groupNow.size() == 0 &&
 											groupNow.getLastModified()
 													<= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
 									if (removeGroup) {
-										this.logger.debug(() -> "Removing empty group: " + groupUuid);
-										remove(messageGroup);
+										this.logger.debug(() -> "Removing empty group: " + groupId);
+										remove(groupNow);
 									}
 								}
 								finally {
@@ -649,13 +647,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 								Thread.currentThread().interrupt();
 								this.logger.debug(() -> "Thread was interrupted while trying to obtain lock."
 										+ "Rescheduling empty MessageGroup [ " + groupId + "] for removal.");
-								removeEmptyGroupAfterTimeout(messageGroup, timeout);
+								removeEmptyGroupAfterTimeout(groupId, timeout);
 							}
 
 						}, new Date(System.currentTimeMillis() + timeout));
 
 		this.logger.debug(() -> "Schedule empty MessageGroup [ " + groupId + "] for removal.");
-		this.expireGroupScheduledFutures.put(groupUuid, scheduledFuture);
+		this.expireGroupScheduledFutures.put(groupId, scheduledFuture);
 	}
 
 	private void scheduleGroupToForceComplete(MessageGroup messageGroup) {
