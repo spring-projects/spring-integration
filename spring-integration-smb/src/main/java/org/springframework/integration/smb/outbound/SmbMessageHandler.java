@@ -22,7 +22,6 @@ import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
 
 import jcifs.smb.SmbFile;
-import reactor.core.publisher.Mono;
 
 /**
  * The SMB specific {@link FileTransferringMessageHandler} extension. Based on the
