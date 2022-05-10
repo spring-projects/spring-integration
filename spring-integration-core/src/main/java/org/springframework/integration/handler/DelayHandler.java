@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -425,24 +425,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
 		}
 
-		Runnable releaseTask;
-
-		if (this.messageStore instanceof SimpleMessageStore) {
-			final Message<?> messageToSchedule = delayedMessage;
-
-			releaseTask = () -> releaseMessage(messageToSchedule);
-		}
-		else {
-			final UUID messageId = delayedMessage.getHeaders().getId();
-
-			releaseTask = () -> {
-				Message<?> messageToRelease = getMessageById(messageId);
-				if (messageToRelease != null) {
-					releaseMessage(messageToRelease);
-				}
-			};
-		}
-
+		Runnable releaseTask = releaseTaskForMessage(delayedMessage);
 		Date startTime = new Date(messageWrapper.getRequestDate() + delay);
 
 		if (TransactionSynchronizationManager.isSynchronizationActive() &&
@@ -460,6 +443,21 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 		else {
 			getTaskScheduler().schedule(releaseTask, startTime);
+		}
+	}
+
+	private Runnable releaseTaskForMessage(Message<?> delayedMessage) {
+		if (this.messageStore instanceof SimpleMessageStore) {
+			return () -> releaseMessage(delayedMessage);
+		}
+		else {
+			UUID messageId = delayedMessage.getHeaders().getId();
+			return () -> {
+				Message<?> messageToRelease = getMessageById(messageId);
+				if (messageToRelease != null) {
+					releaseMessage(messageToRelease);
+				}
+			};
 		}
 	}
 
@@ -531,9 +529,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		rescheduleAt(message, new Date());
 	}
 
-	protected void rescheduleAt(final Message<?> message, Date startTime) {
-		getTaskScheduler()
-				.schedule(() -> releaseMessage(message), startTime);
+	protected void rescheduleAt(Message<?> message, Date startTime) {
+		Runnable releaseTask = releaseTaskForMessage(message);
+		getTaskScheduler().schedule(releaseTask, startTime);
 	}
 
 	private void doReleaseMessage(Message<?> message) {
