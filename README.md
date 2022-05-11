@@ -1,5 +1,51 @@
+<img align="right" width="250" height="250" src="https://spring.io/images/projects/spring-integration-ed45c92142d821851bf6c771f4c556bb.svg">
+
 Spring Integration [<img src="https://build.spring.io/plugins/servlet/wittified/build-status/INT-MAIN">](https://build.spring.io/browse/INT-MAIN) [![Join the chat at https://gitter.im/spring-projects/spring-integration](https://badges.gitter.im/spring-projects/spring-integration.svg)](https://gitter.im/spring-projects/spring-integration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ==================
+
+Extends the Spring programming model to support the well-known Enterprise Integration Patterns. 
+Spring Integration enables lightweight messaging within Spring-based applications and supports integration with external systems via declarative adapters. 
+Those adapters provide a higher-level of abstraction over Spring’s support for remoting, messaging, and scheduling. 
+Spring Integration’s primary goal is to provide a simple model for building enterprise integration solutions while maintaining the separation of concerns that is essential for producing maintainable, testable code.
+
+Using the Spring Framework encourages developers to code using interfaces and use dependency injection (DI) to provide a Plain Old Java Object (POJO) with the dependencies it needs to perform its tasks. 
+Spring Integration takes this concept one step further, where POJOs are wired together using a messaging paradigm and individual components may not be aware of other components in the application. 
+Such an application is built by assembling fine-grained reusable components to form a higher level of functionality. 
+WIth careful design, these flows can be modularized and also reused at an even higher level.
+
+In addition to wiring together fine-grained components, Spring Integration provides a wide selection of channel adapters and gateways to communicate with external systems. 
+Channel Adapters are used for one-way integration (send or receive); gateways are used for request/reply scenarios (inbound or outbound). 
+
+# Installation and Getting Started
+
+First, you need dependencies in your POM/Gradle:
+
+```xml
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-core</artifactId>
+</dependency>
+```
+
+which is also pulled transitively if you deal with target protocol channel adapters.
+For example for Apache Kafka support you need just this:
+
+```xml
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-kafka</artifactId>
+</dependency>
+```
+
+For annotations or Java DSL configuration you need to *enable* Spring Integration in the application context:
+
+```java
+@EnableIntegration
+@Configuration
+public class ExampleConfiguration {
+    
+}
+```
 
 # Code of Conduct
 
@@ -8,6 +54,11 @@ Please see our [Code of conduct](https://github.com/spring-projects/.github/blob
 # Reporting Security Vulnerabilities
 
 Please see our [Security policy](https://github.com/spring-projects/spring-integration/security/policy).
+
+# Documentation
+
+The Spring Integration maintains reference documentation ([published](https://docs.spring.io/spring-integration/docs/current/reference/html/) and [source](src/reference/asciidoc)), GitHub [wiki pages](https://github.com/spring-projects/spring-integration/wiki), and an [API reference](https://docs.spring.io/spring-integration/docs/current/api/). 
+There are also [guides and tutorials](https://spring.io/guides) across Spring projects.
 
 
 # Checking out and Building
