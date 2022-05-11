@@ -76,7 +76,7 @@ Welcome to the Spring Integration reference documentation!
 <<./message-publishing.adoc#message-publishing,Message Publishing>> :: The Publisher annotation etc.
 <<./transactions.adoc#transactions,Transaction Support>> :: Overview of transactions support in Spring Integration
 <<./security.adoc#security,Security in Spring Integration>> :: Securing Spring Integration flows
-<<./configuration.adoc#configuration,Configuration>> :: Messaging annotations, task scheduler, global properties, message to POJO method arguments mapping
+<<./configuration.adoc#configuration,Configuration>> :: Messaging annotations, task scheduler, global properties, message mapping
 <<./testing.adoc#testing,Testing support>> :: Test utilities, Integration mocks and testing framework
 <<./samples.adoc#samples,Spring Integration Samples>> :: The samples dedicated project
 <<./resources.adoc#resources,Additional Resources>> :: Other resources related to project
