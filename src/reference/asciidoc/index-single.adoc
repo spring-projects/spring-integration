@@ -5,6 +5,16 @@
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
 include::./index-header.adoc[]
 
+ifdef::backend-html5[]
+*{revnumber}*
+
+NOTE: This documentation is also available as https://docs.spring.io/spring-integration/docs/current/reference/html/index.html[multiple (faster to load) HTML pages] and as https://docs.spring.io/spring-integration/docs/current/reference/pdf/spring-integration-reference.pdf[PDF].
+endif::[]
+
+ifdef::backend-pdf[]
+NOTE: This documentation is also available as https://docs.spring.io/spring-integration/docs/current/reference/html/index.html[multiple (faster to load) HTML pages] and as a single https://docs.spring.io/spring-integration/docs/current/reference/html/index-single.html[(more easily searchable) HTML file].
+endif::[]
+
 include::./preface.adoc[]
 
 include::./whats-new.adoc[]
