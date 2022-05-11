@@ -1,5 +1,83 @@
+<img align="right" width="350" height="350" src="https://user-images.githubusercontent.com/96301480/153731014-72229c13-cea9-4da1-85cd-bcf445e358bf.svg">
+
+
 Spring Integration [<img src="https://build.spring.io/plugins/servlet/wittified/build-status/INT-MAIN">](https://build.spring.io/browse/INT-MAIN) [![Join the chat at https://gitter.im/spring-projects/spring-integration](https://badges.gitter.im/spring-projects/spring-integration.svg)](https://gitter.im/spring-projects/spring-integration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ==================
+
+Extends the Spring programming model to support the well-known Enterprise Integration Patterns. Spring Integration enables lightweight messaging within Spring-based applications and supports integration with external systems via declarative adapters. Those adapters provide a higher-level of abstraction over Spring’s support for remoting, messaging, and scheduling. Spring Integration’s primary goal is to provide a simple model for building enterprise integration solutions while maintaining the separation of concerns that is essential for producing maintainable, testable code.
+
+Using the Spring Framework encourages developers to code using interfaces and use dependency injection (DI) to provide a Plain Old Java Object (POJO) with the dependencies it needs to perform its tasks. Spring Integration takes this concept one step further, where POJOs are wired together using a messaging paradigm and individual components may not be aware of other components in the application. Such an application is built by assembling fine-grained reusable components to form a higher level of functionality. WIth careful design, these flows can be modularized and also reused at an even higher level.
+
+In addition to wiring together fine-grained components, Spring Integration provides a wide selection of channel adapters and gateways to communicate with external systems. Channel Adapters are used for one-way integration (send or receive); gateways are used for request/reply scenarios (inbound or outbound). For a full list of adapters and gateways, refer to the reference documentation.
+
+# Installation and Getting Started
+
+Here is a quick teaser of a complete Spring Integration application in Java:
+
+```java
+import org.springframework.boot.*;
+import org.springframework.boot.autoconfigure.*;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.integration.dsl.*;
+
+@EnableIntegration
+@SpringBootApplication
+public class Example {
+    public static void main(String[] args) {
+        SpringApplication.run(Example.class, args);
+    }
+
+    @Bean
+    public AtomicInteger integerSource() {
+        return new AtomicInteger();
+    }
+
+    @Bean
+    public IntegrationFlow buildFlow() {
+        return IntegrationFlows.fromSupplier(integerSource()::getAndIncrement,
+                                         c -> c.poller(Pollers.fixedRate(100)))
+                    .channel("inputChannel")
+                    .filter((Integer p) -> p > 0)
+                    .transform(Object::toString)
+                    .handle(...)
+                    .get();
+    }
+}
+```
+Or with Project Reactor as the processing engine:
+```java
+import org.springframework.boot.*;
+import org.springframework.boot.autoconfigure.*;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.integration.dsl.*;
+import org.springframework.messaging.support.GenericMessage;
+import reactor.core.publisher.Flux;
+
+@EnableIntegration
+@SpringBootApplication
+public class Example {
+    public static void main(String[] args) {
+        SpringApplication.run(Example.class, args);
+    }
+
+    @Bean
+    public AtomicInteger integerSource() {
+        return new AtomicInteger();
+    }
+    
+    @Bean
+    protected IntegrationFlow buildFlow() {
+        return IntegrationFlows.from(Flux.range(1, 50)
+                    .map(GenericMessage::new))
+                .filter((Integer p) -> p > 10)
+                .transform(Object::toString)
+                .handle(m -> System.out.println(m.getPayload()))
+                .get();
+    }
+}
+```
 
 # Code of Conduct
 
