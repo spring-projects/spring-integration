@@ -1,4 +1,4 @@
-<img align="right" width="350" height="350" src="https://user-images.githubusercontent.com/96301480/153731014-72229c13-cea9-4da1-85cd-bcf445e358bf.svg">
+<img align="right" width="290" height="290" src="https://user-images.githubusercontent.com/96301480/153731014-72229c13-cea9-4da1-85cd-bcf445e358bf.svg">
 
 
 Spring Integration [<img src="https://build.spring.io/plugins/servlet/wittified/build-status/INT-MAIN">](https://build.spring.io/browse/INT-MAIN) [![Join the chat at https://gitter.im/spring-projects/spring-integration](https://badges.gitter.im/spring-projects/spring-integration.svg)](https://gitter.im/spring-projects/spring-integration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
