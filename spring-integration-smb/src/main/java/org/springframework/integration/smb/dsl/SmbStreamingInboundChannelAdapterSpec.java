@@ -18,17 +18,17 @@ package org.springframework.integration.smb.dsl;
 
 import java.util.Comparator;
 
-import jcifs.smb.SmbFile;
-
 import org.springframework.integration.file.dsl.RemoteFileStreamingInboundChannelAdapterSpec;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.smb.filters.SmbPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.smb.filters.SmbRegexPatternFileListFilter;
 import org.springframework.integration.smb.filters.SmbSimplePatternFileListFilter;
 import org.springframework.integration.smb.inbound.SmbStreamingMessageSource;
-import org.springframework.integration.metadata.SimpleMetadataStore;
+
+import jcifs.smb.SmbFile;
 
 /**
  * A {@link RemoteFileStreamingInboundChannelAdapterSpec} for a {@link SmbStreamingMessageSource}.
