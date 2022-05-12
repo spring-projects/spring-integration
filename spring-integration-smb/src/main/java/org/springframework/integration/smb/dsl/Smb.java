@@ -19,8 +19,6 @@ package org.springframework.integration.smb.dsl;
 import java.io.File;
 import java.util.Comparator;
 
-import jcifs.smb.SmbFile;
-
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
@@ -28,6 +26,8 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.smb.gateway.SmbOutboundGateway;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
+
+import jcifs.smb.SmbFile;
 
 /**
  * The factory for SMB components.
@@ -110,7 +110,6 @@ public final class Smb {
 	 * A {@link SmbMessageHandlerSpec} factory for an outbound channel adapter spec.
 	 * @param smbRemoteFileTemplate the remote file template.
 	 * @return the spec.
-	 * @since 5.4
 	 */
 	public static SmbMessageHandlerSpec outboundAdapter(SmbRemoteFileTemplate smbRemoteFileTemplate) {
 		return new SmbMessageHandlerSpec(smbRemoteFileTemplate);
@@ -121,7 +120,6 @@ public final class Smb {
 	 * @param smbRemoteFileTemplate the remote file template.
 	 * @param fileExistsMode the file exists mode.
 	 * @return the spec.
-	 * @since 5.4
 	 */
 	public static SmbMessageHandlerSpec outboundAdapter(SmbRemoteFileTemplate smbRemoteFileTemplate,
 			FileExistsMode fileExistsMode) {
