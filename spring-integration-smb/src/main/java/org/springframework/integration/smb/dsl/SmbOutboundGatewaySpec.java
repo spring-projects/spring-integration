@@ -18,8 +18,6 @@ package org.springframework.integration.smb.dsl;
 
 import java.util.function.Function;
 
-import jcifs.smb.SmbFile;
-
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.dsl.RemoteFileOutboundGatewaySpec;
@@ -27,6 +25,8 @@ import org.springframework.integration.smb.filters.SmbRegexPatternFileListFilter
 import org.springframework.integration.smb.filters.SmbSimplePatternFileListFilter;
 import org.springframework.integration.smb.gateway.SmbOutboundGateway;
 import org.springframework.messaging.Message;
+
+import jcifs.smb.SmbFile;
 
 /**
  * A {@link RemoteFileOutboundGatewaySpec} for SMB.
