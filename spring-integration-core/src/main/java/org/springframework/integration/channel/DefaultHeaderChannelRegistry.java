@@ -229,7 +229,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	}
 
 
-	protected static final record MessageChannelWrapper(MessageChannel channel, long expireAt) {
+	protected record MessageChannelWrapper(MessageChannel channel, long expireAt) {
 
 	}
 

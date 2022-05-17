@@ -147,7 +147,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 			String operationName = evaluateOperationNameExpression(requestMessage);
 			Map<String, Object> variables = evaluateVariablesExpression(requestMessage);
 			String id = evaluateExecutionIdExpression(requestMessage);
-			graphQlRequest = new DefaultExecutionGraphQlRequest(query, operationName, variables, id, this.locale);
+			graphQlRequest = new DefaultExecutionGraphQlRequest(query, operationName, variables, null, id, this.locale);
 		}
 
 		return this.graphQlService.execute(graphQlRequest);

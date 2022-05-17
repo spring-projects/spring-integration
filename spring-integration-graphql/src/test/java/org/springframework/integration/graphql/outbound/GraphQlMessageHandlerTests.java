@@ -106,7 +106,7 @@ public class GraphQlMessageHandlerTests {
 						.thenCancel()
 						.verifyLater();
 
-		ExecutionGraphQlRequest payload = new DefaultExecutionGraphQlRequest("{ testQuery { id } }", null, null,
+		ExecutionGraphQlRequest payload = new DefaultExecutionGraphQlRequest("{ testQuery { id } }", null, null, null,
 				UUID.randomUUID().toString(), null);
 		this.inputChannel.send(MessageBuilder.withPayload(payload).build());
 
@@ -160,7 +160,7 @@ public class GraphQlMessageHandlerTests {
 
 		ExecutionGraphQlRequest payload =
 				new DefaultExecutionGraphQlRequest("mutation { update(id: \"" + fakeId + "\") { id } }", null, null,
-						UUID.randomUUID().toString(), null);
+						null, UUID.randomUUID().toString(), null);
 		this.inputChannel.send(MessageBuilder.withPayload(payload).build());
 
 		verifier.verify(Duration.ofSeconds(10));
@@ -198,7 +198,7 @@ public class GraphQlMessageHandlerTests {
 				.verifyLater();
 
 		ExecutionGraphQlRequest payload =
-				new DefaultExecutionGraphQlRequest("subscription { results { id } }", null, null,
+				new DefaultExecutionGraphQlRequest("subscription { results { id } }", null, null, null,
 						UUID.randomUUID().toString(), null);
 		this.inputChannel.send(MessageBuilder.withPayload(payload).build());
 
