@@ -93,4 +93,5 @@ fun convertFlow() =
 ----
 ====
 
+NOTE: The reified type can be a whole `Message<*>` if there need access to headers as well in the lambda of the operator.
 
