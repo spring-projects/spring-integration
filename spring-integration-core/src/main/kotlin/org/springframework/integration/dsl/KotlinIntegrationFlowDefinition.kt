@@ -145,7 +145,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 
 	/**
-	 * Inline function for [IntegrationFlowDefinition.filter] providing a `filter<MyTypeIn>()` variant
+	 * Inline function for [IntegrationFlowDefinition.route] providing a `route<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
 	inline fun <reified P> route(crossinline function: (P) -> Any?) {
@@ -153,7 +153,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	}
 
 	/**
-	 * Inline function for [IntegrationFlowDefinition.filter] providing a `filter<MyTypeIn>()` variant
+	 * Inline function for [IntegrationFlowDefinition.route] providing a `route<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
 	inline fun <reified P, T> route(
