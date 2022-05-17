@@ -67,6 +67,26 @@ import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 
 /**
+ * The actual SMB share must be configured in file 'SmbTests-context.xml'
+ * with the 'real' server settings for testing.
+ *
+ * You must create the following folder structures in your SMB share
+ * for a successful completion of these unit tests:
+ *
+ * <pre class="code">
+ *  smbSource/
+ *  |-- smbSource1.txt - contains 'source1'
+ *  |-- smbSource2.txt - contains 'source2'
+ *  |-- SMBSOURCE1.TXT.a
+ *  |-- SMBSOURCE2.TXT.a
+ *  |-- subSmbSource/
+ *      |-- subSmbSource1.txt - contains 'subSource1'
+ *  smbTarget/
+ * </pre>
+ *
+ * The intent is tests retrieve from smbSource and verify arrival in localTarget or
+ * send from localSource and verify arrival in remoteTarget.
+ *
  * @author Gregory Bragg
  *
  * @since 6.0
