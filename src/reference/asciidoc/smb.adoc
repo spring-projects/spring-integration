@@ -122,6 +122,55 @@ public MessageSource<File> smbMessageSource() {
 
 For XML configuration the `<int-smb:inbound-channel-adapter>` component is provided.
 
+==== Configuring with the Java DSL
+
+The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
+
+====
+[source, java]
+----
+@SpringBootApplication
+public class SmbJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(SmbJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public SmbSessionFactory smbSessionFactory() {
+        SmbSessionFactory smbSession = new SmbSessionFactory();
+        smbSession.setHost("myHost");
+        smbSession.setPort(445);
+        smbSession.setDomain("myDomain");
+        smbSession.setUsername("myUser");
+        smbSession.setPassword("myPassword");
+        smbSession.setShareAndDir("myShareAndDir");
+        smbSession.setSmbMinVersion(DialectVersion.SMB210);
+        smbSession.setSmbMaxVersion(DialectVersion.SMB311);
+        return smbSession;
+    }
+
+    @Bean
+    public IntegrationFlow smbInboundFlow() {
+        return IntegrationFlows
+            .from(Smb.inboundAdapter(smbSessionFactory())
+                    .preserveTimestamp(true)
+                    .remoteDirectory("smbSource")
+                    .regexFilter(".*\\.txt$")
+                    .localFilename(f -> f.toUpperCase() + ".a")
+                    .localDirectory(new File("d:\\smb_files")),
+                        e -> e.id("smbInboundAdapter")
+                    .autoStartup(true)
+                    .poller(Pollers.fixedDelay(5000)))
+            .handle(m -> System.out.println(m.getPayload()))
+            .get();
+    }
+}
+----
+====
+
 [[smb-outbound]]
 === SMB Outbound Channel Adapter
 
@@ -142,3 +191,58 @@ public MessageHandler smbMessageHandler(SmbSessionFactory smbSessionFactory) {
     return handler;
 }
 ----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application shows an example of how to configure the outbound adapter using the Java DSL:
+
+====
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class SmbJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+            new SpringApplicationBuilder(SmbJavaApplication.class)
+                .web(false)
+                .run(args);
+        MyGateway gateway = context.getBean(MyGateway.class);
+        gateway.sendToSmb(new File("/foo/bar.txt"));
+    }
+
+    @Bean
+    public SmbSessionFactory smbSessionFactory() {
+        SmbSessionFactory smbSession = new SmbSessionFactory();
+        smbSession.setHost("myHost");
+        smbSession.setPort(445);
+        smbSession.setDomain("myDomain");
+        smbSession.setUsername("myUser");
+        smbSession.setPassword("myPassword");
+        smbSession.setShareAndDir("myShareAndDir");
+        smbSession.setSmbMinVersion(DialectVersion.SMB210);
+        smbSession.setSmbMaxVersion(DialectVersion.SMB311);
+        return smbSession;
+    }
+
+    @Bean
+    public IntegrationFlow smbOutboundFlow() {
+        return IntegrationFlows.from("toSmbChannel")
+                .handle(Smb.outboundAdapter(smbSessionFactory(), FileExistsMode.REPLACE)
+                        .useTemporaryFileName(false)
+                        .fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+                        .remoteDirectory("smbTarget")
+                ).get();
+    }
+
+    @MessagingGateway
+    public interface MyGateway {
+
+         @Gateway(requestChannel = "toSmbChannel")
+         void sendToSmb(File file);
+    }
+
+}
+----
+====
