@@ -26,7 +26,7 @@ See <<./graphql.adoc#graphql,GraphQL Support>> for more information.
 [[x6.0-smb]]
 === SMB Support
 
-SMB support has been added from the Spring Integration Extensions project.
+SMB support has been added from the Spring Integration Extensions project, including support for Java DSL.
 See <<./smb.adoc#smb,SMB Support>> for more information.
 
 [[x6.0-general]]

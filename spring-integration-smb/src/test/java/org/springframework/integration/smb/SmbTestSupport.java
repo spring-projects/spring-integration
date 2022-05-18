@@ -16,11 +16,9 @@
 
 package org.springframework.integration.smb;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 
-import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.integration.file.remote.RemoteFileTestSupport;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -32,35 +30,35 @@ import jcifs.smb.SmbFile;
 /**
  * Provides a connection to an external SMB Server for test cases.
  *
- * The actual SMB share must be configured in file 'SmbTests-context.xml'
- * with the 'real' server settings for testing.
+ * The constants need to be updated with the 'real' server settings for testing.
  *
  * @author Gregory Bragg
  *
  * @since 6.0
  */
 
-@Disabled("Actual SMB share must be configured in file [SmbTests-context.xml].")
+@Disabled("Actual SMB share must be configured in class [SmbTestSupport].")
 public class SmbTestSupport extends RemoteFileTestSupport {
 
-	private static GenericXmlApplicationContext context = new GenericXmlApplicationContext();
+	public static final String HOST = "localhost";
+
+	public static final String SHARE_AND_DIR = "smb-share/";
+
+	public static final String USERNAME = "sambaguest";
+
+	public static final String PASSWORD = "sambaguest";
 
 	private static SmbSessionFactory smbSessionFactory;
 
 	@BeforeAll
 	public static void connectToSMBServer() throws Exception {
-		context.load("classpath:META-INF/spring/integration/SmbTests-context.xml");
-		context.registerShutdownHook();
-		context.refresh();
-
-		smbSessionFactory = context.getBean("smbSessionFactory", SmbSessionFactory.class);
+		smbSessionFactory = new SmbSessionFactory();
+		smbSessionFactory.setHost(HOST);
+		smbSessionFactory.setUsername(USERNAME);
+		smbSessionFactory.setPassword(PASSWORD);
+		smbSessionFactory.setShareAndDir(SHARE_AND_DIR);
 		smbSessionFactory.setSmbMinVersion(DialectVersion.SMB210);
 		smbSessionFactory.setSmbMaxVersion(DialectVersion.SMB311);
-	}
-
-	@AfterAll
-	public static void cleanUp() {
-		context.close();
 	}
 
 	public static SessionFactory<SmbFile> sessionFactory() {

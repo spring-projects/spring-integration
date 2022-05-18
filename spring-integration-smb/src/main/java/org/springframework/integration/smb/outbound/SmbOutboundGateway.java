@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.smb.gateway;
+package org.springframework.integration.smb.outbound;
 
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
@@ -25,9 +25,6 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.expression.Expression;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
@@ -49,10 +46,6 @@ import jcifs.smb.SmbFile;
 public class SmbOutboundGateway extends AbstractRemoteFileOutboundGateway<SmbFile> {
 
 	private static final Log logger = LogFactory.getLog(SmbOutboundGateway.class);
-
-	private Expression workingDirExpression;
-
-	private StandardEvaluationContext evaluationContext;
 
 	/**
 	 * Construct an instance using the provided session factory and callback for
@@ -77,71 +70,6 @@ public class SmbOutboundGateway extends AbstractRemoteFileOutboundGateway<SmbFil
 			MessageSessionCallback<SmbFile, ?> messageSessionCallback) {
 
 		super(remoteFileTemplate, messageSessionCallback);
-	}
-
-	/**
-	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
-	 * etc), and an expression to determine the filename.
-	 * @param sessionFactory the session factory.
-	 * @param command the command.
-	 * @param expression the filename expression.
-	 */
-	public SmbOutboundGateway(SessionFactory<SmbFile> sessionFactory, String command, String expression) {
-		this(new SmbRemoteFileTemplate(sessionFactory), command, expression);
-		remoteFileTemplateExplicitlySet(false);
-	}
-
-	/**
-	 * Construct an instance with the supplied remote file template, a command ('ls',
-	 * 'get' etc), and an expression to determine the filename.
-	 * @param remoteFileTemplate the remote file template.
-	 * @param command the command.
-	 * @param expression the filename expression.
-	 */
-	public SmbOutboundGateway(RemoteFileTemplate<SmbFile> remoteFileTemplate, String command, String expression) {
-		super(remoteFileTemplate, command, expression);
-	}
-
-	/**
-	 * Construct an instance with the supplied session factory
-	 * and command ('ls', 'nlst', 'put' or 'mput').
-	 * <p> The {@code remoteDirectory} expression is {@code null} assuming to use
-	 * the {@code workingDirectory} from the SMB Client.
-	 * @param sessionFactory the session factory.
-	 * @param command the command.
-	 */
-	public SmbOutboundGateway(SessionFactory<SmbFile> sessionFactory, String command) {
-		this(sessionFactory, command, null);
-	}
-
-	/**
-	 * Construct an instance with the supplied remote file template
-	 * and command ('ls', 'nlst', 'put' or 'mput').
-	 * <p> The {@code remoteDirectory} expression is {@code null} assuming to use
-	 * the {@code workingDirectory} from the SMB Client.
-	 * @param remoteFileTemplate the remote file template.
-	 * @param command the command.
-	 */
-	public SmbOutboundGateway(RemoteFileTemplate<SmbFile> remoteFileTemplate, String command) {
-		this(remoteFileTemplate, command, null);
-	}
-
-	/**
-	 * Specify an {@link Expression} to evaluate SMB client working directory
-	 * against request message.
-	 * @param workingDirExpression the expression to evaluate working directory
-	 */
-	public void setWorkingDirExpression(Expression workingDirExpression) {
-		this.workingDirExpression = workingDirExpression;
-	}
-
-	/**
-	 * Specify a SpEL {@link Expression} to evaluate SMB client working directory
-	 * against request message.
-	 * @param workingDirExpression the SpEL expression to evaluate working directory
-	 */
-	public void setWorkingDirExpressionString(String workingDirExpression) {
-		setWorkingDirExpression(EXPRESSION_PARSER.parseExpression(workingDirExpression));
 	}
 
 	@Override
@@ -193,12 +121,6 @@ public class SmbOutboundGateway extends AbstractRemoteFileOutboundGateway<SmbFil
 			canonicalFiles.add(new SmbFileInfo(file));
 		}
 		return canonicalFiles;
-	}
-
-	@Override
-	protected void doInit() {
-		super.doInit();
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	@Override
