@@ -33,7 +33,7 @@ public interface MosquittoContainerTest {
 
 	@Container
 	GenericContainer<?> MOSQUITTO_CONTAINER =
-			new GenericContainer<>(TestUtils.dockerRegistryFromEnv() + "eclipse-mosquitto:2.0.12")
+			new GenericContainer<>("eclipse-mosquitto:2.0.12")
 					.withCommand("mosquitto -c /mosquitto-no-auth.conf")
 					.withReuse(true)
 					.withExposedPorts(1883);

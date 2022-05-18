@@ -34,11 +34,7 @@ import org.springframework.integration.test.util.TestUtils;
 public interface MySqlContainerTest {
 
 	@Container
-	MySQLContainer<?> MY_SQL_CONTAINER =
-			new MySQLContainer<>(
-					DockerImageName.parse(TestUtils.dockerRegistryFromEnv() + "mysql")
-							.asCompatibleSubstituteFor("mysql"))
-					.withReuse(true);
+	MySQLContainer<?> MY_SQL_CONTAINER = new MySQLContainer<>("mysql").withReuse(true);
 
 
 	static String getDriverClassName() {

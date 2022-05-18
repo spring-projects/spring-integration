@@ -375,10 +375,6 @@ public abstract class TestUtils {
 		ctx.updateLoggers();
 	}
 
-	public static String dockerRegistryFromEnv() {
-		return Optional.ofNullable(System.getenv("DOCKER_REGISTRY_URL")).orElse("");
-	}
-
 	public static class LevelsContainer {
 
 		private final Map<Class<?>, Level> classLevels;
