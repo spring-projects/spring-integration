@@ -16,13 +16,18 @@
 
 package org.springframework.integration.mqtt;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.springframework.integration.test.util.TestUtils;
 
 /**
+ * The base contract for JUnit tests based on the container for MQTT Mosquitto broker.
+ * The Testcontainers 'reuse' option must be disabled,so, Ryuk container is started
+ * and will clean all the containers up from this test suite after JVM exit.
+ * Since the Mosquitto container instance is shared via static property, it is going to be
+ * started only once per JVM, therefore the target Docker container is reused automatically.
  *
  * @author Artem Bilan
  *
@@ -31,13 +36,15 @@ import org.springframework.integration.test.util.TestUtils;
 @Testcontainers(disabledWithoutDocker = true)
 public interface MosquittoContainerTest {
 
-	@Container
 	GenericContainer<?> MOSQUITTO_CONTAINER =
 			new GenericContainer<>(TestUtils.dockerRegistryFromEnv() + "eclipse-mosquitto:2.0.12")
 					.withCommand("mosquitto -c /mosquitto-no-auth.conf")
-					.withReuse(true)
 					.withExposedPorts(1883);
 
+	@BeforeAll
+	static void startContainer() {
+		MOSQUITTO_CONTAINER.start();
+	}
 
 	static String mqttUrl() {
 		return "tcp://localhost:" + MOSQUITTO_CONTAINER.getFirstMappedPort();
