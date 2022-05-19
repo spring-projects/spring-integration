@@ -24,7 +24,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -48,6 +50,7 @@ import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.smb.SmbTestSupport;
 import org.springframework.integration.smb.inbound.SmbInboundFileSynchronizingMessageSource;
@@ -56,6 +59,7 @@ import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -77,6 +81,7 @@ import jcifs.smb.SmbFile;
  *  |-- SMBSOURCE2.TXT.a
  *  |-- subSmbSource/
  *      |-- subSmbSource1.txt - contains 'subSource1'
+ *      |-- subSmbSource2.txt - contains 'subSource2'
  *  smbTarget/
  * </pre>
  *
@@ -266,6 +271,38 @@ public class SmbTests extends SmbTestSupport {
 		catch (SmbException se) {
 			se.printStackTrace();
 		}
+
+		registration.destroy();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testSmbMgetFlow() {
+		QueueChannel out = new QueueChannel();
+		IntegrationFlow flow = f -> f
+				.handle(
+						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
+								.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
+								.fileExistsMode(FileExistsMode.IGNORE)
+								.filterExpression("name matches 'subSmbSource|.*1.txt'")
+								.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
+								.localFilenameExpression("#remoteFileName.replaceFirst('smbSource', 'localTarget')")
+								.charset(StandardCharsets.UTF_8.name())
+								.useTemporaryFileName(true))
+				.channel(out);
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String dir = "smbSource/subSmbSource/";
+		registration.getInputChannel().send(new GenericMessage<>(dir + "*"));
+		Message<?> result = out.receive(10_000);
+		assertThat(result).isNotNull();
+		List<File> localFiles = (List<File>) result.getPayload();
+		assertThat(localFiles.size()).as("unexpected local files " + localFiles).isEqualTo(1);
+
+		for (File file : localFiles) {
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
+		}
+		assertThat(localFiles.get(0).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir + "subSmbSource");
 
 		registration.destroy();
 	}
