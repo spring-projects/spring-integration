@@ -479,9 +479,8 @@ public class JsonPreparedStatementSetter extends ChannelMessageStorePreparedStat
 ====
 Generally, we do not recommend using a relational database for queuing.
 Instead, if possible, consider using either JMS- or AMQP-backed channels instead.
-For further reference, see the following resources:
+For further reference, see the following resource:
 
-* https://www.engineyard.com/blog/2011/5-subtle-ways-youre-using-mysql-as-a-queue-and-why-itll-bite-you/[5 subtle ways you’re using MySQL as a queue, and why it’ll bite you].
 * https://mikehadlow.blogspot.com/2012/04/database-as-queue-anti-pattern.html[The Database As Queue Anti-Pattern].
 ====
 
