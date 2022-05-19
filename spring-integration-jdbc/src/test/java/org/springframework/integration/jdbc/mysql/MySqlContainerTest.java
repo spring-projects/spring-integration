@@ -19,9 +19,6 @@ package org.springframework.integration.jdbc.mysql;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-
-import org.springframework.integration.test.util.TestUtils;
 
 /**
  * The base contract for JUnit tests based on the container for MqSQL.

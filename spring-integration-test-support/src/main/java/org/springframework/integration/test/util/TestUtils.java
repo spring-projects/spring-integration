@@ -375,6 +375,12 @@ public abstract class TestUtils {
 		ctx.updateLoggers();
 	}
 
+	/**
+	 * Take a Docker Hub url from ENV var.
+	 * @return a Docker Hub url from ENV var.
+	 * @deprecated since 5.5.13 in favor of standard {@code TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX} ENV var
+	 */
+	@Deprecated
 	public static String dockerRegistryFromEnv() {
 		return Optional.ofNullable(System.getenv("DOCKER_REGISTRY_URL")).orElse("");
 	}

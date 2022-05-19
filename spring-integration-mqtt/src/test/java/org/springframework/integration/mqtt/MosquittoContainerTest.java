@@ -20,8 +20,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import org.springframework.integration.test.util.TestUtils;
-
 /**
  * The base contract for JUnit tests based on the container for MQTT Mosquitto broker.
  * The Testcontainers 'reuse' option must be disabled,so, Ryuk container is started
@@ -37,7 +35,7 @@ import org.springframework.integration.test.util.TestUtils;
 public interface MosquittoContainerTest {
 
 	GenericContainer<?> MOSQUITTO_CONTAINER =
-			new GenericContainer<>(TestUtils.dockerRegistryFromEnv() + "eclipse-mosquitto:2.0.12")
+			new GenericContainer<>("eclipse-mosquitto:2.0.12")
 					.withCommand("mosquitto -c /mosquitto-no-auth.conf")
 					.withExposedPorts(1883);
 
