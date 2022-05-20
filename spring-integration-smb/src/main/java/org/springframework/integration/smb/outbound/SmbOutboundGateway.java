@@ -16,15 +16,11 @@
 
 package org.springframework.integration.smb.outbound;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,11 +29,9 @@ import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.smb.session.SmbFileInfo;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
-import org.springframework.messaging.Message;
 
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
@@ -184,90 +178,6 @@ public class SmbOutboundGateway extends AbstractRemoteFileOutboundGateway<SmbFil
 		catch (SmbException | MalformedURLException | UnknownHostException e) {
 			logger.error("Unable to enhance file name with a sub directory path", e);
 			return null;
-		}
-	}
-
-	@Override
-	protected List<?> ls(Message<?> message, Session<SmbFile> session, String dir) throws IOException {
-		return doTask(message, session, () -> super.ls(message, session, dir));
-	}
-
-	@Override
-	protected List<String> nlst(Message<?> message, Session<SmbFile> session, String dir) throws IOException {
-		return doTask(message, session, () -> super.nlst(message, session, dir));
-	}
-
-	@Override
-	protected File get(Message<?> message, Session<SmbFile> session, String remoteDir, String remoteFilePath,
-			String remoteFilename, SmbFile fileInfoParam) throws IOException {
-
-		return doTask(message, session,
-				() -> super.get(message, session, remoteDir, remoteFilePath, remoteFilename, fileInfoParam));
-	}
-
-	@Override
-	protected List<File> mGet(Message<?> message, Session<SmbFile> session, String remoteDirectory,
-			String remoteFilename) throws IOException {
-
-		return doTask(message, session,
-				() -> super.mGet(message, session, remoteDirectory, remoteFilename));
-	}
-
-	@Override
-	protected boolean rm(Message<?> message, Session<SmbFile> session, String remoteFilePath) throws IOException {
-		return doTask(message, session, () -> super.rm(message, session, remoteFilePath));
-	}
-
-	@Override
-	protected boolean mv(Message<?> message, Session<SmbFile> session, String remoteFilePath, String remoteFileNewPath)
-			throws IOException {
-
-		return doTask(message, session,
-				() -> super.mv(message, session, remoteFilePath, remoteFileNewPath));
-	}
-
-	@Override
-	protected String put(Message<?> message, Session<SmbFile> session, String subDirectory) {
-		try {
-			return doTask(message, session,
-					() -> super.put(message, session, subDirectory));
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
-
-	@Override
-	protected List<String> mPut(Message<?> message, Session<SmbFile> session, File localDir) {
-		try {
-			return doTask(message, session,
-					() -> super.mPut(message, session, localDir));
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
-
-	private <V> V doTask(Message<?> message, Session<SmbFile> session, Callable<V> task)
-			throws IOException {
-
-		try {
-			return task.call();
-		}
-		catch (Exception ex) {
-			throw rethrowAsIoExceptionIfAny(ex);
-		}
-	}
-
-	private IOException rethrowAsIoExceptionIfAny(Exception ex) {
-		if (ex instanceof IOException) {
-			return (IOException) ex;
-		}
-		else if (ex instanceof RuntimeException) {
-			throw (RuntimeException) ex;
-		}
-		else {
-			return new IOException("Uncategorized IO exception", ex);
 		}
 	}
 

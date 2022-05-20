@@ -284,7 +284,7 @@ public class SmbTests extends SmbTestSupport {
 						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
 								.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
 								.fileExistsMode(FileExistsMode.IGNORE)
-								.filterExpression("name matches 'subSmbSource|.*1.txt'")
+								.filterExpression("name matches 'subSmbSource|.*.txt'")
 								.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
 								.localFilenameExpression("#remoteFileName.replaceFirst('smbSource', 'localTarget')")
 								.charset(StandardCharsets.UTF_8.name())
@@ -296,12 +296,12 @@ public class SmbTests extends SmbTestSupport {
 		Message<?> result = out.receive(10_000);
 		assertThat(result).isNotNull();
 		List<File> localFiles = (List<File>) result.getPayload();
-		assertThat(localFiles.size()).as("unexpected local files " + localFiles).isEqualTo(1);
+		assertThat(localFiles.size()).as("unexpected local files " + localFiles).isEqualTo(2);
 
 		for (File file : localFiles) {
 			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 		}
-		assertThat(localFiles.get(0).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
 				.contains(dir + "subSmbSource");
 
 		registration.destroy();
