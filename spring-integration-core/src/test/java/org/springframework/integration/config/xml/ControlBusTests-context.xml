@@ -8,7 +8,7 @@
 
 	<beans:bean id="integrationHeaderChannelRegistry"
 				class="org.springframework.integration.channel.DefaultHeaderChannelRegistry">
-		<beans:constructor-arg value="1000"/>
+		<beans:constructor-arg value="100"/>
 	</beans:bean>
 
 	<channel id="output">

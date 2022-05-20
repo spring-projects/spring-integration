@@ -17,6 +17,7 @@
 package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import java.util.Date;
 import java.util.Map;
@@ -96,7 +97,7 @@ public class ControlBusTests {
 	}
 
 	@Test
-	public void testControlHeaderChannelReaper() throws InterruptedException {
+	public void testControlHeaderChannelReaper() {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
 		Message<?> result = this.output.receive(0);
@@ -108,13 +109,15 @@ public class ControlBusTests {
 		result = this.output.receive(0);
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload()).isEqualTo(1);
-		// Let the registry to reap old channels
-		Thread.sleep(1000);
+		// Let the registry reap old channels
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.runReaper()");
-		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
-		result = this.output.receive(0);
-		assertThat(result).isNotNull();
-		assertThat(result.getPayload()).isEqualTo(0);
+		await()
+				.until(() -> {
+					messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
+					Message<?> sizeMessage = this.output.receive(0);
+					assertThat(sizeMessage).isNotNull();
+					return sizeMessage.getPayload();
+				}, payload -> payload.equals(0));
 	}
 
 	@Test
