@@ -21,6 +21,7 @@ import java.util.Comparator;
 
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.smb.outbound.SmbOutboundGateway;
@@ -125,6 +126,70 @@ public final class Smb {
 
 		return new SmbMessageHandlerSpec(smbRemoteFileTemplate, fileExistsMode);
 	}
+
+	/**
+	 * Produce a {@link SmbOutboundGatewaySpec} based on the {@link SessionFactory},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
+	 * remoteFilePath.
+	 * @param sessionFactory the {@link SessionFactory}.
+	 * @param command the command to perform on the SMB.
+	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link SmbOutboundGatewaySpec}
+	 */
+	public static SmbOutboundGatewaySpec outboundGateway(SessionFactory<SmbFile> sessionFactory,
+			AbstractRemoteFileOutboundGateway.Command command, String expression) {
+
+		return outboundGateway(sessionFactory, command.getCommand(), expression);
+	}
+
+	/**
+	 * Produce a {@link SmbOutboundGatewaySpec} based on the {@link SessionFactory},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
+	 * remoteFilePath.
+	 * @param sessionFactory the {@link SessionFactory}.
+	 * @param command the command to perform on the SMB.
+	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link SmbOutboundGatewaySpec}
+	 * @see RemoteFileTemplate
+	 */
+	public static SmbOutboundGatewaySpec outboundGateway(SessionFactory<SmbFile> sessionFactory,
+			String command, String expression) {
+
+		return new SmbOutboundGatewaySpec(new SmbOutboundGateway(sessionFactory, command, expression));
+	}
+
+	/**
+	 * Produce a {@link SmbOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
+	 * remoteFilePath.
+	 * @param remoteFileTemplate the {@link RemoteFileTemplate}.
+	 * @param command the command to perform on the SMB.
+	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link SmbOutboundGatewaySpec}
+	 * @see RemoteFileTemplate
+	 */
+	public static SmbOutboundGatewaySpec outboundGateway(RemoteFileTemplate<SmbFile> remoteFileTemplate,
+			AbstractRemoteFileOutboundGateway.Command command, String expression) {
+
+		return outboundGateway(remoteFileTemplate, command.getCommand(), expression);
+	}
+
+	/**
+	 * Produce a {@link SmbOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
+	 * remoteFilePath.
+	 * @param remoteFileTemplate the {@link RemoteFileTemplate}.
+	 * @param command the command to perform on the SMB.
+	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link SmbOutboundGatewaySpec}
+	 * @see RemoteFileTemplate
+	 */
+	public static SmbOutboundGatewaySpec outboundGateway(RemoteFileTemplate<SmbFile> remoteFileTemplate,
+			String command, String expression) {
+
+		return new SmbOutboundGatewaySpec(new SmbOutboundGateway(remoteFileTemplate, command, expression));
+	}
+
 
 	/**
 	 * Produce a {@link SmbOutboundGatewaySpec} based on the

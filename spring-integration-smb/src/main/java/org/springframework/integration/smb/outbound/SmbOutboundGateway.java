@@ -72,6 +72,53 @@ public class SmbOutboundGateway extends AbstractRemoteFileOutboundGateway<SmbFil
 		super(remoteFileTemplate, messageSessionCallback);
 	}
 
+	/**
+	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
+	 * etc), and an expression to determine the filename.
+	 * @param sessionFactory the session factory.
+	 * @param command the command.
+	 * @param expression the filename expression.
+	 */
+	public SmbOutboundGateway(SessionFactory<SmbFile> sessionFactory, String command, String expression) {
+		this(new SmbRemoteFileTemplate(sessionFactory), command, expression);
+		remoteFileTemplateExplicitlySet(false);
+	}
+
+	/**
+	 * Construct an instance with the supplied remote file template, a command ('ls',
+	 * 'get' etc), and an expression to determine the filename.
+	 * @param remoteFileTemplate the remote file template.
+	 * @param command the command.
+	 * @param expression the filename expression.
+	 */
+	public SmbOutboundGateway(RemoteFileTemplate<SmbFile> remoteFileTemplate, String command, String expression) {
+		super(remoteFileTemplate, command, expression);
+	}
+
+	/**
+	 * Construct an instance with the supplied session factory
+	 * and command ('ls', 'nlst', 'put' or 'mput').
+	 * <p> The {@code remoteDirectory} expression is {@code null} assuming to use
+	 * the {@code workingDirectory} from the SMB Client.
+	 * @param sessionFactory the session factory.
+	 * @param command the command.
+	 */
+	public SmbOutboundGateway(SessionFactory<SmbFile> sessionFactory, String command) {
+		this(sessionFactory, command, null);
+	}
+
+	/**
+	 * Construct an instance with the supplied remote file template
+	 * and command ('ls', 'nlst', 'put' or 'mput').
+	 * <p> The {@code remoteDirectory} expression is {@code null} assuming to use
+	 * the {@code workingDirectory} from the SMB Client.
+	 * @param remoteFileTemplate the remote file template.
+	 * @param command the command.
+	 */
+	public SmbOutboundGateway(RemoteFileTemplate<SmbFile> remoteFileTemplate, String command) {
+		this(remoteFileTemplate, command, null);
+	}
+
 	@Override
 	public String getComponentType() {
 		return "smb:outbound-gateway";
