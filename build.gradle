@@ -59,8 +59,8 @@ ext {
     commonsNetVersion = '3.8.0'
     curatorVersion = '4.3.0'
     derbyVersion = '10.14.2.0'
+    findbugsVersion = '3.0.1'
     ftpServerVersion = '1.2.0'
-    googleJsr305Version = '3.0.2'
     greenmailVersion = '2.0.0-alpha-2'
     groovyVersion = '3.0.10'
     hamcrestVersion = '2.2'
@@ -251,8 +251,8 @@ configure(javaProjects) { subproject ->
         }
 
         // JSR-305 only used for non-required meta-annotations
-        compileOnly "com.google.code.findbugs:jsr305:$googleJsr305Version"
-        testImplementation "com.google.code.findbugs:jsr305:$googleJsr305Version"
+        compileOnly "com.google.code.findbugs:annotations:$findbugsVersion"
+        testImplementation "com.google.code.findbugs:annotations:$findbugsVersion"
         testImplementation("org.awaitility:awaitility:$awaitilityVersion") {
             exclude group: 'org.hamcrest'
         }
@@ -1078,6 +1078,15 @@ project('spring-integration-bom') {
     sonarqube {
         skipProject = true
     }
+}
+
+
+project('spring-integration-hazelcast') {
+    description = 'Spring Integration Hazelcast Support'
+    dependencies {
+	api "com.hazelcast:hazelcast:$hazelcastVersion"
+	api project(':spring-integration-core')
+	}
 }
 
 sonarqube {

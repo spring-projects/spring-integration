@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-hazelcast="http://www.springframework.org/schema/integration/hazelcast"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    https://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/hazelcast
+	https://www.springframework.org/schema/integration/hazelcast/spring-integration-hazelcast.xsd">
+
+	<import resource="classpath:org/springframework/integration/hazelcast/common-config.xml"/>
+
+	<int:channel id="edReplicatedMapChannel1">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="edReplicatedMapChannel2">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="edReplicatedMapChannel3">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="edReplicatedMapChannel4">
+		<int:queue/>
+	</int:channel>
+
+	<int-hazelcast:inbound-channel-adapter channel="edReplicatedMapChannel1" cache="edReplicatedMap1"/>
+	<int-hazelcast:inbound-channel-adapter channel="edReplicatedMapChannel2" cache="edReplicatedMap2"
+										   cache-events="UPDATED"/>
+	<int-hazelcast:inbound-channel-adapter channel="edReplicatedMapChannel3" cache="edReplicatedMap3"
+										   cache-events="REMOVED"/>
+	<int-hazelcast:inbound-channel-adapter channel="edReplicatedMapChannel4" cache="edReplicatedMap4"
+										   cache-events="ADDED,REMOVED,UPDATED"/>
+
+	<bean id="edReplicatedMap1" factory-bean="instance" factory-method="getReplicatedMap">
+		<constructor-arg value="edReplicatedMap1"/>
+	</bean>
+
+	<bean id="edReplicatedMap2" factory-bean="instance" factory-method="getReplicatedMap">
+		<constructor-arg value="edReplicatedMap2"/>
+	</bean>
+
+	<bean id="edReplicatedMap3" factory-bean="instance" factory-method="getReplicatedMap">
+		<constructor-arg value="edReplicatedMap3"/>
+	</bean>
+
+	<bean id="edReplicatedMap4" factory-bean="instance" factory-method="getReplicatedMap">
+		<constructor-arg value="edReplicatedMap4"/>
+	</bean>
+
+</beans>

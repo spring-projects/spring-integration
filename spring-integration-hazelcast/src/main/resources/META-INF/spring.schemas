@@ -1,0 +1,4 @@
+http\://www.springframework.org/schema/integration/hazelcast/spring-integration-hazelcast-1.0.xsd=org/springframework/integration/hazelcast/config/xml/spring-integration-hazelcast.xsd
+http\://www.springframework.org/schema/integration/hazelcast/spring-integration-hazelcast.xsd=org/springframework/integration/hazelcast/config/xml/spring-integration-hazelcast.xsd
+https\://www.springframework.org/schema/integration/hazelcast/spring-integration-hazelcast-1.0.xsd=org/springframework/integration/hazelcast/config/xml/spring-integration-hazelcast.xsd
+https\://www.springframework.org/schema/integration/hazelcast/spring-integration-hazelcast.xsd=org/springframework/integration/hazelcast/config/xml/spring-integration-hazelcast.xsd

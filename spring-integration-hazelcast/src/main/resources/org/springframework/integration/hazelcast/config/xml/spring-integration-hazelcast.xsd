@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/hazelcast"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	targetNamespace="http://www.springframework.org/schema/integration/hazelcast"
+	elementFormDefault="qualified"
+	attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"
+				schemaLocation="https://www.springframework.org/schema/beans/spring-beans.xsd"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+				schemaLocation="https://www.springframework.org/schema/integration/spring-integration.xsd"/>
+
+	<xsd:element name="inbound-channel-adapter">
+
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures Hazelcast Event-Driven Inbound Channel Adapter
+			</xsd:documentation>
+		</xsd:annotation>
+
+		<xsd:complexType>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+
+			<xsd:attribute name="cache" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.hazelcast.core.DistributedObject" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						<![CDATA[ Specifies cache reference to listen ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="cache-events" type="xsd:string" use="optional" default="ADDED">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="value">
+							<tool:expected-type
+								type="org.springframework.integration.hazelcast.common.CacheEventType" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						<![CDATA[ Specifies cache entry event types ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="cache-listening-policy" default="SINGLE" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[ Specifies cache listening policy. ]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="SINGLE" />
+						<xsd:enumeration value="ALL" />
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures Hazelcast Outbound Channel Adapter
+			</xsd:documentation>
+		</xsd:annotation>
+
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="2">
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+							minOccurs="0" maxOccurs="1" />
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:choice>
+
+ 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+
+			<xsd:attribute name="cache" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.hazelcast.core.DistributedObject" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						<![CDATA[ Specifies cache reference to listen ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			
+			<xsd:attribute name="cache-expression" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Specifies cache name to listen ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			
+			<xsd:attribute name="key-expression" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Specifies entry key ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			
+			<xsd:attribute name="extract-payload" type="xsd:boolean" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Specifies whole message or just payload to send ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="order" type="xsd:string" use="optional">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+                    Specifies the order for invocation when this endpoint is connected as a
+                    subscriber to a SubscribableChannel.
+                ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="cq-inbound-channel-adapter">
+
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures Hazelcast Continuous Query Inbound Channel Adapter
+			</xsd:documentation>
+		</xsd:annotation>
+
+		<xsd:complexType>
+
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+
+			<xsd:attribute name="cache" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.hazelcast.core.IMap" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						<![CDATA[ Specifies cache reference to listen ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="cache-events" type="xsd:string" use="optional" default="ADDED">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="value">
+							<tool:expected-type
+								type="org.springframework.integration.hazelcast.common.CacheEventType" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						<![CDATA[ Specifies cache entry event types ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="predicate" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Specifies predicate for continuous query ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="include-value" type="xsd:boolean" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Specifies including of value and oldValue in continuous query result ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="cache-listening-policy" default="SINGLE" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[ Specifies cache listening policy. ]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="SINGLE" />
+						<xsd:enumeration value="ALL" />
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="ds-inbound-channel-adapter">
+
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures Hazelcast Distributed SQL Inbound Channel Adapter
+			</xsd:documentation>
+		</xsd:annotation>
+
+		<xsd:complexType>
+
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+
+			<xsd:attribute name="cache" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.hazelcast.core.IMap" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						<![CDATA[ Specifies cache reference to listen ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="iteration-type" default="VALUE" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[ Specifies Distributed-SQL Iteration Types. ]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="ENTRY" />
+						<xsd:enumeration value="KEY" />
+						<xsd:enumeration value="LOCAL_KEY" />
+						<xsd:enumeration value="VALUE" />
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+
+			<xsd:attribute name="distributed-sql" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Specifies Distributed-SQL ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+		</xsd:complexType>
+
+	</xsd:element>
+	
+	<xsd:element name="cm-inbound-channel-adapter">
+
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures Hazelcast Cluster Monitor Inbound Channel Adapter
+			</xsd:documentation>
+		</xsd:annotation>
+
+		<xsd:complexType>
+
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+
+			<xsd:attribute name="hazelcast-instance" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.hazelcast.core.HazelcastInstance" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						<![CDATA[ Specifies hazelcast instance reference to listen ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="monitor-types" type="xsd:string" use="optional" default="MEMBERSHIP">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="value">
+							<tool:expected-type
+								type="org.springframework.integration.hazelcast.ClusterMonitorType" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						<![CDATA[ Specifies cluster monitor types ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+
+	</xsd:element>
+	
+</xsd:schema>

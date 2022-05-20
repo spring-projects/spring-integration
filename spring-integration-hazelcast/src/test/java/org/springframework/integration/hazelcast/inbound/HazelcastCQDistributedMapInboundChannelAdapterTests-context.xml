@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-hazelcast="http://www.springframework.org/schema/integration/hazelcast"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    https://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/hazelcast
+	https://www.springframework.org/schema/integration/hazelcast/spring-integration-hazelcast.xsd">
+
+	<import resource="classpath:org/springframework/integration/hazelcast/common-config.xml"/>
+
+	<int:channel id="cqMapChannel1">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="cqMapChannel2">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="cqMapChannel3">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="cqMapChannel4">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="cqMapChannel5">
+		<int:queue/>
+	</int:channel>
+
+	<int-hazelcast:cq-inbound-channel-adapter channel="cqMapChannel1" cache="cqDistributedMap1"
+											  predicate="name=TestName1"/>
+
+	<int-hazelcast:cq-inbound-channel-adapter channel="cqMapChannel2" cache="cqDistributedMap2" cache-events="REMOVED"
+											  predicate="name=TestName2"/>
+
+	<int-hazelcast:cq-inbound-channel-adapter channel="cqMapChannel3" cache="cqDistributedMap3"
+											  cache-events="ADDED,REMOVED,UPDATED,CLEAR_ALL"
+											  predicate="name=TestName1 OR name=TestName2"/>
+
+	<int-hazelcast:cq-inbound-channel-adapter channel="cqMapChannel4" cache="cqDistributedMap4" cache-events="UPDATED"
+											  predicate="surname=TestSurname2"/>
+
+	<int-hazelcast:cq-inbound-channel-adapter channel="cqMapChannel5" cache="cqDistributedMap5" cache-events="UPDATED"
+											  predicate="surname=TestSurname2" include-value="false"/>
+
+	<bean id="cqDistributedMap1" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="cqDistributedMap1"/>
+	</bean>
+
+	<bean id="cqDistributedMap2" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="cqDistributedMap2"/>
+	</bean>
+
+	<bean id="cqDistributedMap3" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="cqDistributedMap3"/>
+	</bean>
+
+	<bean id="cqDistributedMap4" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="cqDistributedMap4"/>
+	</bean>
+
+	<bean id="cqDistributedMap5" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="cqDistributedMap5"/>
+	</bean>
+
+</beans>

@@ -1,0 +1,1 @@
+http\://www.springframework.org/schema/integration/hazelcast=org.springframework.integration.hazelcast.config.xml.HazelcastIntegrationNamespaceHandler
