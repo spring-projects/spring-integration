@@ -1080,6 +1080,17 @@ project('spring-integration-bom') {
     }
 }
 
+
+project('spring-integration-hazelcast') {
+    description = 'Spring Integration Hazelcast Support'
+    dependencies {
+	implementation "com.hazelcast:hazelcast:$hazelcastVersion"
+	api project(':spring-integration-core')
+
+	testImplementation project(':spring-integration-test')
+    }
+}
+
 sonarqube {
     properties {
         property 'sonar.links.homepage', linkHomepage
