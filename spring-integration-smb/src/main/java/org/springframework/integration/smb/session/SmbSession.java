@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -480,9 +482,46 @@ public class SmbSession implements Session<SmbFile> {
 		return url.getHost() + ":" + url.getPort();
 	}
 
+	/**
+	 * Returns the contents of the specified SMB resource as an array of SmbFile filenames.
+	 * In case the remote resource does not exist, an empty array is returned.
+	 * @param _path path to a remote directory
+	 * @return array of SmbFile filenames
+	 * @throws IOException on error conditions returned by a CIFS server or if the remote resource is not a directory.
+	 */
 	@Override
-	public String[] listNames(String path) {
-		throw new UnsupportedOperationException("Not implemented yet");
+	public String[] listNames(String _path) throws IOException {
+		List<String> fileNames = new ArrayList<>();
+		try {
+			SmbFile smbDir = createSmbDirectoryObject(_path);
+			if (!smbDir.exists()) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("Remote directory [" + _path + "] does not exist. Cannot list resources.");
+				}
+				return fileNames.toArray(new String[0]);
+			}
+			else if (!smbDir.isDirectory()) {
+				throw new IOException("Resource [" + _path + "] is not a directory. Cannot list resources.");
+			}
+
+			SmbFile[] files = smbDir.listFiles();
+			for (SmbFile file : files) {
+				fileNames.add(file.getName());
+			}
+		}
+		catch (SmbException _ex) {
+			throw new IOException("Failed to list resources in [" + _path + "].", _ex);
+		}
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("Successfully listed " + fileNames.size() + " resource(s) in [" + _path + "]"
+					+ ": " + fileNames.toString());
+		}
+		else if (logger.isInfoEnabled()) {
+			logger.info("Successfully listed " + fileNames.size() + " resource(s) in [" + _path + "]" + ".");
+		}
+
+		return fileNames.toArray(new String[fileNames.size()]);
 	}
 
 }

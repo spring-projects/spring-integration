@@ -55,6 +55,7 @@ import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.smb.SmbTestSupport;
 import org.springframework.integration.smb.inbound.SmbInboundFileSynchronizingMessageSource;
 import org.springframework.integration.smb.inbound.SmbStreamingMessageSource;
+import org.springframework.integration.smb.session.SmbFileInfo;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -301,8 +302,73 @@ public class SmbTests extends SmbTestSupport {
 		for (File file : localFiles) {
 			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 		}
+
 		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
 				.contains(dir + "subSmbSource");
+
+		registration.destroy();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testSmbLsFlow() {
+		QueueChannel out = new QueueChannel();
+		IntegrationFlow flow = f -> f
+				.handle(
+						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.LS, "payload")
+								.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
+								.fileExistsMode(FileExistsMode.IGNORE)
+								.filterExpression("name matches 'subSmbSource|.*.txt'")
+								.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
+								.localFilenameExpression("#remoteFileName.replaceFirst('smbSource', 'localTarget')")
+								.charset(StandardCharsets.UTF_8.name())
+								.useTemporaryFileName(true))
+				.channel(out);
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String dir = "smbSource/subSmbSource/";
+		registration.getInputChannel().send(new GenericMessage<>(dir));
+		Message<?> result = out.receive(10_000);
+		assertThat(result).isNotNull();
+		List<SmbFileInfo> localFiles = (List<SmbFileInfo>) result.getPayload();
+		assertThat(localFiles.size()).as("unexpected local files " + localFiles).isEqualTo(2);
+
+		for (SmbFileInfo fileInfo : localFiles) {
+			SmbFile file = fileInfo.getFileInfo();
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
+		}
+
+		assertThat(localFiles.get(1).getFileInfo().getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir + "subSmbSource");
+
+		registration.destroy();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testSmbNlstFlow() {
+		QueueChannel out = new QueueChannel();
+		IntegrationFlow flow = f -> f
+				.handle(
+						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.NLST, "payload")
+								.options(AbstractRemoteFileOutboundGateway.Option.ALL)
+								.fileExistsMode(FileExistsMode.IGNORE)
+								.filterExpression("name matches 'subSmbSource|.*.txt'")
+								.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
+								.localFilenameExpression("#remoteFileName.replaceFirst('smbSource', 'localTarget')")
+								.charset(StandardCharsets.UTF_8.name())
+								.useTemporaryFileName(true))
+				.channel(out);
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String dir = "smbSource/subSmbSource/";
+		registration.getInputChannel().send(new GenericMessage<>(dir));
+		Message<?> result = out.receive(10_000);
+		assertThat(result).isNotNull();
+		List<String> localFilenames = (List<String>) result.getPayload();
+		assertThat(localFilenames.size()).as("unexpected local filenames " + localFilenames).isEqualTo(2);
+
+		for (String filename : localFilenames) {
+			assertThat(filename.contains("subSmbSource"));
+		}
 
 		registration.destroy();
 	}
