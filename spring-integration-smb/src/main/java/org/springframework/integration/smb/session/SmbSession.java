@@ -23,9 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -99,7 +97,7 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Deletes the file or directory at the specified path.
+	 * Delete the file or directory at the specified path.
 	 * @param _path path to a remote file or directory
 	 * @return true if delete successful, false if resource is non-existent
 	 * @throws IOException on error conditions returned by a CIFS server
@@ -125,7 +123,7 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Returns the contents of the specified SMB resource as an array of SmbFile objects.
+	 * Return the contents of the specified SMB resource as an array of SmbFile objects.
 	 * In case the remote resource does not exist, an empty array is returned.
 	 * @param _path path to a remote directory
 	 * @return array of SmbFile objects
@@ -164,7 +162,7 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Reads the remote resource specified by path and copies its contents to the specified
+	 * Read the remote resource specified by path and copies its contents to the specified
 	 * {@link OutputStream}.
 	 * @param _path path to a remote file
 	 * @param _outputStream output stream
@@ -192,7 +190,7 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Writes contents of the specified {@link InputStream} to the remote resource
+	 * Write contents of the specified {@link InputStream} to the remote resource
 	 * specified by path. Remote directories are created implicitly as required.
 	 * @param _inputStream input stream
 	 * @param _path remote path (of a file) to write to
@@ -239,7 +237,7 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Creates the specified remote path if not yet exists.
+	 * Create the specified remote path if not yet exists.
 	 * If the specified resource is a file rather than a path, creates all directories leading
 	 * to that file.
 	 * @param _path remote path to create
@@ -270,7 +268,7 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Checks whether the remote resource exists.
+	 * Check whether the remote resource exists.
 	 * @param _path remote path
 	 * @return true if exists, false otherwise
 	 * @throws IOException  on error conditions returned by a CIFS server
@@ -281,7 +279,7 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Checks whether the remote resource is a file.
+	 * Check whether the remote resource is a file.
 	 * @param _path remote path
 	 * @return true if resource is a file, false otherwise
 	 * @throws IOException on error conditions returned by a CIFS server
@@ -292,7 +290,7 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Checks whether the remote resource is a directory.
+	 * Check whether the remote resource is a directory.
 	 * @param _path remote path
 	 * @return true if resource is a directory, false otherwise
 	 * @throws IOException on error conditions returned by a CIFS server
@@ -389,8 +387,8 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Checks with this SMB session is open and ready for work by attempting
-	 * to list remote files and checking for error conditions..
+	 * Check whether this SMB session is open and ready for work by attempting
+	 * to list remote files and checking for error conditions.
 	 * @return true if the session is open, false otherwise
 	 */
 	@Override
@@ -457,7 +455,7 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Creates an SMB file object pointing to a remote file.
+	 * Create an SMB file object pointing to a remote file.
 	 * @param _path the remote file path
 	 * @return the {@link SmbFile} for remote path
 	 * @throws IOException the IO exception
@@ -467,7 +465,7 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Creates an SMB file object pointing to a remote directory.
+	 * Create an SMB file object pointing to a remote directory.
 	 * @param _path the remote directory path
 	 * @return the {@link SmbFile} for remote path
 	 * @throws IOException the IO exception
@@ -483,7 +481,7 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Returns the contents of the specified SMB resource as an array of SmbFile filenames.
+	 * Return the contents of the specified SMB resource as an array of SmbFile filenames.
 	 * In case the remote resource does not exist, an empty array is returned.
 	 * @param _path path to a remote directory
 	 * @return array of SmbFile filenames
@@ -491,37 +489,34 @@ public class SmbSession implements Session<SmbFile> {
 	 */
 	@Override
 	public String[] listNames(String _path) throws IOException {
-		List<String> fileNames = new ArrayList<>();
+		String[] fileNames = new String[0];
 		try {
 			SmbFile smbDir = createSmbDirectoryObject(_path);
 			if (!smbDir.exists()) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("Remote directory [" + _path + "] does not exist. Cannot list resources.");
 				}
-				return fileNames.toArray(new String[0]);
+				return fileNames;
 			}
 			else if (!smbDir.isDirectory()) {
 				throw new IOException("Resource [" + _path + "] is not a directory. Cannot list resources.");
 			}
 
-			SmbFile[] files = smbDir.listFiles();
-			for (SmbFile file : files) {
-				fileNames.add(file.getName());
-			}
+			fileNames = smbDir.list();
 		}
 		catch (SmbException _ex) {
 			throw new IOException("Failed to list resources in [" + _path + "].", _ex);
 		}
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("Successfully listed " + fileNames.size() + " resource(s) in [" + _path + "]"
-					+ ": " + fileNames.toString());
+			logger.debug("Successfully listed " + fileNames.length + " resource(s) in [" + _path + "]"
+					+ ": " + Arrays.toString(fileNames));
 		}
 		else if (logger.isInfoEnabled()) {
-			logger.info("Successfully listed " + fileNames.size() + " resource(s) in [" + _path + "]" + ".");
+			logger.info("Successfully listed " + fileNames.length + " resource(s) in [" + _path + "]" + ".");
 		}
 
-		return fileNames.toArray(new String[fileNames.size()]);
+		return fileNames;
 	}
 
 }
