@@ -41,6 +41,9 @@ import org.springframework.util.PatternMatchUtils;
  * classes/packages are deserialized. If you receive data from untrusted sources, consider
  * adding trusted classes/packages using {@link #setAllowedPatterns(String...)} or
  * {@link #addAllowedPatterns(String...)}.
+ * <p>
+ * If a delegate deserializer is a {@link DefaultDeserializer}, only its {@link ClassLoader}
+ * is used for a {@link ConfigurableObjectInputStream} logic.
  *
  * @author Gary Russell
  * @author Mark Fisher
@@ -133,7 +136,13 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 				return deserialize(byteStream);
 			}
 			else {
-				return this.deserializer.deserialize(byteStream);
+				Object result = this.deserializer.deserialize(byteStream);
+				/* Even if there is no knowledge what is the target deserialization algorithm
+				 and malicious code may be executed already, it is still better to fail
+				 with untrusted data rather than just let it pass downstream.
+				 */
+				checkAllowList(result.getClass());
+				return result;
 			}
 		}
 		catch (Exception ex) {

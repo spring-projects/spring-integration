@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.condition.LongRunningTest;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -80,6 +81,10 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		MessageChannel input = context.getBean("input", MessageChannel.class);
 		MessageGroupStore messageStore = context.getBean("messageStore", MessageGroupStore.class);
 
+		ClassLoader messageStoreDeserializerClassLoader =
+				TestUtils.getPropertyValue(messageStore, "deserializer.defaultDeserializerClassLoader",
+						ClassLoader.class);
+		assertThat(messageStoreDeserializerClassLoader).isSameAs(context.getClassLoader());
 		assertThat(messageStore.getMessageGroupCount()).isEqualTo(0);
 		Message<String> message1 = MessageBuilder.withPayload("test1").build();
 		input.send(message1);

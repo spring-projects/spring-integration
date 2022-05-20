@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.dsl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.util.Date;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -31,6 +32,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.IntegrationConverter;
+import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.handler.GenericHandler;
 import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.transformer.GenericTransformer;
@@ -84,6 +86,24 @@ public class LambdaMessageProcessorTests {
 		assertThatExceptionOfType(ClassCastException.class)
 				.isThrownBy(() -> lmp.processMessage(testMessage));
 	}
+
+	@Test
+	public void testConversionToNull() {
+		LambdaMessageProcessor lmp = new LambdaMessageProcessor(
+				new GenericSelector<Date>() { // Must not be lambda
+
+					@Override
+					public boolean accept(Date payload) {
+						return payload == null;
+					}
+
+				}, Date.class);
+		lmp.setBeanFactory(this.beanFactory);
+		GenericMessage<String> testMessage = new GenericMessage<>("foo");
+		Object result = lmp.processMessage(testMessage);
+		assertThat(result).isEqualTo(Boolean.TRUE);
+	}
+
 
 	@Test
 	public void testCustomConverter() {
