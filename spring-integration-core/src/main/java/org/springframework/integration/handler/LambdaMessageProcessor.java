@@ -29,6 +29,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.MethodIntrospector;
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -151,7 +152,14 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 						args[i] = message;
 					}
 					else {
-						args[i] = this.messageConverter.fromMessage(message, this.expectedType);
+						Object payload = this.messageConverter.fromMessage(message, this.expectedType);
+						if (payload == null && LOGGER.isWarnEnabled()) {
+							LOGGER.warn(LogMessage.format(
+									"The '%s' returned 'null' for the payload conversion from the " +
+											"'%s' and expected type '%s'.",
+									this.messageConverter, message, this.expectedType));
+						}
+						args[i] = payload;
 					}
 				}
 				else {

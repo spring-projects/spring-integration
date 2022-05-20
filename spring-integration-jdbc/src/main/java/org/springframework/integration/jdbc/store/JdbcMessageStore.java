@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
@@ -79,7 +80,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore {
+public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
 
 	/**
 	 * Default value for the table prefix property.
@@ -177,7 +178,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
-	private AllowListDeserializingConverter deserializer;
+	private AllowListDeserializingConverter deserializer =
+			new AllowListDeserializingConverter(JdbcMessageStore.class.getClassLoader());
+
+	private boolean deserializerExplicitlySet;
 
 	private SerializingConverter serializer;
 
@@ -199,7 +203,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public JdbcMessageStore(JdbcOperations jdbcOperations) {
 		Assert.notNull(jdbcOperations, "'dataSource' must not be null");
 		this.jdbcTemplate = jdbcOperations;
-		this.deserializer = new AllowListDeserializingConverter();
 		this.serializer = new SerializingConverter();
 		try {
 			this.vendorName =
@@ -208,6 +211,13 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		}
 		catch (MetaDataAccessException ex) {
 			throw new IllegalStateException("Cannot extract database vendor name", ex);
+		}
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		if (!this.deserializerExplicitlySet) {
+			this.deserializer = new AllowListDeserializingConverter(classLoader);
 		}
 	}
 
@@ -249,12 +259,13 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	/**
-	 * A converter for deserializing byte arrays to messages.
+	 * A converter for deserializing byte arrays to message.
 	 * @param deserializer the deserializer to set
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
 		this.deserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
+		this.deserializerExplicitlySet = true;
 	}
 
 	/**
