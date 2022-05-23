@@ -186,7 +186,7 @@ public class SmbJavaApplication {
 ----
 ====
 
-[[smb-streaming]]
+[[smb-streaming-inbound]]
 === SMB Streaming Inbound Channel Adapter
 
 This adapter produces message with payloads of type `InputStream`, letting files be fetched without writing to the local file system.
@@ -232,9 +232,6 @@ See <<smb-max-fetch>> for more information.
 The adapter puts the remote directory and file name in the `FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE` headers, respectively.
 The `FileHeaders.REMOTE_FILE_INFO` header provides additional remote file information (represented in JSON by default).
 If you set the `fileInfoJson` property on the `SmbStreamingMessageSource` to `false`, the header contains an `SmbFileInfo` object.
-The `SmbFile` object provided by the underlying Apache Net library can be accessed by using the `SmbFileInfo.getFileInfo()` method.
-The `fileInfoJson` property is not available when you use XML configuration, but you can set it by injecting the `SmbStreamingMessageSource` into one of your configuration classes.
-See also <<smb-remote-file-info>>.
 
 [[smb-streaming-java]]
 ==== Configuring with Java Configuration
@@ -473,23 +470,6 @@ if (closeable != null) {
 ====
 
 Framework components, such as the <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>>, automatically close the session after the data is transferred.
-
-The following example shows how to consume a file as a stream:
-
-====
-[source, xml]
-----
-<int-smb:outbound-gateway session-factory="smbSessionFactory"
-                            request-channel="inboundGetStream"
-                            command="get"
-                            command-options="-stream"
-                            expression="payload"
-                            remote-directory="smbTarget"
-                            reply-channel="stream" />
-
-<int-file:splitter input-channel="stream" output-channel="lines" />
-----
-====
 
 NOTE: If you consume the input stream in a custom component, you must close the `Session`.
 You can either do that in your custom code or route a copy of the message to a `service-activator` and use SpEL, as the following example shows:
@@ -800,7 +780,7 @@ Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.t
 [[smb-remote-file-info]]
 === Remote File Information
 
-The `SmbStreamingMessageSource` (<<smb-streaming>>), `SmbInboundFileSynchronizingMessageSource` (<<smb-inbound>>) and "read"-commands of the `SmbOutboundGateway` (<<smb-outbound-gateway>>) provide additional headers in the message to produce with an information about the remote file:
+The `SmbStreamingMessageSource` (<<smb-streaming-inbound>>), `SmbInboundFileSynchronizingMessageSource` (<<smb-inbound>>) and "read"-commands of the `SmbOutboundGateway` (<<smb-outbound-gateway>>) provide additional headers in the message to produce with an information about the remote file:
 
 * `FileHeaders.REMOTE_HOST_PORT` - the host:port pair the remote session has been connected to during file transfer operation;
 * `FileHeaders.REMOTE_DIRECTORY` - the remote directory the operation has been performed;
