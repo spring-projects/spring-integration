@@ -25,6 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -157,6 +158,7 @@ class FluxAggregatorMessageHandlerTests {
 	}
 
 	@Test
+	@Disabled("Time-sensitive")
 	void testWindowTimespan() {
 		QueueChannel resultChannel = new QueueChannel();
 		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
