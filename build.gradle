@@ -1086,9 +1086,7 @@ project('spring-integration-hazelcast') {
     dependencies {
 	api "com.hazelcast:hazelcast:$hazelcastVersion"
 	api project(':spring-integration-core')
-
-	testImplementation project(':spring-integration-test-support')
-    }
+	}
 }
 
 sonarqube {
