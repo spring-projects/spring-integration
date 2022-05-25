@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.monitor;
+package org.springframework.integration.hazelcast;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.spy;
 
 import java.util.ArrayList;
@@ -27,8 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.aop.Advice;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -67,21 +66,21 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class IdempotentReceiverIntegrationTests {
 
@@ -125,6 +124,7 @@ public class IdempotentReceiverIntegrationTests {
 	private AtomicBoolean txSupplied;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testIdempotentReceiver() {
 		this.idempotentReceiverInterceptor.setThrowExceptionOnRejection(true);
 		TestUtils.getPropertyValue(this.store, "metadata", Map.class).clear();
@@ -133,25 +133,20 @@ public class IdempotentReceiverIntegrationTests {
 		Message<?> receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(this.adviceCalled.get()).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(this.store, "metadata", Map.class).size()).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(this.store, "metadata", Map.class)).hasSize(1);
 		String foo = this.store.get("foo");
 		assertThat(foo).isEqualTo("FOO");
 
-		try {
-			this.input.send(message);
-			fail("MessageRejectedException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageRejectedException.class);
-		}
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> this.input.send(message));
+
 		this.idempotentReceiverInterceptor.setThrowExceptionOnRejection(false);
 		this.input.send(message);
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(this.adviceCalled.get()).isEqualTo(2);
-		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
-				.isTrue();
-		assertThat(TestUtils.getPropertyValue(store, "metadata", Map.class).size()).isEqualTo(1);
+		assertThat(receive.getHeaders()).containsEntry(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, true);
+		assertThat(TestUtils.getPropertyValue(store, "metadata", Map.class)).hasSize(1);
 
 		assertThat(this.txSupplied.get()).isTrue();
 	}
@@ -165,8 +160,7 @@ public class IdempotentReceiverIntegrationTests {
 
 		assertThat(this.fooService.messages.size()).isEqualTo(2);
 		assertThat(this.fooService.messages.get(1)
-				.getHeaders()
-				.get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class)).isTrue();
+				.getHeaders()).containsEntry(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, true);
 	}
 
 	@Test
@@ -177,23 +171,18 @@ public class IdempotentReceiverIntegrationTests {
 
 		Message<?> receive = replyChannel.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isFalse();
+		assertThat(receive.getHeaders()).doesNotContainKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE);
 
 		this.annotatedBeanMessageHandlerChannel.send(message);
 		receive = replyChannel.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isTrue();
-		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
-				.isTrue();
+		assertThat(receive.getHeaders()).containsEntry(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, true);
 
-		this.annotatedBeanMessageHandlerChannel2.send(new GenericMessage<String>("baz"));
-		try {
-			this.annotatedBeanMessageHandlerChannel2.send(new GenericMessage<String>("baz"));
-			fail("MessageHandlingException expected");
-		}
-		catch (Exception e) {
-			assertThat(e.getMessage()).contains("duplicate message has been received");
-		}
+		this.annotatedBeanMessageHandlerChannel2.send(new GenericMessage<>("baz"));
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.annotatedBeanMessageHandlerChannel2.send(new GenericMessage<>("baz")))
+				.withMessageContaining("duplicate message has been received");
 	}
 
 
@@ -205,14 +194,12 @@ public class IdempotentReceiverIntegrationTests {
 
 		Message<?> receive = replyChannel.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isFalse();
+		assertThat(receive.getHeaders()).doesNotContainKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE);
 
 		this.bridgeChannel.send(message);
 		receive = replyChannel.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isTrue();
-		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
-				.isTrue();
+		assertThat(receive.getHeaders()).containsEntry(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, true);
 	}
 
 	@Test
@@ -222,14 +209,12 @@ public class IdempotentReceiverIntegrationTests {
 
 		Message<?> receive = this.bridgePollableChannel.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isFalse();
+		assertThat(receive.getHeaders()).doesNotContainKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE);
 
 		this.toBridgeChannel.send(message);
 		receive = this.bridgePollableChannel.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isTrue();
-		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
-				.isTrue();
+		assertThat(receive.getHeaders()).containsEntry(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, true);
 	}
 
 	@Configuration
@@ -242,9 +227,9 @@ public class IdempotentReceiverIntegrationTests {
 			return new MBeanServerFactoryBean();
 		}
 
-		@Bean
+		@Bean(destroyMethod = "shutdown")
 		public HazelcastInstance hazelcastInstance() {
-			return Hazelcast.newHazelcastInstance(new Config().setProperty("hazelcast.logging.type", "slf4j"));
+			return Hazelcast.newHazelcastInstance();
 		}
 
 

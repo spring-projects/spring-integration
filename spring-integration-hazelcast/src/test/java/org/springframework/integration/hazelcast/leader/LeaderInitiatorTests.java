@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,7 +45,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.instance.impl.HazelcastInstanceFactory;
 
 /**
  * Tests for hazelcast leader election.
@@ -73,11 +71,6 @@ public class LeaderInitiatorTests {
 
 	@Autowired
 	private LeaderInitiator initiator;
-
-	@AfterClass
-	public static void shutdown() {
-		HazelcastInstanceFactory.terminateAll();
-	}
 
 	@Test
 	public void testLeaderElections() throws Exception {
@@ -230,7 +223,7 @@ public class LeaderInitiatorTests {
 			return config;
 		}
 
-		@Bean(destroyMethod = "")
+		@Bean(destroyMethod = "shutdown")
 		public HazelcastInstance hazelcastInstance() {
 			return Hazelcast.newHazelcastInstance(hazelcastConfig());
 		}

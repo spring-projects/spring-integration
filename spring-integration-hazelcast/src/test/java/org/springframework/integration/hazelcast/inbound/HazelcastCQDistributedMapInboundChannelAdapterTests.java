@@ -18,7 +18,6 @@ package org.springframework.integration.hazelcast.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,7 +33,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.hazelcast.core.EntryEventType;
-import com.hazelcast.instance.impl.HazelcastInstanceFactory;
 import com.hazelcast.map.IMap;
 
 /**
@@ -78,11 +76,6 @@ public class HazelcastCQDistributedMapInboundChannelAdapterTests {
 
 	@Autowired
 	private IMap cqDistributedMap5;
-
-	@AfterClass
-	public static void shutdown() {
-		HazelcastInstanceFactory.terminateAll();
-	}
 
 	@Test
 	public void testContinuousQueryForOnlyADDEDEntryEvent() {

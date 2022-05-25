@@ -20,13 +20,9 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import org.junit.AfterClass;
-
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -39,7 +35,6 @@ import org.springframework.messaging.MessageChannel;
 import com.hazelcast.core.DistributedObject;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.instance.impl.HazelcastInstanceFactory;
 import com.hazelcast.map.IMap;
 import com.hazelcast.multimap.MultiMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
@@ -54,15 +49,8 @@ import com.hazelcast.topic.ITopic;
  * @since 6.0
  */
 @Configuration
-@ComponentScan(basePackages = { "org.springframework.integration.hazelcast.*" })
 @EnableIntegration
-@IntegrationComponentScan("org.springframework.integration.hazelcast.outbound")
 public class HazelcastIntegrationOutboundTestConfiguration {
-
-	@AfterClass
-	public void terminate() {
-		HazelcastInstanceFactory.terminateAll();
-	}
 
 	@Bean
 	public MessageChannel distMapChannel() {
@@ -144,7 +132,7 @@ public class HazelcastIntegrationOutboundTestConfiguration {
 		return testHzInstance().getReplicatedMap("Replicated_Map1");
 	}
 
-	@Bean(destroyMethod = "")
+	@Bean(destroyMethod = "shutdown")
 	public HazelcastInstance testHzInstance() {
 		return Hazelcast.newHazelcastInstance();
 	}

@@ -641,6 +641,26 @@ project('spring-integration-groovy') {
     }
 }
 
+project('spring-integration-hazelcast') {
+    description = 'Spring Integration Hazelcast Support'
+    dependencies {
+        api project(':spring-integration-core')
+        api "com.hazelcast:hazelcast:$hazelcastVersion"
+
+        testImplementation project(':spring-integration-jmx')
+    }
+
+    tasks.withType(JavaForkOptions) {
+        jvmArgs '--add-modules', 'java.se',
+                '--add-exports', 'java.base/jdk.internal.ref=ALL-UNNAMED',
+                '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+                '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED',
+                '--add-opens', 'java.management/sun.management=ALL-UNNAMED',
+                '--add-opens', 'jdk.management/com.sun.management.internal=ALL-UNNAMED',
+                '-Dhazelcast.logging.type=log4j2'
+    }
+}
+
 project('spring-integration-http') {
     description = 'Spring Integration HTTP Support'
     dependencies {
@@ -722,7 +742,6 @@ project('spring-integration-jmx') {
         api project(':spring-integration-core')
 
         testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
-        testImplementation "com.hazelcast:hazelcast:$hazelcastVersion"
     }
 }
 
@@ -1078,15 +1097,6 @@ project('spring-integration-bom') {
     sonarqube {
         skipProject = true
     }
-}
-
-
-project('spring-integration-hazelcast') {
-    description = 'Spring Integration Hazelcast Support'
-    dependencies {
-	api "com.hazelcast:hazelcast:$hazelcastVersion"
-	api project(':spring-integration-core')
-	}
 }
 
 sonarqube {

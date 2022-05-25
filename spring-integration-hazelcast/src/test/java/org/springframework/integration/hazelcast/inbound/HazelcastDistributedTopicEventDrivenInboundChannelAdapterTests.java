@@ -16,7 +16,6 @@
 
 package org.springframework.integration.hazelcast.inbound;
 
-import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,7 +26,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.hazelcast.instance.impl.HazelcastInstanceFactory;
 import com.hazelcast.topic.ITopic;
 
 /**
@@ -47,11 +45,6 @@ public class HazelcastDistributedTopicEventDrivenInboundChannelAdapterTests {
 
 	@Autowired
 	private ITopic edDistributedTopic1;
-
-	@AfterClass
-	public static void shutdown() {
-		HazelcastInstanceFactory.terminateAll();
-	}
 
 	@Test
 	public void testEventDrivenForOnlyADDEDEntryEvent() {

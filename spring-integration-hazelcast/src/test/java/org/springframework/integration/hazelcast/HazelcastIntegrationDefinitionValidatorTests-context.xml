@@ -8,7 +8,7 @@
 		<constructor-arg value="distList"/>
 	</bean>
 
-	<bean id="hzInstance" class="com.hazelcast.core.Hazelcast" factory-method="newHazelcastInstance">
+	<bean id="hzInstance" class="com.hazelcast.core.Hazelcast" factory-method="newHazelcastInstance" destroy-method="shutdown">
 		<constructor-arg>
 			<bean class="com.hazelcast.config.Config">
 				<property name="instanceName" value="Test_Hazelcast_Instance"/>

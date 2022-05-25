@@ -16,8 +16,6 @@
 
 package org.springframework.integration.hazelcast.inbound.config;
 
-import org.junit.AfterClass;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -39,7 +37,6 @@ import com.hazelcast.collection.ISet;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.instance.impl.HazelcastInstanceFactory;
 import com.hazelcast.map.IMap;
 import com.hazelcast.multimap.MultiMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
@@ -54,11 +51,6 @@ import com.hazelcast.topic.ITopic;
 @Configuration
 @EnableIntegration
 public class HazelcastIntegrationInboundTestConfiguration {
-
-	@AfterClass
-	public void shutdown() {
-		HazelcastInstanceFactory.terminateAll();
-	}
 
 	@Bean
 	public PollableChannel distributedMapChannel() {
@@ -228,7 +220,7 @@ public class HazelcastIntegrationInboundTestConfiguration {
 		return config;
 	}
 
-	@Bean(destroyMethod = "")
+	@Bean(destroyMethod = "shutdown")
 	public HazelcastInstance testHazelcastInstance() {
 		return Hazelcast.newHazelcastInstance(hazelcastConfig());
 	}
