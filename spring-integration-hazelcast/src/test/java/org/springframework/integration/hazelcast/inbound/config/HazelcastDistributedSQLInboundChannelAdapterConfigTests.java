@@ -34,7 +34,7 @@ import com.hazelcast.map.IMap;
  * Hazelcast Distributed SQL Inbound Channel Adapter JavaConfig driven Unit Test Class
  *
  * @author Eren Avsarogullari
- * @since 1.0.0
+ * @since 6.0
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = HazelcastIntegrationInboundTestConfiguration.class,

@@ -48,7 +48,7 @@ import com.hazelcast.partition.ReplicaMigrationEvent;
  * @author Eren Avsarogullari
  * @author Artem Bilan
  *
- * @since 1.0.0
+ * @since 6.0
  */
 public class HazelcastClusterMonitorMessageProducer extends MessageProducerSupport {
 

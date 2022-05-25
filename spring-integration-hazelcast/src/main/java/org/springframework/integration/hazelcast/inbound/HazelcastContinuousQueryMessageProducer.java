@@ -28,7 +28,7 @@ import com.hazelcast.query.impl.predicates.SqlPredicate;
  * defined predicate and sends events to related channel.
  *
  * @author Eren Avsarogullari
- * @since 1.0.0
+ * @since 6.0
  */
 public class HazelcastContinuousQueryMessageProducer extends AbstractHazelcastMessageProducer {
 

@@ -32,7 +32,7 @@ import com.hazelcast.query.impl.predicates.SqlPredicate;
  * distributed query in the cluster and returns results in the light of iteration type.
  *
  * @author Eren Avsarogullari
- * @since 1.0.0
+ * @since 6.0
  */
 @SuppressWarnings("rawtypes")
 public class HazelcastDistributedSQLMessageSource extends AbstractMessageSource {

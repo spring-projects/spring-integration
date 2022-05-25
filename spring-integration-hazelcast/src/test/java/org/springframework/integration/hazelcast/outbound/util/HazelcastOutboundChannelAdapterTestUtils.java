@@ -47,7 +47,7 @@ import com.hazelcast.topic.MessageListener;
  *
  * @author Eren Avsarogullari
  *
- * @since 1.0.0
+ * @since 6.0
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public final class HazelcastOutboundChannelAdapterTestUtils {

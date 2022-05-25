@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import com.hazelcast.topic.ITopic;
  * Util Class for Hazelcast Inbound Channel Adapters Test Support.
  *
  * @author Eren Avsarogullari
- * @since 1.0.0
+ * @since 6.0
  */
 @SuppressWarnings("unchecked")
 public final class HazelcastInboundChannelAdapterTestUtils {

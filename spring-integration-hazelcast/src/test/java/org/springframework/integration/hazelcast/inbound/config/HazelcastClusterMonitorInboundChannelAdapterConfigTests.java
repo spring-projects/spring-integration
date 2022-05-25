@@ -32,7 +32,7 @@ import com.hazelcast.core.HazelcastInstance;
  * Hazelcast Cluster Monitor Inbound Channel Adapter JavaConfig driven Unit Test Class
  *
  * @author Eren Avsarogullari
- * @since 1.0.0
+ * @since 6.0
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)

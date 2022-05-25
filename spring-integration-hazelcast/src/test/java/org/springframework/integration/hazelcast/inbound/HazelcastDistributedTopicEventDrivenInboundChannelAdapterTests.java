@@ -34,7 +34,7 @@ import com.hazelcast.topic.ITopic;
  * Hazelcast Distributed Topic Event Driven Inbound Channel Adapter Test
  *
  * @author Eren Avsarogullari
- * @since 1.0.0
+ * @since 6.0
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration

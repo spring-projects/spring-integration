@@ -31,7 +31,7 @@ import org.springframework.integration.hazelcast.outbound.HazelcastCacheWritingM
  * {@code <int-hazelcast:inbound-channel-adapter />}.
  *
  * @author Eren Avsarogullari
- * @since 1.0.0
+ * @since 6.0
  */
 public class HazelcastOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 

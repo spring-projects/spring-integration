@@ -40,7 +40,7 @@ import com.hazelcast.instance.impl.HazelcastInstanceFactory;
  * Hazelcast Distributed List Event Driven Inbound Channel Adapter Test Class
  *
  * @author Eren Avsarogullari
- * @since 1.0.0
+ * @since 6.0
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration

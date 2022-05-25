@@ -27,7 +27,7 @@ import org.springframework.messaging.Message;
  * @author Eren Avsarogullari
  * @author Artem Bilan
  *
- * @since 1.0.0
+ * @since 6.0
  */
 public class HazelcastTestRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 

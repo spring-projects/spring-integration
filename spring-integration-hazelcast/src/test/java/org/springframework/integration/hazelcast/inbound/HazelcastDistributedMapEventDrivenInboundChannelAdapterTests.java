@@ -41,7 +41,7 @@ import com.hazelcast.map.IMap;
  * Hazelcast Distributed Map Event Driven Inbound Channel Adapter Test
  *
  * @author Eren Avsarogullari
- * @since 1.0.0
+ * @since 6.0
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration

@@ -22,7 +22,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * Namespace handler for the Hazelcast schema.
  *
  * @author Eren Avsarogullari
- * @since 1.0.0
+ * @since 6.0
  */
 public class HazelcastIntegrationNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 

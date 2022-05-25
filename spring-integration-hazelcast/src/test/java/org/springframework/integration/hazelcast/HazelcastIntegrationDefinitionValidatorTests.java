@@ -40,7 +40,7 @@ import com.hazelcast.instance.impl.HazelcastInstanceFactory;
  * @author Eren Avsarogullari
  * @author Artem Bilan
  *
- * @since 1.0.0
+ * @since 6.0
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration

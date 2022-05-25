@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
  * {@code <int-hazelcast:ds-inbound-channel-adapter/>} configuration.
  *
  * @author Eren Avsarogullari
- * @since 1.0.0
+ * @since 6.0
  */
 public class HazelcastDistributedSQLInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 

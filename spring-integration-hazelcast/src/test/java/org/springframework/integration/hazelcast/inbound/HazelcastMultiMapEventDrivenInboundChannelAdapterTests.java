@@ -42,7 +42,7 @@ import com.hazelcast.multimap.MultiMap;
  *
  * @author Eren Avsarogullari
  * @author Artem Bilan
- * @since 1.0.0
+ * @since 6.0
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration

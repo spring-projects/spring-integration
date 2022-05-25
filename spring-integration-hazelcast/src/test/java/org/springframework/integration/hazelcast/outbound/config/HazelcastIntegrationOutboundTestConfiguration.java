@@ -51,7 +51,7 @@ import com.hazelcast.topic.ITopic;
  * @author Eren Avsarogullari
  * @author Artem Bilan
  *
- * @since 1.0.0
+ * @since 6.0
  */
 @Configuration
 @ComponentScan(basePackages = { "org.springframework.integration.hazelcast.*" })
