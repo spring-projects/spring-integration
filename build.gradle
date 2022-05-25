@@ -1087,7 +1087,7 @@ project('spring-integration-hazelcast') {
 	implementation "com.hazelcast:hazelcast:$hazelcastVersion"
 	api project(':spring-integration-core')
 
-	testImplementation project(':spring-integration-test')
+	testImplementation project(':spring-integration-test-support')
     }
 }
 
