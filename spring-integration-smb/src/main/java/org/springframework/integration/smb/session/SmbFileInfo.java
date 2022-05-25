@@ -90,13 +90,23 @@ public class SmbFileInfo extends AbstractFileInfo<SmbFile> {
 	}
 
 	/**
-	 * An Access Control Entry (ACE) is an element in a security descriptor
-	 * such as those associated with files and directories. The Windows OS
-	 * determines which users have the necessary permissions to access objects
-	 * based on these entries.
-	 * @return a list of Access Control Entry (ACE) objects representing
-	 * the security descriptor and permissions associated with this file
-	 * or directory.
+	 * An Access Control Entry (ACE) is an element in a security descriptor such as
+	 * those associated with files and directories. The Windows OS determines which
+	 * users have the necessary permissions to access objects based on these entries.
+	 * A readable, formatted list of security descriptor entries and associated
+	 * permissions will be returned by this implementation.
+	 *
+	 * <pre>
+	 * WNET\alice - Deny Write, Deny Modify, Direct - This folder only
+	 * SYSTEM - Allow Read, Allow Write, Allow Modify, Allow Execute, Allow Delete, Inherited - This folder only
+	 * WNET\alice - Allow Read, Allow Write, Allow Modify, Allow Execute, Allow Delete, Inherited - This folder only
+	 * Administrators - Allow Read, Allow Write, Allow Modify, Allow Execute, Allow Delete, Inherited - This folder only
+	 * </pre>
+	 *
+	 * @return a list of Access Control Entry (ACE) objects representing the security
+	 * descriptor entry and permissions associated with this file or directory.
+	 * @see jcifs.ACE
+	 * @see jcifs.SID
 	 */
 	@Override
 	public String getPermissions() {
