@@ -17,7 +17,6 @@
 package org.springframework.integration.smb.session;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -96,18 +95,55 @@ public class SmbFileInfo extends AbstractFileInfo<SmbFile> {
 	 * determines which users have the necessary permissions to access objects
 	 * based on these entries.
 	 * @return a list of Access Control Entry (ACE) objects representing
-	 * the security descriptor associated with this file or directory.
+	 * the security descriptor and permissions associated with this file
+	 * or directory.
 	 */
 	@Override
 	public String getPermissions() {
-		ACE[] aceArray = null;
+		ACE[] aces = null;
 		try {
-			aceArray = this.smbFile.getSecurity(true);
+			aces = this.smbFile.getSecurity(true);
 		}
-		catch (IOException se) {
-			logger.error("Unable to determine security descriptor information for this SmbFile", se);
+		catch (IOException ioe) {
+			logger.error("Unable to determine security descriptor information for this SmbFile", ioe);
+			return null;
 		}
-		return (aceArray == null) ? null : Arrays.toString(aceArray);
+
+		StringBuilder sb = new StringBuilder();
+		for (ACE ace : aces) {
+			sb.append(ace.getSID().toDisplayString());
+			sb.append(" - ");
+
+			if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0) {
+				sb.append(ace.isAllow() ? "Allow " : "Deny ");
+				sb.append("Read, ");
+			}
+			if ((ace.getAccessMask() & ACE.FILE_WRITE_DATA) != 0) {
+				sb.append(ace.isAllow() ? "Allow " : "Deny ");
+				sb.append("Write, ");
+			}
+			if ((ace.getAccessMask() & ACE.FILE_APPEND_DATA) != 0) {
+				sb.append(ace.isAllow() ? "Allow " : "Deny ");
+				sb.append("Modify, ");
+			}
+			if ((ace.getAccessMask() & ACE.FILE_EXECUTE) != 0) {
+				sb.append(ace.isAllow() ? "Allow " : "Deny ");
+				sb.append("Execute, ");
+			}
+			if ((ace.getAccessMask() & ACE.FILE_DELETE) != 0
+					|| (ace.getAccessMask() & ACE.DELETE) != 0) {
+				sb.append(ace.isAllow() ? "Allow " : "Deny ");
+				sb.append("Delete, ");
+			}
+
+			sb.append(ace.isInherited() ? "Inherited - " : "Direct - ");
+			sb.append(ace.getApplyToText());
+			sb.append("\n");
+		}
+		logger.debug(this.getFilename());
+		logger.debug("\n" + sb.toString());
+
+		return sb.toString();
 	}
 
 	@Override
