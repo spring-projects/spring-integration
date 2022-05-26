@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
+import jcifs.smb.SmbFileInputStream;
 
 /**
  * The actual SMB share must be configured in class 'SmbTestSupport'
@@ -83,6 +85,10 @@ import jcifs.smb.SmbFile;
  *  |-- subSmbSource/
  *      |-- subSmbSource1.txt - contains 'subSource1'
  *      |-- subSmbSource2.txt - contains 'subSource2'
+ *  |-- subSmbSource2/ - directory will be created in testSmbPutFlow
+ *      |-- subSmbSource2-1.txt - file will be created in testSmbPutFlow and deleted in testSmbRmFlow
+ *      |-- subSmbSource2-2.txt - file will be created in testSmbMputFlow
+ *      |-- subSmbSource2-3.txt - file will be created in testSmbMputFlow and renamed in testSmbMvFlow to subSmbSource-MV-Flow-Renamed.txt
  *  smbTarget/
  * </pre>
  *
@@ -215,7 +221,6 @@ public class SmbTests extends SmbTestSupport {
 
 	@Test
 	public void testSmbOutboundFlowWithSmbRemoteTemplate() {
-
 		SmbRemoteFileTemplate smbTemplate = new SmbRemoteFileTemplate(sessionFactory());
 		IntegrationFlow flow = f -> f
 				.handle(Smb.outboundAdapter(smbTemplate)
@@ -244,7 +249,6 @@ public class SmbTests extends SmbTestSupport {
 
 	@Test
 	public void testSmbOutboundFlowWithSmbRemoteTemplateAndMode() {
-
 		SmbRemoteFileTemplate smbTemplate = new SmbRemoteFileTemplate(sessionFactory());
 		IntegrationFlow flow = f -> f
 				.handle(Smb.outboundAdapter(smbTemplate, FileExistsMode.APPEND)
@@ -277,6 +281,36 @@ public class SmbTests extends SmbTestSupport {
 	}
 
 	@Test
+	public void testSmbGetFlow() {
+		QueueChannel out = new QueueChannel();
+		IntegrationFlow flow = f -> f
+				.handle(
+						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.GET, "payload")
+								.options(AbstractRemoteFileOutboundGateway.Option.STREAM)
+								.fileExistsMode(FileExistsMode.IGNORE)
+								.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
+								.localFilenameExpression("#remoteFileName.replaceFirst('smbSource', 'localTarget')")
+								.charset(StandardCharsets.UTF_8.name())
+								.useTemporaryFileName(true))
+				.channel(out);
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "smbSource/subSmbSource/subSmbSource2.txt";
+		registration.getInputChannel().send(new GenericMessage<>(fileName));
+		Message<?> result = out.receive(10_000);
+		assertThat(result).isNotNull();
+
+		SmbFileInputStream sfis = (SmbFileInputStream) result.getPayload();
+		assertThat(sfis).isNotNull();
+
+		try {
+			sfis.close();
+		}
+		catch (IOException ioe) {
+		}
+		registration.destroy();
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	public void testSmbMgetFlow() {
 		QueueChannel out = new QueueChannel();
@@ -296,6 +330,7 @@ public class SmbTests extends SmbTestSupport {
 		registration.getInputChannel().send(new GenericMessage<>(dir + "*"));
 		Message<?> result = out.receive(10_000);
 		assertThat(result).isNotNull();
+
 		List<File> localFiles = (List<File>) result.getPayload();
 		assertThat(localFiles.size()).as("unexpected local files " + localFiles).isEqualTo(2);
 
@@ -329,6 +364,7 @@ public class SmbTests extends SmbTestSupport {
 		registration.getInputChannel().send(new GenericMessage<>(dir));
 		Message<?> result = out.receive(10_000);
 		assertThat(result).isNotNull();
+
 		List<SmbFileInfo> localFiles = (List<SmbFileInfo>) result.getPayload();
 		assertThat(localFiles.size()).as("unexpected local files " + localFiles).isEqualTo(2);
 
@@ -350,7 +386,7 @@ public class SmbTests extends SmbTestSupport {
 		IntegrationFlow flow = f -> f
 				.handle(
 						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.NLST, "payload")
-								.options(AbstractRemoteFileOutboundGateway.Option.ALL)
+								.options(AbstractRemoteFileOutboundGateway.Option.NOSORT)
 								.fileExistsMode(FileExistsMode.IGNORE)
 								.filterExpression("name matches 'subSmbSource|.*.txt'")
 								.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
@@ -363,12 +399,122 @@ public class SmbTests extends SmbTestSupport {
 		registration.getInputChannel().send(new GenericMessage<>(dir));
 		Message<?> result = out.receive(10_000);
 		assertThat(result).isNotNull();
+
 		List<String> localFilenames = (List<String>) result.getPayload();
 		assertThat(localFilenames.size()).as("unexpected local filenames " + localFilenames).isEqualTo(2);
 
 		for (String filename : localFilenames) {
 			assertThat(filename.contains("subSmbSource"));
 		}
+
+		registration.destroy();
+	}
+
+	@Test
+	public void testSmbPutFlow() {
+		QueueChannel out = new QueueChannel();
+		IntegrationFlow flow = f -> f
+				.handle(
+						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.PUT, "payload")
+								.useTemporaryFileName(false)
+								.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+								.remoteDirectoryExpression("'smbSource/subSmbSource2/'")
+								.autoCreateDirectory(true))
+				.channel(out);
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "subSmbSource2-1.txt";
+		Message<ByteArrayInputStream> message = MessageBuilder
+				.withPayload(new ByteArrayInputStream("subSmbSource2-1".getBytes(StandardCharsets.UTF_8)))
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build();
+		registration.getInputChannel().send(message);
+		Message<?> result = out.receive(10_000);
+		assertThat(result).isNotNull();
+
+		String path = (String) result.getPayload();
+		assertThat(path).isNotNull();
+		assertThat(path.contains("subSmbSource2"));
+
+		registration.destroy();
+	}
+
+	@Test
+	public void testSmbRmFlow() {
+		QueueChannel out = new QueueChannel();
+		IntegrationFlow flow = f -> f
+				.handle(
+						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.RM, "payload"))
+				.channel(out);
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "smbSource/subSmbSource2/subSmbSource2-1.txt";
+		registration.getInputChannel().send(new GenericMessage<>(fileName));
+		Message<?> result = out.receive(10_000);
+		assertThat(result).isNotNull();
+
+		Boolean success = (Boolean) result.getPayload();
+		assertThat(success).isTrue();
+
+		registration.destroy();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testSmbMputFlow() throws IOException {
+		QueueChannel out = new QueueChannel();
+		IntegrationFlow flow = f -> f
+				.handle(
+						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MPUT, "payload")
+								.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
+								.useTemporaryFileName(false)
+								.remoteDirectoryExpression("'smbSource/subSmbSource2/'")
+								.autoCreateDirectory(true)
+								.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
+								.localFilenameExpression("#remoteFileName.replaceFirst('smbSource', 'localTarget')"))
+				.channel(out);
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		File file1 = new File(getTargetLocalDirectoryName(), "subSmbSource2-2.txt");
+		File file2 = new File(getTargetLocalDirectoryName(), "subSmbSource2-3.txt");
+		file1.createNewFile();
+		file2.createNewFile();
+
+		List<File> files = new ArrayList<>();
+		files.add(file1);
+		files.add(file2);
+
+		Message<List<File>> message = MessageBuilder
+				.withPayload(files)
+				.build();
+		registration.getInputChannel().send(message);
+		Message<?> result = out.receive(10_000);
+		assertThat(result).isNotNull();
+
+		List<String> remoteFilenames = (List<String>) result.getPayload();
+		assertThat(remoteFilenames).isNotNull();
+		assertThat(remoteFilenames.size()).as("unexpected remote filenames " + remoteFilenames).isEqualTo(2);
+
+		for (String filename : remoteFilenames) {
+			assertThat(filename.contains("subSmbSource2"));
+		}
+
+		registration.destroy();
+	}
+
+	@Test
+	public void testSmbMvFlow() throws IOException {
+		QueueChannel out = new QueueChannel();
+		IntegrationFlow flow = f -> f
+				.handle(
+						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MV, "payload")
+								.renameExpression("'smbSource/subSmbSource2/subSmbSource-MV-Flow-Renamed.txt'"))
+				.channel(out);
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "smbSource/subSmbSource2/subSmbSource2-3.txt";
+		registration.getInputChannel().send(new GenericMessage<>(fileName));
+		Message<?> result = out.receive(10_000);
+		assertThat(result).isNotNull();
+
+		Boolean success = (Boolean) result.getPayload();
+		assertThat(success).isTrue();
 
 		registration.destroy();
 	}
