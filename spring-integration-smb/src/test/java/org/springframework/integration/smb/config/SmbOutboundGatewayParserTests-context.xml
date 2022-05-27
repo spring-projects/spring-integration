@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int-smb="http://www.springframework.org/schema/integration/smb"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/smb https://www.springframework.org/schema/integration/smb/spring-integration-smb.xsd">
+
+	<bean id="sf" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory"/>
+	</bean>
+
+	<bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<constructor-arg ref="sf"/>
+	</bean>
+
+	<int:channel id="inbound1">
+		<int:queue/>
+	</int:channel>
+
+	<int:poller fixed-delay="1000" default="true"/>
+
+	<int-smb:outbound-gateway id="gateway1"
+		local-directory="local-test-dir"
+		session-factory="sf"
+		request-channel="inbound1"
+		reply-channel="outbound"
+		reply-timeout="777"
+		auto-create-local-directory="false"
+		auto-startup="false"
+		filename-pattern="*"
+		remote-file-separator="X"
+		command="ls"
+		command-options="-1 -f"
+		expression="payload"
+		order="1"
+		mput-regex=".*"
+		/>
+
+	<bean id="fooString" class="java.lang.String">
+		<constructor-arg value="foo" />
+	</bean>
+
+	<int-smb:outbound-gateway id="gateway2"
+		local-directory="local-test-dir"
+		session-factory="csf"
+		request-channel="inbound2"
+		reply-channel="outbound"
+		auto-create-local-directory="false"
+		auto-startup="false"
+		remote-file-separator="X"
+		command="get"
+		command-options="-P"
+		expression="payload"
+		order="2"
+		requires-reply="false"
+		local-filename-generator-expression="#remoteFileName.toUpperCase() + '.a' + @fooString"
+		mput-pattern="*"
+		/>
+
+	<int-smb:outbound-gateway id="gateway3"
+		session-factory="csf"
+		request-channel="inbound1"
+		reply-channel="outbound"
+		command="mv"
+		expression="payload"
+		rename-expression="'foo'"
+		order="1"
+		/>
+
+	<int-smb:outbound-gateway id="gateway4"
+		session-factory="csf"
+		request-channel="inbound1"
+		reply-channel="outbound"
+		command="mput"
+		expression="payload"
+		remote-directory="/foo"
+		remote-file-separator="X"
+		auto-create-directory="true"
+		remote-filename-generator="fileNameGenerator"
+		temporary-remote-directory="/bar"
+		rename-expression="'foo'"
+		order="1"
+		mput-filter="mputFilter"
+		/>
+
+	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+	</bean>
+
+	<bean id="mputFilter" class="org.springframework.integration.file.filters.RegexPatternFileListFilter">
+		<constructor-arg value="(.*1.txt|sub*)"/>
+	</bean>
+
+	<int-smb:outbound-gateway id="advised"
+		local-directory="local-test-dir"
+		session-factory="sf"
+		request-channel="inbound2"
+		reply-channel="outbound"
+		auto-create-local-directory="false"
+		auto-startup="false"
+		remote-file-separator="X"
+		command="get"
+		command-options="-P"
+		expression="payload"
+		requires-reply="false"
+		order="2">
+		<int-smb:request-handler-advice-chain>
+			<bean class="org.springframework.integration.smb.config.SmbOutboundGatewayParserTests$FooAdvice" />
+		</int-smb:request-handler-advice-chain>
+	</int-smb:outbound-gateway>
+
+	<int:channel id="outbound"/>
+
+	<int-smb:outbound-gateway id="noExpressionLS"
+		request-channel="nullChannel"
+		reply-channel="nullChannel"
+		session-factory="sf"
+		remote-directory="."
+		command="ls" />
+
+	<int-smb:outbound-gateway id="noExpressionPUT"
+		request-channel="nullChannel"
+		reply-channel="nullChannel"
+		session-factory="sf"
+		remote-directory="."
+		command="put" />
+
+	<int-smb:outbound-gateway id="noExpressionGET"
+		request-channel="nullChannel"
+		reply-channel="nullChannel"
+		session-factory="sf"
+		remote-directory="."
+		local-directory="."
+		command="get" />
+
+</beans>
