@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-smb="http://www.springframework.org/schema/integration/smb"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/smb https://www.springframework.org/schema/integration/smb/spring-integration-smb.xsd">
+
+	<bean id="smbSessionFactory"
+		class="org.springframework.integration.smb.config.SmbStreamingInboundChannelAdapterParserTests$TestSessionFactoryBean"/>
+
+	<bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<constructor-arg ref="smbSessionFactory"/>
+	</bean>
+
+	<int-smb:inbound-streaming-channel-adapter id="smbInbound"
+				channel="smbChannel"
+				session-factory="csf"
+				auto-startup="false"
+				phase="23"
+				filename-pattern="*.txt"
+				remote-file-separator="X"
+				comparator="comparator"
+				max-fetch-size="31"
+				remote-directory-expression="'foo/bar'">
+			<int:poller fixed-rate="1000" />
+	</int-smb:inbound-streaming-channel-adapter>
+
+	<int:channel id="smbChannel">
+		<int:queue/>
+	</int:channel>
+
+	<bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="java.util.Comparator"/>
+	</bean>
+
+	<int-smb:inbound-streaming-channel-adapter id="contextLoadsWithNoComparator"
+				channel="smbChannel"
+				session-factory="csf"
+				auto-startup="false"
+				phase="23"
+				filter-expression="new org.springframework.util.AntPathMatcher().match('*.txt', filename)"
+				remote-file-separator="X"
+				remote-directory-expression="'foo/bar'">
+			<int:poller fixed-rate="1000" />
+	</int-smb:inbound-streaming-channel-adapter>
+
+</beans>
