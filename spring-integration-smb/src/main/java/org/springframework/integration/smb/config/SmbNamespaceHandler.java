@@ -23,6 +23,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  *
  * @author Markus Spann
  * @author Artem Bilan
+ * @author Gregory Bragg
  *
  * @since 6.0
  */
@@ -30,7 +31,9 @@ public class SmbNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new SmbInboundChannelAdapterParser());
+		registerBeanDefinitionParser("inbound-streaming-channel-adapter", new SmbStreamingInboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-channel-adapter", new SmbOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-gateway", new SmbOutboundGatewayParser());
 	}
 
 }

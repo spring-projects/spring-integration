@@ -224,13 +224,6 @@
 							<xsd:union memberTypes="int-file:remoteGatewayCommand xsd:string"/>
 						</xsd:simpleType>
 					</xsd:attribute>
-					<xsd:attribute name="working-dir-expression" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								The SpEL expression to evaluate SMB client working directory against request message.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="session-callback" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
