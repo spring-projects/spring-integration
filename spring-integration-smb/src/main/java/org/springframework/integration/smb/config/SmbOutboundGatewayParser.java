@@ -24,6 +24,8 @@ import org.springframework.integration.smb.outbound.SmbOutboundGateway;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
 
 /**
+ * Parser for the SMB 'outbound-gateway' element.
+ *
  * @author Gregory Bragg
  *
  * @since 6.0

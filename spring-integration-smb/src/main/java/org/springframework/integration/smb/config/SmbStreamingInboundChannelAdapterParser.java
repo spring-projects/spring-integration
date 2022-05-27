@@ -28,6 +28,8 @@ import org.springframework.integration.smb.inbound.SmbStreamingMessageSource;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
 
 /**
+ * Parser for the SMB 'inbound-streaming-channel-adapter' element.
+ *
  * @author Gregory Bragg
  *
  * @since 6.0
