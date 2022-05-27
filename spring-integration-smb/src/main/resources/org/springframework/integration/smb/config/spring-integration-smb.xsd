@@ -3,77 +3,49 @@
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
 			xmlns:integration="http://www.springframework.org/schema/integration"
+			xmlns:int-file="http://www.springframework.org/schema/integration/file"
 			targetNamespace="http://www.springframework.org/schema/integration/smb"
-			elementFormDefault="qualified"
-			attributeFormDefault="unqualified">
+			elementFormDefault="qualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="https://www.springframework.org/schema/integration/spring-integration.xsd"/>
+				schemaLocation="https://www.springframework.org/schema/integration/spring-integration.xsd"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration/file"
+				schemaLocation="https://www.springframework.org/schema/integration/file/spring-integration-file.xsd"/>
 
-		<xsd:annotation>
-			<xsd:documentation><![CDATA[
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
 				The handler for namespace 'http://www.springframework.org/schema/integration/smb'
 				is set to 'org.springframework.integration.smb.config.SmbNamespaceHandler'
 				in file 'spring.handlers'. SmbNamespaceHandler sets the implementation
 				of 'inbound-channel-adapter' to class 'SmbInboundChannelAdapterParser'
 				etc.
 			]]></xsd:documentation>
-		</xsd:annotation>
+	</xsd:annotation>
 
-		<xsd:element name="outbound-channel-adapter">
+	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
 				Builds an outbound-channel-adapter that writes files to a remote
-				SMB endpoint.
+				SMB endpoint. Configures a Consumer Endpoint for the
+				'org.springframework.integration.smb.outbound.SmbMessageHandler'
+				used to issue SMB commands.
 			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="base-smb-adapter-type">
+				<xsd:extension base="base-outbound-adapter-type">
 					<xsd:all>
-						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element ref="integration:poller" minOccurs="0"/>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0"/>
 					</xsd:all>
-					<xsd:attribute name="remote-directory" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Identifies directory path (e.g., "/temp/mytransfers/")
-								where file will be transferred to.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="remote-directory-expression" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Allows you to provide SpEL expression which will
-								compute directory path where file will be
-								transferred to (e.g., "headers.['remote_dir'] + '/myTransfers'");
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="remote-file-separator" type="xsd:string" default="/">
-						<xsd:annotation>
-							<xsd:documentation>
-								Allows you to provide remote file/directory separator
-								character. DEFAULT: '/'
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="temporary-file-suffix" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Extension used when uploading files. We change
-								it right after we know it's uploaded.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="remote-filename-generator" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
 								Allows you to specify a reference to a
-								[org.springframework.integration.file.FileNameGenerator] bean.
+								'org.springframework.integration.file.FileNameGenerator' bean.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -87,7 +59,7 @@
 							<xsd:documentation>
 								Allows you to provide SpEL expression which will
 								compute file name of the remote file (e.g., assuming
-								payload is java.io.File "payload.getName() + '.transfered'");
+								payload is java.io.File "payload.getName() + '.transferred'");
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -106,6 +78,14 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="charset" type="xsd:string" default="UTF-8">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to specify Charset (e.g., US-ASCII, ISO-8859-1, UTF-8).
+								[UTF-8] is the default.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -116,36 +96,17 @@
 			<xsd:documentation><![CDATA[
 				Builds an inbound-channel-adapter that synchronizes a local directory
 				with the contents of a remote SMB endpoint. The adapter requires
-				either no or exactly one file selection pattern (may be simple
-				pattern or regular expression).
+				either no or exactly one file selection pattern (may be simple pattern or regular expression).
+				Creates a 'SourcePollingChannelAdapter' based on the
+				'org.springframework.integration.smb.inbound.SmbInboundFileSynchronizingMessageSource'.
 			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="base-smb-adapter-type">
-
+				<xsd:extension base="base-inbound-adapter-type">
 					<xsd:sequence>
-						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+						<xsd:element ref="integration:poller" minOccurs="0"/>
 					</xsd:sequence>
-
-					<xsd:attribute name="filename-pattern" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Allows you to provide file name pattern to determine
-								the file names that needs to be scanned and is
-								based on simple pattern matching algorithm
-								(e.g., "*.txt, fo*.txt" etc.)
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="filename-regex" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Allows you to provide Regular Expression to determine
-								the file names that needs to be scanned. (e.g., "f[o]+\.txt" etc.)
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="comparator" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -156,49 +117,12 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="filter" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.file.filters.FileListFilter"/>
-								</tool:annotation>
-							</xsd:appinfo>
-							<xsd:documentation>
-								Allows you to specify a reference to
-								[org.springframework.integration.file.filters.FileListFilter] bean.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="temporary-file-suffix" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Extension used when downloading files. We change
-								it right after we know it's downloaded.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="remote-directory" type="xsd:string" use="required">
-						<xsd:annotation>
-							<xsd:documentation>
-								Identifies directory path (e.g., "/temp/mytransfers")
-								where file will be transferred FROM.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="remote-file-separator" type="xsd:string" default="/">
-						<xsd:annotation>
-							<xsd:documentation>
-								Allows you to provide remote file/directory separator
-								character. DEFAULT: '/'
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="local-filter" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
-											type="org.springframework.integration.file.filters.FileListFilter" />
+											type="org.springframework.integration.file.filters.FileListFilter"/>
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
@@ -229,7 +153,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="delete-remote-files" type="xsd:string">
+					<xsd:attribute name="delete-remote-files" type="xsd:string" default="false">
 						<xsd:annotation>
 							<xsd:documentation>
 								Specify whether to delete the remote source file after copying.
@@ -237,33 +161,476 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="charset" type="xsd:string" default="UTF-8">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to specify Charset (e.g., US-ASCII, ISO-8859-1, UTF-8).
+								[UTF-8] is the default.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attributeGroup ref="tempSuffixGroup"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="base-smb-adapter-type">
+	<xsd:element name="inbound-streaming-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a 'SourcePollingChannelAdapter' Endpoint for the
+				'org.springframework.integration.smb.inbound.SmbInboundStreamingMessageSource'.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="base-inbound-adapter-type">
+					<xsd:attribute name="comparator" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Specify a Comparator to be used when ordering Files. If none is provided, the
+								order in which files are processed is the order they are received from the
+								SMB server. The generic type of the Comparator must be 'SmbFileInfo'.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.smb.outbound.SmbOutboundGateway'
+				used to issue SMB commands.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="base-outbound-adapter-type">
+					<xsd:all>
+						<xsd:element ref="integration:poller" minOccurs="0"/>
+						<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0"/>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0"/>
+					</xsd:all>
+					<xsd:attribute name="command">
+						<xsd:annotation>
+							<xsd:documentation>
+								SMB command.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="int-file:remoteGatewayCommand xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="session-callback" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.integration.file.remote.MessageSessionCallback"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								The 'MessageSessionCallback' bean reference to perform custom operation(s) on 'Session'
+								with 'requestMessage'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="command-options" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SMB command options; for ls, -1 means just
+								return the file names
+								(otherwise file
+								metadata is returned, -dirs
+								means include directories (not included by
+								default),
+								-links means
+								include links (not included by default); for get, -P means
+								preserve
+								timestamp from remote file.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SpEL expression representing the path in the
+								command (e.g. ls path to list the files in directory path).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="rename-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SpEL expression representing the path for the
+								new filename when using the 'mv' command.
+								Defaults to "headers.['file_renameTo']".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Identifies the request channel attached to this gateway.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Identifies the reply channel attached to this gateway.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Allows you to specify how long this gateway will wait for
+								the reply message to be sent successfully to the reply channel
+								before throwing an exception. This attribute only applies when the
+								channel might block, for example when using a bounded queue channel that
+								is currently full.
+
+								Also, keep in mind that when sending to a DirectChannel, the
+								invocation will occur in the sender's thread. Therefore,
+								the failing of the send operation may be caused by other
+								components further downstream.
+
+								The "reply-timeout" attribute maps to the "sendTimeout" property of the
+								underlying 'MessagingTemplate' instance.
+
+								The attribute will default, if not specified, to '-1', meaning that
+								by default, the Gateway will wait indefinitely. The value is
+								specified in milliseconds.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="filter" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.integration.file.filters.FileListFilter"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Allows you to specify a reference to
+								[org.springframework.integration.file.filters.FileListFilter]
+								bean. This filter acts against the remote server view when using the 'ls'
+								or 'mget' commands.
+								Only one of 'filter', 'filename-pattern', or 'filename-regex' is allowed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="filter-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+						The SpEL expression to evaluate against file to accept it for processing or not.
+						Mutually exclusive with 'filter' attribute.
+					]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="filename-pattern" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to provide file name pattern to
+								determine the file names retrieved by the 'ls' and 'mget' commands
+								and is based on simple pattern matching algorithm (e.g., "*.txt, fo*.txt" etc.)
+								Only one of 'filter', 'filename-pattern', or 'filename-regex' is allowed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="filename-regex" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to provide Regular Expression to
+								determine the file names retrieved by the 'ls' and 'mget' commands.
+								(e.g., "f[o]+\.txt" etc.)
+								Only one of 'filter', 'filename-pattern', or 'filename-regex' is allowed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mput-filter" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.integration.file.filters.FileListFilter"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Allows you to specify a reference to
+								[org.springframework.integration.file.filters.FileListFilter]
+								bean. This filter acts on the local file system when using the 'mput' command.
+								Only one of 'mput-filter', 'mput-pattern', or 'mput-regex' is allowed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mput-filter-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+						The SpEL expression to evaluate against file to accept it for processing or not.
+						Mutually exclusive with 'mput-filter' attribute.
+					]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mput-pattern" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to provide file name pattern to
+								determine the file names sent by the 'mput' command
+								and is based on simple pattern matching algorithm (e.g., "*.txt, fo*.txt" etc.)
+								Only one of 'mput-filter', 'mput-pattern', or 'mput-regex' is allowed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mput-regex" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to provide Regular Expression to
+								determine the file names sent by the 'mput' command (e.g., "f[o]+\.txt" etc.)
+								Only one of 'mput-filter', 'mput-pattern', or 'mput-regex' is allowed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="local-filename-generator-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to provide a SpEL expression to
+								generate the file name of the local (transferred) file.
+								The root object of the SpEL
+								evaluation is the request Message, but the name of the original
+								remote file is also provided as the 'remoteFileName' variable.
+								For example, a valid expression would be:
+								"#remoteFileName.toUpperCase() + headers.foo".
+								Only used with 'get' and 'mget' commands.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="local-directory" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Identifies directory path (e.g., "/local/mytransfers") where file will be
+								transferred TO.
+								This attribute is mutually exclusive with 'local-directory-expression'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="local-directory-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies SpEL expression to
+								generate the directory path where file will be
+								transferred TO, when using 'get' and 'mget' commands.
+								The root object of the SpEL evaluation is the request Message,
+								but the name of the source
+								remote directory is also provided as the 'remoteDirectory' variable.
+								For example, a valid expression might be:
+								"'/local/' + #remoteDirectory.toUpperCase() + headers.foo".
+								Only used with 'get' and 'mget' commands.
+								This attribute is mutually exclusive with 'local-directory'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="auto-create-local-directory" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:documentation>
+								Tells this adapter if local directory must be auto-created if it doesn't exist.
+								Default is TRUE.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="order" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the order for invocation when this
+								endpoint is connected as a subscriber to a channel.
+								This is particularly relevant when that channel is using a "failover"
+								dispatching strategy, or when a failure in the delivery to one
+								subscriber should signal that the message should not be sent to
+								subscribers with a higher 'order' attribute.
+								It has no effect when this endpoint itself is a Polling Consumer for a channel with
+								a queue.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify whether this outbound gateway must return a non-null value. This value is
+								'true' by default, and a ReplyRequiredException will be thrown when
+								the underlying service returns a null value.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attributeGroup ref="int-file:remoteOutboundAttributeGroup"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="base-inbound-adapter-type">
+		<xsd:complexContent>
+			<xsd:extension base="base-adapter-type">
+				<xsd:sequence>
+					<xsd:element ref="integration:poller" minOccurs="0"/>
+				</xsd:sequence>
+				<xsd:attribute name="channel" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							Identifies channel attached to this adapter.
+							The channel to which messages will be sent by this adapter.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="filename-pattern" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Allows you to provide a file name pattern to
+							determine the file names that need to be scanned.
+							This is based on simple pattern matching (e.g., "*.txt, fo*.txt" etc.)
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="filename-regex" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Allows you to provide a Regular Expression to
+							determine the file names that need to be scanned (e.g., "f[o]+\.txt" etc.)
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="filter" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type
+										type="org.springframework.integration.file.filters.FileListFilter"/>
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							Allows you to specify a reference to a
+							[org.springframework.integration.file.filters.FileListFilter]
+							bean. This filter is applied to files on the remote server and
+							only files that pass the filter are retrieved.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="filter-expression" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+						The SpEL expression to evaluate against file to accept it for processing or not.
+						Mutually exclusive with 'filter' attribute.
+					]]></xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attributeGroup ref="integration:maxFetchGroup"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="base-outbound-adapter-type">
+		<xsd:complexContent>
+			<xsd:extension base="base-adapter-type">
+				<xsd:attribute name="channel" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							Identifies channel attached to this adapter.
+							The channel to which messages will be sent by this adapter.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="temporary-remote-directory" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Identifies the remote temporary directory path (e.g., "/remote/temp/mytransfers")
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attributeGroup ref="tempSuffixGroup"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="base-adapter-type">
+		<xsd:attribute name="id" type="xsd:string"/>
 		<xsd:attribute name="session-factory" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.smb.session.SmbSessionFactory"/>
+						<tool:expected-type
+								type="org.springframework.integration.file.remote.session.SessionFactory"/>
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation><![CDATA[
-					Reference to a org.springframework.integration.smb.session.SmbSessionFactory bean.
+					Reference to an 'org.springframework.integration.file.remote.session.SessionFactory' bean with
+					an 'jcifs.smb.SmbFile' generic type parameter.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="charset" type="xsd:string" default="UTF-8">
-		<xsd:annotation>
+		<xsd:attribute name="remote-file-separator" type="xsd:string" default="/">
+			<xsd:annotation>
 				<xsd:documentation>
-					Allows you to specify Charset (e.g., US-ASCII, ISO-8859-1, UTF-8).
-					[UTF-8] is the default.
+					Allows you to provide remote file/directory separator character. DEFAULT: '/'
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attributeGroup ref="integration:channelAdapterAttributes" />
+		<xsd:attribute name="remote-directory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Identifies the remote directory path (e.g., "/remote/mytransfers")
+					Mutually exclusive with 'remote-directory-expression'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="remote-directory-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specify a SpEL expression which
+					will be used to evaluate the directory
+					path to where the files will be transferred
+					(e.g., "headers.['remote_dir'] + '/myTransfers'" for outbound endpoints)
+					There is no root object (message) for inbound endpoints
+					(e.g., "@someBean.fetchDirectory");
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:complexType>
+
+	<xsd:attributeGroup name="tempSuffixGroup">
+		<xsd:attribute name="temporary-file-suffix" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Extension used when downloading files. We change it right after we know it's downloaded.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
 
 </xsd:schema>

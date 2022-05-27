@@ -194,6 +194,28 @@ Since the session remains open, the consuming application is responsible for clo
 The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
 Standard framework components, such as the `FileSplitter` and `StreamTransformer`, automatically close the session.
 See <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>> for more information about these components.
+The following example shows how to configure an `inbound-streaming-channel-adapter`:
+
+====
+[source, xml]
+----
+<int-smb:inbound-streaming-channel-adapter id="smbInbound"
+            channel="smbChannel"
+            session-factory="sessionFactory"
+            filename-pattern="*.txt"
+            filename-regex=".*\.txt"
+            filter="filter"
+            filter-expression="@myFilterBean.check(#root)"
+            remote-file-separator="/"
+            comparator="comparator"
+            max-fetch-size="1"
+            remote-directory-expression="'foo/bar'">
+        <int:poller fixed-rate="1000" />
+</int-smb:inbound-streaming-channel-adapter>
+----
+====
+
+Only one of `filename-pattern`, `filename-regex`, `filter`, or `filter-expression` is allowed.
 
 The `SmbStreamingMessageSource` adapter prevents duplicates for remote files with `SmbPersistentAcceptOnceFileListFilter` based on the in-memory `SimpleMetadataStore`.
 By default, this filter is also applied with the filename pattern (or regex).
@@ -449,7 +471,33 @@ if (closeable != null) {
 
 Framework components, such as the <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>>, automatically close the session after the data is transferred.
 
+The following example shows how to consume a file as a stream:
+
+====
+[source, xml]
+----
+<int-smb:outbound-gateway session-factory="smbSessionFactory"
+                            request-channel="inboundGetStream"
+                            command="get"
+                            command-options="-stream"
+                            expression="payload"
+                            remote-directory="smbTarget"
+                            reply-channel="stream" />
+
+<int-file:splitter input-channel="stream" output-channel="lines" />
+----
+====
+
 NOTE: If you consume the input stream in a custom component, you must close the `Session`.
+You can either do that in your custom code or route a copy of the message to a `service-activator` and use SpEL, as the following example shows:
+
+====
+[source, xml]
+----
+<int:service-activator input-channel="closeSession"
+    expression="headers['closeableResource'].close()" />
+----
+====
 
 ==== Using the `mget` Command
 
@@ -501,7 +549,25 @@ IMPORTANT: This means that existing keys in a persistent metadata store will not
 For this reason, the property is `false` by default; this may change in a future release.
 
 You can configure the `SmbSimplePatternFileListFilter` and `SmbRegexPatternFileListFilter` to always pass directories by setting the `alwaysAcceptDirectorties` to `true`.
-Doing so allows recursion for a simple pattern.
+Doing so allows recursion for a simple pattern, as the following examples show:
+
+====
+[source, xml]
+----
+<bean id="starDotTxtFilter"
+            class="org.springframework.integration.smb.filters.SmbSimplePatternFileListFilter">
+    <constructor-arg value="*.txt" />
+    <property name="alwaysAcceptDirectories" value="true" />
+</bean>
+
+<bean id="dotStarDotTxtFilter"
+            class="org.springframework.integration.smb.filters.SmbRegexPatternFileListFilter">
+    <constructor-arg value="^.*\.txt$" />
+    <property name="alwaysAcceptDirectories" value="true" />
+</bean>
+----
+====
+
 You can provide one of these filters by using the `filter` property on the gateway.
 
 See also <<smb-partial>>.
@@ -576,6 +642,25 @@ This attribute is mutually exclusive with the `local-directory` attribute.
 
 For all commands, the 'expression' property of the gateway holds the path on which the command acts.
 For the `mget` command, the expression might evaluate to `*`, meaning to retrieve all files, `somedirectory/*`, and other values that end with `*`.
+
+The following example shows a gateway configured for an `ls` command:
+
+====
+[source,xml]
+----
+<int-smb:outbound-gateway id="gateway1"
+        session-factory="smbSessionFactory"
+        request-channel="inbound1"
+        command="ls"
+        command-options="-1"
+        expression="payload"
+        reply-channel="toSplitter"/>
+----
+====
+
+The payload of the message sent to the `toSplitter` channel is a list of `String` objects, each of which contains the name of a file.
+If you omitted `command-options="-1"`, the payload would be a list of `FileInfo` objects.
+You can provide options as a space-delimited list (for example, `command-options="-1 -dirs -links"`).
 
 The `GET`, `MGET`, `PUT`, and `MPUT` commands support a `FileExistsMode` property (`mode` when using the namespace support).
 This affects the behavior when the local file exists (`GET` and `MGET`) or the remote file exists (`PUT` and `MPUT`).
