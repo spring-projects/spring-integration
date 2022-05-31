@@ -443,8 +443,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 		@Override
 		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment, Consumer<?, ?> consumer) {
-
-			Message<?> message = null;
+			Message<?> message;
 			try {
 				message = toMessagingMessage(record, acknowledgment, consumer);
 			}
@@ -452,22 +451,22 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate == null) {
 					setAttributesIfNecessary(record, null, true);
 				}
-				MessageChannel errorChannel = getErrorChannel();
-				if (errorChannel != null) {
-					RuntimeException exception = new ConversionException("Failed to convert to message", record, ex);
-					sendErrorMessageIfNecessary(null, exception);
+
+				RuntimeException exception = new ConversionException("Failed to convert to message", record, ex);
+				if (sendErrorMessageIfNecessary(null, exception)) {
+					return;
 				}
 				else {
 					throw ex;
 				}
 			}
+
 			RetryTemplate template = KafkaMessageDrivenChannelAdapter.this.retryTemplate;
 			if (template != null) {
-				Message<?> toSend = message;
 				doWithRetry(template, KafkaMessageDrivenChannelAdapter.this.recoveryCallback, record, acknowledgment,
 						consumer, () -> {
 							if (!KafkaMessageDrivenChannelAdapter.this.filterInRetry || passesFilter(record)) {
-								sendMessageIfAny(enhanceHeadersAndSaveAttributes(toSend, record), record);
+								sendMessageIfAny(enhanceHeadersAndSaveAttributes(message, record), record);
 							}
 						});
 			}
