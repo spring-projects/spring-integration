@@ -887,3 +887,12 @@ Starting with version 5.0, the `RedisLockRegistry` implements `ExpirableLockRegi
 
 String with version 5.5.6, the `RedisLockRegistry` is support automatically clean up cache for redisLocks in `RedisLockRegistry.locks` via `RedisLockRegistry.setCacheCapacity()`.
 See its JavaDocs for more information.
+
+String with version 5.5.13, the `RedisLockRegistry` exposes a `setRedisLockType(RedisLockType)` option to determine in which mode a Redis lock acquisition should happen:
+
+- `RedisLockType.SPIN_LOCK` - the lock is acquired by periodic loop (100ms) checking whether the lock can be acquired.
+Default.
+- `RedisLockType.PUB_SUB_LOCK` - The lock is acquired by redis pub-sub subscription.
+
+The pub-sub is preferred mode - less network chatter between client Redis server, and more performant - the lock is acquired immediately when subscription is notified about unlocking in the other process.
+However, the Redis does not support pub-sub in the Master/Replica connections (for example in AWS ElastiCache environment), therefore a busy-spin mode is chosen as a default to make the registry working in any environment.
