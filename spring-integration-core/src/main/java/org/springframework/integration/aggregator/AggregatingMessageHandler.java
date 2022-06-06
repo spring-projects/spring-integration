@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,21 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 	@Override
 	protected boolean isExpireGroupsUponCompletion() {
 		return this.expireGroupsUponCompletion;
+	}
+
+	/**
+	 * Check an {@link Iterable} result for split possibility on the output production:
+	 * the items of the collection have to be instances of {@link Message}
+	 * or {@link org.springframework.integration.support.AbstractIntegrationMessageBuilder}
+	 * and {@link #getOutputProcessor()} has to be a {@link SimpleMessageGroupProcessor}.
+	 * Otherwise, a single reply message is emitted with the whole {@link Iterable} as its payload.
+	 * @param reply the {@link Iterable} result to check for split possibility.
+	 * @return true if the {@link Iterable} result has to be split into individual messages.
+	 * @since 6.0
+	 */
+	@Override
+	protected boolean shouldSplitOutput(Iterable<?> reply) {
+		return getOutputProcessor() instanceof SimpleMessageGroupProcessor && super.shouldSplitOutput(reply);
 	}
 
 	/**

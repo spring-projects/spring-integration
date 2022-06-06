@@ -43,6 +43,10 @@ For convenience, the XML and Java DSL for Scatter-Gather, based on the `Recipien
 
 See <<./scatter-gather.adoc#scatter-gather,Scatter-Gather>> for more information.
 
+The `AggregatingMessageHandler` now does not split the `Collection<Message<?>>` result of the `MessageGroupProcessor` (excluding `SimpleMessageGroupProcessor`) on the output, but emits a single message containing this whole collection as a payload.
+
+See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
+
 [[x6.0-http]]
 === HTTP Changes
 
