@@ -832,4 +832,5 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	private static Map<String, Lock> getRedisLockRegistryLocks(RedisLockRegistry registry) {
 		return TestUtils.getPropertyValue(registry, "locks", Map.class);
 	}
+
 }

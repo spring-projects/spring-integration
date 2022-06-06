@@ -22,7 +22,6 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -36,8 +35,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
-
-import javax.annotation.Nonnull;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,6 +51,7 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
+import org.springframework.lang.NonNull;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -117,10 +115,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private final StringRedisTemplate redisTemplate;
 
-	private final RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
-
-	private final RedisMessageListenerContainer redisMessageListenerContainer;
-
 	private final long expireAfter;
 
 	private int cacheCapacity = DEFAULT_CAPACITY;
@@ -141,7 +135,17 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	private boolean executorExplicitlySet;
 
 	private volatile boolean unlinkAvailable = true;
+
 	private volatile boolean isRunningRedisMessageListenerContainer = false;
+
+	/**
+	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
+	 */
+	private volatile RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
+	/**
+	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
+	 */
+	private volatile RedisMessageListenerContainer redisMessageListenerContainer;
 
 	/**
 	 * Constructs a lock registry with the default (60 second) lock expiration.
@@ -165,12 +169,13 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.registryKey = registryKey;
 		this.expireAfter = expireAfter;
 		this.unLockChannelKey = registryKey + "-channel";
-		this.unlockNotifyMessageListener = new RedisUnLockNotifyMessageListener();
-		this.redisMessageListenerContainer = new RedisMessageListenerContainer();
-		setupUnlockMessageListener(connectionFactory);
 	}
 
 	private void setupUnlockMessageListener(RedisConnectionFactory connectionFactory) {
+		Assert.isNull(RedisLockRegistry.this.redisMessageListenerContainer, "'redisMessageListenerContainer' must not have been re-initialized.");
+		Assert.isNull(RedisLockRegistry.this.unlockNotifyMessageListener, "'unlockNotifyMessageListener' must not have been re-initialized.");
+		RedisLockRegistry.this.redisMessageListenerContainer = new RedisMessageListenerContainer();
+		RedisLockRegistry.this.unlockNotifyMessageListener = new RedisUnLockNotifyMessageListener();
 		final Topic topic = new ChannelTopic(this.unLockChannelKey);
 		this.redisMessageListenerContainer.setConnectionFactory(connectionFactory);
 		this.redisMessageListenerContainer.setTaskExecutor(this.executor);
@@ -200,19 +205,23 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.cacheCapacity = cacheCapacity;
 	}
 
+
 	/**
-	 * The default is {@link RedisLockType.SPIN_LOCK}<br>
-	 * {@link RedisLockType.SPIN_LOCK}: The lock is acquired by periodically(100ms) checking whether the lock can be acquired.<br>
-	 * {@link RedisLockType.PUB_SUB_LOCK}: The lock is accuired by redis pub-sub. <br>
-	 *
-	 * Set the type of unlockType
-	 * Select the lock method.
+	 * <p>
+	 * 	Because pub-sub does not work in some settings(RedisStaticMasterReplicaConfiguration), The default is {@link RedisLockType.SPIN_LOCK}
+	 * <ul>
+	 *    <li>{@link RedisLockType#SPIN_LOCK}: The lock is acquired by periodically(100ms) checking whether the lock can be acquired.</li>
+	 *    <li>{@link RedisLockType#PUB_SUB_LOCK}: The lock is accuired by redis pub-sub.</li>
+	 * 	</ul>
+	 * <p>
+	 * Set the type of unlockType, Select the lock method.
 	 *
 	 * @param redisLockType obtain RedisLockType
-	 * @since 6.0.0
+	 * @since 5.5.13
 	 */
-	public void setRedisLockType(@Nonnull RedisLockType redisLockType) {
-		this.redisLockType = Objects.requireNonNull(redisLockType);
+	public void setRedisLockType(@NonNull RedisLockType redisLockType) {
+		Assert.notNull(redisLockType, "'redisLockType' cannot be null");
+		this.redisLockType = redisLockType;
 	}
 
 	@Override
@@ -253,7 +262,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		PUB_SUB_LOCK, SPIN_LOCK;
 	}
 
-	private Function<String, RedisLock> getRedisLockConstructor(@Nonnull RedisLockType redisLockType) {
+	private Function<String, RedisLock> getRedisLockConstructor(@NonNull RedisLockType redisLockType) {
 		return switch (redisLockType) {
 			case PUB_SUB_LOCK -> RedisPubSubLock::new;
 			case SPIN_LOCK -> RedisSpinLock::new;
@@ -262,6 +271,20 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 
 	private abstract class RedisLock implements Lock {
+
+		private static final String OBTAIN_LOCK_SCRIPT =
+				"local lockClientId = redis.call('GET', KEYS[1])\n" +
+				"if lockClientId == ARGV[1] then\n" +
+				"  redis.call('PEXPIRE', KEYS[1], ARGV[2])\n" +
+				"  return true\n" +
+				"elseif not lockClientId then\n" +
+				"  redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2])\n" +
+				"  return true\n" +
+				"end\n" +
+				"return false";
+
+		protected static final RedisScript<Boolean> obtainLockScript = new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
+
 		protected final String lockKey;
 
 		private final ReentrantLock localLock = new ReentrantLock();
@@ -385,6 +408,13 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			return result;
 		}
 
+		protected Boolean obtainLock() {
+			return RedisLockRegistry.this.redisTemplate
+					.execute(obtainLockScript, Collections.singletonList(this.lockKey),
+							RedisLockRegistry.this.clientId,
+							String.valueOf(RedisLockRegistry.this.expireAfter));
+		}
+
 		@Override
 		public final void unlock() {
 			if (!this.localLock.isHeldByCurrentThread()) {
@@ -495,19 +525,10 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		private RedisLockRegistry getOuterType() {
 			return RedisLockRegistry.this;
 		}
+
 	}
 
 	private final class RedisPubSubLock extends RedisLock {
-		private static final String OBTAIN_LOCK_SCRIPT =
-				"local lockClientId = redis.call('GET', KEYS[1])\n" +
-				"if lockClientId == ARGV[1] then\n" +
-				"  redis.call('PEXPIRE', KEYS[1], ARGV[2])\n" +
-				"  return true\n" +
-				"elseif not lockClientId then\n" +
-				"  redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2])\n" +
-				"  return true\n" +
-				"end\n" +
-				"return false";
 
 		private static final String UNLINK_UNLOCK_SCRIPT =
 				"if (redis.call('unlink', KEYS[1]) == 1) then " +
@@ -522,9 +543,10 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				"return true " +
 				"end " +
 				"return false";
-		private final RedisScript<Boolean> obtainLockScript = new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
-		private final RedisScript<Boolean> unLinkUnLockScript = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
-		private final RedisScript<Boolean> deleteUnLockScript = new DefaultRedisScript<>(DELETE_UNLOCK_SCRIPT, Boolean.class);
+
+		private static final RedisScript<Boolean> unLinkUnLockScript = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
+
+		private static final RedisScript<Boolean> deleteUnLockScript = new DefaultRedisScript<>(DELETE_UNLOCK_SCRIPT, Boolean.class);
 
 		private RedisPubSubLock(String path) {
 			super(path);
@@ -538,14 +560,14 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		@Override
 		protected void removeLockKeyInnerUnlink() {
 			RedisLockRegistry.this.redisTemplate.execute(
-					this.unLinkUnLockScript, Collections.singletonList(this.lockKey),
+					unLinkUnLockScript, Collections.singletonList(this.lockKey),
 					RedisLockRegistry.this.unLockChannelKey);
 		}
 
 		@Override
 		protected void removeLockKeyInnerDelete() {
 			RedisLockRegistry.this.redisTemplate.execute(
-					this.deleteUnLockScript, Collections.singletonList(this.lockKey),
+					deleteUnLockScript, Collections.singletonList(this.lockKey),
 					RedisLockRegistry.this.unLockChannelKey);
 
 		}
@@ -557,6 +579,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			}
 
 			if (!(RedisLockRegistry.this.isRunningRedisMessageListenerContainer
+				&& RedisLockRegistry.this.redisMessageListenerContainer != null
 				&& RedisLockRegistry.this.redisMessageListenerContainer.isRunning())) {
 				runRedisMessageListenerContainer();
 			}
@@ -586,23 +609,23 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			return false;
 		}
 
-		private Boolean obtainLock() {
-			return RedisLockRegistry.this.redisTemplate
-					.execute(this.obtainLockScript, Collections.singletonList(this.lockKey),
-							RedisLockRegistry.this.clientId,
-							String.valueOf(RedisLockRegistry.this.expireAfter));
-		}
-
 		private void runRedisMessageListenerContainer() {
-			synchronized (RedisLockRegistry.this.redisMessageListenerContainer) {
+			synchronized (RedisLockRegistry.this.locks) {
 				if (!(RedisLockRegistry.this.isRunningRedisMessageListenerContainer
+					&& RedisLockRegistry.this.redisMessageListenerContainer != null
 					&& RedisLockRegistry.this.redisMessageListenerContainer.isRunning())) {
-					RedisLockRegistry.this.redisMessageListenerContainer.afterPropertiesSet();
+
+					if (RedisLockRegistry.this.redisMessageListenerContainer == null) {
+						setupUnlockMessageListener(RedisLockRegistry.this.redisTemplate.getConnectionFactory());
+						RedisLockRegistry.this.redisMessageListenerContainer.afterPropertiesSet();
+					}
+
 					RedisLockRegistry.this.redisMessageListenerContainer.start();
 					RedisLockRegistry.this.isRunningRedisMessageListenerContainer = true;
 				}
 			}
 		}
+
 	}
 
 	/**
@@ -636,17 +659,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	}
 
 	private final class RedisSpinLock extends RedisLock {
-		private static final String OBTAIN_LOCK_SCRIPT =
-				"local lockClientId = redis.call('GET', KEYS[1])\n" +
-				"if lockClientId == ARGV[1] then\n" +
-				"  redis.call('PEXPIRE', KEYS[1], ARGV[2])\n" +
-				"  return true\n" +
-				"elseif not lockClientId then\n" +
-				"  redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2])\n" +
-				"  return true\n" +
-				"end\n" +
-				"return false";
-		private final RedisScript<Boolean> obtainLockScript = new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
 
 		private RedisSpinLock(String path) {
 			super(path);
@@ -681,12 +693,5 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			RedisLockRegistry.this.redisTemplate.delete(this.lockKey);
 		}
 
-		private boolean obtainLock() {
-			return RedisLockRegistry.this.redisTemplate
-					.execute(this.obtainLockScript,
-							Collections.singletonList(this.lockKey),
-							RedisLockRegistry.this.clientId,
-							String.valueOf(RedisLockRegistry.this.expireAfter));
-		}
 	}
 }
