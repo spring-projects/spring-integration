@@ -44,7 +44,6 @@ import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.ExpressionEvaluatingCorrelationStrategy;
 import org.springframework.integration.aggregator.ExpressionEvaluatingReleaseStrategy;
-import org.springframework.integration.aggregator.SimpleMessageGroupProcessor;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Filter;
@@ -69,6 +68,7 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -178,12 +178,11 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			MessageHistory messageHistory = MessageHistory.read(message);
 			assertThat(messageHistory).isNotNull();
 			String messageHistoryString = messageHistory.toString();
-			assertThat(messageHistoryString).contains("routerChannel")
-					.contains("filterChannel")
-					.contains("aggregatorChannel")
-					.contains("splitterChannel")
-					.contains("serviceChannel")
-					.doesNotContain("discardChannel");
+			assertThat(messageHistoryString)
+					.contains("routerChannel", "filterChannel", "aggregatorChannel", "serviceChannel")
+					.doesNotContain("discardChannel")
+					// history header is not overridden in splitter for individual message from message group emitted before
+					.doesNotContain("splitterChannel");
 		}
 
 		assertThat(this.skippedServiceActivator).isNull();
@@ -248,10 +247,10 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		this.reactiveMessageHandlerChannel.send(new GenericMessage<>("test"));
 
 		StepVerifier.create(
-				this.contextConfiguration.messageMono
-						.asMono()
-						.map(Message::getPayload)
-						.cast(String.class))
+						this.contextConfiguration.messageMono
+								.asMono()
+								.map(Message::getPayload)
+								.cast(String.class))
 				.expectNext("test")
 				.verifyComplete();
 	}
@@ -332,7 +331,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@Bean
 		@ServiceActivator(inputChannel = "aggregatorChannel")
 		public MessageHandler aggregator() {
-			AggregatingMessageHandler handler = new AggregatingMessageHandler(new SimpleMessageGroupProcessor());
+			AggregatingMessageHandler handler = new AggregatingMessageHandler(MessageGroup::getMessages);
 			handler.setCorrelationStrategy(new ExpressionEvaluatingCorrelationStrategy("1"));
 			handler.setReleaseStrategy(new ExpressionEvaluatingReleaseStrategy("size() == 10"));
 			handler.setOutputChannelName("splitterChannel");
@@ -346,7 +345,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 		@Bean
 		public CountDownLatch reactiveCustomizerLatch() {
-			return new CountDownLatch(10);
+			return new CountDownLatch(1);
 		}
 
 		@Bean

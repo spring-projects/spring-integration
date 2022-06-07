@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,14 +57,14 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  * properties can be referred to by name in the query string, e.g.
  *
  * <pre class="code">
- * INSERT INTO FOOS (MESSAGE_ID, PAYLOAD) VALUES (:headers[id], :payload)
+ * INSERT INTO ITEMS (MESSAGE_ID, PAYLOAD) VALUES (:headers[id], :payload)
  * </pre>
  *
  * <p>
  * When a message payload is an instance of {@link Iterable}, a
  * {@link NamedParameterJdbcOperations#batchUpdate(String, SqlParameterSource[])} is performed, where each
  * {@link SqlParameterSource} instance is based on items wrapped into an internal {@link Message} implementation with
- * headers from the request message.
+ * headers from the request message. The item is wrapped only if it is not a {@link Message} already.
  * <p>
  * When a {@link #preparedStatementSetter} is configured, it is applied for each item in the appropriate
  * {@link JdbcOperations#batchUpdate(String, BatchPreparedStatementSetter)} function.
@@ -219,19 +219,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 			if (message.getPayload() instanceof Iterable) {
 				Stream<? extends Message<?>> messageStream =
 						StreamSupport.stream(((Iterable<?>) message.getPayload()).spliterator(), false)
-								.map(payload -> new Message<Object>() {
-
-									@Override
-									public Object getPayload() {
-										return payload;
-									}
-
-									@Override
-									public MessageHeaders getHeaders() {
-										return message.getHeaders();
-									}
-
-								});
+								.map(payload -> payloadToMessage(payload, message.getHeaders()));
 
 				int[] updates;
 
@@ -286,6 +274,26 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 				return Collections.singletonList(map);
 			}
 		}
+	}
+
+	private static Message<?> payloadToMessage(Object payload, MessageHeaders messageHeaders) {
+		if (payload instanceof Message) {
+			return (Message<?>) payload;
+		}
+
+		return new Message<>() {
+
+			@Override
+			public Object getPayload() {
+				return payload;
+			}
+
+			@Override
+			public MessageHeaders getHeaders() {
+				return messageHeaders;
+			}
+
+		};
 	}
 
 }

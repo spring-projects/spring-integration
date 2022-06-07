@@ -62,7 +62,7 @@ It is recommended to use that `MessagePublishingErrorHandler` for any custom `ta
 A registered `integrationMessagePublishingErrorHandler` bean can be used in this case.
 
 To enable global error handling, register a handler on that channel.
-For example, you can configure Spring Integration's `ErrorMessageExceptionTypeRouter` as the handler of an endpoint that is subscribed to the 'errorChannel'.
+For example, you can configure Spring Integration's `ErrorMessageExceptionTypeRouter` as the handler of an endpoint that is subscribed to the `errorChannel`.
 That router can then spread the error messages across multiple channels, based on the `Exception` type.
 
 Starting with version 4.3.10, Spring Integration provides the `ErrorMessagePublisher` and the `ErrorMessageStrategy`.
@@ -85,5 +85,7 @@ Including a resource and source of the bean definition helps to determine possib
 
 Starting with version 5.4.3, the default error channel is configured with the property `requireSubscribers = true` to not silently ignore messages when there are no subscribers on this channel (e.g. when application context is stopped).
 In this case a `MessageDispatchingException` is thrown which may lend on the client callback of the inbound channel adapter to negatively acknowledge (or roll back) an original message in the source system for redelivery or other future consideration.
-To restore the previous behavior (ignore non dispatched error messages), the global integration property `spring.integration.channels.error.requireSubscribers` must be set to `false`.
+To restore the previous behavior (ignore non-dispatched error messages), the global integration property `spring.integration.channels.error.requireSubscribers` must be set to `false`.
 See <<./configuration.adoc#global-properties,Global Properties>> and <<./channel.adoc#channel-configuration-pubsubchannel,`PublishSubscribeChannel` Configuration>> (if you configure a global `errorChannel` manually) for more information.
+
+See also https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/errorhandling[Error Handling Sample] for more information.

@@ -284,7 +284,7 @@ It lets you specify a `MessagePreparedStatementSetter` bean reference.
 ==== Batch Update
 
 Starting with version 5.1, the `JdbcMessageHandler` performs a `JdbcOperations.batchUpdate()` if the payload of the request message is an `Iterable` instance.
-Each element of the `Iterable` is wrapped to a `Message` with the headers from the request message.
+Each element of the `Iterable` is wrapped to a `Message` with the headers from the request message if such an element is not a `Message` already.
 In the case of regular `SqlParameterSourceFactory`-based configuration these messages are used to build an `SqlParameterSource[]` for an argument used in the mentioned `JdbcOperations.batchUpdate()` function.
 When a `MessagePreparedStatementSetter` configuration is applied, a `BatchPreparedStatementSetter` variant is used to iterate over those messages for each item and the provided `MessagePreparedStatementSetter` is called against them.
 The batch update is not supported when `keysGenerated` mode is selected.

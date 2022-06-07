@@ -132,8 +132,6 @@ Consequently, the `Collection<Message>` variable in the POJO is cleared too, if 
 If you wish to simply release that collection as-is for further processing, you must build a new `Collection` (for example, `new ArrayList<Message>(messages)`).
 Starting with version 4.3, the framework no longer copies the messages to a new collection, to avoid undesired extra object creation.
 
-If the `processMessageGroup` method of the `MessageGroupProcessor` returns a collection, it must be a collection of `Message<?>` objects.
-In this case, the messages are individually released.
 Prior to version 4.2, it was not possible to provide a `MessageGroupProcessor` by using XML configuration.
 Only POJO methods could be used for aggregation.
 Now, if the framework detects that the referenced (or inner) bean implements `MessageProcessor`, it is used as the aggregator's output processor.
@@ -144,6 +142,10 @@ Also, since version 4.2, a `SimpleMessageGroupProcessor` is provided.
 It returns the collection of messages from the group, which, as indicated earlier, causes the released messages to be sent individually.
 
 This lets the aggregator work as a message barrier, where arriving messages are held until the release strategy fires and the group is released as a sequence of individual messages.
+
+Starting with version 6.0, the splitting behaviour, described above, works only if the group processor is a `SimpleMessageGroupProcessor`.
+Otherwise, with any other `MessageGroupProcessor` implementation that returns a `Collection<Message>`, only a single reply message is emitted with the whole collection of messages as its payload.
+Such logic is dictated by the canonical purpose of an aggregator - collect request messages by some key and produce a single grouped message.
 
 ===== `ReleaseStrategy`
 

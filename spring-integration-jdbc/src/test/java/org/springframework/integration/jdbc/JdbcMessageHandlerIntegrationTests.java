@@ -17,11 +17,13 @@
 package org.springframework.integration.jdbc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -29,6 +31,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
@@ -106,6 +109,38 @@ public class JdbcMessageHandlerIntegrationTests {
 		assertThat(foos.get(0).get("NAME")).isEqualTo("foo1");
 		assertThat(foos.get(1).get("NAME")).isEqualTo("foo2");
 		assertThat(foos.get(2).get("NAME")).isEqualTo("foo3");
+	}
+
+	@Test
+	public void testInsertBatchOfMessages() {
+		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
+				"insert into foos (id, status, name) values (:id, 0, :payload)");
+		ExpressionEvaluatingSqlParameterSourceFactory sqlParameterSourceFactory =
+				new ExpressionEvaluatingSqlParameterSourceFactory();
+		sqlParameterSourceFactory.setParameterExpressions(Map.of("id", "headers.id", "payload", "payload"));
+		sqlParameterSourceFactory.setBeanFactory(mock(BeanFactory.class));
+		handler.setSqlParameterSourceFactory(sqlParameterSourceFactory);
+		handler.afterPropertiesSet();
+
+		List<GenericMessage<String>> payload =
+				IntStream.range(1, 4)
+						.mapToObj(i -> "Item" + i)
+						.map(GenericMessage::new)
+						.toList();
+
+		handler.handleMessage(new GenericMessage<>(payload));
+
+		List<Map<String, Object>> foos = jdbcTemplate.queryForList("SELECT * FROM FOOS ORDER BY NAME");
+
+		assertThat(foos.size()).isEqualTo(3);
+
+		assertThat(foos.get(0).get("NAME")).isEqualTo("Item1");
+		assertThat(foos.get(1).get("NAME")).isEqualTo("Item2");
+		assertThat(foos.get(2).get("NAME")).isEqualTo("Item3");
+
+		assertThat(foos.get(0).get("ID"))
+				.isNotEqualTo(foos.get(0).get("NAME"))
+				.isEqualTo(payload.get(0).getHeaders().getId().toString());
 	}
 
 	@Test
