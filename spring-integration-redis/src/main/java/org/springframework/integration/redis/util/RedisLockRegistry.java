@@ -141,7 +141,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	/**
 	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
 	 */
-	private volatile RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
+	private volatile RedisPubSubLock.RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
 	/**
 	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
 	 */
@@ -175,7 +175,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		Assert.isNull(RedisLockRegistry.this.redisMessageListenerContainer, "'redisMessageListenerContainer' must not have been re-initialized.");
 		Assert.isNull(RedisLockRegistry.this.unlockNotifyMessageListener, "'unlockNotifyMessageListener' must not have been re-initialized.");
 		RedisLockRegistry.this.redisMessageListenerContainer = new RedisMessageListenerContainer();
-		RedisLockRegistry.this.unlockNotifyMessageListener = new RedisUnLockNotifyMessageListener();
+		RedisLockRegistry.this.unlockNotifyMessageListener = new RedisPubSubLock.RedisUnLockNotifyMessageListener();
 		final Topic topic = new ChannelTopic(this.unLockChannelKey);
 		this.redisMessageListenerContainer.setConnectionFactory(connectionFactory);
 		this.redisMessageListenerContainer.setTaskExecutor(this.executor);
@@ -208,18 +208,14 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	/**
 	 * <p>
-	 * 	Because pub-sub does not work in some settings(RedisStaticMasterReplicaConfiguration), The default is {@link RedisLockType.SPIN_LOCK}
-	 * <ul>
-	 *    <li>{@link RedisLockType#SPIN_LOCK}: The lock is acquired by periodically(100ms) checking whether the lock can be acquired.</li>
-	 *    <li>{@link RedisLockType#PUB_SUB_LOCK}: The lock is accuired by redis pub-sub.</li>
-	 * 	</ul>
+	 * 	Because pub-sub does not work in some settings(RedisStaticMasterReplicaConfiguration), The default is {@link RedisLockType#SPIN_LOCK}
 	 * <p>
 	 * Set the type of unlockType, Select the lock method.
 	 *
 	 * @param redisLockType obtain RedisLockType
 	 * @since 5.5.13
 	 */
-	public void setRedisLockType(@NonNull RedisLockType redisLockType) {
+	public void setRedisLockType(RedisLockType redisLockType) {
 		Assert.notNull(redisLockType, "'redisLockType' cannot be null");
 		this.redisLockType = redisLockType;
 	}
@@ -258,17 +254,26 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 	}
 
+	/**
+	 * <ul>
+	 * <li>{@link RedisLockType#SPIN_LOCK}: The lock is acquired by periodically(100ms) checking whether the lock can be acquired.</li>
+	 * <li>{@link RedisLockType#PUB_SUB_LOCK}: The lock is accuired by redis pub-sub.</li>
+	 * </ul>
+	 */
 	public enum RedisLockType {
-		PUB_SUB_LOCK, SPIN_LOCK;
+		SPIN_LOCK, PUB_SUB_LOCK
 	}
 
 	private Function<String, RedisLock> getRedisLockConstructor(@NonNull RedisLockType redisLockType) {
-		return switch (redisLockType) {
-			case PUB_SUB_LOCK -> RedisPubSubLock::new;
-			case SPIN_LOCK -> RedisSpinLock::new;
-		};
+		switch (redisLockType) {
+			case SPIN_LOCK:
+				return RedisSpinLock::new;
+			case PUB_SUB_LOCK:
+				return RedisPubSubLock::new;
+			default:
+				throw new IllegalArgumentException();
+		}
 	}
-
 
 	private abstract class RedisLock implements Lock {
 
@@ -283,7 +288,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				"end\n" +
 				"return false";
 
-		protected static final RedisScript<Boolean> obtainLockScript = new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
+		protected static final RedisScript<Boolean>
+				OBTAIN_LOCK_REDIS_SCRIPT = new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
 
 		protected final String lockKey;
 
@@ -408,9 +414,9 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			return result;
 		}
 
-		protected Boolean obtainLock() {
+		protected final Boolean obtainLock() {
 			return RedisLockRegistry.this.redisTemplate
-					.execute(obtainLockScript, Collections.singletonList(this.lockKey),
+					.execute(OBTAIN_LOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
 							RedisLockRegistry.this.clientId,
 							String.valueOf(RedisLockRegistry.this.expireAfter));
 		}
@@ -544,9 +550,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				"end " +
 				"return false";
 
-		private static final RedisScript<Boolean> unLinkUnLockScript = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
+		private static final RedisScript<Boolean>
+				UNLINK_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
 
-		private static final RedisScript<Boolean> deleteUnLockScript = new DefaultRedisScript<>(DELETE_UNLOCK_SCRIPT, Boolean.class);
+		private static final RedisScript<Boolean>
+				DELETE_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(DELETE_UNLOCK_SCRIPT, Boolean.class);
 
 		private RedisPubSubLock(String path) {
 			super(path);
@@ -560,14 +568,14 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		@Override
 		protected void removeLockKeyInnerUnlink() {
 			RedisLockRegistry.this.redisTemplate.execute(
-					unLinkUnLockScript, Collections.singletonList(this.lockKey),
+					UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
 					RedisLockRegistry.this.unLockChannelKey);
 		}
 
 		@Override
 		protected void removeLockKeyInnerDelete() {
 			RedisLockRegistry.this.redisTemplate.execute(
-					deleteUnLockScript, Collections.singletonList(this.lockKey),
+					DELETE_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
 					RedisLockRegistry.this.unLockChannelKey);
 
 		}
@@ -626,37 +634,35 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			}
 		}
 
-	}
+		private static final class RedisUnLockNotifyMessageListener implements MessageListener {
 
-	/**
-	 * Used by RedisPubSubLock
-	 */
-	private static final class RedisUnLockNotifyMessageListener implements MessageListener {
+			private final Map<String, SettableListenableFuture<String>> notifyMap = new ConcurrentHashMap<>();
 
-		private final Map<String, SettableListenableFuture<String>> notifyMap = new ConcurrentHashMap<>();
+			@Override
+			public void onMessage(Message message, byte[] pattern) {
+				final String lockKey = new String(message.getBody());
+				unlockNotify(lockKey);
+			}
 
-		@Override
-		public void onMessage(Message message, byte[] pattern) {
-			final String lockKey = new String(message.getBody());
-			unlockNotify(lockKey);
-		}
+			public Future<String> subscribeLock(String lockKey) {
+				return this.notifyMap.computeIfAbsent(lockKey, key -> new SettableListenableFuture<>());
+			}
 
-		public Future<String> subscribeLock(String lockKey) {
-			return this.notifyMap.computeIfAbsent(lockKey, key -> new SettableListenableFuture<>());
-		}
+			public void unSubscribeLock(String localLock) {
+				this.notifyMap.remove(localLock);
+			}
 
-		public void unSubscribeLock(String localLock) {
-			this.notifyMap.remove(localLock);
-		}
+			private void unlockNotify(String lockKey) {
+				this.notifyMap.computeIfPresent(lockKey, (key, lockFuture) -> {
+					lockFuture.set(key);
+					return lockFuture;
+				});
+			}
 
-		private void unlockNotify(String lockKey) {
-			this.notifyMap.computeIfPresent(lockKey, (key, lockFuture) -> {
-				lockFuture.set(key);
-				return lockFuture;
-			});
 		}
 
 	}
+
 
 	private final class RedisSpinLock extends RedisLock {
 
