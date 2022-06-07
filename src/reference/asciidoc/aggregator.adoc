@@ -143,9 +143,9 @@ It returns the collection of messages from the group, which, as indicated earlie
 
 This lets the aggregator work as a message barrier, where arriving messages are held until the release strategy fires and the group is released as a sequence of individual messages.
 
-Starting with version 6.0, a splitting behaviour, described above, works only for a mentioned `SimpleMessageGroupProcessor`.
-Otherwise, with any other `MessageGroupProcessor` implementation which returns a `Collection<Message>`, only a single reply message is emitted with the whole collection of messages as its payload.
-Such a logic is dictated with a canonical purpose of an aggregator - collect request messages by some key and produce a single grouped message.
+Starting with version 6.0, the splitting behaviour, described above, works only if the group processor is a `SimpleMessageGroupProcessor`.
+Otherwise, with any other `MessageGroupProcessor` implementation that returns a `Collection<Message>`, only a single reply message is emitted with the whole collection of messages as its payload.
+Such logic is dictated by the canonical purpose of an aggregator - collect request messages by some key and produce a single grouped message.
 
 ===== `ReleaseStrategy`
 
