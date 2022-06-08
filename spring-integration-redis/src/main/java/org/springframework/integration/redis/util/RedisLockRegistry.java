@@ -137,7 +137,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	/**
 	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
 	 */
-	private volatile RedisPubSubLock.RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
+	private volatile RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
 
 	/**
 	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
@@ -174,7 +174,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		Assert.isNull(RedisLockRegistry.this.unlockNotifyMessageListener,
 				"'unlockNotifyMessageListener' must not have been re-initialized.");
 		RedisLockRegistry.this.redisMessageListenerContainer = new RedisMessageListenerContainer();
-		RedisLockRegistry.this.unlockNotifyMessageListener = new RedisPubSubLock.RedisUnLockNotifyMessageListener();
+		RedisLockRegistry.this.unlockNotifyMessageListener = new RedisUnLockNotifyMessageListener();
 		final Topic topic = new ChannelTopic(this.unLockChannelKey);
 		this.redisMessageListenerContainer.setConnectionFactory(connectionFactory);
 		this.redisMessageListenerContainer.setTaskExecutor(this.executor);
@@ -293,8 +293,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 						"end " +
 						"return false";
 
-		protected static final RedisScript<Boolean>
-				OBTAIN_LOCK_REDIS_SCRIPT = new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
+		private final RedisScript<Boolean> obtainLockRedisScript =
+				new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
 
 		protected final String lockKey;
 
@@ -422,7 +422,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 		protected final Boolean obtainLock() {
 			return RedisLockRegistry.this.redisTemplate
-					.execute(OBTAIN_LOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+					.execute(this.obtainLockRedisScript, Collections.singletonList(this.lockKey),
 							RedisLockRegistry.this.clientId,
 							String.valueOf(RedisLockRegistry.this.expireAfter));
 		}
@@ -556,11 +556,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 						"end " +
 						"return false";
 
-		private static final RedisScript<Boolean>
-				UNLINK_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
+		private final RedisScript<Boolean> unlinkUnlockRedisScript =
+				new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
 
-		private static final RedisScript<Boolean>
-				DELETE_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(DELETE_UNLOCK_SCRIPT, Boolean.class);
+		private final RedisScript<Boolean> deleteUnlockRedisScript =
+				new DefaultRedisScript<>(DELETE_UNLOCK_SCRIPT, Boolean.class);
 
 		private RedisPubSubLock(String path) {
 			super(path);
@@ -574,14 +574,14 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		@Override
 		protected void removeLockKeyInnerUnlink() {
 			RedisLockRegistry.this.redisTemplate.execute(
-					UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+					this.unlinkUnlockRedisScript, Collections.singletonList(this.lockKey),
 					RedisLockRegistry.this.unLockChannelKey);
 		}
 
 		@Override
 		protected void removeLockKeyInnerDelete() {
 			RedisLockRegistry.this.redisTemplate.execute(
-					DELETE_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+					this.deleteUnlockRedisScript, Collections.singletonList(this.lockKey),
 					RedisLockRegistry.this.unLockChannelKey);
 
 		}
@@ -641,31 +641,31 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			}
 		}
 
-		private static final class RedisUnLockNotifyMessageListener implements MessageListener {
+	}
 
-			private final Map<String, SettableListenableFuture<String>> notifyMap = new ConcurrentHashMap<>();
+	private static final class RedisUnLockNotifyMessageListener implements MessageListener {
 
-			@Override
-			public void onMessage(Message message, byte[] pattern) {
-				final String lockKey = new String(message.getBody());
-				unlockNotify(lockKey);
-			}
+		private final Map<String, SettableListenableFuture<String>> notifyMap = new ConcurrentHashMap<>();
 
-			public Future<String> subscribeLock(String lockKey) {
-				return this.notifyMap.computeIfAbsent(lockKey, key -> new SettableListenableFuture<>());
-			}
+		@Override
+		public void onMessage(Message message, byte[] pattern) {
+			final String lockKey = new String(message.getBody());
+			unlockNotify(lockKey);
+		}
 
-			public void unSubscribeLock(String localLock) {
-				this.notifyMap.remove(localLock);
-			}
+		public Future<String> subscribeLock(String lockKey) {
+			return this.notifyMap.computeIfAbsent(lockKey, key -> new SettableListenableFuture<>());
+		}
 
-			private void unlockNotify(String lockKey) {
-				this.notifyMap.computeIfPresent(lockKey, (key, lockFuture) -> {
-					lockFuture.set(key);
-					return lockFuture;
-				});
-			}
+		public void unSubscribeLock(String localLock) {
+			this.notifyMap.remove(localLock);
+		}
 
+		private void unlockNotify(String lockKey) {
+			this.notifyMap.computeIfPresent(lockKey, (key, lockFuture) -> {
+				lockFuture.set(key);
+				return lockFuture;
+			});
 		}
 
 	}
