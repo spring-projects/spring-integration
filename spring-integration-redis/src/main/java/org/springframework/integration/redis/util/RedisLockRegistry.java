@@ -264,7 +264,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		SPIN_LOCK, PUB_SUB_LOCK
 	}
 
-	private Function<String, RedisLock> getRedisLockConstructor(@NonNull RedisLockType redisLockType) {
+	private Function<String, RedisLock> getRedisLockConstructor(RedisLockType redisLockType) {
 		switch (redisLockType) {
 			case SPIN_LOCK:
 				return RedisSpinLock::new;
