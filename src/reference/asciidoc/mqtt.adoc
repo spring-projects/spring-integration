@@ -461,6 +461,10 @@ public IntegrationFlow mqttOutFlow() {
 
 IMPORTANT: The `org.springframework.integration.mqtt.support.MqttMessageConverter` cannot be used with the `Mqttv5PahoMessageHandler` since its contract is aimed only for the MQTT v3 protocol.
 
+If connection fails on start up or at runtime, the `Mqttv5PahoMessageHandler` tries to reconnect on the next message produced to this handler.
+If this manual reconnection fails, the connection is exception is thrown back to the caller.
+In this case the standard Spring Integration error handling procedure is applied, including request handler advices, e.g. retry or circuit breaker.
+
 See more information in the `Mqttv5PahoMessageHandler` javadocs and its superclass.
 
 The inbound channel adapter for the MQTT v5 protocol is present as an `Mqttv5PahoMessageDrivenChannelAdapter`.
@@ -497,4 +501,4 @@ IMPORTANT: The `org.springframework.integration.mqtt.support.MqttMessageConverte
 See more information in the `Mqttv5PahoMessageDrivenChannelAdapter` javadocs and its superclass.
 
 IMPORTANT: It is recommended to have the `MqttConnectionOptions#setAutomaticReconnect(boolean)` set to true to let an internal `IMqttAsyncClient` instance to handle reconnects.
-Otherwise, only the manual restart of these channel adapters can handle reconnects, e.g. via `MqttConnectionFailedEvent` handling on disconnection.
+Otherwise, only the manual restart of `Mqttv5PahoMessageDrivenChannelAdapter` can handle reconnects, e.g. via `MqttConnectionFailedEvent` handling on disconnection.

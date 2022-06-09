@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2021-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,13 +50,8 @@ import org.springframework.util.Assert;
 /**
  * The {@link AbstractMqttMessageHandler} implementation for MQTT v5.
  *
- * It is recommended to have the {@link MqttConnectionOptions#setAutomaticReconnect(boolean)}
- * set to true to let an internal {@link IMqttAsyncClient} instance to handle reconnects.
- * Otherwise, only the manual restart of this component can handle reconnects, e.g. via
- * {@link MqttConnectionFailedEvent} handling on disconnection.
- *
- *
  * @author Artem Bilan
+ * @author Lucas Bowler
  *
  * @since 5.5.5
  */
@@ -86,11 +81,6 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	public Mqttv5PahoMessageHandler(MqttConnectionOptions connectionOptions, String clientId) {
 		super(obtainServerUrlFromOptions(connectionOptions), clientId);
 		this.connectionOptions = connectionOptions;
-		if (!this.connectionOptions.isAutomaticReconnect()) {
-			logger.warn("It is recommended to set 'automaticReconnect' MQTT client option. " +
-					"Otherwise the current channel adapter restart should be used explicitly, " +
-					"e.g. via handling 'MqttConnectionFailedEvent' on client disconnection.");
-		}
 	}
 
 
@@ -165,11 +155,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
 		}
 		catch (MqttException ex) {
-			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-			}
-			logger.error(ex, "MQTT client failed to connect. Will retry if 'ConnectionOptions.isAutomaticReconnect()'.");
+				logger.error(ex, "MQTT client failed to connect.");
 		}
 	}
 
@@ -249,11 +235,15 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	@Override
 	protected void publish(String topic, Object mqttMessage, Message<?> message) {
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage, "The 'mqttMessage' must be an instance of 'MqttMessage'");
+		long completionTimeout = getCompletionTimeout();
 		try {
+			if (!this.mqttClient.isConnected()) {
+				this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
+			}
 			IMqttToken token = this.mqttClient.publish(topic, (MqttMessage) mqttMessage);
 			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 			if (!this.async) {
-				token.waitForCompletion(getCompletionTimeout()); // NOSONAR (sync)
+				token.waitForCompletion(completionTimeout); // NOSONAR (sync)
 			}
 			else if (this.asyncEvents && applicationEventPublisher != null) {
 				applicationEventPublisher.publishEvent(

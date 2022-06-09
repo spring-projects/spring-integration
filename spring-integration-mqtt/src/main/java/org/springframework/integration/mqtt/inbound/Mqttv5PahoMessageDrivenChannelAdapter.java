@@ -66,6 +66,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Mikhail Polivakha
+ * @author Lucas Bowler
  *
  * @since 5.5.5
  *
@@ -162,28 +163,24 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	@Override
 	protected void doStart() {
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		this.topicLock.lock();
-		String[] topics = getTopic();
 		try {
 			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
-			if (topics.length > 0) {
-				int[] requestedQos = getQos();
-				this.mqttClient.subscribe(topics, requestedQos).waitForCompletion(getCompletionTimeout());
-				String message = "Connected and subscribed to " + Arrays.toString(topics);
-				logger.debug(message);
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
-				}
-			}
 		}
 		catch (MqttException ex) {
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			if (this.connectionOptions.isAutomaticReconnect()) {
+				try {
+					this.mqttClient.reconnect();
+				}
+				catch (MqttException e) {
+					logger.error(ex, "MQTT client failed to connect. Never happens.");
+				}
 			}
-			logger.error(ex, () -> "Error connecting or subscribing to " + Arrays.toString(topics));
-		}
-		finally {
-			this.topicLock.unlock();
+			else {
+				if (applicationEventPublisher != null) {
+					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+				}
+				logger.error(ex, "MQTT client failed to connect.");
+			}
 		}
 	}
 
@@ -312,7 +309,31 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-
+		if (!reconnect) {
+			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+			String[] topics = getTopic();
+			this.topicLock.lock();
+			try {
+				if (topics.length > 0) {
+					int[] requestedQos = getQos();
+					this.mqttClient.subscribe(topics, requestedQos).waitForCompletion(getCompletionTimeout());
+					String message = "Connected and subscribed to " + Arrays.toString(topics);
+					logger.debug(message);
+					if (applicationEventPublisher != null) {
+						applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
+					}
+				}
+			}
+			catch (MqttException ex) {
+				if (applicationEventPublisher != null) {
+					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+				}
+				logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
+			}
+			finally {
+				this.topicLock.unlock();
+			}
+		}
 	}
 
 	@Override

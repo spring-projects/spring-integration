@@ -105,8 +105,8 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
-		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(),
-				"si-test-in", "mqtt-foo");
+		MqttPahoMessageDrivenChannelAdapter inbound =
+				new MqttPahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(), "si-test-in", "mqtt-foo");
 		QueueChannel outputChannel = new QueueChannel();
 		inbound.setOutputChannel(outputChannel);
 		inbound.setTaskScheduler(taskScheduler);
@@ -467,14 +467,11 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 			}
 			Foo other = (Foo) obj;
 			if (this.bar == null) {
-				if (other.bar != null) {
-					return false;
-				}
+				return other.bar == null;
 			}
-			else if (!this.bar.equals(other.bar)) {
-				return false;
+			else {
+				return this.bar.equals(other.bar);
 			}
-			return true;
 		}
 
 	}
