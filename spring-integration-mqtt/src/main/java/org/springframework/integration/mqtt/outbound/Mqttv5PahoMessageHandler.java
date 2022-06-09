@@ -57,6 +57,7 @@ import org.springframework.util.Assert;
  *
  *
  * @author Artem Bilan
+ * @author Lucas Bowler
  *
  * @since 5.5.5
  */
@@ -165,11 +166,20 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
 		}
 		catch (MqttException ex) {
-			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			if (this.connectionOptions.isAutomaticReconnect()) {
+				try {
+					this.mqttClient.reconnect();
+				}
+				catch (MqttException e) {
+					logger.error(ex, "MQTT client failed to connect. Will retry.");
+				}
+			} else {
+				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+				if (applicationEventPublisher != null) {
+					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+				}
+				logger.error(ex, "MQTT client failed to connect.");
 			}
-			logger.error(ex, "MQTT client failed to connect. Will retry if 'ConnectionOptions.isAutomaticReconnect()'.");
 		}
 	}
 
