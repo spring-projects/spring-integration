@@ -16,12 +16,16 @@
 
 package org.springframework.integration.mqtt;
 
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptionsBuilder;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -50,11 +54,7 @@ import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Lucas Bowler
@@ -80,7 +80,7 @@ public class Mqttv5BackToBackAutomaticReconnectTests implements MosquittoContain
 
 	@Test //GH-3822
 	public void testReconnectionWhenFirstConnectionFails() throws InterruptedException {
-		connectionOptions.setServerURIs(new String[]{MosquittoContainerTest.mqttUrl()});
+		connectionOptions.setServerURIs(new String[] {MosquittoContainerTest.mqttUrl()});
 		Thread.sleep(2_500);
 
 		String testPayload = "foo";
@@ -135,14 +135,14 @@ public class Mqttv5BackToBackAutomaticReconnectTests implements MosquittoContain
 
 				@Override
 				protected Object convertFromInternal(Message<?> message, Class<?> targetClass,
-													 Object conversionHint) {
+						Object conversionHint) {
 
 					return message.getPayload().toString().getBytes(StandardCharsets.UTF_8);
 				}
 
 				@Override
 				protected Object convertToInternal(Object payload, MessageHeaders headers,
-												   Object conversionHint) {
+						Object conversionHint) {
 
 					return new String((byte[]) payload);
 				}
@@ -187,7 +187,6 @@ public class Mqttv5BackToBackAutomaticReconnectTests implements MosquittoContain
 					.channel(c -> c.queue("fromMqttChannel"))
 					.get();
 		}
-
 
 	}
 

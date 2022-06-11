@@ -90,7 +90,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		super(url, clientId, topic);
 		this.connectionOptions = new MqttConnectionOptions();
-		this.connectionOptions.setServerURIs(new String[]{ url });
+		this.connectionOptions.setServerURIs(new String[] {url});
 		this.connectionOptions.setAutomaticReconnect(true);
 	}
 
@@ -165,14 +165,17 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		try {
 			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
-		} catch (MqttException ex) {
+		}
+		catch (MqttException ex) {
 			if (this.connectionOptions.isAutomaticReconnect()) {
 				try {
 					this.mqttClient.reconnect();
-				} catch (MqttException e) {
+				}
+				catch (MqttException e) {
 					logger.error(ex, "MQTT client failed to connect. Will retry.");
 				}
-			} else {
+			}
+			else {
 				if (applicationEventPublisher != null) {
 					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 				}

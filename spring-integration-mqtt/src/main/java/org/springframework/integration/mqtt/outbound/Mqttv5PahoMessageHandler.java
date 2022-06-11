@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2021-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	public Mqttv5PahoMessageHandler(String url, String clientId) {
 		super(url, clientId);
 		this.connectionOptions = new MqttConnectionOptions();
-		this.connectionOptions.setServerURIs(new String[]{ url });
+		this.connectionOptions.setServerURIs(new String[] {url});
 		this.connectionOptions.setAutomaticReconnect(true);
 	}
 
@@ -173,7 +173,8 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 				catch (MqttException e) {
 					logger.error(ex, "MQTT client failed to connect. Will retry.");
 				}
-			} else {
+			}
+			else {
 				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 				if (applicationEventPublisher != null) {
 					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
