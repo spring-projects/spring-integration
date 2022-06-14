@@ -166,21 +166,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
 		}
 		catch (MqttException ex) {
-			if (this.connectionOptions.isAutomaticReconnect()) {
-				try {
-					this.mqttClient.reconnect();
-				}
-				catch (MqttException e) {
-					logger.error(ex, "MQTT client failed to connect. Will retry.");
-				}
-			}
-			else {
-				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-				}
 				logger.error(ex, "MQTT client failed to connect.");
-			}
 		}
 	}
 
@@ -261,6 +247,9 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	protected void publish(String topic, Object mqttMessage, Message<?> message) {
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage, "The 'mqttMessage' must be an instance of 'MqttMessage'");
 		try {
+			if (!this.mqttClient.isConnected()) {
+				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
+			}
 			IMqttToken token = this.mqttClient.publish(topic, (MqttMessage) mqttMessage);
 			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 			if (!this.async) {

@@ -172,7 +172,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 					this.mqttClient.reconnect();
 				}
 				catch (MqttException e) {
-					logger.error(ex, "MQTT client failed to connect. Will retry.");
+					logger.error(ex, "MQTT client failed to connect. Never happens.");
 				}
 			}
 			else {

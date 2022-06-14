@@ -18,12 +18,15 @@ package org.springframework.integration.mqtt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptionsBuilder;
+import org.eclipse.paho.mqttv5.common.MqttException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,13 +50,13 @@ import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.converter.AbstractMessageConverter;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-
 
 
 /**
@@ -80,10 +83,21 @@ public class Mqttv5BackToBackAutomaticReconnectTests implements MosquittoContain
 
 	@Test //GH-3822
 	public void testReconnectionWhenFirstConnectionFails() throws InterruptedException {
+		String testPayload = "foo";
+
+		MessageHandlingException messageHandlingException = Assertions.assertThrows(MessageHandlingException.class, () ->
+				this.mqttOutFlowInput.send(
+						MessageBuilder.withPayload(testPayload)
+								.setHeader(MqttHeaders.TOPIC, "siTest")
+								.setHeader("foo", "bar")
+								.setHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
+								.build())
+		);
+		Assertions.assertInstanceOf(MqttException.class, messageHandlingException.getCause());
+		Assertions.assertInstanceOf(UnknownHostException.class, messageHandlingException.getRootCause());
+
 		connectionOptions.setServerURIs(new String[] {MosquittoContainerTest.mqttUrl()});
 		Thread.sleep(2_500);
-
-		String testPayload = "foo";
 
 		this.mqttOutFlowInput.send(
 				MessageBuilder.withPayload(testPayload)
