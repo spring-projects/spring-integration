@@ -80,7 +80,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	public Mqttv5PahoMessageHandler(String url, String clientId) {
 		super(url, clientId);
 		this.connectionOptions = new MqttConnectionOptions();
-		this.connectionOptions.setServerURIs(new String[] {url});
+		this.connectionOptions.setServerURIs(new String[]{ url });
 		this.connectionOptions.setAutomaticReconnect(true);
 	}
 

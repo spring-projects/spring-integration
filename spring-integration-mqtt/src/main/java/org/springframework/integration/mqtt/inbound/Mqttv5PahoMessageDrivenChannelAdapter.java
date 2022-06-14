@@ -90,7 +90,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		super(url, clientId, topic);
 		this.connectionOptions = new MqttConnectionOptions();
-		this.connectionOptions.setServerURIs(new String[] {url});
+		this.connectionOptions.setServerURIs(new String[]{ url });
 		this.connectionOptions.setAutomaticReconnect(true);
 	}
 
