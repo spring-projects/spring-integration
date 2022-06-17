@@ -87,11 +87,6 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	public Mqttv5PahoMessageHandler(MqttConnectionOptions connectionOptions, String clientId) {
 		super(obtainServerUrlFromOptions(connectionOptions), clientId);
 		this.connectionOptions = connectionOptions;
-		if (!this.connectionOptions.isAutomaticReconnect()) {
-			logger.warn("It is recommended to set 'automaticReconnect' MQTT client option. " +
-					"Otherwise the current channel adapter restart should be used explicitly, " +
-					"e.g. via handling 'MqttConnectionFailedEvent' on client disconnection.");
-		}
 	}
 
 
