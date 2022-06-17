@@ -61,7 +61,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Lucas Bowler
- * @since 5.5.x
+ * @since 5.5.13
  */
 @SpringJUnitConfig
 @DirtiesContext
