@@ -119,7 +119,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
 
-	private boolean lookupHost = true;
+	private boolean lookupHost;
 
 	private TcpSocketSupport tcpSocketSupport = new DefaultTcpSocketSupport();
 
@@ -456,7 +456,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * If true, DNS reverse lookup is done on the remote ip address.
-	 * Default true.
+	 * Default false: not all environments (e.g. Docker containers) perform reliable DNS
+	 * resolution.
 	 * @param lookupHost the lookupHost to set
 	 */
 	public void setLookupHost(boolean lookupHost) {

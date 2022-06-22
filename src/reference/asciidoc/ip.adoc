@@ -200,9 +200,8 @@ The following example shows how to configure a basic multicast inbound udp chann
 ----
 ====
 
-By default, reverse DNS lookups are done on inbound packets to convert IP addresses to host names for use in message headers.
-In environments where DNS is not configured, this can cause delays.
-You can override this default behavior by setting the `lookup-host` attribute to `false`.
+By default, reverse DNS lookups are not performed on inbound packets: in environments where DNS is not configured (e.g. Docker containers), this can cause connection delays.
+To convert IP addresses to host names for use in message headers, the default behavior can be overridden by setting the `lookup-host` attribute to `true`.
 
 Starting with version 5.3.3, you can add a `SocketCustomizer` bean to modify the `DatagramSocket` after it is created.
 It is called for the receiving socket and any sockets created for sending acks.
@@ -489,13 +488,12 @@ A server connection factory that uses `java.net.Socket` connections and uses Jav
 
 For full details of the attributes available on connection factories, see <<ip-annotation,the reference>> at the end of this section.
 
-By default, reverse DNS lookups are done on inbound packets to convert IP addresses to host names for use in message headers.
-In environments where DNS is not configured, this can cause connection delays.
-You can override this default behavior by setting the `lookup-host` attribute to `false`.
+By default, reverse DNS lookups are not performed on inbound packets: in environments where DNS is not configured (e.g. Docker containers), this can cause connection delays.
+To convert IP addresses to host names for use in message headers, the default behavior can be overridden by setting the `lookup-host` attribute to `true`.
 
 NOTE: You can also modify the attributes of sockets and socket factories.
 See <<ssl-tls>> for more information.
-As noted there, such modifications are possible whether or not SSL is being used.
+As noted there, such modifications are possible if SSL is being used, or not.
 
 Also see <<ip-annotation>> and <<ip-dsl>>.
 
@@ -1584,7 +1582,7 @@ Defaults to `ByteArrayCrLfSerializer`
 | Y
 | Y
 | `true`, `false`
-| Whether or not connection uses NIO.
+| Whether the connection uses NIO.
 Refer to the `java.nio` package for more information.
 See <<note-nio>>.
 Default: `false`.
@@ -1693,7 +1691,7 @@ For backward compatibility, it sets the backlog, but you should use `backlog` to
 | `true`, `false`
 | Specifies whether reverse lookups are done on IP addresses to convert to host names for use in message headers.
 If false, the IP address is used instead.
-Default: `true`.
+Default: `false`.
 
 | `interceptor-factory-chain`
 | Y
@@ -1778,7 +1776,7 @@ You can detect this by using the `check-length` attribute..
 
 | `check-length`
 | `true`, `false`
-| Whether or not a UDP adapter expects a data length field in the packet received.
+| Whether a UDP adapter expects a data length field in the packet received.
 Used to detect packet truncation.
 
 | `so-timeout`
@@ -1806,7 +1804,7 @@ See the setSendBufferSize() methods in `java.net.DatagramSocket` for more inform
 | `true`, `false`
 | Specifies whether reverse lookups are done on IP addresses to convert to host names for use in message headers.
 If `false`, the IP address is used instead.
-Default: `true`.
+Default: `false`.
 
 |===
 

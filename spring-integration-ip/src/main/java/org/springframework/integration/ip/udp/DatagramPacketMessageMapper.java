@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -71,25 +72,25 @@ import org.springframework.util.StringUtils;
 public class DatagramPacketMessageMapper implements InboundMessageMapper<DatagramPacket>,
 		OutboundMessageMapper<DatagramPacket>, BeanFactoryAware {
 
-	private volatile String charset = "UTF-8";
-
-	private boolean acknowledge = false;
-
-	private String ackAddress;
-
-	private boolean lengthCheck = false;
-
-	private boolean lookupHost = true;
-
-	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
-
-	private volatile boolean messageBuilderFactorySet;
-
-	private static Pattern udpHeadersPattern =
+	private static final Pattern UDP_HEADERS_PATTERN =
 			Pattern.compile(RegexUtils.escapeRegexSpecials(IpHeaders.ACK_ADDRESS) +
 					"=" + "([^;]*);" +
 					RegexUtils.escapeRegexSpecials(MessageHeaders.ID) +
 					"=" + "([^;]*);");
+
+	private String charset = StandardCharsets.UTF_8.name();
+
+	private boolean acknowledge;
+
+	private String ackAddress;
+
+	private boolean lengthCheck;
+
+	private boolean lookupHost;
+
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	private volatile boolean messageBuilderFactorySet;
 
 	private BeanFactory beanFactory;
 
@@ -110,6 +111,9 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	}
 
 	/**
+	 * If true, DNS reverse lookup is done on the remote ip address.
+	 * Default false: not all environments (e.g. Docker containers) perform reliable DNS
+	 * resolution.
 	 * @param lookupHost the lookupHost to set
 	 */
 	public void setLookupHost(boolean lookupHost) {
@@ -232,12 +236,9 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 			length -= 4; // NOSONAR magic number
 		}
 		String hostAddress = packet.getAddress().getHostAddress();
-		String hostName;
+		String hostName = hostAddress;
 		if (this.lookupHost) {
 			hostName = packet.getAddress().getHostName();
-		}
-		else {
-			hostName = hostAddress;
 		}
 		int port = packet.getPort();
 		// Peek at the message in case they didn't configure us for ack but the sending
@@ -245,7 +246,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		if (this.acknowledge || startsWith(buffer, IpHeaders.ACK_ADDRESS)) {
 			try {
 				String headersString = new String(packet.getData(), offset, length, this.charset);
-				Matcher matcher = udpHeadersPattern.matcher(headersString);
+				Matcher matcher = UDP_HEADERS_PATTERN.matcher(headersString);
 				if (matcher.find()) {
 					// Strip off the ack headers and put in Message headers
 					length = length - matcher.end();
@@ -292,8 +293,8 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		try {
 			byte[] comparing;
 			comparing = prefix.getBytes(this.charset);
-			for (int i = 0; i < comparing.length; i++) {
-				if (buffer.get() != comparing[i]) {
+			for (byte b : comparing) {
+				if (buffer.get() != b) {
 					return false;
 				}
 			}

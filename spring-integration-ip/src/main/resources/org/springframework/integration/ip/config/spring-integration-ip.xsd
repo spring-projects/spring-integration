@@ -663,9 +663,9 @@
 			<xsd:attribute name="lookup-host" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Whether or not to do a DNS reverse-lookup on the remote ip address to
+						Whether to perform a DNS reverse-lookup on the remote ip address to
 						insert the host name into the
-						message headers (ip_connectionId, ip_hostName). Default "true".
+						message headers (ip_connectionId, ip_hostName). Default "false".
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -853,9 +853,9 @@
 				<xsd:attribute name="lookup-host" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-							Whether or not to do a DNS reverse-lookup on the remote ip address to
+							Whether to do a DNS reverse-lookup on the remote ip address to
 							insert the host name into the
-							message headers (ip_hostName). Default "true".
+							message headers (ip_hostName). Default "false".
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
