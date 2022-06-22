@@ -70,3 +70,7 @@ See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
 === JDBC Changes
 
 The `DefaultLockRepository` can now be supplied with a `PlatformTransactionManager` instead of relying on the primary bean from the application context.
+
+=== TCP/IP Changes
+
+The `lookupHost` property of the `AbstractConnectionFactory` and `DatagramPacketMessageMapper` is now set to `false` by default to avoid delays in the environments where DNS is not configured.

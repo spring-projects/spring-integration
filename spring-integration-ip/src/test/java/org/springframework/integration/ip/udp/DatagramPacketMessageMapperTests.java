@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.mapping.MessageMappingException;
@@ -33,31 +33,33 @@ import org.springframework.messaging.Message;
 /**
  * @author Gary Russell
  * @author Dave Syer
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class DatagramPacketMessageMapperTests {
 
 	@Test
-	public void testFromToMessageNoAckNoLengthCheck() throws Exception {
+	public void testFromToMessageNoAckNoLengthCheck() {
 		test(false, false);
 	}
 
 	@Test
-	public void testFromToMessageAckNoLengthCheck() throws Exception {
+	public void testFromToMessageAckNoLengthCheck() {
 		test(true, false);
 	}
 
 	@Test
-	public void testFromToMessageNoAckLengthCheck() throws Exception {
+	public void testFromToMessageNoAckLengthCheck() {
 		test(false, true);
 	}
 
 	@Test
-	public void testFromToMessageAckLengthCheck() throws Exception {
+	public void testFromToMessageAckLengthCheck() {
 		test(true, true);
 	}
 
-	private void test(boolean ack, boolean lengthCheck) throws Exception {
+	private void test(boolean ack, boolean lengthCheck) {
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		mapper.setAckAddress("localhost:11111");
@@ -71,19 +73,19 @@ public class DatagramPacketMessageMapperTests {
 			assertThat(message.getHeaders().getId().toString())
 					.isEqualTo(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString());
 		}
-		assertThat(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost")).isTrue();
-		mapper.setLookupHost(false);
+		assertThat(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME))).doesNotContain("localhost");
+		mapper.setLookupHost(true);
 		messageOut = mapper.toMessage(packet);
 		assertThat(new String(messageOut.getPayload())).isEqualTo(new String(message.getPayload()));
 		if (ack) {
 			assertThat(message.getHeaders().getId().toString())
 					.isEqualTo(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString());
 		}
-		assertThat(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost")).isFalse();
+		assertThat(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME))).contains("localhost");
 	}
 
 	@Test
-	public void testTruncation() throws Exception {
+	public void testTruncation() {
 		String test = "ABCD";
 		Message<byte[]> message = MessageBuilder.withPayload(test.getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
@@ -101,8 +103,7 @@ public class DatagramPacketMessageMapperTests {
 			fail("Truncated message exception expected");
 		}
 		catch (MessageMappingException e) {
-			assertThat(e.getMessage().contains("expected " + (bigLen + 4) + ", received " + (test.length() + 4)))
-					.isTrue();
+			assertThat(e.getMessage()).contains("expected " + (bigLen + 4) + ", received " + (test.length() + 4));
 		}
 	}
 

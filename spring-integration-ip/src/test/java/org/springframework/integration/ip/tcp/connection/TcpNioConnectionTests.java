@@ -133,8 +133,9 @@ public class TcpNioConnectionTests {
 			}
 		});
 		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
-		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost",
-				serverSocket.get().getLocalPort());
+		TcpNioClientConnectionFactory factory =
+				new TcpNioClientConnectionFactory("localhost", serverSocket.get().getLocalPort());
+		factory.setLookupHost(true);
 		AtomicReference<String> connectionId = new AtomicReference<>();
 		factory.setApplicationEventPublisher(event -> {
 			if (event instanceof TcpConnectionOpenEvent) {

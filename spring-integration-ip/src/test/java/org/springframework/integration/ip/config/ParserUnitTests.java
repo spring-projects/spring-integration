@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 import java.net.DatagramSocket;
-import java.net.SocketException;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.Set;
@@ -249,10 +248,12 @@ public class ParserUnitTests {
 	@Autowired
 	MessageChannel udpAutoChannel;
 
-	@Autowired @Qualifier("tcpAutoChannel.adapter")
+	@Autowired
+	@Qualifier("tcpAutoChannel.adapter")
 	TcpReceivingChannelAdapter tcpAutoAdapter;
 
-	@Autowired @Qualifier("udpAutoChannel.adapter")
+	@Autowired
+	@Qualifier("udpAutoChannel.adapter")
 	UnicastReceivingChannelAdapter udpAutoAdapter;
 
 	@Autowired
@@ -316,7 +317,7 @@ public class ParserUnitTests {
 		assertThat(dfa.getPropertyValue("errorChannel")).isNull();
 		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa.getPropertyValue("mapper");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
-		assertThat((Boolean) mapperAccessor.getPropertyValue("lookupHost")).isTrue();
+		assertThat((Boolean) mapperAccessor.getPropertyValue("lookupHost")).isFalse();
 	}
 
 	@Test
@@ -611,10 +612,10 @@ public class ParserUnitTests {
 						TestUtils.getPropertyValue(this.tcpChannel, "dispatcher"),
 						"handlers");
 		Iterator<MessageHandler> iterator = handlers.iterator();
-		assertThat(iterator.next()).isSameAs(this.tcpNewOut2);			//15
-		assertThat(iterator.next()).isSameAs(this.tcpOutboundGateway);	//24
-		assertThat(iterator.next()).isSameAs(this.tcpNewOut1);			//25
-		assertThat(iterator.next()).isSameAs(this.tcpOut);				//35
+		assertThat(iterator.next()).isSameAs(this.tcpNewOut2);            //15
+		assertThat(iterator.next()).isSameAs(this.tcpOutboundGateway);    //24
+		assertThat(iterator.next()).isSameAs(this.tcpNewOut1);            //25
+		assertThat(iterator.next()).isSameAs(this.tcpOut);                //35
 	}
 
 	@Test
@@ -682,6 +683,7 @@ public class ParserUnitTests {
 		public EventSubclass1(TcpConnectionSupport connection, String connectionFactoryName) {
 			super(connection, connectionFactoryName);
 		}
+
 	}
 
 	@SuppressWarnings("serial")
@@ -690,6 +692,7 @@ public class ParserUnitTests {
 		public EventSubclass2(TcpConnectionSupport connection, String connectionFactoryName) {
 			super(connection, connectionFactoryName);
 		}
+
 	}
 
 	@Configuration
@@ -708,7 +711,7 @@ public class ParserUnitTests {
 	public static class SocketCust implements SocketCustomizer {
 
 		@Override
-		public void configure(DatagramSocket socket) throws SocketException {
+		public void configure(DatagramSocket socket) {
 		}
 
 	}
