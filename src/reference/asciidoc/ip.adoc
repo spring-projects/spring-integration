@@ -200,7 +200,7 @@ The following example shows how to configure a basic multicast inbound udp chann
 ----
 ====
 
-By default, reverse DNS lookups are not done on inbound packets: in environments where DNS is not configured (e.g. Docker containers), this can cause connection delays.
+By default, reverse DNS lookups are not performed on inbound packets: in environments where DNS is not configured (e.g. Docker containers), this can cause connection delays.
 To convert IP addresses to host names for use in message headers, the default behavior can be overridden by setting the `lookup-host` attribute to `true`.
 
 Starting with version 5.3.3, you can add a `SocketCustomizer` bean to modify the `DatagramSocket` after it is created.
@@ -488,12 +488,12 @@ A server connection factory that uses `java.net.Socket` connections and uses Jav
 
 For full details of the attributes available on connection factories, see <<ip-annotation,the reference>> at the end of this section.
 
-By default, reverse DNS lookups are not done on inbound packets: in environments where DNS is not configured (e.g. Docker containers), this can cause connection delays.
+By default, reverse DNS lookups are not performed on inbound packets: in environments where DNS is not configured (e.g. Docker containers), this can cause connection delays.
 To convert IP addresses to host names for use in message headers, the default behavior can be overridden by setting the `lookup-host` attribute to `true`.
 
 NOTE: You can also modify the attributes of sockets and socket factories.
 See <<ssl-tls>> for more information.
-As noted there, such modifications are possible whether SSL is being used.
+As noted there, such modifications are possible if SSL is being used, or not.
 
 Also see <<ip-annotation>> and <<ip-dsl>>.
 
@@ -1582,7 +1582,7 @@ Defaults to `ByteArrayCrLfSerializer`
 | Y
 | Y
 | `true`, `false`
-| Whether connection uses NIO.
+| Whether the connection uses NIO.
 Refer to the `java.nio` package for more information.
 See <<note-nio>>.
 Default: `false`.

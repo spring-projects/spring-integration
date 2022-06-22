@@ -456,7 +456,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * If true, DNS reverse lookup is done on the remote ip address.
-	 * Default false: not all environments (e.g. Docker containers) does a reliable DNS resolution.
+	 * Default false: not all environments (e.g. Docker containers) perform reliable DNS
+	 * resolution.
 	 * @param lookupHost the lookupHost to set
 	 */
 	public void setLookupHost(boolean lookupHost) {
