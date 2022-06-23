@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ package org.springframework.integration.mongodb.rules;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.junit.Assume;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -39,11 +38,10 @@ import com.mongodb.client.internal.MongoClientImpl;
  */
 public final class MongoDbAvailableRule implements MethodRule {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
-
 	@Override
 	public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
 		return new Statement() {
+
 			@Override
 			public void evaluate() throws Throwable {
 				MongoDbAvailable mongoAvailable = method.getAnnotation(MongoDbAvailable.class);
@@ -57,9 +55,10 @@ public final class MongoDbAvailableRule implements MethodRule {
 								.first();
 					}
 					catch (Exception e) {
-						logger.warn("MongoDb is not available. Skipping the test: " +
-								target.getClass().getSimpleName() + "." + method.getName() + "()");
-						return;
+						Assume.assumeTrue(
+								"Skipping test due to MongoDb not being available on hosts: " +
+										settings.getClusterSettings().getHosts() + ":\n" + e,
+								false);
 					}
 				}
 				base.evaluate();
