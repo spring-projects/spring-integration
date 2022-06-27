@@ -272,6 +272,7 @@ public class SimplePool<T> implements Pool<T> {
 		removeAllIdleItems();
 	}
 
+	@SuppressWarnings("serial")
 	private static class PoolSemaphore extends Semaphore {
 
 		PoolSemaphore(int permits) {
@@ -280,7 +281,7 @@ public class SimplePool<T> implements Pool<T> {
 
 		@Override
 		public void reducePermits(int reduction) { // NOSONAR increases visibility
-			super.reducePermits(reduction);
+			super.reducePermits(reduction > availablePermits() ? availablePermits() : reduction);
 		}
 
 	}
