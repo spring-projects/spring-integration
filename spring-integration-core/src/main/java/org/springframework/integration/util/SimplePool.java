@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class SimplePool<T> implements Pool<T> {
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
-	private final Semaphore permits = new Semaphore(0);
+	private final PoolSemaphore permits = new PoolSemaphore(0);
 
 	private final AtomicInteger poolSize = new AtomicInteger();
 
@@ -56,11 +56,11 @@ public class SimplePool<T> implements Pool<T> {
 
 	private long waitTimeout = Long.MAX_VALUE;
 
-	private final BlockingQueue<T> available = new LinkedBlockingQueue<T>();
+	private final BlockingQueue<T> available = new LinkedBlockingQueue<>();
 
-	private final Set<T> allocated = Collections.synchronizedSet(new HashSet<T>());
+	private final Set<T> allocated = Collections.synchronizedSet(new HashSet<>());
 
-	private final Set<T> inUse = Collections.synchronizedSet(new HashSet<T>());
+	private final Set<T> inUse = Collections.synchronizedSet(new HashSet<>());
 
 	private final PoolItemCallback<T> callback;
 
@@ -105,21 +105,27 @@ public class SimplePool<T> implements Pool<T> {
 			this.permits.release(delta);
 		}
 		else {
-			while (delta < 0) {
-				if (!this.permits.tryAcquire()) {
-					break;
-				}
+			this.permits.reducePermits(-delta);
+
+			int inUseSize = this.inUse.size();
+			int newPoolSize = Math.max(poolSize, inUseSize);
+			this.poolSize.set(newPoolSize);
+
+			for (int i = this.available.size(); i > newPoolSize - inUseSize; i--) {
 				T item = this.available.poll();
 				if (item != null) {
 					doRemoveItem(item);
 				}
-				this.poolSize.decrementAndGet();
-				delta++;
+				else {
+					break;
+				}
 			}
-		}
-		if (delta < 0 && this.logger.isDebugEnabled()) {
-			this.logger.debug(String.format("Pool is overcommitted by %d; items will be removed when returned",
-					-delta));
+
+			int inUseDelta = poolSize - inUseSize;
+			if (inUseDelta < 0 && this.logger.isDebugEnabled()) {
+				this.logger.debug(String.format("Pool is overcommitted by %d; items will be removed when returned",
+						-inUseDelta));
+			}
 		}
 	}
 
@@ -264,6 +270,19 @@ public class SimplePool<T> implements Pool<T> {
 	public synchronized void close() {
 		this.closed = true;
 		removeAllIdleItems();
+	}
+
+	private static class PoolSemaphore extends Semaphore {
+
+		PoolSemaphore(int permits) {
+			super(permits);
+		}
+
+		@Override
+		public void reducePermits(int reduction) { // NOSONAR increases visibility
+			super.reducePermits(reduction);
+		}
+
 	}
 
 	/**

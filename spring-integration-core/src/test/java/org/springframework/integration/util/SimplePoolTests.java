@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -36,6 +35,8 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Gary Russell
  * @author Sergey Bogatyrev
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -43,7 +44,7 @@ public class SimplePoolTests {
 
 	@Test
 	public void testReuseAndStale() {
-		final Set<String> strings = new HashSet<String>();
+		final Set<String> strings = new HashSet<>();
 		final AtomicBoolean stale = new AtomicBoolean();
 		SimplePool<String> pool = stringPool(2, strings, stale);
 		String s1 = pool.getItem();
@@ -62,7 +63,7 @@ public class SimplePoolTests {
 
 	@Test
 	public void testOverCommitAndResize() {
-		final Set<String> strings = new HashSet<String>();
+		final Set<String> strings = new HashSet<>();
 		final AtomicBoolean stale = new AtomicBoolean();
 		SimplePool<String> pool = stringPool(2, strings, stale);
 		String s1 = pool.getItem();
@@ -83,13 +84,9 @@ public class SimplePoolTests {
 		assertThat(pool.getIdleCount()).isEqualTo(0);
 		assertThat(pool.getActiveCount()).isEqualTo(2);
 		assertThat(pool.getAllocatedCount()).isEqualTo(2);
-		try {
-			pool.getItem();
-			fail("Expected exception");
-		}
-		catch (PoolItemNotAvailableException e) {
 
-		}
+		assertThatExceptionOfType(PoolItemNotAvailableException.class)
+				.isThrownBy(pool::getItem);
 
 		// resize up
 		pool.setPoolSize(4);
@@ -131,7 +128,7 @@ public class SimplePoolTests {
 
 	@Test
 	public void testForeignObject() {
-		final Set<String> strings = new HashSet<String>();
+		final Set<String> strings = new HashSet<>();
 		final AtomicBoolean stale = new AtomicBoolean();
 		SimplePool<String> pool = stringPool(2, strings, stale);
 		pool.getItem();
@@ -140,7 +137,7 @@ public class SimplePoolTests {
 
 	@Test
 	public void testDoubleReturn() {
-		final Set<String> strings = new HashSet<String>();
+		final Set<String> strings = new HashSet<>();
 		final AtomicBoolean stale = new AtomicBoolean();
 		SimplePool<String> pool = stringPool(2, strings, stale);
 		Semaphore permits = TestUtils.getPropertyValue(pool, "permits", Semaphore.class);
@@ -168,7 +165,27 @@ public class SimplePoolTests {
 		assertThat(allocatedItems).hasSize(5);
 
 		// no more items can be allocated (indirect check of permits)
-		assertThatExceptionOfType(PoolItemNotAvailableException.class).isThrownBy(() -> pool.getItem());
+		assertThatExceptionOfType(PoolItemNotAvailableException.class)
+				.isThrownBy(pool::getItem);
+	}
+
+	@Test
+	public void testMaxValueSizeUpdateIfNotAllocated() {
+		SimplePool<String> pool = stringPool(0, new HashSet<>(), new AtomicBoolean());
+		pool.setWaitTimeout(0);
+		pool.setPoolSize(5);
+		assertThat(pool.getPoolSize()).isEqualTo(5);
+
+		// allocating all available items to check permits
+		Set<String> allocatedItems = new HashSet<>();
+		for (int i = 0; i < 5; i++) {
+			allocatedItems.add(pool.getItem());
+		}
+		assertThat(allocatedItems).hasSize(5);
+
+		// no more items can be allocated (indirect check of permits)
+		assertThatExceptionOfType(PoolItemNotAvailableException.class)
+				.isThrownBy(pool::getItem);
 	}
 
 	@Test
@@ -207,7 +224,54 @@ public class SimplePoolTests {
 		assertThat(pool.getActiveCount()).isEqualTo(5);
 
 		// no more items can be allocated (indirect check of permits)
-		assertThatExceptionOfType(PoolItemNotAvailableException.class).isThrownBy(() -> pool.getItem());
+		assertThatExceptionOfType(PoolItemNotAvailableException.class)
+				.isThrownBy(pool::getItem);
+	}
+
+	@Test
+	public void testMaxValueSizeUpdateIfPartiallyAllocated() {
+		SimplePool<String> pool = stringPool(0, new HashSet<>(), new AtomicBoolean());
+		pool.setWaitTimeout(0);
+
+		List<String> allocated = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			allocated.add(pool.getItem());
+		}
+
+		// release only 2 items
+		for (int i = 0; i < 2; i++) {
+			pool.releaseItem(allocated.get(i));
+		}
+
+		// release only 2 items
+		for (int i = 0; i < 2; i++) {
+			pool.releaseItem(allocated.get(i));
+		}
+
+		// trying to reduce pool size
+		pool.setPoolSize(5);
+
+		// at this moment the actual pool size can be reduced only partially, because
+		// only 2 items have been released, so 8 items are in use
+		assertThat(pool.getPoolSize()).isEqualTo(8);
+		assertThat(pool.getAllocatedCount()).isEqualTo(8);
+		assertThat(pool.getIdleCount()).isEqualTo(0);
+		assertThat(pool.getActiveCount()).isEqualTo(8);
+
+		// releasing 3 items
+		for (int i = 2; i < 5; i++) {
+			pool.releaseItem(allocated.get(i));
+		}
+
+		// now pool size should be reduced
+		assertThat(pool.getPoolSize()).isEqualTo(5);
+		assertThat(pool.getAllocatedCount()).isEqualTo(5);
+		assertThat(pool.getIdleCount()).isEqualTo(0);
+		assertThat(pool.getActiveCount()).isEqualTo(5);
+
+		// no more items can be allocated (indirect check of permits)
+		assertThatExceptionOfType(PoolItemNotAvailableException.class)
+				.isThrownBy(pool::getItem);
 	}
 
 	@Test
@@ -240,7 +304,8 @@ public class SimplePoolTests {
 		assertThat(pool.getActiveCount()).isEqualTo(5);
 
 		// no more items can be allocated (indirect check of permits)
-		assertThatExceptionOfType(PoolItemNotAvailableException.class).isThrownBy(() -> pool.getItem());
+		assertThatExceptionOfType(PoolItemNotAvailableException.class)
+				.isThrownBy(pool::getItem);
 
 		// releasing remaining items
 		for (int i = 5; i < 10; i++) {
@@ -266,10 +331,9 @@ public class SimplePoolTests {
 		assertThatIllegalStateException().isThrownBy(pool::getItem);
 	}
 
-	private SimplePool<String> stringPool(int size, final Set<String> strings,
-			final AtomicBoolean stale) {
+	private SimplePool<String> stringPool(int size, Set<String> strings, AtomicBoolean stale) {
+		return new SimplePool<String>(size, new SimplePool.PoolItemCallback<String>() {
 
-		SimplePool<String> pool = new SimplePool<String>(size, new SimplePool.PoolItemCallback<String>() {
 			private int i;
 
 			@Override
@@ -293,7 +357,6 @@ public class SimplePoolTests {
 			}
 
 		});
-		return pool;
 	}
 
 }
