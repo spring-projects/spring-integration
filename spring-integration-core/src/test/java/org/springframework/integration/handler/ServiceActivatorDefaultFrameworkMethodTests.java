@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,8 +113,8 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 				.isThrownBy(() -> this.gatewayTestInputChannel.send(message2))
 				.withCauseInstanceOf(MessageHandlingException.class)
 				.withRootCauseInstanceOf(IllegalStateException.class)
-				.withMessageContaining("Expression evaluation failed")
-				.withMessageContaining("Wrong payload");
+				.withStackTraceContaining("Expression evaluation failed")
+				.withStackTraceContaining("Wrong payload");
 	}
 
 	@Test
@@ -199,7 +199,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertThatExceptionOfType(BeanCreationException.class)
 				.isThrownBy(() ->
 						new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-fail-context.xml", getClass()))
-				.withMessageContaining("An AbstractMessageProducingMessageHandler may only be referenced once")
+				.withStackTraceContaining("An AbstractMessageProducingMessageHandler may only be referenced once")
 				.withRootCauseExactlyInstanceOf(IllegalArgumentException.class);
 	}
 

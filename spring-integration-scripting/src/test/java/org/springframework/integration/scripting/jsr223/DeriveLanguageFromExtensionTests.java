@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class DeriveLanguageFromExtensionTests {
 				.isThrownBy(() ->
 						new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-fail1-context.xml",
 								getClass()).close())
-				.withMessageContaining("No suitable scripting engine found for extension 'xx'");
+				.withStackTraceContaining("No suitable scripting engine found for extension 'xx'");
 	}
 
 	@Test
@@ -82,7 +82,7 @@ public class DeriveLanguageFromExtensionTests {
 				.isThrownBy(() ->
 						new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-fail2-context.xml",
 								getClass()).close())
-				.withMessageContaining("Unable to determine language for script 'foo'");
+				.withStackTraceContaining("Unable to determine language for script 'foo'");
 	}
 
 }

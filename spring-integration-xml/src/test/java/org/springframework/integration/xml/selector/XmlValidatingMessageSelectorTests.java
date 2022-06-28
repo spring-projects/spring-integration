@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,20 @@
 package org.springframework.integration.xml.selector;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xml.selector.XmlValidatingMessageSelector.SchemaType;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  *
  */
 public class XmlValidatingMessageSelectorTests {
@@ -35,34 +38,29 @@ public class XmlValidatingMessageSelectorTests {
 	@Test
 	public void validateCreationWithSchemaAndDefaultSchemaType() throws Exception {
 		Resource resource = new ByteArrayResource("<xsd:schema xmlns:xsd='http://www.w3.org/2001/XMLSchema'/>".getBytes());
-		new XmlValidatingMessageSelector(resource, (SchemaType) null);
+		XmlValidatingMessageSelector messageSelector = new XmlValidatingMessageSelector(resource, (SchemaType) null);
+		assertThat(TestUtils.getPropertyValue(messageSelector, "xmlValidator.schema").getClass().getSimpleName())
+				.isEqualTo("SimpleXMLSchema");
 	}
 
 	@Test
 	public void validateCreationWithSchemaAndProvidedSchemaType() throws Exception {
 		Resource resource = new ByteArrayResource("<xsd:schema xmlns:xsd='http://www.w3.org/2001/XMLSchema'/>".getBytes());
-		new XmlValidatingMessageSelector(resource, SchemaType.XML_SCHEMA);
+		XmlValidatingMessageSelector messageSelector = new XmlValidatingMessageSelector(resource, SchemaType.XML_SCHEMA);
+		assertThat(TestUtils.getPropertyValue(messageSelector, "xmlValidator.schema").getClass().getSimpleName())
+				.isEqualTo("SimpleXMLSchema");
 	}
 
 	@Test
-	public void validateFailureInvalidSchemaLanguage() throws Exception {
-		ConfigurableApplicationContext context = null;
-		try {
-			context = new ClassPathXmlApplicationContext("XmlValidatingMessageSelectorTests-context.xml", this.getClass());
-		}
-		catch (Exception e) {
-			assertThat(e.getMessage().contains("java.lang.IllegalArgumentException: No enum constant")).isTrue();
-		}
-		finally {
-			if (context != null) {
-				context.close();
-			}
-		}
+	public void validateFailureInvalidSchemaLanguage() {
+		assertThatThrownBy(() -> new ClassPathXmlApplicationContext("XmlValidatingMessageSelectorTests-context.xml",
+				getClass()))
+				.hasStackTraceContaining("java.lang.IllegalArgumentException: No enum constant");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void validateFailureWhenNoSchemaResourceProvided() throws Exception {
-		new XmlValidatingMessageSelector(null, (SchemaType) null);
+	@Test
+	public void validateFailureWhenNoSchemaResourceProvided() {
+		assertThatIllegalArgumentException().isThrownBy(() -> new XmlValidatingMessageSelector(null, (SchemaType) null));
 	}
 
 }

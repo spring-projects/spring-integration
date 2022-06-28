@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -40,6 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -98,19 +100,20 @@ public class ConnectionEventTests {
 		doThrow(toBeThrown).when(serializer).serialize(Mockito.any(Object.class), Mockito.any(OutputStream.class));
 		conn.setMapper(new TcpMessageMapper());
 		conn.setSerializer(serializer);
-		try {
-			conn.send(new GenericMessage<>("bar"));
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-		}
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> conn.send(new GenericMessage<>("bar")));
+
 		assertThat(theEvent.size() > 0).isTrue();
 		assertThat(theEvent.get(0)).isNotNull();
-		assertThat(theEvent.get(0) instanceof TcpConnectionExceptionEvent).isTrue();
+		assertThat(theEvent.get(0)).isInstanceOf(TcpConnectionExceptionEvent.class);
 		assertThat(theEvent.get(0).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "]"))
 				.isTrue();
-		assertThat(theEvent.get(0).toString())
-				.contains("RuntimeException: foo, failedMessage=GenericMessage [payload=bar");
+		assertThat(theEvent.get(0))
+				.extracting("cause")
+				.asInstanceOf(InstanceOfAssertFactories.THROWABLE)
+				.hasStackTraceContaining("RuntimeException: foo")
+				.hasStackTraceContaining("failedMessage=GenericMessage [payload=bar");
 		TcpConnectionExceptionEvent event = (TcpConnectionExceptionEvent) theEvent.get(0);
 		assertThat(event.getCause()).isNotNull();
 		assertThat(event.getCause().getCause()).isSameAs(toBeThrown);

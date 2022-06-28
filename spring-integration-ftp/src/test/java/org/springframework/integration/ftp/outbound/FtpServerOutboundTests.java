@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -526,8 +526,8 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		catch (PartialSuccessException e) {
 			assertThat(e.getDerivedInput()).hasSize(2);
 			assertThat(e.getPartialResults()).hasSize(1);
-			assertThat(e.getCause().getMessage())
-					.contains("/ftpSource/subFtpSource/bogus.txt: No such file or directory.");
+			assertThat(e.getCause())
+					.hasStackTraceContaining("/ftpSource/subFtpSource/bogus.txt: No such file or directory.");
 		}
 
 	}
@@ -553,8 +553,8 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		catch (PartialSuccessException e) {
 			assertThat(e.getDerivedInput()).hasSize(4);
 			assertThat(e.getPartialResults()).hasSize(2);
-			assertThat(e.getCause().getMessage())
-					.contains("/ftpSource/subFtpSource/bogus.txt: No such file or directory.");
+			assertThat(e.getCause())
+					.hasStackTraceContaining("/ftpSource/subFtpSource/bogus.txt: No such file or directory.");
 		}
 	}
 
@@ -572,7 +572,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 			assertThat(e.getDerivedInput()).hasSize(3);
 			assertThat(e.getPartialResults()).hasSize(1);
 			assertThat(e.getPartialResults().iterator().next()).isEqualTo("ftpTarget/localSource1.txt");
-			assertThat(e.getCause().getMessage()).contains("Failed to send localSource2");
+			assertThat(e.getCause()).hasStackTraceContaining("Failed to send localSource2");
 		}
 	}
 
@@ -599,7 +599,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 			PartialSuccessException cause = (PartialSuccessException) e.getCause();
 			assertThat(cause.getDerivedInput()).hasSize(2);
 			assertThat(cause.getPartialResults()).hasSize(1);
-			assertThat(cause.getCause().getMessage()).contains("Failed to send subLocalSource2");
+			assertThat(cause.getCause()).hasStackTraceContaining("Failed to send subLocalSource2");
 		}
 		extra.delete();
 	}

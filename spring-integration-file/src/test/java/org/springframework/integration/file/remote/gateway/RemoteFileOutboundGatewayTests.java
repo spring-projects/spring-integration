@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -43,9 +44,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -81,9 +81,8 @@ public class RemoteFileOutboundGatewayTests {
 
 	private final String tmpDir = System.getProperty("java.io.tmpdir");
 
-	@Rule
-	public final TemporaryFolder tempFolder = new TemporaryFolder();
-
+	@TempDir
+	public static File tempFolder;
 
 	@Test
 	public void testBad() {
@@ -168,7 +167,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[] {
+				return new TestLsEntry[]{
 						new TestLsEntry(path1.replaceFirst("testremote/", ""), 123, false, false, 1234, "-r--r--r--"),
 						new TestLsEntry(path2.replaceFirst("testremote/", ""), 123, false, false, 1234,
 								"-r--r--r--") };
@@ -202,7 +201,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[] { new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--") };
+				return new TestLsEntry[]{ new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--") };
 			}
 
 		});
@@ -215,7 +214,7 @@ public class RemoteFileOutboundGatewayTests {
 		assertThat(out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("testremote/");
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void testMGetEmpty() {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "mget", "payload");
@@ -233,7 +232,9 @@ public class RemoteFileOutboundGatewayTests {
 			}
 
 		});
-		gw.handleRequestMessage(new GenericMessage<>("testremote/*"));
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(new GenericMessage<>("testremote/*")));
 	}
 
 	@Test
@@ -342,7 +343,7 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	public TestLsEntry[] level1List() {
-		return new TestLsEntry[] {
+		return new TestLsEntry[]{
 				new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--"),
 				new TestLsEntry("d1", 0, true, false, 12345, "drw-r--r--"),
 				new TestLsEntry("f2", 12345, false, false, 123456, "-rw-r--r--")
@@ -350,14 +351,14 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	public TestLsEntry[] level2List() {
-		return new TestLsEntry[] {
+		return new TestLsEntry[]{
 				new TestLsEntry("d2", 0, true, false, 12345, "drw-r--r--"),
 				new TestLsEntry("f3", 12345, false, false, 123456, "-rw-r--r--")
 		};
 	}
 
 	public TestLsEntry[] level3List() {
-		return new TestLsEntry[] {
+		return new TestLsEntry[]{
 				new TestLsEntry("f4", 12345, false, false, 123456, "-rw-r--r--")
 		};
 	}
@@ -559,7 +560,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[] {
+				return new TestLsEntry[]{
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -596,7 +597,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[] {
+				return new TestLsEntry[]{
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -658,7 +659,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[] {
+				return new TestLsEntry[]{
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -673,7 +674,7 @@ public class RemoteFileOutboundGatewayTests {
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> gw.handleRequestMessage(new GenericMessage<>("f1")))
 				.withCauseInstanceOf(RuntimeException.class)
-				.withMessageContaining("test remove .writing");
+				.withStackTraceContaining("test remove .writing");
 
 		RemoteFileTemplate<?> template = new RemoteFileTemplate<>(sessionFactory);
 		File outFile = new File(this.tmpDir + "/f1" + template.getTemporaryFileSuffix());
@@ -696,7 +697,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[] {
+				return new TestLsEntry[]{
 						new TestLsEntry("f1", 1234, false, false, modified.getTime(), "-rw-r--r--")
 				};
 			}
@@ -731,7 +732,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[] {
+				return new TestLsEntry[]{
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -836,7 +837,7 @@ public class RemoteFileOutboundGatewayTests {
 
 		assertThatExceptionOfType(MessageDeliveryException.class)
 				.isThrownBy(() -> gw.handleRequestMessage(requestMessage))
-				.withMessageContaining("The destination file already exists");
+				.withStackTraceContaining("The destination file already exists");
 
 		gw.setFileExistsMode(FileExistsMode.REPLACE);
 		path = (String) gw.handleRequestMessage(requestMessage);
@@ -878,10 +879,9 @@ public class RemoteFileOutboundGatewayTests {
 			written.set(invocation.getArgument(1));
 			return null;
 		}).when(session).write(any(InputStream.class), anyString());
-		tempFolder.newFile("baz.txt");
-		tempFolder.newFile("qux.txt");
-		Message<File> requestMessage = MessageBuilder.withPayload(tempFolder.getRoot())
-				.build();
+		assertThat(new File(tempFolder, "baz.txt").createNewFile()).isTrue();
+		assertThat(new File(tempFolder, "qux.txt").createNewFile()).isTrue();
+		Message<File> requestMessage = MessageBuilder.withPayload(tempFolder).build();
 		List<String> out = (List<String>) gw.handleRequestMessage(requestMessage);
 		assertThat(out).hasSize(2);
 		assertThat(out.get(0)).isNotEqualTo(out.get(1));
@@ -907,12 +907,12 @@ public class RemoteFileOutboundGatewayTests {
 			written.set(invocation.getArgument(1));
 			return null;
 		}).when(session).write(any(InputStream.class), anyString());
-		tempFolder.newFile("baz.txt");
-		tempFolder.newFile("qux.txt");
-		File dir1 = tempFolder.newFolder();
+		new File(tempFolder, "baz.txt").createNewFile();
+		new File(tempFolder, "qux.txt").createNewFile();
+		File dir1 = Files.createTempDirectory(tempFolder.toPath(), "junit").toFile();
 		File file3 = File.createTempFile("foo", ".txt", dir1);
 
-		Message<File> requestMessage = MessageBuilder.withPayload(tempFolder.getRoot())
+		Message<File> requestMessage = MessageBuilder.withPayload(tempFolder)
 				.build();
 		List<String> out = (List<String>) gw.handleRequestMessage(requestMessage);
 		assertThat(out).hasSize(3);
@@ -948,8 +948,12 @@ public class RemoteFileOutboundGatewayTests {
 			return null;
 		}).when(session).write(any(InputStream.class), anyString());
 		List<File> files = new ArrayList<>();
-		files.add(tempFolder.newFile("fiz.txt"));
-		files.add(tempFolder.newFile("buz.txt"));
+		File file1 = new File(tempFolder, "fiz.txt");
+		file1.createNewFile();
+		files.add(file1);
+		File file2 = new File(tempFolder, "buz.txt");
+		file2.createNewFile();
+		files.add(file2);
 		Message<List<File>> requestMessage = MessageBuilder.withPayload(files)
 				.build();
 		List<String> out = (List<String>) gw.handleRequestMessage(requestMessage);
@@ -1048,8 +1052,7 @@ public class RemoteFileOutboundGatewayTests {
 
 	static class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
 
-		@SuppressWarnings("unchecked")
-		TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
+		@SuppressWarnings("unchecked") TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
 				String command, String expression) {
 			super(sessionFactory, Command.toCommand(command), expression);
 			this.setBeanFactory(mock(BeanFactory.class));

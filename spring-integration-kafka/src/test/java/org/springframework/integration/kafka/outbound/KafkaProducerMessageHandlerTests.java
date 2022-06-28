@@ -369,7 +369,7 @@ class KafkaProducerMessageHandlerTests {
 
 	@Test
 	void testOutboundGatewayPrPayload() throws Exception {
-		testOutboundGatewayGuts(new ProducerRecord<Integer, String>(topic5, 1, 2, "foo"));
+		testOutboundGatewayGuts(new ProducerRecord<>(topic5, 1, 2, "foo"));
 	}
 
 	private void testOutboundGatewayGuts(ProducerRecord<?, ?> payload) throws Exception {
@@ -442,7 +442,7 @@ class KafkaProducerMessageHandlerTests {
 
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> handler.handleMessage(messageToHandle1))
-				.withMessageContaining("The reply topic header [bad] does not match any reply container topic: "
+				.withStackTraceContaining("The reply topic header [bad] does not match any reply container topic: "
 						+ "[" + topic6 + "]");
 
 		final Message<?> messageToHandle2 = MessageBuilder.withPayload("foo")
@@ -454,7 +454,7 @@ class KafkaProducerMessageHandlerTests {
 
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> handler.handleMessage(messageToHandle2))
-				.withMessageContaining("The reply partition header [999] " +
+				.withStackTraceContaining("The reply partition header [999] " +
 						"does not match any reply container partition for topic ["
 						+ topic6 + "]: [0, 1]");
 

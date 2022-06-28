@@ -35,7 +35,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
@@ -44,6 +44,7 @@ import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.converter.AllowListDeserializingConverter;
+import org.springframework.integration.util.FunctionIterator;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -346,7 +347,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				this.lobHandler.getLobCreator().setBlobAsBytes(ps, 4, messageBytes); // NOSONAR - magic number
 			});
 		}
-		catch (DuplicateKeyException e) {
+		catch (DataIntegrityViolationException ex) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("The Message with id [" + id + "] already exists.\n" +
 						"Ignoring INSERT and SELECT existing...");
@@ -388,8 +389,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			try {
 				doCreateMessageGroup(groupKey, createdDate);
 			}
-			catch (DuplicateKeyException e) {
-				logger.warn("Lost race to create group; attempting update instead", e);
+			catch (DataIntegrityViolationException ex) {
+				logger.warn("Lost race to create group; attempting update instead", ex);
 				updateMessageGroup(groupKey);
 			}
 		}
@@ -572,35 +573,15 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	@Override
 	public Iterator<MessageGroup> iterator() {
-
-		final Iterator<String> iterator = this.jdbcTemplate.query(getQuery(Query.LIST_GROUP_KEYS),
-						new SingleColumnRowMapper<String>(), this.region)
-				.iterator();
-
-		return new Iterator<>() {
-
-			@Override
-			public boolean hasNext() {
-				return iterator.hasNext();
-			}
-
-			@Override
-			public MessageGroup next() {
-				return getMessageGroup(iterator.next());
-			}
-
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException("Cannot remove MessageGroup from this iterator.");
-			}
-
-		};
+		List<String> groupIds =
+				this.jdbcTemplate.query(getQuery(Query.LIST_GROUP_KEYS), new SingleColumnRowMapper<>(), this.region);
+		return new FunctionIterator<>(groupIds, this::getMessageGroup);
 	}
 
 	/**
 	 * Replace patterns in the input to produce a valid SQL query. This implementation lazily initializes a
-	 * simple map-based cache, only replacing the table prefix on the first access to a named query. Further
-	 * accesses will be resolved from the cache.
+	 * simple map-based cache, only replacing the table prefix on the first access to a named query.
+	 * Further, accesses will be resolved from the cache.
 	 * @param base the SQL query to be transformed
 	 * @return a transformed query with replacements
 	 */

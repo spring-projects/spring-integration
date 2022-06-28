@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		final AtomicBoolean failWhenCopyingBar = new AtomicBoolean(true);
 		final AtomicInteger count = new AtomicInteger();
 		SessionFactory<String> sf = new StringSessionFactory();
-		AbstractInboundFileSynchronizer<String> sync = new AbstractInboundFileSynchronizer<String>(sf) {
+		AbstractInboundFileSynchronizer<String> sync = new AbstractInboundFileSynchronizer<>(sf) {
 
 			@Override
 			protected boolean isFile(String file) {
@@ -102,7 +102,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> sync.synchronizeToLocalDirectory(mock(File.class)))
 				.withRootCauseInstanceOf(IOException.class)
-				.withMessageContaining("fail");
+				.withStackTraceContaining("fail");
 
 		sync.synchronizeToLocalDirectory(mock(File.class));
 		assertThat(count.get()).isEqualTo(3);
@@ -230,7 +230,7 @@ public class AbstractRemoteFileSynchronizerTests {
 	@Test
 	public void testRemoteDirectoryRefreshedOnEachSynchronization(@TempDir File localDir) {
 		AbstractInboundFileSynchronizer<String> sync =
-				new AbstractInboundFileSynchronizer<String>(new StringSessionFactory()) {
+				new AbstractInboundFileSynchronizer<>(new StringSessionFactory()) {
 
 					@Override
 					protected boolean isFile(String file) {
@@ -281,7 +281,7 @@ public class AbstractRemoteFileSynchronizerTests {
 			AbstractInboundFileSynchronizer<String> sync) {
 
 		AbstractInboundFileSynchronizingMessageSource<String> source =
-				new AbstractInboundFileSynchronizingMessageSource<String>(sync) {
+				new AbstractInboundFileSynchronizingMessageSource<>(sync) {
 
 					@Override
 					public String getComponentType() {
@@ -299,7 +299,7 @@ public class AbstractRemoteFileSynchronizerTests {
 
 	private AbstractInboundFileSynchronizer<String> createLimitingSynchronizer(final AtomicInteger count) {
 		SessionFactory<String> sf = new StringSessionFactory();
-		AbstractInboundFileSynchronizer<String> sync = new AbstractInboundFileSynchronizer<String>(sf) {
+		AbstractInboundFileSynchronizer<String> sync = new AbstractInboundFileSynchronizer<>(sf) {
 
 			@Override
 			protected boolean isFile(String file) {

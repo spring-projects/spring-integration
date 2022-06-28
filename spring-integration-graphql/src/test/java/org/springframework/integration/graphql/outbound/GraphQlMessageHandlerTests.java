@@ -215,8 +215,7 @@ public class GraphQlMessageHandlerTests {
 				.extracting(Message::getPayload)
 				.isInstanceOf(MessageHandlingException.class)
 				.satisfies((ex) -> assertThat((Exception) ex)
-						.hasMessageContaining(
-								"'operationExpression' must not be null"));
+						.hasStackTraceContaining("'operationExpression' must not be null"));
 	}
 
 	@Controller

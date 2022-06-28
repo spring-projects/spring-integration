@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc.store;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.io.NotSerializableException;
@@ -25,10 +26,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,8 +41,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.Repeat;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -56,9 +55,8 @@ import org.springframework.util.StopWatch;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext // close at the end after class
+@SpringJUnitConfig
+@DirtiesContext
 public class JdbcMessageStoreChannelIntegrationTests {
 
 	@Autowired
@@ -81,7 +79,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	@Qualifier("service-activator")
 	private AbstractEndpoint serviceActivator;
 
-	@Before
+	@BeforeEach
 	public void clear() {
 		Service.reset(1);
 		for (MessageGroup group : messageStore) {
@@ -91,7 +89,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		this.serviceActivator.start();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.serviceActivator.stop();
 	}
@@ -231,24 +229,19 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 	@Test
 	public void testWithRoutingSlip() {
-		try {
-			this.routingSlip.send(new GenericMessage<>("foo"));
-			fail("MessageDeliveryException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageDeliveryException.class);
-			assertThat(e.getCause()).isInstanceOf(SerializationFailedException.class);
-			assertThat(e.getCause().getCause()).isInstanceOf(NotSerializableException.class);
-			assertThat(e.getMessage())
-					.contains("org.springframework.integration.routingslip.ExpressionEvaluatingRoutingSlipRouteStrategy");
-		}
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.routingSlip.send(new GenericMessage<>("foo")))
+				.withCauseInstanceOf(SerializationFailedException.class)
+				.withRootCauseInstanceOf(NotSerializableException.class)
+				.withStackTraceContaining(
+						"org.springframework.integration.routingslip.ExpressionEvaluatingRoutingSlipRouteStrategy");
 	}
 
 	public static class Service {
 
 		private static boolean fail = false;
 
-		private static List<String> messages = new CopyOnWriteArrayList<>();
+		private static final List<String> messages = new CopyOnWriteArrayList<>();
 
 		private static CountDownLatch latch;
 

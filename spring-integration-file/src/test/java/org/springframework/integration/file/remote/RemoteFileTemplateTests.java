@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.file.remote;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -97,13 +96,9 @@ public class RemoteFileTemplateTests {
 	@Test
 	public void testFailExists() throws Exception {
 		when(session.exists(anyString())).thenReturn(true);
-		try {
-			this.template.send(new GenericMessage<>(this.file), FileExistsMode.FAIL);
-			fail("Expected exception");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getMessage()).contains("The destination file already exists");
-		}
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.template.send(new GenericMessage<>(this.file), FileExistsMode.FAIL))
+				.withStackTraceContaining("The destination file already exists");
 		verify(this.session, never()).write(any(InputStream.class), anyString());
 	}
 
@@ -164,9 +159,9 @@ public class RemoteFileTemplateTests {
 	public void testInvalid() {
 		assertThatThrownBy(() -> this.template
 				.send(new GenericMessage<>(new Object()), FileExistsMode.IGNORE))
-			.isInstanceOf(MessageDeliveryException.class)
-			.hasCauseInstanceOf(IllegalArgumentException.class)
-			.hasMessageContaining("Unsupported payload type");
+				.isInstanceOf(MessageDeliveryException.class)
+				.hasCauseInstanceOf(IllegalArgumentException.class)
+				.hasStackTraceContaining("Unsupported payload type");
 	}
 
 }

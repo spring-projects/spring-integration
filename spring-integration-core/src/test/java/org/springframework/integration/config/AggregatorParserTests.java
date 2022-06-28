@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -217,24 +217,17 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testMissingMethodOnAggregator() {
-		try {
-			new ClassPathXmlApplicationContext("invalidMethodNameAggregator.xml", this.getClass()).close();
-			fail("Expected exception");
-		}
-		catch (BeanCreationException e) {
-			assertThat(e.getMessage()).contains("Adder] has no eligible methods");
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("invalidMethodNameAggregator.xml", getClass()))
+				.withStackTraceContaining("Adder] has no eligible methods");
 	}
 
 	@Test
 	public void testMissingReleaseStrategyDefinition() {
-		try {
-			new ClassPathXmlApplicationContext("ReleaseStrategyMethodWithMissingReference.xml", this.getClass()).close();
-			fail("Expected exception");
-		}
-		catch (BeanCreationException e) {
-			assertThat(e.getMessage()).contains("No bean named 'testReleaseStrategy' available");
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("ReleaseStrategyMethodWithMissingReference.xml",
+						getClass()))
+				.withStackTraceContaining("No bean named 'testReleaseStrategy' available");
 	}
 
 	@Test
@@ -289,13 +282,9 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testAggregatorWithInvalidReleaseStrategyMethod() {
-		try {
-			new ClassPathXmlApplicationContext("invalidReleaseStrategyMethod.xml", this.getClass()).close();
-			fail("Expected exception");
-		}
-		catch (BeanCreationException e) {
-			assertThat(e.getMessage()).contains("TestReleaseStrategy] has no eligible methods");
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("invalidReleaseStrategyMethod.xml", getClass()))
+				.withStackTraceContaining("TestReleaseStrategy] has no eligible methods");
 	}
 
 	@Test

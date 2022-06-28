@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -26,18 +26,16 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 /**
  * @author Marius Bogoevici
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class CorrelationStrategyInvalidConfigurationTests {
 
 	@Test
 	public void testCorrelationStrategyWithVoidReturningMethods() throws Exception {
-		try {
-			new ClassPathXmlApplicationContext("correlationStrategyWithVoidMethods.xml",
-					CorrelationStrategyInvalidConfigurationTests.class).close();
-		}
-		catch (BeanCreationException e) {
-			assertThat(e.getMessage()).contains("MessageCountReleaseStrategy] has no eligible methods");
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("correlationStrategyWithVoidMethods.xml",
+						getClass()))
+				.withStackTraceContaining("MessageCountReleaseStrategy] has no eligible methods");
 	}
 
 	public static class VoidReturningCorrelationStrategy {

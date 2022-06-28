@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,9 +112,9 @@ public class SocketSupportTests {
 		connectionFactory.setTcpSocketFactorySupport(factorySupport);
 		connectionFactory.setTcpSocketSupport(socketSupport);
 		connectionFactory.start();
-		assertThatThrownBy(() -> connectionFactory.getConnection())
-			.isInstanceOf(UncheckedIOException.class)
-			.hasCauseInstanceOf(SocketTimeoutException.class);
+		assertThatThrownBy(connectionFactory::getConnection)
+				.isInstanceOf(UncheckedIOException.class)
+				.hasCauseInstanceOf(SocketTimeoutException.class);
 
 		connectionFactory.stop();
 	}
@@ -211,7 +211,7 @@ public class SocketSupportTests {
 		};
 		clientConnectionFactory.setTcpSocketSupport(clientSocketSupport);
 		clientConnectionFactory.start();
-		clientConnectionFactory.getConnection().send(new GenericMessage<String>("Hello, world!"));
+		clientConnectionFactory.getConnection().send(new GenericMessage<>("Hello, world!"));
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(ppServerSocketCountClient.get()).isEqualTo(0);
 		assertThat(ppSocketCountClient.get()).isEqualTo(1);
@@ -383,7 +383,7 @@ public class SocketSupportTests {
 		DefaultTcpNetSSLSocketFactorySupport tcpSocketFactorySupport =
 				new DefaultTcpNetSSLSocketFactorySupport(sslContextSupport);
 		server.setTcpSocketFactorySupport(tcpSocketFactorySupport);
-		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		final List<Message<?>> messages = new ArrayList<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(message -> {
 			messages.add(message);
@@ -400,7 +400,7 @@ public class SocketSupportTests {
 		client.start();
 
 		TcpConnection connection = client.getConnection();
-		connection.send(new GenericMessage<String>("Hello, world!"));
+		connection.send(new GenericMessage<>("Hello, world!"));
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(new String((byte[]) messages.get(0).getPayload())).isEqualTo("Hello, world!");
 		assertThat(messages.get(0).getHeaders().get("cipher")).isNotNull();
@@ -413,7 +413,7 @@ public class SocketSupportTests {
 	public void testNetClientAndServerSSLDifferentContexts() throws Exception {
 		testNetClientAndServerSSLDifferentContexts(false);
 		assertThatExceptionOfType(MessagingException.class)
-			.isThrownBy(() -> testNetClientAndServerSSLDifferentContexts(true));
+				.isThrownBy(() -> testNetClientAndServerSSLDifferentContexts(true));
 	}
 
 	private void testNetClientAndServerSSLDifferentContexts(boolean badServer) throws Exception {
@@ -425,7 +425,7 @@ public class SocketSupportTests {
 		DefaultTcpNetSSLSocketFactorySupport serverTcpSocketFactorySupport =
 				new DefaultTcpNetSSLSocketFactorySupport(serverSslContextSupport);
 		server.setTcpSocketFactorySupport(serverTcpSocketFactorySupport);
-		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		final List<Message<?>> messages = new ArrayList<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(message -> {
 			if (!(message instanceof ErrorMessage)) {
@@ -456,7 +456,7 @@ public class SocketSupportTests {
 		try {
 			client.start();
 			TcpConnection connection = client.getConnection();
-			connection.send(new GenericMessage<String>("Hello, world!"));
+			connection.send(new GenericMessage<>("Hello, world!"));
 			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 			assertThat(new String((byte[]) messages.get(0).getPayload())).isEqualTo("Hello, world!");
 		}
@@ -477,7 +477,7 @@ public class SocketSupportTests {
 		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(sslContextSupport, false);
 		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
-		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		final List<Message<?>> messages = new ArrayList<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(message -> {
 			messages.add(message);
@@ -504,7 +504,7 @@ public class SocketSupportTests {
 
 		TcpConnection connection = client.getConnection();
 		assertThat(TestUtils.getPropertyValue(connection, "handshakeTimeout")).isEqualTo(34);
-		connection.send(new GenericMessage<String>("Hello, world!"));
+		connection.send(new GenericMessage<>("Hello, world!"));
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(new String((byte[]) messages.get(0).getPayload())).isEqualTo("Hello, world!");
 		assertThat(messages.get(0).getHeaders().get("cipher")).isNotNull();
@@ -522,8 +522,8 @@ public class SocketSupportTests {
 	public void testNioClientAndServerSSLDifferentContexts() throws Exception {
 		testNioClientAndServerSSLDifferentContexts(false);
 		assertThatExceptionOfType(MessagingException.class)
-			.isThrownBy(() -> testNioClientAndServerSSLDifferentContexts(true))
-			.withMessageMatching(".*javax.net.ssl.SSLHandshakeException.*");
+				.isThrownBy(() -> testNioClientAndServerSSLDifferentContexts(true))
+				.withStackTraceContaining("javax.net.ssl.SSLHandshakeException");
 	}
 
 	private void testNioClientAndServerSSLDifferentContexts(boolean badServer) throws Exception {
@@ -542,7 +542,7 @@ public class SocketSupportTests {
 
 				};
 		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
-		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		final List<Message<?>> messages = new ArrayList<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(message -> {
 			messages.add(message);
@@ -562,7 +562,7 @@ public class SocketSupportTests {
 		try {
 			client.start();
 			TcpConnection connection = client.getConnection();
-			connection.send(new GenericMessage<String>("Hello, world!"));
+			connection.send(new GenericMessage<>("Hello, world!"));
 			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 			assertThat(new String((byte[]) messages.get(0).getPayload())).isEqualTo("Hello, world!");
 		}
@@ -581,7 +581,7 @@ public class SocketSupportTests {
 		DefaultTcpNioSSLConnectionSupport serverTcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport, false);
 		server.setTcpNioConnectionSupport(serverTcpNioConnectionSupport);
-		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		final List<Message<?>> messages = new ArrayList<>();
 		final CountDownLatch latch = new CountDownLatch(2);
 		final Replier replier = new Replier();
 		server.registerSender(replier);
@@ -627,7 +627,7 @@ public class SocketSupportTests {
 		TcpConnection connection = client.getConnection();
 		assertThat(TestUtils.getPropertyValue(connection, "handshakeTimeout")).isEqualTo(30);
 		byte[] bytes = new byte[100000];
-		connection.send(new GenericMessage<String>("Hello, world!" + new String(bytes)));
+		connection.send(new GenericMessage<>("Hello, world!" + new String(bytes)));
 		assertThat(latch.await(60, TimeUnit.SECONDS)).isTrue();
 		byte[] payload = (byte[]) messages.get(0).getPayload();
 		assertThat(payload.length).isEqualTo(13 + bytes.length);

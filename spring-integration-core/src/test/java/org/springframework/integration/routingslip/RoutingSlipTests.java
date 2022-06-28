@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.routingslip;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,8 +27,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -52,7 +51,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.GenericXmlContextLoader;
 
 import reactor.core.publisher.Flux;
@@ -60,10 +59,11 @@ import reactor.core.publisher.Flux;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
 @ContextConfiguration(loader = GenericXmlContextLoader.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class RoutingSlipTests {
 
@@ -119,24 +119,15 @@ public class RoutingSlipTests {
 
 	@Test
 	public void testInvalidRoutingSlipRoutStrategy() {
-		try {
-			new RoutingSlipHeaderValueMessageProcessor(new Date());
-			fail("IllegalArgumentException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getMessage()).contains("The RoutingSlip can contain " +
-					"only bean names of MessageChannel or RoutingSlipRouteStrategy, " +
-					"or MessageChannel and RoutingSlipRouteStrategy instances");
-		}
-		try {
-			this.invalidRoutingSlipChannel.send(new GenericMessage<>("foo"));
-			fail("MessagingException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessagingException.class);
-			assertThat(e.getMessage()).contains("replyChannel must be a MessageChannel or String");
-		}
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> new RoutingSlipHeaderValueMessageProcessor(new Date()))
+				.withMessageContaining("The RoutingSlip can contain " +
+						"only bean names of MessageChannel or RoutingSlipRouteStrategy, " +
+						"or MessageChannel and RoutingSlipRouteStrategy instances");
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.invalidRoutingSlipChannel.send(new GenericMessage<>("foo")))
+				.withStackTraceContaining("replyChannel must be a MessageChannel or String");
 	}
 
 	public static class TestRoutingSlipRoutePojo {

@@ -280,8 +280,8 @@ public class SimplePool<T> implements Pool<T> {
 		}
 
 		@Override
-		public void reducePermits(int reduction) { // NOSONAR increases visibility
-			super.reducePermits(reduction > availablePermits() ? availablePermits() : reduction);
+		public void reducePermits(int reduction) {
+			super.reducePermits(Math.min(reduction, availablePermits()));
 		}
 
 	}

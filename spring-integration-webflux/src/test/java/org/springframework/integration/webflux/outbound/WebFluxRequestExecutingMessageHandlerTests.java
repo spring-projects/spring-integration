@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,7 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		Throwable throwable = (Throwable) errorMessage.getPayload();
 		assertThat(throwable).isInstanceOf(MessageHandlingException.class);
 		assertThat(throwable.getCause()).isInstanceOf(WebClientResponseException.Unauthorized.class);
-		assertThat(throwable.getMessage()).contains("401 Unauthorized");
+		assertThat(throwable).hasStackTraceContaining("401 Unauthorized");
 	}
 
 	@Test
@@ -143,7 +143,7 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		assertThat(errorMessage).isNotNull();
 		assertThat(errorMessage).isInstanceOf(ErrorMessage.class);
 		Throwable throwable = (Throwable) errorMessage.getPayload();
-		assertThat(throwable.getMessage()).contains("Intentional connection error");
+		assertThat(throwable).hasStackTraceContaining("Intentional connection error");
 	}
 
 	@Test
@@ -181,7 +181,7 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		Exception exception = (Exception) payload;
 		assertThat(exception).isInstanceOf(MessageHandlingException.class);
 		assertThat(exception.getCause()).isInstanceOf(WebClientResponseException.ServiceUnavailable.class);
-		assertThat(exception.getMessage()).contains("503 Service Unavailable");
+		assertThat(exception).hasStackTraceContaining("503 Service Unavailable");
 
 		Message<?> replyMessage = errorChannel.receive(10);
 		assertThat(replyMessage).isNull();
@@ -331,7 +331,7 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		final Throwable throwable = (Throwable) errorMessage.getPayload();
 		assertThat(throwable).isInstanceOf(MessageHandlingException.class);
 		assertThat(throwable.getCause()).isInstanceOf(WebClientResponseException.NotFound.class);
-		assertThat(throwable.getMessage()).contains("404 Not Found");
+		assertThat(throwable).hasStackTraceContaining("404 Not Found");
 	}
 
 	@Test

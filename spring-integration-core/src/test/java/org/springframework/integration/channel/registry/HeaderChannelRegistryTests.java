@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,14 @@
 package org.springframework.integration.channel.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -49,8 +48,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -59,8 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 3.0
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class HeaderChannelRegistryTests {
 
@@ -95,7 +92,7 @@ public class HeaderChannelRegistryTests {
 	public void testReplace() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.input);
-		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("foo"));
+		Message<?> reply = template.sendAndReceive(new GenericMessage<>("foo"));
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:foo");
 		String stringReplyChannel = reply.getHeaders().get("stringReplyChannel", String.class);
@@ -109,7 +106,7 @@ public class HeaderChannelRegistryTests {
 	public void testReplaceTtl() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.inputTtl);
-		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("ttl"));
+		Message<?> reply = template.sendAndReceive(new GenericMessage<>("ttl"));
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:ttl");
 		String stringReplyChannel = reply.getHeaders().get("stringReplyChannel", String.class);
@@ -135,7 +132,7 @@ public class HeaderChannelRegistryTests {
 						.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis())
 				.isGreaterThan(160000L).isLessThan(181000L);
 		// Now for Elvis...
-		reply = template.sendAndReceive(new GenericMessage<String>("ttl"));
+		reply = template.sendAndReceive(new GenericMessage<>("ttl"));
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:ttl");
 		stringReplyChannel = reply.getHeaders().get("stringReplyChannel", String.class);
@@ -167,7 +164,7 @@ public class HeaderChannelRegistryTests {
 	public void testReplaceError() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.inputPolled);
-		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("bar"));
+		Message<?> reply = template.sendAndReceive(new GenericMessage<>("bar"));
 		assertThat(reply).isNotNull();
 		assertThat(reply instanceof ErrorMessage).isTrue();
 		assertThat(((ErrorMessage) reply).getOriginalMessage()).isNotNull();
@@ -188,15 +185,9 @@ public class HeaderChannelRegistryTests {
 
 	@Test
 	public void testNull() {
-		Message<String> requestMessage = MessageBuilder.withPayload("foo")
-				.build();
-		try {
-			this.input.send(requestMessage);
-			fail("expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e.getMessage()).contains("no output-channel or replyChannel");
-		}
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> this.input.send(new GenericMessage<>("test")))
+				.withStackTraceContaining("no output-channel or replyChannel");
 	}
 
 	@Test
@@ -223,14 +214,10 @@ public class HeaderChannelRegistryTests {
 			throw new NoSuchBeanDefinitionException("bar");
 		}).when(beanFactory).getBean("foo", MessageChannel.class);
 		resolver.setBeanFactory(beanFactory);
-		try {
-			resolver.resolveDestination("foo");
-			fail("Expected exception");
-		}
-		catch (DestinationResolutionException e) {
-			assertThat(e.getMessage()).contains("failed to look up MessageChannel with name 'foo' in the BeanFactory" +
-					".");
-		}
+
+		assertThatExceptionOfType(DestinationResolutionException.class)
+				.isThrownBy(() -> resolver.resolveDestination("foo"))
+				.withMessageContaining("failed to look up MessageChannel with name 'foo' in the BeanFactory.");
 	}
 
 	@Test
@@ -241,15 +228,11 @@ public class HeaderChannelRegistryTests {
 			throw new NoSuchBeanDefinitionException("bar");
 		}).when(beanFactory).getBean("foo", MessageChannel.class);
 		resolver.setBeanFactory(beanFactory);
-		try {
-			resolver.resolveDestination("foo");
-			fail("Expected exception");
-		}
-		catch (DestinationResolutionException e) {
-			assertThat(e.getMessage()).contains("failed to look up MessageChannel with name 'foo' in the BeanFactory" +
-					" " +
-					"(and there is no HeaderChannelRegistry present).");
-		}
+
+		assertThatExceptionOfType(DestinationResolutionException.class)
+				.isThrownBy(() -> resolver.resolveDestination("foo"))
+				.withMessageContaining("failed to look up MessageChannel with name 'foo' in the BeanFactory" +
+						" (and there is no HeaderChannelRegistry present).");
 	}
 
 	@Test

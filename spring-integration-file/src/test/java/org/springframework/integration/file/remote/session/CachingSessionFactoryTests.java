@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
@@ -97,7 +97,7 @@ public class CachingSessionFactoryTests {
 									throw new RuntimeException("bar");
 								}))
 				.withCauseInstanceOf(RuntimeException.class)
-				.withMessageContaining("bar");
+				.withStackTraceContaining("bar");
 		verify(session).close();
 	}
 

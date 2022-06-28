@@ -27,7 +27,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -231,7 +231,7 @@ public class DefaultLockRepository
 			try {
 				return this.template.update(this.insertQuery, this.region, lock, this.id, new Date()) > 0;
 			}
-			catch (DuplicateKeyException e) {
+			catch (DataIntegrityViolationException ex) {
 				return false;
 			}
 		});

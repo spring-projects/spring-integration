@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,7 +165,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		Throwable throwable = errorMessage.getPayload();
 		assertThat(throwable).isInstanceOf(MessageHandlingException.class);
 		assertThat(throwable.getCause()).isInstanceOf(MessageConversionException.class);
-		assertThat(throwable.getMessage()).contains("No suitable converter for payload type [interface java.util.Map]");
+		assertThat(throwable).hasStackTraceContaining("No suitable converter for payload type [interface java.util.Map]");
 
 		this.serverContext.close();
 
