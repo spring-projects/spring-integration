@@ -98,7 +98,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	public void testNoFactorySpecified() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new MongoDbOutboundGateway((MongoDatabaseFactory) null))
-				.withStackTraceContaining("MongoDbFactory translator must not be null!");
+				.withStackTraceContaining("MongoDbFactory translator must not be null");
 	}
 
 	@Test
