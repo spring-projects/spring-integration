@@ -21,6 +21,7 @@ package org.springframework.integration.ip.util;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public final class RegexUtils {
