@@ -45,7 +45,7 @@ public final class RegexUtils {
 
 	// Non-instantiable utility class
 	private RegexUtils() {
-		throw new AssertionError();
+		throw new AssertionError("Class Instantiation not allowed.");
 	}
 
 }
