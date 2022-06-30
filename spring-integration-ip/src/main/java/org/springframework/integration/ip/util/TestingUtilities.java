@@ -35,7 +35,7 @@ public final class TestingUtilities {
 
 	// Non-instantiable utility class
 	private TestingUtilities() {
-		throw new AssertionError();
+		throw new AssertionError(""Class Instantiation not allowed."");
 	}
 
 	/**
