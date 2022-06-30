@@ -33,7 +33,6 @@ public final class RegexUtils {
 	 * <p>
 	 * Used to escape a string that is used as a regular expression pattern, to remove
 	 * the special meaning of these characters.
-	 *
 	 * @param stringToEscape The string to escape.
 	 * @return The escaped string.
 	 */
