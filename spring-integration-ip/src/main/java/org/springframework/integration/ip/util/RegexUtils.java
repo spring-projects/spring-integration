@@ -43,7 +43,9 @@ public final class RegexUtils {
 		return stringToEscape.replaceAll("([.$\\[\\]^*+{}()\\\\?|])", "\\\\$1");
 	}
 
+	// Non-instantiable utility class
 	private RegexUtils() {
+		throw new AssertionError("Class Instantiation not allowed.");
 	}
 
 }
