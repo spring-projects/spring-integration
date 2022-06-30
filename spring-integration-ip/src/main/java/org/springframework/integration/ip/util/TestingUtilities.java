@@ -33,7 +33,9 @@ import org.springframework.lang.Nullable;
  */
 public final class TestingUtilities {
 
+	// Non-instantiable utility class
 	private TestingUtilities() {
+		throw new AssertionError();
 	}
 
 	/**

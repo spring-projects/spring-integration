@@ -21,7 +21,6 @@ package org.springframework.integration.ip.util;
  *
  * @author Gary Russell
  * @author Artem Bilan
- *
  * @since 2.0
  */
 public final class RegexUtils {
@@ -33,6 +32,7 @@ public final class RegexUtils {
 	 * <p>
 	 * Used to escape a string that is used as a regular expression pattern, to remove
 	 * the special meaning of these characters.
+	 *
 	 * @param stringToEscape The string to escape.
 	 * @return The escaped string.
 	 */
@@ -43,7 +43,9 @@ public final class RegexUtils {
 		return stringToEscape.replaceAll("([.$\\[\\]^*+{}()\\\\?|])", "\\\\$1");
 	}
 
+	// Non-instantiable utility class
 	private RegexUtils() {
+		throw new AssertionError();
 	}
 
 }
