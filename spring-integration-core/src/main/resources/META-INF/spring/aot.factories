@@ -1,0 +1,2 @@
+org.springframework.aot.hint.RuntimeHintsRegistrar=org.springframework.integration.aot.CoreRuntimeHintsRegistrar
+org.springframework.beans.factory.aot.BeanRegistrationAotProcessor=org.springframework.integration.aot.GatewayProxyBeanRegistrationAotProcessor

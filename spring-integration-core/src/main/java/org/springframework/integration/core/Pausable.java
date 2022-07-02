@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.core;
 
+import org.springframework.aot.hint.annotation.Reflective;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -26,6 +27,8 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
  * messages.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0.3
  *
  */
@@ -35,12 +38,14 @@ public interface Pausable extends ManageableLifecycle {
 	 * Pause the endpoint.
 	 */
 	@ManagedOperation(description = "Pause the component")
+	@Reflective
 	void pause();
 
 	/**
 	 * Resume the endpoint if paused.
 	 */
 	@ManagedOperation(description = "Resume the component")
+	@Reflective
 	void resume();
 
 	/**
@@ -49,6 +54,7 @@ public interface Pausable extends ManageableLifecycle {
 	 * @since 5.4
 	 */
 	@ManagedAttribute(description = "Is the component paused?")
+	@Reflective
 	default boolean isPaused() {
 		throw new UnsupportedOperationException("This component does not implement this method");
 	}

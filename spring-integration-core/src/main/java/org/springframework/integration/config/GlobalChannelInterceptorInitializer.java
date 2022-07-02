@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
-import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -45,42 +45,38 @@ import org.springframework.util.CollectionUtils;
  */
 public class GlobalChannelInterceptorInitializer implements IntegrationConfigurationInitializer {
 
-	private ConfigurableListableBeanFactory beanFactory;
-
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
 		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+
 		for (String beanName : registry.getBeanDefinitionNames()) {
 			BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
-			if (beanDefinition instanceof AnnotatedBeanDefinition) {
-				AnnotationMetadata metadata = ((AnnotatedBeanDefinition) beanDefinition).getMetadata();
-				Map<String, Object> annotationAttributes =
-						metadata.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
-				if (CollectionUtils.isEmpty(annotationAttributes)
-						&& beanDefinition.getSource() instanceof MethodMetadata) {
-					MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
-					annotationAttributes =
-							beanMethod.getAnnotationAttributes(GlobalChannelInterceptor.class.getName()); // NOSONAR not null
-				}
+			Map<String, Object> interceptorAttributes = obtainGlobalChannelInterceptorAttributes(beanDefinition);
+			if (!CollectionUtils.isEmpty(interceptorAttributes)) {
+				BeanDefinitionBuilder builder =
+						BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorWrapper.class)
+								.addConstructorArgReference(beanName)
+								.addPropertyValue("patterns", interceptorAttributes.get("patterns"))
+								.addPropertyValue("order", interceptorAttributes.get("order"));
 
-				if (!CollectionUtils.isEmpty(annotationAttributes)) {
-					BeanDefinitionBuilder builder =
-							BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorWrapper.class,
-											() -> createGlobalChannelInterceptorWrapper(beanName))
-									.addConstructorArgReference(beanName)
-									.addPropertyValue("patterns", annotationAttributes.get("patterns"))
-									.addPropertyValue("order", annotationAttributes.get("order"));
-
-					BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), registry);
-				}
+				BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), registry);
 			}
 		}
 	}
 
-	private GlobalChannelInterceptorWrapper createGlobalChannelInterceptorWrapper(String interceptorBeanName) {
-		ChannelInterceptor interceptor = this.beanFactory.getBean(interceptorBeanName, ChannelInterceptor.class);
-		return new GlobalChannelInterceptorWrapper(interceptor);
+	@Nullable
+	private static Map<String, Object> obtainGlobalChannelInterceptorAttributes(BeanDefinition beanDefinition) {
+		Map<String, Object> annotationAttributes = null;
+		if (beanDefinition instanceof AnnotatedBeanDefinition annotatedBeanDefinition) {
+			AnnotationMetadata metadata = annotatedBeanDefinition.getMetadata();
+			annotationAttributes = metadata.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
+			if (CollectionUtils.isEmpty(annotationAttributes)
+					&& beanDefinition.getSource() instanceof MethodMetadata beanMethod) {
+
+				annotationAttributes = beanMethod.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
+			}
+		}
+		return annotationAttributes;
 	}
 
 }

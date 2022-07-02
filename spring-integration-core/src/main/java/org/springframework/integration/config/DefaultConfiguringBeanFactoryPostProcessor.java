@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.handler.LoggingHandler;
-import org.springframework.integration.json.JsonNodeWrapperToJsonNodeConverter;
 import org.springframework.integration.json.JsonPathUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.SmartLifecycleRoleController;
@@ -53,7 +52,6 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
 import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
-import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ClassUtils;
@@ -337,7 +335,6 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 		int registryId = System.identityHashCode(this.registry);
 		jsonPath(registryId);
 		xpath(registryId);
-		jsonNodeToString(registryId);
 		REGISTRIES_PROCESSED.add(registryId);
 	}
 
@@ -362,19 +359,6 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 				&& !REGISTRIES_PROCESSED.contains(registryId)) {
 
 			IntegrationConfigUtils.registerSpelFunctionBean(this.registry, xpathBeanName, XPATH_CLASS, "evaluate");
-		}
-	}
-
-	// TODO Remove in 6.0
-	private void jsonNodeToString(int registryId) {
-		if (!this.beanFactory.containsBean(
-				IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER) &&
-				!REGISTRIES_PROCESSED.contains(registryId) && JacksonPresent.isJackson2Present()) {
-
-			this.registry.registerBeanDefinition(
-					IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER,
-					new RootBeanDefinition(JsonNodeWrapperToJsonNodeConverter.class,
-							JsonNodeWrapperToJsonNodeConverter::new));
 		}
 	}
 
