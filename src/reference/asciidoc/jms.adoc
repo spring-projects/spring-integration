@@ -56,7 +56,7 @@ The following example defines an inbound channel adapter with a `Destination` re
 ----
 @Bean
 public IntegrationFlow jmsInbound(ConnectionFactory connectionFactory) {
-    return IntegrationFlows.from(
+    return IntegrationFlow.from(
                     Jms.inboundAdapter(connectionFactory)
                        .destination("inQueue"),
                     e -> e.poller(poller -> poller.fixedRate(30000)))
@@ -148,7 +148,7 @@ The following example defines a message-driven channel adapter with a `Destinati
 ----
 @Bean
 public IntegrationFlow jmsMessageDrivenRedeliveryFlow() {
-    return IntegrationFlows
+    return IntegrationFlow
             .from(Jms.messageDrivenChannelAdapter(jmsConnectionFactory())
                      .destination("inQueue"))
             .channel("exampleChannel")

@@ -169,7 +169,7 @@ public class SmbJavaApplication {
 
     @Bean
     public IntegrationFlow smbInboundFlow() {
-        return IntegrationFlows
+        return IntegrationFlow
             .from(Smb.inboundAdapter(smbSessionFactory())
                     .preserveTimestamp(true)
                     .remoteDirectory("smbSource")
@@ -375,7 +375,7 @@ public class SmbJavaApplication {
 
     @Bean
     public IntegrationFlow smbOutboundFlow() {
-        return IntegrationFlows.from("toSmbChannel")
+        return IntegrationFlow.from("toSmbChannel")
                 .handle(Smb.outboundAdapter(smbSessionFactory(), FileExistsMode.REPLACE)
                         .useTemporaryFileName(false)
                         .fileNameExpression("headers['" + FileHeaders.FILENAME + "']")

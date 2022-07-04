@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
@@ -325,7 +324,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public IntegrationFlow jmsInboundFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Jms.inboundAdapter(amqFactory).destination("jmsInbound"))
 					.<String, String>transform(String::toUpperCase)
 					.channel(this.jmsOutboundInboundReplyChannel())
@@ -352,7 +351,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public IntegrationFlow jmsMessageDrivenFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Jms.messageDrivenChannelAdapter(amqFactory,
 							DefaultMessageListenerContainer.class)
 							.outputChannel(jmsMessageDrivenInputChannel())
@@ -385,7 +384,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public IntegrationFlow jmsMessageDrivenFlowWithContainer() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Jms.messageDrivenChannelAdapter(
 							Jms.container(amqFactory, "containerSpecDestination")
 									.pubSubDomain(false)
@@ -406,7 +405,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public IntegrationFlow jmsInboundGatewayFlow() {
-			return IntegrationFlows.from(
+			return IntegrationFlow.from(
 					Jms.inboundGateway(amqFactory)
 							.requestChannel(jmsInboundGatewayInputChannel())
 							.replyTimeout(1)
@@ -451,7 +450,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public IntegrationFlow jmsMessageDrivenRedeliveryFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Jms.messageDrivenChannelAdapter(amqFactory)
 							.errorChannel("errorChannelForRedelivery")
 							.destination("jmsMessageDrivenRedelivery")
@@ -473,7 +472,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public IntegrationFlow errorHandlingFlow() {
-			return IntegrationFlows.from("errorChannelForRedelivery")
+			return IntegrationFlow.from("errorChannelForRedelivery")
 					.handle(m -> {
 						MessagingException exception = (MessagingException) m.getPayload();
 						redeliveryLatch().countDown();

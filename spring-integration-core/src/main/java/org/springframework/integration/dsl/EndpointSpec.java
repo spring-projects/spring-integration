@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -163,7 +163,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 		MessageChannel messageChannel = subFlow.getInputChannel();
 		if (messageChannel == null) {
 			messageChannel = new DirectChannel();
-			IntegrationFlowDefinition<?> flowBuilder = IntegrationFlows.from(messageChannel);
+			IntegrationFlowDefinition<?> flowBuilder = IntegrationFlow.from(messageChannel);
 			subFlow.configure(flowBuilder);
 			this.componentsToRegister.put(evaluateInternalBuilder ? flowBuilder.get() : flowBuilder, null);
 		}

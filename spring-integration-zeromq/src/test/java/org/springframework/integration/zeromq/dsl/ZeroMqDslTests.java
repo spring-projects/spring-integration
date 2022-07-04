@@ -34,7 +34,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.zeromq.ZeroMqHeaders;
@@ -78,7 +77,7 @@ public class ZeroMqDslTests {
 
 		for (int i = 0; i < 2; i++) {
 			IntegrationFlow consumerFlow =
-					IntegrationFlows.from(
+					IntegrationFlow.from(
 									ZeroMq.inboundChannelAdapter(this.context, SocketType.SUB)
 											.connectUrl("tcp://localhost:" + this.subPubZeroMqProxy.getBackendPort())
 											.topics("someTopic")

@@ -178,7 +178,7 @@ The equivalent configuration for the gateways shown in <<webservices-namespace>>
 ----
 @Bean
 IntegrationFlow inbound() {
-    return IntegrationFlows.from(Ws.simpleInboundGateway()
+    return IntegrationFlow.from(Ws.simpleInboundGateway()
                 .id("simpleGateway"))
         ...
         .get();
@@ -205,7 +205,7 @@ IntegrationFlow outboundMarshalled() {
 ----
 @Bean
 IntegrationFlow inboundMarshalled() {
-    return IntegrationFlows.from(Ws.marshallingInboundGateway()
+    return IntegrationFlow.from(Ws.marshallingInboundGateway()
                 .marshaller(someMarshaller())
                 .unmarshaller(someUnmarshalller())
                 .id("marshallingGateway"))

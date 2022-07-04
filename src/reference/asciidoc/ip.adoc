@@ -228,7 +228,7 @@ The following example shows how to configure an inbound UDP adapter with the Jav
 ----
 @Bean
 public IntegrationFlow udpIn() {
-    return IntegrationFlows.from(Udp.inboundAdapter(11111))
+    return IntegrationFlow.from(Udp.inboundAdapter(11111))
             .channel("udpChannel")
             .get();
 }
@@ -283,7 +283,7 @@ The following example shows the equivalent configuration with the Java DSL:
 ----
 @Bean
 public IntegrationFlow udpEchoUpcaseServer() {
-    return IntegrationFlows.from(Udp.inboundAdapter(11111).id("udpIn"))
+    return IntegrationFlow.from(Udp.inboundAdapter(11111).id("udpIn"))
             .<byte[], String>transform(p -> new String(p).toUpperCase())
             .handle(Udp.outboundAdapter("headers['ip_packetAddress']")
                     .socketExpression("@udpIn.socket"))
@@ -2266,7 +2266,7 @@ Here are some examples of using the DSL to configure flows using the DSL.
 ----
 @Bean
 public IntegrationFlow server() {
-    return IntegrationFlows.from(Tcp.inboundAdapter(Tcp.netServer(1234)
+    return IntegrationFlow.from(Tcp.inboundAdapter(Tcp.netServer(1234)
                             .deserializer(TcpCodecs.lengthHeader1())
                             .backlog(30))
                         .errorChannel("tcpIn.errorChannel")
@@ -2296,7 +2296,7 @@ public IntegrationFlow client() {
 ----
 @Bean
 public IntegrationFlow server() {
-    return IntegrationFlows.from(Tcp.inboundGateway(Tcp.netServer(1234)
+    return IntegrationFlow.from(Tcp.inboundGateway(Tcp.netServer(1234)
                             .deserializer(TcpCodecs.lengthHeader1())
                             .serializer(TcpCodecs.lengthHeader1())
                             .backlog(30))

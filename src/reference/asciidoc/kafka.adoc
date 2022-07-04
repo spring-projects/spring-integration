@@ -239,7 +239,7 @@ The following example shows how to configure a message-driven channel adapter:
 ----
 @Bean
 public IntegrationFlow topic1ListenerFromKafkaFlow() {
-    return IntegrationFlows
+    return IntegrationFlow
             .from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
                     KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
                     .configureListenerContainer(c ->
@@ -332,7 +332,7 @@ The following example shows how to do so:
 ----
 @Bean
 public IntegrationFlow topic2ListenerFromKafkaFlow() {
-    return IntegrationFlows
+    return IntegrationFlow
             .from(Kafka.messageDrivenChannelAdapter(kafkaListenerContainerFactory().createContainer(TEST_TOPIC2),
             KafkaMessageDrivenChannelAdapter.ListenerMode.record)
                 .id("topic2Adapter"))
@@ -360,7 +360,7 @@ The `KafkaMessageSource` provides a pollable channel adapter implementation.
 ----
 @Bean
 public IntegrationFlow flow(ConsumerFactory<String, String> cf)  {
-    return IntegrationFlows.from(Kafka.inboundChannelAdapter(cf, "myTopic")
+    return IntegrationFlow.from(Kafka.inboundChannelAdapter(cf, "myTopic")
                 .groupId("myDslGroupId"), e -> e.poller(Pollers.fixedDelay(5000)))
             .handle(System.out::println)
             .get();
@@ -437,7 +437,7 @@ The following example shows how to configure a gateway:
 public IntegrationFlow outboundGateFlow(
         ReplyingKafkaTemplate<String, String, String> kafkaTemplate) {
 
-    return IntegrationFlows.from("kafkaRequests")
+    return IntegrationFlow.from("kafkaRequests")
             .handle(Kafka.outboundGateway(kafkaTemplate))
             .channel("kafkaReplies")
             .get();
@@ -497,7 +497,7 @@ Alternatively, you can also use a configuration similar to the following bean:
 ----
 @Bean
 public IntegrationFlow outboundGateFlow() {
-    return IntegrationFlows.from("kafkaRequests")
+    return IntegrationFlow.from("kafkaRequests")
             .handle(Kafka.outboundGateway(producerFactory(), replyContainer())
                 .configureKafkaTemplate(t -> t.replyTimeout(30_000)))
             .channel("kafkaReplies")
@@ -524,7 +524,7 @@ The following example shows how to configure an inbound gateway:
 public IntegrationFlow serverGateway(
         ConcurrentMessageListenerContainer<Integer, String> container,
         KafkaTemplate<Integer, String> replyTemplate) {
-    return IntegrationFlows
+    return IntegrationFlow
             .from(Kafka.inboundGateway(container, replyTemplate)
                 .replyTimeout(30_000))
             .<String, String>transform(String::toUpperCase)
@@ -589,7 +589,7 @@ Alternatively, you could configure an upper-case converter by using code similar
 ----
 @Bean
 public IntegrationFlow serverGateway() {
-    return IntegrationFlows
+    return IntegrationFlow
             .from(Kafka.inboundGateway(consumerFactory(), containerProperties(),
                     producerFactory())
                 .replyTimeout(30_000))
@@ -619,7 +619,7 @@ Each channel requires a `KafkaTemplate` for the sending side and either a listen
 public IntegrationFlow flowWithSubscribable(KafkaTemplate<Integer, String> template,
         ConcurrentKafkaListenerContainerFactory<Integer, String> containerFactory) {
 
-    return IntegrationFlows.from(...)
+    return IntegrationFlow.from(...)
             ...
             .channel(Kafka.channel(template, containerFactory, "someTopic1").groupId("group1"))
             ...
@@ -630,7 +630,7 @@ public IntegrationFlow flowWithSubscribable(KafkaTemplate<Integer, String> templ
 public IntegrationFlow flowWithPubSub(KafkaTemplate<Integer, String> template,
         ConcurrentKafkaListenerContainerFactory<Integer, String> containerFactory) {
 
-    return IntegrationFlows.from(...)
+    return IntegrationFlow.from(...)
             ...
             .publishSubscribeChannel(pubSub(template, containerFactory),
                 pubsub -> pubsub
@@ -652,7 +652,7 @@ public BroadcastCapableChannel pubSub(KafkaTemplate<Integer, String> template,
 public IntegrationFlow flowWithPollable(KafkaTemplate<Integer, String> template,
         KafkaMessageSource<Integer, String> source) {
 
-    return IntegrationFlows.from(...)
+    return IntegrationFlow.from(...)
             ...
             .channel(Kafka.pollableChannel(template, source, "someTopic3").groupId("group3"))
             .handle(...,  e -> e.poller(...))
@@ -821,7 +821,7 @@ public MessagingTransformer<byte[], byte[], String> transformer(
 
 @Bean
 public IntegrationFlow flow() {
-    return IntegrationFlows.from(MessagingFunction.class)
+    return IntegrationFlow.from(MessagingFunction.class)
         ...
         .get();
 }
@@ -856,7 +856,7 @@ public class FuturesChannelApplication {
 
     @Bean
     IntegrationFlow inbound(ConsumerFactory<String, String> consumerFactory, Handler handler) {
-        return IntegrationFlows.from(Kafka.messageDrivenChannelAdapter(consumerFactory,
+        return IntegrationFlow.from(Kafka.messageDrivenChannelAdapter(consumerFactory,
                     ListenerMode.batch, "inTopic"))
                 .handle(handler)
                 .get();
@@ -864,7 +864,7 @@ public class FuturesChannelApplication {
 
     @Bean
     IntegrationFlow outbound(KafkaTemplate<String, String> kafkaTemplate) {
-        return IntegrationFlows.from(Gate.class)
+        return IntegrationFlow.from(Gate.class)
                 .enrichHeaders(h -> h
                         .header(KafkaHeaders.TOPIC, "outTopic")
                         .headerExpression(KafkaIntegrationHeaders.FUTURE_TOKEN, "headers[id]"))

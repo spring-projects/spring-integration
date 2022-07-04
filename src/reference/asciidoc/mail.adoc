@@ -612,7 +612,7 @@ public class MailApplication {
 
     @Bean
     public IntegrationFlow imapMailFlow() {
-        return IntegrationFlows
+        return IntegrationFlow
                 .from(Mail.imapInboundAdapter("imap://user:pw@host:port/INBOX")
                             .searchTermStrategy(this::fromAndNotSeenTerm)
                             .userFlag("testSIUserFlag")
@@ -626,7 +626,7 @@ public class MailApplication {
 
     @Bean
     public IntegrationFlow sendMailFlow() {
-        return IntegrationFlows.from("sendMailChannel")
+        return IntegrationFlow.from("sendMailChannel")
                 .enrichHeaders(Mail.headers()
                         .subjectFunction(m -> "foo")
                         .from("foo@bar")

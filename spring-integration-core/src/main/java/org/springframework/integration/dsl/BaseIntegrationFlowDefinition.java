@@ -426,7 +426,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		MessageChannel messageChannel = flow.getInputChannel();
 		if (messageChannel == null) {
 			messageChannel = new DirectChannel();
-			IntegrationFlowDefinition<?> flowBuilder = IntegrationFlows.from(messageChannel);
+			IntegrationFlowDefinition<?> flowBuilder = IntegrationFlow.from(messageChannel);
 			flow.configure(flowBuilder);
 			addComponent(flowBuilder.get());
 		}
@@ -457,7 +457,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	public B wireTap(String wireTapChannel, Consumer<WireTapSpec> wireTapConfigurer) {
 		DirectChannel internalWireTapChannel = new DirectChannel();
-		addComponent(IntegrationFlows.from(internalWireTapChannel).channel(wireTapChannel).get());
+		addComponent(IntegrationFlow.from(internalWireTapChannel).channel(wireTapChannel).get());
 		return wireTap(internalWireTapChannel, wireTapConfigurer);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,6 @@ import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowBuilder;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.SourcePollingChannelAdapterSpec;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.support.MessageChannelReference;
@@ -309,7 +308,7 @@ public class IntegrationFlowBeanPostProcessor
 	 * see its javadocs for more information.
 	 */
 	private Object processIntegrationFlowImpl(IntegrationFlow flow, String beanName) {
-		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(beanName + ".input");
+		IntegrationFlowBuilder flowBuilder = IntegrationFlow.from(beanName + ".input");
 
 		flow.configure(flowBuilder);
 

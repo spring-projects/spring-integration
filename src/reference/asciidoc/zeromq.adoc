@@ -193,7 +193,7 @@ The Inbound Channel Adapter for ZeroMQ Java DSL is:
 ====
 [source,java]
 ----
-IntegrationFlows.from(
+IntegrationFlow.from(
             ZeroMq.inboundChannelAdapter(this.context, SocketType.SUB)
                         .connectUrl("tcp://localhost:9000")
                         .topics("someTopic")

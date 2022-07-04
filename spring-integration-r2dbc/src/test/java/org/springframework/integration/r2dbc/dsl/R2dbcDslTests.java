@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.data.relational.core.query.Query;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.r2dbc.config.R2dbcDatabaseConfiguration;
 import org.springframework.integration.r2dbc.entity.Person;
@@ -102,7 +101,7 @@ public class R2dbcDslTests {
 
 		@Bean
 		IntegrationFlow r2dbcDslFlow(R2dbcEntityTemplate r2dbcEntityTemplate) {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(R2dbc.inboundChannelAdapter(r2dbcEntityTemplate,
 							(selectCreator) ->
 									selectCreator.createSelect("person")

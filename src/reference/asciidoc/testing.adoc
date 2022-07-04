@@ -288,7 +288,7 @@ public MessageSource<Integer> testingMessageSource() {
     return MockIntegration.mockMessageSource(1, 2, 3);
 }
 ...
-StandardIntegrationFlow flow = IntegrationFlows
+StandardIntegrationFlow flow = IntegrationFlow
         .from(MockIntegration.mockMessageSource("foo", "bar", "baz"))
         .<String, String>transform(String::toUpperCase)
         .channel(out)

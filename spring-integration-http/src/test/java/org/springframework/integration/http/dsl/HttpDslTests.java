@@ -48,7 +48,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.multipart.UploadedMultipartFile;
@@ -141,7 +140,7 @@ public class HttpDslTests {
 	@Test
 	public void testDynamicHttpEndpoint() throws Exception {
 		IntegrationFlow flow =
-				IntegrationFlows.from(Http.inboundGateway("/dynamic")
+				IntegrationFlow.from(Http.inboundGateway("/dynamic")
 								.requestMapping(r -> r.params("name"))
 								.payloadExpression("#requestParams.name[0]"))
 						.<String, String>transform(String::toLowerCase)
@@ -214,7 +213,7 @@ public class HttpDslTests {
 	@Test
 	public void testValidation() throws Exception {
 		IntegrationFlow flow =
-				IntegrationFlows.from(
+				IntegrationFlow.from(
 								Http.inboundChannelAdapter("/validation")
 										.requestMapping((mapping) -> mapping
 												.methods(HttpMethod.POST)
@@ -241,7 +240,7 @@ public class HttpDslTests {
 	@Test
 	public void testBadRequest() throws Exception {
 		IntegrationFlow flow =
-				IntegrationFlows.from(
+				IntegrationFlow.from(
 								Http.inboundGateway("/badRequest")
 										.errorChannel((message, timeout) -> {
 											throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -266,7 +265,7 @@ public class HttpDslTests {
 	@Test
 	public void testErrorChannelFlow() throws Exception {
 		IntegrationFlow flow =
-				IntegrationFlows.from(
+				IntegrationFlow.from(
 								Http.inboundGateway("/errorFlow")
 										.errorChannel(new FixedSubscriberChannel(
 												new AbstractReplyProducingMessageHandler() {
@@ -342,7 +341,7 @@ public class HttpDslTests {
 
 		@Bean
 		public IntegrationFlow httpInternalServiceFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Http.inboundGateway("/service/internal")
 							.requestMapping(r -> r.params("name"))
 							.payloadExpression("#requestParams.name"))
@@ -360,7 +359,7 @@ public class HttpDslTests {
 
 		@Bean
 		public IntegrationFlow httpProxyFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(httpService())
 					.handle(Http.outboundGateway("/service/internal?{params}")
 									.uriVariable("params", "payload")
@@ -381,7 +380,7 @@ public class HttpDslTests {
 
 		@Bean
 		public IntegrationFlow multiPartFilesFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Http.inboundChannelAdapter("/multiPartFiles")
 							.headerFunction("contentLength", (entity) -> entity.getHeaders().getContentLength()))
 					.channel((c) -> c.queue("multiPartFilesChannel"))

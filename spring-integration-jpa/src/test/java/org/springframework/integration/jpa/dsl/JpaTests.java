@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.jpa.support.PersistMode;
 import org.springframework.integration.jpa.test.entity.Gender;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
@@ -215,7 +214,7 @@ public class JpaTests {
 
 		@Bean
 		public IntegrationFlow pollingAdapterFlow(EntityManagerFactory entityManagerFactory) {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Jpa.inboundAdapter(entityManagerFactory)
 									.entityClass(StudentDomain.class)
 									.maxResults(1)

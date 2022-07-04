@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,10 @@ import org.springframework.util.Assert;
  * @since 5.0
  *
  * @see org.springframework.integration.dsl.context.IntegrationFlowBeanPostProcessor
+ *
+ * @deprecated Since version 6.0, this factory is not recommended to use as it shall be removed in the following versions. Use fluent API methods straight from {@link IntegrationFlow} interface.
  */
+@Deprecated(since = "6.0", forRemoval = true)
 public final class IntegrationFlows {
 
 	/**

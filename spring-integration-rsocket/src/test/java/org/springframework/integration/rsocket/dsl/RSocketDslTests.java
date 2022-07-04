@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.rsocket.RSocketInteractionModel;
@@ -129,7 +128,7 @@ public class RSocketDslTests {
 
 		@Bean
 		public IntegrationFlow rsocketUpperCaseRequestFlow(ClientRSocketConnector clientRSocketConnector) {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Function.class)
 					.handle(RSockets.outboundGateway(message ->
 											message.getHeaders().getOrDefault("route", "/uppercase"))
@@ -145,7 +144,7 @@ public class RSocketDslTests {
 
 		@Bean
 		public IntegrationFlow rsocketUpperCaseFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(RSockets.inboundGateway("/uppercase")
 							.interactionModels(RSocketInteractionModel.requestChannel))
 					.<Flux<String>, Flux<String>>transform((flux) -> flux.map(String::toUpperCase))
@@ -154,7 +153,7 @@ public class RSocketDslTests {
 
 		@Bean
 		public IntegrationFlow rsocketUpperCaseWholeFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(RSockets.inboundGateway("/uppercaseWhole")
 							.interactionModels(RSocketInteractionModel.requestChannel)
 							.decodeFluxAsUnit(true))
@@ -164,7 +163,7 @@ public class RSocketDslTests {
 
 		@Bean
 		public IntegrationFlow rsocketLowerCaseFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(RSockets.inboundGateway("/lowercase"))
 					.<Flux<String>, Flux<String>>transform((flux) -> flux.map(String::toLowerCase))
 					.get();

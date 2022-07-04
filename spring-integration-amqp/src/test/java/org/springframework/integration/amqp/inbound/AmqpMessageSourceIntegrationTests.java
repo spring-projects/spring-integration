@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,6 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.handler.annotation.Header;
@@ -198,7 +197,7 @@ public class AmqpMessageSourceIntegrationTests {
 
 		@Bean
 		public IntegrationFlow flow() {
-			return IntegrationFlows.from(Amqp.inboundPolledAdapter(connectionFactory(), DSL_QUEUE),
+			return IntegrationFlow.from(Amqp.inboundPolledAdapter(connectionFactory(), DSL_QUEUE),
 							e -> e.poller(Pollers.fixedDelay(100)).autoStartup(false))
 					.handle(p -> {
 						this.fromDsl = p.getPayload();
@@ -209,7 +208,7 @@ public class AmqpMessageSourceIntegrationTests {
 
 		@Bean
 		public IntegrationFlow messageSourceChannelFlow() {
-			return IntegrationFlows.from(interceptedSource(),
+			return IntegrationFlow.from(interceptedSource(),
 							e -> e.poller(Pollers.fixedDelay(100)).autoStartup(false))
 					.handle(p -> {
 						this.fromInterceptedSource = p.getPayload();

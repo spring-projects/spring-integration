@@ -58,7 +58,7 @@ public class ContextConfiguration {
 
     @Bean
     public IntegrationFlow feedFlow() {
-        return IntegrationFlows
+        return IntegrationFlow
                 .from(Feed.inboundAdapter(this.feedResource, "feedTest")
                                 .preserveWireFeed(true),
                         e -> e.poller(p -> p.fixedDelay(100)))

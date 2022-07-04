@@ -462,7 +462,7 @@ public class FileReadingJavaApplication {
 
     @Bean
     public IntegrationFlow fileReadingFlow() {
-         return IntegrationFlows
+         return IntegrationFlow
                   .from(Files.inboundAdapter(new File(INBOUND_PATH))
                               .patternFilter("*.txt"),
                           e -> e.poller(Pollers.fixedDelay(1000)))
@@ -929,7 +929,7 @@ public class FileWritingJavaApplication {
 
     @Bean
    	public IntegrationFlow fileWritingFlow() {
-   	    return IntegrationFlows.from("fileWritingInput")
+   	    return IntegrationFlow.from("fileWritingInput")
    		        .enrichHeaders(h -> h.header(FileHeaders.FILENAME, "foo.txt")
    		                  .header("directory", new File(tmpDir.getRoot(), "fileWritingFlow")))
    	            .handle(Files.outboundGateway(m -> m.getHeaders().get("directory")))
@@ -1006,7 +1006,7 @@ public class FileSplitterApplication {
 
     @Bean
     public IntegrationFlow fileSplitterFlow() {
-        return IntegrationFlows
+        return IntegrationFlow
             .from(Files.inboundAdapter(tmpDir.getRoot())
                  .filter(new ChainFileListFilter<File>()
                         .addFilter(new AcceptOnceFileListFilter<>())

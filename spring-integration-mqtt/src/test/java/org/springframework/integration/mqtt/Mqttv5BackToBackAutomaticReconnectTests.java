@@ -35,7 +35,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.inbound.Mqttv5PahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.Mqttv5PahoMessageHandler;
@@ -126,7 +125,7 @@ public class Mqttv5BackToBackAutomaticReconnectTests implements MosquittoContain
 					new Mqttv5PahoMessageDrivenChannelAdapter(mqttConnectOptions(), "mqttv5SIin", "siTest");
 			messageProducer.setPayloadType(String.class);
 
-			return IntegrationFlows.from(messageProducer)
+			return IntegrationFlow.from(messageProducer)
 					.channel(c -> c.queue("fromMqttChannel"))
 					.get();
 		}

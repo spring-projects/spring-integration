@@ -38,7 +38,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.codec.Codec;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
@@ -288,7 +287,7 @@ public class TransformerTests {
 
 		@Bean
 		public IntegrationFlow enricherFlow() {
-			return IntegrationFlows.from("enricherInput", true)
+			return IntegrationFlow.from("enricherInput", true)
 					.enrich(e -> e.requestChannel("enrichChannel")
 							.errorChannel(enricherErrorChannel())
 							.requestPayloadExpression("payload")
@@ -303,7 +302,7 @@ public class TransformerTests {
 
 		@Bean
 		public IntegrationFlow enricherFlow2() {
-			return IntegrationFlows.from("enricherInput2", true)
+			return IntegrationFlow.from("enricherInput2", true)
 					.enrich(e -> e.requestChannel("enrichChannel")
 							.requestPayloadExpression("payload")
 							.shouldClonePayload(false)
@@ -315,7 +314,7 @@ public class TransformerTests {
 
 		@Bean
 		public IntegrationFlow enricherFlow3() {
-			return IntegrationFlows.from("enricherInput3", true)
+			return IntegrationFlow.from("enricherInput3", true)
 					.enrich(e -> e.requestChannel("enrichChannel")
 							.requestPayload(Message::getPayload)
 							.shouldClonePayload(false)
@@ -325,7 +324,7 @@ public class TransformerTests {
 
 		@Bean
 		public IntegrationFlow enrichFlow() {
-			return IntegrationFlows.from("enrichChannel")
+			return IntegrationFlow.from("enrichChannel")
 					.<TestPojo, Map<?, ?>>transform(p -> {
 						if ("junk".equals(p.getName())) {
 							throw new RuntimeException("intentional");

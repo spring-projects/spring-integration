@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,69 +133,69 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, Managea
 	}
 
 	protected IntegrationFlowDefinition<?> from(String messageChannelName) {
-		return IntegrationFlows.from(messageChannelName);
+		return IntegrationFlow.from(messageChannelName);
 	}
 
 	protected IntegrationFlowDefinition<?> from(MessageChannel messageChannel) {
-		return IntegrationFlows.from(messageChannel);
+		return IntegrationFlow.from(messageChannel);
 	}
 
 	protected IntegrationFlowDefinition<?> from(String messageChannelName, boolean fixedSubscriber) {
-		return IntegrationFlows.from(messageChannelName, fixedSubscriber);
+		return IntegrationFlow.from(messageChannelName, fixedSubscriber);
 	}
 
 	protected IntegrationFlowDefinition<?> from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 
-		return IntegrationFlows.from(messageSourceSpec, endpointConfigurer);
+		return IntegrationFlow.from(messageSourceSpec, endpointConfigurer);
 	}
 
 	protected IntegrationFlowDefinition<?> from(MessageSource<?> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 
-		return IntegrationFlows.from(messageSource, endpointConfigurer);
+		return IntegrationFlow.from(messageSource, endpointConfigurer);
 	}
 
 	protected IntegrationFlowDefinition<?> from(MessageProducerSupport messageProducer) {
-		return IntegrationFlows.from(messageProducer);
+		return IntegrationFlow.from(messageProducer);
 	}
 
 	protected IntegrationFlowDefinition<?> from(MessageSource<?> messageSource) {
-		return IntegrationFlows.from(messageSource);
+		return IntegrationFlow.from(messageSource);
 	}
 
 	protected IntegrationFlowDefinition<?> from(MessagingGatewaySupport inboundGateway) {
-		return IntegrationFlows.from(inboundGateway);
+		return IntegrationFlow.from(inboundGateway);
 	}
 
 	protected IntegrationFlowDefinition<?> from(MessageChannelSpec<?, ?> messageChannelSpec) {
-		return IntegrationFlows.from(messageChannelSpec);
+		return IntegrationFlow.from(messageChannelSpec);
 	}
 
 	protected IntegrationFlowDefinition<?> from(MessageProducerSpec<?, ?> messageProducerSpec) {
-		return IntegrationFlows.from(messageProducerSpec);
+		return IntegrationFlow.from(messageProducerSpec);
 	}
 
 	protected IntegrationFlowDefinition<?> from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec) {
-		return IntegrationFlows.from(messageSourceSpec);
+		return IntegrationFlow.from(messageSourceSpec);
 	}
 
 	protected IntegrationFlowDefinition<?> from(MessagingGatewaySpec<?, ?> inboundGatewaySpec) {
-		return IntegrationFlows.from(inboundGatewaySpec);
+		return IntegrationFlow.from(inboundGatewaySpec);
 	}
 
 	protected <T> IntegrationFlowBuilder fromSupplier(Supplier<T> messageSource) {
-		return IntegrationFlows.fromSupplier(messageSource);
+		return IntegrationFlow.fromSupplier(messageSource);
 	}
 
 	protected <T> IntegrationFlowBuilder fromSupplier(Supplier<T> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 
-		return IntegrationFlows.fromSupplier(messageSource, endpointConfigurer);
+		return IntegrationFlow.fromSupplier(messageSource, endpointConfigurer);
 	}
 
 	protected IntegrationFlowBuilder from(Class<?> serviceInterface) {
-		return IntegrationFlows.from(serviceInterface);
+		return IntegrationFlow.from(serviceInterface);
 	}
 
 	/**
@@ -208,11 +208,11 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, Managea
 	protected IntegrationFlowBuilder from(Class<?> serviceInterface,
 			@Nullable Consumer<GatewayProxySpec> endpointConfigurer) {
 
-		return IntegrationFlows.from(serviceInterface, endpointConfigurer);
+		return IntegrationFlow.from(serviceInterface, endpointConfigurer);
 	}
 
 	protected IntegrationFlowBuilder from(Publisher<? extends Message<?>> publisher) {
-		return IntegrationFlows.from(publisher);
+		return IntegrationFlow.from(publisher);
 	}
 
 	protected abstract IntegrationFlowDefinition<?> buildFlow();

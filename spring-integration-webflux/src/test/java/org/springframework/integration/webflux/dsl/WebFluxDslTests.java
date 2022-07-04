@@ -49,7 +49,6 @@ import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -267,7 +266,7 @@ public class WebFluxDslTests {
 	@Test
 	public void testDynamicHttpEndpoint() {
 		IntegrationFlow flow =
-				IntegrationFlows.from(WebFlux.inboundGateway("/dynamic")
+				IntegrationFlow.from(WebFlux.inboundGateway("/dynamic")
 								.requestMapping(r -> r.params("name"))
 								.payloadExpression("#requestParams.name[0]"))
 						.<String, String>transform(String::toLowerCase)
@@ -298,7 +297,7 @@ public class WebFluxDslTests {
 	@Disabled("Fails after some recent SF change")
 	public void testValidation() {
 		IntegrationFlow flow =
-				IntegrationFlows.from(
+				IntegrationFlow.from(
 								WebFlux.inboundGateway("/validation")
 										.requestMapping((mapping) -> mapping
 												.methods(HttpMethod.POST)
@@ -325,7 +324,7 @@ public class WebFluxDslTests {
 	@Test
 	public void testErrorChannelFlow() {
 		IntegrationFlow flow =
-				IntegrationFlows.from(
+				IntegrationFlow.from(
 								WebFlux.inboundGateway("/errorFlow")
 										.errorChannel(new FixedSubscriberChannel(
 												new AbstractReplyProducingMessageHandler() {
@@ -421,7 +420,7 @@ public class WebFluxDslTests {
 
 		@Bean
 		public IntegrationFlow httpReactiveProxyFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Http.inboundGateway("/service2")
 							.requestMapping(r -> r.params("name")))
 					.handle(WebFlux.<MultiValueMap<String, String>>outboundGateway(m ->
@@ -436,7 +435,7 @@ public class WebFluxDslTests {
 
 		@Bean
 		public IntegrationFlow httpReactiveInboundChannelAdapterFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(WebFlux.inboundChannelAdapter("/reactivePost")
 							.requestMapping(m -> m.methods(HttpMethod.POST))
 							.requestPayloadType(ResolvableType.forClassWithGenerics(Flux.class, String.class))
@@ -450,7 +449,7 @@ public class WebFluxDslTests {
 
 		@Bean
 		public IntegrationFlow httpReactiveInboundGatewayFlowWithErrors() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(WebFlux.inboundGateway("/reactivePostErrors")
 							.requestMapping(m -> m.methods(HttpMethod.POST))
 							.requestPayloadType(ResolvableType.forClassWithGenerics(Flux.class, String.class))
@@ -474,7 +473,7 @@ public class WebFluxDslTests {
 
 		@Bean
 		public IntegrationFlow sseFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(WebFlux.inboundGateway("/sse")
 							.requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE))
 							.mappedResponseHeaders("*"))

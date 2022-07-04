@@ -42,7 +42,6 @@ import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
@@ -118,7 +117,7 @@ public class SmbTests extends SmbTestSupport {
 	public void testSmbInboundFlow() throws IOException {
 		QueueChannel out = new QueueChannel();
 		DirectoryScanner scanner = new DefaultDirectoryScanner();
-		IntegrationFlow flow = IntegrationFlows.from(Smb.inboundAdapter(sessionFactory())
+		IntegrationFlow flow = IntegrationFlow.from(Smb.inboundAdapter(sessionFactory())
 						.preserveTimestamp(true)
 						.remoteDirectory("smbSource")
 						.maxFetchSize(10)
@@ -163,7 +162,7 @@ public class SmbTests extends SmbTestSupport {
 	@Test
 	public void testSmbInboundStreamFlow() throws Exception {
 		QueueChannel out = new QueueChannel();
-		StandardIntegrationFlow flow = IntegrationFlows.from(
+		StandardIntegrationFlow flow = IntegrationFlow.from(
 				Smb.inboundStreamingAdapter(new SmbRemoteFileTemplate(sessionFactory()))
 						.remoteDirectory("smbSource")
 						.maxFetchSize(11)
