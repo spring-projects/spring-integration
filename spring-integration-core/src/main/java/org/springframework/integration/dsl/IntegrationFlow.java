@@ -156,7 +156,7 @@ public interface IntegrationFlow {
 
 	/**
 	 * Populate the {@link MessageChannel} name to the new {@link IntegrationFlowBuilder} chain.
-	 * Typically for the {@link org.springframework.integration.channel.FixedSubscriberChannel} together
+	 * Typically, for the {@link org.springframework.integration.channel.FixedSubscriberChannel} together
 	 * with {@code fixedSubscriber = true}.
 	 * The {@link IntegrationFlow} {@code inputChannel}.
 	 * @param messageChannelName the name for {@link DirectChannel} or
@@ -215,6 +215,7 @@ public interface IntegrationFlow {
 	 */
 	static IntegrationFlowBuilder from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+
 		Assert.notNull(messageSourceSpec, "'messageSourceSpec' must not be null");
 		return from(messageSourceSpec.get(), endpointConfigurer, registerComponents(messageSourceSpec));
 	}
@@ -248,7 +249,7 @@ public interface IntegrationFlow {
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 
 		Assert.notNull(messageSource, "'messageSource' must not be null");
-		return from(new AbstractMessageSource<Object>() {
+		return from(new AbstractMessageSource<>() {
 
 			@Override
 			protected Object doReceive() {
@@ -497,10 +498,9 @@ public interface IntegrationFlow {
 
 	@SuppressWarnings("unchecked")
 	private static <T> T extractProxyTarget(T target) {
-		if (!(target instanceof Advised)) {
+		if (!(target instanceof Advised advised)) {
 			return target;
 		}
-		Advised advised = (Advised) target;
 		try {
 			return (T) extractProxyTarget(advised.getTargetSource().getTarget());
 		}

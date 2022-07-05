@@ -41,7 +41,7 @@ import org.springframework.messaging.MessageChannel;
  *
  * @see org.springframework.integration.dsl.context.IntegrationFlowBeanPostProcessor
  *
- * @deprecated Since version 6.0, this factory is not recommended to use as it shall be removed in the following versions. Use fluent API methods straight from {@link IntegrationFlow} interface.
+ * @deprecated since version 6.0 in favor of fluent API methods straight from {@link IntegrationFlow} interface.
  */
 @Deprecated(since = "6.0", forRemoval = true)
 public final class IntegrationFlows {
