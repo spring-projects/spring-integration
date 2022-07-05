@@ -16,30 +16,19 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 
-import org.springframework.aop.framework.Advised;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FluxMessageChannel;
-import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototype;
-import org.springframework.integration.dsl.support.MessageChannelReference;
-import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
-import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.util.Assert;
 
 /**
  * The central factory for fluent {@link IntegrationFlowBuilder} API.
@@ -66,7 +55,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(String messageChannelName) {
-		return from(new MessageChannelReference(messageChannelName));
+		return IntegrationFlow.from(messageChannelName);
 	}
 
 	/**
@@ -86,9 +75,7 @@ public final class IntegrationFlows {
 	 * @see org.springframework.integration.channel.FixedSubscriberChannel
 	 */
 	public static IntegrationFlowBuilder from(String messageChannelName, boolean fixedSubscriber) {
-		return fixedSubscriber
-				? from(new FixedSubscriberChannelPrototype(messageChannelName))
-				: from(messageChannelName);
+		return IntegrationFlow.from(messageChannelName, fixedSubscriber);
 	}
 
 	/**
@@ -100,8 +87,7 @@ public final class IntegrationFlows {
 	 * @see org.springframework.integration.dsl.MessageChannels
 	 */
 	public static IntegrationFlowBuilder from(MessageChannelSpec<?, ?> messageChannelSpec) {
-		Assert.notNull(messageChannelSpec, "'messageChannelSpec' must not be null");
-		return from(messageChannelSpec.get());
+		return IntegrationFlow.from(messageChannelSpec);
 	}
 
 	/**
@@ -111,7 +97,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(MessageChannel messageChannel) {
-		return new IntegrationFlowBuilder().channel(messageChannel);
+		return IntegrationFlow.from(messageChannel);
 	}
 
 	/**
@@ -123,7 +109,7 @@ public final class IntegrationFlows {
 	 * @see MessageSourceSpec and its implementations.
 	 */
 	public static IntegrationFlowBuilder from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec) {
-		return from(messageSourceSpec, null);
+		return IntegrationFlow.from(messageSourceSpec);
 	}
 
 	/**
@@ -139,8 +125,7 @@ public final class IntegrationFlows {
 	 */
 	public static IntegrationFlowBuilder from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
-		Assert.notNull(messageSourceSpec, "'messageSourceSpec' must not be null");
-		return from(messageSourceSpec.get(), endpointConfigurer, registerComponents(messageSourceSpec));
+		return IntegrationFlow.from(messageSourceSpec, endpointConfigurer);
 	}
 
 	/**
@@ -152,7 +137,7 @@ public final class IntegrationFlows {
 	 * @see Supplier
 	 */
 	public static <T> IntegrationFlowBuilder fromSupplier(Supplier<T> messageSource) {
-		return fromSupplier(messageSource, null);
+		return IntegrationFlow.fromSupplier(messageSource);
 	}
 
 	/**
@@ -168,21 +153,7 @@ public final class IntegrationFlows {
 	 */
 	public static <T> IntegrationFlowBuilder fromSupplier(Supplier<T> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
-
-		Assert.notNull(messageSource, "'messageSource' must not be null");
-		return from(new AbstractMessageSource<Object>() {
-
-			@Override
-			protected Object doReceive() {
-				return messageSource.get();
-			}
-
-			@Override
-			public String getComponentType() {
-				return "inbound-channel-adapter";
-			}
-
-		}, endpointConfigurer);
+		return IntegrationFlow.fromSupplier(messageSource, endpointConfigurer);
 	}
 
 	/**
@@ -193,7 +164,7 @@ public final class IntegrationFlows {
 	 * @see MessageSource
 	 */
 	public static IntegrationFlowBuilder from(MessageSource<?> messageSource) {
-		return from(messageSource, null);
+		return IntegrationFlow.from(messageSource);
 	}
 
 	/**
@@ -210,24 +181,7 @@ public final class IntegrationFlows {
 	 */
 	public static IntegrationFlowBuilder from(MessageSource<?> messageSource,
 			@Nullable Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
-
-		return from(messageSource, endpointConfigurer, null);
-	}
-
-	private static IntegrationFlowBuilder from(MessageSource<?> messageSource,
-			@Nullable Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer,
-			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
-
-		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
-		SourcePollingChannelAdapterSpec spec = new SourcePollingChannelAdapterSpec(messageSource);
-		if (endpointConfigurer != null) {
-			endpointConfigurer.accept(spec);
-		}
-		if (integrationFlowBuilder == null) {
-			integrationFlowBuilder = new IntegrationFlowBuilder();
-		}
-		return integrationFlowBuilder.addComponent(spec)
-				.currentComponent(spec);
+		return IntegrationFlow.from(messageSource, endpointConfigurer);
 	}
 
 	/**
@@ -239,7 +193,7 @@ public final class IntegrationFlows {
 	 * @see MessageProducerSpec
 	 */
 	public static IntegrationFlowBuilder from(MessageProducerSpec<?, ?> messageProducerSpec) {
-		return from(messageProducerSpec.get(), registerComponents(messageProducerSpec));
+		return IntegrationFlow.from(messageProducerSpec);
 	}
 
 	/**
@@ -249,25 +203,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(MessageProducerSupport messageProducer) {
-		return from(messageProducer, null);
-	}
-
-	private static IntegrationFlowBuilder from(MessageProducerSupport messageProducer,
-			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
-
-		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
-		MessageChannel outputChannel = messageProducer.getOutputChannel();
-		if (outputChannel == null) {
-			outputChannel = new DirectChannel();
-			messageProducer.setOutputChannel(outputChannel);
-		}
-		if (integrationFlowBuilder == null) {
-			integrationFlowBuilder = from(outputChannel);
-		}
-		else {
-			integrationFlowBuilder.channel(outputChannel);
-		}
-		return integrationFlowBuilder.addComponent(messageProducer);
+		return IntegrationFlow.from(messageProducer);
 	}
 
 	/**
@@ -278,7 +214,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(MessagingGatewaySpec<?, ?> inboundGatewaySpec) {
-		return from(inboundGatewaySpec.get(), registerComponents(inboundGatewaySpec));
+		return IntegrationFlow.from(inboundGatewaySpec);
 	}
 
 	/**
@@ -288,7 +224,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway) {
-		return from(inboundGateway, null);
+		return IntegrationFlow.from(inboundGateway);
 	}
 
 	/**
@@ -304,7 +240,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(Class<?> serviceInterface) {
-		return from(serviceInterface, null);
+		return IntegrationFlow.from(serviceInterface);
 	}
 
 	/**
@@ -321,14 +257,7 @@ public final class IntegrationFlows {
 	 */
 	public static IntegrationFlowBuilder from(Class<?> serviceInterface,
 			@Nullable Consumer<GatewayProxySpec> endpointConfigurer) {
-
-		GatewayProxySpec gatewayProxySpec = new GatewayProxySpec(serviceInterface);
-		if (endpointConfigurer != null) {
-			endpointConfigurer.accept(gatewayProxySpec);
-		}
-
-		return from(gatewayProxySpec.getGatewayRequestChannel())
-				.addComponent(gatewayProxySpec.getGatewayProxyFactoryBean());
+		return IntegrationFlow.from(serviceInterface, endpointConfigurer);
 	}
 
 
@@ -340,9 +269,7 @@ public final class IntegrationFlows {
 	 */
 	@SuppressWarnings("overloads")
 	public static IntegrationFlowBuilder from(Publisher<? extends Message<?>> publisher) {
-		FluxMessageChannel reactiveChannel = new FluxMessageChannel();
-		reactiveChannel.subscribeTo(publisher);
-		return from((MessageChannel) reactiveChannel);
+		return IntegrationFlow.from(publisher);
 	}
 
 	/**
@@ -353,75 +280,7 @@ public final class IntegrationFlows {
 	 */
 	@SuppressWarnings("overloads")
 	public static IntegrationFlowBuilder from(IntegrationFlow other) {
-		Map<Object, String> integrationComponents = other.getIntegrationComponents();
-		Assert.notNull(integrationComponents, () ->
-				"The provided integration flow to compose from '" + other +
-						"' must be declared as a bean in the application context");
-		Object lastIntegrationComponentFromOther =
-				integrationComponents.keySet().stream().reduce((prev, next) -> next).orElse(null);
-		if (lastIntegrationComponentFromOther instanceof MessageChannel) {
-			return from((MessageChannel) lastIntegrationComponentFromOther);
-		}
-		else if (lastIntegrationComponentFromOther instanceof ConsumerEndpointFactoryBean) {
-			MessageHandler handler = ((ConsumerEndpointFactoryBean) lastIntegrationComponentFromOther).getHandler();
-			handler = extractProxyTarget(handler);
-			if (handler instanceof AbstractMessageProducingHandler) {
-				return buildFlowFromOutputChannel((AbstractMessageProducingHandler) handler);
-			}
-			lastIntegrationComponentFromOther = handler; // for the exception message below
-		}
-		throw new BeanCreationException("The 'IntegrationFlow' to start from must end with " +
-				"a 'MessageChannel' or reply-producing endpoint to let the result from that flow to be " +
-				"processed in this instance. The provided flow ends with: " + lastIntegrationComponentFromOther);
-	}
-
-	private static IntegrationFlowBuilder buildFlowFromOutputChannel(AbstractMessageProducingHandler handler) {
-		MessageChannel outputChannel = handler.getOutputChannel();
-		if (outputChannel == null) {
-			outputChannel = new PublishSubscribeChannel();
-			handler.setOutputChannel(outputChannel);
-		}
-		return from(outputChannel);
-	}
-
-	private static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway,
-			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
-
-		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
-		MessageChannel outputChannel = inboundGateway.getRequestChannel();
-		if (outputChannel == null) {
-			outputChannel = new DirectChannel();
-			inboundGateway.setRequestChannel(outputChannel);
-		}
-		if (integrationFlowBuilder == null) {
-			integrationFlowBuilder = from(outputChannel);
-		}
-		else {
-			integrationFlowBuilder.channel(outputChannel);
-		}
-		return integrationFlowBuilder.addComponent(inboundGateway);
-	}
-
-	private static IntegrationFlowBuilder registerComponents(Object spec) {
-		if (spec instanceof ComponentsRegistration) {
-			return new IntegrationFlowBuilder()
-					.addComponents(((ComponentsRegistration) spec).getComponentsToRegister());
-		}
-		return null;
-	}
-
-	@SuppressWarnings("unchecked")
-	private static <T> T extractProxyTarget(T target) {
-		if (!(target instanceof Advised)) {
-			return target;
-		}
-		Advised advised = (Advised) target;
-		try {
-			return (T) extractProxyTarget(advised.getTargetSource().getTarget());
-		}
-		catch (Exception e) {
-			throw new BeanCreationException("Could not extract target", e);
-		}
+		return IntegrationFlow.from(other);
 	}
 
 	private IntegrationFlows() {

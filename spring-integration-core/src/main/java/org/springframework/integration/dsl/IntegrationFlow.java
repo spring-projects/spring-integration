@@ -104,7 +104,6 @@ public interface IntegrationFlow {
 	/**
 	 * The callback-based function to declare the chain of EIP-methods to
 	 * configure an integration flow with the provided {@link IntegrationFlowDefinition}.
-	 *
 	 * @param flow the {@link IntegrationFlowDefinition} to configure
 	 */
 	void configure(IntegrationFlowDefinition<?> flow);
@@ -112,7 +111,6 @@ public interface IntegrationFlow {
 	/**
 	 * Return the first {@link MessageChannel} component
 	 * which is essentially a flow input channel.
-	 *
 	 * @return the channel.
 	 * @since 5.0.4
 	 */
@@ -122,7 +120,6 @@ public interface IntegrationFlow {
 
 	/**
 	 * Return a map of integration components managed by this flow (if any).
-	 *
 	 * @return the map of integration components managed by this flow.
 	 * @since 5.5.4
 	 */
@@ -133,7 +130,6 @@ public interface IntegrationFlow {
 	/**
 	 * Populate the {@link MessageChannel} name to the new {@link IntegrationFlowBuilder} chain.
 	 * The {@link IntegrationFlow} {@code inputChannel}.
-	 *
 	 * @param messageChannelName the name of existing {@link MessageChannel} bean.
 	 *                           The new {@link DirectChannel} bean will be created on context startup
 	 *                           if there is no bean with this name.
@@ -148,7 +144,6 @@ public interface IntegrationFlow {
 	 * Populate the {@link MessageChannel} object to the
 	 * {@link IntegrationFlowBuilder} chain using the fluent API from {@link MessageChannelSpec}.
 	 * The {@link IntegrationFlow} {@code inputChannel}.
-	 *
 	 * @param messageChannelSpec the MessageChannelSpec to populate {@link MessageChannel} instance.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @since 6.0
@@ -164,7 +159,6 @@ public interface IntegrationFlow {
 	 * Typically for the {@link org.springframework.integration.channel.FixedSubscriberChannel} together
 	 * with {@code fixedSubscriber = true}.
 	 * The {@link IntegrationFlow} {@code inputChannel}.
-	 *
 	 * @param messageChannelName the name for {@link DirectChannel} or
 	 *                           {@link org.springframework.integration.channel.FixedSubscriberChannel}
 	 *                           to be created on context startup, not reference.
@@ -186,7 +180,6 @@ public interface IntegrationFlow {
 	/**
 	 * Populate the provided {@link MessageChannel} object to the {@link IntegrationFlowBuilder} chain.
 	 * The {@link IntegrationFlow} {@code inputChannel}.
-	 *
 	 * @param messageChannel the {@link MessageChannel} to populate.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @since 6.0
@@ -199,7 +192,6 @@ public interface IntegrationFlow {
 	 * Populate the {@link MessageSource} object to the {@link IntegrationFlowBuilder} chain
 	 * using the fluent API from the provided {@link MessageSourceSpec}.
 	 * The {@link IntegrationFlow} {@code startMessageSource}.
-	 *
 	 * @param messageSourceSpec the {@link MessageSourceSpec} to use.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @since 6.0
@@ -213,7 +205,6 @@ public interface IntegrationFlow {
 	 * Populate the {@link MessageSource} object to the {@link IntegrationFlowBuilder} chain
 	 * using the fluent API from the provided {@link MessageSourceSpec}.
 	 * The {@link IntegrationFlow} {@code startMessageSource}.
-	 *
 	 * @param messageSourceSpec  the {@link MessageSourceSpec} to use.
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
 	 *                           {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
@@ -231,7 +222,6 @@ public interface IntegrationFlow {
 	/**
 	 * Provides {@link Supplier} as source of messages to the integration flow which will
 	 * be triggered by the application context's default poller (which must be declared).
-	 *
 	 * @param messageSource the {@link Supplier} to populate.
 	 * @param <T>           the supplier type.
 	 * @return new {@link IntegrationFlowBuilder}.
@@ -246,7 +236,6 @@ public interface IntegrationFlow {
 	 * Provides {@link Supplier} as source of messages to the integration flow.
 	 * which will be triggered by a <b>provided</b>
 	 * {@link org.springframework.integration.endpoint.SourcePollingChannelAdapter}.
-	 *
 	 * @param messageSource      the {@link Supplier} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
 	 *                           {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
@@ -277,7 +266,6 @@ public interface IntegrationFlow {
 	/**
 	 * Populate the provided {@link MessageSource} object to the {@link IntegrationFlowBuilder} chain.
 	 * The {@link IntegrationFlow} {@code startMessageSource}.
-	 *
 	 * @param messageSource the {@link MessageSource} to populate.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @since 6.0
@@ -292,7 +280,6 @@ public interface IntegrationFlow {
 	 * The {@link IntegrationFlow} {@code startMessageSource}.
 	 * In addition use {@link SourcePollingChannelAdapterSpec} to provide options for the underlying
 	 * {@link org.springframework.integration.endpoint.SourcePollingChannelAdapter} endpoint.
-	 *
 	 * @param messageSource      the {@link MessageSource} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
 	 *                           {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
@@ -327,7 +314,6 @@ public interface IntegrationFlow {
 	 * Populate the {@link MessageProducerSupport} object to the {@link IntegrationFlowBuilder} chain
 	 * using the fluent API from the {@link MessageProducerSpec}.
 	 * The {@link IntegrationFlow} {@code startMessageProducer}.
-	 *
 	 * @param messageProducerSpec the {@link MessageProducerSpec} to use.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @since 6.0
@@ -340,7 +326,6 @@ public interface IntegrationFlow {
 	/**
 	 * Populate the provided {@link MessageProducerSupport} object to the {@link IntegrationFlowBuilder} chain.
 	 * The {@link IntegrationFlow} {@code startMessageProducer}.
-	 *
 	 * @param messageProducer the {@link MessageProducerSupport} to populate.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @since 6.0
@@ -371,7 +356,6 @@ public interface IntegrationFlow {
 	 * Populate the {@link MessagingGatewaySupport} object to the {@link IntegrationFlowBuilder} chain
 	 * using the fluent API from the {@link MessagingGatewaySpec}.
 	 * The {@link IntegrationFlow} {@code startMessagingGateway}.
-	 *
 	 * @param inboundGatewaySpec the {@link MessagingGatewaySpec} to use.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @since 6.0
@@ -383,7 +367,6 @@ public interface IntegrationFlow {
 	/**
 	 * Populate the provided {@link MessagingGatewaySupport} object to the {@link IntegrationFlowBuilder} chain.
 	 * The {@link IntegrationFlow} {@code startMessageProducer}.
-	 *
 	 * @param inboundGateway the {@link MessagingGatewaySupport} to populate.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @since 6.0
@@ -400,7 +383,6 @@ public interface IntegrationFlow {
 	 * from the
 	 * {@link org.springframework.integration.annotation.MessagingGateway#name()} if present
 	 * or from the {@link IntegrationFlow} bean name plus {@code .gateway} suffix.
-	 *
 	 * @param serviceInterface the service interface class with an optional
 	 *                         {@link org.springframework.integration.annotation.MessagingGateway} annotation.
 	 * @return new {@link IntegrationFlowBuilder}.
@@ -416,7 +398,6 @@ public interface IntegrationFlow {
 	 * on the provided service interface.
 	 * <p>A gateway proxy bean for provided service interface is based on the options
 	 * configured via provided {@link Consumer}.
-	 *
 	 * @param serviceInterface   the service interface class with an optional
 	 *                           {@link org.springframework.integration.annotation.MessagingGateway} annotation.
 	 * @param endpointConfigurer the {@link Consumer} to configure proxy bean for gateway.
@@ -438,7 +419,6 @@ public interface IntegrationFlow {
 	/**
 	 * Populate a {@link FluxMessageChannel} to the {@link IntegrationFlowBuilder} chain
 	 * and subscribe it to the provided {@link Publisher}.
-	 *
 	 * @param publisher the {@link Publisher} to subscribe to.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @since 6.0
@@ -452,7 +432,6 @@ public interface IntegrationFlow {
 
 	/**
 	 * Start the flow with a composition from the {@link IntegrationFlow}.
-	 *
 	 * @param other the {@link IntegrationFlow} from which to compose.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @since 6.0

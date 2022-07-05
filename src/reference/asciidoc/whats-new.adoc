@@ -74,3 +74,7 @@ The `DefaultLockRepository` can now be supplied with a `PlatformTransactionManag
 === TCP/IP Changes
 
 The `lookupHost` property of the `AbstractConnectionFactory` and `DatagramPacketMessageMapper` is now set to `false` by default to avoid delays in the environments where DNS is not configured.
+
+=== IntegrationFlow API changes
+
+The `IntegrationFlows` factory is now marked as deprecated in favor of the fluent API available in the `IntegrationFlow` interface itself. The factory class will be removed in the future releases.
