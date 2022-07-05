@@ -32,7 +32,7 @@ If you need to determine the delay for each message, you can also provide the Sp
 ----
 @Bean
 public IntegrationFlow flow() {
-    return IntegrationFlows.from("input")
+    return IntegrationFlow.from("input")
             .delay("delayer.messageGroupId", d -> d
                     .defaultDelay(3_000L)
                     .delayExpression("headers['delay']"))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.Transformers;
@@ -570,7 +569,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow supplierFlow() {
-			return IntegrationFlows.fromSupplier(stringSupplier(), c -> c.id("stringSupplierEndpoint"))
+			return IntegrationFlow.fromSupplier(stringSupplier(), c -> c.id("stringSupplierEndpoint"))
 					.transform(toUpperCaseFunction())
 					.channel("suppliedChannel")
 					.get();
@@ -602,7 +601,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow supplierFlow2() {
-			return IntegrationFlows.fromSupplier(() -> "foo",
+			return IntegrationFlow.fromSupplier(() -> "foo",
 					c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
 					.<String, String>transform(String::toUpperCase)
 					.channel("suppliedChannel2")
@@ -622,7 +621,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow controlBusFlow() {
-			return IntegrationFlows.from(ControlBusGateway.class, (gateway) -> gateway.beanName("controlBusGateway"))
+			return IntegrationFlow.from(ControlBusGateway.class, (gateway) -> gateway.beanName("controlBusGateway"))
 					.controlBus((endpoint) -> endpoint.id("controlBus"))
 					.get();
 		}
@@ -661,7 +660,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow flow2() {
-			return IntegrationFlows.from(this.inputChannel)
+			return IntegrationFlow.from(this.inputChannel)
 					.filter(p -> p instanceof String, e -> e
 							.id("filter")
 							.discardFlow(df -> df
@@ -715,7 +714,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow wireTapFlow1() {
-			return IntegrationFlows.from("tappedChannel1")
+			return IntegrationFlow.from("tappedChannel1")
 					.wireTap("tapChannel", wt -> wt.selector(m -> m.getPayload().equals("foo")))
 					.handle(new ReactiveMessageHandlerAdapter((message) -> Mono.just(message).log().then()))
 					.get();
@@ -738,7 +737,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow wireTapFlow4() {
-			return IntegrationFlows.from("tappedChannel4")
+			return IntegrationFlow.from("tappedChannel4")
 					.wireTap(tapChannel())
 					.channel("nullChannel")
 					.get();
@@ -792,14 +791,14 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow bridgeFlow() {
-			return IntegrationFlows.from(MessageChannels.queue("bridgeFlowInput"))
+			return IntegrationFlow.from(MessageChannels.queue("bridgeFlowInput"))
 					.channel(MessageChannels.queue("bridgeFlowOutput"))
 					.get();
 		}
 
 		@Bean
 		public IntegrationFlow bridgeFlow2() {
-			return IntegrationFlows.from("bridgeFlow2Input")
+			return IntegrationFlow.from("bridgeFlow2Input")
 					.bridge(c -> c.autoStartup(false).id("bridge"))
 					.fixedSubscriberChannel()
 					.delay("delayer", d -> d
@@ -817,7 +816,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow claimCheckFlow() {
-			return IntegrationFlows.from("claimCheckInput")
+			return IntegrationFlow.from("claimCheckInput")
 					.claimCheckIn(this.messageStore())
 					.claimCheckOut(this.messageStore())
 					.get();
@@ -851,14 +850,14 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow methodInvokingFlow() {
-			return IntegrationFlows.from("methodInvokingInput")
+			return IntegrationFlow.from("methodInvokingInput")
 					.handle(this.greetingService)
 					.get();
 		}
 
 		@Bean
 		public IntegrationFlow lambdasFlow() {
-			return IntegrationFlows.from("lambdasInput")
+			return IntegrationFlow.from("lambdasInput")
 					.filter(String.class, "World"::equals)
 					.transform(String.class, "Hello "::concat)
 					.get();
@@ -866,7 +865,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow errorRecovererFlow() {
-			return IntegrationFlows.from(Function.class, (gateway) -> gateway.beanName("errorRecovererFunction"))
+			return IntegrationFlow.from(Function.class, (gateway) -> gateway.beanName("errorRecovererFunction"))
 					.<Object>handle((p, h) -> {
 								throw new RuntimeException("intentional");
 							},
@@ -888,7 +887,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow recoveryFlow() {
-			return IntegrationFlows.from(recoveryChannel())
+			return IntegrationFlow.from(recoveryChannel())
 					.<MessagingException, Message<?>>transform(MessagingException::getFailedMessage)
 					.get();
 
@@ -896,7 +895,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow dedicatedPollingThreadFlow() {
-			return IntegrationFlows.from(MessageChannels.queue("dedicatedQueueChannel"))
+			return IntegrationFlow.from(MessageChannels.queue("dedicatedQueueChannel"))
 					.bridge(e -> e
 							.poller(Pollers.fixedDelay(0).receiveTimeout(-1))
 							.taskScheduler(dedicatedTaskScheduler()))
@@ -912,7 +911,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow flowWithNullChannel() {
-			return IntegrationFlows.from("flowWithNullChannelInput")
+			return IntegrationFlow.from("flowWithNullChannelInput")
 					.nullChannel();
 		}
 
@@ -948,7 +947,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow globalErrorChannelResolutionFlow(@Qualifier("taskScheduler") TaskExecutor taskExecutor) {
-			return IntegrationFlows.from(Consumer.class,
+			return IntegrationFlow.from(Consumer.class,
 					(gateway) -> gateway.beanName("globalErrorChannelResolutionFunction"))
 					.channel(c -> c.executor(taskExecutor))
 					.handle((p, h) -> {
@@ -969,7 +968,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow interceptorFlow(List<String> outputStringList) {
-			return IntegrationFlows.from("interceptorChannelIn")
+			return IntegrationFlow.from("interceptorChannelIn")
 					.intercept(new ChannelInterceptor() {
 
 						@Override
@@ -1029,7 +1028,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow wrongLastComponent() {
-			return IntegrationFlows.from(MessageChannels.direct())
+			return IntegrationFlow.from(MessageChannels.direct())
 					.fixedSubscriberChannel()
 					.get();
 		}

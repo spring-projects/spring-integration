@@ -34,7 +34,6 @@ import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
@@ -501,7 +500,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		@Bean
 		public IntegrationFlow rsocketOutboundFlow() {
-			return IntegrationFlows.from(MessageChannels.flux("inputChannel"))
+			return IntegrationFlow.from(MessageChannels.flux("inputChannel"))
 					.handle(rsocketOutboundGateway())
 					.channel(c -> c.flux("resultChannel"))
 					.get();

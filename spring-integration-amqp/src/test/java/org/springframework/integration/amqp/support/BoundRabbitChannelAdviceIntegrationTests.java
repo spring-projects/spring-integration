@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.amqp.dsl.Amqp;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -108,7 +107,7 @@ public class BoundRabbitChannelAdviceIntegrationTests {
 
 		@Bean
 		public IntegrationFlow flow(RabbitTemplate template, BoundRabbitChannelAdvice advice) {
-			return IntegrationFlows.from(Gate.class)
+			return IntegrationFlow.from(Gate.class)
 					.split(s -> s.delimiters(",")
 							.advice(advice))
 					.<String, String>transform(String::toUpperCase)
@@ -118,7 +117,7 @@ public class BoundRabbitChannelAdviceIntegrationTests {
 
 		@Bean
 		public IntegrationFlow listener(CachingConnectionFactory ccf) {
-			return IntegrationFlows.from(Amqp.inboundAdapter(ccf, QUEUE))
+			return IntegrationFlow.from(Amqp.inboundAdapter(ccf, QUEUE))
 					.handle(m -> {
 						received.add((String) m.getPayload());
 						this.latch.countDown();

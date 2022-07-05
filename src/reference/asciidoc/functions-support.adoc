@@ -101,7 +101,7 @@ public Supplier<String> stringSupplier() {
 
 @Bean
 public IntegrationFlow supplierFlow() {
-    return IntegrationFlows.from(stringSupplier())
+    return IntegrationFlow.from(stringSupplier())
                 .transform(toUpperCaseFunction())
                 .channel("suppliedChannel")
                 .get();

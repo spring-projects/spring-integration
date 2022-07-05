@@ -47,6 +47,9 @@ The `AggregatingMessageHandler` now does not split a `Collection<Message<?>>` re
 
 See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 
+The `IntegrationFlows` factory is now marked as deprecated in favor of the fluent API available in the `IntegrationFlow` interface itself.
+The factory class will be removed in the future releases.
+
 [[x6.0-http]]
 === HTTP Changes
 

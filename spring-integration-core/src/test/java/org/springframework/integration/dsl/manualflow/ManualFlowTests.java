@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,6 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowBuilder;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
@@ -131,7 +130,7 @@ public class ManualFlowTests {
 		};
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("channel");
-		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(producer);
+		IntegrationFlowBuilder flowBuilder = IntegrationFlow.from(producer);
 
 		BridgeHandler bridgeHandler = new BridgeHandler();
 		bridgeHandler.setBeanName("bridge");
@@ -175,7 +174,7 @@ public class ManualFlowTests {
 		}
 		MyProducerSpec spec = new MyProducerSpec(new MyProducer());
 		QueueChannel channel = new QueueChannel();
-		IntegrationFlow flow = IntegrationFlows.from(spec.id("fooChannel"))
+		IntegrationFlow flow = IntegrationFlow.from(spec.id("fooChannel"))
 				.channel(channel)
 				.get();
 		IntegrationFlowRegistration flowRegistration = this.integrationFlowContext.registration(flow).register();
@@ -396,7 +395,7 @@ public class ManualFlowTests {
 
 		QueueChannel resultChannel = new QueueChannel();
 
-		IntegrationFlow integrationFlow = IntegrationFlows
+		IntegrationFlow integrationFlow = IntegrationFlow
 				.from(messageFlux)
 				.<Integer, Boolean>route(p -> p % 2 == 0, m -> m
 						.subFlowMapping(true, sf -> sf.<Integer, String>transform(em -> "even:" + em))
@@ -426,7 +425,7 @@ public class ManualFlowTests {
 		String testId = "testId";
 
 		StandardIntegrationFlow testFlow =
-				IntegrationFlows.from(Supplier.class)
+				IntegrationFlow.from(Supplier.class)
 						.get();
 
 		IntegrationFlowRegistration flowRegistration =

@@ -237,7 +237,7 @@ public class MqttJavaApplication {
 
     @Bean
     public IntegrationFlow mqttInbound() {
-        return IntegrationFlows.from(
+        return IntegrationFlow.from(
                          new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883",
                                         "testClient", "topic1", "topic2");)
                 .handle(m -> System.out.println(m.getPayload()))
@@ -488,7 +488,7 @@ public IntegrationFlow mqttInFlow() {
     messageProducer.setMessageConverter(mqttStringToBytesConverter());
     messageProducer.setManualAcks(true);
 
-    return IntegrationFlows.from(messageProducer)
+    return IntegrationFlow.from(messageProducer)
             .channel(c -> c.queue("fromMqttChannel"))
             .get();
 }

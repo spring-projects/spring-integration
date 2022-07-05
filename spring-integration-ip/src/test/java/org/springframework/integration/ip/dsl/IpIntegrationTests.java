@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
@@ -198,7 +197,7 @@ public class IpIntegrationTests {
 
 	@Test
 	void testCloseStream() throws InterruptedException {
-		IntegrationFlow server = IntegrationFlows.from(Tcp.inboundGateway(Tcp.netServer(0)
+		IntegrationFlow server = IntegrationFlow.from(Tcp.inboundGateway(Tcp.netServer(0)
 						.deserializer(new ByteArrayRawSerializer())))
 				.<byte[], String>transform(p -> "reply:" + new String(p).toUpperCase())
 				.get();
@@ -218,7 +217,7 @@ public class IpIntegrationTests {
 				.id("streamCloseServer")
 				.register();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-		IntegrationFlow client = IntegrationFlows.from(MessageChannels.direct())
+		IntegrationFlow client = IntegrationFlow.from(MessageChannels.direct())
 				.handle(Tcp.outboundGateway(Tcp.netClient("localhost", port.get())
 								.singleUseConnections(true)
 								.serializer(new ByteArrayRawSerializer()))
@@ -258,7 +257,7 @@ public class IpIntegrationTests {
 
 		@Bean
 		public IntegrationFlow inTcpGateway() {
-			return IntegrationFlows.from(
+			return IntegrationFlow.from(
 							Tcp.inboundGateway(server1())
 									.replyTimeout(1)
 									.errorOnTimeout(true)
@@ -296,7 +295,7 @@ public class IpIntegrationTests {
 
 		@Bean
 		public IntegrationFlow inUdpAdapter() {
-			return IntegrationFlows.from(Udp.inboundAdapter(0))
+			return IntegrationFlow.from(Udp.inboundAdapter(0))
 					.channel(udpIn())
 					.get();
 		}

@@ -44,7 +44,6 @@ import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -287,7 +286,7 @@ public class GraphQlMessageHandlerTests {
 
 		@Bean
 		IntegrationFlow graphqlQueryMessageHandlerFlow(GraphQlMessageHandler handler) {
-			return IntegrationFlows.from(MessageChannels.flux("inputChannel"))
+			return IntegrationFlow.from(MessageChannels.flux("inputChannel"))
 					.handle(handler)
 					.channel(c -> c.flux("resultChannel"))
 					.get();

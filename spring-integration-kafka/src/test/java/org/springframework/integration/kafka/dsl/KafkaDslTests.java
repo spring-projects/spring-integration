@@ -43,7 +43,6 @@ import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.kafka.channel.PollableKafkaChannel;
 import org.springframework.integration.kafka.inbound.KafkaErrorSendingMessageRecoverer;
@@ -301,7 +300,7 @@ public class KafkaDslTests {
 
 		@Bean
 		public IntegrationFlow topic1ListenerFromKafkaFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
 							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
 							.configureListenerContainer(c ->
@@ -331,7 +330,7 @@ public class KafkaDslTests {
 
 		@Bean
 		public IntegrationFlow topic2ListenerFromKafkaFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Kafka
 							.messageDrivenChannelAdapter(kafkaListenerContainerFactory().createContainer(TEST_TOPIC2),
 									KafkaMessageDrivenChannelAdapter.ListenerMode.record))
@@ -397,7 +396,7 @@ public class KafkaDslTests {
 
 		@Bean
 		public IntegrationFlow sourceFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Kafka.inboundChannelAdapter(consumerFactory(), new ConsumerProperties(TEST_TOPIC3)),
 							e -> e.poller(Pollers.fixedDelay(100)))
 					.handle(p -> {
@@ -410,7 +409,7 @@ public class KafkaDslTests {
 
 		@Bean
 		public IntegrationFlow outboundGateFlow() {
-			return IntegrationFlows.from(Gate.class)
+			return IntegrationFlow.from(Gate.class)
 					.handle(Kafka.outboundGateway(producerFactory(), replyContainer())
 							.flushExpression("true")
 							.sync(true)
@@ -440,7 +439,7 @@ public class KafkaDslTests {
 				ConcurrentKafkaListenerContainerFactory<Integer, String> containerFactory,
 				KafkaMessageSource<?, ?> channelSource) {
 
-			return IntegrationFlows.from(topic6Channel(template, containerFactory))
+			return IntegrationFlow.from(topic6Channel(template, containerFactory))
 					.publishSubscribeChannel(pubSub(template, containerFactory), channel -> channel
 							.subscribe(f -> f.channel(
 									Kafka.pollableChannel(template, channelSource).id("topic8Channel")))
@@ -478,7 +477,7 @@ public class KafkaDslTests {
 
 		@Bean
 		public IntegrationFlow serverGateway() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Kafka.inboundGateway(consumerFactory(), containerProperties(),
 							producerFactory())
 								.configureListenerContainer(container -> container.errorHandler(eh())))
@@ -495,7 +494,7 @@ public class KafkaDslTests {
 		IntegrationFlow withRecoveringErrorHandler() {
 			ContainerProperties props = containerProperties();
 			props.setGroupId("wreh");
-			return IntegrationFlows.from(Kafka.messageDrivenChannelAdapter(consumerFactory(), props)
+			return IntegrationFlow.from(Kafka.messageDrivenChannelAdapter(consumerFactory(), props)
 						.configureListenerContainer(container -> {
 							container.errorHandler(recoveringErrorHandler());
 						}))

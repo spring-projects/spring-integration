@@ -445,7 +445,7 @@ public class JpaJavaApplication {
 
     @Bean
     public IntegrationFlow pollingAdapterFlow() {
-        return IntegrationFlows
+        return IntegrationFlow
             .from(Jpa.inboundAdapter(this.entityManagerFactory)
                         .entityClass(StudentDomain.class)
                         .maxResults(1)

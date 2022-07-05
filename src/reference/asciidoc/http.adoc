@@ -775,7 +775,7 @@ The following example shows how to configure an inbound gateway with the Java DS
 ----
 @Bean
 public IntegrationFlow inbound() {
-    return IntegrationFlows.from(Http.inboundGateway("/foo")
+    return IntegrationFlow.from(Http.inboundGateway("/foo")
             .requestMapping(m -> m.methods(HttpMethod.POST))
             .requestPayloadType(String.class))
         .channel("httpRequest")
@@ -810,7 +810,7 @@ The following example shows how to configure an outbound gateway with the Java D
 ----
 @Bean
 public IntegrationFlow outbound() {
-    return IntegrationFlows.from("httpOutRequest")
+    return IntegrationFlow.from("httpOutRequest")
         .handle(Http.outboundGateway("http://localhost:8080/foo")
             .httpMethod(HttpMethod.POST)
             .expectedResponseType(String.class))

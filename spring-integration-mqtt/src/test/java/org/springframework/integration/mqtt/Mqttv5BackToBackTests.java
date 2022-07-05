@@ -34,7 +34,6 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
@@ -178,7 +177,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 			messageProducer.setMessageConverter(mqttStringToBytesConverter());
 			messageProducer.setManualAcks(true);
 
-			return IntegrationFlows.from(messageProducer)
+			return IntegrationFlow.from(messageProducer)
 					.channel(c -> c.queue("fromMqttChannel"))
 					.get();
 		}

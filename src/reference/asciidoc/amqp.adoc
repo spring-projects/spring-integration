@@ -52,7 +52,7 @@ The following listing shows the possible configuration options for an AMQP Inbou
 ----
 @Bean
 public IntegrationFlow amqpInbound(ConnectionFactory connectionFactory) {
-    return IntegrationFlows.from(Amqp.inboundAdapter(connectionFactory, "aName"))
+    return IntegrationFlow.from(Amqp.inboundAdapter(connectionFactory, "aName"))
             .handle(m -> System.out.println(m.getPayload()))
             .get();
 }
@@ -283,7 +283,7 @@ The following example shows how to configure an `AmqpMessageSource`:
 ----
 @Bean
 public IntegrationFlow flow() {
-    return IntegrationFlows.from(Amqp.inboundPolledAdapter(connectionFactory(), DSL_QUEUE),
+    return IntegrationFlow.from(Amqp.inboundPolledAdapter(connectionFactory(), DSL_QUEUE),
                     e -> e.poller(Pollers.fixedDelay(1_000)).autoStartup(false))
             .handle(p -> {
                 ...
@@ -328,7 +328,7 @@ The following listing shows the available attributes:
 ----
 @Bean // return the upper cased payload
 public IntegrationFlow amqpInboundGateway(ConnectionFactory connectionFactory) {
-    return IntegrationFlows.from(Amqp.inboundGateway(connectionFactory, "foo"))
+    return IntegrationFlow.from(Amqp.inboundGateway(connectionFactory, "foo"))
             .transform(String.class, String::toUpperCase)
             .get();
 }
@@ -490,7 +490,7 @@ The following example shows the available properties for an AMQP outbound channe
 @Bean
 public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate,
         MessageChannel amqpOutboundChannel) {
-    return IntegrationFlows.from(amqpOutboundChannel)
+    return IntegrationFlow.from(amqpOutboundChannel)
             .handle(Amqp.outboundAdapter(amqpTemplate)
                         .routingKey("queue1")) // default exchange - route to queue 'queue1'
             .get();
@@ -1214,7 +1214,7 @@ The following example shows how to configure the channels with the Java DSL:
 ----
 @Bean
 public IntegrationFlow pollableInFlow(ConnectionFactory connectionFactory) {
-    return IntegrationFlows.from(...)
+    return IntegrationFlow.from(...)
             ...
             .channel(Amqp.pollableChannel(connectionFactory)
                     .queueName("foo"))
@@ -1224,7 +1224,7 @@ public IntegrationFlow pollableInFlow(ConnectionFactory connectionFactory) {
 
 @Bean
 public IntegrationFlow messageDrivenInFow(ConnectionFactory connectionFactory) {
-    return IntegrationFlows.from(...)
+    return IntegrationFlow.from(...)
             ...
             .channel(Amqp.channel(connectionFactory)
                     .queueName("bar"))
@@ -1234,7 +1234,7 @@ public IntegrationFlow messageDrivenInFow(ConnectionFactory connectionFactory) {
 
 @Bean
 public IntegrationFlow pubSubInFlow(ConnectionFactory connectionFactory) {
-    return IntegrationFlows.from(...)
+    return IntegrationFlow.from(...)
             ...
             .channel(Amqp.publishSubscribeChannel(connectionFactory)
                     .queueName("baz"))
@@ -1361,7 +1361,7 @@ Consider the following integration flow:
 ----
 @Bean
 public IntegrationFlow flow(RabbitTemplate template) {
-    return IntegrationFlows.from(Gateway.class)
+    return IntegrationFlow.from(Gateway.class)
             .split(s -> s.delimiters(","))
             .<String, String>transform(String::toUpperCase)
             .handle(Amqp.outboundAdapter(template).routingKey("rk"))
@@ -1385,7 +1385,7 @@ The following example shows how to use `BoundRabbitChannelAdvice`:
 ----
 @Bean
 public IntegrationFlow flow(RabbitTemplate template) {
-    return IntegrationFlows.from(Gateway.class)
+    return IntegrationFlow.from(Gateway.class)
             .split(s -> s.delimiters(",")
                     .advice(new BoundRabbitChannelAdvice(template, Duration.ofSeconds(10))))
             .<String, String>transform(String::toUpperCase)

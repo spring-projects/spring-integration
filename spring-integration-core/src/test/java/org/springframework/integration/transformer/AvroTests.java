@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.support.AvroHeaders;
@@ -166,7 +165,7 @@ public class AvroTests {
 
 		@Bean
 		public IntegrationFlow flow1() {
-			return IntegrationFlows.from(in1())
+			return IntegrationFlow.from(in1())
 					.transform(new SimpleToAvroTransformer())
 					.wireTap(tapped())
 					.transform(fromTransformer())
@@ -177,7 +176,7 @@ public class AvroTests {
 
 		@Bean
 		public IntegrationFlow flow2() {
-			return IntegrationFlows.from(in2())
+			return IntegrationFlow.from(in2())
 					.transform(new SimpleToAvroTransformer())
 					.wireTap(tapped())
 					.enrichHeaders(h -> h.header(AvroHeaders.TYPE, AvroTestClass2.class, true))
@@ -189,7 +188,7 @@ public class AvroTests {
 
 		@Bean
 		public IntegrationFlow flow3() {
-			return IntegrationFlows.from(in3())
+			return IntegrationFlow.from(in3())
 					.transform(new SimpleToAvroTransformer())
 					.wireTap(tapped())
 					.enrichHeaders(h -> h.header(AvroHeaders.TYPE, AvroTestClass2.class.getName(), true))
@@ -201,7 +200,7 @@ public class AvroTests {
 
 		@Bean
 		public IntegrationFlow flow4() {
-			return IntegrationFlows.from(in4())
+			return IntegrationFlow.from(in4())
 					.transform(new SimpleToAvroTransformer())
 					.wireTap(tapped())
 					.enrichHeaders(h -> h.header(AvroHeaders.TYPE, null, true)
@@ -214,7 +213,7 @@ public class AvroTests {
 
 		@Bean
 		public IntegrationFlow flow5() {
-			return IntegrationFlows.from(in5())
+			return IntegrationFlow.from(in5())
 					.transform(new SimpleToAvroTransformer().typeExpression("'avroTest'"))
 					.wireTap(tapped())
 					.transform(new SimpleFromAvroTransformer(AvroTestClass1.class)
@@ -227,7 +226,7 @@ public class AvroTests {
 
 		@Bean
 		public IntegrationFlow flow6() {
-			return IntegrationFlows.from(in6())
+			return IntegrationFlow.from(in6())
 					.transform(new SimpleToAvroTransformer().typeExpression("'wontFindThisHeader'"))
 					.wireTap(tapped())
 					.transform(new SimpleFromAvroTransformer(AvroTestClass1.class)

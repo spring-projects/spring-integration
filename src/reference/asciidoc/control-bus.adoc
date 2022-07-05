@@ -58,7 +58,7 @@ Similarly, you can configure Java DSL flow definitions as follows:
 ----
 @Bean
 public IntegrationFlow controlBusFlow() {
-    return IntegrationFlows.from("controlBus")
+    return IntegrationFlow.from("controlBus")
               .controlBus()
               .get();
 }

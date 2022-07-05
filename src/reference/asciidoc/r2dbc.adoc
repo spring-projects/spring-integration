@@ -59,7 +59,7 @@ With Java DSL a configuration for this channel adapter is like this:
 ----
 @Bean
 IntegrationFlow r2dbcDslFlow(R2dbcEntityTemplate r2dbcEntityTemplate) {
-    return IntegrationFlows
+    return IntegrationFlow
         .from(R2dbc.inboundChannelAdapter(r2dbcEntityTemplate,
             (selectCreator) ->
                     selectCreator.createSelect("person")

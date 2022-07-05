@@ -34,7 +34,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
@@ -148,7 +147,7 @@ public class MockMessageSourceTests {
 	@Test
 	public void testMockMessageSourceDynamicFlow() {
 		QueueChannel out = new QueueChannel();
-		StandardIntegrationFlow flow = IntegrationFlows
+		StandardIntegrationFlow flow = IntegrationFlow
 				.from(MockIntegration.mockMessageSource("foo", "bar", "baz"))
 				.<String, String>transform(String::toUpperCase)
 				.channel(out)
@@ -205,7 +204,7 @@ public class MockMessageSourceTests {
 
 		@Bean
 		public IntegrationFlow myFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(() -> new GenericMessage<>("myData"),
 							e -> e.id("mySourceEndpoint"))
 					.<String, String>transform(String::toUpperCase)

@@ -552,7 +552,7 @@ public class SftpJavaApplication {
 
     @Bean
     public IntegrationFlow sftpInboundFlow() {
-        return IntegrationFlows
+        return IntegrationFlow
             .from(Sftp.inboundAdapter(this.sftpSessionFactory)
                     .preserveTimestamp(true)
                     .remoteDirectory("foo")
@@ -763,7 +763,7 @@ This allows files retrieved from different directories to be downloaded to simil
 ----
 @Bean
 public IntegrationFlow flow() {
-    return IntegrationFlows.from(Sftp.inboundAdapter(sf())
+    return IntegrationFlow.from(Sftp.inboundAdapter(sf())
                     .filter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
                     .localDirectory(new File(tmpDir))
                     .localFilenameExpression("#remoteDirectory + T(java.io.File).separator + #root")
@@ -952,7 +952,7 @@ public class SftpJavaApplication {
 
     @Bean
     public IntegrationFlow sftpOutboundFlow() {
-        return IntegrationFlows.from("toSftpChannel")
+        return IntegrationFlow.from("toSftpChannel")
             .handle(Sftp.outboundAdapter(this.sftpSessionFactory, FileExistsMode.FAIL)
                          .useTemporaryFileName(false)
                          .remoteDirectory("/foo")
@@ -1310,7 +1310,7 @@ public class SftpJavaApplication {
 
     @Bean
     public IntegrationFlow sftpMGetFlow() {
-        return IntegrationFlows.from("sftpMgetInputChannel")
+        return IntegrationFlow.from("sftpMgetInputChannel")
             .handle(Sftp.outboundGateway(sftpSessionFactory(),
                             AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
                     .options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -173,7 +172,7 @@ public class ReactiveStreamsTests {
 		QueueChannel resultChannel = new QueueChannel();
 
 		IntegrationFlow integrationFlow =
-				IntegrationFlows.from(messageFlux)
+				IntegrationFlow.from(messageFlux)
 						.<Integer, Integer>transform(p -> p * 2)
 						.channel(resultChannel)
 						.get();
@@ -250,7 +249,7 @@ public class ReactiveStreamsTests {
 
 		@Bean
 		public Publisher<Message<String>> reactiveFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(() -> new GenericMessage<>("a,b,c,d,e,f"),
 							e -> e.poller(p -> p.trigger(ctx -> this.invoked.getAndSet(true) ? null : new Date()))
 									.id("reactiveStreamsMessageSource"))
@@ -261,7 +260,7 @@ public class ReactiveStreamsTests {
 
 		@Bean
 		public Publisher<Message<Integer>> pollableReactiveFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from("inputChannel")
 					.split(s -> s.delimiters(","))
 					.<String, Integer>transform(Integer::parseInt,
@@ -273,7 +272,7 @@ public class ReactiveStreamsTests {
 
 		@Bean
 		public Publisher<Message<String>> singleChannelFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(MessageChannels.direct("singleChannel"))
 					.log()
 					.toReactivePublisher();
@@ -281,7 +280,7 @@ public class ReactiveStreamsTests {
 
 		@Bean
 		public Publisher<Message<String>> fixedSubscriberChannelFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from("fixedSubscriberChannel", true)
 					.log()
 					.toReactivePublisher();

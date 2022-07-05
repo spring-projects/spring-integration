@@ -559,7 +559,7 @@ public class FtpJavaApplication {
 
     @Bean
     public IntegrationFlow ftpInboundFlow() {
-        return IntegrationFlows
+        return IntegrationFlow
             .from(Ftp.inboundAdapter(this.ftpSessionFactory)
                     .preserveTimestamp(true)
                     .remoteDirectory("foo")
@@ -772,7 +772,7 @@ This allows files retrieved from different directories to be downloaded to simil
 ----
 @Bean
 public IntegrationFlow flow() {
-    return IntegrationFlows.from(Ftp.inboundAdapter(sf())
+    return IntegrationFlow.from(Ftp.inboundAdapter(sf())
                     .filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
                     .localDirectory(new File(tmpDir))
                     .localFilenameExpression("#remoteDirectory + T(java.io.File).separator + #root")
@@ -979,7 +979,7 @@ public class FtpJavaApplication {
 
     @Bean
     public IntegrationFlow ftpOutboundFlow() {
-        return IntegrationFlows.from("toFtpChannel")
+        return IntegrationFlow.from("toFtpChannel")
                 .handle(Ftp.outboundAdapter(ftpSessionFactory(), FileExistsMode.FAIL)
                         .useTemporaryFileName(false)
                         .fileNameExpression("headers['" + FileHeaders.FILENAME + "']")

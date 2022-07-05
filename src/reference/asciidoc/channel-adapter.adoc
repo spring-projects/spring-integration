@@ -23,7 +23,7 @@ The following example defines two `inbound-channel-adapter` instances:
 ----
 @Bean
 public IntegrationFlow source1() {
-    return IntegrationFlows.from(() -> new GenericMessage<>(...),
+    return IntegrationFlow.from(() -> new GenericMessage<>(...),
                              e -> e.poller(p -> p.fixedRate(5000)))
                 ...
                 .get();
@@ -31,7 +31,7 @@ public IntegrationFlow source1() {
 
 @Bean
 public IntegrationFlow source2() {
-    return IntegrationFlows.from(() -> new GenericMessage<>(...),
+    return IntegrationFlow.from(() -> new GenericMessage<>(...),
                              e -> e.poller(p -> p.cron("30 * 9-17 * * MON-FRI")))
                 ...
                 .get();

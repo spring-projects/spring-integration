@@ -364,7 +364,7 @@ The Java DSL configuration for this channel adapter may look like this:
 ----
 @Bean
 IntegrationFlow changeStreamFlow(ReactiveMongoOperations mongoTemplate) {
-    return IntegrationFlows.from(
+    return IntegrationFlow.from(
             MongoDb.changeStreamInboundChannelAdapter(mongoTemplate)
                     .domainType(Person.class)
                     .collection("person")
@@ -602,7 +602,7 @@ With Java DSL such a channel adapter could be configured like:
 ----
 @Bean
 public IntegrationFlow reactiveMongoDbFlow(ReactiveMongoDatabaseFactory mongoDbFactory) {
-    return IntegrationFlows
+    return IntegrationFlow
             .from(MongoDb.reactiveInboundChannelAdapter(mongoDbFactory, "{'name' : 'Name'}")
                             .entityClass(Person.class),
                     c -> c.poller(Pollers.fixedDelay(1000)))

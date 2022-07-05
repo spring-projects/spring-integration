@@ -68,7 +68,7 @@ The following example shows a simple implementation of a WebFlux endpoint:
 ----
 @Bean
 public IntegrationFlow inboundChannelAdapterFlow() {
-    return IntegrationFlows
+    return IntegrationFlow
         .from(WebFlux.inboundChannelAdapter("/reactivePost")
             .requestMapping(m -> m.methods(HttpMethod.POST))
             .requestPayloadType(ResolvableType.forClassWithGenerics(Flux.class, String.class))
@@ -142,7 +142,7 @@ This way, we can implement https://en.wikipedia.org/wiki/Server-sent_events[Serv
 ----
 @Bean
 public IntegrationFlow sseFlow() {
-    return IntegrationFlows
+    return IntegrationFlow
             .from(WebFlux.inboundGateway("/sse")
                     .requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE)))
             .handle((p, h) -> Flux.just("foo", "bar", "baz"))

@@ -91,7 +91,7 @@ public ApplicationEventListeningMessageProducer eventsAdapter() {
 public IntegrationFlow eventFlow(ApplicationEventListeningMessageProducer eventsAdapter,
         MessageChannel eventErrorChannel) {
 
-    return IntegrationFlows.from(eventsAdapter, e -> e.errorChannel(eventErrorChannel))
+    return IntegrationFlow.from(eventsAdapter, e -> e.errorChannel(eventErrorChannel))
         .handle(...)
         ...
         .get();
