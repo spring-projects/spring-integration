@@ -92,7 +92,7 @@ public class DirectChannel extends AbstractSubscribableChannel {
 		super.onInit();
 		if (this.maxSubscribers == null) {
 			Integer max = getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS, Integer.class);
-			if (!Objects.isNull(max)) {
+			if (max != null) {
 				setMaxSubscribers(max);
 			}
 		}
