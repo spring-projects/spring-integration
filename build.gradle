@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlinVersion = '1.6.21'
+    ext.kotlinVersion = '1.7.0'
     ext.isCI = System.getenv('GITHUB_ACTION') || System.getenv('bamboo_buildKey')
     repositories {
         mavenCentral()
@@ -85,6 +85,7 @@ ext {
     log4jVersion = '2.17.2'
     mailVersion = '2.0.1'
 	micrometerVersion = '1.10.0-M2'
+    micrometerTracingVersion = '1.0.0-M5'
     mockitoVersion = '4.5.1'
     mongoDriverVersion = '4.6.0'
     mysqlVersion = '8.0.28'
@@ -160,6 +161,8 @@ allprojects {
             mavenBom "org.apache.logging.log4j:log4j-bom:$log4jVersion"
             mavenBom "org.springframework.data:spring-data-bom:$springDataVersion"
             mavenBom "org.mockito:mockito-bom:$mockitoVersion"
+            mavenBom "io.micrometer:micrometer-bom:$micrometerVersion"
+            mavenBom "io.micrometer:micrometer-tracing-bom:$micrometerTracingVersion"
         }
 
     }
@@ -208,18 +211,15 @@ configure(javaProjects) { subproject ->
 
     compileKotlin {
         kotlinOptions {
-            languageVersion = '1.6'
-            apiVersion = '1.6'
-            jvmTarget = '17'
+            languageVersion = '1.7'
+            apiVersion = '1.7'
             freeCompilerArgs = ['-Xjsr305=strict', '-Xsuppress-version-warnings', '-opt-in=kotlin.RequiresOptIn']
             allWarningsAsErrors = true
         }
     }
-
     compileTestKotlin {
         kotlinOptions {
-            jvmTarget = '17'
-            freeCompilerArgs = ['-Xjsr305=strict']
+            freeCompilerArgs = ['-Xjsr305=strict', '-opt-in=kotlin.RequiresOptIn']
         }
     }
 
@@ -501,7 +501,8 @@ project('spring-integration-core') {
 
         optionalApi "com.jayway.jsonpath:json-path:$jsonpathVersion"
         optionalApi "com.esotericsoftware:kryo:$kryoVersion"
-        optionalApi "io.micrometer:micrometer-core:$micrometerVersion"
+        optionalApi 'io.micrometer:micrometer-core'
+        optionalApi 'io.micrometer:micrometer-tracing-api'
         optionalApi "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion"
         optionalApi "org.apache.avro:avro:$avroVersion"
         optionalApi 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
