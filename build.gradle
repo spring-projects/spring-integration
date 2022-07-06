@@ -502,7 +502,9 @@ project('spring-integration-core') {
         optionalApi "com.jayway.jsonpath:json-path:$jsonpathVersion"
         optionalApi "com.esotericsoftware:kryo:$kryoVersion"
         optionalApi 'io.micrometer:micrometer-core'
-        optionalApi 'io.micrometer:micrometer-tracing-api'
+        optionalApi ('io.micrometer:micrometer-tracing-api') {
+            exclude group: 'aopalliance'
+        }
         optionalApi "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion"
         optionalApi "org.apache.avro:avro:$avroVersion"
         optionalApi 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
