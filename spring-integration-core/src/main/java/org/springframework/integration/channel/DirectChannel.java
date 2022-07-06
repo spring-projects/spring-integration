@@ -22,8 +22,6 @@ import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrateg
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.lang.Nullable;
 
-import java.util.Objects;
-
 /**
  * A channel that invokes a single subscriber for each sent Message.
  * The invocation will occur in the sender's thread.
@@ -52,7 +50,6 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	 * Create a DirectChannel with a {@link LoadBalancingStrategy}.
 	 * Can be {@code null} meaning that no balancing is applied;
 	 * every message is always going to be handled by the first subscriber.
-	 *
 	 * @param loadBalancingStrategy The load balancing strategy implementation.
 	 * @see #setFailover(boolean)
 	 */
@@ -64,7 +61,6 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	/**
 	 * Specify whether the channel's dispatcher should have failover enabled.
 	 * By default, it will. Set this value to 'false' to disable it.
-	 *
 	 * @param failover The failover boolean.
 	 */
 	public void setFailover(boolean failover) {
@@ -74,7 +70,6 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	/**
 	 * Specify the maximum number of subscribers supported by the
 	 * channel's dispatcher.
-	 *
 	 * @param maxSubscribers The maximum number of subscribers allowed.
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {
