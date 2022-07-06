@@ -37,7 +37,7 @@ public class DirectChannel extends AbstractSubscribableChannel {
 
 	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 
-	private volatile int maxSubscribers;
+	private volatile Integer maxSubscribers;
 
 	/**
 	 * Create a channel with default {@link RoundRobinLoadBalancingStrategy}.
@@ -72,7 +72,7 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	 * channel's dispatcher.
 	 * @param maxSubscribers The maximum number of subscribers allowed.
 	 */
-	public void setMaxSubscribers(int maxSubscribers) {
+	public void setMaxSubscribers(Integer maxSubscribers) {
 		this.maxSubscribers = maxSubscribers;
 		this.dispatcher.setMaxSubscribers(maxSubscribers);
 	}
@@ -85,8 +85,8 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (this.maxSubscribers == 0) {
-			int max = getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS, int.class);
+		if (this.maxSubscribers == null) {
+			Integer max = getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS, Integer.class);
 			setMaxSubscribers(max);
 		}
 	}
