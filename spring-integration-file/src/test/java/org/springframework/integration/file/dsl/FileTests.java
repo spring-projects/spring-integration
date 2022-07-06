@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
@@ -248,7 +247,7 @@ public class FileTests {
 	@Test
 	public void testFileSplitterFlow() throws Exception {
 		FileOutputStream file = new FileOutputStream(new File(tmpDir, "foo.tmp"));
-		file.write(("HelloWorld\näöüß").getBytes(Charset.defaultCharset()));
+		file.write(("HelloWorld\nÃ¤Ã¶Ã¼ÃŸ").getBytes(Charset.defaultCharset()));
 		file.flush();
 		file.close();
 
@@ -259,7 +258,7 @@ public class FileTests {
 		receive = this.fileSplittingResultChannel.receive(10000);
 		assertThat(receive).isNotNull(); //HelloWorld
 		receive = this.fileSplittingResultChannel.receive(10000);
-		assertThat(receive).isNotNull(); //äöüß
+		assertThat(receive).isNotNull(); //Ã¤Ã¶Ã¼ÃŸ
 		receive = this.fileSplittingResultChannel.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isInstanceOf(FileSplitter.FileMarker.class); // FileMarker.Mark.END
@@ -337,7 +336,7 @@ public class FileTests {
 
 		@Bean
 		public IntegrationFlow fileFlow1() {
-			return IntegrationFlows.from("fileFlow1Input")
+			return IntegrationFlow.from("fileFlow1Input")
 					.handle(Files.outboundAdapter("'file://" + tmpDir.getAbsolutePath() + '\'')
 									.fileNameGenerator(message -> null)
 									.fileExistsMode(FileExistsMode.APPEND_NO_FLUSH)
@@ -353,7 +352,7 @@ public class FileTests {
 
 		@Bean
 		public IntegrationFlow tailFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Files.tailAdapter(new File(tmpDir, "TailTest"))
 							.delay(500)
 							.end(false)
@@ -366,7 +365,7 @@ public class FileTests {
 
 		@Bean
 		public IntegrationFlow fileReadingFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Files.inboundAdapter(tmpDir)
 									.patternFilter("*.sitest")
 									.useWatchService(true)
@@ -390,7 +389,7 @@ public class FileTests {
 
 		@Bean
 		public IntegrationFlow fileWritingFlow() {
-			return IntegrationFlows.from("fileWritingInput")
+			return IntegrationFlow.from("fileWritingInput")
 					.enrichHeaders(h -> h.header(FileHeaders.FILENAME, "foo.write")
 							.header("directory", new File(tmpDir, "fileWritingFlow")))
 					.handle(Files.outboundGateway(m -> m.getHeaders().get("directory"))
@@ -407,7 +406,7 @@ public class FileTests {
 					new ExpressionFileListFilter<>(new FunctionExpression<File>(f -> "foo.tmp".equals(f.getName())));
 			fileExpressionFileListFilter.setBeanFactory(beanFactory);
 
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Files.inboundAdapter(tmpDir)
 									.filter(new ChainFileListFilter<File>()
 											.addFilter(new AcceptOnceFileListFilter<>())
@@ -441,7 +440,7 @@ public class FileTests {
 
 		void pollDirectories(File... directories) {
 			for (File directory : directories) {
-				StandardIntegrationFlow integrationFlow = IntegrationFlows
+				StandardIntegrationFlow integrationFlow = IntegrationFlow
 						.from(Files.inboundAdapter(directory).recursive(true),
 								e -> e.poller(p -> p.fixedDelay(1000))
 										.id(directory.getName() + ".adapter"))

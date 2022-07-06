@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -324,7 +323,7 @@ public class RotatingServersTests extends FtpTestSupport {
 
 		@Bean
 		public IntegrationFlow flow() {
-			return IntegrationFlows.from(Ftp.inboundAdapter(sf())
+			return IntegrationFlow.from(Ftp.inboundAdapter(sf())
 							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
 							.localDirectory(localDir())
 							.remoteDirectory("."),
@@ -360,7 +359,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		@Override
 		@Bean
 		public IntegrationFlow flow() {
-			return IntegrationFlows.from(Ftp.inboundAdapter(sf())
+			return IntegrationFlow.from(Ftp.inboundAdapter(sf())
 							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
 							.localDirectory(new File(TMP_DIR, "variable"))
 							.localFilenameExpression("#remoteDirectory + T(java.io.File).separator + #root")
@@ -378,7 +377,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		@Override
 		@Bean
 		public IntegrationFlow flow() {
-			return IntegrationFlows.from(Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sf()))
+			return IntegrationFlow.from(Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sf()))
 							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
 							.remoteDirectory("."),
 					e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
@@ -404,7 +403,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		@Override
 		@Bean
 		public IntegrationFlow flow() {
-			return IntegrationFlows.from(Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sf()))
+			return IntegrationFlow.from(Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sf()))
 							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
 							.remoteDirectory(".")
 							.maxFetchSize(1),

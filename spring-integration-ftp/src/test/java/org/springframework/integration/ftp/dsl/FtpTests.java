@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
@@ -91,7 +90,7 @@ public class FtpTests extends FtpTestSupport {
 	public void testFtpInboundFlow() throws IOException {
 		QueueChannel out = new QueueChannel();
 		DirectoryScanner scanner = new DefaultDirectoryScanner();
-		IntegrationFlow flow = IntegrationFlows.from(Ftp.inboundAdapter(sessionFactory())
+		IntegrationFlow flow = IntegrationFlow.from(Ftp.inboundAdapter(sessionFactory())
 						.preserveTimestamp(true)
 						.remoteDirectory("ftpSource")
 						.maxFetchSize(10)
@@ -150,7 +149,7 @@ public class FtpTests extends FtpTestSupport {
 	@Test
 	public void testFtpInboundStreamFlow() throws Exception {
 		QueueChannel out = new QueueChannel();
-		StandardIntegrationFlow flow = IntegrationFlows.from(
+		StandardIntegrationFlow flow = IntegrationFlow.from(
 				Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sessionFactory()))
 						.remoteDirectory("ftpSource")
 						.maxFetchSize(11)

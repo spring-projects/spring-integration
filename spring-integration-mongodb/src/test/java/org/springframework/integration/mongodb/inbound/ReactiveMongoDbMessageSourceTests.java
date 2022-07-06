@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,6 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.mongodb.dsl.MongoDb;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
@@ -247,7 +246,7 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 		@Bean
 		public IntegrationFlow pollingFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(MongoDb.reactiveInboundChannelAdapter(
 							REACTIVE_MONGO_DATABASE_FACTORY, "{'name' : 'Oleg'}")
 									.update(Update.update("name", "DONE"))

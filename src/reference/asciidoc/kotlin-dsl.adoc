@@ -41,22 +41,22 @@ Such a global `integrationFlow()` function expects a lambda in builder style for
 See more overloaded `integrationFlow()` variants below.
 
 Many other scenarios require an `IntegrationFlow` to be started from source of data (e.g. `JdbcPollingChannelAdapter`, `JmsInboundGateway` or just an existing `MessageChannel`).
-For this purpose, the Spring Integration Java DSL provides an `IntegrationFlows` factory with its large number of overloaded `from()` methods.
-This factory can be used in Kotlin as well:
+For this purpose, the Spring Integration Java DSL provides an `IntegrationFlow` fluent API with its large number of overloaded `from()` methods.
+This API can be used in Kotlin as well:
 
 ====
 [source, kotlin]
 ----
 @Bean
 fun flowFromSupplier() =
-         IntegrationFlows.from<String>({ "bar" }) { e -> e.poller { p -> p.fixedDelay(10).maxMessagesPerPoll(1) } }
+         IntegrationFlow.from<String>({ "bar" }) { e -> e.poller { p -> p.fixedDelay(10).maxMessagesPerPoll(1) } }
                  .channel { c -> c.queue("fromSupplierQueue") }
                  .get()
 ----
 ====
 
 But unfortunately not all `from()` methods are compatible with Kotlin structures.
-To fix the gap, this project provides a Kotlin DSL around an `IntegrationFlows` factory.
+To fix the gap, this project provides a Kotlin DSL around an `IntegrationFlow` fluent API.
 It is implemented as a set of overloaded `integrationFlow()` functions.
 With a consumer for a `KotlinIntegrationFlowDefinition` to declare the rest of the flow as an `IntegrationFlow` lambda to reuse the mentioned above experience and also avoid `get()` call in the end.
 For example:

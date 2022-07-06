@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2021-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -124,14 +123,14 @@ public class IntegrationFlowCompositionTests {
 		IntegrationFlow startFlow = f -> f.handle(m -> { });
 
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> IntegrationFlows.from(startFlow))
+				.isThrownBy(() -> IntegrationFlow.from(startFlow))
 				.withMessageContaining("must be declared as a bean in the application context");
 
 		IntegrationFlowContext.IntegrationFlowRegistration startRegistration =
 				this.integrationFlowContext.registration(startFlow).register();
 
 		assertThatExceptionOfType(BeanCreationException.class)
-				.isThrownBy(() -> IntegrationFlows.from(startRegistration.getIntegrationFlow()))
+				.isThrownBy(() -> IntegrationFlow.from(startRegistration.getIntegrationFlow()))
 				.withMessageContaining("The 'IntegrationFlow' to start from must end with " +
 						"a 'MessageChannel' or reply-producing endpoint");
 
@@ -175,14 +174,14 @@ public class IntegrationFlowCompositionTests {
 
 		@Bean
 		IntegrationFlow templateSourceFlow() {
-			return IntegrationFlows.fromSupplier(() -> "test data")
+			return IntegrationFlow.fromSupplier(() -> "test data")
 					.channel("sourceChannel")
 					.get();
 		}
 
 		@Bean
 		IntegrationFlow compositionMainFlow(IntegrationFlow templateSourceFlow) {
-			return IntegrationFlows.from(templateSourceFlow)
+			return IntegrationFlow.from(templateSourceFlow)
 					.<String, String>transform(String::toUpperCase)
 					.channel(c -> c.queue("compositionMainFlowResult"))
 					.get();
@@ -196,7 +195,7 @@ public class IntegrationFlowCompositionTests {
 
 		@Bean
 		IntegrationFlow middleFlow(IntegrationFlow firstFlow, IntegrationFlow lastFlow) {
-			return IntegrationFlows.from(firstFlow)
+			return IntegrationFlow.from(firstFlow)
 					.<String, String>transform(p -> p + ", and middle flow")
 					.to(lastFlow);
 		}

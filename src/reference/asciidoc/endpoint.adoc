@@ -339,7 +339,7 @@ public PollerMetadata defaultPoller() {
 // No 'poller' attribute because there is a default global poller
 @Bean
 public IntegrationFlow transformFlow(MyTransformer transformer) {
-    return IntegrationFlows.from(MessageChannels.queue("pollable"))
+    return IntegrationFlow.from(MessageChannels.queue("pollable"))
                            .transform(transformer) // No 'poller' attribute because there is a default global poller
                            .channel("output")
                            .get();

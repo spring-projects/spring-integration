@@ -32,7 +32,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.messaging.Message;
@@ -105,7 +104,7 @@ public class FeedDslTests {
 
 		@Bean
 		public IntegrationFlow feedFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Feed.inboundAdapter(this.feedResource, "feedTest")
 									.metadataStore(metadataStore())
 									.preserveWireFeed(true),

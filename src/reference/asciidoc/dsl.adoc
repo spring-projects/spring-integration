@@ -11,7 +11,7 @@ We also use and support lambdas (available with Java 8) to further simplify Java
 
 The https://github.com/spring-projects/spring-integration-samples/tree/main/dsl/cafe-dsl[cafe] offers a good example of using the DSL.
 
-The DSL is  presented by the `IntegrationFlows` factory for the `IntegrationFlowBuilder`.
+The DSL is  presented by the `IntegrationFlow` fluent API (see `IntegrationFlowBuilder`).
 This produces the `IntegrationFlow` component, which should be registered as a Spring bean (by using the `@Bean` annotation).
 The builder pattern is used to express arbitrarily complex structures as a hierarchy of methods that can accept lambdas as arguments.
 
@@ -38,7 +38,7 @@ public class MyConfiguration {
 
     @Bean
     public IntegrationFlow myFlow() {
-        return IntegrationFlows.fromSupplier(integerSource()::getAndIncrement,
+        return IntegrationFlow.fromSupplier(integerSource()::getAndIncrement,
                                          c -> c.poller(Pollers.fixedRate(100)))
                     .channel("inputChannel")
                     .filter((Integer p) -> p > 0)
@@ -76,14 +76,14 @@ Conceptually, integration processes are constructed by composing these endpoints
 Note that EIP does not formally define the term 'message flow', but it is useful to think of it as a unit of work that uses well known messaging patterns.
 The DSL provides an `IntegrationFlow` component to define a composition of channels and endpoints between them, but now `IntegrationFlow` plays only the configuration role to populate real beans in the application context and is not used at runtime.
 However, the bean for `IntegrationFlow` can be autowired as a `Lifecycle` to control `start()` and `stop()` for the whole flow which is delegated to all the Spring Integration components associated with this `IntegrationFlow`.
-The following example uses the `IntegrationFlows` factory to define an `IntegrationFlow` bean by using EIP-methods from `IntegrationFlowBuilder`:
+The following example uses the `IntegrationFlow` fluent API to define an `IntegrationFlow` bean by using EIP-methods from `IntegrationFlowBuilder`:
 
 ====
 [source,java]
 ----
 @Bean
 public IntegrationFlow integerFlow() {
-    return IntegrationFlows.from("input")
+    return IntegrationFlow.from("input")
             .<String, Integer>transform(Integer::parseInt)
             .get();
 }
@@ -102,7 +102,7 @@ Consider another example:
 ----
 @Bean
 public IntegrationFlow myFlow() {
-    return IntegrationFlows.from("input")
+    return IntegrationFlow.from("input")
                 .filter("World"::equals)
                 .transform("Hello "::concat)
                 .handle(System.out::println)
@@ -190,7 +190,7 @@ public MessageChannel publishSubscribe() {
 
 @Bean
 public IntegrationFlow channelFlow() {
-    return IntegrationFlows.from("input")
+    return IntegrationFlow.from("input")
                 .fixedSubscriberChannel()
                 .channel("queueChannel")
                 .channel(publishSubscribe())
@@ -217,7 +217,7 @@ The following example is wrong:
 ----
 @Bean
 public IntegrationFlow startFlow() {
-    return IntegrationFlows.from("input")
+    return IntegrationFlow.from("input")
                 .transform(...)
                 .channel(MessageChannels.queue("queueChannel"))
                 .get();
@@ -225,7 +225,7 @@ public IntegrationFlow startFlow() {
 
 @Bean
 public IntegrationFlow endFlow() {
-    return IntegrationFlows.from(MessageChannels.queue("queueChannel"))
+    return IntegrationFlow.from(MessageChannels.queue("queueChannel"))
                 .handle(...)
                 .get();
 }
@@ -276,7 +276,7 @@ The following example demonstrates how to change the publishing thread from the 
 ----
 @Bean
 public IntegrationFlow reactiveEndpointFlow() {
-    return IntegrationFlows
+    return IntegrationFlow
             .from("inputChannel")
             .<String, Integer>transform(Integer::parseInt,
                     e -> e.reactive(flux -> flux.publishOn(Schedulers.parallel())))
@@ -298,7 +298,7 @@ Each of them has generic arguments, so it lets you configure an endpoint and eve
 ----
 @Bean
 public IntegrationFlow flow2() {
-    return IntegrationFlows.from(this.inputChannel)
+    return IntegrationFlow.from(this.inputChannel)
                 .transform(new PayloadSerializingTransformer(),
                        c -> c.autoStartup(false).id("payloadSerializingTransformer"))
                 .transform((Integer p) -> p * 2, c -> c.advice(this.expressionAdvice()))
@@ -342,7 +342,7 @@ The following example shows how to use it:
 ----
 @Bean
 public IntegrationFlow transformFlow() {
-    return IntegrationFlows.from("input")
+    return IntegrationFlow.from("input")
             .transform(Transformers.fromJson(MyPojo.class))
             .transform(Transformers.serializer())
             .get();
@@ -364,9 +364,9 @@ Also see <<java-dsl-class-cast>>.
 Typically, message flows start from an inbound channel adapter (such as `<int-jdbc:inbound-channel-adapter>`).
 The adapter is configured with `<poller>`, and it asks a `MessageSource<?>` to periodically produce messages.
 Java DSL allows for starting `IntegrationFlow` from a `MessageSource<?>`, too.
-For this purpose, the `IntegrationFlows` builder factory provides an overloaded `IntegrationFlows.from(MessageSource<?> messageSource)` method.
+For this purpose, the `IntegrationFlow` fluent API provides an overloaded `IntegrationFlow.from(MessageSource<?> messageSource)` method.
 You can configure the `MessageSource<?>` as a bean and provide it as an argument for that method.
-The second parameter of `IntegrationFlows.from()` is a `Consumer<SourcePollingChannelAdapterSpec>` lambda that lets you provide options (such as `PollerMetadata` or `SmartLifecycle`) for the `SourcePollingChannelAdapter`.
+The second parameter of `IntegrationFlow.from()` is a `Consumer<SourcePollingChannelAdapterSpec>` lambda that lets you provide options (such as `PollerMetadata` or `SmartLifecycle`) for the `SourcePollingChannelAdapter`.
 The following example shows how to use the fluent API and a lambda to create an `IntegrationFlow`:
 
 ====
@@ -379,7 +379,7 @@ public MessageSource<Object> jdbcMessageSource() {
 
 @Bean
 public IntegrationFlow pollingFlow() {
-    return IntegrationFlows.from(jdbcMessageSource(),
+    return IntegrationFlow.from(jdbcMessageSource(),
                 c -> c.poller(Pollers.fixedRate(100).maxMessagesPerPoll(1)))
             .transform(Transformers.toJson())
             .channel("furtherProcessChannel")
@@ -388,7 +388,7 @@ public IntegrationFlow pollingFlow() {
 ----
 ====
 
-For those cases that have no requirements to build `Message` objects directly, you can use a `IntegrationFlows.fromSupplier()` variant that is based on the `java.util.function.Supplier` .
+For those cases that have no requirements to build `Message` objects directly, you can use a `IntegrationFlow.fromSupplier()` variant that is based on the `java.util.function.Supplier` .
 The result of the `Supplier.get()` is automatically wrapped in a `Message` (if it is not already a `Message`).
 
 [[java-dsl-routers]]
@@ -411,7 +411,7 @@ The fluent API also provides `AbstractMappingMessageRouter` options such as `cha
 ----
 @Bean
 public IntegrationFlow routeFlowByLambda() {
-    return IntegrationFlows.from("routerInput")
+    return IntegrationFlow.from("routerInput")
             .<Integer, Boolean>route(p -> p % 2 == 0,
                     m -> m.suffix("Channel")
                             .channelMapping(true, "even")
@@ -429,7 +429,7 @@ The following example shows a simple expression-based router:
 ----
 @Bean
 public IntegrationFlow routeFlowByExpression() {
-    return IntegrationFlows.from("routerInput")
+    return IntegrationFlow.from("routerInput")
             .route("headers['destChannel']")
             .get();
 }
@@ -443,7 +443,7 @@ The `routeToRecipients()` method takes a `Consumer<RecipientListRouterSpec>`, as
 ----
 @Bean
 public IntegrationFlow recipientListFlow() {
-    return IntegrationFlows.from("recipientListInput")
+    return IntegrationFlow.from("recipientListInput")
             .<String, String>transform(p -> p.replaceFirst("Payload", ""))
             .routeToRecipients(r -> r
                     .recipient("thing1-channel", "'thing1' == payload")
@@ -482,7 +482,7 @@ The following example shows how to use the `split()` method by providing a lambd
 ----
 @Bean
 public IntegrationFlow splitFlow() {
-    return IntegrationFlows.from("splitInput")
+    return IntegrationFlow.from("splitInput")
               .split(s -> s.applySequence(false).delimiters(","))
               .channel(MessageChannels.executor(taskExecutor()))
               .get();
@@ -506,7 +506,7 @@ The following example shows a canonical example of the splitter-aggregator patte
 ----
 @Bean
 public IntegrationFlow splitAggregateFlow() {
-    return IntegrationFlows.from("splitAggregateInput")
+    return IntegrationFlow.from("splitAggregateInput")
             .split()
             .channel(MessageChannels.executor(this.taskExecutor()))
             .resequence()
@@ -550,7 +550,7 @@ Having that, we can define a flow as follows:
 ----
 @Bean
 public IntegrationFlow myFlow() {
-    return IntegrationFlows.from("flow3Input")
+    return IntegrationFlow.from("flow3Input")
         .<Integer>handle((p, h) -> p * 2)
         .get();
 }
@@ -569,7 +569,7 @@ The following example shows what the resulting `IntegrationFlow` might look like
 ----
 @Bean
 public IntegrationFlow integerFlow() {
-    return IntegrationFlows.from("input")
+    return IntegrationFlow.from("input")
             .<byte[], String>transform(p - > new String(p, "UTF-8"))
             .handle(Integer.class, (p, h) -> p * 2)
             .get();
@@ -590,7 +590,7 @@ public BytesToIntegerConverter bytesToIntegerConverter() {
 
 @Bean
 public IntegrationFlow integerFlow() {
-    return IntegrationFlows.from("input")
+    return IntegrationFlow.from("input")
              .handle(Integer.class, (p, h) -> p * 2)
             .get();
 }
@@ -619,7 +619,7 @@ Also, the `IntegrationFlow`-based methods allows calling existing `IntegrationFl
 ----
 @Bean
 IntegrationFlow someFlow() {
-        return IntegrationFlows
+        return IntegrationFlow
                 .from(...)
                 .gateway(subFlow())
                 .handle(...)
@@ -971,7 +971,7 @@ The following example shows how to use three of them (`Amqp`, `Jms`, and `Mail`)
 ----
 @Bean
 public IntegrationFlow amqpFlow() {
-    return IntegrationFlows.from(Amqp.inboundGateway(this.rabbitConnectionFactory, queue()))
+    return IntegrationFlow.from(Amqp.inboundGateway(this.rabbitConnectionFactory, queue()))
             .transform("hello "::concat)
             .transform(String.class, String::toUpperCase)
             .get();
@@ -979,7 +979,7 @@ public IntegrationFlow amqpFlow() {
 
 @Bean
 public IntegrationFlow jmsOutboundGatewayFlow() {
-    return IntegrationFlows.from("jmsOutboundGatewayChannel")
+    return IntegrationFlow.from("jmsOutboundGatewayChannel")
             .handle(Jms.outboundGateway(this.jmsConnectionFactory)
                         .replyContainer(c ->
                                     c.concurrentConsumers(3)
@@ -990,7 +990,7 @@ public IntegrationFlow jmsOutboundGatewayFlow() {
 
 @Bean
 public IntegrationFlow sendMailFlow() {
-    return IntegrationFlows.from("sendMailChannel")
+    return IntegrationFlow.from("sendMailChannel")
             .handle(Mail.outboundAdapter("localhost")
                             .port(smtpPort)
                             .credentials("user", "pw")
@@ -1024,7 +1024,7 @@ public QueueChannelSpec wrongMessagesChannel() {
 
 @Bean
 public IntegrationFlow xpathFlow(MessageChannel wrongMessagesChannel) {
-    return IntegrationFlows.from("inputChannel")
+    return IntegrationFlow.from("inputChannel")
             .filter(new StringValueTestXPathMessageSelector("namespace-uri(/*)", "my:namespace"),
                     e -> e.discardChannel(wrongMessagesChannel))
             .log(LoggingHandler.Level.ERROR, "test.category", m -> m.getHeaders().getId())
@@ -1200,7 +1200,7 @@ Flux<Message<?>> messageFlux =
 QueueChannel resultChannel = new QueueChannel();
 
 IntegrationFlow integrationFlow =
-    IntegrationFlows.from(messageFlux)
+    IntegrationFlow.from(messageFlux)
         .<Integer, Integer>transform(p -> p * 2)
         .channel(resultChannel)
         .get();
@@ -1274,7 +1274,7 @@ public interface ControlBusGateway {
 
 @Bean
 public IntegrationFlow controlBusFlow() {
-    return IntegrationFlows.from(ControlBusGateway.class)
+    return IntegrationFlow.from(ControlBusGateway.class)
             .controlBus()
             .get();
 }
@@ -1287,7 +1287,7 @@ Nevertheless, the `requestChannel` is ignored and overridden with that internal 
 Otherwise, creating such a configuration by using `IntegrationFlow` does not make sense.
 
 By default, a `GatewayProxyFactoryBean` gets a conventional bean name, such as `[FLOW_BEAN_NAME.gateway]`.
-You can change that ID by using the `@MessagingGateway.name()` attribute or the overloaded `IntegrationFlows.from(Class<?> serviceInterface, Consumer<GatewayProxySpec> endpointConfigurer)` factory method.
+You can change that ID by using the `@MessagingGateway.name()` attribute or the overloaded `IntegrationFlow.from(Class<?> serviceInterface, Consumer<GatewayProxySpec> endpointConfigurer)` factory method.
 Also, all the attributes from the `@MessagingGateway` annotation on the interface are applied to the target `GatewayProxyFactoryBean`.
 When annotation configuration is not applicable, the `Consumer<GatewayProxySpec>` variant can be used for providing appropriate option for the target proxy.
 This DSL method is available starting with version 5.2.
@@ -1299,7 +1299,7 @@ With Java 8, you can even create an integration gateway with the `java.util.func
 ----
 @Bean
 public IntegrationFlow errorRecovererFlow() {
-    return IntegrationFlows.from(Function.class, (gateway) -> gateway.beanName("errorRecovererFunction"))
+    return IntegrationFlow.from(Function.class, (gateway) -> gateway.beanName("errorRecovererFunction"))
             .handle((GenericHandler<?>) (p, h) -> {
                 throw new RuntimeException("intentional");
             }, e -> e.advice(retryAdvice()))
@@ -1387,21 +1387,21 @@ The input channel of any endpoint in the flow can be used to send messages from 
 Furthermore, with a `@MessagingGateway` contract, Content Enricher components, composite endpoints like a `<chain>`, and now with `IntegrationFlow` beans (e.g. `IntegrationFlowAdapter`), it is straightforward enough to distribute the business logic between shorter, reusable parts.
 All that is needed for the final composition is knowledge about a `MessageChannel` to send to or receive from.
 
-Starting with version `5.5.4`, to abstract more from `MessageChannel` and hide implementation details from the end-user, the `IntegrationFlows` introduces the `from(IntegrationFlow)` factory method to allow starting the current `IntegrationFlow` from the output of an existing flow:
+Starting with version `5.5.4`, to abstract more from `MessageChannel` and hide implementation details from the end-user, the `IntegrationFlow` introduces the `from(IntegrationFlow)` factory method to allow starting the current `IntegrationFlow` from the output of an existing flow:
 
 ====
 [source,java]
 ----
 @Bean
 IntegrationFlow templateSourceFlow() {
-    return IntegrationFlows.fromSupplier(() -> "test data")
+    return IntegrationFlow.fromSupplier(() -> "test data")
             .channel("sourceChannel")
             .get();
 }
 
 @Bean
 IntegrationFlow compositionMainFlow(IntegrationFlow templateSourceFlow) {
-    return IntegrationFlows.from(templateSourceFlow)
+    return IntegrationFlow.from(templateSourceFlow)
             .<String, String>transform(String::toUpperCase)
             .channel(c -> c.queue("compositionMainFlowResult"))
             .get();

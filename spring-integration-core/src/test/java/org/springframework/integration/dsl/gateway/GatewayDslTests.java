@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
@@ -174,7 +173,7 @@ public class GatewayDslTests {
 
 		@Bean
 		public IntegrationFlow gatewayFlow() {
-			return IntegrationFlows.from("gatewayInput")
+			return IntegrationFlow.from("gatewayInput")
 					.gateway("gatewayRequest", g -> g.errorChannel("gatewayError").replyTimeout(10L))
 					.gateway((f) -> f.transform("From Gateway SubFlow: "::concat))
 					.get();
@@ -182,7 +181,7 @@ public class GatewayDslTests {
 
 		@Bean
 		public IntegrationFlow gatewayRequestFlow() {
-			return IntegrationFlows.from("gatewayRequest")
+			return IntegrationFlow.from("gatewayRequest")
 					.filter("foo"::equals, (f) -> f.throwExceptionOnRejection(true))
 					.<String, String>transform(String::toUpperCase)
 					.get();
@@ -207,7 +206,7 @@ public class GatewayDslTests {
 
 		@Bean
 		public IntegrationFlow functionGateway() {
-			return IntegrationFlows.from(MessageFunction.class,
+			return IntegrationFlow.from(MessageFunction.class,
 					(gateway) -> gateway
 							.header("gatewayMethod", MethodArgsHolder::getMethod)
 							.header("gatewayArgs", MethodArgsHolder::getArgs)
@@ -219,7 +218,7 @@ public class GatewayDslTests {
 
 		@Bean
 		public IntegrationFlow routingGatewayFlow() {
-			return IntegrationFlows.from(RoutingGateway.class,
+			return IntegrationFlow.from(RoutingGateway.class,
 					(gateway) -> gateway.beanName("routingGateway").header("gatewayMethod", MethodArgsHolder::getMethod))
 					.route(Message.class, (message) ->
 									message.getHeaders().get("gatewayMethod", Method.class).getName(),

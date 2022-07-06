@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowBuilder;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.support.MessageBuilder;
@@ -161,7 +160,7 @@ public class AmqpTests {
 
 	@Test
 	public void testTemplateChannelTransacted() {
-		IntegrationFlowBuilder flow = IntegrationFlows.from(Amqp.channel("testTemplateChannelTransacted",
+		IntegrationFlowBuilder flow = IntegrationFlow.from(Amqp.channel("testTemplateChannelTransacted",
 				this.rabbitConnectionFactory)
 				.autoStartup(false)
 				.templateChannelTransacted(true));
@@ -235,7 +234,7 @@ public class AmqpTests {
 	@Test
 	void testContentTypeOverrideWithReplyHeadersMappedLast() {
 		IntegrationFlow testFlow =
-				IntegrationFlows
+				IntegrationFlow
 						.from(Amqp.inboundGateway(this.rabbitConnectionFactory, this.amqpQueue2)
 								.replyHeadersMappedLast(true))
 						.transform(Transformers.fromJson())
@@ -300,7 +299,7 @@ public class AmqpTests {
 
 		@Bean
 		public IntegrationFlow amqpFlow(ConnectionFactory rabbitConnectionFactory, AmqpTemplate amqpTemplate) {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Amqp.inboundGateway(rabbitConnectionFactory, amqpTemplate, queue())
 							.id("amqpInboundGateway")
 							.configureContainer(c -> c
@@ -315,7 +314,7 @@ public class AmqpTests {
 
 		// syntax only
 		public IntegrationFlow amqpDMLCFlow(ConnectionFactory rabbitConnectionFactory, AmqpTemplate amqpTemplate) {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Amqp.inboundGateway(new DirectMessageListenerContainer())
 							.id("amqpInboundGateway")
 							.configureContainer(c -> c
@@ -329,7 +328,7 @@ public class AmqpTests {
 
 		@Bean
 		public IntegrationFlow amqpOutboundFlow(ConnectionFactory rabbitConnectionFactory, AmqpTemplate amqpTemplate) {
-			return IntegrationFlows.from(Amqp.channel("amqpOutboundInput", rabbitConnectionFactory))
+			return IntegrationFlow.from(Amqp.channel("amqpOutboundInput", rabbitConnectionFactory))
 					.handle(Amqp.outboundAdapter(amqpTemplate).routingKeyExpression("headers.routingKey"))
 					.get();
 		}
@@ -346,7 +345,7 @@ public class AmqpTests {
 
 		@Bean
 		public IntegrationFlow amqpInboundFlow(ConnectionFactory rabbitConnectionFactory) {
-			return IntegrationFlows.from(Amqp.inboundAdapter(rabbitConnectionFactory, fooQueue())
+			return IntegrationFlow.from(Amqp.inboundAdapter(rabbitConnectionFactory, fooQueue())
 						.configureContainer(container -> container.consumerBatchEnabled(true)
 								.batchSize(2))
 						.batchMode(BatchMode.EXTRACT_PAYLOADS)
@@ -384,7 +383,7 @@ public class AmqpTests {
 
 		@Bean
 		public IntegrationFlow inboundWithExceptionFlow(ConnectionFactory cf) {
-			return IntegrationFlows.from(Amqp.inboundAdapter(cf, exQueue())
+			return IntegrationFlow.from(Amqp.inboundAdapter(cf, exQueue())
 					.configureContainer(c -> c.defaultRequeueRejected(false))
 					.errorChannel("errors.input"))
 					.handle(m -> {
@@ -421,7 +420,7 @@ public class AmqpTests {
 
 		@Bean
 		public IntegrationFlow inboundWithConvExceptionFlow(ConnectionFactory cf) {
-			return IntegrationFlows.from(Amqp.inboundAdapter(cf, exConvQueue())
+			return IntegrationFlow.from(Amqp.inboundAdapter(cf, exConvQueue())
 					.configureContainer(c -> c.defaultRequeueRejected(false))
 					.messageConverter(new SimpleMessageConverter() {
 

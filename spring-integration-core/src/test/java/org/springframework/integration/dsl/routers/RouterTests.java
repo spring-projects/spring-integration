@@ -44,7 +44,6 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.store.MessageGroup;
@@ -639,7 +638,7 @@ public class RouterTests {
 
 		@Bean
 		public IntegrationFlow routeFlow() {
-			return IntegrationFlows.from("routerInput")
+			return IntegrationFlow.from("routerInput")
 					.<Integer, Boolean>route(p -> p % 2 == 0,
 							m -> m.channelMapping(true, evenChannel())
 									.subFlowMapping(false, f ->
@@ -702,7 +701,7 @@ public class RouterTests {
 
 		@Bean
 		public IntegrationFlow recipientListFlow() {
-			return IntegrationFlows.from("recipientListInput")
+			return IntegrationFlow.from("recipientListInput")
 					.<String, String>transform(p -> p.replaceFirst("Payload", ""))
 					.routeToRecipients(r -> r
 							.recipient("foo-channel", "'foo' == payload")
@@ -729,14 +728,14 @@ public class RouterTests {
 
 		@Bean
 		public IntegrationFlow routeMethodInvocationFlow() {
-			return IntegrationFlows.from("routerMethodInput")
+			return IntegrationFlow.from("routerMethodInput")
 					.route("routingTestBean", "routeMessage")
 					.get();
 		}
 
 		@Bean
 		public IntegrationFlow routeMethodInvocationFlow2() {
-			return IntegrationFlows.from("routerMethod2Input")
+			return IntegrationFlow.from("routerMethod2Input")
 					.route(new RoutingTestBean())
 					.get();
 		}
@@ -748,7 +747,7 @@ public class RouterTests {
 
 		@Bean
 		public IntegrationFlow routeMultiMethodInvocationFlow() {
-			return IntegrationFlows.from("routerMultiInput")
+			return IntegrationFlow.from("routerMultiInput")
 					.route(String.class, p -> p.equals("foo") || p.equals("bar")
 									? new String[]{ "foo", "bar" }
 									: null,
@@ -918,7 +917,7 @@ public class RouterTests {
 
 		@Bean
 		public IntegrationFlow propagateErrorFromGatherer(TaskExecutor taskExecutor) {
-			return IntegrationFlows.from(Function.class)
+			return IntegrationFlow.from(Function.class)
 					.scatterGather(s -> s
 									.recipientFlow(subFlow -> subFlow
 											.channel(c -> c.executor(taskExecutor))

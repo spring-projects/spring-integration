@@ -122,7 +122,7 @@ See <<./splitter.adoc#split-stream-and-flux,Stream and Flux Splitting>> and <<./
 
 === Java DSL
 
-An `IntegrationFlow` in Java DSL can start from any `Publisher` instance (see `IntegrationFlows.from(Publisher<Message<T>>)`).
+An `IntegrationFlow` in Java DSL can start from any `Publisher` instance (see `IntegrationFlow.from(Publisher<Message<T>>)`).
 Also, with an `IntegrationFlowBuilder.toReactivePublisher()` operator, the `IntegrationFlow` can be turned into a reactive hot source.
 A `FluxMessageChannel` is used internally in both cases; it can subscribe to an inbound `Publisher` according to its `ReactiveStreamsSubscribableChannel` contract and it is a `Publisher<Message<?>>` by itself for downstream subscribers.
 With a dynamic `IntegrationFlow` registration we can implement a powerful logic combining Reactive Streams with this integration flow bridging to/from `Publisher`.
@@ -205,7 +205,7 @@ public class MainFlow {
   
   @Bean
   public IntegrationFlow buildFlow() {
-     return IntegrationFlows.from(customReactiveMessageProducer)
+     return IntegrationFlow.from(customReactiveMessageProducer)
         .channel(outputChannel)
         .get();
   }
@@ -221,7 +221,7 @@ Or in a declarative way:
 public class MainFlow {  
   @Bean
   public IntegrationFlow buildFlow() {
-     return IntegrationFlows.from(new CustomReactiveMessageProducer(new CustomReactiveSource()))
+     return IntegrationFlow.from(new CustomReactiveMessageProducer(new CustomReactiveSource()))
         .handle(outputChannel)
         .get();
   }
@@ -243,7 +243,7 @@ public class MainFlow {
                     .withPayload(event.getBody())
                     .setHeader(MyReactiveHeaders.SOURCE_NAME, event.getSourceName())
                     .build());
-     return IntegrationFlows.from(myFlux)
+     return IntegrationFlow.from(myFlux)
         .handle(outputChannel)
         .get();
   }
@@ -317,7 +317,7 @@ public class MainFlow {
   
   @Bean
   public IntegrationFlow buildFlow() {
-     return IntegrationFlows.from(customReactiveMessageProducer)
+     return IntegrationFlow.from(customReactiveMessageProducer)
         .transform(someOperation)
         .handle(customReactiveMessageHandler)
         .get();

@@ -687,7 +687,7 @@ public PollableChannel priorityQueue(BasicMessageGroupStore mongoDbChannelMessag
 ----
 @Bean
 public IntegrationFlow priorityFlow(PriorityCapableChannelMessageStore mongoDbChannelMessageStore) {
-    return IntegrationFlows.from((Channels c) ->
+    return IntegrationFlow.from((Channels c) ->
             c.priority("priorityChannel", mongoDbChannelMessageStore, "priorityGroup"))
             ....
             .get();

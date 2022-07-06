@@ -98,7 +98,7 @@ public class LoggingJavaApplication {
 
     @Bean
     public IntegrationFlow loggingFlow() {
-        return IntegrationFlows.from(MyGateway.class)
+        return IntegrationFlow.from(MyGateway.class)
                      .log(LoggingHandler.Level.DEBUG, "TEST_LOGGER",
                            m -> m.getHeaders().getId() + ": " + m.getPayload());
     }

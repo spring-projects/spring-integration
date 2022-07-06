@@ -290,7 +290,7 @@ The following example shows how to configure a RSocket inbound gateway with the 
 ----
 @Bean
 public IntegrationFlow rsocketUpperCaseFlow() {
-    return IntegrationFlows
+    return IntegrationFlow
         .from(RSockets.inboundGateway("/uppercase")
                    .interactionModels(RSocketInteractionModel.requestChannel))
         .<Flux<String>, Mono<String>>transform((flux) -> flux.next().map(String::toUpperCase))
@@ -332,7 +332,7 @@ The following example shows how to configure a RSocket outbound gateway with the
 ----
 @Bean
 public IntegrationFlow rsocketUpperCaseRequestFlow(ClientRSocketConnector clientRSocketConnector) {
-    return IntegrationFlows
+    return IntegrationFlow
         .from(Function.class)
         .handle(RSockets.outboundGateway("/uppercase")
             .interactionModel(RSocketInteractionModel.requestResponse)

@@ -464,7 +464,7 @@ First, you can define the router object as shown in the preceding example:
 ----
 @Bean
 public IntegrationFlow routerFlow1() {
-    return IntegrationFlows.from("routingChannel")
+    return IntegrationFlow.from("routingChannel")
             .route(router())
             .get();
 }
@@ -487,7 +487,7 @@ Second, you can define the routing function within the DSL flow itself, as the f
 ----
 @Bean
 public IntegrationFlow routerFlow2() {
-    return IntegrationFlows.from("routingChannel")
+    return IntegrationFlow.from("routingChannel")
             .<Object, Class<?>>route(Object::getClass, m -> m
                     .channelMapping(String.class, "stringChannel")
                     .channelMapping(Integer.class, "integerChannel"))
@@ -555,7 +555,7 @@ First, you can define the router object as shown in the preceding example:
 ----
 @Bean
 public IntegrationFlow routerFlow1() {
-    return IntegrationFlows.from("routingChannel")
+    return IntegrationFlow.from("routingChannel")
             .route(router())
             .get();
 }
@@ -579,7 +579,7 @@ Second, you can define the routing function within the DSL flow itself, as the f
 ----
 @Bean
 public IntegrationFlow routerFlow2() {
-    return IntegrationFlows.from("routingChannel")
+    return IntegrationFlow.from("routingChannel")
             .route(Message.class, m -> m.getHeaders().get("testHeader", String.class),
                     m -> m
                         .channelMapping("someHeaderValue", "channelA")
@@ -673,7 +673,7 @@ The following example shows the equivalent router configured by using the Java D
 ----
 @Bean
 public IntegrationFlow routerFlow() {
-    return IntegrationFlows.from("routingChannel")
+    return IntegrationFlow.from("routingChannel")
             .routeToRecipients(r -> r
                     .applySequence(true)
                     .ignoreSendFailures(true)
@@ -861,7 +861,7 @@ The following example shows the equivalent router configured by using the Java D
 ----
 @Bean
 public IntegrationFlow routerFlow() {
-    return IntegrationFlows.from("routingChannel")
+    return IntegrationFlow.from("routingChannel")
             .route(myCustomRouter())
             .get();
 }
@@ -886,7 +886,7 @@ Alternately, you can route on data from the message payload, as the following ex
 ----
 @Bean
 public IntegrationFlow routerFlow() {
-    return IntegrationFlows.from("routingChannel")
+    return IntegrationFlow.from("routingChannel")
             .route(String.class, p -> p.contains("foo") ? "fooChannel" : "barChannel")
             .get();
 }
@@ -938,7 +938,7 @@ The following example shows the equivalent router configured in the Java DSL:
 ----
 @Bean
 public IntegrationFlow routerFlow() {
-    return IntegrationFlows.from("routingChannel")
+    return IntegrationFlow.from("routingChannel")
         .route("payload.paymentType", r -> r
             .channelMapping("CASH", "cashPaymentChannel")
             .channelMapping("CREDIT", "authorizePaymentChannel")

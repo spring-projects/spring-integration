@@ -47,6 +47,11 @@ The `AggregatingMessageHandler` now does not split a `Collection<Message<?>>` re
 
 See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 
+The `IntegrationFlows` factory is now marked as deprecated in favor of the fluent API available in the `IntegrationFlow` interface itself.
+The factory class will be removed in the future releases.
+
+See <<./dsl.adoc#java-dsl,Java DSL>> for more information.
+
 [[x6.0-http]]
 === HTTP Changes
 
@@ -71,6 +76,10 @@ See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
 
 The `DefaultLockRepository` can now be supplied with a `PlatformTransactionManager` instead of relying on the primary bean from the application context.
 
+See <<./jdbc.adoc#jdbc-lock-registry,JDBC Lock Registry>> for more information.
+
 === TCP/IP Changes
 
 The `lookupHost` property of the `AbstractConnectionFactory` and `DatagramPacketMessageMapper` is now set to `false` by default to avoid delays in the environments where DNS is not configured.
+
+See <<./ip.adoc#ip,TCP and UDP Support>> for more information.

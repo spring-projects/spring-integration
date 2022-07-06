@@ -61,7 +61,7 @@ GraphQlMessageHandler handler(ExecutionGraphQlService graphQlService) {
 
 @Bean
 IntegrationFlow graphqlQueryMessageHandlerFlow(GraphQlMessageHandler handler) {
-    return IntegrationFlows.from(MessageChannels.flux("inputChannel"))
+    return IntegrationFlow.from(MessageChannels.flux("inputChannel"))
             .handle(handler)
             .channel(c -> c.flux("resultChannel"))
             .get();

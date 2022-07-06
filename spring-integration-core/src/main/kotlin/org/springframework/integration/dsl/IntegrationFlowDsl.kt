@@ -38,8 +38,8 @@ fun integrationFlow(flow: KotlinIntegrationFlowDefinition.() -> Unit) =
 		}
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -
- * `IntegrationFlows.from(Class<?>, Consumer<GatewayProxySpec>)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from] -
+ * `IntegrationFlow.from(Class<?>, Consumer<GatewayProxySpec>)` factory method.
  *
  * @author Artem Bilan
  */
@@ -47,121 +47,121 @@ inline fun <reified T> integrationFlow(
 		crossinline gateway: GatewayProxySpec.() -> Unit = {},
 		flow: KotlinIntegrationFlowDefinition.() -> Unit): IntegrationFlow {
 
-	val flowBuilder = IntegrationFlows.from(T::class.java) { gateway(it) }
+	val flowBuilder = IntegrationFlow.from(T::class.java) { gateway(it) }
 	KotlinIntegrationFlowDefinition(flowBuilder).flow()
 	return flowBuilder.get()
 }
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -
- * `IntegrationFlows.from(String, Boolean)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from] -
+ * `IntegrationFlow.from(String, Boolean)` factory method.
  *
  * @author Artem Bilan
  */
 fun integrationFlow(channelName: String, fixedSubscriber: Boolean = false,
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.from(channelName, fixedSubscriber), flow)
+		buildIntegrationFlow(IntegrationFlow.from(channelName, fixedSubscriber), flow)
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -
- * `IntegrationFlows.from(MessageChannel)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from] -
+ * `IntegrationFlow.from(MessageChannel)` factory method.
  *
  * @author Artem Bilan
  */
 fun integrationFlow(channel: MessageChannel, flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.from(channel), flow)
+		buildIntegrationFlow(IntegrationFlow.from(channel), flow)
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from]  -
- * `IntegrationFlows.from(MessageSource<*>, Consumer<SourcePollingChannelAdapterSpec>)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from]  -
+ * `IntegrationFlow.from(MessageSource<*>, Consumer<SourcePollingChannelAdapterSpec>)` factory method.
  *
  * @author Artem Bilan
  */
 fun integrationFlow(messageSource: MessageSource<*>,
 					options: SourcePollingChannelAdapterSpec.() -> Unit = {},
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.from(messageSource) { options(it) }, flow)
+		buildIntegrationFlow(IntegrationFlow.from(messageSource) { options(it) }, flow)
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from]  -
- * `IntegrationFlows.from(MessageSourceSpec<*>, Consumer<SourcePollingChannelAdapterSpec>)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from]  -
+ * `IntegrationFlow.from(MessageSourceSpec<*>, Consumer<SourcePollingChannelAdapterSpec>)` factory method.
  *
  * @author Artem Bilan
  */
 fun integrationFlow(messageSource: MessageSourceSpec<*, out MessageSource<*>>,
 					options: SourcePollingChannelAdapterSpec.() -> Unit = {},
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.from(messageSource, options), flow)
+		buildIntegrationFlow(IntegrationFlow.from(messageSource, options), flow)
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -
- * `IntegrationFlows.from(Supplier<*>, Consumer<SourcePollingChannelAdapterSpec>)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from] -
+ * `IntegrationFlow.from(Supplier<*>, Consumer<SourcePollingChannelAdapterSpec>)` factory method.
  *
  * @author Artem Bilan
  */
 fun integrationFlow(source: () -> Any,
 					options: SourcePollingChannelAdapterSpec.() -> Unit = {},
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.fromSupplier(source, options), flow)
+		buildIntegrationFlow(IntegrationFlow.fromSupplier(source, options), flow)
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -
- * `IntegrationFlows.from(Publisher<out Message<*>>)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from] -
+ * `IntegrationFlow.from(Publisher<out Message<*>>)` factory method.
  *
  * @author Artem Bilan
  */
 fun integrationFlow(publisher: Publisher<out Message<*>>,
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.from(publisher), flow)
+		buildIntegrationFlow(IntegrationFlow.from(publisher), flow)
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -
- * `IntegrationFlows.from(MessagingGatewaySupport)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from] -
+ * `IntegrationFlow.from(MessagingGatewaySupport)` factory method.
  *
  * @author Artem Bilan
  */
 fun integrationFlow(gateway: MessagingGatewaySupport,
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.from(gateway), flow)
+		buildIntegrationFlow(IntegrationFlow.from(gateway), flow)
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -
- * `IntegrationFlows.from(MessagingGatewaySpec<*, *>)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from] -
+ * `IntegrationFlow.from(MessagingGatewaySpec<*, *>)` factory method.
  *
  * @author Artem Bilan
  */
 fun integrationFlow(gatewaySpec: MessagingGatewaySpec<*, *>,
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.from(gatewaySpec), flow)
+		buildIntegrationFlow(IntegrationFlow.from(gatewaySpec), flow)
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -
- * `IntegrationFlows.from(MessageProducerSupport)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from] -
+ * `IntegrationFlow.from(MessageProducerSupport)` factory method.
  *
  * @author Artem Bilan
  */
 fun integrationFlow(producer: MessageProducerSupport,
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.from(producer), flow)
+		buildIntegrationFlow(IntegrationFlow.from(producer), flow)
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -
- * `IntegrationFlows.from(MessageProducerSpec<*, *>)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from] -
+ * `IntegrationFlow.from(MessageProducerSpec<*, *>)` factory method.
  *
  * @author Artem Bilan
  */
 fun integrationFlow(producerSpec: MessageProducerSpec<*, *>,
 					flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-		buildIntegrationFlow(IntegrationFlows.from(producerSpec), flow)
+		buildIntegrationFlow(IntegrationFlow.from(producerSpec), flow)
 
 /**
- * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlows.from] -
- * `IntegrationFlows.from(IntegrationFlow)` factory method.
+ * Functional [IntegrationFlow] definition in Kotlin DSL for [IntegrationFlow.from] -
+ * `IntegrationFlow.from(IntegrationFlow)` factory method.
  *
  * @author Artem Bilan
  *
  * @since 5.5.8
  */
 fun integrationFlow(sourceFlow: IntegrationFlow, flow: KotlinIntegrationFlowDefinition.() -> Unit) =
-	buildIntegrationFlow(IntegrationFlows.from(sourceFlow), flow)
+	buildIntegrationFlow(IntegrationFlow.from(sourceFlow), flow)
 

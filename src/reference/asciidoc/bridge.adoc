@@ -119,7 +119,7 @@ You can use the Java Domain Specific Language (DSL) to configure a bridge, as th
 ----
 @Bean
 public IntegrationFlow bridgeFlow() {
-    return IntegrationFlows.from("polled")
+    return IntegrationFlow.from("polled")
             .bridge(e -> e.poller(Pollers.fixedDelay(5000).maxMessagesPerPoll(10)))
             .channel("direct")
             .get();

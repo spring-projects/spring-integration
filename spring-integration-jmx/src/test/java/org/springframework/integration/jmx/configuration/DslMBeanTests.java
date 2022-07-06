@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
@@ -63,7 +62,7 @@ public class DslMBeanTests {
 		assertThat(query).hasSize(0);
 
 		IntegrationFlow dynamicFlow =
-				IntegrationFlows.fromSupplier(() -> "foo", e -> e.poller(p -> p.fixedDelay(1000)))
+				IntegrationFlow.fromSupplier(() -> "foo", e -> e.poller(p -> p.fixedDelay(1000)))
 						.channel("channelTwo")
 						.nullChannel();
 
@@ -105,7 +104,7 @@ public class DslMBeanTests {
 
 		@Bean
 		public IntegrationFlow staticFlow() {
-			return IntegrationFlows.from("channelOne")
+			return IntegrationFlow.from("channelOne")
 					.nullChannel();
 		}
 

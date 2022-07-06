@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.MailHeaders;
@@ -203,7 +202,7 @@ public class MailTests {
 
 		@Bean
 		public IntegrationFlow sendMailFlow() {
-			return IntegrationFlows.from("sendMailChannel")
+			return IntegrationFlow.from("sendMailChannel")
 					.enrichHeaders(Mail.headers()
 							.subjectFunction(m -> "foo")
 							.from("foo@bar")
@@ -219,7 +218,7 @@ public class MailTests {
 
 		@Bean
 		public IntegrationFlow pop3MailFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Mail.pop3InboundAdapter("localhost", mailServer.getPop3().getPort(), "popuser", "pw")
 									.javaMailProperties(p -> p.put("mail.debug", "false"))
 									.autoCloseFolder(true)
@@ -233,7 +232,7 @@ public class MailTests {
 
 		@Bean
 		public IntegrationFlow imapMailFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Mail.imapInboundAdapter("imap://imapuser:pw@localhost:" + mailServer.getImap().getPort() + "/INBOX")
 									.searchTermStrategy(this::fromAndNotSeenTerm)
 									.userFlag("testSIUserFlag")
@@ -248,7 +247,7 @@ public class MailTests {
 
 		@Bean
 		public IntegrationFlow imapIdleFlow() {
-			return IntegrationFlows
+			return IntegrationFlow
 					.from(Mail.imapIdleAdapter("imap://imapidleuser:pw@localhost:" + mailServer.getImap().getPort() + "/INBOX")
 							.autoStartup(true)
 							.searchTermStrategy(this::fromAndNotSeenTerm)

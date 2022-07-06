@@ -415,7 +415,7 @@ WebSocketInboundChannelAdapter webSocketInboundChannelAdapter =
 QueueChannel dynamicRequestsChannel = new QueueChannel();
 
 IntegrationFlow serverFlow =
-       IntegrationFlows.from(webSocketInboundChannelAdapter)
+       IntegrationFlow.from(webSocketInboundChannelAdapter)
                .channel(dynamicRequestsChannel)
                .get();
 
