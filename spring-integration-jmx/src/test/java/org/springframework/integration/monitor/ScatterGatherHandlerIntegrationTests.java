@@ -333,21 +333,9 @@ public class ScatterGatherHandlerIntegrationTests {
 			return new DirectChannel();
 		}
 
-		@Bean
-		@ServiceActivator(inputChannel = "serviceChannel2")
-		public MessageHandler service2() {
-			return new AbstractReplyProducingMessageHandler() {
-
-				{
-					setOutputChannel(gatherChannel());
-				}
-
-				@Override
-				protected Object handleRequestMessage(Message<?> requestMessage) {
-					return Math.random();
-				}
-
-			};
+		@ServiceActivator(inputChannel = "serviceChannel2", outputChannel = "gatherChannel")
+		public double service2() {
+			return Math.random();
 		}
 
 	}
