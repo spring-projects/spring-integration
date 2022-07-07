@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -336,21 +336,9 @@ public class ScatterGatherHandlerIntegrationTests {
 			return new DirectChannel();
 		}
 
-		@Bean
-		@ServiceActivator(inputChannel = "serviceChannel2")
-		public MessageHandler service2() {
-			return new AbstractReplyProducingMessageHandler() {
-
-				{
-					setOutputChannel(gatherChannel());
-				}
-
-				@Override
-				protected Object handleRequestMessage(Message<?> requestMessage) {
-					return Math.random();
-				}
-
-			};
+		@ServiceActivator(inputChannel = "serviceChannel2", outputChannel = "gatherChannel")
+		public double service2() {
+			return Math.random();
 		}
 
 	}
