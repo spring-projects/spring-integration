@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -85,7 +86,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 			adviceApplied.set(true);
 			return invocation.proceed();
 		});
-		pollerMetadata.setTrigger(new PeriodicTrigger(5000));
+		pollerMetadata.setTrigger(new PeriodicTrigger(Duration.ofSeconds(5)));
 		pollerMetadata.setMaxMessagesPerPoll(1);
 		pollerMetadata.setAdviceChain(adviceChain);
 		factoryBean.setPollerMetadata(pollerMetadata);
@@ -115,7 +116,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 			adviceApplied.set(true);
 			return invocation.proceed();
 		});
-		pollerMetadata.setTrigger(new PeriodicTrigger(5000));
+		pollerMetadata.setTrigger(new PeriodicTrigger(Duration.ofSeconds(5)));
 		pollerMetadata.setMaxMessagesPerPoll(1);
 		final AtomicInteger count = new AtomicInteger();
 		final MethodInterceptor txAdvice = mock(MethodInterceptor.class);
@@ -232,7 +233,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		SourcePollingChannelAdapter pollingChannelAdapter = new SourcePollingChannelAdapter();
 		pollingChannelAdapter.setTaskScheduler(taskScheduler);
 		pollingChannelAdapter.setSource(() -> new GenericMessage<>("test"));
-		pollingChannelAdapter.setTrigger(new PeriodicTrigger(1));
+		pollingChannelAdapter.setTrigger(new PeriodicTrigger(Duration.ofMillis(1)));
 		pollingChannelAdapter.setMaxMessagesPerPoll(0);
 		QueueChannel outputChannel = new QueueChannel();
 		pollingChannelAdapter.setOutputChannel(outputChannel);

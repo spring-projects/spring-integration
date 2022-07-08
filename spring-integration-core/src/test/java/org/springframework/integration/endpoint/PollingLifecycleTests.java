@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -85,7 +86,7 @@ public class PollingLifecycleTests {
 
 		});
 		PollingConsumer consumer = new PollingConsumer(channel, handler);
-		consumer.setTrigger(new PeriodicTrigger(0));
+		consumer.setTrigger(new PeriodicTrigger(Duration.ZERO));
 		consumer.setErrorHandler(errorHandler);
 		consumer.setTaskScheduler(taskScheduler);
 		consumer.setBeanFactory(mock(BeanFactory.class));
@@ -107,7 +108,7 @@ public class PollingLifecycleTests {
 
 		SourcePollingChannelAdapterFactoryBean adapterFactory = new SourcePollingChannelAdapterFactoryBean();
 		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
+		pollerMetadata.setTrigger(new PeriodicTrigger(Duration.ofSeconds(2)));
 		adapterFactory.setPollerMetadata(pollerMetadata);
 
 		//Has to be an explicit implementation - Mockito cannot mock/spy lambdas
@@ -140,7 +141,7 @@ public class PollingLifecycleTests {
 		SourcePollingChannelAdapterFactoryBean adapterFactory = new SourcePollingChannelAdapterFactoryBean();
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(-1);
-		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
+		pollerMetadata.setTrigger(new PeriodicTrigger(Duration.ofSeconds(2)));
 		adapterFactory.setPollerMetadata(pollerMetadata);
 		final Runnable caughtInterrupted = mock(Runnable.class);
 		final CountDownLatch interruptedLatch = new CountDownLatch(1);
@@ -180,7 +181,7 @@ public class PollingLifecycleTests {
 		adapterFactory.setOutputChannel(new NullChannel());
 		adapterFactory.setBeanFactory(mock(ConfigurableBeanFactory.class));
 		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
+		pollerMetadata.setTrigger(new PeriodicTrigger(Duration.ofSeconds(2)));
 		adapterFactory.setPollerMetadata(pollerMetadata);
 
 		final AtomicBoolean startInvoked = new AtomicBoolean();

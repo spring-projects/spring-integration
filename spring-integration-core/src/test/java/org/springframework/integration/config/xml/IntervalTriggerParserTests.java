@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,53 +18,45 @@ package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.time.Duration;
 
-import org.springframework.beans.DirectFieldAccessor;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Marius Bogoevici
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class IntervalTriggerParserTests {
 
 	@Autowired
-	ApplicationContext context;
+	PollerMetadata pollerWithFixedRateAttribute;
+
+	@Autowired
+	PollerMetadata pollerWithFixedDelayAttribute;
 
 	@Test
 	public void testFixedRateTrigger() {
-		Object poller = context.getBean("pollerWithFixedRateAttribute");
-		assertThat(poller.getClass()).isEqualTo(PollerMetadata.class);
-		PollerMetadata metadata = (PollerMetadata) poller;
-		Trigger trigger = metadata.getTrigger();
-		assertThat(trigger.getClass()).isEqualTo(PeriodicTrigger.class);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
-		Boolean fixedRate = (Boolean) accessor.getPropertyValue("fixedRate");
-		Long period = (Long) accessor.getPropertyValue("period");
-		assertThat(true).isEqualTo(fixedRate);
-		assertThat(period.longValue()).isEqualTo(36L);
+		Trigger trigger = this.pollerWithFixedRateAttribute.getTrigger();
+		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
+		PeriodicTrigger periodicTrigger = (PeriodicTrigger) trigger;
+		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofMillis(36));
+		assertThat(periodicTrigger.isFixedRate()).isTrue();
 	}
 
 	@Test
 	public void testFixedDelayTrigger() {
-		Object poller = context.getBean("pollerWithFixedDelayAttribute");
-		assertThat(poller.getClass()).isEqualTo(PollerMetadata.class);
-		PollerMetadata metadata = (PollerMetadata) poller;
-		Trigger trigger = metadata.getTrigger();
-		assertThat(trigger.getClass()).isEqualTo(PeriodicTrigger.class);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
-		Boolean fixedRate = (Boolean) accessor.getPropertyValue("fixedRate");
-		Long period = (Long) accessor.getPropertyValue("period");
-		assertThat(false).isEqualTo(fixedRate);
-		assertThat(period.longValue()).isEqualTo(37L);
+		Trigger trigger = this.pollerWithFixedDelayAttribute.getTrigger();
+		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
+		PeriodicTrigger periodicTrigger = (PeriodicTrigger) trigger;
+		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofMillis(37));
+		assertThat(periodicTrigger.isFixedRate()).isFalse();
 	}
+
 }

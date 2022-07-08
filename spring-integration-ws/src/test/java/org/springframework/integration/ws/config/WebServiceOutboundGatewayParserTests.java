@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+
+import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -263,8 +265,9 @@ public class WebServiceOutboundGatewayParserTests {
 		assertThat(triggerObject.getClass()).isEqualTo(PeriodicTrigger.class);
 		PeriodicTrigger trigger = (PeriodicTrigger) triggerObject;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
-		assertThat(((Long) accessor.getPropertyValue("period")).longValue()).as("PeriodicTrigger had wrong period")
-				.isEqualTo(5000);
+		assertThat(accessor.getPropertyValue("period"))
+				.as("PeriodicTrigger had wrong period")
+				.isEqualTo(Duration.ofSeconds(5));
 	}
 
 	@Test

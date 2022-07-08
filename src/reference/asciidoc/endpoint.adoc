@@ -95,18 +95,18 @@ The following example shows how to set the trigger:
 ----
 PollingConsumer consumer = new PollingConsumer(channel, handler);
 
-consumer.setTrigger(new PeriodicTrigger(30, TimeUnit.SECONDS));
+consumer.setTrigger(new PeriodicTrigger(Duration.ofSeconds(30)));
 ----
 ====
 
-The `PeriodicTrigger` is typically defined with a simple interval (in milliseconds) but also supports an `initialDelay` property and a boolean `fixedRate` property (the default is `false` -- that is, no fixed delay).
+The `PeriodicTrigger` is typically defined with a simple interval (`Duration`) but also supports an `initialDelay` property and a boolean `fixedRate` property (the default is `false` -- that is, no fixed delay).
 The following example sets both properties:
 
 ====
 [source,java]
 ----
-PeriodicTrigger trigger = new PeriodicTrigger(1000);
-trigger.setInitialDelay(5000);
+PeriodicTrigger trigger = new PeriodicTrigger(Duration.ofSeconds(1));
+trigger.setInitialDelay(Duration.ofSeconds(5));
 trigger.setFixedRate(true);
 ----
 ====

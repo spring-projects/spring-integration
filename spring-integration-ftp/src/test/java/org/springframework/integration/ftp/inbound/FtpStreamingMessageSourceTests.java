@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.Closeable;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.Comparator;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -181,7 +182,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
 		public PollerMetadata defaultPoller() {
 			PollerMetadata pollerMetadata = new PollerMetadata();
-			pollerMetadata.setTrigger(new PeriodicTrigger(500));
+			pollerMetadata.setTrigger(new PeriodicTrigger(Duration.ofMillis(500)));
 			pollerMetadata.setMaxMessagesPerPoll(2);
 			return pollerMetadata;
 		}

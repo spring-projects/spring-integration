@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -57,7 +58,7 @@ public class InboundChannelAdapterExpressionTests {
 		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
 		assertThat(trigger.getClass()).isEqualTo(PeriodicTrigger.class);
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
-		assertThat(triggerAccessor.getPropertyValue("period")).isEqualTo(1234L);
+		assertThat(triggerAccessor.getPropertyValue("period")).isEqualTo(Duration.ofMillis(1234));
 		assertThat(triggerAccessor.getPropertyValue("fixedRate")).isEqualTo(Boolean.FALSE);
 		assertThat(adapterAccessor.getPropertyValue("outputChannel"))
 				.isEqualTo(this.context.getBean("fixedDelayChannel"));
@@ -74,7 +75,7 @@ public class InboundChannelAdapterExpressionTests {
 		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
 		assertThat(trigger.getClass()).isEqualTo(PeriodicTrigger.class);
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
-		assertThat(triggerAccessor.getPropertyValue("period")).isEqualTo(5678L);
+		assertThat(triggerAccessor.getPropertyValue("period")).isEqualTo(Duration.ofMillis(5678));
 		assertThat(triggerAccessor.getPropertyValue("fixedRate")).isEqualTo(Boolean.TRUE);
 		assertThat(adapterAccessor.getPropertyValue("outputChannel"))
 				.isEqualTo(this.context.getBean("fixedRateChannel"));

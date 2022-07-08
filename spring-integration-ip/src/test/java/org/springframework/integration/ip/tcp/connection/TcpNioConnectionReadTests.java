@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp.connection;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.with;
 
+import java.net.InetAddress;
 import java.net.Socket;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -48,18 +49,19 @@ import org.springframework.messaging.support.ErrorMessage;
  *
  * @since 2.0
  */
-//@LongRunningTest
 public class TcpNioConnectionReadTests {
 
 	private final CountDownLatch latch = new CountDownLatch(1);
 
 	private AbstractServerConnectionFactory getConnectionFactory(
-			AbstractByteArraySerializer serializer, TcpListener listener) throws Exception {
+			AbstractByteArraySerializer serializer, TcpListener listener) {
+
 		return getConnectionFactory(serializer, listener, null);
 	}
 
 	private AbstractServerConnectionFactory getConnectionFactory(
-			AbstractByteArraySerializer serializer, TcpListener listener, TcpSender sender) throws Exception {
+			AbstractByteArraySerializer serializer, TcpListener listener, TcpSender sender) {
+
 		TcpNioServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
 		scf.setUsingDirectBuffers(true);
 		scf.setApplicationEventPublisher(e -> {
@@ -78,7 +80,7 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testReadLength() throws Exception {
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
-		final List<Message<?>> responses = new ArrayList<Message<?>>();
+		final List<Message<?>> responses = new ArrayList<>();
 		final Semaphore semaphore = new Semaphore(0);
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			responses.add(message);
@@ -106,7 +108,7 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testFragmented() throws Exception {
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
-		final List<Message<?>> responses = new ArrayList<Message<?>>();
+		final List<Message<?>> responses = new ArrayList<>();
 		final Semaphore semaphore = new Semaphore(0);
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			responses.add(message);
@@ -137,7 +139,7 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testReadStxEtx() throws Exception {
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
-		final List<Message<?>> responses = new ArrayList<Message<?>>();
+		final List<Message<?>> responses = new ArrayList<>();
 		final Semaphore semaphore = new Semaphore(0);
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			responses.add(message);
@@ -164,7 +166,7 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testReadCrLf() throws Exception {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
-		final List<Message<?>> responses = new ArrayList<Message<?>>();
+		final List<Message<?>> responses = new ArrayList<>();
 		final Semaphore semaphore = new Semaphore(0);
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			responses.add(message);
@@ -191,11 +193,11 @@ public class TcpNioConnectionReadTests {
 	public void testReadLengthOverflow() throws Exception {
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final Semaphore semaphore = new Semaphore(0);
-		final List<TcpConnection> added = new ArrayList<TcpConnection>();
-		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+		final List<TcpConnection> added = new ArrayList<>();
+		final List<TcpConnection> removed = new ArrayList<>();
 
 		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
-		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<>();
 
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			if (message instanceof ErrorMessage) {
@@ -299,11 +301,11 @@ public class TcpNioConnectionReadTests {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		serializer.setMaxMessageSize(1024);
 		final Semaphore semaphore = new Semaphore(0);
-		final List<TcpConnection> added = new ArrayList<TcpConnection>();
-		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+		final List<TcpConnection> added = new ArrayList<>();
+		final List<TcpConnection> removed = new ArrayList<>();
 
 		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
-		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<>();
 
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			if (message instanceof ErrorMessage) {
@@ -355,11 +357,11 @@ public class TcpNioConnectionReadTests {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		serializer.setMaxMessageSize(1024);
 		final Semaphore semaphore = new Semaphore(0);
-		final List<TcpConnection> added = new ArrayList<TcpConnection>();
-		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+		final List<TcpConnection> added = new ArrayList<>();
+		final List<TcpConnection> removed = new ArrayList<>();
 
 		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
-		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<>();
 
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			if (message instanceof ErrorMessage) {
@@ -408,11 +410,11 @@ public class TcpNioConnectionReadTests {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		serializer.setMaxMessageSize(1024);
 		final Semaphore semaphore = new Semaphore(0);
-		final List<TcpConnection> added = new ArrayList<TcpConnection>();
-		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+		final List<TcpConnection> added = new ArrayList<>();
+		final List<TcpConnection> removed = new ArrayList<>();
 
 		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
-		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<>();
 
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			if (message instanceof ErrorMessage) {
@@ -435,7 +437,7 @@ public class TcpNioConnectionReadTests {
 			}
 
 		});
-		Socket socket = SocketFactory.getDefault().createSocket("localhost", scf.getPort());
+		Socket socket = SocketFactory.getDefault().createSocket(InetAddress.getLocalHost(), scf.getPort());
 		socket.getOutputStream().write("partial".getBytes());
 		socket.close();
 		whileOpen(semaphore, added);
@@ -486,11 +488,11 @@ public class TcpNioConnectionReadTests {
 	private void testClosureMidMessageGuts(AbstractByteArraySerializer serializer, String shortMessage)
 			throws Exception {
 		final Semaphore semaphore = new Semaphore(0);
-		final List<TcpConnection> added = new ArrayList<TcpConnection>();
-		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+		final List<TcpConnection> added = new ArrayList<>();
+		final List<TcpConnection> removed = new ArrayList<>();
 
 		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
-		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<>();
 
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			if (message instanceof ErrorMessage) {
@@ -513,7 +515,7 @@ public class TcpNioConnectionReadTests {
 			}
 
 		});
-		Socket socket = SocketFactory.getDefault().createSocket("localhost", scf.getPort());
+		Socket socket = SocketFactory.getDefault().createSocket(InetAddress.getLocalHost(), scf.getPort());
 		socket.getOutputStream().write(shortMessage.getBytes());
 		socket.close();
 		whileOpen(semaphore, added);

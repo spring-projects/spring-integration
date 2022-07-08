@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.stomp;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
@@ -262,8 +262,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		TaskScheduler taskScheduler = this.stompClient.getTaskScheduler();
 		if (taskScheduler != null) {
 			this.reconnectFuture =
-					taskScheduler.schedule(this::connect,
-							new Date(System.currentTimeMillis() + this.recoveryInterval));
+					taskScheduler.schedule(this::connect, Instant.now().plusMillis(this.recoveryInterval));
 		}
 		else {
 			this.logger.info("For automatic reconnection the stompClient should be configured with a TaskScheduler.");
@@ -278,7 +277,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 				this.reconnectFuture = null;
 			}
 			this.stompSessionListenableFuture.addCallback(
-					new ListenableFutureCallback<StompSession>() {
+					new ListenableFutureCallback<>() {
 
 						@Override
 						public void onFailure(Throwable ex) {

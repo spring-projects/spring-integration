@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 package org.springframework.integration.util;
 
 import java.time.Duration;
-import java.util.Date;
+import java.time.Instant;
+import java.util.Objects;
 
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
@@ -91,6 +92,7 @@ public class DynamicPeriodicTrigger implements Trigger {
 	 * @since 5.1
 	 */
 	public void setDuration(Duration duration) {
+		Assert.notNull(duration, "duration must not be null");
 		this.duration = duration;
 	}
 
@@ -124,30 +126,19 @@ public class DynamicPeriodicTrigger implements Trigger {
 	/**
 	 * Return the time after which a task should run again.
 	 * @param triggerContext the trigger context to determine the previous state of schedule.
-	 * @return the the next schedule date.
+	 * @return the next schedule instant.
 	 */
 	@Override
-	public Date nextExecutionTime(TriggerContext triggerContext) {
-		Date lastScheduled = triggerContext.lastScheduledExecutionTime();
+	public Instant nextExecution(TriggerContext triggerContext) {
+		Instant lastScheduled = triggerContext.lastScheduledExecution();
 		if (lastScheduled == null) {
-			return new Date(System.currentTimeMillis() + this.initialDuration.toMillis());
+			return Instant.now().plus(this.initialDuration);
 		}
 		else if (this.fixedRate) {
-			return new Date(lastScheduled.getTime() + this.duration.toMillis());
+			return lastScheduled.plus(this.duration);
 		}
 		return
-				new Date(triggerContext.lastCompletionTime().getTime() + // NOSONAR never null here
-						this.duration.toMillis());
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((this.duration == null) ? 0 : this.duration.hashCode());
-		result = prime * result + (this.fixedRate ? 1231 : 1237); // NOSONAR
-		result = prime * result + ((this.initialDuration == null) ? 0 : this.initialDuration.hashCode());
-		return result;
+				triggerContext.lastCompletion().plus(this.duration); // NOSONAR never null here
 	}
 
 	@Override
@@ -155,30 +146,18 @@ public class DynamicPeriodicTrigger implements Trigger {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		DynamicPeriodicTrigger other = (DynamicPeriodicTrigger) obj;
-		if (this.duration == null) {
-			if (other.duration != null) {
-				return false;
-			}
-		}
-		else if (!this.duration.equals(other.duration)) {
-			return false;
-		}
-		if (this.fixedRate != other.fixedRate) {
-			return false;
-		}
-		if (this.initialDuration == null) {
-			return other.initialDuration == null;
-		}
-		else {
-			return this.initialDuration.equals(other.initialDuration);
-		}
+		DynamicPeriodicTrigger that = (DynamicPeriodicTrigger) obj;
+		return this.fixedRate == that.fixedRate
+				&& Objects.equals(this.initialDuration, that.initialDuration)
+				&& Objects.equals(this.duration, that.duration);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.initialDuration, this.duration, this.fixedRate);
 	}
 
 }

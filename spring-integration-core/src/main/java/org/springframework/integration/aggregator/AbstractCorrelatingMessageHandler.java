@@ -17,6 +17,7 @@
 package org.springframework.integration.aggregator;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -650,7 +651,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 								removeEmptyGroupAfterTimeout(groupId, timeout);
 							}
 
-						}, new Date(System.currentTimeMillis() + timeout));
+						}, Instant.now().plusMillis(timeout));
 
 		this.logger.debug(() -> "Schedule empty MessageGroup [ " + groupId + "] for removal.");
 		this.expireGroupScheduledFutures.put(groupId, scheduledFuture);
@@ -687,7 +688,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 															"] is rescheduled by the reason of: ");
 										scheduleGroupToForceComplete(groupId);
 									}
-								}, startTime);
+								}, startTime.toInstant());
 
 				this.logger.debug(() -> "Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
 				this.expireGroupScheduledFutures.put(UUIDConverter.getUUID(groupId), scheduledFuture);

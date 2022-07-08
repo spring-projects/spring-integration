@@ -18,6 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -516,10 +517,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		else if (StringUtils.hasText(fixedDelayValue)) {
 			Assert.state(!StringUtils.hasText(fixedRateValue),
 					"The '@Poller' 'fixedDelay' attribute is mutually exclusive with other attributes.");
-			trigger = new PeriodicTrigger(Long.parseLong(fixedDelayValue));
+			trigger = new PeriodicTrigger(Duration.ofMillis(Long.parseLong(fixedDelayValue)));
 		}
 		else if (StringUtils.hasText(fixedRateValue)) {
-			trigger = new PeriodicTrigger(Long.parseLong(fixedRateValue));
+			trigger = new PeriodicTrigger(Duration.ofMillis(Long.parseLong(fixedRateValue)));
 			((PeriodicTrigger) trigger).setFixedRate(true);
 		}
 		//'Trigger' can be null. 'PollingConsumer' does fallback to the 'new PeriodicTrigger(10)'.

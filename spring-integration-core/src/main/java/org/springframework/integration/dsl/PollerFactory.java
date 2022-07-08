@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.dsl;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -53,7 +55,7 @@ public final class PollerFactory {
 	}
 
 	public PollerSpec fixedRate(long period, TimeUnit timeUnit) {
-		return Pollers.fixedRate(period, timeUnit);
+		return Pollers.fixedRate(Duration.of(period, timeUnit.toChronoUnit()));
 	}
 
 	public PollerSpec fixedRate(long period, long initialDelay) {
@@ -61,15 +63,17 @@ public final class PollerFactory {
 	}
 
 	public PollerSpec fixedDelay(long period, TimeUnit timeUnit, long initialDelay) {
-		return Pollers.fixedDelay(period, timeUnit, initialDelay);
+		ChronoUnit chronoUnit = timeUnit.toChronoUnit();
+		return Pollers.fixedDelay(Duration.of(period, chronoUnit), Duration.of(initialDelay, chronoUnit));
 	}
 
 	public PollerSpec fixedRate(long period, TimeUnit timeUnit, long initialDelay) {
-		return Pollers.fixedRate(period, timeUnit, initialDelay);
+		ChronoUnit chronoUnit = timeUnit.toChronoUnit();
+		return Pollers.fixedRate(Duration.of(period, chronoUnit), Duration.of(initialDelay, chronoUnit));
 	}
 
 	public PollerSpec fixedDelay(long period, TimeUnit timeUnit) {
-		return Pollers.fixedDelay(period, timeUnit);
+		return Pollers.fixedDelay(Duration.of(period, timeUnit.toChronoUnit()));
 	}
 
 	public PollerSpec fixedDelay(long period, long initialDelay) {

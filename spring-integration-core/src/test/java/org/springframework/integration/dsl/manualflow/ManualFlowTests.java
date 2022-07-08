@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -539,7 +540,7 @@ public class ManualFlowTests {
 
 	private static class MyFlowAdapter extends IntegrationFlowAdapter {
 
-		private final AtomicReference<Date> nextExecutionTime = new AtomicReference<>(new Date());
+		private final AtomicReference<Instant> nextExecutionTime = new AtomicReference<>(Instant.now());
 
 		@Override
 		protected IntegrationFlowDefinition<?> buildFlow() {

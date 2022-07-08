@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.test.util;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,23 +37,23 @@ public class OnlyOnceTrigger implements Trigger {
 
 	private final AtomicBoolean hasRun = new AtomicBoolean();
 
-	private final Date executionTime;
+	private final Instant executionTime;
 
 	private volatile CountDownLatch latch = new CountDownLatch(1);
 
 
 	public OnlyOnceTrigger() {
-		this.executionTime = new Date();
+		this.executionTime = Instant.now();
 	}
 
 	@Override
-	public Date nextExecutionTime(TriggerContext triggerContext) {
+	public Instant nextExecution(TriggerContext triggerContext) {
 		if (this.hasRun.getAndSet(true)) {
 			this.latch.countDown();
 			return null;
 		}
 
-		return this.executionTime; // NOSONAR - expose internals
+		return this.executionTime;
 	}
 
 	@Override
@@ -90,9 +90,9 @@ public class OnlyOnceTrigger implements Trigger {
 				throw new IllegalStateException("test latch.await() did not count down");
 			}
 		}
-		catch (InterruptedException e) {
+		catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
-			throw new IllegalStateException("test latch.await() interrupted", e);
+			throw new IllegalStateException("test latch.await() interrupted", ex);
 		}
 	}
 

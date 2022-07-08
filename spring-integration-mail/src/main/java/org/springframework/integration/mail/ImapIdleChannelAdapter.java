@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.mail;
 
-import java.util.Date;
+import java.io.Serial;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -224,12 +225,12 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		};
 	}
 
-	private void publishException(Exception e) {
+	private void publishException(Exception ex) {
 		if (this.applicationEventPublisher != null) {
-			this.applicationEventPublisher.publishEvent(new ImapIdleExceptionEvent(e));
+			this.applicationEventPublisher.publishEvent(new ImapIdleExceptionEvent(ex));
 		}
 		else {
-			logger.debug(() -> "No application event publisher for exception: " + e.getMessage());
+			logger.debug(() -> "No application event publisher for exception: " + ex.getMessage());
 		}
 	}
 
@@ -305,13 +306,13 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		}
 
 		@Override
-		public Date nextExecutionTime(TriggerContext triggerContext) {
+		public Instant nextExecution(TriggerContext triggerContext) {
 			if (this.delayNextExecution) {
 				this.delayNextExecution = false;
-				return new Date(System.currentTimeMillis() + ImapIdleChannelAdapter.this.reconnectDelay);
+				return Instant.now().plusMillis(ImapIdleChannelAdapter.this.reconnectDelay);
 			}
 			else {
-				return new Date(System.currentTimeMillis());
+				return Instant.now();
 			}
 		}
 
@@ -323,10 +324,11 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	public class ImapIdleExceptionEvent extends MailIntegrationEvent {
 
+		@Serial
 		private static final long serialVersionUID = -5875388810251967741L;
 
-		ImapIdleExceptionEvent(Exception e) {
-			super(ImapIdleChannelAdapter.this, e);
+		ImapIdleExceptionEvent(Exception ex) {
+			super(ImapIdleChannelAdapter.this, ex);
 		}
 
 	}

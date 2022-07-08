@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,17 @@
 package org.springframework.integration.message;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
@@ -47,7 +51,8 @@ public class MethodInvokingMessageHandlerTests {
 	public void validMethod() {
 		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(), "validMethod");
 		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.handleMessage(new GenericMessage<>("test"));
+		assertThatNoException()
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("test")));
 	}
 
 	@Test
@@ -55,23 +60,21 @@ public class MethodInvokingMessageHandlerTests {
 		new MethodInvokingMessageHandler(new TestSink(), "validMethodWithNoArgs");
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void methodWithReturnValue() {
 		Message<?> message = new GenericMessage<>("test");
-		try {
-			MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(),
-					"methodWithReturnValue");
-			handler.handleMessage(message);
-		}
-		catch (MessagingException e) {
-			assertThat(message).isEqualTo(e.getFailedMessage());
-			throw e;
-		}
+		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(),
+				"methodWithReturnValue");
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.satisfies(messagingException ->
+						assertThat(messagingException.getFailedMessage()).isEqualTo(message));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void noMatchingMethodName() {
-		new MethodInvokingMessageHandler(new TestSink(), "noSuchMethod");
+		assertThatIllegalStateException()
+				.isThrownBy(() -> new MethodInvokingMessageHandler(new TestSink(), "noSuchMethod"));
 	}
 
 	@Test
@@ -87,7 +90,7 @@ public class MethodInvokingMessageHandlerTests {
 		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(testBean, "foo");
 		handler.setBeanFactory(context);
 		PollingConsumer endpoint = new PollingConsumer(channel, handler);
-		endpoint.setTrigger(new PeriodicTrigger(10));
+		endpoint.setTrigger(new PeriodicTrigger(Duration.ofMillis(10)));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
 		String result = queue.poll(2000, TimeUnit.MILLISECONDS);
@@ -97,13 +100,7 @@ public class MethodInvokingMessageHandlerTests {
 	}
 
 
-	private static class TestBean {
-
-		private final BlockingQueue<String> queue;
-
-		TestBean(BlockingQueue<String> queue) {
-			this.queue = queue;
-		}
+	private record TestBean(BlockingQueue<String> queue) {
 
 		@SuppressWarnings("unused")
 		public void foo(String s) {

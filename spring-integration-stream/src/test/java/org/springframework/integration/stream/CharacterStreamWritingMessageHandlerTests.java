@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.StringWriter;
-import java.util.Date;
+import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
@@ -39,6 +39,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class CharacterStreamWritingMessageHandlerTests {
 
@@ -55,7 +56,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 	private ThreadPoolTaskScheduler scheduler;
 
 
-	@Before
+	@BeforeEach
 	public void initialize() {
 		writer = new StringWriter();
 		handler = new CharacterStreamWritingMessageHandler(writer);
@@ -70,15 +71,15 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 	}
 
-	@After
-	public void stop() throws Exception {
+	@AfterEach
+	public void stop() {
 		scheduler.destroy();
 	}
 
 
 	@Test
 	public void singleString() {
-		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(writer.toString()).isEqualTo("foo");
 	}
 
@@ -86,8 +87,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void twoStringsAndNoNewLinesByDefault() {
 		endpoint.setMaxMessagesPerPoll(1);
 		endpoint.setTrigger(trigger);
-		channel.send(new GenericMessage<String>("foo"), 0);
-		channel.send(new GenericMessage<String>("bar"), 0);
+		channel.send(new GenericMessage<>("foo"), 0);
+		channel.send(new GenericMessage<>("bar"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -104,8 +105,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 		handler.setShouldAppendNewLine(true);
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(1);
-		channel.send(new GenericMessage<String>("foo"), 0);
-		channel.send(new GenericMessage<String>("bar"), 0);
+		channel.send(new GenericMessage<>("foo"), 0);
+		channel.send(new GenericMessage<>("bar"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -122,8 +123,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void maxMessagesPerTaskSameAsMessageCount() {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
-		channel.send(new GenericMessage<String>("foo"), 0);
-		channel.send(new GenericMessage<String>("bar"), 0);
+		channel.send(new GenericMessage<>("foo"), 0);
+		channel.send(new GenericMessage<>("bar"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -136,8 +137,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setMaxMessagesPerPoll(10);
 		endpoint.setReceiveTimeout(0);
 		handler.setShouldAppendNewLine(true);
-		channel.send(new GenericMessage<String>("foo"), 0);
-		channel.send(new GenericMessage<String>("bar"), 0);
+		channel.send(new GenericMessage<>("foo"), 0);
+		channel.send(new GenericMessage<>("bar"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -150,7 +151,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(1);
 		TestObject testObject = new TestObject("foo");
-		channel.send(new GenericMessage<TestObject>(testObject));
+		channel.send(new GenericMessage<>(testObject));
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -164,8 +165,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setMaxMessagesPerPoll(2);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
-		channel.send(new GenericMessage<TestObject>(testObject1), 0);
-		channel.send(new GenericMessage<TestObject>(testObject2), 0);
+		channel.send(new GenericMessage<>(testObject1), 0);
+		channel.send(new GenericMessage<>(testObject2), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -180,8 +181,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
-		channel.send(new GenericMessage<TestObject>(testObject1), 0);
-		channel.send(new GenericMessage<TestObject>(testObject2), 0);
+		channel.send(new GenericMessage<>(testObject1), 0);
+		channel.send(new GenericMessage<>(testObject2), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -190,13 +191,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 	}
 
 
-	private static class TestObject {
-
-		private final String text;
-
-		TestObject(String text) {
-			this.text = text;
-		}
+	private record TestObject(String text) {
 
 		@Override
 		public String toString() {
@@ -217,9 +212,9 @@ public class CharacterStreamWritingMessageHandlerTests {
 		}
 
 		@Override
-		public Date nextExecutionTime(TriggerContext triggerContext) {
+		public Instant nextExecution(TriggerContext triggerContext) {
 			if (!hasRun.getAndSet(true)) {
-				return new Date();
+				return Instant.now();
 			}
 			this.latch.countDown();
 			return null;

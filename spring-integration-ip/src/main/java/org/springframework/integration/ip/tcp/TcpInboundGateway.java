@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -37,6 +38,7 @@ import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -91,7 +93,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 			else {
 				if (isErrorMessage) {
 					/*
-					 * Socket errors are sent here so they can be conveyed to any waiting thread.
+					 * Socket errors are sent here, so they can be conveyed to any waiting thread.
 					 * There's not one here; simply ignore.
 					 */
 					return false;
@@ -224,8 +226,9 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 			ClientModeConnectionManager manager =
 					new ClientModeConnectionManager(this.clientConnectionFactory);
 			this.clientModeConnectionManager = manager;
-			Assert.state(getTaskScheduler() != null, "Client mode requires a task scheduler");
-			this.scheduledFuture = getTaskScheduler().scheduleAtFixedRate(manager, this.retryInterval);
+			TaskScheduler taskScheduler = getTaskScheduler();
+			Assert.state(taskScheduler != null, "Client mode requires a task scheduler");
+			this.scheduledFuture = taskScheduler.scheduleAtFixedRate(manager, Duration.ofMillis(this.retryInterval));
 		}
 	}
 

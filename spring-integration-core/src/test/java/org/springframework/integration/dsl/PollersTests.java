@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.dsl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +26,8 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.1.4
  *
  */
@@ -35,24 +36,20 @@ public class PollersTests {
 	@Test
 	public void testDurations() {
 		PeriodicTrigger trigger = (PeriodicTrigger) Pollers.fixedDelay(Duration.ofMinutes(1L)).get().getTrigger();
-		assertThat(trigger.getPeriod()).isEqualTo(60_000L);
-		assertThat(trigger.getTimeUnit()).isEqualTo(TimeUnit.MILLISECONDS);
+		assertThat(trigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(trigger.isFixedRate()).isFalse();
 		trigger = (PeriodicTrigger) Pollers.fixedDelay(Duration.ofMinutes(1L), Duration.ofSeconds(10L))
 				.get().getTrigger();
-		assertThat(trigger.getPeriod()).isEqualTo(60_000L);
-		assertThat(trigger.getInitialDelay()).isEqualTo(10_000L);
-		assertThat(trigger.getTimeUnit()).isEqualTo(TimeUnit.MILLISECONDS);
+		assertThat(trigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(60));
+		assertThat(trigger.getInitialDelayDuration()).isEqualTo(Duration.ofSeconds(10));
 		assertThat(trigger.isFixedRate()).isFalse();
 		trigger = (PeriodicTrigger) Pollers.fixedRate(Duration.ofMinutes(1L)).get().getTrigger();
-		assertThat(trigger.getPeriod()).isEqualTo(60_000L);
-		assertThat(trigger.getTimeUnit()).isEqualTo(TimeUnit.MILLISECONDS);
+		assertThat(trigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(trigger.isFixedRate()).isTrue();
 		trigger = (PeriodicTrigger) Pollers.fixedRate(Duration.ofMinutes(1L), Duration.ofSeconds(10L))
 				.get().getTrigger();
-		assertThat(trigger.getPeriod()).isEqualTo(60_000L);
-		assertThat(trigger.getInitialDelay()).isEqualTo(10_000L);
-		assertThat(trigger.getTimeUnit()).isEqualTo(TimeUnit.MILLISECONDS);
+		assertThat(trigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(60));
+		assertThat(trigger.getInitialDelayDuration()).isEqualTo(Duration.ofSeconds(10));
 		assertThat(trigger.isFixedRate()).isTrue();
 	}
 

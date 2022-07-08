@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@ package org.springframework.integration.endpoint;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
@@ -40,39 +41,42 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ExpressionEvaluatingMessageSourceIntegrationTests {
 
 	private static final AtomicInteger counter = new AtomicInteger();
 
-
 	@Test
 	public void test() throws Exception {
 		QueueChannel channel = new QueueChannel();
-		String payloadExpression = "'test-' + T(org.springframework.integration.endpoint.ExpressionEvaluatingMessageSourceIntegrationTests).next()";
+		String payloadExpression =
+				"'test-' + T(org.springframework.integration.endpoint.ExpressionEvaluatingMessageSourceIntegrationTests).next()";
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
-		Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
+		Map<String, Expression> headerExpressions = new HashMap<>();
 		headerExpressions.put("foo", new LiteralExpression("x"));
 		headerExpressions.put("bar", new SpelExpressionParser().parseExpression("7 * 6"));
 		ExpressionFactoryBean factoryBean = new ExpressionFactoryBean(payloadExpression);
 		factoryBean.afterPropertiesSet();
 		Expression expression = factoryBean.getObject();
-		ExpressionEvaluatingMessageSource<Object> source = new ExpressionEvaluatingMessageSource<Object>(expression, Object.class);
+		ExpressionEvaluatingMessageSource<Object> source =
+				new ExpressionEvaluatingMessageSource<>(expression, Object.class);
 		source.setBeanFactory(mock(BeanFactory.class));
 		source.setHeaderExpressions(headerExpressions);
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setSource(source);
 		adapter.setTaskScheduler(scheduler);
 		adapter.setMaxMessagesPerPoll(3);
-		adapter.setTrigger(new PeriodicTrigger(60000));
+		adapter.setTrigger(new PeriodicTrigger(Duration.ofSeconds(60)));
 		adapter.setOutputChannel(channel);
 		adapter.setErrorHandler(t -> {
 			throw new IllegalStateException("unexpected exception in test", t);
 		});
 		adapter.start();
-		List<Message<?>> messages = new ArrayList<Message<?>>();
+		List<Message<?>> messages = new ArrayList<>();
 		for (int i = 0; i < 3; i++) {
 			messages.add(channel.receive(1000));
 		}

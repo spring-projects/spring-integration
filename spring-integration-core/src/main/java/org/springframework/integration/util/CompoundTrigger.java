@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.util;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
@@ -29,6 +29,8 @@ import org.springframework.util.Assert;
  * invoked.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
@@ -65,12 +67,12 @@ public class CompoundTrigger implements Trigger {
 	}
 
 	@Override
-	public Date nextExecutionTime(TriggerContext triggerContext) {
+	public Instant nextExecution(TriggerContext triggerContext) {
 		if (this.override != null) {
-			return this.override.nextExecutionTime(triggerContext);
+			return this.override.nextExecution(triggerContext);
 		}
 		else {
-			return this.primary.nextExecutionTime(triggerContext);
+			return this.primary.nextExecution(triggerContext);
 		}
 	}
 

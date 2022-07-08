@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -335,8 +336,8 @@ public class PollerAdviceTests {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		final CountDownLatch latch = new CountDownLatch(5);
 		final LinkedList<Object> overridePresent = new LinkedList<>();
-		final CompoundTrigger compoundTrigger = new CompoundTrigger(new PeriodicTrigger(10));
-		Trigger override = spy(new PeriodicTrigger(5));
+		final CompoundTrigger compoundTrigger = new CompoundTrigger(new PeriodicTrigger(Duration.ofMillis(10)));
+		Trigger override = spy(new PeriodicTrigger(Duration.ofMillis(5)));
 		final CompoundTriggerAdvice advice = new CompoundTriggerAdvice(compoundTrigger, override);
 		adapter.setSource(() -> {
 			synchronized (overridePresent) {
@@ -359,7 +360,7 @@ public class PollerAdviceTests {
 		synchronized (overridePresent) {
 			assertThat(overridePresent.subList(0, 5)).containsExactly(null, override, null, override, null);
 		}
-		verify(override, atLeast(2)).nextExecutionTime(any(TriggerContext.class));
+		verify(override, atLeast(2)).nextExecution(any(TriggerContext.class));
 	}
 
 	private void configure(SourcePollingChannelAdapter adapter) {

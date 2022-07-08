@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.io.ByteArrayOutputStream;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -334,7 +335,7 @@ public class IntegrationGraphServerTests {
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
 		public PollerMetadata defaultPoller() {
 			PollerMetadata poller = new PollerMetadata();
-			poller.setTrigger(new PeriodicTrigger(60000));
+			poller.setTrigger(new PeriodicTrigger(Duration.ofSeconds(60)));
 			MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
 			errorHandler.setDefaultErrorChannel(myErrors());
 			poller.setErrorHandler(errorHandler);

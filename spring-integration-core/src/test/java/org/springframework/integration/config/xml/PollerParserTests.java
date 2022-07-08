@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
 import org.aopalliance.aop.Advice;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -62,16 +63,18 @@ public class PollerParserTests {
 		context.close();
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void multipleDefaultPollers() {
-		new ClassPathXmlApplicationContext(
-				"multipleDefaultPollers.xml", PollerParserTests.class).close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("multipleDefaultPollers.xml", PollerParserTests.class));
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void topLevelPollerWithoutId() {
-		new ClassPathXmlApplicationContext(
-				"topLevelPollerWithoutId.xml", PollerParserTests.class).close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("topLevelPollerWithoutId.xml", PollerParserTests.class));
 	}
 
 	@Test
@@ -89,8 +92,9 @@ public class PollerParserTests {
 		assertThat(metadata.getAdviceChain().get(2)).isSameAs(context.getBean("adviceBean3"));
 		Advice txAdvice = metadata.getAdviceChain().get(3);
 		assertThat(txAdvice.getClass()).isEqualTo(TransactionInterceptor.class);
-		TransactionAttributeSource transactionAttributeSource = ((TransactionInterceptor) txAdvice).getTransactionAttributeSource();
-		assertThat(transactionAttributeSource.getClass()).isEqualTo(NameMatchTransactionAttributeSource.class);
+		TransactionAttributeSource transactionAttributeSource =
+				((TransactionInterceptor) txAdvice).getTransactionAttributeSource();
+		assertThat(transactionAttributeSource).isInstanceOf(NameMatchTransactionAttributeSource.class);
 		@SuppressWarnings("rawtypes")
 		HashMap nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap", HashMap.class);
 		assertThat(nameMap.size()).isEqualTo(1);
@@ -108,7 +112,7 @@ public class PollerParserTests {
 		PollerMetadata metadata = (PollerMetadata) poller;
 		assertThat(metadata.getReceiveTimeout()).isEqualTo(1234);
 		PeriodicTrigger trigger = (PeriodicTrigger) metadata.getTrigger();
-		assertThat(TestUtils.getPropertyValue(trigger, "timeUnit").toString()).isEqualTo(TimeUnit.SECONDS.toString());
+		assertThat(TestUtils.getPropertyValue(trigger, "chronoUnit")).isEqualTo(ChronoUnit.SECONDS);
 		context.close();
 	}
 
@@ -123,22 +127,25 @@ public class PollerParserTests {
 		context.close();
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void pollerWithCronTriggerAndTimeUnit() {
-		new ClassPathXmlApplicationContext(
-				"cronTriggerWithTimeUnit-fail.xml", PollerParserTests.class).close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("cronTriggerWithTimeUnit-fail.xml", PollerParserTests.class));
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void topLevelPollerWithRef() {
-		new ClassPathXmlApplicationContext(
-				"defaultPollerWithRef.xml", PollerParserTests.class).close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("defaultPollerWithRef.xml", PollerParserTests.class));
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void pollerWithCronAndFixedDelay() {
-		new ClassPathXmlApplicationContext(
-				"pollerWithCronAndFixedDelay.xml", PollerParserTests.class).close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("pollerWithCronAndFixedDelay.xml", PollerParserTests.class));
 	}
 
 }

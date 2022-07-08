@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.config;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.scheduling.TaskScheduler;
@@ -24,30 +25,38 @@ import org.springframework.scheduling.Trigger;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class StubTaskScheduler implements TaskScheduler {
 
+
+	@Override
 	public ScheduledFuture<?> schedule(Runnable task, Trigger trigger) {
 		return null;
 	}
 
-	public ScheduledFuture<?> schedule(Runnable task, Date startTime) {
+	@Override
+	public ScheduledFuture<?> schedule(Runnable task, Instant startTime) {
 		return null;
 	}
 
-	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, long period) {
+	@Override
+	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Instant startTime, Duration period) {
 		return null;
 	}
 
-	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Date startTime, long period) {
+	@Override
+	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Duration period) {
 		return null;
 	}
 
-	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, long delay) {
+	@Override
+	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Instant startTime, Duration delay) {
 		return null;
 	}
 
-	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Date startTime, long delay) {
+	@Override
+	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Duration delay) {
 		return null;
 	}
 

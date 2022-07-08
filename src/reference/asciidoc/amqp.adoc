@@ -1003,7 +1003,7 @@ catch { ... }
 ====
 
 To improve performance, you may wish to send multiple messages and wait for the confirmations later, rather than one-at-a-time.
-The returned message is the raw message after conversion; you can subclass `CorrelationData` with whatever additional data you need.
+The returned message is the raw message after conversion; you can sub-class a `CorrelationData` with whatever additional data you need.
 
 [[amqp-conversion-inbound]]
 === Inbound Message Conversion
@@ -1015,7 +1015,7 @@ If a conversion error occurs, and there is no error channel defined, the excepti
 The default error handler treats conversion errors as fatal and the message will be rejected (and routed to a dead-letter exchange, if the queue is so configured).
 If an error channel is defined, the `ErrorMessage` payload is a `ListenerExecutionFailedException` with properties `failedMessage` (the Spring AMQP message that could not be converted) and the `cause`.
 If the container `AcknowledgeMode` is `AUTO` (the default) and the error flow consumes the error without throwing an exception, the original message will be acknowledged.
-If the error flow throws an exception, the exception type, in conjunction with the container's error handler, will determine whether or not the message is requeued.
+If the error flow throws an exception, the exception type, in conjunction with the container's error handler, will determine whether the message is requeued.
 If the container is configured with `AcknowledgeMode.MANUAL`, the payload is a `ManualAckListenerExecutionFailedException` with additional properties `channel` and `deliveryTag`.
 This enables the error flow to call `basicAck` or `basicNack` (or `basicReject`) for the message, to control its disposition.
 

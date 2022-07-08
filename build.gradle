@@ -84,8 +84,8 @@ ext {
     lettuceVersion = '6.1.8.RELEASE'
     log4jVersion = '2.17.2'
     mailVersion = '2.0.1'
-	micrometerVersion = '1.10.0-M2'
-    micrometerTracingVersion = '1.0.0-M5'
+	micrometerVersion = '1.10.0-SNAPSHOT'
+    micrometerTracingVersion = '1.0.0-SNAPSHOT'
     mockitoVersion = '4.5.1'
     mongoDriverVersion = '4.6.0'
     mysqlVersion = '8.0.28'
@@ -502,7 +502,7 @@ project('spring-integration-core') {
         optionalApi "com.jayway.jsonpath:json-path:$jsonpathVersion"
         optionalApi "com.esotericsoftware:kryo:$kryoVersion"
         optionalApi 'io.micrometer:micrometer-core'
-        optionalApi ('io.micrometer:micrometer-tracing-api') {
+        optionalApi ('io.micrometer:micrometer-tracing') {
             exclude group: 'aopalliance'
         }
         optionalApi "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion"

@@ -28,6 +28,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -62,6 +63,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.expression.EnvironmentAccessor;
 import org.springframework.context.expression.MapAccessor;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.serializer.support.SerializingConverter;
@@ -319,8 +321,9 @@ public class EnableIntegrationTests {
 
 		Trigger trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "trigger", Trigger.class);
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
-		assertThat(TestUtils.getPropertyValue(trigger, "period")).isEqualTo(100L);
-		assertThat(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class)).isFalse();
+		PeriodicTrigger periodicTrigger = (PeriodicTrigger) trigger;
+		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofMillis(100));
+		assertThat(periodicTrigger.isFixedRate()).isFalse();
 
 		assertThat(this.annotationTestService.isRunning()).isTrue();
 		LogAccessor logger = spy(TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "logger", LogAccessor.class));
@@ -343,8 +346,9 @@ public class EnableIntegrationTests {
 
 		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint1, "trigger", Trigger.class);
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
-		assertThat(TestUtils.getPropertyValue(trigger, "period")).isEqualTo(100L);
-		assertThat(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class)).isTrue();
+		periodicTrigger = (PeriodicTrigger) trigger;
+		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofMillis(100));
+		assertThat(periodicTrigger.isFixedRate()).isTrue();
 
 		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint2, "trigger", Trigger.class);
 		assertThat(trigger).isInstanceOf(CronTrigger.class);
@@ -352,19 +356,22 @@ public class EnableIntegrationTests {
 
 		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint3, "trigger", Trigger.class);
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
-		assertThat(TestUtils.getPropertyValue(trigger, "period")).isEqualTo(11L);
-		assertThat(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class)).isFalse();
+		periodicTrigger = (PeriodicTrigger) trigger;
+		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofMillis(11));
+		assertThat(periodicTrigger.isFixedRate()).isFalse();
 
 		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint4, "trigger", Trigger.class);
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
-		assertThat(TestUtils.getPropertyValue(trigger, "period")).isEqualTo(1000L);
-		assertThat(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class)).isFalse();
+		periodicTrigger = (PeriodicTrigger) trigger;
+		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(1));
+		assertThat(periodicTrigger.isFixedRate()).isFalse();
 		assertThat(trigger).isSameAs(this.myTrigger);
 
 		trigger = TestUtils.getPropertyValue(this.transformer, "trigger", Trigger.class);
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
-		assertThat(TestUtils.getPropertyValue(trigger, "period")).isEqualTo(10L);
-		assertThat(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class)).isFalse();
+		periodicTrigger = (PeriodicTrigger) trigger;
+		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofMillis(10));
+		assertThat(periodicTrigger.isFixedRate()).isFalse();
 
 		this.input.send(MessageBuilder.withPayload("Foo").build());
 
@@ -588,7 +595,7 @@ public class EnableIntegrationTests {
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
 		assertThat(TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0)).isSameAs(context.getBean("annAdvice"));
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(1000L);
+		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
 
 		consumer = this.context.getBean("annotationTestService.annCount1.serviceActivator",
 				PollingConsumer.class);
@@ -599,7 +606,7 @@ public class EnableIntegrationTests {
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannel.beanName")).isEqualTo("annOutput");
 		assertThat(TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0)).isSameAs(context.getBean("annAdvice1"));
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(2000L);
+		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(2));
 
 		consumer = this.context.getBean("annotationTestService.annCount2.serviceActivator",
 				PollingConsumer.class);
@@ -609,7 +616,7 @@ public class EnableIntegrationTests {
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
 		assertThat(TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0)).isSameAs(context.getBean("annAdvice"));
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(1000L);
+		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
 
 		// Tests when the channel is in a "middle" annotation
 		consumer = this.context.getBean("annotationTestService.annCount5.serviceActivator", PollingConsumer.class);
@@ -619,7 +626,7 @@ public class EnableIntegrationTests {
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
 		assertThat(TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0)).isSameAs(context.getBean("annAdvice"));
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(1000L);
+		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
 
 		consumer = this.context.getBean("annotationTestService.annAgg1.aggregator", PollingConsumer.class);
 		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
@@ -627,7 +634,7 @@ public class EnableIntegrationTests {
 		assertThat(TestUtils.getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput"));
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.discardChannelName")).isEqualTo("annOutput");
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(1000L);
+		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(-1L);
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class)).isFalse();
 
@@ -637,7 +644,7 @@ public class EnableIntegrationTests {
 		assertThat(TestUtils.getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput"));
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.discardChannelName")).isEqualTo("annOutput");
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(1000L);
+		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(75L);
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class)).isTrue();
 	}
@@ -852,7 +859,7 @@ public class EnableIntegrationTests {
 
 		@Bean
 		public Trigger myTrigger() {
-			return new PeriodicTrigger(1000L);
+			return new PeriodicTrigger(Duration.ofSeconds(1));
 		}
 
 		@Bean
@@ -1193,14 +1200,14 @@ public class EnableIntegrationTests {
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
 		public PollerMetadata defaultPoller() {
 			PollerMetadata pollerMetadata = new PollerMetadata();
-			pollerMetadata.setTrigger(new PeriodicTrigger(10));
+			pollerMetadata.setTrigger(new PeriodicTrigger(Duration.ofMillis(10)));
 			return pollerMetadata;
 		}
 
 		@Bean
 		public PollerMetadata myPoller() {
 			PollerMetadata pollerMetadata = new PollerMetadata();
-			pollerMetadata.setTrigger(new PeriodicTrigger(11));
+			pollerMetadata.setTrigger(new PeriodicTrigger(Duration.ofMillis(11)));
 			return pollerMetadata;
 		}
 
@@ -1342,7 +1349,7 @@ public class EnableIntegrationTests {
 			assertThat(message.getHeaders().get("foo")).isEqualTo("FOO");
 			assertThat(message.getHeaders()).containsKey("calledMethod");
 			assertThat(message.getHeaders().get("calledMethod")).isEqualTo("echo");
-			return handle(message.getPayload()) + Arrays.asList(new Throwable().getStackTrace()).toString();
+			return handle(message.getPayload()) + Arrays.asList(new Throwable().getStackTrace());
 		}
 
 		@Transformer(inputChannel = "gatewayChannel2")
@@ -1352,7 +1359,7 @@ public class EnableIntegrationTests {
 			assertThat(message.getHeaders().get("foo")).isEqualTo("FOO");
 			assertThat(message.getHeaders()).containsKey("calledMethod");
 			assertThat(message.getHeaders().get("calledMethod")).isEqualTo("echo2");
-			return handle(message.getPayload()) + "2" + Arrays.asList(new Throwable().getStackTrace()).toString();
+			return handle(message.getPayload()) + "2" + Arrays.asList(new Throwable().getStackTrace());
 		}
 
 		@MyInboundChannelAdapter1
@@ -1490,6 +1497,7 @@ public class EnableIntegrationTests {
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public @interface TestMessagingGateway {
 
+		@AliasFor(annotation = MessagingGateway.class, attribute = "defaultRequestChannel")
 		String defaultRequestChannel() default "";
 
 	}
@@ -1499,6 +1507,7 @@ public class EnableIntegrationTests {
 	@TestMessagingGateway(defaultRequestChannel = "gatewayChannel2")
 	public @interface TestMessagingGateway2 {
 
+		@AliasFor(annotation = TestMessagingGateway.class, attribute = "defaultRequestChannel")
 		String defaultRequestChannel() default "";
 
 	}
@@ -1513,16 +1522,22 @@ public class EnableIntegrationTests {
 			poller = @Poller(fixedDelay = "1000"))
 	public @interface MyServiceActivator {
 
+		@AliasFor(annotation = ServiceActivator.class, attribute = "inputChannel")
 		String inputChannel() default "";
 
+		@AliasFor(annotation = ServiceActivator.class, attribute = "outputChannel")
 		String outputChannel() default "";
 
+		@AliasFor(annotation = ServiceActivator.class, attribute = "adviceChain")
 		String[] adviceChain() default { };
 
+		@AliasFor(annotation = ServiceActivator.class, attribute = "autoStartup")
 		String autoStartup() default "";
 
+		@AliasFor(annotation = ServiceActivator.class, attribute = "phase")
 		String phase() default "";
 
+		@AliasFor(annotation = ServiceActivator.class, attribute = "poller")
 		Poller poller() default @Poller(ValueConstants.DEFAULT_NONE);
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.mqtt.inbound;
 
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
 
 import org.eclipse.paho.client.mqttv3.IMqttClient;
@@ -336,21 +336,22 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		cancelReconnect();
 		if (isActive()) {
 			try {
-				this.reconnectFuture = getTaskScheduler().schedule(() -> {
-					try {
-						logger.debug("Attempting reconnect");
-						synchronized (MqttPahoMessageDrivenChannelAdapter.this) {
-							if (!MqttPahoMessageDrivenChannelAdapter.this.connected) {
-								connectAndSubscribe();
-								MqttPahoMessageDrivenChannelAdapter.this.reconnectFuture = null;
+				this.reconnectFuture = getTaskScheduler()
+						.schedule(() -> {
+							try {
+								logger.debug("Attempting reconnect");
+								synchronized (MqttPahoMessageDrivenChannelAdapter.this) {
+									if (!MqttPahoMessageDrivenChannelAdapter.this.connected) {
+										connectAndSubscribe();
+										MqttPahoMessageDrivenChannelAdapter.this.reconnectFuture = null;
+									}
+								}
 							}
-						}
-					}
-					catch (MqttException ex) {
-						logger.error(ex, "Exception while connecting and subscribing");
-						scheduleReconnect();
-					}
-				}, new Date(System.currentTimeMillis() + this.recoveryInterval));
+							catch (MqttException ex) {
+								logger.error(ex, "Exception while connecting and subscribing");
+								scheduleReconnect();
+							}
+						}, Instant.now().plusMillis(this.recoveryInterval));
 			}
 			catch (Exception ex) {
 				logger.error(ex, "Failed to schedule reconnect");

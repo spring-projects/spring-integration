@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import java.time.Duration;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -24,11 +26,12 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  * @author Jonas Partner
  * @author Gary Russell
  * @author Andreas Baer
+ * @author Artem Bilan
  */
 public class PollingEndpointStub extends AbstractPollingEndpoint {
 
 	public PollingEndpointStub() {
-		this.setTrigger(new PeriodicTrigger(500));
+		this.setTrigger(new PeriodicTrigger(Duration.ofMillis(500)));
 	}
 
 	@Override
@@ -38,7 +41,7 @@ public class PollingEndpointStub extends AbstractPollingEndpoint {
 
 	@Override
 	protected Message<?> receiveMessage() {
-		return new GenericMessage<String>("test message");
+		return new GenericMessage<>("test message");
 	}
 
 	@Override
@@ -50,4 +53,5 @@ public class PollingEndpointStub extends AbstractPollingEndpoint {
 	protected String getResourceKey() {
 		return "PollingEndpointStub";
 	}
+
 }

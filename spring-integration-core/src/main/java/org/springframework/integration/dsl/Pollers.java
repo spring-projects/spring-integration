@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl;
 
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -40,56 +41,74 @@ public final class Pollers {
 		return new PollerSpec(trigger);
 	}
 
-	public static PollerSpec fixedRate(Duration period) {
-		return fixedRate(period.toMillis());
+	public static PollerSpec fixedRate(long period) {
+		return fixedRate(Duration.ofMillis(period));
 	}
 
-	public static PollerSpec fixedRate(long period) {
+	public static PollerSpec fixedRate(Duration period) {
 		return fixedRate(period, null);
 	}
 
+	/**
+	 * @deprecated since 6.0 in favor of {@link #fixedRate(Duration)}
+	 */
+	@Deprecated(since = "6.0", forRemoval = true)
 	public static PollerSpec fixedRate(long period, TimeUnit timeUnit) {
-		return fixedRate(period, timeUnit, 0);
+		return fixedRate(Duration.of(period, timeUnit.toChronoUnit()));
 	}
 
 	public static PollerSpec fixedRate(Duration period, Duration initialDelay) {
-		return fixedRate(period.toMillis(), initialDelay.toMillis());
+		return periodicTrigger(period, true, initialDelay);
 	}
 
 	public static PollerSpec fixedRate(long period, long initialDelay) {
-		return periodicTrigger(period, null, true, initialDelay);
+		return fixedRate(Duration.ofMillis(period), Duration.ofMillis(initialDelay));
 	}
 
+	/**
+	 * @deprecated since 6.0 in favor of {@link #fixedRate(Duration, Duration)}
+	 */
+	@Deprecated(since = "6.0", forRemoval = true)
 	public static PollerSpec fixedRate(long period, TimeUnit timeUnit, long initialDelay) {
-		return periodicTrigger(period, timeUnit, true, initialDelay);
+		ChronoUnit chronoUnit = timeUnit.toChronoUnit();
+		return fixedRate(Duration.of(period, chronoUnit), Duration.of(initialDelay, chronoUnit));
 	}
 
 	public static PollerSpec fixedDelay(Duration period) {
-		return fixedDelay(period.toMillis());
-	}
-
-	public static PollerSpec fixedDelay(long period) {
 		return fixedDelay(period, null);
 	}
 
-	public static PollerSpec fixedDelay(Duration period, Duration initialDelay) {
-		return fixedDelay(period.toMillis(), initialDelay.toMillis());
+	public static PollerSpec fixedDelay(long period) {
+		return fixedDelay(Duration.ofMillis(period));
 	}
 
+	public static PollerSpec fixedDelay(Duration period, Duration initialDelay) {
+		return periodicTrigger(period, false, initialDelay);
+	}
+
+	/**
+	 * @deprecated since 6.0 in favor of {@link #fixedDelay(Duration)}
+	 */
+	@Deprecated(since = "6.0", forRemoval = true)
 	public static PollerSpec fixedDelay(long period, TimeUnit timeUnit) {
-		return fixedDelay(period, timeUnit, 0);
+		return fixedDelay(Duration.of(period, timeUnit.toChronoUnit()));
 	}
 
 	public static PollerSpec fixedDelay(long period, long initialDelay) {
-		return periodicTrigger(period, null, false, initialDelay);
+		return fixedDelay(Duration.ofMillis(period), Duration.ofMillis(initialDelay));
 	}
 
+	/**
+	 * @deprecated since 6.0 in favor of {@link #fixedDelay(Duration, Duration)}
+	 */
+	@Deprecated(since = "6.0", forRemoval = true)
 	public static PollerSpec fixedDelay(long period, TimeUnit timeUnit, long initialDelay) {
-		return periodicTrigger(period, timeUnit, false, initialDelay);
+		ChronoUnit chronoUnit = timeUnit.toChronoUnit();
+		return fixedDelay(Duration.of(period, chronoUnit), Duration.of(initialDelay, chronoUnit));
 	}
 
-	private static PollerSpec periodicTrigger(long period, TimeUnit timeUnit, boolean fixedRate, long initialDelay) {
-		PeriodicTrigger periodicTrigger = new PeriodicTrigger(period, timeUnit);
+	private static PollerSpec periodicTrigger(Duration period, boolean fixedRate, Duration initialDelay) {
+		PeriodicTrigger periodicTrigger = new PeriodicTrigger(period);
 		periodicTrigger.setFixedRate(fixedRate);
 		periodicTrigger.setInitialDelay(initialDelay);
 		return new PollerSpec(periodicTrigger);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class SocketTestUtils {
 	public static CountDownLatch testSendLength(final int port, final CountDownLatch latch) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
 		Thread thread = new Thread(() -> {
-			try (Socket socket = new Socket(InetAddress.getByName("localhost"), port)) {
+			try (Socket socket = new Socket(InetAddress.getLocalHost(), port)) {
 				for (int i = 0; i < 2; i++) {
 					byte[] len = new byte[4];
 					ByteBuffer.wrap(len).putInt(TEST_STRING.length() * 2);
@@ -94,7 +94,7 @@ public class SocketTestUtils {
 	public static CountDownLatch testSendLengthOverflow(final int port) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
 		Thread thread = new Thread(() -> {
-			try (Socket socket = new Socket(InetAddress.getByName("localhost"), port)) {
+			try (Socket socket = new Socket(InetAddress.getLocalHost(), port)) {
 				byte[] len = new byte[4];
 				ByteBuffer.wrap(len).putInt(Integer.MAX_VALUE);
 				socket.getOutputStream().write(len);
@@ -120,7 +120,7 @@ public class SocketTestUtils {
 			Socket socket = null;
 			try {
 				logger.debug("Connecting to " + port);
-				socket = new Socket(InetAddress.getByName("localhost"), port);
+				socket = new Socket(InetAddress.getLocalHost(), port);
 				OutputStream os = socket.getOutputStream();
 				for (int i = 0; i < howMany; i++) {
 					writeByte(os, 0, noDelay);
@@ -162,12 +162,12 @@ public class SocketTestUtils {
 
 	/**
 	 * Sends a STX/ETX message in two chunks. Two such messages are sent.
-	 * @param latch If not null, await until counted down before sending second chunk.
+	 * @param latch If not null, waits until counted down before sending second chunk.
 	 */
 	public static CountDownLatch testSendStxEtx(final int port, final CountDownLatch latch) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
 		Thread thread = new Thread(() -> {
-			try (Socket socket = new Socket(InetAddress.getByName("localhost"), port)) {
+			try (Socket socket = new Socket(InetAddress.getLocalHost(), port)) {
 				OutputStream outputStream = socket.getOutputStream();
 				for (int i = 0; i < 2; i++) {
 					writeByte(outputStream, 0x02, true);
@@ -199,7 +199,7 @@ public class SocketTestUtils {
 	public static CountDownLatch testSendStxEtxOverflow(final int port) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
 		Thread thread = new Thread(() -> {
-			try (Socket socket = new Socket(InetAddress.getByName("localhost"), port)) {
+			try (Socket socket = new Socket(InetAddress.getLocalHost(), port)) {
 				OutputStream outputStream = socket.getOutputStream();
 				writeByte(outputStream, 0x02, true);
 				for (int i = 0; i < 1500; i++) {
@@ -223,7 +223,7 @@ public class SocketTestUtils {
 	public static CountDownLatch testSendCrLf(final int port, final CountDownLatch latch) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
 		Thread thread = new Thread(() -> {
-			try (Socket socket = new Socket(InetAddress.getByName("localhost"), port)) {
+			try (Socket socket = new Socket(InetAddress.getLocalHost(), port)) {
 				OutputStream outputStream = socket.getOutputStream();
 				for (int i = 0; i < 2; i++) {
 					outputStream.write(TEST_STRING.getBytes());
@@ -255,7 +255,7 @@ public class SocketTestUtils {
 	 */
 	public static void testSendCrLfSingle(final int port, final CountDownLatch latch) {
 		Thread thread = new Thread(() -> {
-			try (Socket socket = new Socket(InetAddress.getByName("localhost"), port)) {
+			try (Socket socket = new Socket(InetAddress.getLocalHost(), port)) {
 				OutputStream outputStream = socket.getOutputStream();
 				outputStream.write(TEST_STRING.getBytes());
 				outputStream.write(TEST_STRING.getBytes());
@@ -278,7 +278,7 @@ public class SocketTestUtils {
 	 */
 	public static void testSendRaw(final int port) {
 		Thread thread = new Thread(() -> {
-			try (Socket socket = new Socket(InetAddress.getByName("localhost"), port)) {
+			try (Socket socket = new Socket(InetAddress.getLocalHost(), port)) {
 				OutputStream outputStream = socket.getOutputStream();
 				outputStream.write(TEST_STRING.getBytes());
 				outputStream.write(TEST_STRING.getBytes());
@@ -298,7 +298,7 @@ public class SocketTestUtils {
 	public static CountDownLatch testSendSerialized(final int port) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
 		Thread thread = new Thread(() -> {
-			try (Socket socket = new Socket(InetAddress.getByName("localhost"), port)) {
+			try (Socket socket = new Socket(InetAddress.getLocalHost(), port)) {
 				OutputStream outputStream = socket.getOutputStream();
 				ObjectOutputStream oos = new ObjectOutputStream(outputStream);
 				oos.writeObject(TEST_STRING);
@@ -323,7 +323,7 @@ public class SocketTestUtils {
 	public static CountDownLatch testSendCrLfOverflow(final int port) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
 		Thread thread = new Thread(() -> {
-			try (Socket socket = new Socket(InetAddress.getByName("localhost"), port)) {
+			try (Socket socket = new Socket(InetAddress.getLocalHost(), port)) {
 				OutputStream outputStream = socket.getOutputStream();
 				for (int i = 0; i < 1500; i++) {
 					writeByte(outputStream, 'x', true);

@@ -19,9 +19,9 @@ package org.springframework.integration.dsl.reactivestreams;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -109,11 +109,11 @@ public class ReactiveStreamsTests {
 		CountDownLatch latch = new CountDownLatch(6);
 		Disposable disposable =
 				Flux.from(this.publisher)
-				.map(m -> m.getPayload().toUpperCase())
-				.subscribe(p -> {
-					results.add(p);
-					latch.countDown();
-				});
+						.map(m -> m.getPayload().toUpperCase())
+						.subscribe(p -> {
+							results.add(p);
+							latch.countDown();
+						});
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		String[] strings = results.toArray(new String[0]);
 		assertThat(strings).isEqualTo(new String[]{ "A", "B", "C", "D", "E", "F" });
@@ -251,7 +251,7 @@ public class ReactiveStreamsTests {
 		public Publisher<Message<String>> reactiveFlow() {
 			return IntegrationFlow
 					.from(() -> new GenericMessage<>("a,b,c,d,e,f"),
-							e -> e.poller(p -> p.trigger(ctx -> this.invoked.getAndSet(true) ? null : new Date()))
+							e -> e.poller(p -> p.trigger(ctx -> this.invoked.getAndSet(true) ? null : Instant.now()))
 									.id("reactiveStreamsMessageSource"))
 					.split(String.class, p -> p.split(","))
 					.log()

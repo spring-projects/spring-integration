@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -70,14 +71,14 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	private volatile boolean explicitlyStopped;
 
 	/**
-	 * Constructs a registry with the default delay for channel expiry.
+	 * Construct a registry with the default delay for channel expiry.
 	 */
 	public DefaultHeaderChannelRegistry() {
 		this(DEFAULT_REAPER_DELAY);
 	}
 
 	/**
-	 * Constructs a registry with the provided delay (milliseconds) for
+	 * Construct a registry with the provided delay (milliseconds) for
 	 * channel expiry.
 	 * @param reaperDelay the delay in milliseconds.
 	 */
@@ -125,7 +126,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 			Assert.notNull(getTaskScheduler(), "a task scheduler is required");
 			this.reaperScheduledFuture =
 					getTaskScheduler()
-							.schedule(this, new Date(System.currentTimeMillis() + this.reaperDelay));
+							.schedule(this, Instant.now().plusMillis(this.reaperDelay));
 
 			this.running = true;
 		}

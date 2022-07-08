@@ -18,9 +18,9 @@ package org.springframework.integration.dsl.flowservices;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -165,15 +165,15 @@ public class FlowServiceTests {
 	@Component
 	public static class MyFlowAdapter extends IntegrationFlowAdapter {
 
-		private final AtomicReference<Date> executionDate = new AtomicReference<>(new Date());
+		private final AtomicReference<Instant> executionDate = new AtomicReference<>(Instant.now());
 
-		private Date nextExecutionTime(TriggerContext triggerContext) {
+		private Instant nextExecution(TriggerContext triggerContext) {
 			return this.executionDate.getAndSet(null);
 		}
 
 		@Override
 		protected IntegrationFlowDefinition<?> buildFlow() {
-			return fromSupplier(this::messageSource, e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
+			return fromSupplier(this::messageSource, e -> e.poller(p -> p.trigger(this::nextExecution)))
 					.split(this, null, e -> e.applySequence(false))
 					.transform(this)
 					.aggregate(a -> a.processor(this, null))

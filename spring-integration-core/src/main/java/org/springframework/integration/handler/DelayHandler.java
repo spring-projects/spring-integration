@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -426,7 +427,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 
 		Runnable releaseTask = releaseTaskForMessage(delayedMessage);
-		Date startTime = new Date(messageWrapper.getRequestDate() + delay);
+		Instant startTime = Instant.ofEpochMilli(messageWrapper.getRequestDate() + delay);
 
 		if (TransactionSynchronizationManager.isSynchronizationActive() &&
 				TransactionSynchronizationManager.isActualTransactionActive()) {
@@ -481,9 +482,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			this.releaseHandler.handleMessage(message);
 			this.deliveries.remove(identity);
 		}
-		catch (Exception e) {
+		catch (Exception ex) {
 			if (getErrorChannel() != null) {
-				ErrorMessage errorMessage = new ErrorMessage(e,
+				ErrorMessage errorMessage = new ErrorMessage(ex,
 						Collections.singletonMap(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT,
 								new AtomicInteger(this.deliveries.get(identity).get() + 1)),
 						message);
@@ -502,9 +503,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 				}
 			}
 			else {
-				logger.debug(e, () -> "Release flow threw an exception for message: " + message);
+				logger.debug(ex, () -> "Release flow threw an exception for message: " + message);
 				if (!rescheduleForRetry(message, identity)) {
-					throw e; // there might be an error handler on the scheduler
+					throw ex; // there might be an error handler on the scheduler
 				}
 			}
 		}
@@ -600,7 +601,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	/**
 	 * Handle {@link ContextRefreshedEvent} to invoke
 	 * {@link #reschedulePersistedMessages} as late as possible after application context
-	 * startup. Also it checks {@link #initialized} to ignore other
+	 * startup. Also, it checks {@link #initialized} to ignore other
 	 * {@link ContextRefreshedEvent}s which may be published in the 'parent-child'
 	 * contexts, e.g. in the Spring-MVC applications.
 	 * @param event - {@link ContextRefreshedEvent} which occurs after Application context

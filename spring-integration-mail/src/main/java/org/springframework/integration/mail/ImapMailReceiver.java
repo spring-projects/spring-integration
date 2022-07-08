@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.mail;
 
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ScheduledFuture;
@@ -185,8 +185,8 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			return;
 		}
 		try {
-			this.pingTask = this.scheduler.schedule(this.idleCanceler,
-					new Date(System.currentTimeMillis() + this.cancelIdleInterval));
+			this.pingTask =
+					this.scheduler.schedule(this.idleCanceler, Instant.now().plusMillis(this.cancelIdleInterval));
 			if (imapFolder.isOpen()) {
 				imapFolder.idle(true);
 			}

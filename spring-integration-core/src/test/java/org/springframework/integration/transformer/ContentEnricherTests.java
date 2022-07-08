@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,17 @@ package org.springframework.integration.transformer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -74,7 +77,6 @@ public class ContentEnricherTests {
 	 */
 	@Test
 	public void replyChannelReplyTimingOut() throws Exception {
-
 		final long requestTimeout = 500L;
 		final long replyTimeout = 100L;
 
@@ -93,7 +95,7 @@ public class ContentEnricherTests {
 		expressionFactoryBean.setSingleton(false);
 		expressionFactoryBean.afterPropertiesSet();
 
-		final Map<String, Expression> expressions = new HashMap<String, Expression>();
+		final Map<String, Expression> expressions = new HashMap<>();
 		expressions.put("name", new LiteralExpression("cartman"));
 		expressions.put("child.name", expressionFactoryBean.getObject());
 
@@ -103,20 +105,21 @@ public class ContentEnricherTests {
 		enricher.setBeanFactory(mock(BeanFactory.class));
 		enricher.afterPropertiesSet();
 
-		final AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+		final AbstractReplyProducingMessageHandler handler =
+				new AbstractReplyProducingMessageHandler() {
 
-			@Override
-			protected Object handleRequestMessage(Message<?> requestMessage) {
-				try {
-					Thread.sleep(5000);
-				}
-				catch (InterruptedException e) {
-					fail(e.getMessage());
-				}
-				return new Target("child");
-			}
+					@Override
+					protected Object handleRequestMessage(Message<?> requestMessage) {
+						try {
+							Thread.sleep(5000);
+						}
+						catch (InterruptedException e) {
+							fail(e.getMessage());
+						}
+						return new Target("child");
+					}
 
-		};
+				};
 
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
@@ -124,7 +127,7 @@ public class ContentEnricherTests {
 		final PollingConsumer consumer = new PollingConsumer(requestChannel, handler);
 		final TestErrorHandler errorHandler = new TestErrorHandler();
 
-		consumer.setTrigger(new PeriodicTrigger(0));
+		consumer.setTrigger(new PeriodicTrigger(Duration.ZERO));
 		consumer.setErrorHandler(errorHandler);
 
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -139,27 +142,16 @@ public class ContentEnricherTests {
 		final Target target = new Target("replace me");
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 
-		try {
-			enricher.handleMessage(requestMessage);
-		}
-		catch (ReplyRequiredException e) {
-			assertThat(e.getMessage())
-					.isEqualTo("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to " +
-							"true.");
-			return;
-		}
-		finally {
-			consumer.stop();
-			taskScheduler.destroy();
-		}
+		assertThatExceptionOfType(ReplyRequiredException.class)
+				.isThrownBy(() -> enricher.handleMessage(requestMessage))
+				.withMessage("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to true.");
 
-		fail("ReplyRequiredException expected.");
-
+		consumer.stop();
+		taskScheduler.destroy();
 	}
 
 	@Test
 	public void requestChannelSendTimingOut() {
-
 		final String requestChannelName = "Request_Channel";
 		final long requestTimeout = 200L;
 
@@ -214,57 +206,36 @@ public class ContentEnricherTests {
 
 	@Test
 	public void setReplyChannelWithoutRequestChannel() {
-
 		QueueChannel replyChannel = new QueueChannel();
 
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setReplyChannel(replyChannel);
 		enricher.setBeanFactory(mock(BeanFactory.class));
 
-		try {
-			enricher.afterPropertiesSet();
-		}
-		catch (IllegalStateException e) {
-			assertThat(e.getMessage())
-					.isEqualTo("If the replyChannel is set, then the requestChannel must not be null");
-			return;
-		}
 
-		fail("Expected an exception.");
+		assertThatIllegalStateException()
+				.isThrownBy(enricher::afterPropertiesSet)
+				.withMessage("If the replyChannel is set, then the requestChannel must not be null");
 	}
 
 	@Test
 	public void setNullReplyTimeout() {
-
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setBeanFactory(mock(BeanFactory.class));
 
-		try {
-			enricher.setReplyTimeout(null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("replyTimeout must not be null");
-			return;
-		}
-
-		fail("Expected an exception.");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> enricher.setReplyTimeout(null))
+				.withMessage("replyTimeout must not be null");
 	}
 
 	@Test
 	public void setNullRequestTimeout() {
-
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setBeanFactory(mock(BeanFactory.class));
 
-		try {
-			enricher.setRequestTimeout(null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("requestTimeout must not be null");
-			return;
-		}
-
-		fail("Expected an exception.");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> enricher.setRequestTimeout(null))
+				.withMessage("requestTimeout must not be null");
 	}
 
 	@Test
@@ -272,7 +243,7 @@ public class ContentEnricherTests {
 		QueueChannel replyChannel = new QueueChannel();
 		ContentEnricher enricher = new ContentEnricher();
 		SpelExpressionParser parser = new SpelExpressionParser();
-		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("'just a static string'"));
 		enricher.setPropertyExpressions(propertyExpressions);
 		enricher.setBeanFactory(mock(BeanFactory.class));
@@ -286,21 +257,13 @@ public class ContentEnricherTests {
 
 	@Test
 	public void testContentEnricherWithNullRequestChannel() {
-
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setReplyChannel(new QueueChannel());
 		enricher.setBeanFactory(mock(BeanFactory.class));
 
-		try {
-			enricher.afterPropertiesSet();
-		}
-		catch (IllegalStateException e) {
-			assertThat(e.getMessage())
-					.isEqualTo("If the replyChannel is set, then the requestChannel must not be null");
-			return;
-		}
-
-		fail("Expected an IllegalArgumentException to be thrown.");
+		assertThatIllegalStateException()
+				.isThrownBy(enricher::afterPropertiesSet)
+				.withMessage("If the replyChannel is set, then the requestChannel must not be null");
 	}
 
 	@Test
@@ -318,7 +281,7 @@ public class ContentEnricherTests {
 		enricher.setRequestChannel(requestChannel);
 
 		SpelExpressionParser parser = new SpelExpressionParser();
-		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("child.name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
 		enricher.setBeanFactory(mock(BeanFactory.class));
@@ -349,7 +312,7 @@ public class ContentEnricherTests {
 
 		enricher.setShouldClonePayload(true);
 		SpelExpressionParser parser = new SpelExpressionParser();
-		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
 		enricher.setBeanFactory(mock(BeanFactory.class));
@@ -380,7 +343,7 @@ public class ContentEnricherTests {
 
 		enricher.setShouldClonePayload(true);
 		SpelExpressionParser parser = new SpelExpressionParser();
-		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
 		enricher.setBeanFactory(mock(BeanFactory.class));
@@ -414,7 +377,7 @@ public class ContentEnricherTests {
 
 		enricher.setShouldClonePayload(true);
 		SpelExpressionParser parser = new SpelExpressionParser();
-		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
 		enricher.setBeanFactory(mock(BeanFactory.class));
@@ -425,16 +388,10 @@ public class ContentEnricherTests {
 
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 
-		try {
-			enricher.handleMessage(requestMessage);
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getMessage()).contains("Failed to clone payload object");
-			return;
-		}
 
-		fail("Expected a MessageHandlingException to be thrown.");
-
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> enricher.handleMessage(requestMessage))
+				.withMessageContaining("Failed to clone payload object");
 	}
 
 	@Test
@@ -451,7 +408,6 @@ public class ContentEnricherTests {
 
 	@Test
 	public void testLifeCycleMethodsWithRequestChannel() {
-
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
 
@@ -484,9 +440,8 @@ public class ContentEnricherTests {
 	 * the "error-channel" which returns a alternative {@link Target}.
 	 */
 	@Test
-	public void testErrorChannel() throws Exception {
-
-		final DirectChannel requestChannel = new DirectChannel();
+	public void testErrorChannel() {
+		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
 
 			@Override
@@ -496,7 +451,7 @@ public class ContentEnricherTests {
 
 		});
 
-		final DirectChannel errorChannel = new DirectChannel();
+		DirectChannel errorChannel = new DirectChannel();
 		errorChannel.subscribe(new AbstractReplyProducingMessageHandler() {
 
 			@Override
@@ -513,7 +468,7 @@ public class ContentEnricherTests {
 		enricher.setErrorChannel(errorChannel);
 
 		SpelExpressionParser parser = new SpelExpressionParser();
-		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.name + ' target'"));
 
 		enricher.setPropertyExpressions(propertyExpressions);
@@ -536,15 +491,10 @@ public class ContentEnricherTests {
 				Collections.singletonMap(MessageHeaders.TIMESTAMP, new StaticHeaderValueMessageProcessor<>("foo")));
 
 		contentEnricher.setBeanFactory(mock(BeanFactory.class));
-		try {
-			contentEnricher.afterPropertiesSet();
-			fail("BeanInitializationException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanInitializationException.class);
-			assertThat(e.getMessage())
-					.contains("ContentEnricher cannot override 'id' and 'timestamp' read-only headers.");
-		}
+
+		assertThatExceptionOfType(BeanInitializationException.class)
+				.isThrownBy(contentEnricher::afterPropertiesSet)
+				.withMessageContaining("ContentEnricher cannot override 'id' and 'timestamp' read-only headers.");
 	}
 
 	@Test
@@ -554,28 +504,14 @@ public class ContentEnricherTests {
 				Collections.singletonMap(MessageHeaders.ID, new StaticHeaderValueMessageProcessor<>("foo")));
 
 		contentEnricher.setBeanFactory(mock(BeanFactory.class));
-		try {
-			contentEnricher.afterPropertiesSet();
-			fail("BeanInitializationException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanInitializationException.class);
-			assertThat(e.getMessage())
-					.contains("ContentEnricher cannot override 'id' and 'timestamp' read-only headers.");
-		}
+
+		assertThatExceptionOfType(BeanInitializationException.class)
+				.isThrownBy(contentEnricher::afterPropertiesSet)
+				.withMessageContaining("ContentEnricher cannot override 'id' and 'timestamp' read-only headers.");
 	}
 
 	@SuppressWarnings("unused")
-	private static final class Source {
-
-		private final String firstName;
-
-		private final String lastName;
-
-		Source(String firstName, String lastName) {
-			this.firstName = firstName;
-			this.lastName = lastName;
-		}
+	private record Source(String firstName, String lastName) {
 
 		public String getFirstName() {
 			return firstName;

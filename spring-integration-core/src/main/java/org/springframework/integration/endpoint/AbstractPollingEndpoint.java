@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.springframework.integration.endpoint;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -97,7 +97,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
-	private Trigger trigger = new PeriodicTrigger(DEFAULT_POLLING_PERIOD);
+	private Trigger trigger = new PeriodicTrigger(Duration.ofMillis(DEFAULT_POLLING_PERIOD));
 
 	private ErrorHandler errorHandler;
 
@@ -139,7 +139,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	public void setTrigger(Trigger trigger) {
-		this.trigger = (trigger != null ? trigger : new PeriodicTrigger(DEFAULT_POLLING_PERIOD));
+		this.trigger = (trigger != null ? trigger : new PeriodicTrigger(Duration.ofMillis(DEFAULT_POLLING_PERIOD)));
 	}
 
 	public void setAdviceChain(List<Advice> adviceChain) {
@@ -148,7 +148,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	/**
 	 * Configure a cap for messages to poll from the source per scheduling cycle.
-* A negative number means retrieve unlimited messages until the {@code MessageSource} returns {@code null}.
+	 * A negative number means retrieve unlimited messages until the {@code MessageSource} returns {@code null}.
 	 * Zero means do not poll for any records - it
 	 * can be considered as pausing if 'maxMessagesPerPoll' is later changed to a non-zero value.
 	 * The polling cycle may exit earlier if the source returns null for the current receive call.
@@ -174,6 +174,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	public void setTransactionSynchronizationFactory(TransactionSynchronizationFactory
 			transactionSynchronizationFactory) {
+
 		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
 	}
 
@@ -200,7 +201,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * Return true if this advice should be applied only to the {@link #receiveMessage()} operation
 	 * rather than the whole poll.
 	 * @param advice The advice.
-	 * @return true to only advise the receive operation.
+	 * @return true to only advise the {@code receive} operation.
 	 */
 	protected boolean isReceiveOnlyAdvice(Advice advice) {
 		return advice instanceof ReceiveMessageAdvice;
@@ -226,7 +227,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				}
 				this.appliedAdvices.clear();
 				this.appliedAdvices.addAll(chain);
-				if (!(isSyncExecutor())) {
+				if (!isSyncExecutor()) {
 					logger.warn(() -> getComponentName() + ": A task executor is supplied and " + chain.size()
 							+ "ReceiveMessageAdvice(s) is/are provided. If an advice mutates the source, such "
 							+ "mutations are not thread safe and could cause unexpected results, especially with "
@@ -358,11 +359,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 		return Flux
 				.<Duration>generate(sink -> {
-					Date date = this.trigger.nextExecutionTime(triggerContext);
+					Instant date = this.trigger.nextExecution(triggerContext);
 					if (date != null) {
 						triggerContext.update(date, null, null);
-						long millis = date.getTime() - System.currentTimeMillis();
-						sink.next(Duration.ofMillis(millis));
+						sink.next(Duration.ofMillis(date.toEpochMilli() - System.currentTimeMillis()));
 					}
 					else {
 						sink.complete();
@@ -371,8 +371,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				.concatMap(duration ->
 						Mono.delay(duration)
 								.doOnNext(l ->
-										triggerContext.update(triggerContext.lastScheduledExecutionTime(),
-												new Date(), null))
+										triggerContext.update(
+												triggerContext.lastScheduledExecution(), Instant.now(), null))
 								.flatMapMany(l ->
 										Flux
 												.defer(() -> {
@@ -400,9 +400,9 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 												.subscribeOn(Schedulers.fromExecutor(this.taskExecutor))
 												.doOnComplete(() ->
 														triggerContext
-																.update(triggerContext.lastScheduledExecutionTime(),
-																		triggerContext.lastActualExecutionTime(),
-																		new Date())
+																.update(triggerContext.lastScheduledExecution(),
+																		triggerContext.lastActualExecution(),
+																		Instant.now())
 												)), 0)
 				.repeat(this::isActive)
 				.doOnSubscribe(subs -> this.subscription = subs);
@@ -412,9 +412,9 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		try {
 			return this.pollingTask.call();
 		}
-		catch (Exception e) {
-			if (e instanceof MessagingException) { // NOSONAR
-				throw (MessagingException) e;
+		catch (Exception ex) {
+			if (ex instanceof MessagingException) { // NOSONAR
+				throw (MessagingException) ex;
 			}
 			else {
 				Message<?> failedMessage = null;
@@ -424,7 +424,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 						failedMessage = ((IntegrationResourceHolder) resource).getMessage();
 					}
 				}
-				throw new MessagingException(failedMessage, e); // NOSONAR (null failedMessage)
+				throw new MessagingException(failedMessage, ex); // NOSONAR (null failedMessage)
 			}
 		}
 		finally {
@@ -509,7 +509,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	protected abstract void handleMessage(Message<?> message);
 
 	/**
-	 * Return a resource (MessageSource etc) to bind when using transaction
+	 * Return a resource (MessageSource etc.) to bind when using transaction
 	 * synchronization.
 	 * @return The resource, or null if transaction synchronization is not required.
 	 */
@@ -537,9 +537,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			if (synchronization != null) {
 				TransactionSynchronizationManager.registerSynchronization(synchronization);
 
-				if (synchronization instanceof IntegrationResourceHolderSynchronization) {
-					IntegrationResourceHolderSynchronization integrationSynchronization =
-							((IntegrationResourceHolderSynchronization) synchronization);
+				if (synchronization instanceof IntegrationResourceHolderSynchronization integrationSynchronization) {
 					integrationSynchronization.setShouldUnbindAtCompletion(false);
 
 					if (!TransactionSynchronizationManager.hasResource(resource)) {
@@ -550,8 +548,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			}
 
 			Object resourceHolder = TransactionSynchronizationManager.getResource(resource);
-			if (resourceHolder instanceof IntegrationResourceHolder) {
-				IntegrationResourceHolder integrationResourceHolder = (IntegrationResourceHolder) resourceHolder;
+			if (resourceHolder instanceof IntegrationResourceHolder integrationResourceHolder) {
 				if (key != null) {
 					integrationResourceHolder.addAttribute(key, resource);
 				}
