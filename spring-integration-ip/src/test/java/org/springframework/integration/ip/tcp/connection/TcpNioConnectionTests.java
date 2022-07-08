@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -63,7 +64,6 @@ import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
@@ -839,13 +839,11 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
-	@Disabled("Until https://github.com/spring-projects/spring-integration/issues/3666")
 	public void testMultiAccept() throws InterruptedException, IOException {
 		testMulti(true);
 	}
 
 	@Test
-	@Disabled("Until https://github.com/spring-projects/spring-integration/issues/3666")
 	public void testNoMultiAccept() throws InterruptedException, IOException {
 		testMulti(false);
 	}
@@ -874,8 +872,9 @@ public class TcpNioConnectionTests {
 			server.afterPropertiesSet();
 			server.start();
 			assertThat(serverReadyLatch.await(10, TimeUnit.SECONDS)).isTrue();
+			InetAddress localHost = InetAddress.getLocalHost();
 			for (int i = 0; i < 10; i++) {
-				Socket socket = SocketFactory.getDefault().createSocket("localhost", server.getPort());
+				Socket socket = SocketFactory.getDefault().createSocket(localHost, server.getPort());
 				socket.getOutputStream().write("foo\r\n".getBytes());
 				sockets.add(socket);
 			}
