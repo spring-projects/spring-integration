@@ -197,15 +197,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return this.beanFactory.getBean(handlerBeanName, MessageHandler.class);
 	}
 
-	private void orderable(Method method, MessageHandler handler) {
-		if (handler instanceof Orderable) {
-			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
-			if (orderAnnotation != null) {
-				((Orderable) handler).setOrder(orderAnnotation.value());
-			}
-		}
-	}
-
 	private void producerOrRouter(List<Annotation> annotations, MessageHandler handler) {
 		if (handler instanceof AbstractMessageProducingHandler || handler instanceof AbstractMessageRouter) {
 			String sendTimeout = MessagingAnnotationUtils.resolveAttribute(annotations, "sendTimeout", String.class);
@@ -608,7 +599,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	@Nullable
 	protected MessageProcessor<?> buildLambdaMessageProcessorForBeanMethod(Method method, Object target) {
 		if ((target instanceof Function || target instanceof Consumer) && ClassUtils.isLambda(target.getClass())
-				|| ClassUtils.isKotlinFaction1(target.getClass())) {
+				|| ClassUtils.isKotlinFunction1(target.getClass())) {
 
 			ResolvableType methodReturnType = ResolvableType.forMethodReturnType(method);
 			Class<?> expectedPayloadType = methodReturnType.getGeneric(0).toClass();
@@ -616,6 +607,15 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 		else {
 			return null;
+		}
+	}
+
+	private static void orderable(Method method, MessageHandler handler) {
+		if (handler instanceof Orderable) {
+			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
+			if (orderAnnotation != null) {
+				((Orderable) handler).setOrder(orderAnnotation.value());
+			}
 		}
 	}
 
