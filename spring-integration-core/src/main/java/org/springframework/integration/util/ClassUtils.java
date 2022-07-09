@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.springframework.core.KotlinDetector;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
@@ -98,12 +99,13 @@ public abstract class ClassUtils {
 		PRIMITIVE_WRAPPER_TYPE_MAP.put(Long.class, long.class);
 		PRIMITIVE_WRAPPER_TYPE_MAP.put(Short.class, short.class);
 
+		ClassLoader defaultClassLoader = org.springframework.util.ClassUtils.getDefaultClassLoader();
+
 		Class<?> genericSelectorClass = null;
 		try {
 			genericSelectorClass =
 					org.springframework.util.ClassUtils.forName(
-							"org.springframework.integration.core.GenericSelector",
-							org.springframework.util.ClassUtils.getDefaultClassLoader());
+							"org.springframework.integration.core.GenericSelector", defaultClassLoader);
 		}
 		catch (ClassNotFoundException e) {
 			ReflectionUtils.rethrowRuntimeException(e);
@@ -115,8 +117,7 @@ public abstract class ClassUtils {
 		try {
 			genericTransformerClass =
 					org.springframework.util.ClassUtils.forName(
-							"org.springframework.integration.transformer.GenericTransformer",
-							org.springframework.util.ClassUtils.getDefaultClassLoader());
+							"org.springframework.integration.transformer.GenericTransformer", defaultClassLoader);
 		}
 		catch (ClassNotFoundException e) {
 			ReflectionUtils.rethrowRuntimeException(e);
@@ -129,8 +130,7 @@ public abstract class ClassUtils {
 		try {
 			genericHandlerClass =
 					org.springframework.util.ClassUtils.forName(
-							"org.springframework.integration.handler.GenericHandler",
-							org.springframework.util.ClassUtils.getDefaultClassLoader());
+							"org.springframework.integration.handler.GenericHandler", defaultClassLoader);
 		}
 		catch (ClassNotFoundException e) {
 			ReflectionUtils.rethrowRuntimeException(e);
@@ -138,45 +138,51 @@ public abstract class ClassUtils {
 
 		HANDLER_HANDLE_METHOD = ReflectionUtils.findMethod(genericHandlerClass, "handle", (Class<?>[]) null);
 
-		Class<?> kotlinClass = null;
-		Method kotlinMethod = null;
-		try {
-			kotlinClass = org.springframework.util.ClassUtils.forName("kotlin.jvm.functions.Function0",
-					org.springframework.util.ClassUtils.getDefaultClassLoader());
+		if (KotlinDetector.isKotlinPresent()) {
+			Class<?> kotlinClass = null;
+			Method kotlinMethod = null;
+			try {
+				kotlinClass = org.springframework.util.ClassUtils.forName("kotlin.jvm.functions.Function0",
+						defaultClassLoader);
 
-			kotlinMethod = ReflectionUtils.findMethod(kotlinClass, "invoke", (Class<?>[]) null);
-		}
-		catch (ClassNotFoundException e) {
-			//Ignore: assume no Kotlin in classpath
-		}
-		finally {
-			KOTLIN_FUNCTION_0_CLASS = kotlinClass;
-			KOTLIN_FUNCTION_0_INVOKE_METHOD = kotlinMethod;
-		}
+				kotlinMethod = ReflectionUtils.findMethod(kotlinClass, "invoke", (Class<?>[]) null);
+			}
+			catch (ClassNotFoundException e) {
+				//Ignore: assume no Kotlin in classpath
+			}
+			finally {
+				KOTLIN_FUNCTION_0_CLASS = kotlinClass;
+				KOTLIN_FUNCTION_0_INVOKE_METHOD = kotlinMethod;
+			}
 
-		kotlinClass = null;
-		kotlinMethod = null;
-		try {
-			kotlinClass = org.springframework.util.ClassUtils.forName("kotlin.jvm.functions.Function1",
-					org.springframework.util.ClassUtils.getDefaultClassLoader());
-		}
-		catch (ClassNotFoundException e) {
-			//Ignore: assume no Kotlin in classpath
-		}
-		finally {
-			KOTLIN_FUNCTION_1_CLASS = kotlinClass;
-		}
+			kotlinClass = null;
+			try {
+				kotlinClass = org.springframework.util.ClassUtils.forName("kotlin.jvm.functions.Function1",
+						defaultClassLoader);
+			}
+			catch (ClassNotFoundException e) {
+				//Ignore: assume no Kotlin in classpath
+			}
+			finally {
+				KOTLIN_FUNCTION_1_CLASS = kotlinClass;
+			}
 
-		kotlinClass = null;
-		try {
-			kotlinClass = org.springframework.util.ClassUtils.forName("kotlin.Unit",
-					org.springframework.util.ClassUtils.getDefaultClassLoader());
+			kotlinClass = null;
+			try {
+				kotlinClass = org.springframework.util.ClassUtils.forName("kotlin.Unit", defaultClassLoader);
+			}
+			catch (ClassNotFoundException e) {
+				//Ignore: assume no Kotlin in classpath
+			}
+			finally {
+				KOTLIN_UNIT_CLASS = kotlinClass;
+			}
 		}
-		catch (ClassNotFoundException e) {
-			//Ignore: assume no Kotlin in classpath
-		}
-		finally {
-			KOTLIN_UNIT_CLASS = kotlinClass;
+		else {
+			KOTLIN_FUNCTION_0_CLASS = null;
+			KOTLIN_FUNCTION_0_INVOKE_METHOD = null;
+			KOTLIN_FUNCTION_1_CLASS = null;
+			KOTLIN_UNIT_CLASS = null;
 		}
 	}
 
@@ -249,34 +255,10 @@ public abstract class ClassUtils {
 	 * Check if class is {@code kotlin.jvm.functions.Function0}.
 	 * @param aClass the {@link Class} to check.
 	 * @return true if class is a {@code kotlin.jvm.functions.Function0} implementation.
-	 * @since 5.2
-	 * @deprecated since 5.5.14 in favor of {@link #isKotlinFunction0(Class)}
-	 */
-	@Deprecated
-	public static boolean isKotlinFaction0(Class<?> aClass) {
-		return KOTLIN_FUNCTION_0_CLASS != null && KOTLIN_FUNCTION_0_CLASS.isAssignableFrom(aClass);
-	}
-
-	/**
-	 * Check if class is {@code kotlin.jvm.functions.Function0}.
-	 * @param aClass the {@link Class} to check.
-	 * @return true if class is a {@code kotlin.jvm.functions.Function0} implementation.
 	 * @since 5.5.14
 	 */
 	public static boolean isKotlinFunction0(Class<?> aClass) {
 		return KOTLIN_FUNCTION_0_CLASS != null && KOTLIN_FUNCTION_0_CLASS.isAssignableFrom(aClass);
-	}
-
-	/**
-	 * Check if class is {@code kotlin.jvm.functions.Function1}.
-	 * @param aClass the {@link Class} to check.
-	 * @return true if class is a {@code kotlin.jvm.functions.Function1} implementation.
-	 * @since 5.2
-	 * @deprecated since 5.5.14 in favor of {@link #isKotlinFunction1(Class)}
-	 */
-	@Deprecated
-	public static boolean isKotlinFaction1(Class<?> aClass) {
-		return KOTLIN_FUNCTION_1_CLASS != null && KOTLIN_FUNCTION_1_CLASS.isAssignableFrom(aClass);
 	}
 
 	/**
@@ -288,7 +270,6 @@ public abstract class ClassUtils {
 	public static boolean isKotlinFunction1(Class<?> aClass) {
 		return KOTLIN_FUNCTION_1_CLASS != null && KOTLIN_FUNCTION_1_CLASS.isAssignableFrom(aClass);
 	}
-
 
 	/**
 	 * Check if class is {@code kotlin.Unit}.

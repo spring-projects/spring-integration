@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.jms;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -683,7 +684,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 					}
 					if (!isAsync() && this.receiveTimeout >= 0) {
 						Assert.state(taskScheduler != null, "'taskScheduler' is required.");
-						this.reaper = taskScheduler.schedule(new LateReplyReaper(), new Date());
+						this.reaper = taskScheduler.schedule(new LateReplyReaper(), Instant.now());
 					}
 				}
 				this.active = true;
@@ -732,8 +733,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 						if (!this.replyContainer.isRunning()) {
 							logger.debug(() -> getComponentName() + ": Starting reply container.");
 							this.replyContainer.start();
-							this.idleTask = getTaskScheduler().scheduleAtFixedRate(new IdleContainerStopper(),
-									this.idleReplyContainerTimeout / 2);
+							this.idleTask =
+									getTaskScheduler()
+											.scheduleAtFixedRate(new IdleContainerStopper(),
+													Duration.ofMillis(this.idleReplyContainerTimeout / 2));
 						}
 					}
 				}
@@ -1170,8 +1173,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> future = new SettableListenableFuture<>();
 		this.futures.put(correlationId, future);
 		if (this.receiveTimeout > 0) {
-			getTaskScheduler().schedule(() -> expire(correlationId),
-					new Date(System.currentTimeMillis() + this.receiveTimeout));
+			getTaskScheduler().schedule(() -> expire(correlationId), Instant.now().plusMillis(this.receiveTimeout));
 		}
 		return future;
 	}
@@ -1448,8 +1450,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			}
 			// reschedule myself
 			if (JmsOutboundGateway.this.receiveTimeout >= 0) {
-				JmsOutboundGateway.this.reaper = getTaskScheduler().schedule(this,
-						new Date(now + JmsOutboundGateway.this.receiveTimeout));
+				JmsOutboundGateway.this.reaper =
+						getTaskScheduler()
+								.schedule(this,
+										Instant.ofEpochMilli(now).plusMillis(JmsOutboundGateway.this.receiveTimeout));
 			}
 		}
 
