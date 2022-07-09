@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,11 +98,11 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 			Class<?> targetClass = target.getClass();
 			Assert.isTrue(MessageSource.class.isAssignableFrom(targetClass) ||
 							Supplier.class.isAssignableFrom(targetClass) ||
-							ClassUtils.isKotlinFaction0(targetClass),
+							ClassUtils.isKotlinFunction0(targetClass),
 					() -> "The '" + this.annotationType + "' on @Bean method " + "level is allowed only for: " +
-							MessageSource.class.getName() + " or " + Supplier.class.getName() +
+							MessageSource.class.getName() + ", or " + Supplier.class.getName() +
 							(ClassUtils.KOTLIN_FUNCTION_0_CLASS != null
-									? " or " + ClassUtils.KOTLIN_FUNCTION_0_CLASS.getName()
+									? ", or " + ClassUtils.KOTLIN_FUNCTION_0_CLASS.getName()
 									: "") + " beans");
 			if (target instanceof MessageSource<?>) {
 				messageSource = (MessageSource<?>) target;

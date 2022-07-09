@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -250,8 +250,20 @@ public abstract class ClassUtils {
 	 * @param aClass the {@link Class} to check.
 	 * @return true if class is a {@code kotlin.jvm.functions.Function0} implementation.
 	 * @since 5.2
+	 * @deprecated since 5.5.14 in favor of {@link #isKotlinFunction0(Class)}
 	 */
+	@Deprecated
 	public static boolean isKotlinFaction0(Class<?> aClass) {
+		return KOTLIN_FUNCTION_0_CLASS != null && KOTLIN_FUNCTION_0_CLASS.isAssignableFrom(aClass);
+	}
+
+	/**
+	 * Check if class is {@code kotlin.jvm.functions.Function0}.
+	 * @param aClass the {@link Class} to check.
+	 * @return true if class is a {@code kotlin.jvm.functions.Function0} implementation.
+	 * @since 5.5.14
+	 */
+	public static boolean isKotlinFunction0(Class<?> aClass) {
 		return KOTLIN_FUNCTION_0_CLASS != null && KOTLIN_FUNCTION_0_CLASS.isAssignableFrom(aClass);
 	}
 
@@ -260,10 +272,23 @@ public abstract class ClassUtils {
 	 * @param aClass the {@link Class} to check.
 	 * @return true if class is a {@code kotlin.jvm.functions.Function1} implementation.
 	 * @since 5.2
+	 * @deprecated since 5.5.14 in favor of {@link #isKotlinFunction1(Class)}
 	 */
+	@Deprecated
 	public static boolean isKotlinFaction1(Class<?> aClass) {
 		return KOTLIN_FUNCTION_1_CLASS != null && KOTLIN_FUNCTION_1_CLASS.isAssignableFrom(aClass);
 	}
+
+	/**
+	 * Check if class is {@code kotlin.jvm.functions.Function1}.
+	 * @param aClass the {@link Class} to check.
+	 * @return true if class is a {@code kotlin.jvm.functions.Function1} implementation.
+	 * @since 5.5.14
+	 */
+	public static boolean isKotlinFunction1(Class<?> aClass) {
+		return KOTLIN_FUNCTION_1_CLASS != null && KOTLIN_FUNCTION_1_CLASS.isAssignableFrom(aClass);
+	}
+
 
 	/**
 	 * Check if class is {@code kotlin.Unit}.

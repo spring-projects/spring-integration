@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,15 +194,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		this.definitionRegistry.registerBeanDefinition(handlerBeanName,
 				new RootBeanDefinition(MessageHandler.class, () -> handler));
 		return this.beanFactory.getBean(handlerBeanName, MessageHandler.class);
-	}
-
-	private void orderable(Method method, MessageHandler handler) {
-		if (handler instanceof Orderable) {
-			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
-			if (orderAnnotation != null) {
-				((Orderable) handler).setOrder(orderAnnotation.value());
-			}
-		}
 	}
 
 	private void producerOrRouter(List<Annotation> annotations, MessageHandler handler) {
@@ -611,7 +602,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	@Nullable
 	protected MessageProcessor<?> buildLambdaMessageProcessorForBeanMethod(Method method, Object target) {
 		if ((target instanceof Function || target instanceof Consumer) && ClassUtils.isLambda(target.getClass())
-				|| ClassUtils.isKotlinFaction1(target.getClass())) {
+				|| ClassUtils.isKotlinFunction1(target.getClass())) {
 
 			ResolvableType methodReturnType = ResolvableType.forMethodReturnType(method);
 			Class<?> expectedPayloadType = methodReturnType.getGeneric(0).toClass();
@@ -619,6 +610,15 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 		else {
 			return null;
+		}
+	}
+
+	private static void orderable(Method method, MessageHandler handler) {
+		if (handler instanceof Orderable) {
+			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
+			if (orderAnnotation != null) {
+				((Orderable) handler).setOrder(orderAnnotation.value());
+			}
 		}
 	}
 
