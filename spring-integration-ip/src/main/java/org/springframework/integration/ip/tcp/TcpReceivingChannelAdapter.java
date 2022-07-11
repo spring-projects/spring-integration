@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
+import java.time.Duration;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -72,7 +73,7 @@ public class TcpReceivingChannelAdapter
 		boolean isErrorMessage = message instanceof ErrorMessage;
 		try {
 			if (this.shuttingDown) {
-				logger.info(() -> "Inbound message ignored; shutting down; " + message.toString());
+				logger.info(() -> "Inbound message ignored; shutting down; " + message);
 			}
 			else {
 				if (isErrorMessage) {
@@ -134,7 +135,7 @@ public class TcpReceivingChannelAdapter
 			this.clientModeConnectionManager = manager;
 			TaskScheduler taskScheduler = getTaskScheduler();
 			Assert.state(taskScheduler != null, "Client mode requires a task scheduler");
-			this.scheduledFuture = taskScheduler.scheduleAtFixedRate(manager, this.retryInterval);
+			this.scheduledFuture = taskScheduler.scheduleAtFixedRate(manager, Duration.ofMillis(this.retryInterval));
 		}
 	}
 

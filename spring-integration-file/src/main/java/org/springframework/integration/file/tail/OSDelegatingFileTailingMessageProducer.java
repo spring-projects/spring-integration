@@ -19,6 +19,7 @@ package org.springframework.integration.file.tail;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.Instant;
 import java.util.Date;
 
 import org.springframework.messaging.MessagingException;
@@ -165,9 +166,10 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 						destroyProcess();
 					}
 					if (isRunning()) {
-						logger.info(() -> "Restarting tail process in " + getMissingFileDelay() + " milliseconds");
+						long missingFileDelay = getMissingFileDelay();
+						logger.info(() -> "Restarting tail process in " + missingFileDelay + " milliseconds");
 						getTaskScheduler()
-								.schedule(this::runExec, new Date(System.currentTimeMillis() + getMissingFileDelay()));
+								.schedule(this::runExec, Instant.now().plusMillis(missingFileDelay));
 					}
 				});
 	}

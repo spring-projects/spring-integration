@@ -17,6 +17,8 @@
 package org.springframework.integration.file.tail;
 
 import java.io.File;
+import java.io.Serial;
+import java.time.Duration;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -37,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Ali Shahbour
  * @author Vladimir Plizga
+ *
  * @since 3.0
  *
  */
@@ -146,21 +149,21 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		}
 	}
 
-
-
 	@Override
 	protected void doStart() {
 		if (this.idleEventInterval > 0) {
-			this.idleEventScheduledFuture = getTaskScheduler().scheduleWithFixedDelay(() -> {
-				long now = System.currentTimeMillis();
-				long lastAlertAt = this.lastNoMessageAlert.get();
-				long lastSend = this.lastProduce;
-				if (now > lastSend + this.idleEventInterval
-						&& now > lastAlertAt + this.idleEventInterval
-						&& this.lastNoMessageAlert.compareAndSet(lastAlertAt, now)) {
-					publishIdleEvent(now - lastSend);
-				}
-			}, this.idleEventInterval);
+			this.idleEventScheduledFuture =
+					getTaskScheduler()
+							.scheduleWithFixedDelay(() -> {
+								long now = System.currentTimeMillis();
+								long lastAlertAt = this.lastNoMessageAlert.get();
+								long lastSend = this.lastProduce;
+								if (now > lastSend + this.idleEventInterval
+										&& now > lastAlertAt + this.idleEventInterval
+										&& this.lastNoMessageAlert.compareAndSet(lastAlertAt, now)) {
+									publishIdleEvent(now - lastSend);
+								}
+							}, Duration.ofMillis(this.idleEventInterval));
 		}
 	}
 
@@ -191,6 +194,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	public static class FileTailingIdleEvent extends FileTailingEvent {
 
+		@Serial
 		private static final long serialVersionUID = -967118535347976767L;
 
 		private final long idleTime;
@@ -210,6 +214,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	public static class FileTailingEvent extends FileIntegrationEvent {
 
+		@Serial
 		private static final long serialVersionUID = -3382255736225946206L;
 
 		private final String message;

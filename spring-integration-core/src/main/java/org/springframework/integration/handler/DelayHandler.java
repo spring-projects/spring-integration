@@ -68,7 +68,7 @@ import org.springframework.util.ObjectUtils;
  * concurrently, even very long delays, without producing a buildup of blocked Threads.
  * <p>
  * One thing to keep in mind, however, is that any active transactional context will not
- * propagate from the original sender to the eventual recipient. This is a side-effect of
+ * propagate from the original sender to the eventual recipient. This is a side effect of
  * passing the Message to the output channel after the delay with a different Thread in
  * control.
  * <p>
@@ -532,7 +532,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	protected void rescheduleAt(Message<?> message, Date startTime) {
 		Runnable releaseTask = releaseTaskForMessage(message);
-		getTaskScheduler().schedule(releaseTask, startTime);
+		getTaskScheduler().schedule(releaseTask, startTime.toInstant());
 	}
 
 	private void doReleaseMessage(Message<?> message) {
@@ -594,7 +594,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 						else {
 							releaseMessage(message);
 						}
-					}, new Date()));
+					}, Instant.now()));
 		}
 	}
 

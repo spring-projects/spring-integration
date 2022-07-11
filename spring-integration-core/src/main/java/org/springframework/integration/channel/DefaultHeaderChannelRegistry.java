@@ -17,7 +17,6 @@
 package org.springframework.integration.channel;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -224,7 +223,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		}
 		this.reaperScheduledFuture =
 				getTaskScheduler()
-						.schedule(this, new Date(System.currentTimeMillis() + this.reaperDelay));
+						.schedule(this, Instant.now().plusMillis(this.reaperDelay));
 
 		logger.trace(() -> "Reaper completed; channels size=" + this.channels.size());
 	}

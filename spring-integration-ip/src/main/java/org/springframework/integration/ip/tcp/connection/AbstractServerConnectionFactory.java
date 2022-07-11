@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2020 the original author or authors.
+ * Copyright 2001-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
-import java.util.Date;
+import java.time.Instant;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.task.TaskRejectedException;
@@ -56,7 +56,6 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 
 	/**
 	 * The port on which the factory will listen.
-	 *
 	 * @param port The port.
 	 */
 	public AbstractServerConnectionFactory(int port) {
@@ -201,10 +200,10 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 		return 0;
 	}
 
-	protected void publishServerExceptionEvent(Exception e) {
+	protected void publishServerExceptionEvent(Exception ex) {
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(new TcpConnectionServerExceptionEvent(this, e));
+			applicationEventPublisher.publishEvent(new TcpConnectionServerExceptionEvent(this, ex));
 		}
 	}
 
@@ -215,7 +214,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 			TaskScheduler taskScheduler = getTaskScheduler();
 			if (taskScheduler != null) {
 				try {
-					taskScheduler.schedule(() -> eventPublisher.publishEvent(event), new Date());
+					taskScheduler.schedule(() -> eventPublisher.publishEvent(event), Instant.now());
 				}
 				catch (@SuppressWarnings("unused") TaskRejectedException e) {
 					eventPublisher.publishEvent(event);

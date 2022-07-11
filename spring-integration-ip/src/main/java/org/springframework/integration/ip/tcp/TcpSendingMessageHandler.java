@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -267,7 +268,8 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 					this.clientModeConnectionManager = manager;
 					TaskScheduler taskScheduler = getTaskScheduler();
 					Assert.state(taskScheduler != null, "Client mode requires a task scheduler");
-					this.scheduledFuture = taskScheduler.scheduleAtFixedRate(manager, this.retryInterval);
+					this.scheduledFuture =
+							taskScheduler.scheduleAtFixedRate(manager, Duration.ofMillis(this.retryInterval));
 				}
 			}
 		}

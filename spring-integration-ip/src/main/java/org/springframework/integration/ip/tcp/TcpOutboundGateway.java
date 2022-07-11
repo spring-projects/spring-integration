@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2021 the original author or authors.
+ * Copyright 2001-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -440,11 +440,12 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.connection = connection;
 			this.haveSemaphore = haveSemaphore;
 			if (async && remoteTimeout > 0) {
-				getTaskScheduler().schedule(() -> {
-					TcpOutboundGateway.this.pendingReplies.remove(connection.getConnectionId());
-					this.future.setException(
-							new MessageTimeoutException(requestMessage, "Timed out waiting for response"));
-				}, new Date(System.currentTimeMillis() + remoteTimeout));
+				getTaskScheduler()
+						.schedule(() -> {
+							TcpOutboundGateway.this.pendingReplies.remove(connection.getConnectionId());
+							this.future.setException(
+									new MessageTimeoutException(requestMessage, "Timed out waiting for response"));
+						}, Instant.now().plusMillis(remoteTimeout));
 			}
 		}
 

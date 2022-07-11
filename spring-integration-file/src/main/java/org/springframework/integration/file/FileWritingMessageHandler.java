@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
+import java.time.Duration;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -450,7 +451,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		if (this.flushTask == null && FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)) {
 			TaskScheduler taskScheduler = getTaskScheduler();
 			Assert.state(taskScheduler != null, "'taskScheduler' is required for FileExistsMode.APPEND_NO_FLUSH");
-			this.flushTask = taskScheduler.scheduleAtFixedRate(new Flusher(), this.flushInterval / 3); // NOSONAR
+			this.flushTask = taskScheduler
+					.scheduleAtFixedRate(new Flusher(), Duration.ofMillis(this.flushInterval / 3)); // NOSONAR
 		}
 	}
 
