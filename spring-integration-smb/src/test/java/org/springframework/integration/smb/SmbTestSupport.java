@@ -16,8 +16,11 @@
 
 package org.springframework.integration.smb;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.springframework.integration.file.remote.RemoteFileTestSupport;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -28,35 +31,46 @@ import jcifs.DialectVersion;
 import jcifs.smb.SmbFile;
 
 /**
- * Provides a connection to an external SMB Server for test cases.
- *
- * The constants need to be updated with the 'real' server settings for testing.
+ * Provides a connection to a Testcontainers-driven SMB Server for test cases.
  *
  * @author Gregory Bragg
+ * @author Artem Vozhdayenko
  *
  * @since 6.0
  */
 
-@Disabled("Actual SMB share must be configured in class [SmbTestSupport].")
+@Testcontainers(disabledWithoutDocker = true)
 public class SmbTestSupport extends RemoteFileTestSupport {
 
-	public static final String HOST = "localhost";
+	public static final String HOST = "127.0.0.1";
 
-	public static final String SHARE_AND_DIR = "smb-share/";
+	public static final String SHARE_AND_DIR = "smb-share";
 
 	public static final String USERNAME = "sambaguest";
 
 	public static final String PASSWORD = "sambaguest";
 
+	private static final String INNER_SHARE_DIR = "/tmp";
+
+	// Configuration details can be found at https://hub.docker.com/r/dperson/samba
+	private static final GenericContainer<?> SMB_CONTAINER = new GenericContainer<>("dperson/samba:latest")
+			.withExposedPorts(445)
+			.withEnv("USER", USERNAME + ";" + PASSWORD)
+			.withTmpFs(Map.of(INNER_SHARE_DIR, "rw"))
+			.withEnv("SHARE", SHARE_AND_DIR + ";" + INNER_SHARE_DIR + ";yes;no;no;all;none");
+
 	private static SmbSessionFactory smbSessionFactory;
 
 	@BeforeAll
 	public static void connectToSMBServer() {
+		SMB_CONTAINER.start();
+
 		smbSessionFactory = new SmbSessionFactory();
 		smbSessionFactory.setHost(HOST);
+		smbSessionFactory.setPort(SMB_CONTAINER.getFirstMappedPort());
 		smbSessionFactory.setUsername(USERNAME);
 		smbSessionFactory.setPassword(PASSWORD);
-		smbSessionFactory.setShareAndDir(SHARE_AND_DIR);
+		smbSessionFactory.setShareAndDir(SHARE_AND_DIR + "/");
 		smbSessionFactory.setSmbMinVersion(DialectVersion.SMB210);
 		smbSessionFactory.setSmbMaxVersion(DialectVersion.SMB311);
 	}
