@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +37,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.config.EnableIntegrationManagement;
-import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.Pollers;
@@ -69,39 +66,19 @@ import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
 
 /**
- * The actual SMB share must be configured in class 'SmbTestSupport'
- * with the 'real' server settings for testing.
- *
- * You must create the following folder structures in your SMB share
- * for a successful completion of these unit tests:
- *
- * <pre class="code">
- *  smbSource/
- *  |-- smbSource1.txt - contains 'source1'
- *  |-- smbSource2.txt - contains 'source2'
- *  |-- SMBSOURCE1.TXT.a
- *  |-- SMBSOURCE2.TXT.a
- *  |-- subSmbSource/
- *      |-- subSmbSource1.txt - contains 'subSource1'
- *      |-- subSmbSource2.txt - contains 'subSource2'
- *  |-- subSmbSource2/ - directory will be created in testSmbPutFlow
- *      |-- subSmbSource2-1.txt - file will be created in testSmbPutFlow and deleted in testSmbRmFlow
- *      |-- subSmbSource2-2.txt - file will be created in testSmbMputFlow
- *      |-- subSmbSource2-3.txt - file will be created in testSmbMputFlow and renamed in testSmbMvFlow to subSmbSource-MV-Flow-Renamed.txt
- *  smbTarget/
- * </pre>
  *
  * The intent is tests retrieve from smbSource and verify arrival in localTarget or
  * send from localSource and verify arrival in remoteTarget.
  *
  * @author Gregory Bragg
+ * @author Artem Vozhdayenko
+ * @author Artem Bilan
  *
  * @since 6.0
  */
 
 @SpringJUnitConfig
 @DirtiesContext
-@Disabled("Actual SMB share must be configured in class [SmbTestSupport].")
 public class SmbTests extends SmbTestSupport {
 
 	@Autowired
@@ -110,22 +87,19 @@ public class SmbTests extends SmbTestSupport {
 	@Autowired
 	private ApplicationContext context;
 
-	@Autowired
-	private IntegrationManagementConfigurer integrationManagementConfigurer;
-
 	@Test
-	public void testSmbInboundFlow() throws IOException {
+	public void testSmbInboundFlow() {
 		QueueChannel out = new QueueChannel();
 		DirectoryScanner scanner = new DefaultDirectoryScanner();
 		IntegrationFlow flow = IntegrationFlow.from(Smb.inboundAdapter(sessionFactory())
-						.preserveTimestamp(true)
-						.remoteDirectory("smbSource")
-						.maxFetchSize(10)
-						.scanner(scanner)
-						.regexFilter(".*\\.txt$")
-						.localFilename(f -> f.toUpperCase() + ".a")
-						.localDirectory(getTargetLocalDirectory()),
-				e -> e.id("smbInboundAdapter").poller(Pollers.fixedDelay(100)))
+								.preserveTimestamp(true)
+								.remoteDirectory("smbSource")
+								.maxFetchSize(10)
+								.scanner(scanner)
+								.regexFilter(".*\\.txt$")
+								.localFilename(f -> f.toUpperCase() + ".a")
+								.localDirectory(getTargetLocalDirectory()),
+						e -> e.id("smbInboundAdapter").poller(Pollers.fixedDelay(100)))
 				.channel(out)
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
@@ -163,11 +137,11 @@ public class SmbTests extends SmbTestSupport {
 	public void testSmbInboundStreamFlow() throws Exception {
 		QueueChannel out = new QueueChannel();
 		StandardIntegrationFlow flow = IntegrationFlow.from(
-				Smb.inboundStreamingAdapter(new SmbRemoteFileTemplate(sessionFactory()))
-						.remoteDirectory("smbSource")
-						.maxFetchSize(11)
-						.regexFilter(".*\\.txt$"),
-				e -> e.id("smbInboundAdapter").poller(Pollers.fixedDelay(100)))
+						Smb.inboundStreamingAdapter(new SmbRemoteFileTemplate(sessionFactory()))
+								.remoteDirectory("smbSource")
+								.maxFetchSize(11)
+								.regexFilter(".*\\.txt$"),
+						e -> e.id("smbInboundAdapter").poller(Pollers.fixedDelay(100)))
 				.channel(out)
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
@@ -207,7 +181,7 @@ public class SmbTests extends SmbTestSupport {
 		RemoteFileTemplate<SmbFile> template = new RemoteFileTemplate<>(sessionFactory());
 		SmbFile[] files = template.execute(session ->
 				session.list(getTargetRemoteDirectory().getName()));
-		assertThat(files.length).isEqualTo(1);
+		assertThat(files).hasSize(1);
 		try {
 			assertThat(files[0].length()).isEqualTo(3);
 		}
@@ -235,7 +209,7 @@ public class SmbTests extends SmbTestSupport {
 		registration.getInputChannel().send(message);
 		SmbFile[] files = smbTemplate.execute(session ->
 				session.list(getTargetRemoteDirectory().getName()));
-		assertThat(files.length).isEqualTo(1);
+		assertThat(files).hasSize(1);
 		try {
 			assertThat(files[0].length()).isEqualTo(3);
 		}
@@ -268,7 +242,7 @@ public class SmbTests extends SmbTestSupport {
 		registration.getInputChannel().send(message2);
 		SmbFile[] files = smbTemplate.execute(session ->
 				session.list(getTargetRemoteDirectory().getName()));
-		assertThat(files.length).isEqualTo(1);
+		assertThat(files).hasSize(1);
 		try {
 			assertThat(files[0].length()).isEqualTo(9);
 		}
@@ -331,7 +305,7 @@ public class SmbTests extends SmbTestSupport {
 		assertThat(result).isNotNull();
 
 		List<File> localFiles = (List<File>) result.getPayload();
-		assertThat(localFiles.size()).as("unexpected local files " + localFiles).isEqualTo(2);
+		assertThat(localFiles).as("unexpected local files " + localFiles).hasSize(2);
 
 		for (File file : localFiles) {
 			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
@@ -365,7 +339,7 @@ public class SmbTests extends SmbTestSupport {
 		assertThat(result).isNotNull();
 
 		List<SmbFileInfo> localFiles = (List<SmbFileInfo>) result.getPayload();
-		assertThat(localFiles.size()).as("unexpected local files " + localFiles).isEqualTo(2);
+		assertThat(localFiles).as("unexpected local files " + localFiles).hasSize(2);
 
 		for (SmbFileInfo fileInfo : localFiles) {
 			SmbFile file = fileInfo.getFileInfo();
@@ -400,10 +374,10 @@ public class SmbTests extends SmbTestSupport {
 		assertThat(result).isNotNull();
 
 		List<String> localFilenames = (List<String>) result.getPayload();
-		assertThat(localFilenames.size()).as("unexpected local filenames " + localFilenames).isEqualTo(2);
+		assertThat(localFilenames).as("unexpected local filenames " + localFilenames).hasSize(2);
 
 		for (String filename : localFilenames) {
-			assertThat(filename.contains("subSmbSource"));
+			assertThat(filename).contains("subSmbSource");
 		}
 
 		registration.destroy();
@@ -431,8 +405,9 @@ public class SmbTests extends SmbTestSupport {
 		assertThat(result).isNotNull();
 
 		String path = (String) result.getPayload();
-		assertThat(path).isNotNull();
-		assertThat(path.contains("subSmbSource2"));
+		assertThat(path)
+				.isNotNull()
+				.contains("subSmbSource2");
 
 		registration.destroy();
 	}
@@ -450,8 +425,7 @@ public class SmbTests extends SmbTestSupport {
 		Message<?> result = out.receive(10_000);
 		assertThat(result).isNotNull();
 
-		Boolean success = (Boolean) result.getPayload();
-		assertThat(success).isTrue();
+		assertThat(result.getPayload()).isEqualTo(Boolean.TRUE);
 
 		registration.destroy();
 	}
@@ -488,18 +462,19 @@ public class SmbTests extends SmbTestSupport {
 		assertThat(result).isNotNull();
 
 		List<String> remoteFilenames = (List<String>) result.getPayload();
-		assertThat(remoteFilenames).isNotNull();
-		assertThat(remoteFilenames.size()).as("unexpected remote filenames " + remoteFilenames).isEqualTo(2);
+		assertThat(remoteFilenames)
+				.isNotNull()
+				.as("unexpected remote filenames " + remoteFilenames).hasSize(2);
 
 		for (String filename : remoteFilenames) {
-			assertThat(filename.contains("subSmbSource2"));
+			assertThat(filename).contains("subSmbSource2");
 		}
 
 		registration.destroy();
 	}
 
 	@Test
-	public void testSmbMvFlow() throws IOException {
+	public void testSmbMvFlow() {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = f -> f
 				.handle(
@@ -512,15 +487,13 @@ public class SmbTests extends SmbTestSupport {
 		Message<?> result = out.receive(10_000);
 		assertThat(result).isNotNull();
 
-		Boolean success = (Boolean) result.getPayload();
-		assertThat(success).isTrue();
+		assertThat(result.getPayload()).isEqualTo(Boolean.TRUE);
 
 		registration.destroy();
 	}
 
 	@Configuration
 	@EnableIntegration
-	@EnableIntegrationManagement
 	public static class ContextConfiguration {
 
 	}

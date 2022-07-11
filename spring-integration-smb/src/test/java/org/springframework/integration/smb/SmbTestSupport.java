@@ -16,49 +16,99 @@
 
 package org.springframework.integration.smb;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.springframework.integration.file.remote.RemoteFileTestSupport;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.smb.session.SmbSessionFactory;
+import org.springframework.integration.test.util.TestUtils;
 
 import jcifs.DialectVersion;
 import jcifs.smb.SmbFile;
 
 /**
- * Provides a connection to an external SMB Server for test cases.
+ * Provides a connection to a Testcontainers-driven SMB Server for test cases.
  *
- * The constants need to be updated with the 'real' server settings for testing.
+ * The following folder structures in the SMB share is expected
+ * for a successful completion of these unit tests:
+ *
+ * <pre class="code">
+ *  smbSource/
+ *  |-- smbSource1.txt - contains 'source1'
+ *  |-- smbSource2.txt - contains 'source2'
+ *  |-- SMBSOURCE1.TXT.a
+ *  |-- SMBSOURCE2.TXT.a
+ *  |-- subSmbSource/
+ *      |-- subSmbSource1.txt - contains 'subSource1'
+ *      |-- subSmbSource2.txt - contains 'subSource2'
+ *  |-- subSmbSource2/ - directory will be created in testSmbPutFlow
+ *      |-- subSmbSource2-1.txt - file will be created in testSmbPutFlow and deleted in testSmbRmFlow
+ *      |-- subSmbSource2-2.txt - file will be created in testSmbMputFlow
+ *      |-- subSmbSource2-3.txt - file will be created in testSmbMputFlow and renamed in testSmbMvFlow to subSmbSource-MV-Flow-Renamed.txt
+ *  smbTarget/
+ * </pre>
  *
  * @author Gregory Bragg
+ * @author Artem Vozhdayenko
+ * @author Artem Bilan
  *
  * @since 6.0
  */
 
-@Disabled("Actual SMB share must be configured in class [SmbTestSupport].")
+@Testcontainers(disabledWithoutDocker = true)
 public class SmbTestSupport extends RemoteFileTestSupport {
 
-	public static final String HOST = "localhost";
+	public static final String HOST = "127.0.0.1";
 
-	public static final String SHARE_AND_DIR = "smb-share/";
+	public static final String SHARE_AND_DIR = "smb-share";
 
 	public static final String USERNAME = "sambaguest";
 
 	public static final String PASSWORD = "sambaguest";
 
+	private static final String INNER_SHARE_DIR = "/tmp";
+
+	private static final GenericContainer<?> SMB_CONTAINER = new GenericContainer<>("elswork/samba:4.15.5")
+			.withTmpFs(Map.of(INNER_SHARE_DIR, "rw"))
+			.withCommand("-u", "1000:1000:" + USERNAME + ":" + USERNAME + ":" + PASSWORD, "-s", SHARE_AND_DIR + ":" + INNER_SHARE_DIR + ":rw:" + USERNAME)
+			.withExposedPorts(445);
+
 	private static SmbSessionFactory smbSessionFactory;
 
 	@BeforeAll
-	public static void connectToSMBServer() {
+	public static void connectToSMBServer() throws IOException {
+		SMB_CONTAINER.start();
+
 		smbSessionFactory = new SmbSessionFactory();
 		smbSessionFactory.setHost(HOST);
+		smbSessionFactory.setPort(SMB_CONTAINER.getFirstMappedPort());
 		smbSessionFactory.setUsername(USERNAME);
 		smbSessionFactory.setPassword(PASSWORD);
-		smbSessionFactory.setShareAndDir(SHARE_AND_DIR);
+		smbSessionFactory.setShareAndDir(SHARE_AND_DIR + "/");
 		smbSessionFactory.setSmbMinVersion(DialectVersion.SMB210);
 		smbSessionFactory.setSmbMaxVersion(DialectVersion.SMB311);
+
+		try (Session<SmbFile> smbFileSession = smbSessionFactory.getSession()) {
+			smbFileSession.mkdir("smbTarget");
+			Charset charset = StandardCharsets.UTF_8;
+			smbFileSession.write(IOUtils.toInputStream("source1", charset), TestUtils.applySystemFileSeparator("smbSource/smbSource1.txt"));
+			smbFileSession.write(IOUtils.toInputStream("source2", charset), TestUtils.applySystemFileSeparator("smbSource/smbSource2.txt"));
+			smbFileSession.write(IOUtils.toInputStream("", charset), "SMBSOURCE1.TXT.a");
+			smbFileSession.write(IOUtils.toInputStream("", charset), "SMBSOURCE2.TXT.a");
+
+			smbFileSession.write(IOUtils.toInputStream("subSource1", charset), TestUtils.applySystemFileSeparator("smbSource/subSmbSource/subSmbSource1.txt"));
+			smbFileSession.write(IOUtils.toInputStream("subSource2", charset), TestUtils.applySystemFileSeparator("smbSource/subSmbSource/subSmbSource2.txt"));
+		}
 	}
 
 	public static SessionFactory<SmbFile> sessionFactory() {
