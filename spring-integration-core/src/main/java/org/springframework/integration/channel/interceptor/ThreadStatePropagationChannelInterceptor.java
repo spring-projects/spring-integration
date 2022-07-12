@@ -23,6 +23,8 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 
+import io.micrometer.common.lang.Nullable;
+
 /**
  * The {@link ExecutorChannelInterceptor} implementation responsible for
  * the {@link Thread} (any?) state propagation from one message flow's thread to another
@@ -47,16 +49,16 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.2
  */
-public abstract class ThreadStatePropagationChannelInterceptor<S>
-		implements ExecutorChannelInterceptor {
+public abstract class ThreadStatePropagationChannelInterceptor<S> implements ExecutorChannelInterceptor {
 
 	@Override
 	public final Message<?> preSend(Message<?> message, MessageChannel channel) {
 		S threadContext = obtainPropagatingContext(message, channel);
 		if (threadContext != null) {
-			return new MessageWithThreadState<S>(message, threadContext);
+			return new MessageWithThreadState<>(message, threadContext);
 		}
 		else {
 			return message;
@@ -80,15 +82,10 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 		return postReceive(message, channel);
 	}
 
-	@Override
-	public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler,
-			Exception ex) {
-		// No-op
-	}
-
+	@Nullable
 	protected abstract S obtainPropagatingContext(Message<?> message, MessageChannel channel);
 
-	protected abstract void populatePropagatedContext(S state, Message<?> message, MessageChannel channel);
+	protected abstract void populatePropagatedContext(@Nullable S state, Message<?> message, MessageChannel channel);
 
 
 	private static final class MessageWithThreadState<S> implements Message<Object>, MessageDecorator {
@@ -129,4 +126,3 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 	}
 
 }
-
