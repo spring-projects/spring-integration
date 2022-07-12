@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ package org.springframework.integration.transformer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -30,8 +29,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * Also in JMX - changes here should be reflected there.
@@ -40,8 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class TransformerContextTests {
 
 	private static volatile int adviceCalled;
@@ -66,22 +63,22 @@ public class TransformerContextTests {
 
 	@Test
 	public void methodInvokingTransformer() {
-		this.input.send(new GenericMessage<String>("foo"));
+		this.input.send(new GenericMessage<>("foo"));
 		Message<?> reply = this.output.receive(0);
 		assertThat(reply.getPayload()).isEqualTo("FOO");
 		assertThat(adviceCalled).isEqualTo(1);
 
-		this.direct.send(new GenericMessage<String>("foo"));
+		this.direct.send(new GenericMessage<>("foo"));
 		reply = this.output.receive(0);
 		assertThat(reply.getPayload()).isEqualTo("FOO");
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertThat(st[6].getMethodName()).isEqualTo("doSend"); // no MethodInvokerHelper
+		assertThat(st[7].getMethodName()).isEqualTo("doSend"); // no MethodInvokerHelper
 
-		this.directRef.send(new GenericMessage<String>("foo"));
+		this.directRef.send(new GenericMessage<>("foo"));
 		reply = this.output.receive(0);
 		assertThat(reply.getPayload()).isEqualTo("FOO");
 		st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertThat(st[6].getMethodName()).isEqualTo("doSend"); // no MethodInvokerHelper
+		assertThat(st[7].getMethodName()).isEqualTo("doSend"); // no MethodInvokerHelper
 
 		assertThat(this.testBean.isRunning()).isTrue();
 		this.pojoTransformer.stop();
@@ -89,7 +86,7 @@ public class TransformerContextTests {
 		this.pojoTransformer.start();
 		assertThat(this.testBean.isRunning()).isTrue();
 
-		this.directRef.send(new GenericMessage<String>("bar"));
+		this.directRef.send(new GenericMessage<>("bar"));
 		assertThat(this.output.receive(0)).isNull();
 	}
 
@@ -117,4 +114,5 @@ public class TransformerContextTests {
 		}
 
 	}
+
 }

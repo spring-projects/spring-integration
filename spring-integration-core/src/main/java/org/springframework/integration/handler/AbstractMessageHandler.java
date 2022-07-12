@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,31 +39,42 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 
 	@Override // NOSONAR
 	public void handleMessage(Message<?> message) {
-		Message<?> messageToUse = message;
-		Assert.notNull(messageToUse, "Message must not be null");
+		Assert.notNull(message, "Message must not be null");
 		if (isLoggingEnabled() && this.logger.isDebugEnabled()) {
-			this.logger.debug(this + " received message: " + messageToUse);
+			this.logger.debug(this + " received message: " + message);
 		}
-		SampleFacade sample = null;
 		MetricsCaptor metricsCaptor = getMetricsCaptor();
 		if (metricsCaptor != null) {
-			sample = metricsCaptor.start();
+			handleWithMetrics(message, metricsCaptor);
 		}
+		else {
+			doHandleMessage(message);
+		}
+	}
+
+	private void handleWithMetrics(Message<?> message, MetricsCaptor metricsCaptor) {
+		SampleFacade sample = metricsCaptor.start();
+		try {
+			doHandleMessage(message);
+			sample.stop(sendTimer());
+		}
+		catch (Exception ex) {
+			sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
+			throw ex;
+		}
+	}
+
+	private void doHandleMessage(Message<?> message) {
+		Message<?> messageToUse = message;
 		try {
 			if (shouldTrack()) {
 				messageToUse = MessageHistory.write(messageToUse, this, getMessageBuilderFactory());
 			}
 			handleMessageInternal(messageToUse);
-			if (sample != null) {
-				sample.stop(sendTimer());
-			}
 		}
-		catch (Exception e) {
-			if (sample != null) {
-				sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
-			}
+		catch (Exception ex) {
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(messageToUse,
-					() -> "error occurred in message handler [" + this + "]", e);
+					() -> "error occurred in message handler [" + this + "]", ex);
 		}
 	}
 
