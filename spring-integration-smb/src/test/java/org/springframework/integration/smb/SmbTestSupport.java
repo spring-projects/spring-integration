@@ -52,12 +52,10 @@ public class SmbTestSupport extends RemoteFileTestSupport {
 
 	private static final String INNER_SHARE_DIR = "/tmp";
 
-	// Configuration details can be found at https://hub.docker.com/r/dperson/samba
-	private static final GenericContainer<?> SMB_CONTAINER = new GenericContainer<>("dperson/samba:latest")
-			.withExposedPorts(445)
-			.withEnv("USER", USERNAME + ";" + PASSWORD)
+	private static final GenericContainer<?> SMB_CONTAINER = new GenericContainer<>("elswork/samba:4.15.5")
 			.withTmpFs(Map.of(INNER_SHARE_DIR, "rw"))
-			.withEnv("SHARE", SHARE_AND_DIR + ";" + INNER_SHARE_DIR + ";yes;no;no;all;none");
+			.withCommand("-u", "1000:1000:" + USERNAME + ":" + USERNAME + ":" + PASSWORD, "-s", SHARE_AND_DIR + ":" + INNER_SHARE_DIR + ":rw:" + USERNAME)
+			.withExposedPorts(445);
 
 	private static SmbSessionFactory smbSessionFactory;
 
