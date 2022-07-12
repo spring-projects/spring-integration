@@ -17,6 +17,7 @@
 package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.withinPercentage;
 
 import org.junit.jupiter.api.Test;
 
@@ -90,7 +91,7 @@ public class DelayerUsageTests {
 		long start = System.currentTimeMillis();
 		inputA.send(builder.build());
 		assertThat(outputA.receive(10000)).isNotNull();
-		assertThat(System.currentTimeMillis() - start).isGreaterThanOrEqualTo(2000);
+		assertThat(System.currentTimeMillis() - start).isCloseTo(2000, withinPercentage(5));
 	}
 
 	@Test
@@ -111,7 +112,7 @@ public class DelayerUsageTests {
 		assertThat(outputB1.receive(10000)).isNotNull();
 		assertThat(outputB1.receive(10000)).isNotNull();
 
-		// must execute under 3 seconds, since threadPool is set too 5.
+		// must execute under 3 seconds, since threadPool is set to 5.
 		// first batch is 5 concurrent invocations on SA, then 2 more
 		// elapsed time for the whole execution should be a bit over 2 seconds depending on the hardware
 		assertThat(System.currentTimeMillis() - start).isBetween(1000L, 3000L);
