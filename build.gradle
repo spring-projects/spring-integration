@@ -87,7 +87,7 @@ ext {
 	micrometerVersion = '1.10.0-SNAPSHOT'
     micrometerTracingVersion = '1.0.0-SNAPSHOT'
     mockitoVersion = '4.5.1'
-    mongoDriverVersion = '4.6.0'
+    mongoDriverVersion = '4.7.0-beta0'
     mysqlVersion = '8.0.28'
     pahoMqttClientVersion = '1.2.5'
     postgresVersion = '42.3.3'
