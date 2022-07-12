@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.jpa.support.JpaParameter;
@@ -32,6 +32,8 @@ import org.springframework.integration.jpa.support.JpaParameter;
 /**
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -57,7 +59,6 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 
 	@Test
 	public void testListOfMapsInput() {
-		@SuppressWarnings("unchecked")
 		ParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
 				Collections.singletonMap("foo", "bucket")));
 		String expression = "foo";
@@ -83,8 +84,7 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 
 	@Test
 	public void testMapInputWithMappedExpressionResolveStatic() {
-
-		List<JpaParameter> parameters = new ArrayList<JpaParameter>();
+		List<JpaParameter> parameters = new ArrayList<>();
 		parameters.add(new JpaParameter("spam", null, "#staticParameters['foo'].toUpperCase()"));
 		parameters.add(new JpaParameter("foo", "bar", null));
 		factory.setParameters(parameters);
@@ -97,7 +97,6 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 	@Test
 	public void testListOfMapsInputWithExpression() {
 		factory.setParameters(Collections.singletonList(new JpaParameter("spam", null, "foo.toUpperCase()")));
-		@SuppressWarnings("unchecked")
 		ParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
 				Collections.singletonMap("foo", "bucket")));
 		String expression = "spam";
@@ -107,15 +106,15 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 
 	@Test
 	public void testPositionalStaticParameters() {
-		List<JpaParameter> parameters = new ArrayList<JpaParameter>();
+		List<JpaParameter> parameters = new ArrayList<>();
 		parameters.add(new JpaParameter("foo", null));
 		parameters.add(new JpaParameter("bar", null));
 		factory.setParameters(parameters);
 
 		PositionSupportingParameterSource source = factory.createParameterSource("not important");
 
-		String position0 = (String) source.getValueByPosition(0);
-		String position1 = (String) source.getValueByPosition(1);
+		String position0 = (String) source.getValueByPosition(1);
+		String position1 = (String) source.getValueByPosition(2);
 
 		assertThat(position0).isEqualTo("foo");
 		assertThat(position1).isEqualTo("bar");
@@ -123,15 +122,15 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 
 	@Test
 	public void testPositionalExpressionParameters() {
-		List<JpaParameter> parameters = new ArrayList<JpaParameter>();
+		List<JpaParameter> parameters = new ArrayList<>();
 		parameters.add(new JpaParameter(null, "#root.toUpperCase()"));
 		parameters.add(new JpaParameter("bar", null));
 		factory.setParameters(parameters);
 
 		PositionSupportingParameterSource source = factory.createParameterSource("very important");
 
-		String position0 = (String) source.getValueByPosition(0);
-		String position1 = (String) source.getValueByPosition(1);
+		String position0 = (String) source.getValueByPosition(1);
+		String position1 = (String) source.getValueByPosition(2);
 
 		assertThat(position0).isEqualTo("VERY IMPORTANT");
 		assertThat(position1).isEqualTo("bar");
@@ -139,7 +138,7 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 
 	@Test
 	public void testPositionalExpressionParameters2() {
-		List<JpaParameter> parameters = new ArrayList<JpaParameter>();
+		List<JpaParameter> parameters = new ArrayList<>();
 
 		parameters.add(new JpaParameter("bar", null));
 		parameters.add(new JpaParameter(null, "#root.toUpperCase()"));
@@ -148,8 +147,8 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 
 		PositionSupportingParameterSource source = factory.createParameterSource("very important");
 
-		String position0 = (String) source.getValueByPosition(0);
-		String position1 = (String) source.getValueByPosition(1);
+		String position0 = (String) source.getValueByPosition(1);
+		String position1 = (String) source.getValueByPosition(2);
 
 		assertThat(position1).isEqualTo("VERY IMPORTANT");
 		assertThat(position0).isEqualTo("bar");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,12 @@
 package org.springframework.integration.jpa.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.List;
 
 import jakarta.persistence.EntityManager;
 
-import org.hibernate.TypeMismatchException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +33,6 @@ import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -78,10 +76,6 @@ public class JpaOutboundGatewayIntegrationTests {
 	@Autowired
 	@Qualifier("findResultChannel")
 	private PollableChannel findResultChannel;
-
-	@Autowired
-	@Qualifier("invalidIdType")
-	private SubscribableChannel invalidIdTypeChannel;
 
 	@Autowired
 	private EntityManager entityManager;
@@ -151,28 +145,9 @@ public class JpaOutboundGatewayIntegrationTests {
 		Message<?> receive = this.findResultChannel.receive(2000);
 		assertThat(receive).isNotNull();
 
-		try {
-			this.findAndDeleteChannel.send(message);
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(ReplyRequiredException.class);
-		}
-	}
 
-	@Test
-	public void testInvalidIdType() {
-		Message<Integer> message = MessageBuilder.withPayload(1).build();
-		try {
-			this.invalidIdTypeChannel.send(message);
-			fail("PersistenceException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageHandlingException.class);
-			assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getCause().getCause()).isInstanceOf(TypeMismatchException.class);
-			assertThat(e.getCause().getMessage())
-					.contains("Expected: class java.lang.Long, got class java.lang.Integer");
-		}
+		assertThatExceptionOfType(ReplyRequiredException.class)
+				.isThrownBy(() -> this.findAndDeleteChannel.send(message));
 	}
 
 }

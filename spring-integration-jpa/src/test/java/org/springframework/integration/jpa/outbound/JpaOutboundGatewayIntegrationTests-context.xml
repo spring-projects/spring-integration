@@ -63,12 +63,4 @@
 		<int-jpa:transactional/>
 	</int-jpa:retrieving-outbound-gateway>
 
-	<int:channel id="invalidIdType"/>
-
-	<int-jpa:retrieving-outbound-gateway
-			entity-manager="entityManager"
-			request-channel="invalidIdType"
-			entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
-			id-expression="payload"/>
-
 </beans>
