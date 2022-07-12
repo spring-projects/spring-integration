@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Collection;
@@ -418,7 +419,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			messageWrapper = (DelayedMessageWrapper) message.getPayload();
 		}
 		else {
-			messageWrapper = new DelayedMessageWrapper(message, System.currentTimeMillis());
+			messageWrapper = new DelayedMessageWrapper(message, Instant.now().toEpochMilli());
 			delayedMessage = getMessageBuilderFactory()
 					.withPayload(messageWrapper)
 					.copyHeaders(message.getHeaders())
@@ -427,7 +428,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 
 		Runnable releaseTask = releaseTaskForMessage(delayedMessage);
-		Instant startTime = Instant.ofEpochMilli(messageWrapper.getRequestDate() + delay);
+		Instant startTime = Instant.ofEpochMilli(messageWrapper.getRequestDate()).plusMillis(delay);
 
 		if (TransactionSynchronizationManager.isSynchronizationActive() &&
 				TransactionSynchronizationManager.isActualTransactionActive()) {
@@ -637,6 +638,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	public static final class DelayedMessageWrapper implements Serializable {
 
+		@Serial
 		private static final long serialVersionUID = -4739802369074947045L;
 
 		private final long requestDate;
