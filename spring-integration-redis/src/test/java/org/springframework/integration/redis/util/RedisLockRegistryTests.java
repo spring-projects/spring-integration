@@ -18,14 +18,10 @@ package org.springframework.integration.redis.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.mock;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -53,8 +49,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -795,23 +789,6 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(awaitTimeout.await(1, TimeUnit.SECONDS)).isFalse();
 		assertThat(expectOne.get()).isEqualTo(1);
 		executorService.shutdown();
-	}
-
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test
-	public void testUlink() {
-		RedisOperations ops = mock(RedisOperations.class);
-		Properties props = new Properties();
-		willReturn(props).given(ops).execute(any(RedisCallback.class));
-		props.setProperty("redis_version", "3.0.0");
-		RedisLockRegistry registry = new RedisLockRegistry(mock(RedisConnectionFactory.class), "foo");
-		registry.setRedisLockType(testRedisLockType);
-		assertThat(TestUtils.getPropertyValue(registry, "ulinkAvailable", Boolean.class)).isFalse();
-		props.setProperty("redis_version", "4.0.0");
-		registry = new RedisLockRegistry(mock(RedisConnectionFactory.class), "foo");
-		registry.setRedisLockType(testRedisLockType);
-		assertThat(TestUtils.getPropertyValue(registry, "ulinkAvailable", Boolean.class)).isTrue();
 	}
 
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {
