@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -29,8 +30,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
 
@@ -38,16 +38,21 @@ import org.springframework.messaging.SubscribableChannel;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  * @since 2.2
  */
-public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvailableTests {
+class RedisStoreInboundChannelAdapterIntegrationTests implements RedisTest {
+	private static RedisConnectionFactory redisConnectionFactory;
+
+	@BeforeAll
+	static void setupConnection() {
+		redisConnectionFactory = RedisTest.connectionFactory();
+	}
 
 	@Test
-	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	public void testListInboundConfiguration() throws Exception {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.prepareList(jcf);
+	void testListInboundConfiguration() {
+		RedisTest.prepareList(redisConnectionFactory);
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("listAdapter", SourcePollingChannelAdapter.class);
@@ -62,19 +67,17 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		message = (Message<Integer>) redisChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo(Integer.valueOf(13));
-		this.deletePresidents(jcf);
+		RedisTest.deletePresidents(redisConnectionFactory);
 		context.close();
 	}
 
 	@Test
-	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	// synchronization commit renames the list
-	public void testListInboundConfigurationWithSynchronization() throws Exception {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		StringRedisTemplate template = this.createStringRedisTemplate(jcf);
+		// synchronization commit renames the list
+	void testListInboundConfigurationWithSynchronization() throws Exception {
+		StringRedisTemplate template = RedisTest.createStringRedisTemplate(redisConnectionFactory);
 		template.delete("bar");
-		this.prepareList(jcf);
+		RedisTest.prepareList(redisConnectionFactory);
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
 		SourcePollingChannelAdapter spca =
@@ -105,13 +108,11 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 
 	@SuppressWarnings("resource")
 	@Test
-	@RedisAvailable
-	// synchronization rollback renames the list
-	public void testListInboundConfigurationWithSynchronizationAndRollback() throws Exception {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		StringRedisTemplate template = this.createStringRedisTemplate(jcf);
+		// synchronization rollback renames the list
+	void testListInboundConfigurationWithSynchronizationAndRollback() throws Exception {
+		StringRedisTemplate template = RedisTest.createStringRedisTemplate(redisConnectionFactory);
 		template.delete("baz");
-		this.prepareList(jcf);
+		RedisTest.prepareList(redisConnectionFactory);
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("list-inbound-adapter.xml",
 				this.getClass());
 		SubscribableChannel fail = context.getBean("redisFailChannel", SubscribableChannel.class);
@@ -137,14 +138,12 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 	}
 
 	@Test
-	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	// synchronization commit renames the list
-	public void testListInboundConfigurationWithSynchronizationAndTemplate() throws Exception {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		StringRedisTemplate template = this.createStringRedisTemplate(jcf);
+		// synchronization commit renames the list
+	void testListInboundConfigurationWithSynchronizationAndTemplate() throws Exception {
+		StringRedisTemplate template = RedisTest.createStringRedisTemplate(redisConnectionFactory);
 		template.delete("bar");
-		this.prepareList(jcf);
+		RedisTest.prepareList(redisConnectionFactory);
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
 		SourcePollingChannelAdapter spca =
@@ -174,11 +173,9 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 	}
 
 	@Test
-	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	public void testZsetInboundAdapter() throws InterruptedException {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.prepareZset(jcf);
+	void testZsetInboundAdapter() throws InterruptedException {
+		RedisTest.prepareZset(redisConnectionFactory);
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("zset-inbound-adapter.xml", this.getClass());
 
@@ -191,12 +188,12 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 
 		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload().size()).isEqualTo(13);
+		assertThat(message.getPayload()).hasSize(13);
 
 		//poll again, should get the same stuff
 		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload().size()).isEqualTo(13);
+		assertThat(message.getPayload()).hasSize(13);
 
 		zsetAdapterNoScore.stop();
 
@@ -208,12 +205,12 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 
 		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload().rangeByScore(18, 20).size()).isEqualTo(11);
+		assertThat(message.getPayload().rangeByScore(18, 20)).hasSize(11);
 
 		//poll again, should get the same stuff
 		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload().rangeByScore(18, 20).size()).isEqualTo(11);
+		assertThat(message.getPayload().rangeByScore(18, 20)).hasSize(11);
 
 		zsetAdapterWithScoreRange.stop();
 
@@ -225,12 +222,12 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 
 		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload().rangeByScore(18, 18).size()).isEqualTo(2);
+		assertThat(message.getPayload().rangeByScore(18, 18)).hasSize(2);
 
 		//poll again, should get the same stuff
 		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload().rangeByScore(18, 18).size()).isEqualTo(2);
+		assertThat(message.getPayload().rangeByScore(18, 18)).hasSize(2);
 
 		zsetAdapterWithSingleScore.stop();
 
@@ -245,7 +242,7 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		zsetAdapterNoScore.start();
 		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload().size()).isEqualTo(13);
+		assertThat(message.getPayload()).hasSize(13);
 		zsetAdapterNoScore.stop();
 
 		// get only presidents for 18th century
@@ -267,7 +264,7 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 
 		zsetAdapterNoScore.stop();
 		zsetAdapterWithSingleScoreAndSynchronization.stop();
-		this.deletePresidents(jcf);
+		RedisTest.deletePresidents(redisConnectionFactory);
 
 		context.close();
 	}

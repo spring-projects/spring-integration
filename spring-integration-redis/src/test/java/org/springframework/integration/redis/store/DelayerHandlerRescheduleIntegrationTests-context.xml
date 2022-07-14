@@ -6,7 +6,7 @@
 	http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<beans:bean id="messageStore" class="org.springframework.integration.redis.store.RedisMessageStore">
-		<beans:constructor-arg value="#{T (org.springframework.integration.redis.rules.RedisAvailableRule).connectionFactory}"/>
+		<beans:constructor-arg value="#{T (org.springframework.integration.redis.RedisTest).connectionFactory()}"/>
 	</beans:bean>
 
 	<channel id="output">

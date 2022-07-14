@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,8 +33,7 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.mapping.InboundMessageMapper;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisTest;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonMessageParser;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
@@ -43,20 +41,19 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Rainer Frey
+ * @author Artem Vozhdayenko
  *
  * @since 3.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
+class RedisQueueOutboundChannelAdapterTests implements RedisTest {
 
 	@Autowired
 	private RedisConnectionFactory connectionFactory;
@@ -67,8 +64,7 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 
 
 	@Test
-	@RedisAvailable
-	public void testInt3015Default() throws Exception {
+	void testInt3015Default() {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter";
 
@@ -83,9 +79,9 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		redisTemplate.afterPropertiesSet();
 
 		Object result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
-		assertThat(result).isNotNull();
-
-		assertThat(result).isEqualTo(payload);
+		assertThat(result)
+				.isNotNull()
+				.isEqualTo(payload);
 
 		Date payload2 = new Date();
 		handler.handleMessage(MessageBuilder.withPayload(payload2).build());
@@ -98,14 +94,13 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		redisTemplate2.afterPropertiesSet();
 
 		Object result2 = redisTemplate2.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
-		assertThat(result2).isNotNull();
-
-		assertThat(result2).isEqualTo(payload2);
+		assertThat(result2)
+				.isNotNull()
+				.isEqualTo(payload2);
 	}
 
 	@Test
-	@RedisAvailable
-	public void testInt3015ExtractPayloadFalse() throws Exception {
+	void testInt3015ExtractPayloadFalse() {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter2";
 
@@ -124,15 +119,14 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		redisTemplate.afterPropertiesSet();
 
 		Object result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
-		assertThat(result).isNotNull();
-
-		assertThat(result).isEqualTo(message);
+		assertThat(result)
+				.isNotNull()
+				.isEqualTo(message);
 
 	}
 
 	@Test
-	@RedisAvailable
-	public void testInt3015ExplicitSerializer() throws Exception {
+	void testInt3015ExplicitSerializer() {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter2";
 
@@ -147,21 +141,20 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		handler.handleMessage(new GenericMessage<Object>(Arrays.asList("foo", "bar", "baz")));
 
 		Object result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
-		assertThat(result).isNotNull();
-
-		assertThat(result).isEqualTo("[\"foo\",\"bar\",\"baz\"]");
+		assertThat(result)
+				.isNotNull()
+				.isEqualTo("[\"foo\",\"bar\",\"baz\"]");
 
 		handler.handleMessage(new GenericMessage<Object>("test"));
 
 		result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
-		assertThat(result).isNotNull();
-
-		assertThat(result).isEqualTo("\"test\"");
+		assertThat(result)
+				.isNotNull()
+				.isEqualTo("\"test\"");
 	}
 
 	@Test
-	@RedisAvailable
-	public void testInt3017IntegrationOutbound() throws Exception {
+	void testInt3017IntegrationOutbound() {
 
 		final String queueName = "si.test.Int3017IntegrationOutbound";
 
@@ -181,8 +174,7 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testInt3932LeftPushFalse() throws Exception {
+	void testInt3932LeftPushFalse() {
 
 		final String queueName = "si.test.Int3932LeftPushFalse";
 
@@ -201,9 +193,9 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		redisTemplate.afterPropertiesSet();
 
 		Object result = redisTemplate.boundListOps(queueName).leftPop(5000, TimeUnit.MILLISECONDS);
-		assertThat(result).isNotNull();
-
-		assertThat(result).isEqualTo(payload);
+		assertThat(result)
+				.isNotNull()
+				.isEqualTo(payload);
 
 		RedisTemplate<String, ?> redisTemplate2 = new RedisTemplate<String, Object>();
 		redisTemplate2.setConnectionFactory(this.connectionFactory);
@@ -213,9 +205,9 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		redisTemplate2.afterPropertiesSet();
 
 		Object result2 = redisTemplate2.boundListOps(queueName).leftPop(5000, TimeUnit.MILLISECONDS);
-		assertThat(result2).isNotNull();
-
-		assertThat(result2).isEqualTo(payload2);
+		assertThat(result2)
+				.isNotNull()
+				.isEqualTo(payload2);
 	}
 
 }

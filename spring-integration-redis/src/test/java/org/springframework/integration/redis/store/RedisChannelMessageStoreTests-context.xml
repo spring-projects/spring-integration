@@ -2,24 +2,22 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int="http://www.springframework.org/schema/integration"
-	   xmlns:util="http://www.springframework.org/schema/util"
 	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<util:constant id="redisConnectionFactory"
-				   static-field="org.springframework.integration.redis.rules.RedisAvailableRule.connectionFactory"/>
+	<bean id="redisConnectionFactory" class="org.springframework.integration.redis.RedisTest"
+		  factory-method="connectionFactory"/>
 
 	<bean id="cms" class="org.springframework.integration.redis.store.RedisChannelMessageStore">
 		<constructor-arg ref="redisConnectionFactory"/>
 	</bean>
 
 	<int:channel id="testChannel1">
-		<int:queue message-store="cms" />
+		<int:queue message-store="cms"/>
 	</int:channel>
 
 	<int:channel id="testChannel2">
-		<int:queue message-store="cms" />
+		<int:queue message-store="cms"/>
 	</int:channel>
 
 	<bean id="priorityCms" class="org.springframework.integration.redis.store.RedisChannelPriorityMessageStore">
@@ -27,11 +25,11 @@
 	</bean>
 
 	<int:channel id="testChannel3">
-		<int:priority-queue message-store="priorityCms" />
+		<int:priority-queue message-store="priorityCms"/>
 	</int:channel>
 
 	<int:channel id="testChannel4">
-		<int:priority-queue message-store="priorityCms" />
+		<int:priority-queue message-store="priorityCms"/>
 	</int:channel>
 
 </beans>

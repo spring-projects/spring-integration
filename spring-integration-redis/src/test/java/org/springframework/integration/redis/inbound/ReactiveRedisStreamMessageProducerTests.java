@@ -24,14 +24,14 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -43,10 +43,8 @@ import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
+import org.springframework.integration.redis.RedisTest;
 import org.springframework.integration.redis.outbound.ReactiveRedisStreamMessageHandler;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableRule;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.redis.util.Address;
 import org.springframework.integration.redis.util.Person;
@@ -56,7 +54,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -66,12 +64,13 @@ import reactor.test.StepVerifier;
  * @author Attoumane Ahamadi
  * @author Artem Bilan
  * @author Rohan Mukesh
+ * @author Artem Vozhdayenko
  *
  * @since 5.4
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests {
+class ReactiveRedisStreamMessageProducerTests implements RedisTest {
 
 	private static final String STREAM_KEY = ReactiveRedisStreamMessageProducerTests.class.getSimpleName() + ".stream";
 
@@ -89,19 +88,24 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 	@Autowired
 	ReactiveMessageHandlerAdapter messageHandler;
 
-	@Before
-	public void delKey() {
+	@Autowired
+	ReactiveRedisStreamMessageProducer reactiveErrorRedisStreamProducer;
+
+	@Autowired
+	PollableChannel redisStreamErrorChannel;
+
+	@BeforeEach
+	void delKey() {
 		this.template.delete(STREAM_KEY).block();
 	}
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 		this.reactiveRedisStreamProducer.stop();
 	}
 
 	@Test
-	@RedisAvailable
-	public void testConsumerGroupCreation() {
+	void testConsumerGroupCreation() {
 		this.reactiveRedisStreamProducer.setCreateConsumerGroup(true);
 		this.reactiveRedisStreamProducer.setConsumerName(CONSUMER);
 		this.reactiveRedisStreamProducer.afterPropertiesSet();
@@ -121,8 +125,7 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 	}
 
 	@Test
-	@RedisAvailable
-	public void testReadingMessageAsStandaloneClient() {
+	void testReadingMessageAsStandaloneClient() {
 		Address address = new Address("Rennes 3, France");
 		Person person = new Person(address, "Attoumane");
 		this.messageHandler.handleMessage(new GenericMessage<>(person));
@@ -149,8 +152,7 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 	}
 
 	@Test
-	@RedisAvailable
-	public void testReadingMessageAsConsumerInConsumerGroup() {
+	void testReadingMessageAsConsumerInConsumerGroup() {
 		Address address = new Address("Winterfell, Westeros");
 		Person person = new Person(address, "John Snow");
 
@@ -183,8 +185,7 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 	}
 
 	@Test
-	@RedisAvailable
-	public void testReadingPendingMessageWithNoAutoACK() {
+	void testReadingPendingMessageWithNoAutoACK() {
 		Address address = new Address("Winterfell, Westeros");
 		Person person = new Person(address, "John Snow");
 
@@ -230,19 +231,12 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 
 		StepVerifier.create(pendingZeroMessage)
 				.assertNext(pendingMessagesSummary ->
-						assertThat(pendingMessagesSummary.getTotalPendingMessages()).isEqualTo(0))
+						assertThat(pendingMessagesSummary.getTotalPendingMessages()).isZero())
 				.verifyComplete();
 	}
 
-	@Autowired
-	ReactiveRedisStreamMessageProducer reactiveErrorRedisStreamProducer;
-
-	@Autowired
-	PollableChannel redisStreamErrorChannel;
-
 	@Test
-	@RedisAvailable
-	public void testReadingNextMessagesWhenSerializationException() {
+	void testReadingNextMessagesWhenSerializationException() {
 		Person person = new Person(new Address("Winterfell, Westeros"), "John Snow");
 		Date testDate = new Date();
 		this.reactiveErrorRedisStreamProducer.start();
@@ -282,7 +276,7 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 
 		StepVerifier.create(pendingMessage)
 				.assertNext(pendingMessagesSummary ->
-						assertThat(pendingMessagesSummary.getTotalPendingMessages()).isEqualTo(0))
+						assertThat(pendingMessagesSummary.getTotalPendingMessages()).isZero())
 				.verifyComplete();
 
 		this.messageHandler.handleMessage(new GenericMessage<>(testDate));
@@ -296,18 +290,29 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 	static class ContextConfig {
 
 		@Bean
-		ReactiveRedisStreamMessageHandler redisStreamMessageHandler() {
-			return new ReactiveRedisStreamMessageHandler(RedisAvailableRule.connectionFactory, STREAM_KEY);
+		ReactiveRedisConnectionFactory redisConnectionFactory() {
+			return RedisTest.connectionFactory();
 		}
 
 		@Bean
-		public ReactiveMessageHandlerAdapter reactiveMessageHandlerAdapter() {
-			return new ReactiveMessageHandlerAdapter(redisStreamMessageHandler());
+		ReactiveRedisStreamMessageHandler redisStreamMessageHandler(
+				ReactiveRedisConnectionFactory redisConnectionFactory) {
+
+			return new ReactiveRedisStreamMessageHandler(redisConnectionFactory, STREAM_KEY);
 		}
 
 		@Bean
-		ReactiveRedisTemplate<String, ?> reactiveStreamOperations() {
-			return new ReactiveRedisTemplate<>(RedisAvailableRule.connectionFactory,
+		public ReactiveMessageHandlerAdapter reactiveMessageHandlerAdapter(
+				ReactiveRedisConnectionFactory redisConnectionFactory) {
+
+			return new ReactiveMessageHandlerAdapter(redisStreamMessageHandler(redisConnectionFactory));
+		}
+
+		@Bean
+		ReactiveRedisTemplate<String, ?> reactiveStreamOperations(
+				ReactiveRedisConnectionFactory redisConnectionFactory) {
+
+			return new ReactiveRedisTemplate<>(redisConnectionFactory,
 					RedisSerializationContext.string());
 		}
 
@@ -322,9 +327,11 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 		}
 
 		@Bean
-		ReactiveRedisStreamMessageProducer reactiveErrorRedisStreamProducer() {
+		ReactiveRedisStreamMessageProducer reactiveErrorRedisStreamProducer(
+				ReactiveRedisConnectionFactory redisConnectionFactory) {
+
 			ReactiveRedisStreamMessageProducer messageProducer =
-					new ReactiveRedisStreamMessageProducer(RedisAvailableRule.connectionFactory, STREAM_KEY);
+					new ReactiveRedisStreamMessageProducer(redisConnectionFactory, STREAM_KEY);
 			messageProducer.setTargetType(Date.class);
 			messageProducer.setPollTimeout(Duration.ofMillis(100));
 			messageProducer.setCreateConsumerGroup(true);
@@ -338,9 +345,11 @@ public class ReactiveRedisStreamMessageProducerTests extends RedisAvailableTests
 		}
 
 		@Bean
-		ReactiveRedisStreamMessageProducer reactiveRedisStreamProducer() {
+		ReactiveRedisStreamMessageProducer reactiveRedisStreamProducer(
+				ReactiveRedisConnectionFactory redisConnectionFactory) {
+
 			ReactiveRedisStreamMessageProducer messageProducer =
-					new ReactiveRedisStreamMessageProducer(RedisAvailableRule.connectionFactory, STREAM_KEY);
+					new ReactiveRedisStreamMessageProducer(redisConnectionFactory, STREAM_KEY);
 			messageProducer.setStreamReceiverOptions(
 					StreamReceiver.StreamReceiverOptions.builder()
 							.pollTimeout(Duration.ofMillis(100))

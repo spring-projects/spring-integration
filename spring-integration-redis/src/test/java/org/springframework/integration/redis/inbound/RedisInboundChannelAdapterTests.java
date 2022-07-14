@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2019 the original author or authors.
+ * Copyright 2007-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ package org.springframework.integration.redis.inbound;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -27,8 +28,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisTest;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -37,14 +37,20 @@ import org.springframework.messaging.Message;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  *
  * @since 2.1
  */
-public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
+class RedisInboundChannelAdapterTests implements RedisTest {
+	private static RedisConnectionFactory redisConnectionFactory;
+
+	@BeforeAll
+	static void setupConnection() {
+		redisConnectionFactory = RedisTest.connectionFactory();
+	}
 
 	@Test
-	@RedisAvailable
-	public void testRedisInboundChannelAdapter() throws Exception {
+	void testRedisInboundChannelAdapter() throws Exception {
 		for (int iteration = 0; iteration < 10; iteration++) {
 			testRedisInboundChannelAdapterGuts(iteration);
 		}
@@ -55,7 +61,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 		String redisChannelName = "testRedisInboundChannelAdapterChannel";
 		QueueChannel channel = new QueueChannel();
 
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
+		RedisConnectionFactory connectionFactory = redisConnectionFactory;
 
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(connectionFactory);
 		adapter.setTopics(redisChannelName);
@@ -67,7 +73,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 
-		awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
+		RedisTest.awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
 				redisTemplate, redisChannelName, channel, "foo");
 
 		for (int i = 0; i < numToTest; i++) {
@@ -82,8 +88,8 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 			}
 			assertThat(message).isNotNull();
 			assertThat(message.getPayload().toString()).startsWith("test-");
-			assertThat(message.getHeaders().get(RedisHeaders.MESSAGE_SOURCE))
-					.isEqualTo("testRedisInboundChannelAdapterChannel");
+			assertThat(message.getHeaders())
+					.containsEntry(RedisHeaders.MESSAGE_SOURCE, "testRedisInboundChannelAdapterChannel");
 			counter++;
 		}
 		assertThat(counter).isEqualTo(numToTest);
@@ -101,7 +107,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 		template.setEnableDefaultSerializer(false);
 		template.afterPropertiesSet();
 
-		awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
+		RedisTest.awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
 				template, redisChannelName, channel, "foo".getBytes());
 
 		for (int i = 0; i < numToTest; i++) {

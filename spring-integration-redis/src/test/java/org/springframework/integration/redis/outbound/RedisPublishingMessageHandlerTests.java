@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2019 the original author or authors.
+ * Copyright 2007-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -31,25 +32,28 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisTest;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  * @since 2.1
  */
-public class RedisPublishingMessageHandlerTests extends RedisAvailableTests {
+class RedisPublishingMessageHandlerTests implements RedisTest {
+	private static RedisConnectionFactory redisConnectionFactory;
+
+	@BeforeAll
+	static void setupConnection() {
+		redisConnectionFactory = RedisTest.connectionFactory();
+	}
 
 	@Test
-	@RedisAvailable
-	public void testRedisPublishingMessageHandler() throws Exception {
+	void testRedisPublishingMessageHandler() throws Exception {
 		int numToTest = 10;
 		String topic = "si.test.channel";
 		final CountDownLatch latch = new CountDownLatch(numToTest * 2);
-
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 
 		MessageListenerAdapter listener = new MessageListenerAdapter();
 		listener.setDelegate(new Listener(latch));
@@ -57,14 +61,14 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests {
 		listener.afterPropertiesSet();
 
 		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-		container.setConnectionFactory(connectionFactory);
+		container.setConnectionFactory(redisConnectionFactory);
 		container.afterPropertiesSet();
 		container.addMessageListener(listener, Collections.<Topic>singletonList(new ChannelTopic(topic)));
 		container.start();
 
-		this.awaitContainerSubscribed(container);
+		RedisTest.awaitContainerSubscribed(container);
 
-		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
+		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(redisConnectionFactory);
 		handler.setTopicExpression(new LiteralExpression(topic));
 
 		for (int i = 0; i < numToTest; i++) {

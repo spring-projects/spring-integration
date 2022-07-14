@@ -19,7 +19,6 @@ package org.springframework.integration.redis.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -41,17 +40,15 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisTest;
 import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -61,18 +58,12 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Artem Bilan
  * @author Vedran Pavic
  * @author Unseok Kim
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
  */
-@RunWith(Parameterized.class)
-public class RedisLockRegistryTests extends RedisAvailableTests {
-
-	private final RedisLockType testRedisLockType;
-
-	public RedisLockRegistryTests(RedisLockType redisLockType) {
-		this.testRedisLockType = redisLockType;
-	}
+class RedisLockRegistryTests implements RedisTest {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
@@ -80,27 +71,29 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 	private final String registryKey2 = UUID.randomUUID().toString();
 
-	@Parameters
-	public static Collection<RedisLockType> getRedisLockTypeParameters() {
-		return List.of(RedisLockType.values());
+	private static RedisConnectionFactory redisConnectionFactory;
+
+	@BeforeAll
+	static void setupConnections() {
+		redisConnectionFactory = RedisTest.connectionFactory();
 	}
 
-	@Before
-	@After
-	public void setupShutDown() {
+	@BeforeEach
+	@AfterEach
+	void setupShutDown() {
 		StringRedisTemplate template = this.createTemplate();
 		template.delete(this.registryKey + ":*");
 		template.delete(this.registryKey2 + ":*");
 	}
 
 	private StringRedisTemplate createTemplate() {
-		return new StringRedisTemplate(getConnectionFactoryForTest());
+		return new StringRedisTemplate(redisConnectionFactory);
 	}
 
-	@Test
-	@RedisAvailable
-	public void testLock() {
-		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testLock(RedisLockType testRedisLockType) {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo");
@@ -113,13 +106,13 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
 	}
 
-	@Test
-	@RedisAvailable
-	public void testLockInterruptibly() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testLockInterruptibly(RedisLockType testRedisLockType) throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo");
@@ -132,13 +125,13 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
 	}
 
-	@Test
-	@RedisAvailable
-	public void testReentrantLock() {
-		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testReentrantLock(RedisLockType testRedisLockType) {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = registry.obtain("foo");
@@ -159,13 +152,13 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
 	}
 
-	@Test
-	@RedisAvailable
-	public void testReentrantLockInterruptibly() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testReentrantLockInterruptibly(RedisLockType testRedisLockType) throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = registry.obtain("foo");
@@ -186,13 +179,13 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
 	}
 
-	@Test
-	@RedisAvailable
-	public void testTwoLocks() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testTwoLocks(RedisLockType testRedisLockType) throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = registry.obtain("foo");
@@ -213,13 +206,13 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
 	}
 
-	@Test
-	@RedisAvailable
-	public void testTwoThreadsSecondFailsToGetLock() throws Exception {
-		final RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testTwoThreadsSecondFailsToGetLock(RedisLockType testRedisLockType) throws Exception {
+		final RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
 		final Lock lock1 = registry.obtain("foo");
 		lock1.lockInterruptibly();
@@ -244,13 +237,13 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(ise).isInstanceOf(IllegalStateException.class);
 		assertThat(((Exception) ise).getMessage()).contains("You do not own lock at");
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
 	}
 
-	@Test
-	@RedisAvailable
-	public void testTwoThreads() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testTwoThreads(RedisLockType testRedisLockType) throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
 		Lock lock1 = registry.obtain("foo");
 		AtomicBoolean locked = new AtomicBoolean();
@@ -283,15 +276,15 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(locked.get()).isTrue();
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
 	}
 
-	@Test
-	@RedisAvailable
-	public void testTwoThreadsDifferentRegistries() throws Exception {
-		RedisLockRegistry registry1 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testTwoThreadsDifferentRegistries(RedisLockType testRedisLockType) throws Exception {
+		RedisLockRegistry registry1 = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry1.setRedisLockType(testRedisLockType);
-		RedisLockRegistry registry2 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+		RedisLockRegistry registry2 = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry2.setRedisLockType(testRedisLockType);
 		Lock lock1 = registry1.obtain("foo");
 		AtomicBoolean locked = new AtomicBoolean();
@@ -331,14 +324,14 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(locked.get()).isTrue();
 		registry1.expireUnusedOlderThan(-1000);
 		registry2.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry1, "locks", Map.class).size()).isEqualTo(0);
-		assertThat(TestUtils.getPropertyValue(registry2, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(registry1, "locks", Map.class).size()).isZero();
+		assertThat(TestUtils.getPropertyValue(registry2, "locks", Map.class).size()).isZero();
 	}
 
-	@Test
-	@RedisAvailable
-	public void testTwoThreadsWrongOneUnlocks() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testTwoThreadsWrongOneUnlocks(RedisLockType testRedisLockType) throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
 		Lock lock = registry.obtain("foo");
 		lock.lockInterruptibly();
@@ -361,15 +354,15 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(ise).isInstanceOf(IllegalStateException.class);
 		assertThat(((Exception) ise).getMessage()).contains("You do not own lock at");
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
 	}
 
-	@Test
-	@RedisAvailable
-	public void testExpireTwoRegistries() throws Exception {
-		RedisLockRegistry registry1 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 100);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testExpireTwoRegistries(RedisLockType testRedisLockType) throws Exception {
+		RedisLockRegistry registry1 = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
 		registry1.setRedisLockType(testRedisLockType);
-		RedisLockRegistry registry2 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 100);
+		RedisLockRegistry registry2 = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
 		registry2.setRedisLockType(testRedisLockType);
 		Lock lock1 = registry1.obtain("foo");
 		Lock lock2 = registry2.obtain("foo");
@@ -380,10 +373,10 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(lock1.tryLock()).isFalse();
 	}
 
-	@Test
-	@RedisAvailable
-	public void testExceptionOnExpire() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 1);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testExceptionOnExpire(RedisLockType testRedisLockType) throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 1);
 		registry.setRedisLockType(testRedisLockType);
 		Lock lock1 = registry.obtain("foo");
 		assertThat(lock1.tryLock()).isTrue();
@@ -394,10 +387,10 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	}
 
 
-	@Test
-	@RedisAvailable
-	public void testEquals() {
-		RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testEquals(RedisLockType testRedisLockType) {
+		RedisConnectionFactory connectionFactory = redisConnectionFactory;
 		RedisLockRegistry registry1 = new RedisLockRegistry(connectionFactory, this.registryKey);
 		registry1.setRedisLockType(testRedisLockType);
 		RedisLockRegistry registry2 = new RedisLockRegistry(connectionFactory, this.registryKey);
@@ -431,10 +424,10 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		lock2.unlock();
 	}
 
-	@Test
-	@RedisAvailable
-	public void testThreadLocalListLeaks() {
-		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 10000);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testThreadLocalListLeaks(RedisLockType testRedisLockType) {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 10000);
 		registry.setRedisLockType(testRedisLockType);
 
 		for (int i = 0; i < 10; i++) {
@@ -455,10 +448,10 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(10);
 	}
 
-	@Test
-	@RedisAvailable
-	public void testExpireNotChanged() throws Exception {
-		RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testExpireNotChanged(RedisLockType testRedisLockType) throws Exception {
+		RedisConnectionFactory connectionFactory = redisConnectionFactory;
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
 		registry.setRedisLockType(testRedisLockType);
 
@@ -477,15 +470,15 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		lock.unlock();
 	}
 
-	@Test
-	@RedisAvailable
-	public void concurrentObtainCapacityTest() throws InterruptedException {
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void concurrentObtainCapacityTest(RedisLockType testRedisLockType) throws InterruptedException {
 		final int KEY_CNT = 500;
 		final int CAPACITY_CNT = 179;
 		final int THREAD_CNT = 4;
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
-		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final RedisConnectionFactory connectionFactory = redisConnectionFactory;
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
 		registry.setCacheCapacity(CAPACITY_CNT);
 		registry.setRedisLockType(testRedisLockType);
@@ -516,19 +509,19 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
 	}
 
-	@Test
-	@RedisAvailable
-	public void concurrentObtainRemoveOrderTest() throws InterruptedException {
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void concurrentObtainRemoveOrderTest(RedisLockType testRedisLockType) throws InterruptedException {
 		final int THREAD_CNT = 2;
 		final int DUMMY_LOCK_CNT = 3;
 
 		final int CAPACITY_CNT = THREAD_CNT;
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
-		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final RedisConnectionFactory connectionFactory = redisConnectionFactory;
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
 		registry.setCacheCapacity(CAPACITY_CNT);
 		registry.setRedisLockType(testRedisLockType);
@@ -568,9 +561,9 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
 	}
 
-	@Test
-	@RedisAvailable
-	public void concurrentObtainAccessRemoveOrderTest() throws InterruptedException {
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void concurrentObtainAccessRemoveOrderTest(RedisLockType testRedisLockType) throws InterruptedException {
 		final int THREAD_CNT = 2;
 		final int DUMMY_LOCK_CNT = 3;
 
@@ -578,7 +571,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		final String REMAIN_DUMMY_LOCK_KEY = "foo:1";
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
-		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final RedisConnectionFactory connectionFactory = redisConnectionFactory;
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
 		registry.setCacheCapacity(CAPACITY_CNT);
 		registry.setRedisLockType(testRedisLockType);
@@ -623,11 +616,11 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
 	}
 
-	@Test
-	@RedisAvailable
-	public void setCapacityTest() {
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void setCapacityTest(RedisLockType testRedisLockType) {
 		final int CAPACITY_CNT = 4;
-		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+		final RedisConnectionFactory connectionFactory = redisConnectionFactory;
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
 		registry.setCacheCapacity(CAPACITY_CNT);
 		registry.setRedisLockType(testRedisLockType);
@@ -651,13 +644,12 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys("foo:3", "foo:4", "foo:5");
 	}
 
-	@RedisAvailable
-	@Test
-	public void twoRedisLockRegistryTest() throws InterruptedException {
-		RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
-		RedisLockRegistry registry1 = new RedisLockRegistry(connectionFactory, registryKey, 1000000L);
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void twoRedisLockRegistryTest(RedisLockType testRedisLockType) throws InterruptedException {
+		RedisLockRegistry registry1 = new RedisLockRegistry(redisConnectionFactory, registryKey, 1000000L);
 		registry1.setRedisLockType(testRedisLockType);
-		RedisLockRegistry registry2 = new RedisLockRegistry(connectionFactory, registryKey, 1000000L);
+		RedisLockRegistry registry2 = new RedisLockRegistry(redisConnectionFactory, registryKey, 1000000L);
 		registry2.setRedisLockType(testRedisLockType);
 
 		String lockKey = "test-1";
@@ -668,7 +660,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		CountDownLatch registry1Lock = new CountDownLatch(1);
 		CountDownLatch endDownLatch = new CountDownLatch(2);
 
-		CompletableFuture.runAsync(() -> {
+		CompletableFuture<Void> future1 = CompletableFuture.runAsync(() -> {
 			try {
 				obtainLock_1.lock();
 				//				for (int i = 0; i < 10; i++) {
@@ -683,7 +675,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 		});
 
-		CompletableFuture.runAsync(() -> {
+		CompletableFuture<Void> future2 = CompletableFuture.runAsync(() -> {
 			try {
 				registry1Lock.await();
 			}
@@ -695,12 +687,14 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		});
 
 		endDownLatch.await();
+
+		assertThat(future1).isNotCompletedExceptionally();
+		assertThat(future2).isNotCompletedExceptionally();
 	}
 
-	@RedisAvailable
-	@Test
-	public void multiRedisLockRegistryTest() throws InterruptedException, ExecutionException {
-		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void multiRedisLockRegistryTest(RedisLockType testRedisLockType) throws InterruptedException, ExecutionException {
 		final String testKey = "testKey";
 		final long expireAfter = 100000L;
 		final int lockRegistryNum = 10;
@@ -708,7 +702,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		final AtomicInteger atomicInteger = new AtomicInteger(0);
 		final List<Callable<Boolean>> collect = IntStream.range(0, lockRegistryNum)
 				.mapToObj((num) -> new RedisLockRegistry(
-						connectionFactory, registryKey, expireAfter))
+						redisConnectionFactory, registryKey, expireAfter))
 				.map((registry) -> {
 					registry.setRedisLockType(testRedisLockType);
 					final Callable<Boolean> callable = () -> {
@@ -734,20 +728,19 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	}
 
 
-	@Test
-	@RedisAvailable
-	public void earlyWakeUpTest() throws InterruptedException {
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void earlyWakeUpTest(RedisLockType testRedisLockType) throws InterruptedException {
 		final int THREAD_CNT = 2;
 		final String testKey = "testKey";
 
 		final CountDownLatch tryLockReady = new CountDownLatch(THREAD_CNT);
 		final CountDownLatch awaitTimeout = new CountDownLatch(THREAD_CNT);
-		final RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
-		final RedisLockRegistry registry1 = new RedisLockRegistry(connectionFactory, this.registryKey);
+		final RedisLockRegistry registry1 = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry1.setRedisLockType(testRedisLockType);
-		final RedisLockRegistry registry2 = new RedisLockRegistry(connectionFactory, this.registryKey);
+		final RedisLockRegistry registry2 = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry2.setRedisLockType(testRedisLockType);
-		final RedisLockRegistry registry3 = new RedisLockRegistry(connectionFactory, this.registryKey);
+		final RedisLockRegistry registry3 = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry3.setRedisLockType(testRedisLockType);
 
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);

@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.redis.rules;
+package org.springframework.integration.redis;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
+import java.time.Duration;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,36 +38,64 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.SocketOptions;
+
 /**
+ * The base contract for all tests requiring a Redis connection.
+ * The Testcontainers 'reuse' option must be disabled,so, Ryuk container is started
+ * and will clean all the containers up from this test suite after JVM exit.
+ * Since the Redis container instance is shared via static property, it is going to be
+ * started only once per JVM, therefore the target Docker container is reused automatically.
+ *
+ * @author Artem Vozhdayenko
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
  *
+ * @since 6.0
  */
-public abstract class RedisAvailableTests {
+@Testcontainers(disabledWithoutDocker = true)
+public interface RedisTest {
 
-	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	GenericContainer<?> REDIS_CONTAINER = new GenericContainer<>("redis:7.0.2")
+			.withExposedPorts(6379);
 
-	@BeforeClass
-	public static void setupConnectionFactory() {
-		RedisAvailableRule.setupConnectionFactory();
+	@BeforeAll
+	static void startContainer() {
+		REDIS_CONTAINER.start();
 	}
 
-	@AfterClass
-	public static void cleanUpConnectionFactoryIfAny() {
-		RedisAvailableRule.cleanUpConnectionFactoryIfAny();
+	/**
+	 * A primary method which should be used to connect to the test Redis instance.
+	 * Can be used in any JUnit lifecycle methods if a test class implements this interface.
+	 */
+	static LettuceConnectionFactory connectionFactory() {
+		RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+		redisStandaloneConfiguration.setPort(REDIS_CONTAINER.getFirstMappedPort());
+
+		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+				.clientOptions(
+						ClientOptions.builder()
+								.socketOptions(
+										SocketOptions.builder()
+												.connectTimeout(Duration.ofMillis(10000))
+												.keepAlive(true)
+												.build())
+								.build())
+				.commandTimeout(Duration.ofSeconds(10000))
+				.build();
+
+		var connectionFactory = new LettuceConnectionFactory(redisStandaloneConfiguration, clientConfiguration);
+		connectionFactory.afterPropertiesSet();
+		return connectionFactory;
 	}
 
-	protected RedisConnectionFactory getConnectionFactoryForTest() {
-		return RedisAvailableRule.connectionFactory;
-	}
-
-	protected void awaitContainerSubscribed(RedisMessageListenerContainer container) throws Exception {
+	static void awaitContainerSubscribed(RedisMessageListenerContainer container) throws Exception {
 		awaitContainerSubscribedNoWait(container);
 	}
 
-	private void awaitContainerSubscribedNoWait(RedisMessageListenerContainer container) throws InterruptedException {
+	static void awaitContainerSubscribedNoWait(RedisMessageListenerContainer container) throws InterruptedException {
 		RedisConnection connection = null;
 
 		int n = 0;
@@ -82,8 +115,8 @@ public abstract class RedisAvailableTests {
 		assertThat(n < 300).as("RedisMessageListenerContainer Failed to Subscribe").isTrue();
 	}
 
-	protected void awaitContainerSubscribedWithPatterns(RedisMessageListenerContainer container) throws Exception {
-		this.awaitContainerSubscribed(container);
+	static void awaitContainerSubscribedWithPatterns(RedisMessageListenerContainer container) throws Exception {
+		awaitContainerSubscribed(container);
 		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriber.connection",
 				RedisConnection.class);
 
@@ -96,7 +129,7 @@ public abstract class RedisAvailableTests {
 		Thread.sleep(1000);
 	}
 
-	protected void awaitFullySubscribed(RedisMessageListenerContainer container, RedisTemplate<?, ?> redisTemplate,
+	static void awaitFullySubscribed(RedisMessageListenerContainer container, RedisTemplate<?, ?> redisTemplate,
 			String redisChannelName, QueueChannel channel, Object message) throws Exception {
 		awaitContainerSubscribedNoWait(container);
 		drain(channel);
@@ -110,13 +143,13 @@ public abstract class RedisAvailableTests {
 		assertThat(received).as("Container failed to fully start").isNotNull();
 	}
 
-	private void drain(QueueChannel channel) {
+	static void drain(QueueChannel channel) {
 		while (channel.receive(0) != null) {
 			// drain
 		}
 	}
 
-	protected void prepareList(RedisConnectionFactory connectionFactory) {
+	static void prepareList(RedisConnectionFactory connectionFactory) {
 
 		StringRedisTemplate redisTemplate = createStringRedisTemplate(connectionFactory);
 		redisTemplate.delete("presidents");
@@ -139,7 +172,7 @@ public abstract class RedisAvailableTests {
 		ops.rightPush("George Washington");
 	}
 
-	protected void prepareZset(RedisConnectionFactory connectionFactory) {
+	static void prepareZset(RedisConnectionFactory connectionFactory) {
 
 		StringRedisTemplate redisTemplate = createStringRedisTemplate(connectionFactory);
 
@@ -163,20 +196,19 @@ public abstract class RedisAvailableTests {
 		ops.add("George Washington", 18);
 	}
 
-	protected void deletePresidents(RedisConnectionFactory connectionFactory) {
-		this.deleteKey(connectionFactory, "presidents");
+	static void deletePresidents(RedisConnectionFactory connectionFactory) {
+		deleteKey(connectionFactory, "presidents");
 	}
 
-	protected void deleteKey(RedisConnectionFactory connectionFactory, String key) {
+	static void deleteKey(RedisConnectionFactory connectionFactory, String key) {
 		StringRedisTemplate redisTemplate = createStringRedisTemplate(connectionFactory);
 		redisTemplate.delete(key);
 	}
 
-	protected StringRedisTemplate createStringRedisTemplate(RedisConnectionFactory connectionFactory) {
+	static StringRedisTemplate createStringRedisTemplate(RedisConnectionFactory connectionFactory) {
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		redisTemplate.setConnectionFactory(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 		return redisTemplate;
 	}
-
 }

@@ -2,38 +2,37 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int="http://www.springframework.org/schema/integration"
-	   xmlns:util="http://www.springframework.org/schema/util"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<util:constant id="redisConnectionFactory"
-				   static-field="org.springframework.integration.redis.rules.RedisAvailableRule.connectionFactory"/>
+	<bean id="redisConnectionFactory" class="org.springframework.integration.redis.RedisTest"
+		  factory-method="connectionFactory"/>
 
 	<int:aggregator input-channel="in" release-strategy="latching" output-channel="out"
-		message-store="sms"
-		expire-groups-upon-completion="true" lock-registry="redisLockRegistry" />
+					message-store="sms"
+					expire-groups-upon-completion="true" lock-registry="redisLockRegistry"/>
 
-	<bean id="latching" class="org.springframework.integration.redis.util.AggregatorWithRedisLocksTests$LatchingReleaseStrategy" />
+	<bean id="latching"
+		  class="org.springframework.integration.redis.util.AggregatorWithRedisLocksTests$LatchingReleaseStrategy"/>
 
 	<bean id="redisLockRegistry" class="org.springframework.integration.redis.util.RedisLockRegistry">
 		<constructor-arg ref="redisConnectionFactory"/>
-		<constructor-arg value="aggregatorWithRedisLocksTests" />
+		<constructor-arg value="aggregatorWithRedisLocksTests"/>
 	</bean>
 
-	<bean id="sms" class="org.springframework.integration.store.SimpleMessageStore" />
+	<bean id="sms" class="org.springframework.integration.store.SimpleMessageStore"/>
 
 	<int:aggregator input-channel="in2" release-strategy="latching" output-channel="out"
-		message-store="sms"
-		expire-groups-upon-completion="true" lock-registry="redisLockRegistry2" />
+					message-store="sms"
+					expire-groups-upon-completion="true" lock-registry="redisLockRegistry2"/>
 
 	<bean id="redisLockRegistry2" class="org.springframework.integration.redis.util.RedisLockRegistry">
 		<constructor-arg ref="redisConnectionFactory"/>
-		<constructor-arg value="aggregatorWithRedisLocksTests" />
+		<constructor-arg value="aggregatorWithRedisLocksTests"/>
 	</bean>
 
 	<int:channel id="out">
-		<int:queue />
+		<int:queue/>
 	</int:channel>
 
 </beans>

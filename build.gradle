@@ -260,6 +260,7 @@ configure(javaProjects) { subproject ->
             exclude group: 'org.hamcrest'
         }
         testImplementation 'org.junit.jupiter:junit-jupiter-api'
+        testImplementation 'org.junit.jupiter:junit-jupiter-params'
         testImplementation("com.willowtreeapps.assertk:assertk-jvm:$assertkVersion") {
             exclude group: 'org.jetbrains.kotlin'
         }

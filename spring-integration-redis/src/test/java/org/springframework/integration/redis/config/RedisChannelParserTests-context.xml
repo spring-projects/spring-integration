@@ -2,13 +2,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
-	   xmlns:util="http://www.springframework.org/schema/util"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/redis https://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
-		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+		http://www.springframework.org/schema/integration/redis https://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
-	<util:constant id="redisConnectionFactory"
-				   static-field="org.springframework.integration.redis.rules.RedisAvailableRule.connectionFactory"/>
+	<bean id="redisConnectionFactory" class="org.springframework.integration.redis.RedisTest"
+		  factory-method="connectionFactory"/>
 
 	<int-redis:publish-subscribe-channel id="redisChannel" topic-name="si.test.topic.parser"
 										 serializer="redisSerializer"/>
