@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,37 +24,39 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
  * @author Glenn Renfro
+ * @author Artem Vozhdayenko
  *
  * @since 4.3.9
  */
-public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
+@LogLevels(categories = "org.springframework.integration.redis.leader")
+class RedisLockRegistryLeaderInitiatorTests implements RedisContainerTest {
+	private static RedisConnectionFactory redisConnectionFactory;
 
-	@Rule
-	public Log4j2LevelAdjuster adjuster =
-			Log4j2LevelAdjuster.trace()
-					.categories(true, "org.springframework.integration.redis.leader");
+	@BeforeAll
+	static void setupConnection() {
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
+	}
 
 	@Test
-	@RedisAvailable
-	public void testDistributedLeaderElection() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), "LeaderInitiator");
+	void testDistributedLeaderElection() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, "LeaderInitiator");
 		registry.expireUnusedOlderThan(-1);
 		CountDownLatch granted = new CountDownLatch(1);
 		CountingPublisher countingPublisher = new CountingPublisher(granted);

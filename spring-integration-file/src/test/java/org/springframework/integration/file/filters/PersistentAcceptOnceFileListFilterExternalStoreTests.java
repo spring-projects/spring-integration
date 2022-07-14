@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,17 +28,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.geode.cache.CacheFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.gemfire.metadata.GemfireMetadataStore;
 import org.springframework.integration.jdbc.metadata.JdbcMetadataStore;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.metadata.RedisMetadataStore;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -48,23 +49,30 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Bojan Vukasovic
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
  */
-public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisAvailableTests {
+public class PersistentAcceptOnceFileListFilterExternalStoreTests implements RedisContainerTest {
+
+	static RedisConnectionFactory redisConnectionFactory;
+
+	@BeforeAll
+	static void setupConnectionFactory() {
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
+	}
 
 	@Test
-	@RedisAvailable
 	public void testFileSystemWithRedisMetadataStore() throws Exception {
 		RedisTemplate<String, ?> template = new RedisTemplate<>();
-		template.setConnectionFactory(this.getConnectionFactoryForTest());
+		template.setConnectionFactory(redisConnectionFactory);
 		template.setKeySerializer(new StringRedisSerializer());
 		template.afterPropertiesSet();
 		template.delete("persistentAcceptOnceFileListFilterRedisTests");
 
 		try {
-			this.testFileSystem(new RedisMetadataStore(this.getConnectionFactoryForTest(),
+			this.testFileSystem(new RedisMetadataStore(redisConnectionFactory,
 					"persistentAcceptOnceFileListFilterRedisTests"));
 		}
 		finally {
@@ -95,8 +103,8 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 			List<Map<String, Object>> metaData = new JdbcTemplate(dataSource)
 					.queryForList("SELECT * FROM INT_METADATA_STORE");
 
-			assertThat(metaData.size()).isEqualTo(1);
-			assertThat(metaData.get(0).get("METADATA_VALUE")).isEqualTo("43");
+			assertThat(metaData).hasSize(1);
+			assertThat(metaData.get(0)).containsEntry("METADATA_VALUE", "43");
 		}
 		finally {
 			dataSource.shutdown();
@@ -127,28 +135,28 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 		final FileSystemPersistentAcceptOnceFileListFilter filter =
 				new FileSystemPersistentAcceptOnceFileListFilter(store, "foo:");
 		final File file = File.createTempFile("foo", ".txt");
-		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(1);
+		assertThat(filter.filterFiles(new File[] {file})).hasSize(1);
 		String ts = store.get("foo:" + file.getAbsolutePath());
 		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
-		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(0);
-		file.setLastModified(file.lastModified() + 5000L);
-		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(1);
+		assertThat(filter.filterFiles(new File[] {file})).isEmpty();
+		assertThat(file.setLastModified(file.lastModified() + 5000L)).isTrue();
+		assertThat(filter.filterFiles(new File[] {file})).hasSize(1);
 		ts = store.get("foo:" + file.getAbsolutePath());
 		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
-		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(0);
+		assertThat(filter.filterFiles(new File[] {file})).isEmpty();
 
 		suspend.set(true);
-		file.setLastModified(file.lastModified() + 5000L);
+		assertThat(file.setLastModified(file.lastModified() + 5000L)).isTrue();
 
 		Future<Integer> result = Executors.newSingleThreadExecutor()
-				.submit(() -> filter.filterFiles(new File[] { file }).size());
+				.submit(() -> filter.filterFiles(new File[] {file}).size());
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		store.put("foo:" + file.getAbsolutePath(), "43");
 		latch1.countDown();
 		Integer theResult = result.get(10, TimeUnit.SECONDS);
 		assertThat(theResult).isEqualTo(Integer.valueOf(0)); // lost the race, key changed
 
-		file.delete();
+		assertThat(file.delete()).isTrue();
 		filter.close();
 	}
 

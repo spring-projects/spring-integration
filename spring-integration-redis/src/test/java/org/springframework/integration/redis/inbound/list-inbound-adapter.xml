@@ -3,39 +3,37 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
-	   xmlns:util="http://www.springframework.org/schema/util"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/redis https://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
-		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+		http://www.springframework.org/schema/integration/redis https://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
-	<util:constant id="redisConnectionFactory"
-				   static-field="org.springframework.integration.redis.rules.RedisAvailableRule.connectionFactory"/>
+	<bean id="redisConnectionFactory" class="org.springframework.integration.redis.RedisContainerTest"
+		  factory-method="connectionFactory"/>
 
 	<int-redis:store-inbound-channel-adapter id="listAdapter"
-											connection-factory="redisConnectionFactory"
-											key-expression="'presidents'"
-											channel="transformChannel"
-											auto-startup="false"
-											collection-type="LIST">
+											 connection-factory="redisConnectionFactory"
+											 key-expression="'presidents'"
+											 channel="transformChannel"
+											 auto-startup="false"
+											 collection-type="LIST">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10"/>
 	</int-redis:store-inbound-channel-adapter>
 
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronization"
-											connection-factory="redisConnectionFactory"
-											key-expression="'presidents'"
-											channel="transformChannel"
-											auto-startup="false">
+											 connection-factory="redisConnectionFactory"
+											 key-expression="'presidents'"
+											 channel="transformChannel"
+											 auto-startup="false">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10">
 			<int:transactional synchronization-factory="syncFactory"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
 
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationAndRollback"
-											connection-factory="redisConnectionFactory"
-											key-expression="'presidents'"
-											channel="redisFailChannel"
-											auto-startup="false">
+											 connection-factory="redisConnectionFactory"
+											 key-expression="'presidents'"
+											 channel="redisFailChannel"
+											 auto-startup="false">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10">
 			<int:transactional synchronization-factory="syncFactory"/>
 		</int:poller>
@@ -44,12 +42,12 @@
 	<int:channel id="redisFailChannel"/>
 
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationAndRedisTemplate"
-											redis-template="redisTemplate"
-											key-expression="'presidents'"
-											channel="transformChannel"
-											auto-startup="false">
+											 redis-template="redisTemplate"
+											 key-expression="'presidents'"
+											 channel="transformChannel"
+											 auto-startup="false">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10">
-		    <int:transactional synchronization-factory="syncFactory"/>
+			<int:transactional synchronization-factory="syncFactory"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
 
@@ -59,12 +57,12 @@
 	</int:transaction-synchronization-factory>
 
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationBeforeCommit"
-											redis-template="redisTemplate"
-											key-expression="'presidents'"
-											channel="transformChannel"
-											auto-startup="false">
+											 redis-template="redisTemplate"
+											 key-expression="'presidents'"
+											 channel="transformChannel"
+											 auto-startup="false">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10" error-channel="adapterErrors">
-		    <int:transactional synchronization-factory="syncFactory2"/>
+			<int:transactional synchronization-factory="syncFactory2"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
 

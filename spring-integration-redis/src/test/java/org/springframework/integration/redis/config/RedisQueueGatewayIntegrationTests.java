@@ -18,10 +18,9 @@ package org.springframework.integration.redis.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,25 +30,25 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author David Liu
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 4.1
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
+class RedisQueueGatewayIntegrationTests implements RedisContainerTest {
 
 	@Value("#{redisQueue.toString().bytes}")
 	private byte[] queueName;
@@ -68,21 +67,22 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	@Autowired
 	private RedisQueueOutboundGateway outboundGateway;
 
-	@Before
-	public void setup() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		jcf.getConnection().keyCommands().del(this.queueName);
+	@Autowired
+	private RedisConnectionFactory redisConnectionFactory;
+
+	@BeforeEach
+	void setup() {
+		redisConnectionFactory.getConnection().keyCommands().del(this.queueName);
 		this.inboundGateway.start();
 	}
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 		this.inboundGateway.stop();
 	}
 
 	@Test
-	@RedisAvailable
-	public void testRequestWithReply() {
+	void testRequestWithReply() {
 		this.sendChannel.send(new GenericMessage<>(1));
 		Message<?> receive = this.outputChannel.receive(10000);
 		assertThat(receive).isNotNull();
@@ -90,8 +90,7 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testInboundGatewayStop() {
+	void testInboundGatewayStop() {
 		Integer receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout", Integer.class);
 		this.outboundGateway.setReceiveTimeout(1);
 		this.inboundGateway.stop();
@@ -99,7 +98,7 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 			this.sendChannel.send(new GenericMessage<>("test1"));
 		}
 		catch (Exception e) {
-			assertThat(e.getMessage().contains("No reply produced")).isTrue();
+			assertThat(e.getMessage()).contains("No reply produced");
 		}
 		finally {
 			this.outboundGateway.setReceiveTimeout(receiveTimeout);
@@ -107,8 +106,7 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testNullSerializer() {
+	void testNullSerializer() {
 		Integer receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout", Integer.class);
 		this.outboundGateway.setReceiveTimeout(1);
 		this.inboundGateway.setSerializer(null);
@@ -116,7 +114,7 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 			this.sendChannel.send(new GenericMessage<>("test1"));
 		}
 		catch (Exception e) {
-			assertThat(e.getMessage().contains("No reply produced")).isTrue();
+			assertThat(e.getMessage()).contains("No reply produced");
 		}
 		finally {
 			this.inboundGateway.setSerializer(new StringRedisSerializer());
@@ -125,8 +123,7 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testRequestReplyWithMessage() {
+	void testRequestReplyWithMessage() {
 		this.inboundGateway.setSerializer(new JdkSerializationRedisSerializer());
 		this.inboundGateway.setExtractPayload(false);
 		this.outboundGateway.setSerializer(new JdkSerializationRedisSerializer());

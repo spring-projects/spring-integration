@@ -12,7 +12,7 @@
 	</int:channel>
 
 	<bean id="redisStore" class="org.springframework.integration.redis.store.RedisMessageStore">
-		<constructor-arg value="#{T (org.springframework.integration.redis.rules.RedisAvailableRule).connectionFactory}"/>
+		<constructor-arg value="#{T (org.springframework.integration.redis.RedisContainerTest).connectionFactory()}"/>
 	</bean>
 
 </beans>

@@ -22,34 +22,32 @@ import static org.assertj.core.api.Assertions.fail;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.handler.ReplyRequiredException;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class RedisOutboundGatewayTests extends RedisAvailableTests {
+class RedisOutboundGatewayTests implements RedisContainerTest {
 
 	@Autowired
 	private BeanFactory beanFactory;
@@ -75,9 +73,11 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	@Autowired
 	private MessageChannel mgetCommandChannel;
 
+	@Autowired
+	private RedisConnectionFactory redisConnectionFactory;
+
 	@Test
-	@RedisAvailable
-	public void testPingPongCommand() {
+	void testPingPongCommand() {
 		this.pingChannel.send(MessageBuilder.withPayload("foo").setHeader(RedisHeaders.COMMAND, "PING").build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertThat(receive).isNotNull();
@@ -85,8 +85,7 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testPushAndPopCommands() {
+	void testPushAndPopCommands() {
 		final String queueName = "si.test.testRedisOutboundGateway";
 		String payload = "testing";
 		this.leftPushRightPopChannel.send(MessageBuilder.withPayload(payload)
@@ -106,8 +105,7 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testIncrementAtomicCommand() {
+	void testIncrementAtomicCommand() {
 		// Since 'atomicInteger' is lazy-init to avoid early Redis connection,
 		// we have to initialize it before send the INCR command.
 		this.beanFactory.getBean("atomicInteger");
@@ -120,13 +118,12 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 		receive = this.replyChannel.receive(1000);
 		assertThat(receive).isNotNull();
 		assertThat(new String((byte[]) receive.getPayload())).isEqualTo("11");
-		this.createStringRedisTemplate(this.getConnectionFactoryForTest()).delete("si.test.RedisAtomicInteger");
+		RedisContainerTest.createStringRedisTemplate(redisConnectionFactory).delete("si.test.RedisAtomicInteger");
 	}
 
 	@Test
-	@RedisAvailable
-	public void testGetCommand() {
-		this.setDelCommandChannel.send(MessageBuilder.withPayload(new String[]{ "foo", "bar" })
+	void testGetCommand() {
+		this.setDelCommandChannel.send(MessageBuilder.withPayload(new String[] {"foo", "bar"})
 				.setHeader(RedisHeaders.COMMAND, "SET").build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertThat(receive).isNotNull();
@@ -153,14 +150,13 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@RedisAvailable
-	public void testMGetCommand() {
-		RedisConnection connection = this.getConnectionFactoryForTest().getConnection();
+	void testMGetCommand() {
+		RedisConnection connection = redisConnectionFactory.getConnection();
 		byte[] value1 = "bar1".getBytes();
 		byte[] value2 = "bar2".getBytes();
 		connection.stringCommands().set("foo1".getBytes(), value1);
 		connection.stringCommands().set("foo2".getBytes(), value2);
-		this.mgetCommandChannel.send(MessageBuilder.withPayload(new String[]{ "foo1", "foo2" }).build());
+		this.mgetCommandChannel.send(MessageBuilder.withPayload(new String[] {"foo1", "foo2"}).build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertThat(receive).isNotNull();
 		assertThat((List<byte[]>) receive.getPayload()).containsExactly(value1, value2);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.Executor;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,16 +29,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableRule;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Oleg Zhurakousky
@@ -48,10 +45,11 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @author Gunnar Hillert
  * @author Venil Noronha
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
+class RedisInboundChannelAdapterParserTests implements RedisContainerTest {
 
 	@Autowired
 	private ApplicationContext context;
@@ -66,8 +64,12 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 	@Autowired
 	private Executor executor;
 
+
+	@Autowired
+	private RedisConnectionFactory redisConnectionFactory;
+
 	@Test
-	public void validateConfiguration() {
+	void validateConfiguration() {
 		RedisInboundChannelAdapter adapter = context.getBean("adapter", RedisInboundChannelAdapter.class);
 		assertThat(adapter.getComponentName()).isEqualTo("adapter");
 		assertThat(adapter.getComponentType()).isEqualTo("redis:inbound-channel-adapter");
@@ -88,17 +90,14 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testInboundChannelAdapterMessaging() throws Exception {
+	void testInboundChannelAdapterMessaging() throws Exception {
 		RedisInboundChannelAdapter adapter = context.getBean("adapter", RedisInboundChannelAdapter.class);
 		adapter.start();
-		awaitContainerSubscribedWithPatterns(TestUtils.getPropertyValue(adapter, "container",
+		RedisContainerTest.awaitContainerSubscribedWithPatterns(TestUtils.getPropertyValue(adapter, "container",
 				RedisMessageListenerContainer.class));
 
-		RedisConnectionFactory connectionFactory = RedisAvailableRule.connectionFactory;
-
-		connectionFactory.getConnection().publish("foo".getBytes(), "Hello Redis from foo".getBytes());
-		connectionFactory.getConnection().publish("bar".getBytes(), "Hello Redis from bar".getBytes());
+		redisConnectionFactory.getConnection().publish("foo".getBytes(), "Hello Redis from foo".getBytes());
+		redisConnectionFactory.getConnection().publish("bar".getBytes(), "Hello Redis from bar".getBytes());
 
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		for (int i = 0; i < 3; i++) {
@@ -111,7 +110,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 	}
 
 	@Test
-	public void testAutoChannel() {
+	void testAutoChannel() {
 		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 	}
 

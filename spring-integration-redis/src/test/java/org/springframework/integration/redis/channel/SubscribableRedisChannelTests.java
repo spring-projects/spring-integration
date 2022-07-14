@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,14 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
@@ -43,22 +43,26 @@ import org.springframework.util.ReflectionUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  * @since 2.0
  */
-public class SubscribableRedisChannelTests extends RedisAvailableTests {
+class SubscribableRedisChannelTests implements RedisContainerTest {
+	private static RedisConnectionFactory redisConnectionFactory;
 
+	@BeforeAll
+	static void setupConnection() {
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
+	}
 
 	@Test
-	@RedisAvailable
-	public void pubSubChannelTest() throws Exception {
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
+	void pubSubChannelTest() throws Exception {
 
-		SubscribableRedisChannel channel = new SubscribableRedisChannel(connectionFactory, "si.test.channel");
+		SubscribableRedisChannel channel = new SubscribableRedisChannel(redisConnectionFactory, "si.test.channel");
 		channel.setBeanFactory(mock(BeanFactory.class));
 		channel.afterPropertiesSet();
 		channel.start();
 
-		this.awaitContainerSubscribed(TestUtils.getPropertyValue(channel, "container",
+		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(channel, "container",
 				RedisMessageListenerContainer.class));
 
 		final CountDownLatch latch = new CountDownLatch(3);
@@ -72,11 +76,9 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void dispatcherHasNoSubscribersTest() throws Exception {
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
+	void dispatcherHasNoSubscribersTest() throws Exception {
 
-		SubscribableRedisChannel channel = new SubscribableRedisChannel(connectionFactory, "si.test.channel.no.subs");
+		SubscribableRedisChannel channel = new SubscribableRedisChannel(redisConnectionFactory, "si.test.channel.no.subs");
 		channel.setBeanName("dhnsChannel");
 		channel.setBeanFactory(mock(BeanFactory.class));
 		channel.afterPropertiesSet();

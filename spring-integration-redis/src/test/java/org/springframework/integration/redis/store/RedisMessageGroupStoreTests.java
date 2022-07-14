@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2021 the original author or authors.
+ * Copyright 2007-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -44,8 +45,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
@@ -63,35 +63,38 @@ import junit.framework.AssertionFailedError;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  */
-public class RedisMessageGroupStoreTests extends RedisAvailableTests {
+class RedisMessageGroupStoreTests implements RedisContainerTest {
+	private static RedisConnectionFactory redisConnectionFactory;
+
+	@BeforeAll
+	static void setupConnection() {
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
+	}
 
 	private final UUID groupId = UUID.randomUUID();
 
-	@Before
-	@After
-	public void setUpTearDown() {
-		StringRedisTemplate template = createStringRedisTemplate(getConnectionFactoryForTest());
+	@BeforeEach
+	@AfterEach
+	void setUpTearDown() {
+		StringRedisTemplate template = RedisContainerTest.createStringRedisTemplate(redisConnectionFactory);
 		template.delete(template.keys("MESSAGE_GROUP_*"));
 	}
 
 	@Test
-	@RedisAvailable
-	public void testNonExistingEmptyMessageGroup() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	void testNonExistingEmptyMessageGroup() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		assertThat(messageGroup).isNotNull();
-		assertThat(messageGroup instanceof SimpleMessageGroup).isTrue();
-		assertThat(messageGroup.size()).isEqualTo(0);
+		assertThat(messageGroup).isInstanceOf(SimpleMessageGroup.class);
+		assertThat(messageGroup.size()).isZero();
 	}
 
 	@Test
-	@RedisAvailable
-	public void testMessageGroupUpdatedDateChangesWithEachAddedMessage() throws Exception {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	void testMessageGroupUpdatedDateChangesWithEachAddedMessage() throws Exception {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 
 		Message<?> message = new GenericMessage<>("Hello");
 		MessageGroup messageGroup = store.addMessageToGroup(this.groupId, message);
@@ -107,34 +110,30 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertThat(updatedTimestamp > createdTimestamp).isTrue();
 
 		// make sure the store is properly rebuild from Redis
-		store = new RedisMessageStore(jcf);
+		store = new RedisMessageStore(redisConnectionFactory);
 
 		messageGroup = store.getMessageGroup(this.groupId);
 		assertThat(messageGroup.size()).isEqualTo(2);
 	}
 
 	@Test
-	@RedisAvailable
-	public void testMessageGroupWithAddedMessage() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	void testMessageGroupWithAddedMessage() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 
 		Message<?> message = new GenericMessage<>("Hello");
 		MessageGroup messageGroup = store.addMessageToGroup(this.groupId, message);
 		assertThat(messageGroup.size()).isEqualTo(1);
 
 		// make sure the store is properly rebuild from Redis
-		store = new RedisMessageStore(jcf);
+		store = new RedisMessageStore(redisConnectionFactory);
 
 		messageGroup = store.getMessageGroup(this.groupId);
 		assertThat(messageGroup.size()).isEqualTo(1);
 	}
 
 	@Test
-	@RedisAvailable
-	public void testRemoveMessageGroup() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	void testRemoveMessageGroup() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		Message<?> message = new GenericMessage<>("Hello");
@@ -145,23 +144,21 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		MessageGroup messageGroupA = store.getMessageGroup(this.groupId);
 		assertThat(messageGroupA).isNotSameAs(messageGroup);
 		//		assertEquals(0, messageGroupA.getMarked().size());
-		assertThat(messageGroupA.getMessages().size()).isEqualTo(0);
-		assertThat(messageGroupA.size()).isEqualTo(0);
+		assertThat(messageGroupA.getMessages().size()).isZero();
+		assertThat(messageGroupA.size()).isZero();
 
 		// make sure the store is properly rebuild from Redis
-		store = new RedisMessageStore(jcf);
+		store = new RedisMessageStore(redisConnectionFactory);
 
 		messageGroup = store.getMessageGroup(this.groupId);
 
-		assertThat(messageGroup.getMessages().size()).isEqualTo(0);
-		assertThat(messageGroup.size()).isEqualTo(0);
+		assertThat(messageGroup.getMessages().size()).isZero();
+		assertThat(messageGroup.size()).isZero();
 	}
 
 	@Test
-	@RedisAvailable
-	public void testCompleteMessageGroup() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	void testCompleteMessageGroup() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		Message<?> message = new GenericMessage<>("Hello");
@@ -172,10 +169,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testLastReleasedSequenceNumber() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	void testLastReleasedSequenceNumber() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		Message<?> message = new GenericMessage<>("Hello");
@@ -186,10 +181,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testRemoveMessageFromTheGroup() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	void testRemoveMessageFromTheGroup() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		Message<?> message = new GenericMessage<>("2");
@@ -202,17 +195,15 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertThat(messageGroup.size()).isEqualTo(2);
 
 		// make sure the store is properly rebuild from Redis
-		store = new RedisMessageStore(jcf);
+		store = new RedisMessageStore(redisConnectionFactory);
 
 		messageGroup = store.getMessageGroup(this.groupId);
 		assertThat(messageGroup.size()).isEqualTo(2);
 	}
 
 	@Test
-	@RedisAvailable
-	public void testWithMessageHistory() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	void testWithMessageHistory() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 
 		Message<?> message = new GenericMessage<>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
@@ -230,15 +221,14 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertThat(messageHistory).isNotNull();
 		assertThat(messageHistory.size()).isEqualTo(2);
 		Properties fooChannelHistory = messageHistory.get(0);
-		assertThat(fooChannelHistory.get("name")).isEqualTo("fooChannel");
-		assertThat(fooChannelHistory.get("type")).isEqualTo("channel");
+		assertThat(fooChannelHistory)
+				.containsEntry("name", "fooChannel")
+				.containsEntry("type", "channel");
 	}
 
 	@Test
-	@RedisAvailable
-	public void testRemoveNonExistingMessageFromTheGroup() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	void testRemoveNonExistingMessageFromTheGroup() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		store.addMessagesToGroup(messageGroup.getGroupId(), new GenericMessage<>("1"));
@@ -246,21 +236,17 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testRemoveNonExistingMessageFromNonExistingTheGroup() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	void testRemoveNonExistingMessageFromNonExistingTheGroup() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 		store.removeMessagesFromGroup(this.groupId, new GenericMessage<>("2"));
 	}
 
 
 	@Test
-	@RedisAvailable
-	public void testMultipleInstancesOfGroupStore() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store1 = new RedisMessageStore(jcf);
+	void testMultipleInstancesOfGroupStore() {
+		RedisMessageStore store1 = new RedisMessageStore(redisConnectionFactory);
 
-		RedisMessageStore store2 = new RedisMessageStore(jcf);
+		RedisMessageStore store2 = new RedisMessageStore(redisConnectionFactory);
 
 		store1.removeMessageGroup(this.groupId);
 
@@ -270,7 +256,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		assertThat(messageGroup.getMessages().size()).isEqualTo(2);
 
-		RedisMessageStore store3 = new RedisMessageStore(jcf);
+		RedisMessageStore store3 = new RedisMessageStore(redisConnectionFactory);
 
 		store3.removeMessagesFromGroup(this.groupId, message);
 		messageGroup = store3.getMessageGroup(this.groupId);
@@ -279,11 +265,9 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testIteratorOfMessageGroups() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store1 = new RedisMessageStore(jcf);
-		RedisMessageStore store2 = new RedisMessageStore(jcf);
+	void testIteratorOfMessageGroups() {
+		RedisMessageStore store1 = new RedisMessageStore(redisConnectionFactory);
+		RedisMessageStore store2 = new RedisMessageStore(redisConnectionFactory);
 
 		store1.removeMessageGroup(this.groupId);
 		UUID group2 = UUID.randomUUID();
@@ -325,12 +309,10 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	@Ignore
-	public void testConcurrentModifications() throws Exception {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		final RedisMessageStore store1 = new RedisMessageStore(jcf);
-		final RedisMessageStore store2 = new RedisMessageStore(jcf);
+	@Disabled
+	void testConcurrentModifications() throws Exception {
+		final RedisMessageStore store1 = new RedisMessageStore(redisConnectionFactory);
+		final RedisMessageStore store2 = new RedisMessageStore(redisConnectionFactory);
 
 		store1.removeMessageGroup(this.groupId);
 
@@ -363,12 +345,11 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			executor.awaitTermination(10, TimeUnit.SECONDS);
 			store2.removeMessagesFromGroup(1, message); // ensures that if ADD thread executed after REMOVE, the store is empty for the next cycle
 		}
-		assertThat(failures.size() == 0).isTrue();
+		assertThat(failures).isEmpty();
 	}
 
 	@Test
-	@RedisAvailable
-	public void testWithAggregatorWithShutdown() {
+	void testWithAggregatorWithShutdown() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("redis-aggregator-config.xml", getClass());
 		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
@@ -409,10 +390,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testAddAndRemoveMessagesFromMessageGroup() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore messageStore = new RedisMessageStore(jcf);
+	void testAddAndRemoveMessagesFromMessageGroup() {
+		RedisMessageStore messageStore = new RedisMessageStore(redisConnectionFactory);
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(this.groupId).build();
@@ -423,15 +402,13 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertThat(group.size()).isEqualTo(25);
 		messageStore.removeMessagesFromGroup(this.groupId, messages);
 		group = messageStore.getMessageGroup(this.groupId);
-		assertThat(group.size()).isEqualTo(0);
+		assertThat(group.size()).isZero();
 		messageStore.removeMessageGroup(this.groupId);
 	}
 
 	@Test
-	@RedisAvailable
-	public void testJsonSerialization() {
-		RedisConnectionFactory jcf = getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	void testJsonSerialization() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 
 		ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
 

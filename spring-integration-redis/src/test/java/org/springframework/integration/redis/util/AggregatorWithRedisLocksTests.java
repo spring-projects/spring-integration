@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,37 +26,35 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.ReleaseStrategy;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Repeat;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
- * @since 4.0
+ * @author Artem Vozhdayenko
  *
+ * @since 4.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
+class AggregatorWithRedisLocksTests implements RedisContainerTest {
 
 	@Autowired
 	private LatchingReleaseStrategy releaseStrategy;
@@ -70,12 +68,15 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	@Autowired
 	private PollableChannel out;
 
+	@Autowired
+	private RedisConnectionFactory redisConnectionFactory;
+
 	private volatile Exception exception;
 
 	private RedisTemplate<String, ?> template;
 
-	@Before
-	@After
+	@BeforeEach
+	@AfterEach
 	public void setup() {
 		this.template = this.createTemplate();
 		Set<String> keys = template.keys("aggregatorWithRedisLocksTests:*");
@@ -85,13 +86,12 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testLockSingleGroup() throws Exception {
+	void testLockSingleGroup() throws Exception {
 		this.releaseStrategy.reset(1);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
 		Executors.newSingleThreadExecutor().execute(asyncSend("bar", 2, 1));
 		assertThat(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*").size()).isEqualTo(1);
+		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*")).hasSize(1);
 		this.releaseStrategy.latch1.countDown();
 		assertThat(this.out.receive(10000)).isNotNull();
 		assertThat(this.releaseStrategy.maxCallers.get()).isEqualTo(1);
@@ -101,8 +101,7 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testLockThreeGroups() throws Exception {
+	void testLockThreeGroups() throws Exception {
 		this.releaseStrategy.reset(3);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
 		Executors.newSingleThreadExecutor().execute(asyncSend("bar", 2, 1));
@@ -111,7 +110,7 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 3));
 		Executors.newSingleThreadExecutor().execute(asyncSend("bar", 2, 3));
 		assertThat(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*").size()).isEqualTo(3);
+		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*")).hasSize(3);
 		this.releaseStrategy.latch1.countDown();
 		this.releaseStrategy.latch1.countDown();
 		this.releaseStrategy.latch1.countDown();
@@ -124,22 +123,20 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 				.as("Unexpected exception:" + (this.exception != null ? this.exception.toString() : "")).isNull();
 	}
 
-	@Test
-	@RedisAvailable
-	@Repeat(10)
-	public void testDistributedAggregator() throws Exception {
+	@RepeatedTest(10)
+	void testDistributedAggregator() throws Exception {
 		this.releaseStrategy.reset(1);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
 		Executors.newSingleThreadExecutor().execute(() -> {
 			try {
-				in2.send(new GenericMessage<String>("bar", stubHeaders(2, 2, 1)));
+				in2.send(new GenericMessage<>("bar", stubHeaders(2, 2, 1)));
 			}
 			catch (Exception e) {
 				exception = e;
 			}
 		});
 		assertThat(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*").size()).isEqualTo(1);
+		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*")).hasSize(1);
 		this.releaseStrategy.latch1.countDown();
 		assertThat(this.out.receive(10000)).isNotNull();
 		assertThat(this.releaseStrategy.maxCallers.get()).isEqualTo(1);
@@ -153,13 +150,13 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 		while (n++ < 100 && this.template.keys("aggregatorWithRedisLocksTests:*").size() > 0) {
 			Thread.sleep(100);
 		}
-		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*").size()).isEqualTo(0);
+		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*")).isEmpty();
 	}
 
 	private Runnable asyncSend(final String payload, final int sequence, final int correlation) {
 		return () -> {
 			try {
-				in.send(new GenericMessage<String>(payload, stubHeaders(sequence, 2, correlation)));
+				in.send(new GenericMessage<>(payload, stubHeaders(sequence, 2, correlation)));
 			}
 			catch (Exception e) {
 				exception = e;
@@ -168,7 +165,7 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	}
 
 	private Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correlationId) {
-		Map<String, Object> headers = new HashMap<String, Object>();
+		var headers = new HashMap<String, Object>();
 		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
 		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
 		headers.put(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationId);
@@ -176,8 +173,8 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	}
 
 	private RedisTemplate<String, ?> createTemplate() {
-		RedisTemplate<String, ?> template = new RedisTemplate<String, Object>();
-		template.setConnectionFactory(this.getConnectionFactoryForTest());
+		var template = new RedisTemplate<String, Object>();
+		template.setConnectionFactory(redisConnectionFactory);
 		template.setKeySerializer(new StringRedisSerializer());
 		template.afterPropertiesSet();
 		return template;

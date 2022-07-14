@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,17 @@ import static org.assertj.core.api.Assertions.fail;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.DelayHandler;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -43,19 +41,16 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  *
  * @since 3.0
  */
-public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTests {
-
+@LongRunningTest
+class DelayerHandlerRescheduleIntegrationTests implements RedisContainerTest {
 	public static final String DELAYER_ID = "delayerWithRedisMS" + UUID.randomUUID();
 
-	@Rule
-	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
-
 	@Test
-	@RedisAvailable
-	public void testDelayerHandlerRescheduleWithRedisMessageStore() throws Exception {
+	void testDelayerHandlerRescheduleWithRedisMessageStore() throws Exception {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
 				"DelayerHandlerRescheduleIntegrationTests-context.xml", this.getClass());
 		MessageChannel input = context.getBean("input", MessageChannel.class);
@@ -75,7 +70,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 		ThreadPoolTaskScheduler taskScheduler =
 				(ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
 		taskScheduler.shutdown();
-		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
+		assertThat(taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 		context.close();
 
 		try {
@@ -83,9 +78,8 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertThat(e instanceof IllegalStateException).isTrue();
-			assertThat(e.getMessage().contains("BeanFactory not initialized or already closed - call 'refresh'"))
-					.isTrue();
+			assertThat(e).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage()).contains("BeanFactory not initialized or already closed - call 'refresh'");
 		}
 
 		assertThat(messageStore.getMessageGroupCount()).isEqualTo(1);
@@ -97,7 +91,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 		Object payload = messageInStore.getPayload();
 
 		// INT-3049
-		assertThat(payload instanceof DelayHandler.DelayedMessageWrapper).isTrue();
+		assertThat(payload).isInstanceOf(DelayHandler.DelayedMessageWrapper.class);
 		assertThat(((DelayHandler.DelayedMessageWrapper) payload).getOriginal()).isEqualTo(message1);
 
 		context.refresh();
@@ -119,7 +113,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 		while (n++ < 300 && messageStore.messageGroupSize(delayerMessageGroupId) > 0) {
 			Thread.sleep(100);
 		}
-		assertThat(messageStore.messageGroupSize(delayerMessageGroupId)).isEqualTo(0);
+		assertThat(messageStore.messageGroupSize(delayerMessageGroupId)).isZero();
 
 		messageStore.removeMessageGroup(delayerMessageGroupId);
 		context.close();

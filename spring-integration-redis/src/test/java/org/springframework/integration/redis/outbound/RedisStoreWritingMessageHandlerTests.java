@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.redis.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
@@ -27,7 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -41,8 +43,7 @@ import org.springframework.data.redis.support.collections.RedisCollectionFactory
 import org.springframework.data.redis.support.collections.RedisList;
 import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -55,108 +56,108 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  */
-public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
+class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
+
+	private static RedisConnectionFactory redisConnectionFactory;
+
+	@BeforeAll
+	static void setupConnection() {
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
+	}
 
 	@Test
-	@RedisAvailable
-	public void testListWithListPayloadParsedAndProvidedKey() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deleteKey(jcf, "foo");
+	void testListWithListPayloadParsedAndProvidedKey() {
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 		String key = "foo";
 		RedisList<String> redisList =
-				new DefaultRedisList<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
+				new DefaultRedisList<>(key, this.initTemplate(redisConnectionFactory, new StringRedisTemplate()));
 
-		assertThat(redisList.size()).isEqualTo(0);
+		assertThat(redisList).isEmpty();
 
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("Manny");
 		list.add("Moe");
 		list.add("Jack");
-		Message<List<String>> message = new GenericMessage<List<String>>(list);
+		Message<List<String>> message = new GenericMessage<>(list);
 		handler.handleMessage(message);
 
-		assertThat(redisList.size()).isEqualTo(3);
+		assertThat(redisList).hasSize(3);
 		assertThat(redisList.get(0)).isEqualTo("Manny");
 		assertThat(redisList.get(1)).isEqualTo("Moe");
 		assertThat(redisList.get(2)).isEqualTo("Jack");
-		this.deleteKey(jcf, "foo");
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 	}
 
 	@Test
-	@RedisAvailable
-	public void testListWithListPayloadParsedAndProvidedKeyAsHeader() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deleteKey(jcf, "foo");
+	void testListWithListPayloadParsedAndProvidedKeyAsHeader() {
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 		String key = "foo";
 		RedisList<String> redisList =
-				new DefaultRedisList<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
+				new DefaultRedisList<>(key, this.initTemplate(redisConnectionFactory, new StringRedisTemplate()));
 
-		assertThat(redisList.size()).isEqualTo(0);
+		assertThat(redisList).isEmpty();
 
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("Manny");
 		list.add("Moe");
 		list.add("Jack");
 		Message<List<String>> message = MessageBuilder.withPayload(list).setHeader("redis_key", key).build();
 		handler.handleMessage(message);
 
-		assertThat(redisList.size()).isEqualTo(3);
+		assertThat(redisList).hasSize(3);
 		assertThat(redisList.get(0)).isEqualTo("Manny");
 		assertThat(redisList.get(1)).isEqualTo("Moe");
 		assertThat(redisList.get(2)).isEqualTo("Jack");
-		this.deleteKey(jcf, "foo");
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 	}
 
-	@RedisAvailable
-	@Test(expected = MessageHandlingException.class)
-	public void testListWithListPayloadParsedAndNoKey() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deleteKey(jcf, "foo");
+	@Test
+	void testListWithListPayloadParsedAndNoKey() {
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 		String key = "foo";
 		RedisList<String> redisList =
-				new DefaultRedisList<String>(key, this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisList<>(key, this.initTemplate(redisConnectionFactory, new RedisTemplate<>()));
 
-		assertThat(redisList.size()).isEqualTo(0);
+		assertThat(redisList).isEmpty();
 
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("Manny");
 		list.add("Moe");
 		list.add("Jack");
 		Message<List<String>> message = MessageBuilder.withPayload(list).build();
-		handler.handleMessage(message);
-		this.deleteKey(jcf, "foo");
+		assertThatThrownBy(() -> handler.handleMessage(message)).isInstanceOf(MessageHandlingException.class);
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 	}
 
 	@Test
-	@RedisAvailable
-	public void testListWithListPayloadAsSingleEntry() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deleteKey(jcf, "foo");
+	void testListWithListPayloadAsSingleEntry() {
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 		String key = "foo";
 		RedisList<List<String>> redisList =
-				new DefaultRedisList<List<String>>(key, this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
+				new DefaultRedisList<>(key, this.initTemplate(redisConnectionFactory, new RedisTemplate<>()));
 
-		assertThat(redisList.size()).isEqualTo(0);
+		assertThat(redisList).isEmpty();
 
-		RedisTemplate<String, List<String>> template = this.initTemplate(jcf, new RedisTemplate<String, List<String>>());
+		RedisTemplate<String, List<String>> template = this.initTemplate(redisConnectionFactory, new RedisTemplate<>());
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
@@ -164,40 +165,38 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("Manny");
 		list.add("Moe");
 		list.add("Jack");
-		Message<List<String>> message = new GenericMessage<List<String>>(list);
+		Message<List<String>> message = new GenericMessage<>(list);
 		handler.handleMessage(message);
 
-		assertThat(redisList.size()).isEqualTo(1);
+		assertThat(redisList).hasSize(1);
 		List<String> resultList = redisList.get(0);
 		assertThat(resultList.get(0)).isEqualTo("Manny");
 		assertThat(resultList.get(1)).isEqualTo("Moe");
 		assertThat(resultList.get(2)).isEqualTo("Jack");
-		this.deleteKey(jcf, "foo");
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 	}
 
 	@Test
-	@RedisAvailable
-	public void testZsetWithListPayloadParsedAndProvidedKeyDefault() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deleteKey(jcf, "foo");
+	void testZsetWithListPayloadParsedAndProvidedKeyDefault() {
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 		String key = "foo";
 		RedisZSet<String> redisZset =
-				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
+				new DefaultRedisZSet<>(key, this.initTemplate(redisConnectionFactory, new StringRedisTemplate()));
 
-		assertThat(redisZset.size()).isEqualTo(0);
+		assertThat(redisZset).isEmpty();
 
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("Manny");
 		list.add("Moe");
 		list.add("Jack");
@@ -206,41 +205,39 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 				.build();
 		handler.handleMessage(message);
 
-		assertThat(redisZset.size()).isEqualTo(3);
+		assertThat(redisZset).hasSize(3);
 		Set<TypedTuple<String>> pepboys = redisZset.rangeByScoreWithScores(1, 1);
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertThat(pepboy.getScore() == 1).isTrue();
+			assertThat(pepboy.getScore()).isEqualTo(1);
 		}
 
 		handler.handleMessage(message);
-		assertThat(redisZset.size()).isEqualTo(3);
+		assertThat(redisZset).hasSize(3);
 		pepboys = redisZset.rangeByScoreWithScores(1, 2);
 		// should have incremented by 1
 		for (TypedTuple<String> pepboy : pepboys) {
 			assertThat(pepboy.getScore()).isEqualTo(Double.valueOf(2));
 		}
-		this.deleteKey(jcf, "foo");
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 	}
 
 	@Test
-	@RedisAvailable
-	public void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrement() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deleteKey(jcf, "foo");
+	void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrement() {
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 		String key = "foo";
 		RedisZSet<String> redisZset =
-				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
+				new DefaultRedisZSet<>(key, this.initTemplate(redisConnectionFactory, new StringRedisTemplate()));
 
-		assertThat(redisZset.size()).isEqualTo(0);
+		assertThat(redisZset).isEmpty();
 
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("Manny");
 		list.add("Moe");
 		list.add("Jack");
@@ -250,41 +247,39 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 
 		handler.handleMessage(message);
 
-		assertThat(redisZset.size()).isEqualTo(3);
+		assertThat(redisZset).hasSize(3);
 		Set<TypedTuple<String>> pepboys = redisZset.rangeByScoreWithScores(1, 1);
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertThat(pepboy.getScore() == 1).isTrue();
+			assertThat(pepboy.getScore()).isEqualTo(1);
 		}
 
 		handler.handleMessage(message);
-		assertThat(redisZset.size()).isEqualTo(3);
+		assertThat(redisZset).hasSize(3);
 		pepboys = redisZset.rangeByScoreWithScores(1, 2);
 		// should have incremented
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertThat(pepboy.getScore() == 2).isTrue();
+			assertThat(pepboy.getScore()).isEqualTo(2);
 		}
-		this.deleteKey(jcf, "foo");
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 	}
 
 	@Test
-	@RedisAvailable
-	public void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrementAsStringHeader() { // see INT-2775
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deleteKey(jcf, "foo");
+	void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrementAsStringHeader() { // see INT-2775
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 		String key = "foo";
 		RedisZSet<String> redisZset =
-				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
+				new DefaultRedisZSet<>(key, this.initTemplate(redisConnectionFactory, new StringRedisTemplate()));
 
-		assertThat(redisZset.size()).isEqualTo(0);
+		assertThat(redisZset).isEmpty();
 
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("Manny");
 		list.add("Moe");
 		list.add("Jack");
@@ -294,34 +289,32 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 
 		handler.handleMessage(message);
 
-		assertThat(redisZset.size()).isEqualTo(3);
+		assertThat(redisZset).hasSize(3);
 		Set<TypedTuple<String>> pepboys = redisZset.rangeByScoreWithScores(1, 1);
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertThat(pepboy.getScore() == 1).isTrue();
+			assertThat(pepboy.getScore()).isEqualTo(1);
 		}
 
 		handler.handleMessage(message);
-		assertThat(redisZset.size()).isEqualTo(3);
+		assertThat(redisZset).hasSize(3);
 		pepboys = redisZset.rangeByScoreWithScores(1, 2);
 		// should have incremented
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertThat(pepboy.getScore() == 2).isTrue();
+			assertThat(pepboy.getScore()).isEqualTo(2);
 		}
-		this.deleteKey(jcf, "foo");
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 	}
 
 	@Test
-	@RedisAvailable
-	public void testZsetWithListPayloadAsSingleEntryAndHeaderKeyHeaderScore() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deleteKey(jcf, "foo");
+	void testZsetWithListPayloadAsSingleEntryAndHeaderKeyHeaderScore() {
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 		String key = "foo";
 		RedisZSet<List<String>> redisZset =
-				new DefaultRedisZSet<List<String>>(key, this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
+				new DefaultRedisZSet<>(key, this.initTemplate(redisConnectionFactory, new RedisTemplate<>()));
 
-		assertThat(redisZset.size()).isEqualTo(0);
+		assertThat(redisZset).isEmpty();
 
-		RedisTemplate<String, List<String>> template = this.initTemplate(jcf, new RedisTemplate<String, List<String>>());
+		RedisTemplate<String, List<String>> template = this.initTemplate(redisConnectionFactory, new RedisTemplate<>());
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(template);
 
@@ -330,41 +323,39 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("Manny");
 		list.add("Moe");
 		list.add("Jack");
 		Message<List<String>> message = MessageBuilder.withPayload(list).setHeader("redis_key", key).
-						setHeader("redis_zsetScore", 4).build();
+				setHeader("redis_zsetScore", 4).build();
 		handler.handleMessage(message);
 
-		assertThat(redisZset.size()).isEqualTo(1);
+		assertThat(redisZset).hasSize(1);
 		Set<TypedTuple<List<String>>> entries = redisZset.rangeByScoreWithScores(1, 4);
 		for (TypedTuple<List<String>> pepboys : entries) {
-			assertThat(pepboys.getScore() == 4).isTrue();
+			assertThat(pepboys.getScore()).isEqualTo(4);
 		}
-		this.deleteKey(jcf, "foo");
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 	}
 
 	@Test
-	@RedisAvailable
-	public void testZsetWithMapPayloadParsedHeaderKey() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deletePresidents(jcf);
+	void testZsetWithMapPayloadParsedHeaderKey() {
+		RedisContainerTest.deletePresidents(redisConnectionFactory);
 		String key = "presidents";
 		RedisZSet<String> redisZset =
-				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
+				new DefaultRedisZSet<>(key, this.initTemplate(redisConnectionFactory, new StringRedisTemplate()));
 
-		assertThat(redisZset.size()).isEqualTo(0);
+		assertThat(redisZset).isEmpty();
 
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		Map<String, Double> presidents = new HashMap<String, Double>();
+		Map<String, Double> presidents = new HashMap<>();
 		presidents.put("John Adams", 18D);
 
 		presidents.put("Barack Obama", 21D);
@@ -384,25 +375,23 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		Message<Map<String, Double>> message = MessageBuilder.withPayload(presidents).setHeader("redis_key", key).build();
 		handler.handleMessage(message);
 
-		assertThat(redisZset.size()).isEqualTo(13);
+		assertThat(redisZset).hasSize(13);
 
 		Set<TypedTuple<String>> entries = redisZset.rangeByScoreWithScores(18, 19);
-		assertThat(entries.size()).isEqualTo(6);
-		this.deletePresidents(jcf);
+		assertThat(entries).hasSize(6);
+		RedisContainerTest.deletePresidents(redisConnectionFactory);
 	}
 
 	@Test
-	@RedisAvailable
-	public void testZsetWithMapPayloadPojoParsedHeaderKey() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deletePresidents(jcf);
+	void testZsetWithMapPayloadPojoParsedHeaderKey() {
+		RedisContainerTest.deletePresidents(redisConnectionFactory);
 		String key = "presidents";
 		RedisZSet<President> redisZset =
-				new DefaultRedisZSet<President>(key, this.initTemplate(jcf, new RedisTemplate<String, President>()));
+				new DefaultRedisZSet<>(key, this.initTemplate(redisConnectionFactory, new RedisTemplate<>()));
 
-		assertThat(redisZset.size()).isEqualTo(0);
+		assertThat(redisZset).isEmpty();
 
-		RedisTemplate<String, President> template = this.initTemplate(jcf, new RedisTemplate<String, President>());
+		RedisTemplate<String, President> template = this.initTemplate(redisConnectionFactory, new RedisTemplate<>());
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
@@ -410,7 +399,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		Map<President, Double> presidents = new HashMap<President, Double>();
+		Map<President, Double> presidents = new HashMap<>();
 		presidents.put(new President("John Adams"), 18D);
 
 		presidents.put(new President("Barack Obama"), 21D);
@@ -430,25 +419,23 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		Message<Map<President, Double>> message = MessageBuilder.withPayload(presidents).setHeader("redis_key", key).build();
 		handler.handleMessage(message);
 
-		assertThat(redisZset.size()).isEqualTo(13);
+		assertThat(redisZset).hasSize(13);
 
 		Set<TypedTuple<President>> entries = redisZset.rangeByScoreWithScores(18, 19);
-		assertThat(entries.size()).isEqualTo(6);
-		this.deletePresidents(jcf);
+		assertThat(entries).hasSize(6);
+		RedisContainerTest.deletePresidents(redisConnectionFactory);
 	}
 
 	@Test
-	@RedisAvailable
-	public void testZsetWithMapPayloadPojoAsSingleEntryHeaderKey() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deletePresidents(jcf);
+	void testZsetWithMapPayloadPojoAsSingleEntryHeaderKey() {
+		RedisContainerTest.deletePresidents(redisConnectionFactory);
 		String key = "presidents";
 		RedisZSet<Map<President, Double>> redisZset =
-				new DefaultRedisZSet<Map<President, Double>>(key, this.initTemplate(jcf, new RedisTemplate<String, Map<President, Double>>()));
+				new DefaultRedisZSet<>(key, this.initTemplate(redisConnectionFactory, new RedisTemplate<>()));
 
-		assertThat(redisZset.size()).isEqualTo(0);
+		assertThat(redisZset).isEmpty();
 
-		RedisTemplate<String, Map<President, Double>> template = this.initTemplate(jcf, new RedisTemplate<String, Map<President, Double>>());
+		RedisTemplate<String, Map<President, Double>> template = this.initTemplate(redisConnectionFactory, new RedisTemplate<>());
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
@@ -457,7 +444,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		Map<President, Double> presidents = new HashMap<President, Double>();
+		Map<President, Double> presidents = new HashMap<>();
 		presidents.put(new President("John Adams"), 18D);
 
 		presidents.put(new President("Barack Obama"), 21D);
@@ -466,59 +453,51 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		Message<Map<President, Double>> message = MessageBuilder.withPayload(presidents).setHeader("redis_key", key).build();
 		handler.handleMessage(message);
 
-		assertThat(redisZset.size()).isEqualTo(1);
-		this.deletePresidents(jcf);
+		assertThat(redisZset).hasSize(1);
+		RedisContainerTest.deletePresidents(redisConnectionFactory);
 	}
 
-	@Test(expected = IllegalStateException.class)
-	@RedisAvailable
-	public void testListWithMapKeyExpression() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+	@Test
+	void testListWithMapKeyExpression() {
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setMapKeyExpression(new LiteralExpression(key));
 		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.afterPropertiesSet();
+		assertThatThrownBy(handler::afterPropertiesSet).isInstanceOf(IllegalStateException.class);
 	}
 
-	@Test(expected = IllegalStateException.class)
-	@RedisAvailable
-	public void testSetWithMapKeyExpression() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+	@Test
+	void testSetWithMapKeyExpression() {
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.SET);
 		handler.setMapKeyExpression(new LiteralExpression(key));
 		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.afterPropertiesSet();
+		assertThatThrownBy(handler::afterPropertiesSet).isInstanceOf(IllegalStateException.class);
 	}
 
-	@Test(expected = IllegalStateException.class)
-	@RedisAvailable
-	public void testZsetWithMapKeyExpression() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+	@Test
+	void testZsetWithMapKeyExpression() {
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setMapKeyExpression(new LiteralExpression(key));
 		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.afterPropertiesSet();
+		assertThatThrownBy(handler::afterPropertiesSet).isInstanceOf(IllegalStateException.class);
 	}
 
 	@Test
-	@RedisAvailable
-	public void testMapWithMapKeyExpression() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deleteKey(jcf, "foo");
+	void testMapWithMapKeyExpression() {
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.MAP);
 		handler.setMapKeyExpression(new LiteralExpression(key));
@@ -529,17 +508,15 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		catch (Exception e) {
 			fail("No exception expected:" + e.getMessage());
 		}
-		this.deleteKey(jcf, "foo");
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 	}
 
 	@Test
-	@RedisAvailable
-	public void testPropertiesWithMapKeyExpression() {
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.deleteKey(jcf, "foo");
+	void testPropertiesWithMapKeyExpression() {
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
-				new RedisStoreWritingMessageHandler(jcf);
+				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.PROPERTIES);
 		handler.setMapKeyExpression(new LiteralExpression(key));
@@ -550,7 +527,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		catch (Exception e) {
 			fail("No exception expected:" + e.getMessage());
 		}
-		this.deleteKey(jcf, "foo");
+		RedisContainerTest.deleteKey(redisConnectionFactory, "foo");
 	}
 
 	private <K, V> RedisTemplate<K, V> initTemplate(RedisConnectionFactory rcf, RedisTemplate<K, V> redisTemplate) {
@@ -562,6 +539,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 
 	private static class President implements Serializable {
 		private static final long serialVersionUID = 1L;
+
 		private String name;
 
 		President(String name) {

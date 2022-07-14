@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,35 +18,32 @@ package org.springframework.integration.redis.store;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class RedisChannelMessageStoreTests extends RedisAvailableTests {
+class RedisChannelMessageStoreTests implements RedisContainerTest {
 
 	@Autowired
 	private PollableChannel testChannel1;
@@ -66,9 +63,9 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 	@Autowired
 	private RedisChannelMessageStore priorityCms;
 
-	@Before
-	@After
-	public void setUpTearDown() {
+	@BeforeEach
+	@AfterEach
+	void setUpTearDown() {
 		this.cms.removeMessageGroup("cms:testChannel1");
 		this.cms.removeMessageGroup("cms:testChannel2");
 		this.priorityCms.removeMessageGroup("priorityCms:testChannel3");
@@ -76,10 +73,9 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testChannel() {
+	void testChannel() {
 		for (int i = 0; i < 10; i++) {
-			this.testChannel1.send(new GenericMessage<Integer>(i));
+			this.testChannel1.send(new GenericMessage<>(i));
 		}
 		assertThat(this.cms.getMessageGroupCount()).isEqualTo(1);
 		assertThat(this.cms.messageGroupSize("cms:testChannel1")).isEqualTo(10);
@@ -103,21 +99,20 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 			assertThat(out.getPayload()).isEqualTo(i);
 		}
 		assertThat(this.testChannel2.receive(0)).isNull();
-		assertThat(this.cms.getMessageGroupCount()).isEqualTo(0);
+		assertThat(this.cms.getMessageGroupCount()).isZero();
 
 		for (int i = 0; i < 10; i++) {
-			this.testChannel1.send(new GenericMessage<Integer>(i));
+			this.testChannel1.send(new GenericMessage<>(i));
 		}
 		assertThat(this.cms.getMessageGroupCount()).isEqualTo(1);
 		assertThat(this.cms.messageGroupSize("cms:testChannel1")).isEqualTo(10);
 		this.cms.removeMessageGroup("cms:testChannel1");
-		assertThat(this.cms.getMessageGroupCount()).isEqualTo(0);
-		assertThat(this.cms.messageGroupSize("cms:testChannel1")).isEqualTo(0);
+		assertThat(this.cms.getMessageGroupCount()).isZero();
+		assertThat(this.cms.messageGroupSize("cms:testChannel1")).isZero();
 	}
 
 	@Test
-	@RedisAvailable
-	public void testPriority() {
+	void testPriority() {
 		for (int i = 0; i < 10; i++) {
 			this.testChannel3.send(MessageBuilder.withPayload(i).setPriority(i).build());
 			//We need unique messages
@@ -151,7 +146,7 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 		assertThat(m).isNotNull();
 		assertThat(new IntegrationMessageHeaderAccessor(m).getPriority()).isNull();
 		assertThat(m.getPayload()).isEqualTo(98);
-		assertThat(this.priorityCms.messageGroupSize("priorityCms:testChannel3")).isEqualTo(0);
+		assertThat(this.priorityCms.messageGroupSize("priorityCms:testChannel3")).isZero();
 
 		m = this.testChannel4.receive(0);
 		assertThat(m).isNotNull();
@@ -159,19 +154,19 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 		m = this.testChannel4.receive(0);
 		assertThat(m).isNotNull();
 		assertThat(new IntegrationMessageHeaderAccessor(m).getPriority()).isNull();
-		assertThat(this.priorityCms.getMessageGroupCount()).isEqualTo(0);
-		assertThat(this.priorityCms.getMessageCountForAllMessageGroups()).isEqualTo(0);
+		assertThat(this.priorityCms.getMessageGroupCount()).isZero();
+		assertThat(this.priorityCms.getMessageCountForAllMessageGroups()).isZero();
 		assertThat(this.testChannel3.receive(0)).isNull();
 		assertThat(this.testChannel4.receive(0)).isNull();
 
 		for (int i = 0; i < 10; i++) {
-			this.testChannel3.send(new GenericMessage<Integer>(i));
+			this.testChannel3.send(new GenericMessage<>(i));
 		}
 		assertThat(this.priorityCms.getMessageGroupCount()).isEqualTo(1);
 		assertThat(this.priorityCms.messageGroupSize("priorityCms:testChannel3")).isEqualTo(10);
 		this.priorityCms.removeMessageGroup("priorityCms:testChannel3");
-		assertThat(this.priorityCms.getMessageGroupCount()).isEqualTo(0);
-		assertThat(this.priorityCms.messageGroupSize("priorityCms:testChannel3")).isEqualTo(0);
+		assertThat(this.priorityCms.getMessageGroupCount()).isZero();
+		assertThat(this.priorityCms.messageGroupSize("priorityCms:testChannel3")).isZero();
 	}
 
 }

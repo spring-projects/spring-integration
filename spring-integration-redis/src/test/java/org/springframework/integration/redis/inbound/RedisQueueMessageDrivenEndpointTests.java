@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -54,9 +53,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.events.IntegrationEvent;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -65,7 +63,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -73,12 +71,13 @@ import org.springframework.util.ClassUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Rainer Frey
+ * @author Artem Vozhdayenko
  *
  * @since 3.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
+class RedisQueueMessageDrivenEndpointTests implements RedisContainerTest {
 
 	public static final String TEST_QUEUE = UUID.randomUUID().toString();
 
@@ -100,8 +99,11 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	@Autowired
 	private PollableChannel symmetricalOutputChannel;
 
-	@Before
-	public void setUpTearDown() {
+	@Autowired
+	private RedisConnectionFactory redisConnectionFactory;
+
+	@BeforeEach
+	void setUpTearDown() {
 		RedisTemplate<String, ?> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.afterPropertiesSet();
@@ -109,9 +111,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	public void testInt3014Default() throws InterruptedException {
+	void testInt3014Default() throws InterruptedException {
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
@@ -152,9 +153,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	public void testInt3014ExpectMessageTrue() throws InterruptedException {
+	void testInt3014ExpectMessageTrue() throws InterruptedException {
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
@@ -184,13 +184,14 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.start();
 
 		Message<Object> receive = (Message<Object>) channel.receive(10000);
-		assertThat(receive).isNotNull();
-
-		assertThat(receive).isEqualTo(message);
+		assertThat(receive)
+				.isNotNull()
+				.isEqualTo(message);
 
 		receive = (Message<Object>) errorChannel.receive(10000);
-		assertThat(receive).isNotNull();
-		assertThat(receive).isInstanceOf(ErrorMessage.class);
+		assertThat(receive)
+				.isNotNull()
+				.isInstanceOf(ErrorMessage.class);
 		assertThat(receive.getPayload()).isInstanceOf(MessagingException.class);
 		assertThat(((Exception) receive.getPayload()).getMessage()).contains("Deserialization of Message failed.");
 		assertThat(((Exception) receive.getPayload()).getCause()).isInstanceOf(ClassCastException.class);
@@ -203,8 +204,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testInt3017IntegrationInbound() throws InterruptedException {
+	void testInt3017IntegrationInbound() throws InterruptedException {
 		this.fromChannelEndpoint.start();
 		String payload = new Date().toString();
 
@@ -224,8 +224,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
-	public void testInt3017IntegrationSymmetrical() throws InterruptedException {
+	void testInt3017IntegrationSymmetrical() throws InterruptedException {
 		this.symmetricalRedisChannelEndpoint.start();
 		UUID payload = UUID.randomUUID();
 		Message<UUID> message = MessageBuilder.withPayload(payload)
@@ -244,9 +243,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	public void testInt3442ProperlyStop() throws Exception {
+	void testInt3442ProperlyStop() throws Exception {
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
@@ -294,9 +292,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 
 	@Test
-	@RedisAvailable
-	@Ignore("LettuceConnectionFactory doesn't support proper reinitialization after 'destroy()'")
-	public void testInt3196Recovery() throws Exception {
+	@Disabled("LettuceConnectionFactory doesn't support proper reinitialization after 'destroy()'")
+	void testInt3196Recovery() throws Exception {
 		QueueChannel channel = new QueueChannel();
 
 		final List<ApplicationEvent> exceptionEvents = new ArrayList<>();
@@ -332,7 +329,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		((InitializingBean) this.connectionFactory).afterPropertiesSet();
 
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-		redisTemplate.setConnectionFactory(this.getConnectionFactoryForTest());
+		redisTemplate.setConnectionFactory(redisConnectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
@@ -352,9 +349,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	}
 
 	@Test
-	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	public void testInt3932ReadFromLeft() throws InterruptedException {
+	void testInt3932ReadFromLeft() throws InterruptedException {
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);

@@ -9,8 +9,8 @@
 		http://www.springframework.org/schema/integration/redis https://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
 		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
-	<util:constant id="redisConnectionFactory"
-				   static-field="org.springframework.integration.redis.rules.RedisAvailableRule.connectionFactory"/>
+	<bean id="redisConnectionFactory" class="org.springframework.integration.redis.RedisContainerTest"
+		  factory-method="connectionFactory"/>
 
 	<util:constant id="TEST_QUEUE"
 				   static-field="org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpointTests.TEST_QUEUE"/>
