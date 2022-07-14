@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
@@ -43,7 +43,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class RedisChannelMessageStoreTests implements RedisTest {
+class RedisChannelMessageStoreTests implements RedisContainerTest {
 
 	@Autowired
 	private PollableChannel testChannel1;

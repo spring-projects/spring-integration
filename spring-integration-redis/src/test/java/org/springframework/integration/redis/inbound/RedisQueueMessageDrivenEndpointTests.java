@@ -53,7 +53,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.events.IntegrationEvent;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -77,7 +77,7 @@ import org.springframework.util.ClassUtils;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class RedisQueueMessageDrivenEndpointTests implements RedisTest {
+class RedisQueueMessageDrivenEndpointTests implements RedisContainerTest {
 
 	public static final String TEST_QUEUE = UUID.randomUUID().toString();
 

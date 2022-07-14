@@ -30,7 +30,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
 
@@ -41,18 +41,18 @@ import org.springframework.messaging.SubscribableChannel;
  * @author Artem Vozhdayenko
  * @since 2.2
  */
-class RedisStoreInboundChannelAdapterIntegrationTests implements RedisTest {
+class RedisStoreInboundChannelAdapterIntegrationTests implements RedisContainerTest {
 	private static RedisConnectionFactory redisConnectionFactory;
 
 	@BeforeAll
 	static void setupConnection() {
-		redisConnectionFactory = RedisTest.connectionFactory();
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	void testListInboundConfiguration() {
-		RedisTest.prepareList(redisConnectionFactory);
+		RedisContainerTest.prepareList(redisConnectionFactory);
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("listAdapter", SourcePollingChannelAdapter.class);
@@ -67,7 +67,7 @@ class RedisStoreInboundChannelAdapterIntegrationTests implements RedisTest {
 		message = (Message<Integer>) redisChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo(Integer.valueOf(13));
-		RedisTest.deletePresidents(redisConnectionFactory);
+		RedisContainerTest.deletePresidents(redisConnectionFactory);
 		context.close();
 	}
 
@@ -75,9 +75,9 @@ class RedisStoreInboundChannelAdapterIntegrationTests implements RedisTest {
 	@SuppressWarnings("unchecked")
 		// synchronization commit renames the list
 	void testListInboundConfigurationWithSynchronization() throws Exception {
-		StringRedisTemplate template = RedisTest.createStringRedisTemplate(redisConnectionFactory);
+		StringRedisTemplate template = RedisContainerTest.createStringRedisTemplate(redisConnectionFactory);
 		template.delete("bar");
-		RedisTest.prepareList(redisConnectionFactory);
+		RedisContainerTest.prepareList(redisConnectionFactory);
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
 		SourcePollingChannelAdapter spca =
@@ -110,9 +110,9 @@ class RedisStoreInboundChannelAdapterIntegrationTests implements RedisTest {
 	@Test
 		// synchronization rollback renames the list
 	void testListInboundConfigurationWithSynchronizationAndRollback() throws Exception {
-		StringRedisTemplate template = RedisTest.createStringRedisTemplate(redisConnectionFactory);
+		StringRedisTemplate template = RedisContainerTest.createStringRedisTemplate(redisConnectionFactory);
 		template.delete("baz");
-		RedisTest.prepareList(redisConnectionFactory);
+		RedisContainerTest.prepareList(redisConnectionFactory);
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("list-inbound-adapter.xml",
 				this.getClass());
 		SubscribableChannel fail = context.getBean("redisFailChannel", SubscribableChannel.class);
@@ -141,9 +141,9 @@ class RedisStoreInboundChannelAdapterIntegrationTests implements RedisTest {
 	@SuppressWarnings("unchecked")
 		// synchronization commit renames the list
 	void testListInboundConfigurationWithSynchronizationAndTemplate() throws Exception {
-		StringRedisTemplate template = RedisTest.createStringRedisTemplate(redisConnectionFactory);
+		StringRedisTemplate template = RedisContainerTest.createStringRedisTemplate(redisConnectionFactory);
 		template.delete("bar");
-		RedisTest.prepareList(redisConnectionFactory);
+		RedisContainerTest.prepareList(redisConnectionFactory);
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
 		SourcePollingChannelAdapter spca =
@@ -175,7 +175,7 @@ class RedisStoreInboundChannelAdapterIntegrationTests implements RedisTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	void testZsetInboundAdapter() throws InterruptedException {
-		RedisTest.prepareZset(redisConnectionFactory);
+		RedisContainerTest.prepareZset(redisConnectionFactory);
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("zset-inbound-adapter.xml", this.getClass());
 
@@ -264,7 +264,7 @@ class RedisStoreInboundChannelAdapterIntegrationTests implements RedisTest {
 
 		zsetAdapterNoScore.stop();
 		zsetAdapterWithSingleScoreAndSynchronization.stop();
-		RedisTest.deletePresidents(redisConnectionFactory);
+		RedisContainerTest.deletePresidents(redisConnectionFactory);
 
 		context.close();
 	}

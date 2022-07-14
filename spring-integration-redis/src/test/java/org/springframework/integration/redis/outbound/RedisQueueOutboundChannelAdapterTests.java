@@ -33,7 +33,7 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.mapping.InboundMessageMapper;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonMessageParser;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
@@ -53,7 +53,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class RedisQueueOutboundChannelAdapterTests implements RedisTest {
+class RedisQueueOutboundChannelAdapterTests implements RedisContainerTest {
 
 	@Autowired
 	private RedisConnectionFactory connectionFactory;

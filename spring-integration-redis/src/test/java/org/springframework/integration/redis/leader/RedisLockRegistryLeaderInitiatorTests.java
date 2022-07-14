@@ -31,7 +31,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
 import org.springframework.integration.test.condition.LogLevels;
@@ -46,12 +46,12 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
  * @since 4.3.9
  */
 @LogLevels(categories = "org.springframework.integration.redis.leader")
-class RedisLockRegistryLeaderInitiatorTests implements RedisTest {
+class RedisLockRegistryLeaderInitiatorTests implements RedisContainerTest {
 	private static RedisConnectionFactory redisConnectionFactory;
 
 	@BeforeAll
 	static void setupConnection() {
-		redisConnectionFactory = RedisTest.connectionFactory();
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
 	}
 
 	@Test

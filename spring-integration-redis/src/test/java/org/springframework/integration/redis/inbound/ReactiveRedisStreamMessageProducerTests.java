@@ -43,7 +43,7 @@ import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.outbound.ReactiveRedisStreamMessageHandler;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.redis.util.Address;
@@ -70,7 +70,7 @@ import reactor.test.StepVerifier;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class ReactiveRedisStreamMessageProducerTests implements RedisTest {
+class ReactiveRedisStreamMessageProducerTests implements RedisContainerTest {
 
 	private static final String STREAM_KEY = ReactiveRedisStreamMessageProducerTests.class.getSimpleName() + ".stream";
 
@@ -291,7 +291,7 @@ class ReactiveRedisStreamMessageProducerTests implements RedisTest {
 
 		@Bean
 		ReactiveRedisConnectionFactory redisConnectionFactory() {
-			return RedisTest.connectionFactory();
+			return RedisContainerTest.connectionFactory();
 		}
 
 		@Bean

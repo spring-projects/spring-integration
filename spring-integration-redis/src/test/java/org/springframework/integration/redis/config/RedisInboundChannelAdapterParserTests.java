@@ -29,7 +29,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
@@ -49,7 +49,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class RedisInboundChannelAdapterParserTests implements RedisTest {
+class RedisInboundChannelAdapterParserTests implements RedisContainerTest {
 
 	@Autowired
 	private ApplicationContext context;
@@ -93,7 +93,7 @@ class RedisInboundChannelAdapterParserTests implements RedisTest {
 	void testInboundChannelAdapterMessaging() throws Exception {
 		RedisInboundChannelAdapter adapter = context.getBean("adapter", RedisInboundChannelAdapter.class);
 		adapter.start();
-		RedisTest.awaitContainerSubscribedWithPatterns(TestUtils.getPropertyValue(adapter, "container",
+		RedisContainerTest.awaitContainerSubscribedWithPatterns(TestUtils.getPropertyValue(adapter, "container",
 				RedisMessageListenerContainer.class));
 
 		redisConnectionFactory.getConnection().publish("foo".getBytes(), "Hello Redis from foo".getBytes());

@@ -30,7 +30,7 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
 import org.springframework.integration.test.util.TestUtils;
@@ -48,7 +48,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class RedisQueueGatewayIntegrationTests implements RedisTest {
+class RedisQueueGatewayIntegrationTests implements RedisContainerTest {
 
 	@Value("#{redisQueue.toString().bytes}")
 	private byte[] queueName;

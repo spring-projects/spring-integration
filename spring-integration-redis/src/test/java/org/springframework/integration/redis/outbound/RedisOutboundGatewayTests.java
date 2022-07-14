@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.handler.ReplyRequiredException;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -47,7 +47,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class RedisOutboundGatewayTests implements RedisTest {
+class RedisOutboundGatewayTests implements RedisContainerTest {
 
 	@Autowired
 	private BeanFactory beanFactory;
@@ -118,7 +118,7 @@ class RedisOutboundGatewayTests implements RedisTest {
 		receive = this.replyChannel.receive(1000);
 		assertThat(receive).isNotNull();
 		assertThat(new String((byte[]) receive.getPayload())).isEqualTo("11");
-		RedisTest.createStringRedisTemplate(redisConnectionFactory).delete("si.test.RedisAtomicInteger");
+		RedisContainerTest.createStringRedisTemplate(redisConnectionFactory).delete("si.test.RedisAtomicInteger");
 	}
 
 	@Test

@@ -33,7 +33,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
@@ -46,12 +46,12 @@ import org.springframework.util.ReflectionUtils;
  * @author Artem Vozhdayenko
  * @since 2.0
  */
-class SubscribableRedisChannelTests implements RedisTest {
+class SubscribableRedisChannelTests implements RedisContainerTest {
 	private static RedisConnectionFactory redisConnectionFactory;
 
 	@BeforeAll
 	static void setupConnection() {
-		redisConnectionFactory = RedisTest.connectionFactory();
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
 	}
 
 	@Test
@@ -62,7 +62,7 @@ class SubscribableRedisChannelTests implements RedisTest {
 		channel.afterPropertiesSet();
 		channel.start();
 
-		RedisTest.awaitContainerSubscribed(TestUtils.getPropertyValue(channel, "container",
+		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(channel, "container",
 				RedisMessageListenerContainer.class));
 
 		final CountDownLatch latch = new CountDownLatch(3);

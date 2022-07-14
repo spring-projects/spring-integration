@@ -38,7 +38,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.gemfire.metadata.GemfireMetadataStore;
 import org.springframework.integration.jdbc.metadata.JdbcMetadataStore;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.metadata.RedisMetadataStore;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
@@ -54,13 +54,13 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
  * @since 4.0
  *
  */
-public class PersistentAcceptOnceFileListFilterExternalStoreTests implements RedisTest {
+public class PersistentAcceptOnceFileListFilterExternalStoreTests implements RedisContainerTest {
 
 	static RedisConnectionFactory redisConnectionFactory;
 
 	@BeforeAll
 	static void setupConnectionFactory() {
-		redisConnectionFactory = RedisTest.connectionFactory();
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
 	}
 
 	@Test

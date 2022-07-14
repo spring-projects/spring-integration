@@ -48,7 +48,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -63,7 +63,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @since 4.0
  *
  */
-class RedisLockRegistryTests implements RedisTest {
+class RedisLockRegistryTests implements RedisContainerTest {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
@@ -75,7 +75,7 @@ class RedisLockRegistryTests implements RedisTest {
 
 	@BeforeAll
 	static void setupConnections() {
-		redisConnectionFactory = RedisTest.connectionFactory();
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
 	}
 
 	@BeforeEach

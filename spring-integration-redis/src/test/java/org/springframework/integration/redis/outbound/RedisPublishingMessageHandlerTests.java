@@ -32,7 +32,7 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -41,12 +41,12 @@ import org.springframework.integration.support.MessageBuilder;
  * @author Artem Vozhdayenko
  * @since 2.1
  */
-class RedisPublishingMessageHandlerTests implements RedisTest {
+class RedisPublishingMessageHandlerTests implements RedisContainerTest {
 	private static RedisConnectionFactory redisConnectionFactory;
 
 	@BeforeAll
 	static void setupConnection() {
-		redisConnectionFactory = RedisTest.connectionFactory();
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
 	}
 
 	@Test
@@ -66,7 +66,7 @@ class RedisPublishingMessageHandlerTests implements RedisTest {
 		container.addMessageListener(listener, Collections.<Topic>singletonList(new ChannelTopic(topic)));
 		container.start();
 
-		RedisTest.awaitContainerSubscribed(container);
+		RedisContainerTest.awaitContainerSubscribed(container);
 
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(redisConnectionFactory);
 		handler.setTopicExpression(new LiteralExpression(topic));

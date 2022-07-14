@@ -30,7 +30,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.channel.SubscribableRedisChannel;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
@@ -48,7 +48,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class RedisChannelParserTests implements RedisTest {
+class RedisChannelParserTests implements RedisContainerTest {
 
 	@Autowired
 	private SubscribableRedisChannel redisChannel;
@@ -93,7 +93,7 @@ class RedisChannelParserTests implements RedisTest {
 
 	@Test
 	void testPubSubChannelUsage() throws Exception {
-		RedisTest.awaitContainerSubscribed(TestUtils.getPropertyValue(this.redisChannel, "container",
+		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(this.redisChannel, "container",
 				RedisMessageListenerContainer.class));
 
 		final Message<?> m = new GenericMessage<>("Hello Redis");

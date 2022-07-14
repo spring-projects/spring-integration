@@ -45,7 +45,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
@@ -65,12 +65,12 @@ import junit.framework.AssertionFailedError;
  * @author Gary Russell
  * @author Artem Vozhdayenko
  */
-class RedisMessageGroupStoreTests implements RedisTest {
+class RedisMessageGroupStoreTests implements RedisContainerTest {
 	private static RedisConnectionFactory redisConnectionFactory;
 
 	@BeforeAll
 	static void setupConnection() {
-		redisConnectionFactory = RedisTest.connectionFactory();
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
 	}
 
 	private final UUID groupId = UUID.randomUUID();
@@ -78,7 +78,7 @@ class RedisMessageGroupStoreTests implements RedisTest {
 	@BeforeEach
 	@AfterEach
 	void setUpTearDown() {
-		StringRedisTemplate template = RedisTest.createStringRedisTemplate(redisConnectionFactory);
+		StringRedisTemplate template = RedisContainerTest.createStringRedisTemplate(redisConnectionFactory);
 		template.delete(template.keys("MESSAGE_GROUP_*"));
 	}
 

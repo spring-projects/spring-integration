@@ -28,7 +28,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.DelayHandler;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
@@ -46,7 +46,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @since 3.0
  */
 @LongRunningTest
-class DelayerHandlerRescheduleIntegrationTests implements RedisTest {
+class DelayerHandlerRescheduleIntegrationTests implements RedisContainerTest {
 	public static final String DELAYER_ID = "delayerWithRedisMS" + UUID.randomUUID();
 
 	@Test

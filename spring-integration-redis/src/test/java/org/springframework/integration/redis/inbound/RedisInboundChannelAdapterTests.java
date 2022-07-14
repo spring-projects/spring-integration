@@ -28,7 +28,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -41,12 +41,12 @@ import org.springframework.messaging.Message;
  *
  * @since 2.1
  */
-class RedisInboundChannelAdapterTests implements RedisTest {
+class RedisInboundChannelAdapterTests implements RedisContainerTest {
 	private static RedisConnectionFactory redisConnectionFactory;
 
 	@BeforeAll
 	static void setupConnection() {
-		redisConnectionFactory = RedisTest.connectionFactory();
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
 	}
 
 	@Test
@@ -73,7 +73,7 @@ class RedisInboundChannelAdapterTests implements RedisTest {
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 
-		RedisTest.awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
+		RedisContainerTest.awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
 				redisTemplate, redisChannelName, channel, "foo");
 
 		for (int i = 0; i < numToTest; i++) {
@@ -107,7 +107,7 @@ class RedisInboundChannelAdapterTests implements RedisTest {
 		template.setEnableDefaultSerializer(false);
 		template.afterPropertiesSet();
 
-		RedisTest.awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
+		RedisContainerTest.awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
 				template, redisChannelName, channel, "foo".getBytes());
 
 		for (int i = 0; i < numToTest; i++) {

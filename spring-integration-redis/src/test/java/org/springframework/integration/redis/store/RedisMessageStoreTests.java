@@ -34,7 +34,7 @@ import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.Address;
 import org.springframework.integration.redis.util.Person;
 import org.springframework.integration.store.MessageGroup;
@@ -49,18 +49,18 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Artem Vozhdayenko
  *
  */
-class RedisMessageStoreTests implements RedisTest {
+class RedisMessageStoreTests implements RedisContainerTest {
 	private static RedisConnectionFactory redisConnectionFactory;
 
 	@BeforeAll
 	static void setupConnection() {
-		redisConnectionFactory = RedisTest.connectionFactory();
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
 	}
 
 	@BeforeEach
 	@AfterEach
 	public void setUpTearDown() {
-		StringRedisTemplate template = RedisTest.createStringRedisTemplate(redisConnectionFactory);
+		StringRedisTemplate template = RedisContainerTest.createStringRedisTemplate(redisConnectionFactory);
 		template.delete(template.keys("*MESSAGE_*"));
 	}
 
@@ -129,7 +129,7 @@ class RedisMessageStoreTests implements RedisTest {
 		assertThat(retrievedMessage).isNotNull();
 		assertThat(retrievedMessage.getPayload()).isEqualTo("Hello Redis");
 
-		StringRedisTemplate template = RedisTest.createStringRedisTemplate(redisConnectionFactory);
+		StringRedisTemplate template = RedisContainerTest.createStringRedisTemplate(redisConnectionFactory);
 		BoundValueOperations<String, String> ops =
 				template.boundValueOps("foo" + "MESSAGE_" + stringMessage.getHeaders().getId());
 		assertThat(ops.get()).isNotNull();

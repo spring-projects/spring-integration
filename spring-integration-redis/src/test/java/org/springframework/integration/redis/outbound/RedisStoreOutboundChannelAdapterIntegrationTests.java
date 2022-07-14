@@ -49,7 +49,7 @@ import org.springframework.data.redis.support.collections.RedisSet;
 import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -70,7 +70,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class RedisStoreOutboundChannelAdapterIntegrationTests implements RedisTest {
+class RedisStoreOutboundChannelAdapterIntegrationTests implements RedisContainerTest {
 
 	private final StringRedisTemplate redisTemplate = new StringRedisTemplate();
 

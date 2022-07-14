@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/redis https://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
-	<bean id="redisConnectionFactory" class="org.springframework.integration.redis.RedisTest"
+	<bean id="redisConnectionFactory" class="org.springframework.integration.redis.RedisContainerTest"
 		  factory-method="connectionFactory"/>
 
 	<int-redis:store-inbound-channel-adapter id="zsetAdapterNoScore"

@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 
 /**
  * @author Gunnar Hillert
@@ -37,18 +37,18 @@ import org.springframework.integration.redis.RedisTest;
  * @since 3.0
  *
  */
-class RedisMetadataStoreTests implements RedisTest {
+class RedisMetadataStoreTests implements RedisContainerTest {
 	private static RedisConnectionFactory redisConnectionFactory;
 
 	@BeforeAll
 	static void setupConnection() {
-		redisConnectionFactory = RedisTest.connectionFactory();
+		redisConnectionFactory = RedisContainerTest.connectionFactory();
 	}
 
 	@BeforeEach
 	@AfterEach
 	public void setUpTearDown() {
-		RedisTest.createStringRedisTemplate(redisConnectionFactory).delete("testMetadata");
+		RedisContainerTest.createStringRedisTemplate(redisConnectionFactory).delete("testMetadata");
 	}
 
 	@Test

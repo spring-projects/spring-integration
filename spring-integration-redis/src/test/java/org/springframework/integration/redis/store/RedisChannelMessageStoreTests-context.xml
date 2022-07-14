@@ -5,7 +5,7 @@
 	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="redisConnectionFactory" class="org.springframework.integration.redis.RedisTest"
+	<bean id="redisConnectionFactory" class="org.springframework.integration.redis.RedisContainerTest"
 		  factory-method="connectionFactory"/>
 
 	<bean id="cms" class="org.springframework.integration.redis.store.RedisChannelMessageStore">

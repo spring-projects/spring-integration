@@ -35,7 +35,7 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.Address;
 import org.springframework.integration.redis.util.Person;
 import org.springframework.messaging.Message;
@@ -53,7 +53,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class ReactiveRedisStreamMessageHandlerTests implements RedisTest {
+class ReactiveRedisStreamMessageHandlerTests implements RedisContainerTest {
 
 	private static final String STREAM_KEY = ReactiveRedisStreamMessageHandlerTests.class.getSimpleName() + ".stream";
 
@@ -137,7 +137,7 @@ class ReactiveRedisStreamMessageHandlerTests implements RedisTest {
 
 		@Bean
 		ReactiveRedisConnectionFactory redisConnectionFactory() {
-			return RedisTest.connectionFactory();
+			return RedisContainerTest.connectionFactory();
 		}
 
 		@Bean

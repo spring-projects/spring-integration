@@ -32,7 +32,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
-import org.springframework.integration.redis.RedisTest;
+import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
@@ -53,7 +53,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class RedisOutboundChannelAdapterParserTests implements RedisTest {
+class RedisOutboundChannelAdapterParserTests implements RedisContainerTest {
 
 	@Autowired
 	private ApplicationContext context;
@@ -101,7 +101,7 @@ class RedisOutboundChannelAdapterParserTests implements RedisTest {
 	@Test
 	void testOutboundChannelAdapterMessaging() throws Exception {
 		MessageChannel sendChannel = context.getBean("sendChannel", MessageChannel.class);
-		RedisTest.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
+		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
 				RedisMessageListenerContainer.class));
 		sendChannel.send(new GenericMessage<>("Hello Redis"));
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
@@ -121,7 +121,7 @@ class RedisOutboundChannelAdapterParserTests implements RedisTest {
 		//INT-2275
 	void testOutboundChannelAdapterWithinChain() throws Exception {
 		MessageChannel sendChannel = context.getBean("redisOutboundChain", MessageChannel.class);
-		RedisTest.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
+		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
 				RedisMessageListenerContainer.class));
 		sendChannel.send(new GenericMessage<>("Hello Redis from chain"));
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
