@@ -166,8 +166,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			assertThat(receive.getPayload()).isInstanceOf(MessageRejectedException.class);
 			MessageRejectedException exception = (MessageRejectedException) receive.getPayload();
 			assertThat(exception.getMessage())
-					.contains("message has been rejected in filter: bean " +
-							"'messagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.filter.filter.handler'");
+					.contains("message has been rejected in filter: bean 'filter.filter.handler'");
 
 		}
 
@@ -330,7 +329,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 		@Bean
 		@ServiceActivator(inputChannel = "aggregatorChannel")
-		public MessageHandler aggregator() {
+		public AggregatingMessageHandler aggregator() {
 			AggregatingMessageHandler handler = new AggregatingMessageHandler(MessageGroup::getMessages);
 			handler.setCorrelationStrategy(new ExpressionEvaluatingCorrelationStrategy("1"));
 			handler.setReleaseStrategy(new ExpressionEvaluatingReleaseStrategy("size() == 10"));
@@ -355,7 +354,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 		@Bean
 		@Splitter(inputChannel = "splitterChannel", reactive = @Reactive("reactiveCustomizer"))
-		public MessageHandler splitter() {
+		public DefaultMessageSplitter splitter() {
 			DefaultMessageSplitter defaultMessageSplitter = new DefaultMessageSplitter();
 			defaultMessageSplitter.setOutputChannelName("serviceChannel");
 			return defaultMessageSplitter;
@@ -470,7 +469,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 		@Bean
 		@Splitter(inputChannel = "splitterChannel", applySequence = "false")
-		public MessageHandler splitter() {
+		public DefaultMessageSplitter splitter() {
 			return new DefaultMessageSplitter();
 		}
 

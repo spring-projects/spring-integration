@@ -17,7 +17,6 @@
 package org.springframework.integration.config.annotation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -27,9 +26,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -147,14 +147,6 @@ public class MessagingAnnotationPostProcessorTests {
 		assertThat(latch.getCount()).isEqualTo(0);
 		assertThat(testBean.getMessageText()).isEqualTo("foo");
 		context.close();
-	}
-
-	@Test
-	public void testPostProcessorWithoutBeanFactory() {
-		MessagingAnnotationPostProcessor postProcessor =
-				new MessagingAnnotationPostProcessor();
-		assertThatIllegalArgumentException()
-				.isThrownBy(postProcessor::afterPropertiesSet);
 	}
 
 	@Test
@@ -307,12 +299,12 @@ public class MessagingAnnotationPostProcessorTests {
 		context.close();
 	}
 
-	private MessagingAnnotationPostProcessor prepareMessagingAnnotationPostProcessor(
+	private static MessagingAnnotationPostProcessor prepareMessagingAnnotationPostProcessor(
 			ConfigurableApplicationContext context) {
 
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-		postProcessor.setBeanFactory(context.getBeanFactory());
-		postProcessor.afterPropertiesSet();
+		postProcessor.postProcessBeanDefinitionRegistry((BeanDefinitionRegistry) context.getBeanFactory());
+		postProcessor.postProcessBeanFactory(context.getBeanFactory());
 		postProcessor.afterSingletonsInstantiated();
 		return postProcessor;
 	}

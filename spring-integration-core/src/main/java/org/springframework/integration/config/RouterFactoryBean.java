@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.config;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
@@ -49,6 +50,10 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	private String defaultOutputChannelName;
 
+	private String prefix;
+
+	private String suffix;
+
 	private Boolean resolutionRequired;
 
 	private Boolean applySequence;
@@ -61,6 +66,14 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	public void setDefaultOutputChannelName(String defaultOutputChannelName) {
 		this.defaultOutputChannelName = defaultOutputChannelName;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+
+	public void setSuffix(String suffix) {
+		this.suffix = suffix;
 	}
 
 	public void setResolutionRequired(Boolean resolutionRequired) {
@@ -106,7 +119,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	@Override
 	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
-		return this.configureRouter(new ExpressionEvaluatingRouter(expression));
+		return configureRouter(new ExpressionEvaluatingRouter(expression));
 	}
 
 	protected AbstractMappingMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
@@ -116,34 +129,25 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	protected AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
-		if (this.defaultOutputChannel != null) {
-			router.setDefaultOutputChannel(this.defaultOutputChannel);
-		}
-		if (this.defaultOutputChannelName != null) {
-			router.setDefaultOutputChannelName(this.defaultOutputChannelName);
-		}
-		if (getSendTimeout() != null) {
-			router.setSendTimeout(getSendTimeout());
-		}
-		if (this.applySequence != null) {
-			router.setApplySequence(this.applySequence);
-		}
-		if (this.ignoreSendFailures != null) {
-			router.setIgnoreSendFailures(this.ignoreSendFailures);
-		}
+		JavaUtils.INSTANCE
+				.acceptIfNotNull(this.defaultOutputChannel, router::setDefaultOutputChannel)
+				.acceptIfNotNull(this.defaultOutputChannelName, router::setDefaultOutputChannelName)
+				.acceptIfNotNull(getSendTimeout(), router::setSendTimeout)
+				.acceptIfNotNull(this.applySequence, router::setApplySequence)
+				.acceptIfNotNull(this.ignoreSendFailures, router::setIgnoreSendFailures);
+
 		if (router instanceof AbstractMappingMessageRouter) {
-			this.configureMappingRouter((AbstractMappingMessageRouter) router);
+			configureMappingRouter((AbstractMappingMessageRouter) router);
 		}
 		return router;
 	}
 
 	protected void configureMappingRouter(AbstractMappingMessageRouter router) {
-		if (this.channelMappings != null) {
-			router.setChannelMappings(this.channelMappings);
-		}
-		if (this.resolutionRequired != null) {
-			router.setResolutionRequired(this.resolutionRequired);
-		}
+		JavaUtils.INSTANCE
+				.acceptIfNotNull(this.channelMappings, router::setChannelMappings)
+				.acceptIfNotNull(this.resolutionRequired, router::setResolutionRequired)
+				.acceptIfHasText(this.prefix, router::setPrefix)
+				.acceptIfHasText(this.suffix, router::setSuffix);
 	}
 
 	@Override

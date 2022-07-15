@@ -139,14 +139,14 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testPollingFlow() {
-		this.controlBus.send("@'jmsTests.ContextConfiguration.integerMessageSource.inboundChannelAdapter'.start()");
+		this.controlBus.send("@'integerMessageSource.inboundChannelAdapter'.start()");
 		assertThat(this.beanFactory.getBean("integerChannel")).isInstanceOf(FixedSubscriberChannel.class);
 		for (int i = 0; i < 5; i++) {
 			Message<?> message = this.outputChannel.receive(20000);
 			assertThat(message).isNotNull();
 			assertThat(message.getPayload()).isEqualTo("" + i);
 		}
-		this.controlBus.send("@'jmsTests.ContextConfiguration.integerMessageSource.inboundChannelAdapter'.stop()");
+		this.controlBus.send("@'integerMessageSource.inboundChannelAdapter'.stop()");
 
 		assertThat(((InterceptableChannel) this.outputChannel).getInterceptors())
 				.contains(this.testChannelInterceptor);
@@ -353,7 +353,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		public IntegrationFlow jmsMessageDrivenFlow() {
 			return IntegrationFlow
 					.from(Jms.messageDrivenChannelAdapter(amqFactory,
-							DefaultMessageListenerContainer.class)
+									DefaultMessageListenerContainer.class)
 							.outputChannel(jmsMessageDrivenInputChannel())
 							.destination("jmsMessageDriven")
 							.configureListenerContainer(c -> c.clientId("foo")))
@@ -406,23 +406,23 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		@Bean
 		public IntegrationFlow jmsInboundGatewayFlow() {
 			return IntegrationFlow.from(
-					Jms.inboundGateway(amqFactory)
-							.requestChannel(jmsInboundGatewayInputChannel())
-							.replyTimeout(1)
-							.errorOnTimeout(true)
-							.errorChannel(new FixedSubscriberChannel(new AbstractReplyProducingMessageHandler() {
+							Jms.inboundGateway(amqFactory)
+									.requestChannel(jmsInboundGatewayInputChannel())
+									.replyTimeout(1)
+									.errorOnTimeout(true)
+									.errorChannel(new FixedSubscriberChannel(new AbstractReplyProducingMessageHandler() {
 
-								@Override
-								protected Object handleRequestMessage(Message<?> requestMessage) {
-									return "error: " +
-											((MessageTimeoutException) requestMessage.getPayload())
-													.getFailedMessage().getPayload() + " is not convertible";
-								}
+										@Override
+										protected Object handleRequestMessage(Message<?> requestMessage) {
+											return "error: " +
+													((MessageTimeoutException) requestMessage.getPayload())
+															.getFailedMessage().getPayload() + " is not convertible";
+										}
 
-							}))
-							.requestDestination("jmsPipelineTest")
-							.configureListenerContainer(c ->
-									c.transactionManager(mock(PlatformTransactionManager.class))))
+									}))
+									.requestDestination("jmsPipelineTest")
+									.configureListenerContainer(c ->
+											c.transactionManager(mock(PlatformTransactionManager.class))))
 					.filter(payload -> !"junk".equals(payload))
 					.<String, String>transform(String::toUpperCase)
 					.get();

@@ -20,9 +20,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import org.junit.AfterClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,9 +30,7 @@ import org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvi
 import org.springframework.integration.hazelcast.outbound.util.HazelcastOutboundChannelAdapterTestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.hazelcast.instance.impl.HazelcastInstanceFactory;
 import com.hazelcast.map.IMap;
@@ -45,11 +42,11 @@ import com.hazelcast.topic.ITopic;
  * Hazelcast Outbound Channel Adapter JavaConfig driven Unit Test Class
  *
  * @author Eren Avsarogullari
+ * @author Atem Bilan
+ *
  * @since 6.0
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = HazelcastIntegrationOutboundTestConfiguration.class,
-		loader = AnnotationConfigContextLoader.class)
+@SpringJUnitConfig(classes = HazelcastIntegrationOutboundTestConfiguration.class)
 @DirtiesContext
 public class HazelcastOutboundChannelAdapterConfigTests {
 
@@ -141,7 +138,7 @@ public class HazelcastOutboundChannelAdapterConfigTests {
 	@Qualifier("replicatedMapRequestHandlerAdvice")
 	private HazelcastTestRequestHandlerAdvice replicatedMapRequestHandlerAdvice;
 
-	@AfterClass
+	@AfterAll
 	public static void shutdown() {
 		HazelcastInstanceFactory.terminateAll();
 	}

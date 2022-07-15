@@ -21,8 +21,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,18 +30,25 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.support.AopUtils;
+import org.springframework.aot.AotDetector;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.beans.factory.support.BeanDefinitionValidationException;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.core.type.MethodMetadata;
+import org.springframework.core.type.StandardMethodMetadata;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
@@ -73,50 +78,135 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Rick Hogge
  */
-public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean,
-		SmartInitializingSingleton {
+public class MessagingAnnotationPostProcessor
+		implements BeanDefinitionRegistryPostProcessor, BeanPostProcessor, SmartInitializingSingleton {
 
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors = new HashMap<>();
 
-	private ConfigurableListableBeanFactory beanFactory;
-
 	private final Set<Class<?>> noAnnotationsCache = Collections.newSetFromMap(new ConcurrentHashMap<>(256));
 
 	private final List<Runnable> methodsToPostProcessAfterContextInitialization = new ArrayList<>();
 
+	private BeanDefinitionRegistry registry;
+
+	private ConfigurableListableBeanFactory beanFactory;
+
 	private volatile boolean initialized;
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		Assert.isAssignable(ConfigurableListableBeanFactory.class, beanFactory.getClass(),
-				"a ConfigurableListableBeanFactory is required");
-		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+		this.registry = registry;
+		this.postProcessors.put(Filter.class, new FilterAnnotationPostProcessor());
+		this.postProcessors.put(Router.class, new RouterAnnotationPostProcessor());
+		this.postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor());
+		this.postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor());
+		this.postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor());
+		this.postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor());
+		this.postProcessors.put(InboundChannelAdapter.class, new InboundChannelAdapterAnnotationPostProcessor());
+		this.postProcessors.put(BridgeFrom.class, new BridgeFromAnnotationPostProcessor());
+		this.postProcessors.put(BridgeTo.class, new BridgeToAnnotationPostProcessor());
+		Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> customPostProcessors =
+				setupCustomPostProcessors();
+		if (!CollectionUtils.isEmpty(customPostProcessors)) {
+			this.postProcessors.putAll(customPostProcessors);
+		}
+		this.postProcessors.values().stream()
+				.filter(BeanFactoryAware.class::isInstance)
+				.map(BeanFactoryAware.class::cast)
+				.forEach((processor) -> processor.setBeanFactory((BeanFactory) this.registry));
+
+		if (!AotDetector.useGeneratedArtifacts()) {
+			String[] beanNames = registry.getBeanDefinitionNames();
+
+			for (String beanName : beanNames) {
+				BeanDefinition beanDef = registry.getBeanDefinition(beanName);
+				if (beanDef instanceof AnnotatedBeanDefinition annotatedBeanDefinition
+						&& annotatedBeanDefinition.getFactoryMethodMetadata() != null) {
+
+					processCandidate(beanName, annotatedBeanDefinition);
+				}
+			}
+		}
+	}
+
+	private void processCandidate(String beanName, AnnotatedBeanDefinition beanDefinition) {
+		MethodMetadata methodMetadata = beanDefinition.getFactoryMethodMetadata();
+		MergedAnnotations annotations = methodMetadata.getAnnotations();
+		if (methodMetadata instanceof StandardMethodMetadata standardMethodMetadata) {
+			annotations = MergedAnnotations.from(standardMethodMetadata.getIntrospectedMethod());
+		}
+
+		List<MessagingMetaAnnotation> messagingAnnotations = obtainMessagingAnnotations(annotations, beanName);
+
+		for (MessagingMetaAnnotation messagingAnnotation : messagingAnnotations) {
+			Class<? extends Annotation> annotationType = messagingAnnotation.annotationType;
+			List<Annotation> annotationChain =
+					MessagingAnnotationUtils.getAnnotationChain(messagingAnnotation.annotation, annotationType);
+
+			processMessagingAnnotationOnBean(beanName, beanDefinition, annotationType, annotationChain);
+		}
+	}
+
+	private List<MessagingMetaAnnotation> obtainMessagingAnnotations(MergedAnnotations annotations, String identified) {
+		List<MessagingMetaAnnotation> messagingAnnotations = new ArrayList<>();
+
+		for (Class<? extends Annotation> annotationType : this.postProcessors.keySet()) {
+			annotations.stream()
+					.filter((ann) -> ann.getType().equals(annotationType))
+					.map(MergedAnnotation::getRoot)
+					.map(MergedAnnotation::synthesize)
+					.map((ann) -> new MessagingMetaAnnotation(ann, annotationType))
+					.forEach(messagingAnnotations::add);
+		}
+
+		if (annotations.get(EndpointId.class, (ann) -> ann.hasNonDefaultValue("value")).isPresent()
+				&& messagingAnnotations.size() > 1) {
+
+			throw new IllegalStateException("@EndpointId on " + identified
+					+ " can only have one EIP annotation, found: " + messagingAnnotations.size());
+		}
+
+		return messagingAnnotations;
+	}
+
+	private void processMessagingAnnotationOnBean(String beanName, AnnotatedBeanDefinition beanDefinition,
+			Class<? extends Annotation> annotationType, List<Annotation> annotationChain) {
+
+		MethodAnnotationPostProcessor<?> messagingAnnotationProcessor = this.postProcessors.get(annotationType);
+		if (messagingAnnotationProcessor != null) {
+			if (messagingAnnotationProcessor.beanAnnotationAware()) {
+				if (messagingAnnotationProcessor.shouldCreateEndpoint(
+						beanDefinition.getFactoryMethodMetadata().getAnnotations(), annotationChain)) {
+
+					messagingAnnotationProcessor.processBeanDefinition(beanName, beanDefinition, annotationChain);
+				}
+				else {
+					throw new BeanDefinitionValidationException(
+							"The input channel for endpoint on '@Bean' method must be set for the "
+									+ annotationType + ". The bean definition with the problem is: " + beanName);
+				}
+			}
+			else {
+				throw new BeanDefinitionValidationException(
+						"The messaging annotation '" + annotationType + "' cannot be declared on '@Bean'. " +
+								"The bean definition with the problem is: " + beanName);
+			}
+		}
+	}
+
+	@Override
+	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
 	}
 
 	protected ConfigurableListableBeanFactory getBeanFactory() {
 		return this.beanFactory;
 	}
 
-	@Override
-	public void afterPropertiesSet() {
-		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		this.postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory));
-		this.postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
-		this.postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
-		this.postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory));
-		this.postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory));
-		this.postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
-		this.postProcessors.put(InboundChannelAdapter.class,
-				new InboundChannelAdapterAnnotationPostProcessor(this.beanFactory));
-		this.postProcessors.put(BridgeFrom.class, new BridgeFromAnnotationPostProcessor(this.beanFactory));
-		this.postProcessors.put(BridgeTo.class, new BridgeToAnnotationPostProcessor(this.beanFactory));
-		Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> customPostProcessors =
-				setupCustomPostProcessors();
-		if (!CollectionUtils.isEmpty(customPostProcessors)) {
-			this.postProcessors.putAll(customPostProcessors);
-		}
+	protected BeanDefinitionRegistry getBeanDefinitionRegistry() {
+		return this.registry;
 	}
 
 	protected Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> setupCustomPostProcessors() {
@@ -160,34 +250,23 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	private void doWithMethod(Method method, Object bean, String beanName, Class<?> beanClass) {
-		MergedAnnotations mergedAnnotations =
-				MergedAnnotations.search(MergedAnnotations.SearchStrategy.DIRECT)
-						.from(method);
+		MergedAnnotations mergedAnnotations = MergedAnnotations.from(method);
 
-		List<MessagingMetaAnnotation> messagingAnnotations = new ArrayList<>();
+		boolean noMessagingAnnotations = true;
 
-		for (Class<? extends Annotation> annotationType : this.postProcessors.keySet()) {
-			mergedAnnotations.stream()
-					.filter((ann) -> ann.getType().equals(annotationType))
-					.map(MergedAnnotation::getRoot)
-					.map(MergedAnnotation::synthesize)
-					.map((ann) -> new MessagingMetaAnnotation(ann, annotationType))
-					.forEach(messagingAnnotations::add);
+		if (!mergedAnnotations.isPresent(Bean.class)) { // See postProcessBeanDefinitionRegistry(BeanDefinitionRegistry)
+			List<MessagingMetaAnnotation> messagingAnnotations =
+					obtainMessagingAnnotations(mergedAnnotations, method.toGenericString());
+
+			for (MessagingMetaAnnotation messagingAnnotation : messagingAnnotations) {
+				noMessagingAnnotations = false;
+				Class<? extends Annotation> annotationType = messagingAnnotation.annotationType;
+				List<Annotation> annotationChain =
+						MessagingAnnotationUtils.getAnnotationChain(messagingAnnotation.annotation, annotationType);
+				processAnnotationTypeOnMethod(bean, beanName, method, annotationType, annotationChain);
+			}
 		}
-		if (mergedAnnotations.get(EndpointId.class, (ann) -> ann.hasNonDefaultValue("value")).isPresent()
-				&& messagingAnnotations.size() > 1) {
-
-			throw new IllegalStateException("@EndpointId on " + method.toGenericString()
-					+ " can only have one EIP annotation, found: " + messagingAnnotations.size());
-		}
-
-		for (MessagingMetaAnnotation messagingAnnotation : messagingAnnotations) {
-			Class<? extends Annotation> annotationType = messagingAnnotation.messagingAnnotationType;
-			List<Annotation> annotationChain = getAnnotationChain(messagingAnnotation.annotation, annotationType);
-			processAnnotationTypeOnMethod(bean, beanName, method, annotationType, annotationChain);
-		}
-
-		if (messagingAnnotations.size() == 0) {
+		if (noMessagingAnnotations) {
 			this.noAnnotationsCache.add(beanClass);
 		}
 	}
@@ -197,7 +276,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 		MethodAnnotationPostProcessor<?> postProcessor =
 				MessagingAnnotationPostProcessor.this.postProcessors.get(annotationType);
-		if (postProcessor != null && postProcessor.shouldCreateEndpoint(method, annotations)) {
+		if (postProcessor != null && postProcessor.supportsPojoMethod()
+				&& postProcessor.shouldCreateEndpoint(method, annotations)) {
+
 			Method targetMethod = method;
 			if (AopUtils.isJdkDynamicProxy(bean)) {
 				try {
@@ -230,7 +311,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 		Object result = postProcessor.postProcess(bean, beanName, targetMethod, annotations);
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
-		BeanDefinitionRegistry definitionRegistry = (BeanDefinitionRegistry) beanFactory;
 		if (result instanceof AbstractEndpoint endpoint) {
 			String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, "autoStartup", String.class);
 			if (StringUtils.hasText(autoStartup)) {
@@ -255,49 +335,11 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 			String endpointBeanName = generateBeanName(beanName, method, annotationType);
 			endpoint.setBeanName(endpointBeanName);
-			definitionRegistry.registerBeanDefinition(endpointBeanName,
-					new RootBeanDefinition((Class<AbstractEndpoint>) endpoint.getClass(), () -> endpoint));
+			getBeanDefinitionRegistry()
+					.registerBeanDefinition(endpointBeanName,
+							new RootBeanDefinition((Class<AbstractEndpoint>) endpoint.getClass(), () -> endpoint));
 			beanFactory.getBean(endpointBeanName);
 		}
-	}
-
-	/**
-	 * @param messagingAnnotation the {@link Annotation} to take a chain for its meta-annotations.
-	 * @param annotationType the annotation type.
-	 * @return the hierarchical list of annotations in top-bottom order.
-	 */
-	protected List<Annotation> getAnnotationChain(Annotation messagingAnnotation,
-			Class<? extends Annotation> annotationType) {
-
-		List<Annotation> annotationChain = new LinkedList<>();
-		Set<Annotation> visited = new HashSet<>();
-
-		recursiveFindAnnotation(annotationType, messagingAnnotation, annotationChain, visited);
-		if (annotationChain.size() > 0) {
-			Collections.reverse(annotationChain);
-		}
-
-		return annotationChain;
-	}
-
-	protected boolean recursiveFindAnnotation(Class<? extends Annotation> annotationType, Annotation ann,
-			List<Annotation> annotationChain, Set<Annotation> visited) {
-
-		if (ann.annotationType().equals(annotationType)) {
-			annotationChain.add(ann);
-			return true;
-		}
-		for (Annotation metaAnn : ann.annotationType().getAnnotations()) {
-			if (!ann.equals(metaAnn) && !visited.contains(metaAnn)
-					&& !(metaAnn.annotationType().getPackage().getName().startsWith("java.lang"))) {
-				visited.add(metaAnn); // prevent infinite recursion if the same annotation is found again
-				if (recursiveFindAnnotation(annotationType, metaAnn, annotationChain, visited)) {
-					annotationChain.add(ann);
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 	protected String generateBeanName(String originalBeanName, Method method,
@@ -309,7 +351,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 					+ ClassUtils.getShortNameAsProperty(annotationType);
 			name = baseName;
 			int count = 1;
-			while (this.beanFactory.containsBean(name)) {
+			ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+			while (beanFactory.containsBean(name)) {
 				name = baseName + "#" + (++count);
 			}
 		}
@@ -320,7 +363,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		return this.postProcessors;
 	}
 
-	private record MessagingMetaAnnotation(Annotation annotation, Class<? extends Annotation> messagingAnnotationType) {
+	protected record MessagingMetaAnnotation(Annotation annotation, Class<? extends Annotation> annotationType) {
 
 	}
 

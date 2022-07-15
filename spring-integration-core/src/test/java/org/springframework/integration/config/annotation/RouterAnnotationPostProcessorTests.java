@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.DirectChannel;
@@ -42,6 +43,8 @@ public class RouterAnnotationPostProcessorTests {
 
 	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
 
+	private final MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
+
 	private final DirectChannel inputChannel = new DirectChannel();
 
 	private final QueueChannel outputChannel = new QueueChannel();
@@ -53,26 +56,26 @@ public class RouterAnnotationPostProcessorTests {
 	private final QueueChannel stringChannel = new QueueChannel();
 
 
-	@Before
+
+	@BeforeEach
 	public void init() {
 		context.registerChannel("input", inputChannel);
 		context.registerChannel("output", outputChannel);
 		context.registerChannel("routingChannel", routingChannel);
 		context.registerChannel("integerChannel", integerChannel);
 		context.registerChannel("stringChannel", stringChannel);
+		this.postProcessor.postProcessBeanDefinitionRegistry((BeanDefinitionRegistry) this.context.getBeanFactory());
+		this.postProcessor.postProcessBeanFactory(this.context.getBeanFactory());
+		this.postProcessor.afterSingletonsInstantiated();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.context.close();
 	}
 
 	@Test
 	public void testRouter() {
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-		postProcessor.setBeanFactory(context.getBeanFactory());
-		postProcessor.afterPropertiesSet();
-		postProcessor.afterSingletonsInstantiated();
 		TestRouter testRouter = new TestRouter();
 		postProcessor.postProcessAfterInitialization(testRouter, "test");
 		context.refresh();
@@ -84,10 +87,6 @@ public class RouterAnnotationPostProcessorTests {
 
 	@Test
 	public void testRouterWithListParam() {
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-		postProcessor.setBeanFactory(context.getBeanFactory());
-		postProcessor.afterPropertiesSet();
-		postProcessor.afterSingletonsInstantiated();
 		TestRouter testRouter = new TestRouter();
 		postProcessor.postProcessAfterInitialization(testRouter, "test");
 		context.refresh();

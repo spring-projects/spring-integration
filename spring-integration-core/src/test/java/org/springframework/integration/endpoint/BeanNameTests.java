@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class BeanNameTests {
 
 	@SuppressWarnings("unused")
 	@Autowired
-	@Qualifier("eipBean.handler")
+	@Qualifier("eipBeanHandler")
 	private MessageHandler eipBeanHandler;
 
 	@SuppressWarnings("unused")
@@ -76,11 +76,11 @@ public class BeanNameTests {
 
 	@SuppressWarnings("unused")
 	@Autowired
-	@Qualifier("eipBean2.handler")
+	@Qualifier("eipBean2Handler")
 	private MessageHandler eipBean2Handler;
 
 	@Autowired
-	@Qualifier("eipBean2.handler.wrapper")
+	@Qualifier("eipBean2.handler")
 	private ReplyProducingMessageHandlerWrapper eipBean2HandlerWrapper;
 
 	@SuppressWarnings("unused")
@@ -98,7 +98,7 @@ public class BeanNameTests {
 
 	@SuppressWarnings("unused")
 	@Autowired
-	@Qualifier("eipSource.source")
+	@Qualifier("eipSourceSource")
 	private MessageSource<?> eipSourceSource;
 
 	@Test
@@ -124,10 +124,10 @@ public class BeanNameTests {
 			}
 		}
 
-		@Bean("eipBean.handler")
+		@Bean("eipBeanHandler")
 		@EndpointId("eipBean")
 		@ServiceActivator(inputChannel = "channel2")
-		public MessageHandler replyingHandler() {
+		public AbstractReplyProducingMessageHandler replyingHandler() {
 			return new AbstractReplyProducingMessageHandler() {
 
 				@Override
@@ -138,7 +138,7 @@ public class BeanNameTests {
 			};
 		}
 
-		@Bean("eipBean2.handler")
+		@Bean("eipBean2Handler")
 		@EndpointId("eipBean2")
 		@ServiceActivator(inputChannel = "channel3")
 		public MessageHandler handler() {
@@ -151,7 +151,7 @@ public class BeanNameTests {
 			return null;
 		}
 
-		@Bean("eipSource.source")
+		@Bean("eipSourceSource")
 		@EndpointId("eipSource")
 		@InboundChannelAdapter(channel = "channel3", poller = @Poller(fixedDelay = "5000"))
 		public MessageSource<?> source() {

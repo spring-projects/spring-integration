@@ -48,7 +48,6 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -71,7 +70,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@TestExecutionListeners(DependencyInjectionTestExecutionListener.class)
+@TestExecutionListeners(DependencyInjectionTestExecutionListener.class) // To ignore other default listeners
 public class MicrometerMetricsTests {
 
 	@Autowired
@@ -149,7 +148,7 @@ public class MicrometerMetricsTests {
 				.counter().count()).isEqualTo(1);
 
 		assertThat(registry.get("spring.integration.send")
-				.tag("name", "eipBean.handler")
+				.tag("name", "eipBean")
 				.tag("result", "success")
 				.timer().count()).isEqualTo(1);
 
@@ -277,7 +276,7 @@ public class MicrometerMetricsTests {
 			SimpleMeterRegistry registry = new SimpleMeterRegistry();
 			registry.config().meterFilter(MeterFilter.deny(id ->
 					"channel".equals(id.getTag("type")) &&
-					"noMeters".equals(id.getTag("name"))));
+							"noMeters".equals(id.getTag("name"))));
 			return registry;
 		}
 
@@ -292,7 +291,7 @@ public class MicrometerMetricsTests {
 		@Bean("eipBean.handler")
 		@EndpointId("eipBean")
 		@ServiceActivator(inputChannel = "channel2")
-		public MessageHandler replyingHandler() {
+		public AbstractReplyProducingMessageHandler replyingHandler() {
 			return new AbstractReplyProducingMessageHandler() {
 
 				@Override

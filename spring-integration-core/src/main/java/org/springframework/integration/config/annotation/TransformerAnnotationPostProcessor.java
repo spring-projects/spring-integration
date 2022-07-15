@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.core.ResolvableType;
+import org.springframework.integration.config.TransformerFactoryBean;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.integration.transformer.Transformer;
@@ -42,35 +44,34 @@ import org.springframework.messaging.MessageHandler;
 public class TransformerAnnotationPostProcessor
 		extends AbstractMethodAnnotationPostProcessor<org.springframework.integration.annotation.Transformer> {
 
-	public TransformerAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
-		super(beanFactory);
+	public TransformerAnnotationPostProcessor() {
 		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", "adviceChain"));
 	}
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
-		Transformer transformer;
-		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			transformer = extractTypeIfPossible(target, Transformer.class);
-			if (transformer == null) {
-				if (extractTypeIfPossible(target, AbstractReplyProducingMessageHandler.class) != null) {
-					checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
-					return (MessageHandler) target;
-				}
-				MessageProcessor<?> messageProcessor = buildLambdaMessageProcessorForBeanMethod(method, target);
-				if (messageProcessor != null) {
-					transformer = new MethodInvokingTransformer(messageProcessor);
-				}
-				else {
-					transformer = new MethodInvokingTransformer(target);
-				}
-			}
-		}
-		else {
-			transformer = new MethodInvokingTransformer(bean, method);
+	protected BeanDefinition resolveHandlerBeanDefinition(String beanName, AnnotatedBeanDefinition beanDefinition,
+			ResolvableType handlerBeanType, List<Annotation> annotations) {
+
+		BeanDefinition handlerBeanDefinition =
+				super.resolveHandlerBeanDefinition(beanName, beanDefinition, handlerBeanType, annotations);
+
+		if (handlerBeanDefinition != null) {
+			return handlerBeanDefinition;
 		}
 
+		BeanMetadataElement targetObjectBeanDefinition = buildLambdaMessageProcessor(handlerBeanType, beanDefinition);
+		if (targetObjectBeanDefinition == null) {
+			targetObjectBeanDefinition = new RuntimeBeanReference(beanName);
+		}
+
+		return BeanDefinitionBuilder.genericBeanDefinition(TransformerFactoryBean.class)
+				.addPropertyValue("targetObject", targetObjectBeanDefinition)
+				.getBeanDefinition();
+	}
+
+	@Override
+	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
+		Transformer transformer = new MethodInvokingTransformer(bean, method);
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
 		setOutputChannelIfPresent(annotations, handler);
 		return handler;

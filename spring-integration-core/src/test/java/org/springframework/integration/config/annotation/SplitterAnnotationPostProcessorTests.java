@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@ package org.springframework.integration.config.annotation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Splitter;
@@ -39,20 +40,20 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class SplitterAnnotationPostProcessorTests {
 
-	private TestApplicationContext context = TestUtils.createTestApplicationContext();
+	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
 
-	private DirectChannel inputChannel = new DirectChannel();
+	private final DirectChannel inputChannel = new DirectChannel();
 
-	private QueueChannel outputChannel = new QueueChannel();
+	private final QueueChannel outputChannel = new QueueChannel();
 
 
-	@Before
+	@BeforeEach
 	public void init() {
-		context.registerChannel("input", inputChannel);
-		context.registerChannel("output", outputChannel);
+		this.context.registerChannel("input", this.inputChannel);
+		this.context.registerChannel("output", this.outputChannel);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.context.close();
 	}
@@ -60,8 +61,8 @@ public class SplitterAnnotationPostProcessorTests {
 	@Test
 	public void testSplitterAnnotation() {
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-		postProcessor.setBeanFactory(context.getBeanFactory());
-		postProcessor.afterPropertiesSet();
+		postProcessor.postProcessBeanDefinitionRegistry((BeanDefinitionRegistry) this.context.getBeanFactory());
+		postProcessor.postProcessBeanFactory(this.context.getBeanFactory());
 		postProcessor.afterSingletonsInstantiated();
 		TestSplitter splitter = new TestSplitter();
 		postProcessor.postProcessAfterInitialization(splitter, "testSplitter");

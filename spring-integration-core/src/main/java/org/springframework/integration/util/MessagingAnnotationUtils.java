@@ -18,14 +18,21 @@ package org.springframework.integration.util;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Payloads;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -51,7 +58,6 @@ public final class MessagingAnnotationUtils {
 	/**
 	 * Get the attribute value from the annotation hierarchy, returning the first
 	 * {@link MessagingAnnotationUtils#hasValue non-empty}) value closest to the annotated method.
-	 *
 	 * @param annotations The meta-annotations in order (closest first).
 	 * @param name The attribute name.
 	 * @param requiredType The expected type.
@@ -88,11 +94,8 @@ public final class MessagingAnnotationUtils {
 			return false;
 		}
 		// Annotation with 'value' set to special 'none' string
-		if ((annotationValue instanceof Annotation) &&
-				ValueConstants.DEFAULT_NONE.equals(AnnotationUtils.getValue((Annotation) annotationValue))) {
-			return false;
-		}
-		return true;
+		return (!(annotationValue instanceof Annotation)) ||
+				!ValueConstants.DEFAULT_NONE.equals(AnnotationUtils.getValue((Annotation) annotationValue));
 	}
 
 	public static Method findAnnotatedMethod(Object target, final Class<? extends Annotation> annotationType) {
@@ -143,9 +146,62 @@ public final class MessagingAnnotationUtils {
 	 * @return the id, or null.
 	 * @since 5.0.4
 	 */
+	@Nullable
 	public static String endpointIdValue(Method method) {
-		EndpointId endpointId = AnnotationUtils.findAnnotation(method, EndpointId.class);
-		return endpointId != null ? endpointId.value() : null;
+		return endpointIdValue(MergedAnnotations.from(method));
+	}
+
+	/**
+	 * Return the {@link EndpointId#value()} property, if present.
+	 * @param mergedAnnotations the {@link MergedAnnotations} to analyze.
+	 * @return the id, or null.
+	 * @since 6.0
+	 */
+	@Nullable
+	public static String endpointIdValue(MergedAnnotations mergedAnnotations) {
+		MergedAnnotation<EndpointId> endpointIdAnnotation = mergedAnnotations.get(EndpointId.class);
+		return endpointIdAnnotation.getValue(AnnotationUtils.VALUE, String.class).orElse(null);
+	}
+
+	/**
+	 * Get a chain of its meta-annotations for the provided instance and expected type.
+	 * @param messagingAnnotation the {@link Annotation} to take a chain for its meta-annotations.
+	 * @param annotationType the annotation type.
+	 * @return the hierarchical list of annotations in top-bottom order.
+	 * @since 6.0
+	 */
+	public static List<Annotation> getAnnotationChain(Annotation messagingAnnotation,
+			Class<? extends Annotation> annotationType) {
+
+		List<Annotation> annotationChain = new LinkedList<>();
+		Set<Annotation> visited = new HashSet<>();
+
+		recursiveFindAnnotation(annotationType, messagingAnnotation, annotationChain, visited);
+		if (annotationChain.size() > 0) {
+			Collections.reverse(annotationChain);
+		}
+
+		return annotationChain;
+	}
+
+	private static boolean recursiveFindAnnotation(Class<? extends Annotation> annotationType, Annotation ann,
+			List<Annotation> annotationChain, Set<Annotation> visited) {
+
+		if (ann.annotationType().equals(annotationType)) {
+			annotationChain.add(ann);
+			return true;
+		}
+		for (Annotation metaAnn : ann.annotationType().getAnnotations()) {
+			if (!ann.equals(metaAnn) && !visited.contains(metaAnn)
+					&& !(metaAnn.annotationType().getPackage().getName().startsWith("java.lang"))) {
+				visited.add(metaAnn); // prevent infinite recursion if the same annotation is found again
+				if (recursiveFindAnnotation(annotationType, metaAnn, annotationChain, visited)) {
+					annotationChain.add(ann);
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private MessagingAnnotationUtils() {

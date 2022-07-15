@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.integration.util.MessagingAnnotationUtils;
+import org.springframework.util.StringUtils;
+
 /**
  * Strategy interface for post-processing annotated methods.
  *
@@ -31,7 +36,11 @@ import java.util.List;
  */
 public interface MethodAnnotationPostProcessor<T extends Annotation> {
 
+	String INPUT_CHANNEL_ATTRIBUTE = "inputChannel";
+
 	Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations);
+
+	void processBeanDefinition(String beanName, AnnotatedBeanDefinition beanDefinition, List<Annotation> annotations);
 
 	/**
 	 * Determine if the provided {@code method} and its {@code annotations} are eligible
@@ -42,6 +51,26 @@ public interface MethodAnnotationPostProcessor<T extends Annotation> {
 	 * {@link org.springframework.integration.endpoint.AbstractEndpoint}
 	 * @since 4.0
 	 */
-	boolean shouldCreateEndpoint(Method method, List<Annotation> annotations);
+	default boolean shouldCreateEndpoint(Method method, List<Annotation> annotations) {
+		return shouldCreateEndpoint(MergedAnnotations.from(method), annotations);
+	}
+
+	default boolean shouldCreateEndpoint(MergedAnnotations mergedAnnotations, List<Annotation> annotations) {
+		String inputChannel =
+				MessagingAnnotationUtils.resolveAttribute(annotations, getInputChannelAttribute(), String.class);
+		return StringUtils.hasText(inputChannel);
+	}
+
+	default String getInputChannelAttribute() {
+		return INPUT_CHANNEL_ATTRIBUTE;
+	}
+
+	default boolean beanAnnotationAware() {
+		return true;
+	}
+
+	default boolean supportsPojoMethod() {
+		return true;
+	}
 
 }

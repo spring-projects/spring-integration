@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -105,7 +106,7 @@ public class CustomMessagingAnnotationTests {
 
 			MessagingAnnotationPostProcessor messagingAnnotationPostProcessor = new MessagingAnnotationPostProcessor();
 			messagingAnnotationPostProcessor.
-					addMessagingAnnotationPostProcessor(Logging.class, new LogAnnotationPostProcessor(beanFactory));
+					addMessagingAnnotationPostProcessor(Logging.class, new LogAnnotationPostProcessor());
 			return messagingAnnotationPostProcessor;
 		}
 
@@ -124,29 +125,24 @@ public class CustomMessagingAnnotationTests {
 
 		String value();
 
-
 		LoggingHandler.Level level() default LoggingHandler.Level.INFO;
 
 	}
 
 	private static class LogAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Logging> {
 
-		LogAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
-			super(beanFactory);
-		}
-
 		@Override
-		protected String getInputChannelAttribute() {
-			return "value";
+		public String getInputChannelAttribute() {
+			return AnnotationUtils.VALUE;
 		}
 
 		@Override
 		protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 			LoggingHandler.Level level = MessagingAnnotationUtils.resolveAttribute(annotations, "level",
 					LoggingHandler.Level.class);
-			LoggingHandler loggingHandler = new LoggingHandler(level.name());
+			LoggingHandler loggingHandler = new LoggingHandler(level);
 			MethodInvokingMessageProcessor<String> processor = new MethodInvokingMessageProcessor<>(bean, method);
-			processor.setBeanFactory(this.beanFactory);
+			processor.setBeanFactory(getBeanFactory());
 			loggingHandler.setLogExpression(new FunctionExpression<>(processor::processMessage));
 			return loggingHandler;
 		}

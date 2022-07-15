@@ -20,43 +20,63 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 
-import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.DefaultBeanFactoryPointcutAdvisor;
 import org.springframework.aop.support.NameMatchMethodPointcut;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
+import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.parsing.ComponentDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.type.MethodMetadata;
+import org.springframework.core.type.StandardMethodMetadata;
 import org.springframework.integration.annotation.IdempotentReceiver;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.Reactive;
+import org.springframework.integration.annotation.Role;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.config.RouterFactoryBean;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -68,7 +88,6 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.LambdaMessageProcessor;
-import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
@@ -106,67 +125,298 @@ import reactor.core.publisher.Flux;
  * @author Chris Bono
  */
 public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation>
-		implements MethodAnnotationPostProcessor<T> {
+		implements MethodAnnotationPostProcessor<T>, BeanFactoryAware {
 
 	private static final String UNCHECKED = "unchecked";
 
-	private static final String INPUT_CHANNEL_ATTRIBUTE = "inputChannel";
-
-	private static final String ADVICE_CHAIN_ATTRIBUTE = "adviceChain";
-
-	protected static final String SEND_TIMEOUT_ATTRIBUTE = "sendTimeout";
-
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR
+
+	protected static final String ADVICE_CHAIN_ATTRIBUTE = "adviceChain"; // NOSONAR
+
+	protected static final String SEND_TIMEOUT_ATTRIBUTE = "sendTimeout"; // NOSONAR
 
 	protected final List<String> messageHandlerAttributes = new ArrayList<>(); // NOSONAR
 
-	protected final ConfigurableListableBeanFactory beanFactory; // NOSONAR
-
-	protected final BeanDefinitionRegistry definitionRegistry; // NOSONAR
-
-	protected final ConversionService conversionService; // NOSONAR
-
-	protected final DestinationResolver<MessageChannel> channelResolver; // NOSONAR
-
 	protected final Class<T> annotationType; // NOSONAR
 
+	private ConfigurableListableBeanFactory beanFactory;
+
+	private BeanDefinitionRegistry definitionRegistry;
+
+	private ConversionService conversionService;
+
+	private DestinationResolver<MessageChannel> channelResolver;
+
 	@SuppressWarnings(UNCHECKED)
-	public AbstractMethodAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
-		Assert.notNull(beanFactory, "'beanFactory' must not be null");
+	public AbstractMethodAnnotationPostProcessor() {
 		this.messageHandlerAttributes.add(SEND_TIMEOUT_ATTRIBUTE);
-		this.beanFactory = beanFactory;
+		this.annotationType =
+				(Class<T>) GenericTypeResolver.resolveTypeArgument(getClass(), MethodAnnotationPostProcessor.class);
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
 		this.definitionRegistry = (BeanDefinitionRegistry) beanFactory;
 		this.conversionService = this.beanFactory.getConversionService() != null
 				? this.beanFactory.getConversionService()
 				: DefaultConversionService.getSharedInstance();
 		this.channelResolver = ChannelResolverUtils.getChannelResolver(beanFactory);
-		this.annotationType =
-				(Class<T>) GenericTypeResolver.resolveTypeArgument(this.getClass(),
-						MethodAnnotationPostProcessor.class);
+	}
+
+	protected ConfigurableListableBeanFactory getBeanFactory() {
+		return this.beanFactory;
+	}
+
+	protected BeanDefinitionRegistry getDefinitionRegistry() {
+		return this.definitionRegistry;
+	}
+
+	protected ConversionService getConversionService() {
+		return this.conversionService;
+	}
+
+	protected DestinationResolver<MessageChannel> getChannelResolver() {
+		return this.channelResolver;
+	}
+
+	@Override
+	public void processBeanDefinition(String beanName, AnnotatedBeanDefinition beanDefinition,
+			List<Annotation> annotations) {
+
+		ResolvableType handlerBeanType = getHandlerBeanClass(beanDefinition);
+
+		String handlerBeanName = beanName;
+
+		BeanDefinition handlerBeanDefinition =
+				resolveHandlerBeanDefinition(beanName, beanDefinition, handlerBeanType, annotations);
+		MergedAnnotations mergedAnnotations = beanDefinition.getFactoryMethodMetadata().getAnnotations();
+
+		if (handlerBeanDefinition != null) {
+			if (handlerBeanDefinition != beanDefinition) {
+				Class<?> handlerBeanClass =
+						org.springframework.util.ClassUtils.resolveClassName(handlerBeanDefinition.getBeanClassName(),
+								this.beanFactory.getBeanClassLoader());
+
+				if (isClassIn(handlerBeanClass, Orderable.class, AbstractSimpleMessageHandlerFactoryBean.class)) {
+					mergedAnnotations.get(Order.class)
+							.getValue(AnnotationUtils.VALUE, String.class).
+							ifPresent((order) -> handlerBeanDefinition.getPropertyValues().add("order", order));
+				}
+
+				if (isClassIn(handlerBeanClass, AbstractMessageProducingHandler.class, AbstractMessageRouter.class,
+						AbstractSimpleMessageHandlerFactoryBean.class)) {
+
+					new BeanDefinitionPropertiesMapper(handlerBeanDefinition, annotations)
+							.setPropertyValue(SEND_TIMEOUT_ATTRIBUTE)
+							.setPropertyReference("outputChannel")
+							.setPropertyReference("defaultOutputChannel");
+				}
+
+				if (isClassIn(handlerBeanClass, AbstractMessageProducingHandler.class,
+						AbstractSimpleMessageHandlerFactoryBean.class)
+						&& !RouterFactoryBean.class.isAssignableFrom(handlerBeanClass)) {
+
+					applyAdviceChainIfAny(handlerBeanDefinition, annotations);
+				}
+
+				handlerBeanName = generateHandlerBeanName(beanName, mergedAnnotations);
+				this.definitionRegistry.registerBeanDefinition(handlerBeanName, handlerBeanDefinition);
+			}
+		}
+		else {
+			throw new BeanDefinitionValidationException(
+					"The messaging annotation processor for '" + this.annotationType +
+							"' cannot create a target handler bean. " +
+							"The bean definition with the problem is: " + beanName);
+		}
+
+		BeanDefinition endpointBeanDefinition =
+				createEndpointBeanDefinition(new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName),
+						new BeanComponentDefinition(beanDefinition, beanName), annotations);
+
+		new BeanDefinitionPropertiesMapper(endpointBeanDefinition, annotations)
+				.setPropertyValue("autoStartup")
+				.setPropertyValue("phase");
+
+		Poller poller = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller.class);
+		Reactive reactive = MessagingAnnotationUtils.resolveAttribute(annotations, "reactive", Reactive.class);
+		Assert.state(reactive == null || poller == null, "The 'poller' and 'reactive' are mutually exclusive.");
+		if (poller != null) {
+			applyPollerForEndpoint(endpointBeanDefinition, poller);
+		}
+		else if (reactive != null) {
+			BeanMetadataElement reactiveCustomizer;
+			String reactiveCustomizerBean = reactive.value();
+			if (StringUtils.hasText(reactiveCustomizerBean)) {
+				reactiveCustomizer = new RuntimeBeanReference(reactiveCustomizerBean);
+			}
+			else {
+				reactiveCustomizer =
+						BeanDefinitionBuilder.genericBeanDefinition(Function.class)
+								.setFactoryMethod("identity")
+								.getBeanDefinition();
+			}
+			endpointBeanDefinition.getPropertyValues().add("reactiveCustomizer", reactiveCustomizer);
+		}
+
+		mergedAnnotations.get(Role.class)
+				.getValue(AnnotationUtils.VALUE, String.class).
+				ifPresent((role) -> endpointBeanDefinition.getPropertyValues().add("role", role));
+
+		String endpointBeanName =
+				generateHandlerBeanName(beanName, mergedAnnotations)
+						.replaceFirst("\\.(handler|source)$", "");
+		this.definitionRegistry.registerBeanDefinition(endpointBeanName, endpointBeanDefinition);
+	}
+
+	private static boolean isClassIn(Class<?> classToVerify, Class<?>... classesToMatch) {
+		for (Class<?> toMatch : classesToMatch) {
+			if (toMatch.isAssignableFrom(classToVerify)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected BeanDefinition createEndpointBeanDefinition(ComponentDefinition handlerBeanDefinition,
+			ComponentDefinition beanDefinition, List<Annotation> annotations) {
+
+		BeanDefinitionBuilder endpointDefinitionBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class)
+						.addPropertyReference("handler", handlerBeanDefinition.getName());
+
+		String inputChannelAttribute = getInputChannelAttribute();
+		String inputChannelName =
+				MessagingAnnotationUtils.resolveAttribute(annotations, inputChannelAttribute, String.class);
+		Assert.hasText(inputChannelName,
+				() -> "The '" + inputChannelAttribute + "' attribute is required on '" + this.annotationType +
+						"' on @Bean method");
+		if (!this.definitionRegistry.containsBeanDefinition(inputChannelName)) {
+			this.definitionRegistry.registerBeanDefinition(inputChannelName,
+					new RootBeanDefinition(DirectChannel.class));
+		}
+		BeanDefinition endpointBeanDefinition =
+				endpointDefinitionBuilder.addPropertyReference("inputChannel", inputChannelName)
+						.getBeanDefinition();
+
+		applyAdviceChainIfAny(endpointBeanDefinition, annotations);
+
+		return endpointBeanDefinition;
+	}
+
+	private static void applyAdviceChainIfAny(BeanDefinition beanDefinition, List<Annotation> annotations) {
+		String[] adviceChainNames = MessagingAnnotationUtils.resolveAttribute(annotations, ADVICE_CHAIN_ATTRIBUTE,
+				String[].class);
+
+		if (!ObjectUtils.isEmpty(adviceChainNames)) {
+			ManagedList<RuntimeBeanReference> adviceChain =
+					Arrays.stream(adviceChainNames)
+							.map(RuntimeBeanReference::new)
+							.collect(Collectors.toCollection(ManagedList::new));
+
+			beanDefinition.getPropertyValues().addPropertyValue("adviceChain", adviceChain);
+		}
+	}
+
+	private static void applyPollerForEndpoint(BeanDefinition endpointBeanDefinition, Poller poller) {
+		BeanMetadataElement pollerMetadataBeanDefinition;
+		String ref = poller.value();
+		if (StringUtils.hasText(ref)) {
+			pollerMetadataBeanDefinition = new RuntimeBeanReference(ref);
+		}
+		else {
+			BeanDefinitionBuilder pollerBeanDefinitionBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(PollerMetadata.class);
+
+			new BeanDefinitionPropertiesMapper(pollerBeanDefinitionBuilder.getRawBeanDefinition(), List.of(poller))
+					.setPropertyReference("trigger")
+					.setPropertyReference("taskExecutor")
+					.setPropertyValue("receiveTimeout")
+					.setPropertyValue("maxMessagesPerPoll");
+
+			String errorChannel = poller.errorChannel();
+			if (StringUtils.hasText(errorChannel)) {
+				BeanDefinitionBuilder errorHandler =
+						BeanDefinitionBuilder.genericBeanDefinition(MessagePublishingErrorHandler.class)
+								.addPropertyReference("defaultErrorChannel", errorChannel);
+				pollerBeanDefinitionBuilder.addPropertyValue("errorHandler", errorHandler.getBeanDefinition());
+			}
+
+			String fixedDelay = poller.fixedDelay();
+			String fixedRate = poller.fixedRate();
+			String cron = poller.cron();
+			BeanDefinition triggerBeanDefinition = null;
+
+			if (StringUtils.hasText(cron)) {
+				triggerBeanDefinition = triggerBeanDefinition(CronTrigger.class, cron);
+			}
+			else if (StringUtils.hasText(fixedDelay)) {
+				triggerBeanDefinition = triggerBeanDefinition(PeriodicTrigger.class, fixedDelay);
+			}
+			else if (StringUtils.hasText(fixedRate)) {
+				triggerBeanDefinition = triggerBeanDefinition(PeriodicTrigger.class, fixedRate);
+				triggerBeanDefinition.getPropertyValues().addPropertyValue("fixedRate", true);
+			}
+
+			if (triggerBeanDefinition != null) {
+				pollerBeanDefinitionBuilder.addPropertyValue("trigger", triggerBeanDefinition);
+			}
+
+			pollerMetadataBeanDefinition = pollerBeanDefinitionBuilder.getBeanDefinition();
+		}
+
+		endpointBeanDefinition.getPropertyValues()
+				.addPropertyValue("pollerMetadata", pollerMetadataBeanDefinition);
+	}
+
+	private static BeanDefinition triggerBeanDefinition(Class<? extends Trigger> triggerClass, String triggerValue) {
+		return BeanDefinitionBuilder.genericBeanDefinition(triggerClass)
+				.addConstructorArgValue(triggerValue)
+				.getBeanDefinition();
+	}
+
+	private ResolvableType getHandlerBeanClass(AnnotatedBeanDefinition beanDefinition) {
+		MethodMetadata factoryMethodMetadata = beanDefinition.getFactoryMethodMetadata();
+		if (factoryMethodMetadata instanceof StandardMethodMetadata standardMethodMetadata) {
+			return ResolvableType.forMethodReturnType(standardMethodMetadata.getIntrospectedMethod());
+		}
+		else {
+			String typeName = factoryMethodMetadata.getReturnTypeName();
+			Class<?> beanClass =
+					org.springframework.util.ClassUtils.resolveClassName(typeName,
+							this.beanFactory.getBeanClassLoader());
+			return ResolvableType.forClass(beanClass);
+		}
+	}
+
+	@Nullable
+	protected BeanDefinition resolveHandlerBeanDefinition(String beanName, AnnotatedBeanDefinition beanDefinition,
+			ResolvableType handlerBeanType, List<Annotation> annotations) {
+
+		Class<?> classToCheck = handlerBeanType.toClass();
+
+		if (FactoryBean.class.isAssignableFrom(classToCheck)) {
+			classToCheck = this.beanFactory.getType(beanName);
+		}
+
+		if (isClassIn(classToCheck, AbstractReplyProducingMessageHandler.class, AbstractMessageRouter.class)) {
+			checkMessageHandlerAttributes(beanName, annotations);
+			return beanDefinition;
+		}
+
+		return null;
 	}
 
 	@Override
 	public Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations) {
-		Object sourceHandler = null;
-		if (beanAnnotationAware() && AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			if (!this.beanFactory.containsBeanDefinition(resolveTargetBeanName(method))) {
-				this.logger.debug("Skipping endpoint creation; perhaps due to some '@Conditional' annotation.");
-				return null;
-			}
-			else {
-				sourceHandler = resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			}
-		}
-
 		MessageHandler handler = createHandler(bean, method, annotations);
 
 		if (!(handler instanceof ReactiveMessageHandlerAdapter)) {
 			orderable(method, handler);
 			producerOrRouter(annotations, handler);
 
-			if (!handler.equals(sourceHandler)) {
-				handler = registerHandlerBean(beanName, method, handler);
-			}
+			handler = registerHandlerBean(beanName, method, handler);
 
 			handler = annotated(method, handler);
 			handler = adviceChain(beanName, annotations, handler);
@@ -268,27 +518,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 		return handler;
-	}
-
-	@Override
-	public boolean shouldCreateEndpoint(Method method, List<Annotation> annotations) {
-		String inputChannel = MessagingAnnotationUtils.resolveAttribute(annotations, getInputChannelAttribute(),
-				String.class);
-		boolean createEndpoint = StringUtils.hasText(inputChannel);
-		if (!createEndpoint && beanAnnotationAware()) {
-			boolean isBean = AnnotatedElementUtils.isAnnotated(method, Bean.class.getName());
-			Assert.isTrue(!isBean, () -> "A channel name in '" + getInputChannelAttribute() + "' is required when " +
-					this.annotationType + " is used on '@Bean' methods.");
-		}
-		return createEndpoint;
-	}
-
-	protected String getInputChannelAttribute() {
-		return INPUT_CHANNEL_ATTRIBUTE;
-	}
-
-	protected boolean beanAnnotationAware() {
-		return true;
 	}
 
 	protected List<Advice> extractAdviceChain(String beanName, List<Annotation> annotations) {
@@ -519,9 +748,19 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	protected String generateHandlerBeanName(String originalBeanName, Method method) {
-		String name = MessagingAnnotationUtils.endpointIdValue(method);
+		return generateHandlerBeanName(originalBeanName, MergedAnnotations.from(method), method.getName());
+	}
+
+	protected String generateHandlerBeanName(String originalBeanName, MergedAnnotations mergedAnnotations) {
+		return generateHandlerBeanName(originalBeanName, mergedAnnotations, null);
+	}
+
+	protected String generateHandlerBeanName(String originalBeanName, MergedAnnotations mergedAnnotations,
+			@Nullable String methodName) {
+
+		String name = MessagingAnnotationUtils.endpointIdValue(mergedAnnotations);
 		if (!StringUtils.hasText(name)) {
-			String baseName = originalBeanName + "." + method.getName() + "."
+			String baseName = originalBeanName + (methodName != null ? "." + methodName : "") + "."
 					+ org.springframework.util.ClassUtils.getShortNameAsProperty(this.annotationType);
 			name = baseName;
 			int count = 1;
@@ -532,47 +771,13 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return name + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
 	}
 
-	protected void setOutputChannelIfPresent(List<Annotation> annotations,
-			AbstractReplyProducingMessageHandler handler) {
-		String outputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "outputChannel",
-				String.class);
-		if (StringUtils.hasText(outputChannelName)) {
-			handler.setOutputChannelName(outputChannelName);
-		}
-	}
+	protected static void setOutputChannelIfPresent(List<Annotation> annotations,
+			AbstractMessageProducingHandler handler) {
 
-	protected Object resolveTargetBeanFromMethodWithBeanAnnotation(Method method) {
-		String id = resolveTargetBeanName(method);
-		return this.beanFactory.getBean(id);
-	}
-
-	protected String resolveTargetBeanName(Method method) {
-		String id = method.getName();
-		String[] names = AnnotationUtils.getAnnotation(method, Bean.class).name(); // NOSONAR never null
-		if (!ObjectUtils.isEmpty(names)) {
-			id = names[0];
+		String outputChannel = MessagingAnnotationUtils.resolveAttribute(annotations, "outputChannel", String.class);
+		if (StringUtils.hasText(outputChannel)) {
+			handler.setOutputChannelName(outputChannel);
 		}
-		return id;
-	}
-
-	@SuppressWarnings(UNCHECKED)
-	protected <H> H extractTypeIfPossible(@Nullable Object targetObject, Class<H> expectedType) {
-		if (targetObject == null) {
-			return null;
-		}
-		if (expectedType.isAssignableFrom(targetObject.getClass())) {
-			return (H) targetObject;
-		}
-		if (targetObject instanceof Advised) {
-			TargetSource targetSource = ((Advised) targetObject).getTargetSource();
-			try {
-				return extractTypeIfPossible(targetSource.getTarget(), expectedType);
-			}
-			catch (Exception e) {
-				throw new IllegalStateException(e);
-			}
-		}
-		return null;
 	}
 
 	protected void checkMessageHandlerAttributes(String handlerBeanName, List<Annotation> annotations) {
@@ -596,18 +801,23 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(attribute));
 	}
 
-	@Nullable
-	protected MessageProcessor<?> buildLambdaMessageProcessorForBeanMethod(Method method, Object target) {
-		if ((target instanceof Function || target instanceof Consumer) && ClassUtils.isLambda(target.getClass())
-				|| ClassUtils.isKotlinFunction1(target.getClass())) {
+	protected static BeanDefinition buildLambdaMessageProcessor(ResolvableType beanType,
+			AnnotatedBeanDefinition beanDefinition) {
 
-			ResolvableType methodReturnType = ResolvableType.forMethodReturnType(method);
-			Class<?> expectedPayloadType = methodReturnType.getGeneric(0).toClass();
-			return new LambdaMessageProcessor(target, expectedPayloadType);
+		Class<?> beanClass = beanType.toClass();
+
+		if (Function.class.isAssignableFrom(beanClass)
+				|| Consumer.class.isAssignableFrom(beanClass)
+				|| ClassUtils.isKotlinFunction1(beanClass)) {
+
+			Class<?> expectedPayloadType = beanType.getGeneric(0).toClass();
+			return BeanDefinitionBuilder.genericBeanDefinition(LambdaMessageProcessor.class)
+					.addConstructorArgValue(beanDefinition)
+					.addConstructorArgValue(expectedPayloadType)
+					.getBeanDefinition();
 		}
-		else {
-			return null;
-		}
+
+		return null;
 	}
 
 	private static void orderable(Method method, MessageHandler handler) {
@@ -627,5 +837,34 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	 * @return The MessageHandler.
 	 */
 	protected abstract MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations);
+
+	protected record BeanDefinitionPropertiesMapper(BeanDefinition beanDefinition, List<Annotation> annotations) {
+
+		public BeanDefinitionPropertiesMapper setPropertyValue(String property) {
+			return setPropertyValue(property, null);
+		}
+
+		public BeanDefinitionPropertiesMapper setPropertyValue(String property, @Nullable String propertyName) {
+			String value = MessagingAnnotationUtils.resolveAttribute(this.annotations, property, String.class);
+			if (StringUtils.hasText(value)) {
+				this.beanDefinition.getPropertyValues().add(propertyName != null ? propertyName : property, value);
+			}
+			return this;
+		}
+
+		public BeanDefinitionPropertiesMapper setPropertyReference(String property) {
+			return setPropertyReference(property, null);
+		}
+
+		public BeanDefinitionPropertiesMapper setPropertyReference(String property, @Nullable String propertyName) {
+			String value = MessagingAnnotationUtils.resolveAttribute(this.annotations, property, String.class);
+			if (StringUtils.hasText(value)) {
+				this.beanDefinition.getPropertyValues()
+						.add(propertyName != null ? propertyName : property, new RuntimeBeanReference(value));
+			}
+			return this;
+		}
+
+	}
 
 }
