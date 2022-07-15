@@ -99,14 +99,14 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			Lock lock = registry.obtain("foo");
 			lock.lock();
 			try {
-				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
+				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
 			}
 			finally {
 				lock.unlock();
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -118,14 +118,14 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			Lock lock = registry.obtain("foo");
 			lock.lockInterruptibly();
 			try {
-				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
+				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
 			}
 			finally {
 				lock.unlock();
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -152,7 +152,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -179,7 +179,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -206,7 +206,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -237,7 +237,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThat(ise).isInstanceOf(IllegalStateException.class);
 		assertThat(((Exception) ise).getMessage()).contains("You do not own lock at");
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -251,13 +251,13 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		CountDownLatch latch2 = new CountDownLatch(1);
 		CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
+		assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
 		Executors.newSingleThreadExecutor().execute(() -> {
 			Lock lock2 = registry.obtain("foo");
 			try {
 				latch1.countDown();
 				lock2.lockInterruptibly();
-				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
+				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
 				latch2.await(10, TimeUnit.SECONDS);
 				locked.set(true);
 			}
@@ -276,7 +276,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(locked.get()).isTrue();
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -292,13 +292,13 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		CountDownLatch latch2 = new CountDownLatch(1);
 		CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		assertThat(TestUtils.getPropertyValue(registry1, "locks", Map.class).size()).isEqualTo(1);
+		assertThat(getRedisLockRegistryLocks(registry1)).hasSize(1);
 		Executors.newSingleThreadExecutor().execute(() -> {
 			Lock lock2 = registry2.obtain("foo");
 			try {
 				latch1.countDown();
 				lock2.lockInterruptibly();
-				assertThat(TestUtils.getPropertyValue(registry2, "locks", Map.class).size()).isEqualTo(1);
+				assertThat(getRedisLockRegistryLocks(registry2)).hasSize(1);
 				latch2.await(10, TimeUnit.SECONDS);
 				locked.set(true);
 			}
@@ -324,8 +324,8 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThat(locked.get()).isTrue();
 		registry1.expireUnusedOlderThan(-1000);
 		registry2.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry1, "locks", Map.class).size()).isZero();
-		assertThat(TestUtils.getPropertyValue(registry2, "locks", Map.class).size()).isZero();
+		assertThat(getRedisLockRegistryLocks(registry1)).isEmpty();
+		assertThat(getRedisLockRegistryLocks(registry2)).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -354,7 +354,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThat(ise).isInstanceOf(IllegalStateException.class);
 		assertThat(((Exception) ise).getMessage()).contains("You do not own lock at");
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -433,19 +433,19 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		for (int i = 0; i < 10; i++) {
 			registry.obtain("foo" + i);
 		}
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(10);
+		assertThat(getRedisLockRegistryLocks(registry)).hasSize(10);
 
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo" + i);
 			lock.lock();
 		}
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(10);
+		assertThat(getRedisLockRegistryLocks(registry)).hasSize(10);
 
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo" + i);
 			lock.unlock();
 		}
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(10);
+		assertThat(getRedisLockRegistryLocks(registry)).hasSize(10);
 	}
 
 	@ParameterizedTest
@@ -505,11 +505,11 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		executorService.awaitTermination(5, TimeUnit.SECONDS);
 
 		//capacity limit test
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(CAPACITY_CNT);
+		assertThat(getRedisLockRegistryLocks(registry)).hasSize(CAPACITY_CNT);
 
 
 		registry.expireUnusedOlderThan(-1000);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isZero();
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -634,13 +634,13 @@ class RedisLockRegistryTests implements RedisContainerTest {
 
 		registry.obtain("foo:4");
 
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(3);
+		assertThat(getRedisLockRegistryLocks(registry)).hasSize(3);
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys("foo:2", "foo:3", "foo:4");
 
 		//capacity 3->4
 		registry.setCacheCapacity(CAPACITY_CNT);
 		registry.obtain("foo:5");
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(4);
+		assertThat(getRedisLockRegistryLocks(registry)).hasSize(4);
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys("foo:3", "foo:4", "foo:5");
 	}
 
