@@ -107,10 +107,17 @@ public final class MessageHistory implements List<Properties>, Serializable {
 				message.getHeaders().put(HEADER_NAME, history);
 			}
 			else if (message instanceof ErrorMessage) {
+				ErrorMessage errorMessage = (ErrorMessage) message;
 				IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(message);
 				headerAccessor.setHeader(HEADER_NAME, history);
-				Throwable payload = ((ErrorMessage) message).getPayload();
-				ErrorMessage errorMessage = new ErrorMessage(payload, headerAccessor.toMessageHeaders());
+				Throwable payload = errorMessage.getPayload();
+				Message<?> originalMessage = errorMessage.getOriginalMessage();
+				if (originalMessage != null) {
+					errorMessage = new ErrorMessage(payload, headerAccessor.toMessageHeaders(), originalMessage);
+				}
+				else {
+					errorMessage = new ErrorMessage(payload, headerAccessor.toMessageHeaders());
+				}
 				message = (Message<T>) errorMessage;
 			}
 			else if (message instanceof AdviceMessage) {

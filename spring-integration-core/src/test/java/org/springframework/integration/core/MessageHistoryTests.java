@@ -17,10 +17,11 @@
 package org.springframework.integration.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Properties;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
@@ -34,13 +35,14 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class MessageHistoryTests {
 
 	@Test
 	public void addComponents() {
-		GenericMessage<String> original = new GenericMessage<String>("foo");
+		GenericMessage<String> original = new GenericMessage<>("foo");
 		assertThat(MessageHistory.read(original)).isNull();
 		Message<String> result1 = MessageHistory.write(original, new TestComponent(1));
 		MessageHistory history1 = MessageHistory.read(result1);
@@ -52,11 +54,12 @@ public class MessageHistoryTests {
 		assertThat(history2.toString()).isEqualTo("testComponent-1,testComponent-2");
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void verifyImmutability() {
 		Message<?> message = MessageHistory.write(MessageBuilder.withPayload("test").build(), new TestComponent(1));
 		MessageHistory history = MessageHistory.read(message);
-		history.add(new Properties());
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(() -> history.add(new Properties()));
 	}
 
 	@Test
@@ -78,13 +81,15 @@ public class MessageHistoryTests {
 
 	@Test
 	public void testCorrectErrorMessageAfterWrite() {
+		Message<?> originalMessage = new GenericMessage<>("test");
 		RuntimeException payload = new RuntimeException();
-		ErrorMessage original = new ErrorMessage(payload);
+		ErrorMessage original = new ErrorMessage(payload, originalMessage);
 		assertThat(MessageHistory.read(original)).isNull();
 		Message<Throwable> result1 = MessageHistory.write(original, new TestComponent(1));
 		assertThat(result1).isInstanceOf(ErrorMessage.class);
 		assertThat(result1).isNotSameAs(original);
 		assertThat(result1.getPayload()).isSameAs(original.getPayload());
+		assertThat(result1).extracting("originalMessage").isSameAs(originalMessage);
 		MessageHistory history1 = MessageHistory.read(result1);
 		assertThat(history1).isNotNull();
 		assertThat(history1.toString()).isEqualTo("testComponent-1");
@@ -93,6 +98,7 @@ public class MessageHistoryTests {
 		assertThat(result2).isNotSameAs(original);
 		assertThat(result2).isNotSameAs(result1);
 		assertThat(result2.getPayload()).isSameAs(original.getPayload());
+		assertThat(result1).extracting("originalMessage").isSameAs(originalMessage);
 		MessageHistory history2 = MessageHistory.read(result2);
 		assertThat(history2).isNotNull();
 		assertThat(history2.toString()).isEqualTo("testComponent-1,testComponent-2");
@@ -140,6 +146,7 @@ public class MessageHistoryTests {
 		public String getComponentType() {
 			return "type-" + this.id;
 		}
+
 	}
 
 }
