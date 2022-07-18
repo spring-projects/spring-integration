@@ -40,7 +40,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.kafka.core.KafkaProducerException;
+import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.messaging.MessageHandlingException;
@@ -136,7 +136,7 @@ class KafkaOutboundAdapterParserTests {
 
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
-				.withCauseInstanceOf(KafkaProducerException.class)
+				.withCauseInstanceOf(KafkaException.class)
 				.withRootCauseInstanceOf(RuntimeException.class)
 				.withStackTraceContaining("Async Producer Mock exception");
 
