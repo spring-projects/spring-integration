@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -673,6 +673,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 						.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session);
 			}
 			catch (IOException e) {
+				session.close();
 				throw new MessageHandlingException(requestMessage,
 						"Error handling message in the [" + this
 								+ "]. Failed to get the remote file [" + remoteFilePath + "] as a stream", e);

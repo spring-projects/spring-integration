@@ -70,6 +70,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -273,7 +274,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	void testLSRecursive() throws IOException {
+	void testLSRecursive() {
 		String dir = "sftpSource/";
 		this.inboundLSRecursive.send(new GenericMessage<Object>(dir));
 		Message<?> result = this.output.receive(1000);
@@ -291,7 +292,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	void testLSRecursiveALL() throws IOException {
+	void testLSRecursiveALL() {
 		String dir = "sftpSource/";
 		this.inboundLSRecursiveALL.send(new GenericMessage<Object>(dir));
 		Message<?> result = this.output.receive(1000);
@@ -481,7 +482,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		while (output.receive(0) != null) {
 			// drain
 		}
-		this.inboundMPut.send(new GenericMessage<File>(getSourceLocalDirectory()));
+		this.inboundMPut.send(new GenericMessage<>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
 		assertThat(out).isNotNull();
@@ -655,6 +656,15 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 				.containsEntry(FileHeaders.REMOTE_DIRECTORY, "sftpSource/")
 				.containsEntry(FileHeaders.REMOTE_FILE, " sftpSource1.txt");
 		verify(session).close();
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.inboundGetStream.send(new GenericMessage<>(dir + "doesNotExist.txt")))
+				.withStackTraceContaining("No such file or directory");
+
+		// No leak for not closed session after the previous failure
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.inboundGetStream.send(new GenericMessage<>(dir + "doesNotExist.txt")))
+				.withStackTraceContaining("No such file or directory");
 	}
 
 	@Test

@@ -191,7 +191,13 @@
 							  auto-create-directory="true"
 							  remote-file-separator="/"	/>
 
-	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
+	<bean id="cachingSessionFactory" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<constructor-arg name="sessionFactory" ref="sftpSessionFactory"/>
+		<constructor-arg name="sessionCacheSize" value="1"/>
+		<property name="sessionWaitTimeout" value="100"/>
+	</bean>
+
+	<int-sftp:outbound-gateway session-factory="cachingSessionFactory"
 							  request-channel="inboundGetStream"
 							  command="get"
 							  command-options="-stream"
