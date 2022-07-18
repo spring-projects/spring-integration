@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/mongodb https://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
 
@@ -15,18 +15,18 @@
 	<int-mongodb:outbound-channel-adapter id="minimalConfig"/>
 
 	<int-mongodb:outbound-channel-adapter id="fullConfigWithCollectionExpression"
-					collection-name-expression="headers.collectionName"
-					mongo-converter="mongoConverter"
-					mongodb-factory="mongoDbFactory"/>
+										  collection-name-expression="headers.collectionName"
+										  mongo-converter="mongoConverter"
+										  mongodb-factory="mongoDbFactory"/>
 
 	<int-mongodb:outbound-channel-adapter id="fullConfigWithCollection"
-					collection-name="foo"
-					mongo-converter="mongoConverter"
-					mongodb-factory="mongoDbFactory"/>
+										  collection-name="foo"
+										  mongo-converter="mongoConverter"
+										  mongodb-factory="mongoDbFactory"/>
 
 	<int-mongodb:outbound-channel-adapter id="fullConfigWithMongoTemplate"
-					collection-name="foo"
-					mongo-template="mongoDbTemplate"/>
+										  collection-name="foo"
+										  mongo-template="mongoDbTemplate"/>
 
 	<int:channel id="input">
 		<int:queue/>
@@ -43,7 +43,7 @@
 	</int-mongodb:outbound-channel-adapter>
 
 
-	<bean id="mongoConverter" class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
+	<bean id="mongoConverter" class="org.springframework.integration.mongodb.MongoDbContainerTest.TestMongoConverter">
 		<constructor-arg ref="mongoDbFactory"/>
 		<constructor-arg>
 			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext"/>

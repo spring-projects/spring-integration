@@ -25,10 +25,9 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.bson.Document;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,25 +41,24 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.FunctionExpression;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Xavier Padro
  * @author Gary Rssell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
-
+class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
 	private static final String COLLECTION_NAME = "data";
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
@@ -75,35 +73,33 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	private MongoConverter mongoConverter;
 
 	@Autowired
-	private MongoDatabaseFactory mongoDbFactory;
+	private MongoDatabaseFactory MONGO_DATABASE_FACTORY;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		BulkOperations bulkOperations = this.mongoTemplate.bulkOps(BulkOperations.BulkMode.ORDERED, COLLECTION_NAME);
 		bulkOperations.insert(Arrays.asList(
-				this.createPerson("Artem"),
-				this.createPerson("Gary"),
-				this.createPerson("Oleg"),
-				this.createPerson("Xavi")));
+				MongoDbContainerTest.createPerson("Artem"),
+				MongoDbContainerTest.createPerson("Gary"),
+				MongoDbContainerTest.createPerson("Oleg"),
+				MongoDbContainerTest.createPerson("Xavi")));
 		bulkOperations.execute();
 	}
 
-	@After
+	@AfterEach
 	public void cleanUp() {
 		mongoTemplate.dropCollection(COLLECTION_NAME);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testNoFactorySpecified() {
+	void testNoFactorySpecified() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new MongoDbOutboundGateway((MongoDatabaseFactory) null))
 				.withStackTraceContaining("MongoDbFactory translator must not be null");
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testNoTemplateSpecified() {
+	void testNoTemplateSpecified() {
 		try {
 			new MongoDbOutboundGateway((MongoTemplate) null);
 			fail("Expected the test case to throw an IllegalArgumentException");
@@ -114,8 +110,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testNoQuerySpecified() {
+	void testNoQuerySpecified() {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		MongoDbOutboundGateway gateway = createGateway();
 
@@ -130,8 +125,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testListOfResultsWithQueryExpressionAndLimit() {
+	void testListOfResultsWithQueryExpressionAndLimit() {
 		Message<String> message = MessageBuilder.withPayload("").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setQueryExpression(
@@ -141,12 +135,11 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		Object result = gateway.handleRequestMessage(message);
 
 		List<Person> persons = getPersonsFromResult(result);
-		assertThat(persons.size()).isEqualTo(2);
+		assertThat(persons).hasSize(2);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testListOfResultsWithQueryFunction() {
+	void testListOfResultsWithQueryFunction() {
 		Message<String> message = MessageBuilder.withPayload("Xavi").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		Function<Message<String>, Query> queryFunction =
@@ -165,9 +158,8 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testListOfResultsWithQueryExpressionNotInitialized() {
-		MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(mongoDbFactory);
+	void testListOfResultsWithQueryExpressionNotInitialized() {
+		MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(MONGO_DATABASE_FACTORY);
 		gateway.setBeanFactory(beanFactory);
 		gateway.setMongoConverter(mongoConverter);
 		try {
@@ -180,8 +172,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testListOfResultsWithQueryExpression() {
+	void testListOfResultsWithQueryExpression() {
 		Message<String> message = MessageBuilder.withPayload("{}").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
@@ -191,12 +182,11 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		Object result = gateway.handleRequestMessage(message);
 
 		List<Person> persons = getPersonsFromResult(result);
-		assertThat(persons.size()).isEqualTo(4);
+		assertThat(persons).hasSize(4);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testListOfResultsWithQueryExpressionReturningOneResult() {
+	void testListOfResultsWithQueryExpressionReturningOneResult() {
 		Message<String> message = MessageBuilder.withPayload("{name : 'Xavi'}").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
@@ -206,13 +196,12 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		Object result = gateway.handleRequestMessage(message);
 
 		List<Person> persons = getPersonsFromResult(result);
-		assertThat(persons.size()).isEqualTo(1);
+		assertThat(persons).hasSize(1);
 		assertThat(persons.get(0).getName()).isEqualTo("Xavi");
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testSingleResultWithQueryExpressionAsString() {
+	void testSingleResultWithQueryExpressionAsString() {
 		Message<String> message = MessageBuilder.withPayload("{name : 'Artem'}").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setQueryExpression(PARSER.parseExpression("payload"));
@@ -227,8 +216,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testSingleResultWithQueryExpressionAsQuery() {
+	void testSingleResultWithQueryExpressionAsQuery() {
 		Message<String> message = MessageBuilder.withPayload("").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setQueryExpression(PARSER.parseExpression("new BasicQuery('{''name'' : ''Gary''}')"));
@@ -243,8 +231,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testSingleResultWithQueryExpressionAndNoEntityClass() {
+	void testSingleResultWithQueryExpressionAndNoEntityClass() {
 		Message<String> message = MessageBuilder.withPayload("").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setQueryExpression(new LiteralExpression("{name : 'Xavi'}"));
@@ -254,13 +241,12 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		Object result = gateway.handleRequestMessage(message);
 
 		Document person = (Document) result;
-		assertThat(person.get("name")).isEqualTo("Xavi");
+		assertThat(person).containsEntry("name", "Xavi");
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithNullCollectionNameExpression() {
-		MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(mongoDbFactory);
+	void testWithNullCollectionNameExpression() {
+		MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(MONGO_DATABASE_FACTORY);
 		gateway.setBeanFactory(beanFactory);
 		gateway.setQueryExpression(new LiteralExpression("{name : 'Xavi'}"));
 		gateway.setExpectSingleResult(true);
@@ -275,8 +261,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithCollectionNameExpressionSpecified() {
+	void testWithCollectionNameExpressionSpecified() {
 		Message<String> message = MessageBuilder.withPayload("").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setQueryExpression(new LiteralExpression("{name : 'Xavi'}"));
@@ -294,8 +279,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithCollectionCallbackCount() {
+	void testWithCollectionCallbackCount() {
 		Message<String> message = MessageBuilder.withPayload("").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
@@ -310,8 +294,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithCollectionCallbackFindOne() {
+	void testWithCollectionCallbackFindOne() {
 		Message<String> message = MessageBuilder.withPayload("Mike").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
@@ -327,7 +310,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		gateway.handleRequestMessage(message);
 
 		List<Person> persons = this.mongoTemplate.find(new Query(), Person.class, COLLECTION_NAME);
-		assertThat(persons.size()).isEqualTo(5);
+		assertThat(persons).hasSize(5);
 		assertThat(persons.stream().anyMatch(p -> p.getName().equals("Mike"))).isTrue();
 	}
 
@@ -337,7 +320,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	}
 
 	private MongoDbOutboundGateway createGateway() {
-		MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(mongoDbFactory);
+		MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(MONGO_DATABASE_FACTORY);
 		gateway.setBeanFactory(beanFactory);
 		gateway.setCollectionNameExpression(new LiteralExpression("data"));
 

@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/mongodb https://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
 
 	<int:channel id="in"/>
 
 	<int:channel id="inQueue">
-		<int:queue />
+		<int:queue/>
 	</int:channel>
 
 	<int:channel id="out"/>
 
 	<int-mongodb:outbound-gateway id="minimalConfig"
-			query="{'name' : 'foo'}"
-			collection-name="foo"
-			request-channel="inQueue"
-			reply-channel="out">
+								  query="{'name' : 'foo'}"
+								  collection-name="foo"
+								  request-channel="inQueue"
+								  reply-channel="out">
 		<int:poller fixed-delay="1000"/>
 		<int-mongodb:request-handler-advice-chain>
 			<bean class="org.springframework.integration.handler.advice.RequestHandlerRetryAdvice"/>
@@ -27,34 +27,34 @@
 	</int-mongodb:outbound-gateway>
 
 	<int-mongodb:outbound-gateway id="fullConfigWithCollectionExpression"
-			mongodb-factory="mongoDbFactory"
-			mongo-converter="mongoConverter"
-			collection-name-expression="headers.collectionName"
-			query="{'name' : 'foo'}"
-			request-channel="in"
-			reply-channel="out"/>
+								  mongodb-factory="mongoDbFactory"
+								  mongo-converter="mongoConverter"
+								  collection-name-expression="headers.collectionName"
+								  query="{'name' : 'foo'}"
+								  request-channel="in"
+								  reply-channel="out"/>
 
 	<int-mongodb:outbound-gateway id="fullConfigWithCollection"
-			mongodb-factory="mongoDbFactory"
-			mongo-converter="mongoConverter"
-			query="{'name' : 'foo'}"
-			collection-name="foo"
-			request-channel="in"
-			reply-channel="out"/>
+								  mongodb-factory="mongoDbFactory"
+								  mongo-converter="mongoConverter"
+								  query="{'name' : 'foo'}"
+								  collection-name="foo"
+								  request-channel="in"
+								  reply-channel="out"/>
 
 	<int-mongodb:outbound-gateway id="fullConfigWithTemplate"
-			mongo-template="mongoDbTemplate"
-			collection-name="foo"
-			query="{'name' : 'foo'}"
-			request-channel="in"
-			reply-channel="out"/>
+								  mongo-template="mongoDbTemplate"
+								  collection-name="foo"
+								  query="{'name' : 'foo'}"
+								  request-channel="in"
+								  reply-channel="out"/>
 
 	<int-mongodb:outbound-gateway id="fullConfigWithMongoDbCollectionCallback"
-			mongo-template="mongoDbTemplate"
-			collection-name="foo"
-			collection-callback="mockCollectionCallback"
-			request-channel="in"
-			reply-channel="out"/>
+								  mongo-template="mongoDbTemplate"
+								  collection-name="foo"
+								  collection-callback="mockCollectionCallback"
+								  request-channel="in"
+								  reply-channel="out"/>
 
 
 	<bean id="mockCollectionCallback" class="org.mockito.Mockito" factory-method="mock">
@@ -67,7 +67,7 @@
 	</bean>
 
 	<bean id="mongoConverter"
-		  class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
+		  class="org.springframework.integration.mongodb.MongoDbContainerTest.TestMongoConverter">
 		<constructor-arg ref="mongoDbFactory"/>
 		<constructor-arg>
 			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext"/>

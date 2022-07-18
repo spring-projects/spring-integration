@@ -22,17 +22,18 @@ import java.io.Serializable;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessage;
@@ -49,26 +50,32 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Amol Nayak
+ * @author Artem Vozhdayenko
  *
  */
-public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableTests {
+public abstract class AbstractMongoDbMessageStoreTests implements MongoDbContainerTest {
+	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
+
+	@BeforeAll
+	static void prepareMongoConnection() {
+		MONGO_DATABASE_FACTORY = MongoDbContainerTest.createMongoDbFactory();
+	}
 
 	protected final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		this.testApplicationContext.refresh();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.testApplicationContext.close();
-		cleanupCollections(MONGO_DATABASE_FACTORY);
+		MongoDbContainerTest.cleanupCollections(MONGO_DATABASE_FACTORY);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testAddGetWithStringPayload() {
+	void testAddGetWithStringPayload() {
 		MessageStore store = getMessageStore();
 		Message<?> messageToStore = MessageBuilder.withPayload("Hello").build();
 		store.addMessage(messageToStore);
@@ -79,10 +86,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		assertThat(retrievedMessage).isEqualTo(messageToStore);
 	}
 
-
 	@Test
-	@MongoDbAvailable
-	public void testAddThenRemoveWithStringPayload() {
+	void testAddThenRemoveWithStringPayload() {
 		MessageStore store = getMessageStore();
 		Message<?> messageToStore = MessageBuilder.withPayload("Hello").build();
 		store.addMessage(messageToStore);
@@ -93,10 +98,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		assertThat(retrievedMessage).isNull();
 	}
 
-
 	@Test
-	@MongoDbAvailable
-	public void testAddGetWithObjectDefaultConstructorPayload() {
+	void testAddGetWithObjectDefaultConstructorPayload() {
 		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -110,10 +113,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		assertThat(retrievedMessage).isEqualTo(messageToStore);
 	}
 
-
 	@Test
-	@MongoDbAvailable
-	public void testWithMessageHistory() {
+	void testWithMessageHistory() {
 		MessageStore store = getMessageStore();
 		Foo foo = new Foo();
 		foo.setName("foo");
@@ -134,23 +135,22 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		store.addMessage(message);
 		message = store.getMessage(message.getHeaders().getId());
 		assertThat(message).isNotNull();
-		assertThat(message.getHeaders().get("foo") instanceof Foo).isTrue();
-		assertThat(message.getHeaders().get("bar") instanceof Bar).isTrue();
-		assertThat(message.getHeaders().get("baz") instanceof Baz).isTrue();
-		assertThat(message.getHeaders().get("abc") instanceof Abc).isTrue();
-		assertThat(message.getHeaders().get("xyz") instanceof Xyz).isTrue();
+		assertThat(message.getHeaders().get("foo")).isInstanceOf(Foo.class);
+		assertThat(message.getHeaders().get("bar")).isInstanceOf(Bar.class);
+		assertThat(message.getHeaders().get("baz")).isInstanceOf(Baz.class);
+		assertThat(message.getHeaders().get("abc")).isInstanceOf(Abc.class);
+		assertThat(message.getHeaders().get("xyz")).isInstanceOf(Xyz.class);
 		MessageHistory messageHistory = MessageHistory.read(message);
 		assertThat(messageHistory).isNotNull();
-		assertThat(messageHistory.size()).isEqualTo(2);
+		assertThat(messageHistory).hasSize(2);
 		Properties fooChannelHistory = messageHistory.get(0);
-		assertThat(fooChannelHistory.get("name")).isEqualTo("fooChannel");
-		assertThat(fooChannelHistory.get("type")).isEqualTo("channel");
+		assertThat(fooChannelHistory)
+				.containsEntry("name", "fooChannel")
+				.containsEntry("type", "channel");
 	}
 
-
 	@Test
-	@MongoDbAvailable
-	public void testInt3153SequenceDetails() {
+	void testInt3153SequenceDetails() {
 		MessageStore store = getMessageStore();
 		Message<?> messageToStore = MessageBuilder.withPayload("test")
 				.pushSequenceDetails(UUID.randomUUID(), 1, 1)
@@ -165,8 +165,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testInt3076MessageAsPayload() {
+	void testInt3076MessageAsPayload() {
 		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -175,7 +174,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
 		assertThat(retrievedMessage).isNotNull();
-		assertThat(retrievedMessage.getPayload() instanceof GenericMessage).isTrue();
+		assertThat(retrievedMessage.getPayload()).isInstanceOf(GenericMessage.class);
 		assertThat(retrievedMessage.getPayload()).isEqualTo(messageToStore.getPayload());
 		assertThat(retrievedMessage.getHeaders()).isEqualTo(messageToStore.getHeaders());
 		assertThat(p).isEqualTo(((Message<?>) messageToStore.getPayload()).getPayload());
@@ -183,8 +182,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testInt3076AdviceMessage() {
+	void testInt3076AdviceMessage() {
 		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -193,8 +191,9 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		Message<?> messageToStore = new AdviceMessage<>("foo", inputMessage);
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
-		assertThat(retrievedMessage).isNotNull();
-		assertThat(retrievedMessage instanceof AdviceMessage).isTrue();
+		assertThat(retrievedMessage)
+				.isNotNull()
+				.isInstanceOf(AdviceMessage.class);
 		assertThat(retrievedMessage.getPayload()).isEqualTo(messageToStore.getPayload());
 		assertThat(retrievedMessage.getHeaders()).isEqualTo(messageToStore.getHeaders());
 		assertThat(((AdviceMessage<?>) retrievedMessage).getInputMessage()).isEqualTo(inputMessage);
@@ -202,8 +201,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testAdviceMessageAsPayload() {
+	void testAdviceMessageAsPayload() {
 		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -213,7 +211,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
 		assertThat(retrievedMessage).isNotNull();
-		assertThat(retrievedMessage.getPayload() instanceof AdviceMessage).isTrue();
+		assertThat(retrievedMessage.getPayload()).isInstanceOf(AdviceMessage.class);
 		AdviceMessage<?> adviceMessage = (AdviceMessage<?>) retrievedMessage.getPayload();
 		assertThat(adviceMessage.getPayload()).isEqualTo("foo");
 		assertThat(retrievedMessage.getHeaders()).isEqualTo(messageToStore.getHeaders());
@@ -222,8 +220,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testMutableMessageAsPayload() {
+	void testMutableMessageAsPayload() {
 		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -240,8 +237,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testInt3076ErrorMessage() {
+	void testInt3076ErrorMessage() {
 		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -257,8 +253,9 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		Message<?> messageToStore = new ErrorMessage(messagingException);
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
-		assertThat(retrievedMessage).isNotNull();
-		assertThat(retrievedMessage instanceof ErrorMessage).isTrue();
+		assertThat(retrievedMessage)
+				.isNotNull()
+				.isInstanceOf(ErrorMessage.class);
 		assertThat(retrievedMessage.getPayload()).isInstanceOf(MessagingException.class);
 		assertThat(((MessagingException) retrievedMessage.getPayload()).getMessage())
 				.contains("intentional MessagingException");
@@ -267,8 +264,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testAddAndUpdateAlreadySaved() {
+	void testAddAndUpdateAlreadySaved() {
 		MessageStore messageStore = getMessageStore();
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
@@ -324,7 +320,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 			this("baz");
 		}
 
-		@PersistenceCreator Baz(String name) {
+		@PersistenceCreator
+		Baz(String name) {
 			this.name = name;
 		}
 
@@ -344,7 +341,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 			this("abx");
 		}
 
-		@PersistenceCreator Abc(String name) {
+		@PersistenceCreator
+		Abc(String name) {
 			this.name = name;
 		}
 
@@ -366,7 +364,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 			this("xyz");
 		}
 
-		@PersistenceCreator Xyz(String name) {
+		@PersistenceCreator
+		Xyz(String name) {
 			this.name = name;
 		}
 

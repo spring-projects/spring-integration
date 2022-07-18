@@ -26,7 +26,7 @@
 		<constructor-arg ref="mongoDbFactory"/>
 	</bean>
 
-	<bean id="mongoConverter" class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
+	<bean id="mongoConverter" class="org.springframework.integration.mongodb.MongoDbContainerTest.TestMongoConverter">
 		<constructor-arg ref="mongoDbFactory"/>
 		<constructor-arg>
 			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext"/>

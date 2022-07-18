@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package org.springframework.integration.mongodb.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,11 +34,10 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.integration.aop.ReceiveMessageAdvice;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.mongodb.BasicDBObject;
 
@@ -46,13 +45,13 @@ import com.mongodb.BasicDBObject;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Yaron Yamin
+ * @author Artem Vozhdayenko
  *
  * @since 2.2
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailableTests {
-
+class MongoDbInboundChannelAdapterIntegrationTests implements MongoDbContainerTest {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
@@ -99,9 +98,8 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 	private SourcePollingChannelAdapter mongoInboundAdapterWithConverter;
 
 	@Test
-	@MongoDbAvailable
-	public void testWithDefaultMongoFactory() {
-		this.mongoTemplate.save(createPerson("Bob"), "data");
+	void testWithDefaultMongoFactory() {
+		this.mongoTemplate.save(MongoDbContainerTest.createPerson("Bob"), "data");
 
 		this.mongoInboundAdapter.start();
 
@@ -116,25 +114,23 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithNamedMongoFactory() {
-		this.mongoTemplate.save(this.createPerson("Bob"), "data");
+	void testWithNamedMongoFactory() {
+		this.mongoTemplate.save(MongoDbContainerTest.createPerson("Bob"), "data");
 
 		this.mongoInboundAdapterNamedFactory.start();
 
 		@SuppressWarnings("unchecked")
 		Message<List<BasicDBObject>> message = (Message<List<BasicDBObject>>) replyChannel.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload().get(0).get("name")).isEqualTo("Bob");
+		assertThat(message.getPayload().get(0)).containsEntry("name", "Bob");
 
 		this.mongoInboundAdapterNamedFactory.stop();
 		this.replyChannel.purge(null);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithMongoTemplate() {
-		this.mongoTemplate.save(this.createPerson("Bob"), "data");
+	void testWithMongoTemplate() {
+		this.mongoTemplate.save(MongoDbContainerTest.createPerson("Bob"), "data");
 
 		this.mongoInboundAdapterWithTemplate.start();
 
@@ -148,9 +144,8 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithNamedCollection() {
-		this.mongoTemplate.save(this.createPerson("Bob"), "foo");
+	void testWithNamedCollection() {
+		this.mongoTemplate.save(MongoDbContainerTest.createPerson("Bob"), "foo");
 
 		this.mongoInboundAdapterWithNamedCollection.start();
 
@@ -164,23 +159,21 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithQueryExpression() {
-		this.mongoTemplate.save(this.createPerson("Bob"), "foo");
-		this.mongoTemplate.save(this.createPerson("Bob"), "foo");
+	void testWithQueryExpression() {
+		this.mongoTemplate.save(MongoDbContainerTest.createPerson("Bob"), "foo");
+		this.mongoTemplate.save(MongoDbContainerTest.createPerson("Bob"), "foo");
 		this.mongoInboundAdapterWithQueryExpression.start();
 		@SuppressWarnings("unchecked")
 		Message<List<Person>> message = (Message<List<Person>>) replyChannel.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload().size()).isEqualTo(1);
+		assertThat(message.getPayload()).hasSize(1);
 		assertThat(message.getPayload().get(0).getName()).isEqualTo("Bob");
 		this.mongoInboundAdapterWithQueryExpression.stop();
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithStringQueryExpression() {
-		this.mongoTemplate.save(this.createPerson("Bob"), "foo");
+	void testWithStringQueryExpression() {
+		this.mongoTemplate.save(MongoDbContainerTest.createPerson("Bob"), "foo");
 		this.mongoInboundAdapterWithStringQueryExpression.start();
 		@SuppressWarnings("unchecked")
 		Message<List<Person>> message = (Message<List<Person>>) replyChannel.receive(10000);
@@ -190,9 +183,8 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithNamedCollectionExpression() {
-		this.mongoTemplate.save(this.createPerson("Bob"), "foo");
+	void testWithNamedCollectionExpression() {
+		this.mongoTemplate.save(MongoDbContainerTest.createPerson("Bob"), "foo");
 
 		this.mongoInboundAdapterWithNamedCollectionExpression.start();
 
@@ -206,9 +198,8 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithOnSuccessDisposition() {
-		this.mongoTemplate.save(createPerson("Bob"), "data");
+	void testWithOnSuccessDisposition() {
+		this.mongoTemplate.save(MongoDbContainerTest.createPerson("Bob"), "data");
 
 		this.inboundAdapterWithOnSuccessDisposition.start();
 
@@ -224,9 +215,8 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithMongoConverter() {
-		this.mongoTemplate.save(this.createPerson("Bob"), "data");
+	void testWithMongoConverter() {
+		this.mongoTemplate.save(MongoDbContainerTest.createPerson("Bob"), "data");
 
 		this.mongoInboundAdapterWithConverter.start();
 
@@ -240,28 +230,28 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		this.replyChannel.purge(null);
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
-	@MongoDbAvailable
-	public void testFailureWithQueryAndQueryExpression() {
-		new ClassPathXmlApplicationContext("inbound-fail-q-qex.xml", this.getClass()).close();
+	@Test
+	void testFailureWithQueryAndQueryExpression() {
+		assertThatThrownBy(() -> new ClassPathXmlApplicationContext("inbound-fail-q-qex.xml", MongoDbInboundChannelAdapterIntegrationTests.class))
+				.isInstanceOf(BeanDefinitionParsingException.class);
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
-	@MongoDbAvailable
-	public void testFailureWithFactoryAndTemplate() {
-		new ClassPathXmlApplicationContext("inbound-fail-factory-template.xml", this.getClass()).close();
+	@Test
+	void testFailureWithFactoryAndTemplate() {
+		assertThatThrownBy(() -> new ClassPathXmlApplicationContext("inbound-fail-factory-template.xml", MongoDbInboundChannelAdapterIntegrationTests.class))
+				.isInstanceOf(BeanDefinitionParsingException.class);
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
-	@MongoDbAvailable
-	public void testFailureWithCollectionAndCollectionExpression() {
-		new ClassPathXmlApplicationContext("inbound-fail-c-cex.xml", this.getClass()).close();
+	@Test
+	void testFailureWithCollectionAndCollectionExpression() {
+		assertThatThrownBy(() -> new ClassPathXmlApplicationContext("inbound-fail-c-cex.xml", MongoDbInboundChannelAdapterIntegrationTests.class))
+				.isInstanceOf(BeanDefinitionParsingException.class);
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
-	@MongoDbAvailable
-	public void testFailureWithTemplateAndConverter() {
-		new ClassPathXmlApplicationContext("inbound-fail-converter-template.xml", this.getClass()).close();
+	@Test
+	void testFailureWithTemplateAndConverter() {
+		assertThatThrownBy(() -> new ClassPathXmlApplicationContext("inbound-fail-converter-template.xml", MongoDbInboundChannelAdapterIntegrationTests.class))
+				.isInstanceOf(BeanDefinitionParsingException.class);
 	}
 
 	public static class DocumentCleaner {

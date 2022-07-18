@@ -3,22 +3,21 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
-	   xmlns:mongo="http://www.springframework.org/schema/data/mongo"
 	   xmlns:tx="http://www.springframework.org/schema/tx"
-	   xsi:schemaLocation="http://www.springframework.org/schema/data/mongo https://www.springframework.org/schema/data/mongo/spring-mongo.xsd
-		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/mongodb https://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd
 		http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<mongo:db-factory id="mongoDbFactory" dbname="test" />
+	<bean id="mongoDbFactory" class="org.springframework.integration.mongodb.MongoDbContainerTest"
+		  factory-method="createMongoDbFactory"/>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
 										 channel="replyChannel"
 										 query="{'name' : 'Bob'}"
 										 entity-class="java.lang.Object"
 										 auto-startup="false">
-		<int:poller fixed-delay="100" />
+		<int:poller fixed-delay="100"/>
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterNamedFactory"
@@ -26,7 +25,7 @@
 										 channel="replyChannel"
 										 query="{'name' : 'Bob'}"
 										 auto-startup="false">
-		<int:poller fixed-delay="5000" />
+		<int:poller fixed-delay="5000"/>
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithTemplate"
@@ -34,9 +33,9 @@
 										 mongo-template="mongoDbTemplate"
 										 query="{'name' : 'Bob'}"
 										 expect-single-result="true"
-										 entity-class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.Person"
+										 entity-class="org.springframework.integration.mongodb.MongoDbContainerTest.Person"
 										 auto-startup="false">
-		<int:poller fixed-delay="5000" />
+		<int:poller fixed-delay="5000"/>
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithNamedCollection"
@@ -46,7 +45,7 @@
 										 query="{'name' : 'Bob'}"
 										 entity-class="java.lang.Object"
 										 auto-startup="false">
-		<int:poller fixed-delay="5000" />
+		<int:poller fixed-delay="5000"/>
 	</int-mongodb:inbound-channel-adapter>
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithStringQueryExpression"
 										 channel="replyChannel"
@@ -55,7 +54,7 @@
 										 query-expression="new String('{''name'' : ''Bob''}')"
 										 entity-class="java.lang.Object"
 										 auto-startup="false">
-		<int:poller fixed-rate="5000" />
+		<int:poller fixed-rate="5000"/>
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithQueryExpression"
@@ -65,7 +64,7 @@
 										 query-expression="new BasicQuery('{''name'' : ''Bob''}').limit(1)"
 										 entity-class="java.lang.Object"
 										 auto-startup="false">
-		<int:poller fixed-rate="5000" />
+		<int:poller fixed-rate="5000"/>
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithNamedCollectionExpression"
@@ -75,7 +74,7 @@
 										 query="{'name' : 'Bob'}"
 										 entity-class="java.lang.Object"
 										 auto-startup="false">
-		<int:poller fixed-delay="5000" />
+		<int:poller fixed-delay="5000"/>
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="inboundAdapterWithOnSuccessDisposition"
@@ -84,12 +83,12 @@
 										 auto-startup="false">
 
 		<int:poller fixed-delay="200" max-messages-per-poll="1">
-			<int:advice-chain  synchronization-factory="syncFactory">
+			<int:advice-chain synchronization-factory="syncFactory">
 				<bean
-						class="org.springframework.integration.mongodb.config.MongoDbInboundChannelAdapterIntegrationTests.TestMessageSourceAdvice" />
+						class="org.springframework.integration.mongodb.config.MongoDbInboundChannelAdapterIntegrationTests.TestMessageSourceAdvice"/>
 				<tx:advice>
 					<tx:attributes>
-						<tx:method name="*" />
+						<tx:method name="*"/>
 					</tx:attributes>
 				</tx:advice>
 			</int:advice-chain>
@@ -102,7 +101,7 @@
 	</int:transaction-synchronization-factory>
 
 	<int:channel id="afterCommitChannel">
-		<int:queue />
+		<int:queue/>
 	</int:channel>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithConverter"
@@ -111,28 +110,28 @@
 										 entity-class="java.lang.Object"
 										 mongo-converter="mongoConverter"
 										 auto-startup="false">
-		<int:poller fixed-delay="100" />
+		<int:poller fixed-delay="100"/>
 	</int-mongodb:inbound-channel-adapter>
 
 	<bean id="documentCleaner"
-		  class="org.springframework.integration.mongodb.config.MongoDbInboundChannelAdapterIntegrationTests.DocumentCleaner" />
+		  class="org.springframework.integration.mongodb.config.MongoDbInboundChannelAdapterIntegrationTests.DocumentCleaner"/>
 
 	<bean id="mongoDbTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
-		<constructor-arg ref="mongoDbFactory" />
+		<constructor-arg ref="mongoDbFactory"/>
 	</bean>
 
 	<bean id="mongoConverter"
-		  class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
-		<constructor-arg ref="mongoDbFactory" />
+		  class="org.springframework.integration.mongodb.MongoDbContainerTest.TestMongoConverter">
+		<constructor-arg ref="mongoDbFactory"/>
 		<constructor-arg>
-			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext" />
+			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext"/>
 		</constructor-arg>
 	</bean>
 
 	<int:channel id="replyChannel">
-		<int:queue />
+		<int:queue/>
 	</int:channel>
 
-	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />
+	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 
 </beans>

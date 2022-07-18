@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
-	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
-	xsi:schemaLocation="http://www.springframework.org/schema/data/mongo https://www.springframework.org/schema/data/mongo/spring-mongo.xsd
-		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/mongodb https://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
 
 	<bean id="mongoDbFactory" class="org.mockito.Mockito" factory-method="mock">
@@ -14,11 +10,11 @@
 	</bean>
 
 	<int-mongodb:outbound-channel-adapter id="fullConfigWithCollectionExpression"
-					collection-name-expression="headers.collectionName"
-					mongo-template="mongoDbTemplate"
-					mongo-converter="mongoConverter"/>
+										  collection-name-expression="headers.collectionName"
+										  mongo-template="mongoDbTemplate"
+										  mongo-converter="mongoConverter"/>
 
-	<bean id="mongoConverter" class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
+	<bean id="mongoConverter" class="org.springframework.integration.mongodb.MongoDbContainerTest.TestMongoConverter">
 		<constructor-arg ref="mongoDbFactory"/>
 		<constructor-arg>
 			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext"/>

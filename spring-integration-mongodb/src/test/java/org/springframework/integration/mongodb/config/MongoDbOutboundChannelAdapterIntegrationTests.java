@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package org.springframework.integration.mongodb.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.BasicQuery;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -36,71 +36,74 @@ import com.mongodb.BasicDBObject;
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  */
-public class MongoDbOutboundChannelAdapterIntegrationTests extends MongoDbAvailableTests {
+class MongoDbOutboundChannelAdapterIntegrationTests implements MongoDbContainerTest {
+	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
+
+	@BeforeAll
+	static void prepareMongoConnection() {
+		MONGO_DATABASE_FACTORY = MongoDbContainerTest.createMongoDbFactory();
+	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithDefaultMongoFactory() throws Exception {
+	void testWithDefaultMongoFactory() throws Exception {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
 		MessageChannel channel = context.getBean("simpleAdapter", MessageChannel.class);
-		Message<Person> message = new GenericMessage<MongoDbAvailableTests.Person>(this.createPerson("Bob"));
+		Message<Person> message = new GenericMessage<MongoDbContainerTest.Person>(MongoDbContainerTest.createPerson("Bob"));
 		channel.send(message);
 
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
 		assertThat(template.find(new BasicQuery("{'name' : 'Bob'}"), Person.class, "data")).isNotNull();
 		context.close();
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithNamedCollection() throws Exception {
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory("foo");
+	void testWithNamedCollection() throws Exception {
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY, "foo");
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
 		MessageChannel channel = context.getBean("simpleAdapterWithNamedCollection", MessageChannel.class);
 		Message<Person> message =
-				MessageBuilder.withPayload(this.createPerson("Bob"))
+				MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob"))
 						.setHeader("collectionName", "foo")
 						.build();
 		channel.send(message);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
 		assertThat(template.find(new BasicQuery("{'name' : 'Bob'}"), Person.class, "foo")).isNotNull();
 		context.close();
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithTemplate() throws Exception {
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory("foo");
+	void testWithTemplate() throws Exception {
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY, "foo");
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
 		MessageChannel channel = context.getBean("simpleAdapterWithTemplate", MessageChannel.class);
 		Message<Person> message =
-				MessageBuilder.withPayload(this.createPerson("Bob"))
+				MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob"))
 						.setHeader("collectionName", "foo")
 						.build();
 
 		channel.send(message);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
 		assertThat(template.find(new BasicQuery("{'name' : 'Bob'}"), Person.class, "foo")).isNotNull();
 		context.close();
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testSavingDbObject() throws Exception {
+	void testSavingDbObject() throws Exception {
 
 		BasicDBObject dbObject = BasicDBObject.parse("{'foo' : 'bar'}");
 
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory("foo");
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY, "foo");
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
@@ -113,18 +116,17 @@ public class MongoDbOutboundChannelAdapterIntegrationTests extends MongoDbAvaila
 
 		channel.send(message);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
 		assertThat(template.find(new BasicQuery("{'foo' : 'bar'}"), BasicDBObject.class, "foo")).isNotNull();
 		context.close();
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testSavingJSONString() throws Exception {
+	void testSavingJSONString() throws Exception {
 
 		String object = "{'foo' : 'bar'}";
 
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory("foo");
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY, "foo");
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
@@ -137,23 +139,22 @@ public class MongoDbOutboundChannelAdapterIntegrationTests extends MongoDbAvaila
 
 		channel.send(message);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
 		assertThat(template.find(new BasicQuery("{'foo' : 'bar'}"), BasicDBObject.class, "foo")).isNotNull();
 		context.close();
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithMongoConverter() throws Exception {
+	void testWithMongoConverter() throws Exception {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
 		MessageChannel channel = context.getBean("simpleAdapterWithConverter", MessageChannel.class);
-		Message<Person> message = new GenericMessage<MongoDbAvailableTests.Person>(this.createPerson("Bob"));
+		Message<Person> message = new GenericMessage<MongoDbContainerTest.Person>(MongoDbContainerTest.createPerson("Bob"));
 		channel.send(message);
 
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
 		assertThat(template.find(new BasicQuery("{'name' : 'Bob'}"), Person.class, "data")).isNotNull();
 		context.close();
 	}

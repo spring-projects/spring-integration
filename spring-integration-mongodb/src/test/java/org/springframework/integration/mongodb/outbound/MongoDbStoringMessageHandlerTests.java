@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2020 the original author or authors.
+ * Copyright 2007-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import org.bson.conversions.Bson;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -37,8 +38,7 @@ import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 
@@ -46,44 +46,44 @@ import org.springframework.messaging.Message;
  * @author Amol Nayak
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Vozhdayenko
  *
  * @since 2.2
  */
-public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
+class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest {
+	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
+
+	@BeforeAll
+	static void prepareMongoConnection() {
+		MONGO_DATABASE_FACTORY = MongoDbContainerTest.createMongoDbFactory();
+	}
 
 	private MongoTemplate template;
 
-	private MongoDatabaseFactory mongoDbFactory;
-
-	@Before
+	@BeforeEach
 	public void setUp() {
-		mongoDbFactory = prepareMongoFactory("foo");
-		template = new MongoTemplate(mongoDbFactory);
+		template = new MongoTemplate(MONGO_DATABASE_FACTORY);
 	}
 
-
 	@Test
-	@MongoDbAvailable
-	public void withNullMongoDBFactory() {
+	void withNullMongoDBFactory() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new MongoDbStoringMessageHandler((MongoDatabaseFactory) null));
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void withNullMongoTemplate() {
+	void withNullMongoTemplate() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new MongoDbStoringMessageHandler((MongoOperations) null));
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateMessageHandlingWithDefaultCollection() {
+	void validateMessageHandlingWithDefaultCollection() {
 
-		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(this.mongoDbFactory);
+		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(MONGO_DATABASE_FACTORY);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).build();
+		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);
 
 		Query query = new BasicQuery("{'name' : 'Bob'}");
@@ -94,14 +94,13 @@ public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateMessageHandlingWithNamedCollection() {
+	void validateMessageHandlingWithNamedCollection() {
 
-		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(this.mongoDbFactory);
+		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(MONGO_DATABASE_FACTORY);
 		handler.setCollectionNameExpression(new LiteralExpression("foo"));
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).build();
+		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);
 
 		Query query = new BasicQuery("{'name' : 'Bob'}");
@@ -112,18 +111,17 @@ public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateMessageHandlingWithMongoConverter() {
+	void validateMessageHandlingWithMongoConverter() {
 
-		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(this.mongoDbFactory);
+		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(MONGO_DATABASE_FACTORY);
 		handler.setCollectionNameExpression(new LiteralExpression("foo"));
-		MappingMongoConverter converter = new TestMongoConverter(mongoDbFactory, new MongoMappingContext());
+		MappingMongoConverter converter = new TestMongoConverter(MONGO_DATABASE_FACTORY, new MongoMappingContext());
 		converter.afterPropertiesSet();
 		converter = spy(converter);
 		handler.setMongoConverter(converter);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).build();
+		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);
 
 		Query query = new BasicQuery("{'name' : 'Bob'}");
@@ -135,19 +133,18 @@ public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateMessageHandlingWithMongoTemplate() {
-		MappingMongoConverter converter = new TestMongoConverter(this.mongoDbFactory, new MongoMappingContext());
+	void validateMessageHandlingWithMongoTemplate() {
+		MappingMongoConverter converter = new TestMongoConverter(MONGO_DATABASE_FACTORY, new MongoMappingContext());
 		converter.afterPropertiesSet();
 		converter = spy(converter);
-		MongoTemplate writingTemplate = new MongoTemplate(this.mongoDbFactory, converter);
+		MongoTemplate writingTemplate = new MongoTemplate(MONGO_DATABASE_FACTORY, converter);
 
 
 		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(writingTemplate);
 		handler.setCollectionNameExpression(new LiteralExpression("foo"));
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).build();
+		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);
 
 		Query query = new BasicQuery("{'name' : 'Bob'}");

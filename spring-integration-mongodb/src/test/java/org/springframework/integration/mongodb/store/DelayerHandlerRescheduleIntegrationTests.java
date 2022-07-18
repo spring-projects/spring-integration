@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.DelayHandler;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -41,25 +39,21 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 3.0
  */
-public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTests {
-
+@LongRunningTest
+class DelayerHandlerRescheduleIntegrationTests implements MongoDbContainerTest {
 	public static final String DELAYER_ID = "delayerWithMongoMS";
 
-	@Rule
-	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
-
 	@Test
-	@MongoDbAvailable
-	public void testWithMongoDbMessageStore() throws Exception {
+	void testWithMongoDbMessageStore() throws Exception {
 		testDelayerHandlerRescheduleWithMongoDbMessageStore("DelayerHandlerRescheduleIntegrationTests-context.xml");
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithConfigurableMongoDbMessageStore() throws Exception {
+	void testWithConfigurableMongoDbMessageStore() throws Exception {
 		testDelayerHandlerRescheduleWithMongoDbMessageStore("DelayerHandlerRescheduleIntegrationConfigurableTests-context.xml");
 	}
 
@@ -92,7 +86,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 		Object payload = messageInStore.getPayload();
 
 		// INT-3049
-		assertThat(payload instanceof DelayHandler.DelayedMessageWrapper).isTrue();
+		assertThat(payload).isInstanceOf(DelayHandler.DelayedMessageWrapper.class);
 
 		Message<String> original1 = (Message<String>) ((DelayHandler.DelayedMessageWrapper) payload).getOriginal();
 		messageInStore = iterator.next();
@@ -118,7 +112,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 
 		messageStore = context.getBean("messageStore", MessageGroupStore.class);
 
-		assertThat(messageStore.messageGroupSize(delayerMessageGroupId)).isEqualTo(0);
+		assertThat(messageStore.messageGroupSize(delayerMessageGroupId)).isZero();
 		context.close();
 	}
 

@@ -13,36 +13,36 @@
 	</bean>
 
 	<int-mongodb:inbound-channel-adapter id="minimalConfig"
-						query="bar"
-						auto-startup="false">
+										 query="bar"
+										 auto-startup="false">
 		<int:poller fixed-rate="100"/>
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="fullConfigWithCollectionExpression"
-						collection-name-expression="'foo'"
-						query="bar"
-						mongo-converter="mongoConverter"
-						mongodb-factory="mongoDbFactory"
-						auto-startup="false">
+										 collection-name-expression="'foo'"
+										 query="bar"
+										 mongo-converter="mongoConverter"
+										 mongodb-factory="mongoDbFactory"
+										 auto-startup="false">
 		<int:poller fixed-rate="100"/>
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="fullConfigWithQueryExpression"
-						collection-name-expression="'foo'"
-						query-expression="new BasicQuery('{''address.state'' : ''PA''}').limit(2)"
-						update="{ $set: {'address.state' : 'NJ'} }"
-						mongo-converter="mongoConverter"
-						mongodb-factory="mongoDbFactory"
-						auto-startup="false">
+										 collection-name-expression="'foo'"
+										 query-expression="new BasicQuery('{''address.state'' : ''PA''}').limit(2)"
+										 update="{ $set: {'address.state' : 'NJ'} }"
+										 mongo-converter="mongoConverter"
+										 mongodb-factory="mongoDbFactory"
+										 auto-startup="false">
 		<int:poller fixed-rate="100"/>
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="fullConfigWithSpelQuery"
-						collection-name-expression="'foo'"
-						query="{''address.state'' : ''PA''}"
-						mongo-converter="mongoConverter"
-						mongodb-factory="mongoDbFactory"
-						auto-startup="false">
+										 collection-name-expression="'foo'"
+										 query="{''address.state'' : ''PA''}"
+										 mongo-converter="mongoConverter"
+										 mongodb-factory="mongoDbFactory"
+										 auto-startup="false">
 		<int:poller fixed-rate="100"/>
 	</int-mongodb:inbound-channel-adapter>
 
@@ -56,23 +56,23 @@
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="fullConfigWithCollectionName"
-						collection-name="foo"
-						query="bar"
-						mongo-converter="mongoConverter"
-						mongodb-factory="mongoDbFactory"
-						auto-startup="false">
+										 collection-name="foo"
+										 query="bar"
+										 mongo-converter="mongoConverter"
+										 mongodb-factory="mongoDbFactory"
+										 auto-startup="false">
 		<int:poller fixed-rate="100"/>
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="fullConfigWithMongoTemplate"
-						collection-name="foo"
-						query="bar"
-						mongo-template="mongoDbTemplate"
-						auto-startup="false">
+										 collection-name="foo"
+										 query="bar"
+										 mongo-template="mongoDbTemplate"
+										 auto-startup="false">
 		<int:poller fixed-rate="100"/>
 	</int-mongodb:inbound-channel-adapter>
 
-	<bean id="mongoConverter" class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
+	<bean id="mongoConverter" class="org.springframework.integration.mongodb.MongoDbContainerTest.TestMongoConverter">
 		<constructor-arg ref="mongoDbFactory"/>
 		<constructor-arg>
 			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext"/>

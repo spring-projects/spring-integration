@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.Serializable;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ClaimCheckInTransformer;
@@ -36,24 +37,30 @@ import org.springframework.messaging.Message;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  */
-public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvailableTests {
+class MongoDbMessageStoreClaimCheckIntegrationTests implements MongoDbContainerTest {
+	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
+
+	@BeforeAll
+	static void prepareMongoConnection() {
+		MONGO_DATABASE_FACTORY = MongoDbContainerTest.createMongoDbFactory();
+	}
 
 	private final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		this.testApplicationContext.refresh();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.testApplicationContext.close();
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void stringPayload() {
+	void stringPayload() {
 		MongoDbMessageStore messageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
@@ -68,8 +75,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void objectPayload() {
+	void objectPayload() {
 		MongoDbMessageStore messageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
@@ -88,8 +94,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void stringPayloadConfigurable() {
+	void stringPayloadConfigurable() {
 		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		messageStore.setApplicationContext(this.testApplicationContext);
 		messageStore.afterPropertiesSet();
@@ -105,8 +110,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void objectPayloadConfigurable() {
+	void objectPayloadConfigurable() {
 		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		messageStore.setApplicationContext(this.testApplicationContext);
 		messageStore.afterPropertiesSet();
