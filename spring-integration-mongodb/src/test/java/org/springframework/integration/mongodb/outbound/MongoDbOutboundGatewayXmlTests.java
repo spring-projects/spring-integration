@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,62 +20,67 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Xavier Padro
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
+class MongoDbOutboundGatewayXmlTests implements MongoDbContainerTest {
+
+	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
+
+	@BeforeAll
+	static void prepareMongoConnection() {
+		MONGO_DATABASE_FACTORY = MongoDbContainerTest.createMongoDbFactory();
+	}
 
 	private static final String COLLECTION_NAME = "data";
 
 	@Autowired
 	private ApplicationContext context;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
-		MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory);
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
+		MongoTemplate mongoTemplate = new MongoTemplate(MONGO_DATABASE_FACTORY);
 
-		mongoTemplate.save(this.createPerson("Artem"), COLLECTION_NAME);
-		mongoTemplate.save(this.createPerson("Gary"), COLLECTION_NAME);
-		mongoTemplate.save(this.createPerson("Oleg"), COLLECTION_NAME);
-		mongoTemplate.save(this.createPerson("Xavi"), COLLECTION_NAME);
+		mongoTemplate.save(MongoDbContainerTest.createPerson("Artem"), COLLECTION_NAME);
+		mongoTemplate.save(MongoDbContainerTest.createPerson("Gary"), COLLECTION_NAME);
+		mongoTemplate.save(MongoDbContainerTest.createPerson("Oleg"), COLLECTION_NAME);
+		mongoTemplate.save(MongoDbContainerTest.createPerson("Xavi"), COLLECTION_NAME);
 	}
 
-	@After
+	@AfterEach
 	public void cleanUp() {
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
-		MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory);
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
+		MongoTemplate mongoTemplate = new MongoTemplate(MONGO_DATABASE_FACTORY);
 
 		mongoTemplate.dropCollection(COLLECTION_NAME);
 	}
 
-
 	@Test
-	@MongoDbAvailable
-	public void testSingleQuery() {
+	void testSingleQuery() {
 		EventDrivenConsumer consumer = context.getBean("gatewaySingleQuery", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 
@@ -88,8 +93,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testSingleQueryWithTemplate() {
+	void testSingleQueryWithTemplate() {
 		EventDrivenConsumer consumer = context.getBean("gatewayWithTemplate", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 
@@ -102,8 +106,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testSingleQueryExpression() {
+	void testSingleQueryExpression() {
 		EventDrivenConsumer consumer = context.getBean("gatewaySingleQueryExpression", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 
@@ -121,8 +124,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testQueryExpression() {
+	void testQueryExpression() {
 		EventDrivenConsumer consumer = context.getBean("gatewayQueryExpression", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 
@@ -136,12 +138,11 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 		Message<?> result = outChannel.receive(10000);
 		List<Person> persons = getPersons(result);
-		assertThat(persons.size()).isEqualTo(4);
+		assertThat(persons).hasSize(4);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testQueryExpressionWithLimit() {
+	void testQueryExpressionWithLimit() {
 		EventDrivenConsumer consumer = context.getBean("gatewayQueryExpressionLimit", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 
@@ -154,12 +155,11 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 		Message<?> result = outChannel.receive(10000);
 		List<Person> persons = getPersons(result);
-		assertThat(persons.size()).isEqualTo(2);
+		assertThat(persons).hasSize(2);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testCollectionCallback() {
+	void testCollectionCallback() {
 		EventDrivenConsumer consumer = context.getBean("gatewayCollectionCallback", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 

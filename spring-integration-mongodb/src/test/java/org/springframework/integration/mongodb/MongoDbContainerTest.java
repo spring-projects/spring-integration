@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mongodb.rules;
+package org.springframework.integration.mongodb;
 
 import java.time.Duration;
 
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
-import org.junit.Rule;
+import org.junit.jupiter.api.BeforeAll;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.annotation.Id;
@@ -40,50 +42,64 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
 import org.springframework.messaging.Message;
 
+import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 
-
 /**
- * Convenience base class that enables unit test methods to rely upon the {@link MongoDbAvailable} annotation.
+ * The base contract for all tests requiring a MongoDb connection.
+ * The Testcontainers 'reuse' option must be disabled, so, Ryuk container is started
+ * and will clean all the containers up from this test suite after JVM exit.
+ * Since the Redis container instance is shared via static property, it is going to be
+ * started only once per JVM, therefore the target Docker container is reused automatically.
  *
  * @author Oleg Zhurakousky
  * @author Xavier Padro
  * @author Artem Bilan
  * @author David Turanski
+ * @author Artem Vozhdayenko
  *
- * @since 2.1
+ * @since 6.0
  */
-public abstract class MongoDbAvailableTests {
+@Testcontainers(disabledWithoutDocker = true)
+public interface MongoDbContainerTest {
 
-	@Rule
-	public MongoDbAvailableRule mongoDbAvailableRule = new MongoDbAvailableRule();
+	GenericContainer<?> MONGO_CONTAINER = new GenericContainer<>("mongo:5.0.9")
+			.withExposedPorts(27017);
 
-	public static final MongoDatabaseFactory MONGO_DATABASE_FACTORY =
-			new SimpleMongoClientDatabaseFactory(
-					MongoClients.create(
-							MongoClientSettings.builder().uuidRepresentation(UuidRepresentation.STANDARD).build()),
-					"test");
-
-	public static final ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY =
-			new SimpleReactiveMongoDatabaseFactory(
-					com.mongodb.reactivestreams.client.MongoClients.create(
-							MongoClientSettings.builder().uuidRepresentation(UuidRepresentation.STANDARD).build()),
-					"test");
-
-	protected MongoDatabaseFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
-		cleanupCollections(MONGO_DATABASE_FACTORY, additionalCollectionsToDrop);
-		return MONGO_DATABASE_FACTORY;
+	@BeforeAll
+	static void startContainer() {
+		MONGO_CONTAINER.start();
 	}
 
-	protected ReactiveMongoDatabaseFactory prepareReactiveMongoFactory(String... additionalCollectionsToDrop) {
-		cleanupCollections(REACTIVE_MONGO_DATABASE_FACTORY, additionalCollectionsToDrop);
-		return REACTIVE_MONGO_DATABASE_FACTORY;
+	static MongoDatabaseFactory createMongoDbFactory() {
+		return new SimpleMongoClientDatabaseFactory(MongoClients.create(getMongoClientSettings()), "test");
 	}
 
-	protected void cleanupCollections(ReactiveMongoDatabaseFactory mongoDbFactory,
+	static ReactiveMongoDatabaseFactory createReactiveMongoDbFactory() {
+		return new SimpleReactiveMongoDatabaseFactory(
+				com.mongodb.reactivestreams.client.MongoClients.create(getMongoClientSettings()),
+				"test");
+	}
+
+	private static MongoClientSettings getMongoClientSettings() {
+		return MongoClientSettings.builder()
+				.applyConnectionString(new ConnectionString(
+						"mongodb://localhost:" + MONGO_CONTAINER.getFirstMappedPort()))
+				.uuidRepresentation(UuidRepresentation.STANDARD).build();
+	}
+
+	static void prepareMongoData(MongoDatabaseFactory mongoDatabaseFactory, String... additionalCollectionsToDrop) {
+		cleanupCollections(mongoDatabaseFactory, additionalCollectionsToDrop);
+	}
+
+	static void prepareReactiveMongoData(ReactiveMongoDatabaseFactory mongoDatabaseFactory, String... additionalCollectionsToDrop) {
+		cleanupCollections(mongoDatabaseFactory, additionalCollectionsToDrop);
+	}
+
+	static void cleanupCollections(ReactiveMongoDatabaseFactory mongoDbFactory,
 			String... additionalCollectionsToDrop) {
 
 		ReactiveMongoTemplate template = new ReactiveMongoTemplate(mongoDbFactory);
@@ -95,7 +111,7 @@ public abstract class MongoDbAvailableTests {
 		}
 	}
 
-	protected void cleanupCollections(MongoDatabaseFactory mongoDbFactory, String... additionalCollectionsToDrop) {
+	static void cleanupCollections(MongoDatabaseFactory mongoDbFactory, String... additionalCollectionsToDrop) {
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.dropCollection("messages");
 		template.dropCollection("configurableStoreMessages");
@@ -105,7 +121,7 @@ public abstract class MongoDbAvailableTests {
 		}
 	}
 
-	protected Person createPerson() {
+	static Person createPerson() {
 		Address address = new Address();
 		address.setCity("Philadelphia");
 		address.setStreet("2121 Rawn street");
@@ -117,7 +133,7 @@ public abstract class MongoDbAvailableTests {
 		return person;
 	}
 
-	protected Person createPerson(String name) {
+	static Person createPerson(String name) {
 		Address address = new Address();
 		address.setCity("Philadelphia");
 		address.setStreet("2121 Rawn street");
@@ -129,7 +145,7 @@ public abstract class MongoDbAvailableTests {
 		return person;
 	}
 
-	public static class Person {
+	class Person {
 
 		@Id
 		private String id;
@@ -156,7 +172,7 @@ public abstract class MongoDbAvailableTests {
 
 	}
 
-	public static class Address {
+	class Address {
 
 		private String street;
 
@@ -190,7 +206,7 @@ public abstract class MongoDbAvailableTests {
 
 	}
 
-	public static class TestMongoConverter extends MappingMongoConverter {
+	class TestMongoConverter extends MappingMongoConverter {
 
 		public TestMongoConverter(
 				MongoDatabaseFactory mongoDbFactory,
@@ -211,7 +227,7 @@ public abstract class MongoDbAvailableTests {
 
 	}
 
-	public static class ReactiveTestMongoConverter extends MappingMongoConverter {
+	class ReactiveTestMongoConverter extends MappingMongoConverter {
 
 		public ReactiveTestMongoConverter(
 				ReactiveMongoDatabaseFactory mongoDbFactory,
@@ -232,7 +248,7 @@ public abstract class MongoDbAvailableTests {
 
 	}
 
-	public static class TestCollectionCallback implements MessageCollectionCallback<Long> {
+	class TestCollectionCallback implements MessageCollectionCallback<Long> {
 
 		@Override
 		public Long doInCollection(MongoCollection<Document> collection, Message<?> message)

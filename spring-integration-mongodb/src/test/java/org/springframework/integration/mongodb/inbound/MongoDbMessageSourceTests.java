@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2021 the original author or authors.
+ * Copyright 2007-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ import static org.mockito.Mockito.verify;
 import java.util.List;
 
 import org.bson.conversions.Bson;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -39,8 +40,7 @@ import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 
 import com.mongodb.BasicDBObject;
 
@@ -50,81 +50,86 @@ import com.mongodb.BasicDBObject;
  * @author Gary Russell
  * @author Yaron Yamin
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 2.2
  *
  */
-public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
+class MongoDbMessageSourceTests implements MongoDbContainerTest {
+
+	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
+
+	@BeforeAll
+	static void prepareMongoConnection() {
+		MONGO_DATABASE_FACTORY = MongoDbContainerTest.createMongoDbFactory();
+	}
 
 	@Test
-	public void withNullMongoDBFactory() {
+	void withNullMongoDBFactory() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new MongoDbMessageSource((MongoDatabaseFactory) null, mock(Expression.class)));
 	}
 
 	@Test
-	public void withNullMongoTemplate() {
+	void withNullMongoTemplate() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new MongoDbMessageSource((MongoOperations) null, mock(Expression.class)));
 	}
 
 	@Test
-	public void withNullQueryExpression() {
+	void withNullQueryExpression() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new MongoDbMessageSource(mock(MongoDatabaseFactory.class), null));
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulQueryWithSingleElementIfOneInListAsDbObject() {
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
+	void validateSuccessfulQueryWithSingleElementIfOneInListAsDbObject() {
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		template.save(this.createPerson(), "data");
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
+		template.save(MongoDbContainerTest.createPerson(), "data");
 
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
-		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
+		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<BasicDBObject> results = ((List<BasicDBObject>) messageSource.receive().getPayload());
-		assertThat(results.size()).isEqualTo(1);
+		assertThat(results).hasSize(1);
 		BasicDBObject resultObject = results.get(0);
 
-		assertThat(resultObject.get("name")).isEqualTo("Oleg");
+		assertThat(resultObject).containsEntry("name", "Oleg");
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulQueryWithSingleElementIfOneInList() {
-		MongoDatabaseFactory mongoDbFactory = prepareMongoFactory();
+	void validateSuccessfulQueryWithSingleElementIfOneInList() {
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		template.save(this.createPerson(), "data");
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
+		template.save(MongoDbContainerTest.createPerson(), "data");
 
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
-		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
+		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setEntityClass(Object.class);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<Person> results = ((List<Person>) messageSource.receive().getPayload());
-		assertThat(results.size()).isEqualTo(1);
+		assertThat(results).hasSize(1);
 		Person person = results.get(0);
 		assertThat(person.getName()).isEqualTo("Oleg");
 		assertThat(person.getAddress().getState()).isEqualTo("PA");
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulQueryWithSingleElementIfOneInListAndSingleResult() {
-		MongoDatabaseFactory mongoDbFactory = prepareMongoFactory();
+	void validateSuccessfulQueryWithSingleElementIfOneInListAndSingleResult() {
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		template.save(this.createPerson(), "data");
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
+		template.save(MongoDbContainerTest.createPerson(), "data");
 
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
-		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
+		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setEntityClass(Object.class);
 		messageSource.setExpectSingleResult(true);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
@@ -135,17 +140,15 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		assertThat(person.getAddress().getState()).isEqualTo("PA");
 	}
 
-
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulSubObjectQueryWithSingleElementIfOneInList() {
-		MongoDatabaseFactory mongoDbFactory = prepareMongoFactory();
+	void validateSuccessfulSubObjectQueryWithSingleElementIfOneInList() {
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		template.save(this.createPerson(), "data");
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
+		template.save(MongoDbContainerTest.createPerson(), "data");
 
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
-		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
+		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setEntityClass(Object.class);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
@@ -157,38 +160,35 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulQueryWithMultipleElements() {
+	void validateSuccessfulQueryWithMultipleElements() {
 		List<Person> persons = queryMultipleElements(new LiteralExpression("{'address.state' : 'PA'}"));
-		assertThat(persons.size()).isEqualTo(3);
+		assertThat(persons).hasSize(3);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulStringQueryExpressionWithMultipleElements() {
+	void validateSuccessfulStringQueryExpressionWithMultipleElements() {
 		List<Person> persons = queryMultipleElements(new SpelExpressionParser()
 				.parseExpression("\"{'address.state' : 'PA'}\""));
-		assertThat(persons.size()).isEqualTo(3);
+		assertThat(persons).hasSize(3);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulBasicQueryExpressionWithMultipleElements() {
+	void validateSuccessfulBasicQueryExpressionWithMultipleElements() {
 		List<Person> persons = queryMultipleElements(new SpelExpressionParser()
 				.parseExpression("new BasicQuery(\"{'address.state' : 'PA'}\").limit(2)"));
-		assertThat(persons.size()).isEqualTo(2);
+		assertThat(persons).hasSize(2);
 	}
 
 	@SuppressWarnings("unchecked")
 	private List<Person> queryMultipleElements(Expression queryExpression) {
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		template.save(this.createPerson("Manny"), "data");
-		template.save(this.createPerson("Moe"), "data");
-		template.save(this.createPerson("Jack"), "data");
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
+		template.save(MongoDbContainerTest.createPerson("Manny"), "data");
+		template.save(MongoDbContainerTest.createPerson("Moe"), "data");
+		template.save(MongoDbContainerTest.createPerson("Jack"), "data");
 
-		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
+		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 
@@ -196,18 +196,17 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulQueryWithNullReturn() {
+	void validateSuccessfulQueryWithNullReturn() {
 
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		template.save(this.createPerson("Manny"), "data");
-		template.save(this.createPerson("Moe"), "data");
-		template.save(this.createPerson("Jack"), "data");
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
+		template.save(MongoDbContainerTest.createPerson("Manny"), "data");
+		template.save(MongoDbContainerTest.createPerson("Moe"), "data");
+		template.save(MongoDbContainerTest.createPerson("Jack"), "data");
 
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'NJ'}");
-		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
+		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		assertThat(messageSource.receive()).isNull();
@@ -215,19 +214,18 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulQueryWithCustomConverter() {
+	void validateSuccessfulQueryWithCustomConverter() {
 
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		template.save(this.createPerson("Manny"), "data");
-		template.save(this.createPerson("Moe"), "data");
-		template.save(this.createPerson("Jack"), "data");
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
+		template.save(MongoDbContainerTest.createPerson("Manny"), "data");
+		template.save(MongoDbContainerTest.createPerson("Moe"), "data");
+		template.save(MongoDbContainerTest.createPerson("Jack"), "data");
 
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
-		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
-		MappingMongoConverter converter = new TestMongoConverter(mongoDbFactory, new MongoMappingContext());
+		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
+		MappingMongoConverter converter = new TestMongoConverter(MONGO_DATABASE_FACTORY, new MongoMappingContext());
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		converter.afterPropertiesSet();
 		converter = spy(converter);
@@ -235,30 +233,29 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.afterPropertiesSet();
 
 		List<Person> persons = (List<Person>) messageSource.receive().getPayload();
-		assertThat(persons.size()).isEqualTo(3);
+		assertThat(persons).hasSize(3);
 		verify(converter, times(3)).read((Class<Person>) Mockito.any(), Mockito.any(Bson.class));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulQueryWithMongoTemplateAndUpdate() {
-		MongoDatabaseFactory mongoDbFactory = prepareMongoFactory();
-		MappingMongoConverter converter = new TestMongoConverter(mongoDbFactory, new MongoMappingContext());
+	void validateSuccessfulQueryWithMongoTemplateAndUpdate() {
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
+		MappingMongoConverter converter = new TestMongoConverter(MONGO_DATABASE_FACTORY, new MongoMappingContext());
 		converter.afterPropertiesSet();
 		converter = spy(converter);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory, converter);
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY, converter);
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(template, queryExpression);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.setUpdateExpression(new LiteralExpression("{ $set: {'address.state' : 'NJ'} }"));
 		messageSource.afterPropertiesSet();
 
-		MongoTemplate writingTemplate = new MongoTemplate(mongoDbFactory, converter);
-		writingTemplate.save(createPerson("Manny"), "data");
-		writingTemplate.save(createPerson("Moe"), "data");
-		writingTemplate.save(createPerson("Jack"), "data");
+		MongoTemplate writingTemplate = new MongoTemplate(MONGO_DATABASE_FACTORY, converter);
+		writingTemplate.save(MongoDbContainerTest.createPerson("Manny"), "data");
+		writingTemplate.save(MongoDbContainerTest.createPerson("Moe"), "data");
+		writingTemplate.save(MongoDbContainerTest.createPerson("Jack"), "data");
 
 		List<Person> persons = (List<Person>) messageSource.receive().getPayload();
 		assertThat(persons).hasSize(3);
@@ -271,17 +268,16 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validatePipelineInModifyOut() {
+	void validatePipelineInModifyOut() {
 
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY);
 
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
 
 		template.save(BasicDBObject.parse("{'name' : 'Manny', 'id' : 1}"), "data");
 
 		Expression queryExpression = new LiteralExpression("{'name' : 'Manny'}");
-		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
+		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setExpectSingleResult(true);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
@@ -290,7 +286,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		result.put("company", "PepBoys");
 		template.save(result, "data");
 		result = (BasicDBObject) messageSource.receive().getPayload();
-		assertThat(result.get("_id")).isEqualTo(id);
+		assertThat(result).containsEntry("_id", id);
 	}
 
 }

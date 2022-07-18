@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:mongo="http://www.springframework.org/schema/data/mongo"
-	   xsi:schemaLocation="http://www.springframework.org/schema/data/mongo https://www.springframework.org/schema/data/mongo/spring-mongo.xsd
-		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<mongo:db-factory id="mongoDbFactory" dbname="test" />
+	<bean id="mongoDbFactory" class="org.springframework.integration.mongodb.MongoDbContainerTest"
+		  factory-method="createMongoDbFactory"/>
 
 	<bean id="mongoDbTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
-		<constructor-arg ref="mongoDbFactory" />
+		<constructor-arg ref="mongoDbFactory"/>
 	</bean>
 
 	<bean id="mongoConverter"
-		  class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
-		<constructor-arg ref="mongoDbFactory" />
+		  class="org.springframework.integration.mongodb.MongoDbContainerTest.TestMongoConverter">
+		<constructor-arg ref="mongoDbFactory"/>
 		<constructor-arg>
-			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext" />
+			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext"/>
 		</constructor-arg>
 	</bean>
 

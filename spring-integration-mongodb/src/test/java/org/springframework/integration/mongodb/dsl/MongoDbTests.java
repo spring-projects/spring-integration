@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,24 @@
 package org.springframework.integration.mongodb.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -46,26 +48,36 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.handler.ReplyRequiredException;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Xavier Padro
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
-public class MongoDbTests extends MongoDbAvailableTests {
+class MongoDbTests implements MongoDbContainerTest {
+
+	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
+
+	@BeforeAll
+	static void prepareMongoConnection() {
+		MONGO_DATABASE_FACTORY = MongoDbContainerTest.createMongoDbFactory();
+		REACTIVE_MONGO_DATABASE_FACTORY = MongoDbContainerTest.createReactiveMongoDbFactory();
+	}
+
+	static ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY;
 
 	private static final String COLLECTION_NAME = "data";
 
@@ -107,19 +119,18 @@ public class MongoDbTests extends MongoDbAvailableTests {
 	@Autowired
 	private MongoOperations mongoTemplate;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		createPersons();
 	}
 
-	@After
+	@AfterEach
 	public void cleanUp() {
 		mongoTemplate.dropCollection(COLLECTION_NAME);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testGatewayWithSingleQuery() {
+	void testGatewayWithSingleQuery() {
 		gatewaySingleQueryFlow.send(MessageBuilder
 				.withPayload("Xavi")
 				.setHeader("collection", "data")
@@ -133,8 +144,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testGatewayWithSingleQueryWithTemplate() {
+	void testGatewayWithSingleQueryWithTemplate() {
 		gatewaySingleQueryWithTemplateFlow.send(MessageBuilder.withPayload("Xavi").build());
 
 		Message<?> result = this.getResultChannel.receive(10_000);
@@ -145,8 +155,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testGatewayWithSingleQueryExpression() {
+	void testGatewayWithSingleQueryExpression() {
 		gatewaySingleQueryExpressionFlow.send(MessageBuilder
 				.withPayload("")
 				.setHeader("query", "{'name' : 'Artem'}")
@@ -159,20 +168,17 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		assertThat(retrievedPerson.getName()).isEqualTo("Artem");
 	}
 
-	@Test(expected = ReplyRequiredException.class)
-	@MongoDbAvailable
-	public void testGatewayWithSingleQueryExpressionNoPersonFound() {
-		gatewaySingleQueryExpressionFlow.send(MessageBuilder
+	@Test
+	void testGatewayWithSingleQueryExpressionNoPersonFound() {
+		assertThatThrownBy(() -> gatewaySingleQueryExpressionFlow.send(MessageBuilder
 				.withPayload("")
 				.setHeader("query", "{'name' : 'NonExisting'}")
-				.build());
-
-		this.getResultChannel.receive(10_000);
+				.build()))
+				.isInstanceOf(ReplyRequiredException.class);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testGatewayWithQueryExpression() {
+	void testGatewayWithQueryExpression() {
 		gatewayQueryExpressionFlow.send(MessageBuilder
 				.withPayload("")
 				.setHeader("query", "{}")
@@ -182,12 +188,11 @@ public class MongoDbTests extends MongoDbAvailableTests {
 
 		assertThat(result).isNotNull();
 		List<Person> retrievedPersons = getPersons(result);
-		assertThat(retrievedPersons.size()).isEqualTo(4);
+		assertThat(retrievedPersons).hasSize(4);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testGatewayWithQueryExpressionAndLimit() {
+	void testGatewayWithQueryExpressionAndLimit() {
 		gatewayQueryExpressionLimitFlow.send(MessageBuilder
 				.withPayload("")
 				.setHeader("query", "{}")
@@ -197,12 +202,11 @@ public class MongoDbTests extends MongoDbAvailableTests {
 
 		assertThat(result).isNotNull();
 		List<Person> retrievedPersons = getPersons(result);
-		assertThat(retrievedPersons.size()).isEqualTo(2);
+		assertThat(retrievedPersons).hasSize(2);
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testGatewayWithQueryFunction() {
+	void testGatewayWithQueryFunction() {
 		gatewayQueryFunctionFlow.send(MessageBuilder
 				.withPayload("Gary")
 				.setHeader("collection", "data")
@@ -216,8 +220,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testGatewayWithCollectionNameFunction() {
+	void testGatewayWithCollectionNameFunction() {
 		gatewayCollectionNameFunctionFlow.send(MessageBuilder
 				.withPayload("data")
 				.setHeader("query", "{'name' : 'Gary'}")
@@ -231,8 +234,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testGatewayWithCollectionCallback() {
+	void testGatewayWithCollectionCallback() {
 		gatewayCollectionCallbackFlow.send(MessageBuilder
 				.withPayload("")
 				.build());
@@ -252,10 +254,10 @@ public class MongoDbTests extends MongoDbAvailableTests {
 	private void createPersons() {
 		BulkOperations bulkOperations = this.mongoTemplate.bulkOps(BulkOperations.BulkMode.ORDERED, COLLECTION_NAME);
 		bulkOperations.insert(Arrays.asList(
-				this.createPerson("Artem"),
-				this.createPerson("Gary"),
-				this.createPerson("Oleg"),
-				this.createPerson("Xavi")));
+				MongoDbContainerTest.createPerson("Artem"),
+				MongoDbContainerTest.createPerson("Gary"),
+				MongoDbContainerTest.createPerson("Oleg"),
+				MongoDbContainerTest.createPerson("Xavi")));
 		bulkOperations.execute();
 	}
 
@@ -264,9 +266,8 @@ public class MongoDbTests extends MongoDbAvailableTests {
 	private MessageChannel reactiveStoreInput;
 
 	@Test
-	@MongoDbAvailable
-	public void testReactiveMongoDbMessageHandler() {
-		this.reactiveStoreInput.send(MessageBuilder.withPayload(createPerson("Bob")).build());
+	void testReactiveMongoDbMessageHandler() {
+		this.reactiveStoreInput.send(MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build());
 
 		ReactiveMongoTemplate reactiveMongoTemplate = new ReactiveMongoTemplate(REACTIVE_MONGO_DATABASE_FACTORY);
 
@@ -424,7 +425,6 @@ public class MongoDbTests extends MongoDbAvailableTests {
 					.channel(MessageChannels.flux())
 					.handle(MongoDb.reactiveOutboundChannelAdapter(REACTIVE_MONGO_DATABASE_FACTORY));
 		}
-
 
 	}
 

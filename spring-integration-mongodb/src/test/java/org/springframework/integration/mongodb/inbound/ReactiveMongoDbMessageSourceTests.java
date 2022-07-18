@@ -30,7 +30,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.bson.conversions.Bson;
-import org.junit.Test;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -48,10 +50,10 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.mongodb.dsl.MongoDb;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 
 import com.mongodb.BasicDBObject;
 import reactor.core.publisher.Flux;
@@ -61,63 +63,70 @@ import reactor.test.StepVerifier;
 /**
  * @author David Turanski
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 5.3
  */
-public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
+class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest {
+
+	static ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY;
+
+	@BeforeAll
+	static void prepareMongoConnection() {
+		REACTIVE_MONGO_DATABASE_FACTORY = MongoDbContainerTest.createReactiveMongoDbFactory();
+	}
 
 	@Test
-	public void withNullMongoDBFactory() {
+	void withNullMongoDBFactory() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new ReactiveMongoDbMessageSource((ReactiveMongoDatabaseFactory) null,
 						mock(Expression.class)));
 	}
 
 	@Test
-	public void withNullMongoTemplate() {
+	void withNullMongoTemplate() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new ReactiveMongoDbMessageSource((ReactiveMongoTemplate) null,
 						mock(Expression.class)));
 	}
 
 	@Test
-	public void withNullQueryExpression() {
+	void withNullQueryExpression() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new ReactiveMongoDbMessageSource(mock(ReactiveMongoDatabaseFactory.class),
 						null));
 	}
 
 	@Test
-	@MongoDbAvailable
 	@SuppressWarnings("unchecked")
-	public void validateSuccessfulQueryWithSingleElementFluxOfDbObject() {
-		ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory = prepareReactiveMongoFactory();
+	void validateSuccessfulQueryWithSingleElementFluxOfDbObject() {
+		MongoDbContainerTest.prepareReactiveMongoData(REACTIVE_MONGO_DATABASE_FACTORY);
 
-		ReactiveMongoTemplate template = new ReactiveMongoTemplate(reactiveMongoDatabaseFactory);
-		waitFor(template.save(createPerson(), "data"));
+		ReactiveMongoTemplate template = new ReactiveMongoTemplate(REACTIVE_MONGO_DATABASE_FACTORY);
+		waitFor(template.save(MongoDbContainerTest.createPerson(), "data"));
 
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
-		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(reactiveMongoDatabaseFactory,
+		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 
 		StepVerifier.create((Flux<BasicDBObject>) messageSource.receive().getPayload())
-				.assertNext(basicDBObject -> assertThat(basicDBObject.get("name")).isEqualTo("Oleg"))
+				.assertNext(basicDBObject -> assertThat(basicDBObject).containsEntry("name", "Oleg"))
 				.verifyComplete();
 	}
 
 	@Test
-	@MongoDbAvailable
 	@SuppressWarnings("unchecked")
-	public void validateSuccessfulQueryWithSingleElementFluxOfPerson() {
-		ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory = prepareReactiveMongoFactory();
+	void validateSuccessfulQueryWithSingleElementFluxOfPerson() {
 
-		ReactiveMongoTemplate template = new ReactiveMongoTemplate(reactiveMongoDatabaseFactory);
-		waitFor(template.save(createPerson(), "data"));
+		MongoDbContainerTest.prepareReactiveMongoData(REACTIVE_MONGO_DATABASE_FACTORY);
+
+		ReactiveMongoTemplate template = new ReactiveMongoTemplate(REACTIVE_MONGO_DATABASE_FACTORY);
+		waitFor(template.save(MongoDbContainerTest.createPerson(), "data"));
 
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
-		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(reactiveMongoDatabaseFactory,
+		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
@@ -129,8 +138,7 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulQueryWithMultipleElements() {
+	void validateSuccessfulQueryWithMultipleElements() {
 		final List<String> names = new ArrayList<>(Arrays.asList("Manny", "Moe", "Jack"));
 		StepVerifier.create(queryMultipleElements(new LiteralExpression("{'address.state' : 'PA'}")))
 				.expectNextMatches(person -> {
@@ -149,34 +157,33 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateSuccessfulQueryWithEmptyReturn() {
+	void validateSuccessfulQueryWithEmptyReturn() {
 		StepVerifier.create(queryMultipleElements(new LiteralExpression("{'address.state' : 'NJ'}")))
 				.verifyComplete();
 	}
 
 	@Test
-	@MongoDbAvailable
 	@SuppressWarnings("unchecked")
-	public void validateSuccessfulQueryWithCustomConverter() {
-		MappingMongoConverter converter = new ReactiveTestMongoConverter(prepareReactiveMongoFactory(),
+	void validateSuccessfulQueryWithCustomConverter() {
+		MongoDbContainerTest.prepareReactiveMongoData(REACTIVE_MONGO_DATABASE_FACTORY);
+		MappingMongoConverter converter = new ReactiveTestMongoConverter(
+				REACTIVE_MONGO_DATABASE_FACTORY,
 				new MongoMappingContext());
 		converter.afterPropertiesSet();
 		converter = spy(converter);
 		StepVerifier.create(queryMultipleElements(new LiteralExpression("{'address.state' : 'PA'}"),
-				Optional.of(converter))).expectNextCount(3)
+						Optional.of(converter))).expectNextCount(3)
 				.verifyComplete();
 
 		verify(converter, times(3)).read((Class<Person>) Mockito.any(), Mockito.any(Bson.class));
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void validateWithConfiguredPollerFlow() {
-		ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory = prepareReactiveMongoFactory();
-		ReactiveMongoTemplate template = new ReactiveMongoTemplate(reactiveMongoDatabaseFactory);
+	void validateWithConfiguredPollerFlow() {
+		MongoDbContainerTest.prepareReactiveMongoData(REACTIVE_MONGO_DATABASE_FACTORY);
+		ReactiveMongoTemplate template = new ReactiveMongoTemplate(REACTIVE_MONGO_DATABASE_FACTORY);
 
-		waitFor(template.save(createPerson(), "data"));
+		waitFor(template.save(MongoDbContainerTest.createPerson(), "data"));
 
 		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(TestContext.class);
 		FluxMessageChannel output = context.getBean(FluxMessageChannel.class);
@@ -191,16 +198,15 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
 	@SuppressWarnings("unchecked")
-	public void validatePipelineInModifyOut() {
-		ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory = prepareReactiveMongoFactory();
-		ReactiveMongoTemplate template = new ReactiveMongoTemplate(reactiveMongoDatabaseFactory);
+	void validatePipelineInModifyOut() {
+		MongoDbContainerTest.prepareReactiveMongoData(REACTIVE_MONGO_DATABASE_FACTORY);
+		ReactiveMongoTemplate template = new ReactiveMongoTemplate(REACTIVE_MONGO_DATABASE_FACTORY);
 
 		waitFor(template.save(BasicDBObject.parse("{'name' : 'Manny', 'id' : 1}"), "data"));
 
 		Expression queryExpression = new LiteralExpression("{'name' : 'Manny'}");
-		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(reactiveMongoDatabaseFactory,
+		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
 		messageSource.setExpectSingleResult(true);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
@@ -210,7 +216,7 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 		result.put("company", "PepBoys");
 		waitFor(template.save(result, "data"));
 		result = waitFor((Mono<BasicDBObject>) messageSource.receive().getPayload());
-		assertThat(result.get("_id")).isEqualTo(id);
+		assertThat(result).containsEntry("_id", id);
 	}
 
 	private Flux<Person> queryMultipleElements(Expression queryExpression) {
@@ -219,14 +225,14 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@SuppressWarnings("unchecked")
 	private Flux<Person> queryMultipleElements(Expression queryExpression, Optional<MappingMongoConverter> converter) {
-		ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory = this.prepareReactiveMongoFactory();
+		MongoDbContainerTest.prepareReactiveMongoData(REACTIVE_MONGO_DATABASE_FACTORY);
 
-		ReactiveMongoTemplate template = new ReactiveMongoTemplate(reactiveMongoDatabaseFactory);
-		waitFor(template.save(createPerson("Manny"), "data"));
-		waitFor(template.save(createPerson("Moe"), "data"));
-		waitFor(template.save(createPerson("Jack"), "data"));
+		ReactiveMongoTemplate template = new ReactiveMongoTemplate(REACTIVE_MONGO_DATABASE_FACTORY);
+		waitFor(template.save(MongoDbContainerTest.createPerson("Manny"), "data"));
+		waitFor(template.save(MongoDbContainerTest.createPerson("Moe"), "data"));
+		waitFor(template.save(MongoDbContainerTest.createPerson("Jack"), "data"));
 
-		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(reactiveMongoDatabaseFactory,
+		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.setEntityClass(Person.class);
@@ -248,13 +254,18 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 		public IntegrationFlow pollingFlow() {
 			return IntegrationFlow
 					.from(MongoDb.reactiveInboundChannelAdapter(
-							REACTIVE_MONGO_DATABASE_FACTORY, "{'name' : 'Oleg'}")
+											REACTIVE_MONGO_DATABASE_FACTORY, "{'name' : 'Oleg'}")
 									.update(Update.update("name", "DONE"))
 									.entityClass(Person.class),
-							c -> c.poller(Pollers.fixedDelay(100)))
+							c -> c.poller(pollOnceAfter100ms()))
 					.split()
 					.channel(c -> c.flux("output"))
 					.get();
+		}
+
+		@NotNull
+		private PollerSpec pollOnceAfter100ms() {
+			return Pollers.fixedDelay(Duration.ofMinutes(5), Duration.ofMillis(100));
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,22 +18,30 @@ package org.springframework.integration.mongodb.metadata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
+import org.springframework.integration.mongodb.MongoDbContainerTest;
 
 /**
  * @author Senthil Arumugam, Samiraj Panneer Selvam
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 4.2
  *
  */
-public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
+class MongoDbMetadataStoreTests implements MongoDbContainerTest {
+
+	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
+
+	@BeforeAll
+	static void prepareMongoConnection() {
+		MONGO_DATABASE_FACTORY = MongoDbContainerTest.createMongoDbFactory();
+	}
 
 	private static final String DEFAULT_COLLECTION_NAME = "metadataStore";
 
@@ -43,36 +51,33 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 
 	private MongoDbMetadataStore store = null;
 
-	@Before
+	@BeforeEach
 	public void configure() {
-		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
-		this.store = new MongoDbMetadataStore(mongoDbFactory);
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY, DEFAULT_COLLECTION_NAME);
+		this.store = new MongoDbMetadataStore(MONGO_DATABASE_FACTORY);
 	}
 
-	@MongoDbAvailable
 	@Test
-	public void testConfigureCustomCollection() {
+	void testConfigureCustomCollection() {
 		final String collectionName = "testMetadataStore";
-		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
-		final MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY, collectionName);
+		final MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
 		store = new MongoDbMetadataStore(template, collectionName);
 		testBasics();
 	}
 
-	@MongoDbAvailable
 	@Test
-	public void testConfigureFactory() {
-		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
-		store = new MongoDbMetadataStore(mongoDbFactory);
+	void testConfigureFactory() {
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY, DEFAULT_COLLECTION_NAME);
+		store = new MongoDbMetadataStore(MONGO_DATABASE_FACTORY);
 		testBasics();
 	}
 
-	@MongoDbAvailable
 	@Test
-	public void testConfigureFactorCustomCollection() {
+	void testConfigureFactorCustomCollection() {
 		final String collectionName = "testMetadataStore";
-		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
-		store = new MongoDbMetadataStore(mongoDbFactory, collectionName);
+		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY, collectionName);
+		store = new MongoDbMetadataStore(MONGO_DATABASE_FACTORY, collectionName);
 		testBasics();
 	}
 
@@ -88,14 +93,12 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testGetFromStore() {
+	void testGetFromStore() {
 		testBasics();
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testPutIfAbsent() {
+	void testPutIfAbsent() {
 		String fileID = store.get(file1);
 		assertThat(fileID).as("Get First time, Value must not exist").isNull();
 
@@ -103,16 +106,16 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 		assertThat(fileID).as("Insert First time, Value must return null").isNull();
 
 		fileID = store.putIfAbsent(file1, "56789");
-		assertThat(fileID).as("Key Already Exists - Insertion Failed, ol value must be returned").isNotNull();
-		assertThat(fileID).as("The Old Value must be equal to returned").isEqualTo(file1Id);
+		assertThat(fileID)
+				.as("Key Already Exists - Insertion Failed, ol value must be returned").isNotNull()
+				.as("The Old Value must be equal to returned").isEqualTo(file1Id);
 
 		assertThat(store.get(file1)).as("The Old Value must return").isEqualTo(file1Id);
 
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testRemove() {
+	void testRemove() {
 		String fileID = store.remove(file1);
 		assertThat(fileID).isNull();
 
@@ -120,16 +123,16 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 		assertThat(fileID).isNull();
 
 		fileID = store.remove(file1);
-		assertThat(fileID).isNotNull();
-		assertThat(fileID).isEqualTo(file1Id);
+		assertThat(fileID)
+				.isNotNull()
+				.isEqualTo(file1Id);
 
 		fileID = store.get(file1);
 		assertThat(fileID).isNull();
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testReplace() {
+	void testReplace() {
 		boolean removedValue = store.replace(file1, file1Id, "4567");
 		assertThat(removedValue).isFalse();
 		String fileID = store.get(file1);
@@ -142,8 +145,9 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 		assertThat(removedValue).isTrue();
 
 		fileID = store.get(file1);
-		assertThat(fileID).isNotNull();
-		assertThat(fileID).isEqualTo("4567");
+		assertThat(fileID)
+				.isNotNull()
+				.isEqualTo("4567");
 	}
 
 }

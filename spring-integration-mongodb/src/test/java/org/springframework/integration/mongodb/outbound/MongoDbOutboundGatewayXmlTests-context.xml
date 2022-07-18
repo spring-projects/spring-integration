@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
-	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
-	xsi:schemaLocation="http://www.springframework.org/schema/data/mongo https://www.springframework.org/schema/data/mongo/spring-mongo.xsd
-		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/mongodb https://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
 
@@ -16,79 +14,80 @@
 	</int:channel>
 
 	<int-mongodb:outbound-gateway id="gatewaySingleQuery"
-		mongodb-factory="mongoDbFactory"
-		mongo-converter="mongoConverter"
-		query="{name: 'Xavi'}"
-		collection-name="data"
-		expect-single-result="true"
-		request-channel="in"
-		reply-channel="out"
-		entity-class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests$Person"/>
+								  mongodb-factory="mongoDbFactory"
+								  mongo-converter="mongoConverter"
+								  query="{name: 'Xavi'}"
+								  collection-name="data"
+								  expect-single-result="true"
+								  request-channel="in"
+								  reply-channel="out"
+								  entity-class="org.springframework.integration.mongodb.MongoDbContainerTest$Person"/>
 
 	<int-mongodb:outbound-gateway id="gatewayWithTemplate"
-		mongo-template="mongoDbTemplate"
-		query="{name: 'Xavi'}"
-		collection-name="data"
-		expect-single-result="true"
-		request-channel="in"
-		reply-channel="out"
-		entity-class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests$Person"/>
+								  mongo-template="mongoDbTemplate"
+								  query="{name: 'Xavi'}"
+								  collection-name="data"
+								  expect-single-result="true"
+								  request-channel="in"
+								  reply-channel="out"
+								  entity-class="org.springframework.integration.mongodb.MongoDbContainerTest$Person"/>
 
 	<int-mongodb:outbound-gateway id="gatewaySingleQueryExpression"
-		mongodb-factory="mongoDbFactory"
-		mongo-converter="mongoConverter"
-		query-expression="headers.query"
-		collection-name-expression="headers.collectionName"
-		expect-single-result="true"
-		request-channel="in"
-		reply-channel="out"
-		entity-class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests$Person"/>
+								  mongodb-factory="mongoDbFactory"
+								  mongo-converter="mongoConverter"
+								  query-expression="headers.query"
+								  collection-name-expression="headers.collectionName"
+								  expect-single-result="true"
+								  request-channel="in"
+								  reply-channel="out"
+								  entity-class="org.springframework.integration.mongodb.MongoDbContainerTest$Person"/>
 
 	<int-mongodb:outbound-gateway id="gatewayQueryExpression"
-		mongodb-factory="mongoDbFactory"
-		mongo-converter="mongoConverter"
-		query-expression="headers.query"
-		collection-name-expression="headers.collectionName"
-		expect-single-result="false"
-		request-channel="in"
-		reply-channel="out"
-		entity-class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests$Person"/>
+								  mongodb-factory="mongoDbFactory"
+								  mongo-converter="mongoConverter"
+								  query-expression="headers.query"
+								  collection-name-expression="headers.collectionName"
+								  expect-single-result="false"
+								  request-channel="in"
+								  reply-channel="out"
+								  entity-class="org.springframework.integration.mongodb.MongoDbContainerTest$Person"/>
 
 	<int-mongodb:outbound-gateway id="gatewayQueryExpressionLimit"
-		mongodb-factory="mongoDbFactory"
-		mongo-converter="mongoConverter"
-		query-expression="new BasicQuery('{''address.state'' : ''PA''}').limit(2)"
-		collection-name-expression="headers.collectionName"
-		expect-single-result="false"
-		request-channel="in"
-		reply-channel="out"
-		entity-class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests$Person"/>
+								  mongodb-factory="mongoDbFactory"
+								  mongo-converter="mongoConverter"
+								  query-expression="new BasicQuery('{''address.state'' : ''PA''}').limit(2)"
+								  collection-name-expression="headers.collectionName"
+								  expect-single-result="false"
+								  request-channel="in"
+								  reply-channel="out"
+								  entity-class="org.springframework.integration.mongodb.MongoDbContainerTest$Person"/>
 
 	<int-mongodb:outbound-gateway id="gatewayCollectionCallback"
-		mongodb-factory="mongoDbFactory"
-		mongo-converter="mongoConverter"
-		collection-callback="countCollectionCallback"
-		collection-name-expression="headers.collectionName"
-		request-channel="in"
-		reply-channel="out"
-		entity-class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests$Person"/>
+								  mongodb-factory="mongoDbFactory"
+								  mongo-converter="mongoConverter"
+								  collection-callback="countCollectionCallback"
+								  collection-name-expression="headers.collectionName"
+								  request-channel="in"
+								  reply-channel="out"
+								  entity-class="org.springframework.integration.mongodb.MongoDbContainerTest$Person"/>
 
 
-	<mongo:db-factory id="mongoDbFactory" dbname="test" />
+	<bean id="mongoDbFactory" class="org.springframework.integration.mongodb.MongoDbContainerTest"
+		  factory-method="createMongoDbFactory"/>
 
 	<bean id="mongoDbTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
-		<constructor-arg ref="mongoDbFactory" />
+		<constructor-arg ref="mongoDbFactory"/>
 	</bean>
 
 	<bean id="mongoConverter"
-		  class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
-		<constructor-arg ref="mongoDbFactory" />
+		  class="org.springframework.integration.mongodb.MongoDbContainerTest.TestMongoConverter">
+		<constructor-arg ref="mongoDbFactory"/>
 		<constructor-arg>
-			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext" />
+			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext"/>
 		</constructor-arg>
 	</bean>
 
 	<bean id="countCollectionCallback"
-		  class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests$TestCollectionCallback" />
+		  class="org.springframework.integration.mongodb.MongoDbContainerTest$TestCollectionCallback"/>
 
 </beans>
