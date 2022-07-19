@@ -65,6 +65,7 @@ import com.mongodb.client.MongoCollection;
  */
 @Testcontainers(disabledWithoutDocker = true)
 public interface MongoDbContainerTest {
+
 	GenericContainer<?> MONGO_CONTAINER = new GenericContainer<>("mongo:5.0.9")
 			.withExposedPorts(27017);
 
@@ -74,21 +75,12 @@ public interface MongoDbContainerTest {
 	}
 
 	static MongoDatabaseFactory createMongoDbFactory() {
-		return new SimpleMongoClientDatabaseFactory(
-				MongoClients.create(
-						MongoClientSettings.builder()
-								.applyConnectionString(new ConnectionString(
-										"mongodb://localhost:" + MONGO_CONTAINER.getFirstMappedPort()))
-								.uuidRepresentation(UuidRepresentation.STANDARD).build()),
-				"test");
+		return new SimpleMongoClientDatabaseFactory(MongoClients.create(getMongoClientSettings()), "test");
 	}
 
 	static ReactiveMongoDatabaseFactory createReactiveMongoDbFactory() {
 		return new SimpleReactiveMongoDatabaseFactory(
-				com.mongodb.reactivestreams.client.MongoClients.create(
-						MongoClientSettings.builder().applyConnectionString(new ConnectionString(
-										"mongodb://localhost:" + MONGO_CONTAINER.getFirstMappedPort()))
-								.uuidRepresentation(UuidRepresentation.STANDARD).build()),
+				com.mongodb.reactivestreams.client.MongoClients.create(getMongoClientSettings()),
 				"test");
 	}
 
@@ -100,10 +92,10 @@ public interface MongoDbContainerTest {
 		cleanupCollections(mongoDatabaseFactory, additionalCollectionsToDrop);
 	}
 
-	static void cleanupCollections(ReactiveMongoDatabaseFactory MONGO_DATABASE_FACTORY,
+	static void cleanupCollections(ReactiveMongoDatabaseFactory mongoDbFactory,
 			String... additionalCollectionsToDrop) {
 
-		ReactiveMongoTemplate template = new ReactiveMongoTemplate(MONGO_DATABASE_FACTORY);
+		ReactiveMongoTemplate template = new ReactiveMongoTemplate(mongoDbFactory);
 		template.dropCollection("messages").block(Duration.ofSeconds(3));
 		template.dropCollection("configurableStoreMessages").block(Duration.ofSeconds(3));
 		template.dropCollection("data").block(Duration.ofSeconds(3));
@@ -112,8 +104,8 @@ public interface MongoDbContainerTest {
 		}
 	}
 
-	static void cleanupCollections(MongoDatabaseFactory MONGO_DATABASE_FACTORY, String... additionalCollectionsToDrop) {
-		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY);
+	static void cleanupCollections(MongoDatabaseFactory mongoDbFactory, String... additionalCollectionsToDrop) {
+		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.dropCollection("messages");
 		template.dropCollection("configurableStoreMessages");
 		template.dropCollection("data");
@@ -210,10 +202,10 @@ public interface MongoDbContainerTest {
 	class TestMongoConverter extends MappingMongoConverter {
 
 		public TestMongoConverter(
-				MongoDatabaseFactory MONGO_DATABASE_FACTORY,
+				MongoDatabaseFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
 
-			super(new DefaultDbRefResolver(MONGO_DATABASE_FACTORY), mappingContext);
+			super(new DefaultDbRefResolver(mongoDbFactory), mappingContext);
 		}
 
 		@Override
@@ -231,7 +223,7 @@ public interface MongoDbContainerTest {
 	class ReactiveTestMongoConverter extends MappingMongoConverter {
 
 		public ReactiveTestMongoConverter(
-				ReactiveMongoDatabaseFactory MONGO_DATABASE_FACTORY,
+				ReactiveMongoDatabaseFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
 
 			super(NoOpDbRefResolver.INSTANCE, mappingContext);
@@ -259,4 +251,12 @@ public interface MongoDbContainerTest {
 		}
 
 	}
+
+	private static MongoClientSettings getMongoClientSettings() {
+		return MongoClientSettings.builder()
+				.applyConnectionString(new ConnectionString(
+						"mongodb://localhost:" + MONGO_CONTAINER.getFirstMappedPort()))
+				.uuidRepresentation(UuidRepresentation.STANDARD).build();
+	}
+
 }

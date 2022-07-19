@@ -45,6 +45,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 @LongRunningTest
 class DelayerHandlerRescheduleIntegrationTests implements MongoDbContainerTest {
+
 	public static final String DELAYER_ID = "delayerWithMongoMS";
 
 	@Test

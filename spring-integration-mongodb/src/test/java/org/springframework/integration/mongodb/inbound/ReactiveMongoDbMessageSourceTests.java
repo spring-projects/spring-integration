@@ -68,6 +68,7 @@ import reactor.test.StepVerifier;
  * @since 5.3
  */
 class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest {
+
 	static ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY;
 
 	@BeforeAll

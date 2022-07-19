@@ -68,19 +68,16 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig
 @DirtiesContext
 class MongoDbTests implements MongoDbContainerTest {
+
 	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
 
 	@BeforeAll
 	static void prepareMongoConnection() {
 		MONGO_DATABASE_FACTORY = MongoDbContainerTest.createMongoDbFactory();
+		REACTIVE_MONGO_DATABASE_FACTORY = MongoDbContainerTest.createReactiveMongoDbFactory();
 	}
 
 	static ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY;
-
-	@BeforeAll
-	static void prepareReactiveMongoConnection() {
-		REACTIVE_MONGO_DATABASE_FACTORY = MongoDbContainerTest.createReactiveMongoDbFactory();
-	}
 
 	private static final String COLLECTION_NAME = "data";
 
@@ -349,22 +346,22 @@ class MongoDbTests implements MongoDbContainerTest {
 		}
 
 		@Bean
-		public MongoDatabaseFactory MONGO_DATABASE_FACTORY() {
+		public MongoDatabaseFactory mongoDbFactory() {
 			return MONGO_DATABASE_FACTORY;
 		}
 
 		@Bean
 		public MongoConverter mongoConverter() {
-			return new TestMongoConverter(MONGO_DATABASE_FACTORY(), new MongoMappingContext());
+			return new TestMongoConverter(mongoDbFactory(), new MongoMappingContext());
 		}
 
 		@Bean
 		public MongoOperations mongoTemplate() {
-			return new MongoTemplate(MONGO_DATABASE_FACTORY());
+			return new MongoTemplate(mongoDbFactory());
 		}
 
 		private MongoDbOutboundGatewaySpec queryOutboundGateway(String query, boolean expectSingleResult) {
-			return MongoDb.outboundGateway(MONGO_DATABASE_FACTORY(), mongoConverter())
+			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
 					.query(query)
 					.collectionNameExpression("headers.collection")
 					.expectSingleResult(expectSingleResult)
@@ -380,7 +377,7 @@ class MongoDbTests implements MongoDbContainerTest {
 		}
 
 		private MongoDbOutboundGatewaySpec queryExpressionOutboundGateway(boolean expectSingleResult) {
-			return MongoDb.outboundGateway(MONGO_DATABASE_FACTORY(), mongoConverter())
+			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
 					.queryExpression("headers.query")
 					.collectionName(COLLECTION_NAME)
 					.expectSingleResult(expectSingleResult)
@@ -388,7 +385,7 @@ class MongoDbTests implements MongoDbContainerTest {
 		}
 
 		private MongoDbOutboundGatewaySpec queryExpressionOutboundGateway(boolean expectSingleResult, int maxResults) {
-			return MongoDb.outboundGateway(MONGO_DATABASE_FACTORY(), mongoConverter())
+			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
 					.queryExpression("new BasicQuery('{''address.state'' : ''PA''}').limit(" + maxResults + ")")
 					.collectionName(COLLECTION_NAME)
 					.expectSingleResult(expectSingleResult)
@@ -396,7 +393,7 @@ class MongoDbTests implements MongoDbContainerTest {
 		}
 
 		private MongoDbOutboundGatewaySpec queryFunctionOutboundGateway(boolean expectSingleResult) {
-			return MongoDb.outboundGateway(MONGO_DATABASE_FACTORY(), mongoConverter())
+			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
 					.queryFunction(msg ->
 							Query.query(Criteria.where("name")
 									.is(msg.getPayload())))
@@ -406,7 +403,7 @@ class MongoDbTests implements MongoDbContainerTest {
 		}
 
 		private MongoDbOutboundGatewaySpec collectionNameFunctionOutboundGateway(boolean expectSingleResult) {
-			return MongoDb.outboundGateway(MONGO_DATABASE_FACTORY(), mongoConverter())
+			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
 					.queryExpression("headers.query")
 					.<String>collectionNameFunction(Message::getPayload)
 					.expectSingleResult(expectSingleResult)
@@ -416,7 +413,7 @@ class MongoDbTests implements MongoDbContainerTest {
 		private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway(
 				MessageCollectionCallback<?> collectionCallback) {
 
-			return MongoDb.outboundGateway(MONGO_DATABASE_FACTORY(), mongoConverter())
+			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
 					.collectionCallback(collectionCallback)
 					.collectionName(COLLECTION_NAME)
 					.entityClass(Person.class);

@@ -57,6 +57,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Artem Vozhdayenko
  */
 public abstract class AbstractMongoDbMessageGroupStoreTests implements MongoDbContainerTest {
+
 	public static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
 
 	@BeforeAll

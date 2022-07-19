@@ -56,6 +56,7 @@ import com.mongodb.BasicDBObject;
  *
  */
 class MongoDbMessageSourceTests implements MongoDbContainerTest {
+
 	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
 
 	@BeforeAll

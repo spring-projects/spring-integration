@@ -63,6 +63,7 @@ import reactor.core.publisher.Mono;
 @SpringJUnitConfig
 @DirtiesContext
 class ReactiveMongoDbStoringMessageHandlerTests implements MongoDbContainerTest {
+
 	public static ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY;
 
 	@BeforeAll

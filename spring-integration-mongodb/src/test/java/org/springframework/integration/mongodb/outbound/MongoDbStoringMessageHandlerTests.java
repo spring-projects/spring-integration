@@ -51,6 +51,7 @@ import org.springframework.messaging.Message;
  * @since 2.2
  */
 class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest {
+
 	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
 
 	@BeforeAll

@@ -40,6 +40,7 @@ import org.springframework.messaging.Message;
  * @author Artem Vozhdayenko
  */
 class MongoDbMessageStoreClaimCheckIntegrationTests implements MongoDbContainerTest {
+
 	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
 
 	@BeforeAll

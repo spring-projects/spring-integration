@@ -52,6 +52,7 @@ import com.mongodb.BasicDBObject;
 @SpringJUnitConfig
 @DirtiesContext
 class MongoDbInboundChannelAdapterIntegrationTests implements MongoDbContainerTest {
+
 	@Autowired
 	private MongoTemplate mongoTemplate;
 

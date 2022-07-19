@@ -59,6 +59,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig
 @DirtiesContext
 class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
+
 	private static final String COLLECTION_NAME = "data";
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();

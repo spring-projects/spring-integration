@@ -39,6 +39,7 @@ import com.mongodb.BasicDBObject;
  * @author Artem Vozhdayenko
  */
 class MongoDbOutboundChannelAdapterIntegrationTests implements MongoDbContainerTest {
+
 	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
 
 	@BeforeAll

@@ -47,6 +47,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig
 @DirtiesContext
 class MongoDbOutboundGatewayXmlTests implements MongoDbContainerTest {
+
 	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
 
 	@BeforeAll

@@ -34,7 +34,8 @@ import org.springframework.integration.mongodb.MongoDbContainerTest;
  * @since 4.2
  *
  */
-class MongoDbMetadataStoreTests implements MongoDbContainerTest { //todo: all sonar issues
+class MongoDbMetadataStoreTests implements MongoDbContainerTest {
+
 	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
 
 	@BeforeAll
@@ -53,7 +54,7 @@ class MongoDbMetadataStoreTests implements MongoDbContainerTest { //todo: all so
 	@BeforeEach
 	public void configure() {
 		MongoDbContainerTest.prepareMongoData(MONGO_DATABASE_FACTORY, DEFAULT_COLLECTION_NAME);
-		this.store = new MongoDbMetadataStore(MONGO_DATABASE_FACTORY); //todo: remove all MONGO_DATABASE_FACTORY redundant vars
+		this.store = new MongoDbMetadataStore(MONGO_DATABASE_FACTORY);
 	}
 
 	@Test
