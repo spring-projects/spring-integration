@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -46,6 +47,8 @@ import reactor.test.StepVerifier;
 public class ReactiveMessageSourceProducerTests {
 
 	@Test
+	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
+			disabledReason = "Timing is too short for CI")
 	void testReactiveMessageSourceProducing() {
 		LinkedBlockingQueue<Integer> queue =
 				IntStream.range(0, 10)
