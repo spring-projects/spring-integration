@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
@@ -158,7 +158,8 @@ class FluxAggregatorMessageHandlerTests {
 	}
 
 	@Test
-	@Disabled("Time-sensitive")
+	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
+			disabledReason = "Timing is too short for CI")
 	void testWindowTimespan() {
 		QueueChannel resultChannel = new QueueChannel();
 		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
