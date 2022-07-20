@@ -81,7 +81,7 @@ public class StompServerIntegrationTests {
 						.setJMXManagementEnabled(false)
 						.setJournalDatasync(false)
 						.addAcceptorConfiguration("stomp", "tcp://127.0.0.1:" + TransportConstants.DEFAULT_STOMP_PORT)
-						.addAddressesSetting("#",
+						.addAddressSetting("#",
 								new AddressSettings()
 										.setDeadLetterAddress(SimpleString.toSimpleString("dla"))
 										.setExpiryAddress(SimpleString.toSimpleString("expiry")));
