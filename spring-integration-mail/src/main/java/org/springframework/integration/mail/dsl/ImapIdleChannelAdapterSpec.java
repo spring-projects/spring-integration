@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Freya Nair
  *
  * @since 5.0
  */
@@ -380,6 +381,17 @@ public class ImapIdleChannelAdapterSpec
 	public ImapIdleChannelAdapterSpec cancelIdleInterval(long interval) {
 		assertReceiver();
 		this.receiver.setCancelIdleInterval(interval);
+		return this;
+	}
+
+	/**
+	 * The time between connection attempts in milliseconds (default 10 seconds).
+	 * @param reconnectDelay the reconnectDelay to set.
+	 * @return the spec.
+	 * @since 6.0
+	 */
+	public ImapIdleChannelAdapterSpec reconnectDelay(long reconnectDelay) {
+		this.target.setReconnectDelay(reconnectDelay);
 		return this;
 	}
 
