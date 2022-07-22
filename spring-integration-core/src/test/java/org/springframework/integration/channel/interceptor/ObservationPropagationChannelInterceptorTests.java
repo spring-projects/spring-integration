@@ -209,20 +209,16 @@ public class ObservationPropagationChannelInterceptorTests {
 			// We would need to check if Zipkin wouldn't require us to create the receiving span and then an additional one for the user code...
 			ReceiverContext<Message<?>> receiverContext = new ReceiverContext<>((carrier, key) -> carrier.getHeaders().get(key, String.class));
 			receiverContext.setCarrier(m);
+			// ...if that's the case, then this would be the single 'receiving' span...
 			Observation receiving = Observation.createNotStarted("receiving", receiverContext, this.observationRegistry).start();
-			try {
-				// ...if that's the case it should look like this
-				Observation.createNotStarted("users.code", receiverContext, this.observationRegistry)
-						.parentObservation(receiving)
-						.observe(() -> {
-							// Let's assume that this is the users code
-							handleLatch.countDown();
-						});
-			} catch (Exception e) {
-				receiving.error(e);
-			} finally {
-				receiving.stop();
-			}
+			receiving.stop();
+			// ...and this would be the user's code
+			Observation.createNotStarted("user.code", receiverContext, this.observationRegistry)
+					.parentObservation(receiving)
+					.observe(() -> {
+						// Let's assume that this is the user code
+						handleLatch.countDown();
+					});
 		});
 
 		// This would be the instrumentation code on the sender side (user's code would call e.g. MessageTemplate and this code
@@ -248,13 +244,15 @@ public class ObservationPropagationChannelInterceptorTests {
 
 		TracerAssert.assertThat(this.simpleTracer)
 				.reportedSpans()
-				.hasSize(2)
+				.hasSize(3)
 				// TODO: There must be a better way to do it without casting
 				.satisfies(simpleSpans -> SpansAssert.assertThat(simpleSpans.stream().map(simpleSpan -> (FinishedSpan) simpleSpan).collect(Collectors.toList()))
 						.hasASpanWithName("sending")
 						.assertThatASpanWithNameEqualTo("receiving")
 						.hasTag("foo", "some foo value")
-						.hasTag("bar", "some bar value"));
+						.hasTag("bar", "some bar value")
+						.backToSpans()
+						.hasASpanWithName("user.code"));
 	}
 
 	@Configuration
