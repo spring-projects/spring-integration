@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 
 import org.reactivestreams.Publisher;
 
@@ -50,8 +52,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
-import org.springframework.util.concurrent.SettableListenableFuture;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -307,7 +307,10 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			replyChannel = getOutputChannel();
 		}
 
-		if (this.async && (reply instanceof ListenableFuture<?> || reply instanceof Publisher<?>)) {
+		if (this.async && (reply instanceof ListenableFuture<?>
+				|| reply instanceof CompletableFuture<?>
+				|| reply instanceof Publisher<?>)) {
+
 			if (reply instanceof Publisher<?> &&
 					replyChannel instanceof ReactiveStreamsSubscribableChannel) {
 
@@ -349,12 +352,14 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	private void asyncNonReactiveReply(Message<?> requestMessage, Object reply, @Nullable Object replyChannel) {
-		ListenableFuture<?> future;
-		if (reply instanceof ListenableFuture<?>) {
-			future = (ListenableFuture<?>) reply;
+		CompletableFuture<?> future;
+		if (reply instanceof CompletableFuture<?>) {
+			future = (CompletableFuture<?>) reply;
+		}
+		else if (reply instanceof ListenableFuture<?>) {
+			future = ((ListenableFuture<?>) reply).completable();
 		}
 		else {
-			SettableListenableFuture<Object> settableListenableFuture = new SettableListenableFuture<>();
 			Mono<?> reactiveReply;
 			ReactiveAdapter adapter = ReactiveAdapterRegistry.getSharedInstance().getAdapter(null, reply);
 			if (adapter != null && adapter.isMultiValue()) {
@@ -363,12 +368,10 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			else {
 				reactiveReply = Mono.from((Publisher<?>) reply);
 			}
-			reactiveReply
-					.publishOn(Schedulers.boundedElastic())
-					.subscribe(settableListenableFuture::set, settableListenableFuture::setException);
-			future = settableListenableFuture;
+
+			future = reactiveReply.publishOn(Schedulers.boundedElastic()).toFuture();
 		}
-		future.addCallback(new ReplyFutureCallback(requestMessage, replyChannel));
+		future.whenComplete(new ReplyFutureCallback(requestMessage, replyChannel));
 	}
 
 	private Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<?> routingSlip,
@@ -517,7 +520,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return errorChannel;
 	}
 
-	private final class ReplyFutureCallback implements ListenableFutureCallback<Object> {
+	private final class ReplyFutureCallback implements BiConsumer<Object, Throwable> {
 
 		private final Message<?> requestMessage;
 
@@ -529,29 +532,32 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			this.replyChannel = replyChannel;
 		}
 
-
 		@Override
-		public void onSuccess(Object result) {
-			Message<?> replyMessage = null;
-			try {
-				replyMessage = createOutputMessage(result, this.requestMessage.getHeaders());
-				sendOutput(replyMessage, this.replyChannel, false);
-			}
-			catch (Exception ex) {
-				Exception exceptionToLogAndSend = ex;
-				if (!(ex instanceof MessagingException)) { // NOSONAR
-					exceptionToLogAndSend = new MessageHandlingException(this.requestMessage, ex);
-					if (replyMessage != null) {
-						exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
-					}
+		public void accept(Object result, Throwable exception) {
+			if (exception == null) {
+				Message<?> replyMessage = null;
+				try {
+					replyMessage = createOutputMessage(result, this.requestMessage.getHeaders());
+					sendOutput(replyMessage, this.replyChannel, false);
 				}
-				logger.error(exceptionToLogAndSend, () -> "Failed to send async reply: " + result.toString());
-				onFailure(exceptionToLogAndSend);
+				catch (Exception ex) {
+					Exception exceptionToLogAndSend = ex;
+					if (!(ex instanceof MessagingException)) { // NOSONAR
+						exceptionToLogAndSend = new MessageHandlingException(this.requestMessage, ex);
+						if (replyMessage != null) {
+							exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
+						}
+					}
+					logger.error(exceptionToLogAndSend, () -> "Failed to send async reply: " + result.toString());
+					onFailure(exceptionToLogAndSend);
+				}
+			}
+			else {
+				onFailure(exception);
 			}
 		}
 
-		@Override
-		public void onFailure(Throwable ex) {
+		private void onFailure(Throwable ex) {
 			sendErrorMessage(this.requestMessage, ex);
 		}
 

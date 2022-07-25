@@ -77,7 +77,7 @@ public class DispatcherHasNoSubscribersTests {
 		amqpChannel.setBeanFactory(mock(BeanFactory.class));
 		amqpChannel.afterPropertiesSet();
 
-		MessageListener listener = (MessageListener) container.getMessageListener();
+		MessageListener listener = container.getMessageListener();
 
 		assertThatExceptionOfType(MessageDeliveryException.class)
 				.isThrownBy(() -> listener.onMessage(new Message("Hello world!".getBytes())))
@@ -101,7 +101,7 @@ public class DispatcherHasNoSubscribersTests {
 		amqpChannel.afterPropertiesSet();
 
 		List<String> logList = insertMockLoggerInListener(amqpChannel);
-		MessageListener listener = (MessageListener) container.getMessageListener();
+		MessageListener listener = container.getMessageListener();
 		listener.onMessage(new Message("Hello world!".getBytes()));
 		verifyLogReceived(logList);
 	}
