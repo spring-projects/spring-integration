@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -309,13 +310,14 @@ class KafkaProducerMessageHandlerTests {
 
 		final RuntimeException fooException = new RuntimeException("foo");
 
-		handler = new KafkaProducerMessageHandler<>(new KafkaTemplate<Integer, String>(producerFactory) {
+		handler = new KafkaProducerMessageHandler<>(new KafkaTemplate<>(producerFactory) {
 
 			@Override
-			protected ListenableFuture<SendResult<Integer, String>> doSend(
+			protected CompletableFuture<SendResult<Integer, String>> doSend(
 					ProducerRecord<Integer, String> producerRecord) {
-				SettableListenableFuture<SendResult<Integer, String>> future = new SettableListenableFuture<>();
-				future.setException(fooException);
+
+				CompletableFuture<SendResult<Integer, String>> future = new CompletableFuture<>();
+				future.completeExceptionally(fooException);
 				return future;
 			}
 

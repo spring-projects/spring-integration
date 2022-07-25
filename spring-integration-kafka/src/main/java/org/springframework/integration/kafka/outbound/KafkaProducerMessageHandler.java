@@ -23,13 +23,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
@@ -69,9 +69,6 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
-import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * A Message Handler for Apache Kafka; when supplied with a {@link ReplyingKafkaTemplate} it is used as
@@ -174,7 +171,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		if (this.isGateway) {
 			setAsync(true);
 			updateNotPropagatedHeaders(
-					new String[]{KafkaHeaders.TOPIC, KafkaHeaders.PARTITION, KafkaHeaders.KEY}, false);
+					new String[]{ KafkaHeaders.TOPIC, KafkaHeaders.PARTITION, KafkaHeaders.KEY }, false);
 		}
 		if (JacksonPresent.isJackson2Present()) {
 			this.headerMapper = new DefaultKafkaHeaderMapper();
@@ -498,7 +495,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		if (futureToken != null) {
 			producerRecord.headers().remove(KafkaIntegrationHeaders.FUTURE_TOKEN);
 		}
-		ListenableFuture<SendResult<K, V>> sendFuture;
+		CompletableFuture<SendResult<K, V>> sendFuture;
 		RequestReplyFuture<K, V, Object> gatewayFuture = null;
 		if (this.isGateway && (!preBuilt || producerRecord.headers().lastHeader(KafkaHeaders.REPLY_TOPIC) == null)) {
 			producerRecord.headers().add(new RecordHeader(KafkaHeaders.REPLY_TOPIC, getReplyTopic(message)));
@@ -530,7 +527,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		return processReplyFuture(gatewayFuture);
 	}
 
-	private void sendFutureIfRequested(ListenableFuture<SendResult<K, V>> sendFuture, Object futureToken) {
+	private void sendFutureIfRequested(CompletableFuture<SendResult<K, V>> sendFuture, Object futureToken) {
 
 		if (futureToken != null) {
 			MessageChannel futures = getFuturesChannel();
@@ -662,31 +659,26 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	}
 
 	public void processSendResult(final Message<?> message, final ProducerRecord<K, V> producerRecord,
-			ListenableFuture<SendResult<K, V>> future, MessageChannel metadataChannel)
+			CompletableFuture<SendResult<K, V>> future, MessageChannel metadataChannel)
 			throws InterruptedException, ExecutionException {
 
 		final MessageChannel failureChannel = getSendFailureChannel();
 		if (failureChannel != null || metadataChannel != null) {
-			future.addCallback(new ListenableFutureCallback<SendResult<K, V>>() { // NOSONAR
-
-				@Override
-				public void onSuccess(SendResult<K, V> result) {
+			future.whenComplete((sendResult, exception) -> {
+				if (exception == null) {
 					if (metadataChannel != null) {
 						KafkaProducerMessageHandler.this.messagingTemplate.send(metadataChannel,
-								getMessageBuilderFactory().fromMessage(message)
-										.setHeader(KafkaHeaders.RECORD_METADATA, result.getRecordMetadata()).build());
+								getMessageBuilderFactory()
+										.fromMessage(message)
+										.setHeader(KafkaHeaders.RECORD_METADATA, sendResult.getRecordMetadata())
+										.build());
 					}
 				}
-
-				@Override
-				public void onFailure(Throwable ex) {
-					if (failureChannel != null) {
-						KafkaProducerMessageHandler.this.messagingTemplate.send(failureChannel,
-								KafkaProducerMessageHandler.this.errorMessageStrategy.buildErrorMessage(
-										new KafkaSendFailureException(message, producerRecord, ex), null));
-					}
+				else if (failureChannel != null) {
+					KafkaProducerMessageHandler.this.messagingTemplate.send(failureChannel,
+							KafkaProducerMessageHandler.this.errorMessageStrategy.buildErrorMessage(
+									new KafkaSendFailureException(message, producerRecord, exception), null));
 				}
-
 			});
 		}
 
@@ -720,49 +712,45 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		return new ConvertingReplyFuture(future);
 	}
 
-	private final class ConvertingReplyFuture extends SettableListenableFuture<Object> {
+	private final class ConvertingReplyFuture extends CompletableFuture<Object> {
 
 		ConvertingReplyFuture(RequestReplyFuture<?, ?, Object> future) {
 			addCallback(future);
 		}
 
 		private void addCallback(final RequestReplyFuture<?, ?, Object> future) {
-			future.addCallback(new ListenableFutureCallback<ConsumerRecord<?, Object>>() { // NOSONAR
-
-				@Override
-				public void onSuccess(ConsumerRecord<?, Object> result) {
+			future.whenComplete((result, exception) -> {
+				if (exception == null) {
 					try {
-						set(dontLeakHeaders(KafkaProducerMessageHandler.this.replyMessageConverter.toMessage(result,
-								null, null, KafkaProducerMessageHandler.this.replyPayloadType)));
+						complete(dontLeakHeaders(
+								KafkaProducerMessageHandler.this.replyMessageConverter.toMessage(result, null, null,
+										KafkaProducerMessageHandler.this.replyPayloadType)));
 					}
-					catch (Exception e) {
-						setException(e);
-					}
-				}
-
-				private Message<?> dontLeakHeaders(Message<?> message) {
-					if (message.getHeaders() instanceof KafkaMessageHeaders) {
-						Map<String, Object> headers = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
-						headers.remove(KafkaHeaders.CORRELATION_ID);
-						headers.remove(KafkaHeaders.REPLY_TOPIC);
-						headers.remove(KafkaHeaders.REPLY_PARTITION);
-						return message;
-					}
-					else {
-						return getMessageBuilderFactory().fromMessage(message)
-								.removeHeader(KafkaHeaders.CORRELATION_ID)
-								.removeHeader(KafkaHeaders.REPLY_TOPIC)
-								.removeHeader(KafkaHeaders.REPLY_PARTITION)
-								.build();
+					catch (Exception ex) {
+						completeExceptionally(ex);
 					}
 				}
-
-				@Override
-				public void onFailure(Throwable ex) {
-					setException(ex);
+				else {
+					completeExceptionally(exception);
 				}
-
 			});
+		}
+
+		private Message<?> dontLeakHeaders(Message<?> message) {
+			if (message.getHeaders() instanceof KafkaMessageHeaders) {
+				Map<String, Object> headers = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
+				headers.remove(KafkaHeaders.CORRELATION_ID);
+				headers.remove(KafkaHeaders.REPLY_TOPIC);
+				headers.remove(KafkaHeaders.REPLY_PARTITION);
+				return message;
+			}
+			else {
+				return getMessageBuilderFactory().fromMessage(message)
+						.removeHeader(KafkaHeaders.CORRELATION_ID)
+						.removeHeader(KafkaHeaders.REPLY_TOPIC)
+						.removeHeader(KafkaHeaders.REPLY_PARTITION)
+						.build();
+			}
 		}
 
 	}
