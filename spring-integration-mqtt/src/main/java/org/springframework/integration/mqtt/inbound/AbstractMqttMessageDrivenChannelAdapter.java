@@ -26,6 +26,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -38,6 +39,8 @@ import org.springframework.util.Assert;
 /**
  * Abstract class for MQTT Message-Driven Channel Adapters.
  *
+ * @param <T> MQTT Client type
+ *
  * @author Gary Russell
  * @author Artem Bilan
  * @author Trung Pham
@@ -48,7 +51,7 @@ import org.springframework.util.Assert;
  */
 @ManagedResource
 @IntegrationManagedResource
-public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessageProducerSupport
+public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends MessageProducerSupport
 		implements ApplicationEventPublisherAware {
 
 	/**
@@ -70,6 +73,8 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 
 	private MqttMessageConverter converter;
 
+	protected ClientManager<T> clientManager;
+
 	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
 
 	public AbstractMqttMessageDrivenChannelAdapter(@Nullable String url, String clientId, String... topic) {
@@ -87,6 +92,15 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	public void setConverter(MqttMessageConverter converter) {
 		Assert.notNull(converter, "'converter' cannot be null");
 		this.converter = converter;
+	}
+
+	public void setClientManager(ClientManager<T> clientManager) {
+		Assert.notNull(clientManager, "'clientManager' cannot be null");
+		this.clientManager = clientManager;
+	}
+
+	public ClientManager<T> getClientManager() {
+		return this.clientManager;
 	}
 
 	/**
