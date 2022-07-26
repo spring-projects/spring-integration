@@ -26,6 +26,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -38,29 +39,37 @@ import org.springframework.util.Assert;
 /**
  * Abstract class for MQTT Message-Driven Channel Adapters.
  *
+ * @param <T> MQTT Client type
+ * @param <C> MQTT connection options type (v5 or v3)
+ *
  * @author Gary Russell
  * @author Artem Bilan
  * @author Trung Pham
  * @author Mikhail Polivakha
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
  */
 @ManagedResource
 @IntegrationManagedResource
-public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessageProducerSupport
-		implements ApplicationEventPublisherAware {
+public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends MessageProducerSupport
+		implements ApplicationEventPublisherAware, ClientManager.ConnectCallback {
 
 	/**
 	 * The default completion timeout in milliseconds.
 	 */
 	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
 
+	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
+
 	private final String url;
 
 	private final String clientId;
 
 	private final Set<Topic> topics;
+
+	private final ClientManager<T, C> clientManager;
 
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
@@ -70,23 +79,41 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 
 	private MqttMessageConverter converter;
 
-	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
-
 	public AbstractMqttMessageDrivenChannelAdapter(@Nullable String url, String clientId, String... topic) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
-		Assert.notNull(topic, "'topics' cannot be null");
-		Assert.noNullElements(topic, "'topics' cannot have null elements");
 		this.url = url;
 		this.clientId = clientId;
-		this.topics = new LinkedHashSet<>();
+		this.topics = initTopics(topic);
+		this.clientManager = null;
+	}
+
+	public AbstractMqttMessageDrivenChannelAdapter(ClientManager<T, C> clientManager, String... topic) {
+		Assert.notNull(clientManager, "'clientManager' cannot be null");
+		this.clientManager = clientManager;
+		this.topics = initTopics(topic);
+		this.url = null;
+		this.clientId = null;
+	}
+
+	private static Set<Topic> initTopics(String[] topic) {
+		Assert.notNull(topic, "'topics' cannot be null");
+		Assert.noNullElements(topic, "'topics' cannot have null elements");
+		final Set<Topic> initialTopics = new LinkedHashSet<>();
+		int defaultQos = 1;
 		for (String t : topic) {
-			this.topics.add(new Topic(t, 1));
+			initialTopics.add(new Topic(t, defaultQos));
 		}
+		return initialTopics;
 	}
 
 	public void setConverter(MqttMessageConverter converter) {
 		Assert.notNull(converter, "'converter' cannot be null");
 		this.converter = converter;
+	}
+
+	@Nullable
+	protected ClientManager<T, C> getClientManager() {
+		return this.clientManager;
 	}
 
 	/**
@@ -133,6 +160,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		return this.url;
 	}
 
+	@Nullable
 	protected String getClientId() {
 		return this.clientId;
 	}
@@ -154,6 +182,22 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		}
 		finally {
 			this.topicLock.unlock();
+		}
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		if (this.clientManager != null) {
+			this.clientManager.addCallback(this);
+		}
+	}
+
+	@Override
+	public void destroy() {
+		super.destroy();
+		if (this.clientManager != null) {
+			this.clientManager.removeCallback(this);
 		}
 	}
 
@@ -181,7 +225,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	}
 
 	protected boolean isManualAcks() {
-		return this.manualAcks;
+		return this.clientManager == null ? this.manualAcks : this.clientManager.isManualAcks();
 	}
 
 	/**
@@ -209,11 +253,11 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	public void addTopic(String topic, int qos) {
 		this.topicLock.lock();
 		try {
-			Topic topik = new Topic(topic, qos);
-			if (this.topics.contains(topik)) {
+			Topic newTopic = new Topic(topic, qos);
+			if (this.topics.contains(newTopic)) {
 				throw new MessagingException("Topic '" + topic + "' is already subscribed.");
 			}
-			this.topics.add(topik);
+			this.topics.add(newTopic);
 			logger.debug(LogMessage.format("Added '%s' to subscriptions.", topic));
 		}
 		finally {
@@ -255,9 +299,9 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		Assert.isTrue(topic.length == qos.length, "topic and qos arrays must the be the same length.");
 		this.topicLock.lock();
 		try {
-			for (String topik : topic) {
-				if (this.topics.contains(new Topic(topik, 0))) {
-					throw new MessagingException("Topic '" + topik + "' is already subscribed.");
+			for (String newTopic : topic) {
+				if (this.topics.contains(new Topic(newTopic, 0))) {
+					throw new MessagingException("Topic '" + newTopic + "' is already subscribed.");
 				}
 			}
 			for (int i = 0; i < topic.length; i++) {

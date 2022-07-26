@@ -16,7 +16,6 @@
 		client-id="foo"
 		url="tcp://localhost:1883"
 		client-factory="clientFactory"
-		recovery-interval="5000"
 		channel="out" />
 
 	<int-mqtt:message-driven-channel-adapter id="noTopicsAdapterDefaultCF"

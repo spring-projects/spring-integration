@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoComponent;
@@ -48,11 +49,13 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
  */
-public class MqttPahoMessageHandler extends AbstractMqttMessageHandler implements MqttCallback, MqttPahoComponent {
+public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyncClient, MqttConnectOptions>
+		implements MqttCallback, MqttPahoComponent {
 
 	private final MqttPahoClientFactory clientFactory;
 
@@ -61,6 +64,15 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler implement
 	private boolean asyncEvents;
 
 	private volatile IMqttAsyncClient client;
+
+	/**
+	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
+	 * @param url The URL.
+	 * @param clientId The client id.
+	 */
+	public MqttPahoMessageHandler(String url, String clientId) {
+		this(url, clientId, new DefaultMqttPahoClientFactory());
+	}
 
 	/**
 	 * Use this constructor for a single url (although it may be overridden if the server
@@ -88,12 +100,16 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler implement
 	}
 
 	/**
-	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
-	 * @param url The URL.
-	 * @param clientId The client id.
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection).
+	 * @param clientManager The client manager.
+	 * @since 6.0
 	 */
-	public MqttPahoMessageHandler(String url, String clientId) {
-		this(url, clientId, new DefaultMqttPahoClientFactory());
+	public MqttPahoMessageHandler(ClientManager<IMqttAsyncClient, MqttConnectOptions> clientManager) {
+		super(clientManager);
+		var factory = new DefaultMqttPahoClientFactory();
+		factory.setConnectionOptions(clientManager.getConnectionInfo());
+		this.clientFactory = factory;
 	}
 
 	/**
@@ -169,6 +185,11 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler implement
 	}
 
 	private synchronized IMqttAsyncClient checkConnection() throws MqttException {
+		var theClientManager = getClientManager();
+		if (theClientManager != null) {
+			return theClientManager.getClient();
+		}
+
 		if (this.client != null && !this.client.isConnected()) {
 			this.client.setCallback(null);
 			this.client.close();

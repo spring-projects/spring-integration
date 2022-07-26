@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.support.management.ManageableLifecycle;
@@ -36,13 +37,17 @@ import org.springframework.util.Assert;
 /**
  * Abstract class for MQTT outbound channel adapters.
  *
+ * @param <T> MQTT Client type
+ * @param <C> MQTT connection options type (v5 or v3)
+ *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
  */
-public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler
+public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHandler
 		implements ManageableLifecycle, ApplicationEventPublisherAware {
 
 	/**
@@ -63,6 +68,8 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler
 	private final String url;
 
 	private final String clientId;
+
+	private final ClientManager<T, C> clientManager;
 
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
@@ -90,6 +97,14 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
 		this.url = url;
 		this.clientId = clientId;
+		this.clientManager = null;
+	}
+
+	public AbstractMqttMessageHandler(ClientManager<T, C> clientManager) {
+		Assert.notNull(clientManager, "'clientManager' cannot be null or empty");
+		this.clientManager = clientManager;
+		this.url = null;
+		this.clientId = null;
 	}
 
 	@Override
@@ -242,6 +257,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler
 		return this.url;
 	}
 
+	@Nullable
 	public String getClientId() {
 		return this.clientId;
 	}
@@ -290,6 +306,11 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler
 
 	protected long getDisconnectCompletionTimeout() {
 		return this.disconnectCompletionTimeout;
+	}
+
+	@Nullable
+	protected ClientManager<T, C> getClientManager() {
+		return this.clientManager;
 	}
 
 	@Override

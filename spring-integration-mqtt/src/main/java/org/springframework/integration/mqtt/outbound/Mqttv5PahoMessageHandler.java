@@ -34,6 +34,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.core.MqttComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
@@ -52,10 +53,11 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Lucas Bowler
+ * @author Artem Vozhdayenko
  *
  * @since 5.5.5
  */
-public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
+public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyncClient, MqttConnectionOptions>
 		implements MqttCallback, MqttComponent<MqttConnectionOptions> {
 
 	private final MqttConnectionOptions connectionOptions;
@@ -73,6 +75,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 
 	public Mqttv5PahoMessageHandler(String url, String clientId) {
 		super(url, clientId);
+		Assert.hasText(url, "'url' cannot be null or empty");
 		this.connectionOptions = new MqttConnectionOptions();
 		this.connectionOptions.setServerURIs(new String[]{ url });
 		this.connectionOptions.setAutomaticReconnect(true);
@@ -83,6 +86,16 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 		this.connectionOptions = connectionOptions;
 	}
 
+	/**
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection).
+	 * @param clientManager The client manager.
+	 * @since 6.0
+	 */
+	public Mqttv5PahoMessageHandler(ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager) {
+		super(clientManager);
+		this.connectionOptions = clientManager.getConnectionInfo();
+	}
 
 	private static String obtainServerUrlFromOptions(MqttConnectionOptions connectionOptions) {
 		Assert.notNull(connectionOptions, "'connectionOptions' must not be null");
@@ -131,9 +144,11 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	protected void onInit() {
 		super.onInit();
 		try {
-			this.mqttClient = new MqttAsyncClient(getUrl(), getClientId(), this.persistence);
-			this.mqttClient.setCallback(this);
-			incrementClientInstance();
+			if (getClientManager() == null) {
+				this.mqttClient = new MqttAsyncClient(getUrl(), getClientId(), this.persistence);
+				this.mqttClient.setCallback(this);
+				incrementClientInstance();
+			}
 		}
 		catch (MqttException ex) {
 			throw new BeanCreationException("Cannot create 'MqttAsyncClient' for: " + getComponentName(), ex);
@@ -152,17 +167,25 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	@Override
 	protected void doStart() {
 		try {
-			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
+			var clientManager = getClientManager();
+			if (clientManager != null) {
+				this.mqttClient = clientManager.getClient();
+			}
+			else {
+				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
+			}
 		}
 		catch (MqttException ex) {
-				logger.error(ex, "MQTT client failed to connect.");
+			logger.error(ex, "MQTT client failed to connect.");
 		}
 	}
 
 	@Override
 	protected void doStop() {
 		try {
-			this.mqttClient.disconnect().waitForCompletion(getDisconnectCompletionTimeout());
+			if (getClientManager() == null) {
+				this.mqttClient.disconnect().waitForCompletion(getDisconnectCompletionTimeout());
+			}
 		}
 		catch (MqttException ex) {
 			logger.error(ex, "Failed to disconnect 'MqttAsyncClient'");
@@ -173,7 +196,9 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	public void destroy() {
 		super.destroy();
 		try {
-			this.mqttClient.close(true);
+			if (getClientManager() == null) {
+				this.mqttClient.close(true);
+			}
 		}
 		catch (MqttException ex) {
 			logger.error(ex, "Failed to close 'MqttAsyncClient'");

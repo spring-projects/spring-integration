@@ -16,14 +16,14 @@
 
 package org.springframework.integration.mqtt.inbound;
 
-import java.time.Instant;
 import java.util.Arrays;
-import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Stream;
 
-import org.eclipse.paho.client.mqttv3.IMqttClient;
+import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -31,6 +31,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.SimpleAcknowledgment;
+import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
@@ -55,35 +56,39 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
  */
-public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter
-		implements MqttCallback, MqttPahoComponent {
+public class MqttPahoMessageDrivenChannelAdapter
+		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectOptions>
+		implements MqttCallbackExtended, MqttPahoComponent {
 
 	/**
 	 * The default disconnect completion timeout in milliseconds.
 	 */
 	public static final long DISCONNECT_COMPLETION_TIMEOUT = 5_000L;
 
-	private static final int DEFAULT_RECOVERY_INTERVAL = 10_000;
-
 	private final MqttPahoClientFactory clientFactory;
-
-	private int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
 	private long disconnectCompletionTimeout = DISCONNECT_COMPLETION_TIMEOUT;
 
-	private volatile IMqttClient client;
-
-	private volatile ScheduledFuture<?> reconnectFuture;
-
-	private volatile boolean connected;
+	private volatile IMqttAsyncClient client;
 
 	private volatile boolean cleanSession;
 
 	private volatile ConsumerStopAction consumerStopAction;
+
+	/**
+	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
+	 * @param url The URL.
+	 * @param clientId The client id.
+	 * @param topic The topic(s).
+	 */
+	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
+		this(url, clientId, new DefaultMqttPahoClientFactory(), topic);
+	}
 
 	/**
 	 * Use this constructor for a single url (although it may be overridden if the server
@@ -117,15 +122,20 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this.clientFactory = clientFactory;
 	}
 
-
 	/**
-	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
-	 * @param url The URL.
-	 * @param clientId The client id.
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection).
+	 * @param clientManager The client manager.
 	 * @param topic The topic(s).
+	 * @since 6.0
 	 */
-	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
-		this(url, clientId, new DefaultMqttPahoClientFactory(), topic);
+	public MqttPahoMessageDrivenChannelAdapter(ClientManager<IMqttAsyncClient, MqttConnectOptions> clientManager,
+			String... topic) {
+
+		super(clientManager, topic);
+		var factory = new DefaultMqttPahoClientFactory();
+		factory.setConnectionOptions(clientManager.getConnectionInfo());
+		this.clientFactory = factory;
 	}
 
 	/**
@@ -136,16 +146,6 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 */
 	public synchronized void setDisconnectCompletionTimeout(long completionTimeout) {
 		this.disconnectCompletionTimeout = completionTimeout;
-	}
-
-	/**
-	 * The time (ms) to wait between reconnection attempts.
-	 * Default {@value #DEFAULT_RECOVERY_INTERVAL}.
-	 * @param recoveryInterval the interval.
-	 * @since 4.2.2
-	 */
-	public synchronized void setRecoveryInterval(int recoveryInterval) {
-		this.recoveryInterval = recoveryInterval;
 	}
 
 	@Override
@@ -168,54 +168,69 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			DefaultPahoMessageConverter pahoMessageConverter = new DefaultPahoMessageConverter();
 			pahoMessageConverter.setBeanFactory(getBeanFactory());
 			setConverter(pahoMessageConverter);
-
 		}
 	}
 
 	@Override
 	protected void doStart() {
-		Assert.state(getTaskScheduler() != null, "A 'taskScheduler' is required");
 		try {
-			connectAndSubscribe();
+			connect();
 		}
 		catch (Exception ex) {
-			logger.error(ex, "Exception while connecting and subscribing, retrying");
-			scheduleReconnect();
+			if (getConnectionInfo().isAutomaticReconnect()) {
+				try {
+					this.client.reconnect();
+				}
+				catch (MqttException re) {
+					logger.error(re, "MQTT client failed to connect. Never happens.");
+				}
+			}
+			else {
+				logger.error(ex, "Exception while connecting");
+				var applicationEventPublisher = getApplicationEventPublisher();
+				if (applicationEventPublisher != null) {
+					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+				}
+			}
 		}
 	}
 
 	@Override
 	protected synchronized void doStop() {
-		cancelReconnect();
-		if (this.client != null) {
-			try {
-				if (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
-						|| (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_CLEAN)
-						&& this.cleanSession)) {
+		try {
+			if (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
+					|| (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_CLEAN)
+					&& this.cleanSession)) {
 
-					this.client.unsubscribe(getTopic());
-				}
+				this.client.unsubscribe(getTopic());
 			}
-			catch (MqttException ex) {
-				logger.error(ex, "Exception while unsubscribing");
-			}
-			try {
-				this.client.disconnectForcibly(this.disconnectCompletionTimeout);
-			}
-			catch (MqttException ex) {
-				logger.error(ex, "Exception while disconnecting");
-			}
+		}
+		catch (MqttException ex1) {
+			logger.error(ex1, "Exception while unsubscribing");
+		}
 
-			this.client.setCallback(null);
+		if (getClientManager() != null) {
+			return;
+		}
 
+		try {
+			this.client.disconnectForcibly(this.disconnectCompletionTimeout);
+		}
+		catch (MqttException ex) {
+			logger.error(ex, "Exception while disconnecting");
+		}
+	}
+
+	@Override
+	public void destroy() {
+		super.destroy();
+		if (getClientManager() == null) {
 			try {
 				this.client.close();
 			}
-			catch (MqttException ex) {
-				logger.error(ex, "Exception while closing");
+			catch (MqttException e) {
+				logger.error(e, "Could not close client");
 			}
-			this.connected = false;
-			this.client = null;
 		}
 	}
 
@@ -225,7 +240,8 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		try {
 			super.addTopic(topic, qos);
 			if (this.client != null && this.client.isConnected()) {
-				this.client.subscribe(topic, qos);
+				this.client.subscribe(topic, qos, this::messageArrived)
+						.waitForCompletion(getCompletionTimeout());
 			}
 		}
 		catch (MqttException e) {
@@ -242,7 +258,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this.topicLock.lock();
 		try {
 			if (this.client != null && this.client.isConnected()) {
-				this.client.unsubscribe(topic);
+				this.client.unsubscribe(topic).waitForCompletion(getCompletionTimeout());
 			}
 			super.removeTopic(topic);
 		}
@@ -254,31 +270,45 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 	}
 
-	private synchronized void connectAndSubscribe() throws MqttException { // NOSONAR
+	private synchronized void connect() throws MqttException { // NOSONAR
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 		this.cleanSession = connectionOptions.isCleanSession();
 		this.consumerStopAction = this.clientFactory.getConsumerStopAction();
 		if (this.consumerStopAction == null) {
 			this.consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
 		}
-		Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
-				"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-		this.client = this.clientFactory.getClientInstance(getUrl(), getClientId());
-		this.client.setCallback(this);
-		if (this.client instanceof MqttClient) {
-			((MqttClient) this.client).setTimeToWait(getCompletionTimeout());
-		}
 
+		var clientManager = getClientManager();
+		if (clientManager == null) {
+			Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
+					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
+			this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
+			this.client.setCallback(this);
+			this.client.connect(connectionOptions).waitForCompletion(getCompletionTimeout());
+			this.client.setManualAcks(isManualAcks());
+		}
+		else {
+			this.client = clientManager.getClient();
+		}
+	}
+
+	private void subscribe() {
 		this.topicLock.lock();
 		String[] topics = getTopic();
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		try {
-			this.client.connect(connectionOptions);
-			this.client.setManualAcks(isManualAcks());
 			if (topics.length > 0) {
 				int[] requestedQos = getQos();
-				int[] grantedQos = Arrays.copyOf(requestedQos, requestedQos.length);
-				this.client.subscribe(topics, grantedQos);
+				IMqttMessageListener listener = this::messageArrived;
+				IMqttMessageListener[] listeners = Stream.of(topics)
+						.map(t -> listener)
+						.toArray(IMqttMessageListener[]::new);
+				IMqttToken subscribeToken = this.client.subscribe(topics, requestedQos, listeners);
+				subscribeToken.waitForCompletion(getCompletionTimeout());
+				int[] grantedQos = subscribeToken.getGrantedQos();
+				if (grantedQos.length == 1 && grantedQos[0] == 0x80) { // NOSONAR
+					throw new MqttException(MqttException.REASON_CODE_SUBSCRIBE_FAILED);
+				}
 				warnInvalidQosForSubscription(topics, requestedQos, grantedQos);
 			}
 		}
@@ -287,25 +317,12 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			if (applicationEventPublisher != null) {
 				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 			}
-			logger.error(ex, () -> "Error connecting or subscribing to " + Arrays.toString(topics));
-			if (this.client != null) { // Could be reset during event handling before
-				this.client.disconnectForcibly(this.disconnectCompletionTimeout);
-				try {
-					this.client.setCallback(null);
-					this.client.close();
-				}
-				catch (MqttException e1) {
-					// NOSONAR
-				}
-				this.client = null;
-			}
-			throw ex;
+			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
 		}
 		finally {
 			this.topicLock.unlock();
 		}
 		if (this.client.isConnected()) {
-			this.connected = true;
 			String message = "Connected and subscribed to " + Arrays.toString(topics);
 			logger.debug(message);
 			if (applicationEventPublisher != null) {
@@ -325,56 +342,10 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 	}
 
-	private synchronized void cancelReconnect() {
-		if (this.reconnectFuture != null) {
-			this.reconnectFuture.cancel(false);
-			this.reconnectFuture = null;
-		}
-	}
-
-	private synchronized void scheduleReconnect() {
-		cancelReconnect();
-		if (isActive()) {
-			try {
-				this.reconnectFuture = getTaskScheduler()
-						.schedule(() -> {
-							try {
-								logger.debug("Attempting reconnect");
-								synchronized (MqttPahoMessageDrivenChannelAdapter.this) {
-									if (!MqttPahoMessageDrivenChannelAdapter.this.connected) {
-										connectAndSubscribe();
-										MqttPahoMessageDrivenChannelAdapter.this.reconnectFuture = null;
-									}
-								}
-							}
-							catch (MqttException ex) {
-								logger.error(ex, "Exception while connecting and subscribing");
-								scheduleReconnect();
-							}
-						}, Instant.now().plusMillis(this.recoveryInterval));
-			}
-			catch (Exception ex) {
-				logger.error(ex, "Failed to schedule reconnect");
-			}
-		}
-	}
-
 	@Override
 	public synchronized void connectionLost(Throwable cause) {
 		if (isRunning()) {
-			this.logger.error(() -> "Lost connection: " + cause.getMessage() + "; retrying...");
-			this.connected = false;
-			if (this.client != null) {
-				try {
-					this.client.setCallback(null);
-					this.client.close();
-				}
-				catch (MqttException e) {
-					// NOSONAR
-				}
-			}
-			this.client = null;
-			scheduleReconnect();
+			this.logger.error(() -> "Lost connection: " + cause.getMessage());
 			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 			if (applicationEventPublisher != null) {
 				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
@@ -436,6 +407,18 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	public void deliveryComplete(IMqttDeliveryToken token) {
 	}
 
+	@Override
+	public void connectComplete(boolean isReconnect) {
+		connectComplete(isReconnect, getUrl());
+	}
+
+	@Override
+	public void connectComplete(boolean reconnect, String serverURI) {
+		if (!reconnect) {
+			subscribe();
+		}
+	}
+
 	/**
 	 * Used to complete message arrival when {@link #isManualAcks()} is true.
 	 *
@@ -447,7 +430,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 		private final int qos;
 
-		private final IMqttClient ackClient;
+		private final IMqttAsyncClient ackClient;
 
 		/**
 		 * Construct an instance with the provided properties.
@@ -455,7 +438,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		 * @param qos the message QOS.
 		 * @param client the client.
 		 */
-		AcknowledgmentImpl(int id, int qos, IMqttClient client) {
+		AcknowledgmentImpl(int id, int qos, IMqttAsyncClient client) {
 			this.id = id;
 			this.qos = qos;
 			this.ackClient = client;
