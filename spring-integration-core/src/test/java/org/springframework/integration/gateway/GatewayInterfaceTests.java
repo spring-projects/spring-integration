@@ -396,6 +396,7 @@ public class GatewayInterfaceTests {
 	 * performed the send() on gatewayThreadChannel.
 	 */
 	@Test
+	@SuppressWarnings("deprecation")
 	public void testExecs() throws Exception {
 		assertThat(TestUtils.getPropertyValue(execGatewayFB, "asyncExecutor")).isSameAs(exec);
 		assertThat(TestUtils.getPropertyValue(noExecGatewayFB, "asyncExecutor")).isNull();
@@ -420,6 +421,13 @@ public class GatewayInterfaceTests {
 		});
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(result2.get().getName()).startsWith("exec-");
+
+		org.springframework.util.concurrent.ListenableFuture<Thread> result3 =
+				this.execGateway.test3(Thread.currentThread());
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		result3.addCallback(data -> latch1.countDown(), ex -> { });
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(result3.get().getName()).startsWith("exec-");
 
 		/*
 		@IntegrationComponentScan(useDefaultFilters = false,
@@ -672,6 +680,10 @@ public class GatewayInterfaceTests {
 
 		@Gateway(requestChannel = "gatewayThreadChannel")
 		CompletableFuture<Thread> test2(Thread caller);
+
+		@Gateway(requestChannel = "gatewayThreadChannel")
+		@SuppressWarnings("deprecation")
+		org.springframework.util.concurrent.ListenableFuture<Thread> test3(Thread caller);
 
 	}
 
