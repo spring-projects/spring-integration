@@ -583,39 +583,13 @@ int finalResult =  result.get(1000, TimeUnit.SECONDS);
 
 For a more detailed example, see the https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/async-gateway[async-gateway] sample in the Spring Integration samples.
 
-===== `ListenableFuture`
-
-Starting with version 4.1, asynchronous gateway methods can also return `ListenableFuture` (introduced in Spring Framework 4.0).
-These return types let you provide a callback, which is invoked when the result is available (or an exception occurs).
-When the gateway detects this return type and the <<gateway-asynctaskexecutor,task executor>> is an `AsyncListenableTaskExecutor`, the executor's `submitListenable()` method is invoked.
-The following example shows how to use a `ListenableFuture`:
-
-====
-[source,java]
-----
-ListenableFuture<String> result = this.asyncGateway.async("something");
-result.addCallback(new ListenableFutureCallback<String>() {
-
-    @Override
-    public void onSuccess(String result) {
-        ...
-    }
-
-    @Override
-    public void onFailure(Throwable t) {
-        ...
-    }
-});
-----
-====
-
 [[gateway-asynctaskexecutor]]
 ===== `AsyncTaskExecutor`
 
 By default, the `GatewayProxyFactoryBean` uses `org.springframework.core.task.SimpleAsyncTaskExecutor` when submitting internal `AsyncInvocationTask` instances for any gateway method whose return type is a `Future`.
 However, the `async-executor` attribute in the `<gateway/>` element's configuration lets you provide a reference to any implementation of `java.util.concurrent.Executor` available within the Spring application context.
 
-The (default) `SimpleAsyncTaskExecutor` supports both `Future` and `ListenableFuture` return types, returning `FutureTask` or `ListenableFutureTask` respectively.
+The (default) `SimpleAsyncTaskExecutor` supports both `Future` and `CompletableFuture` return types.
 See <<gw-completable-future>>.
 Even though there is a default executor, it is often useful to provide an external one so that you can identify its threads in logs (when using XML, the thread name is based on the executor's bean name), as the following example shows:
 
@@ -670,6 +644,9 @@ There are two modes of operation when returning this type:
 
 * When the async executor is explicitly set to `null` and the return type is `CompletableFuture` or the return type is a subclass of `CompletableFuture`, the flow is invoked on the caller's thread.
 In this scenario, the downstream flow is expected to return a `CompletableFuture` of the appropriate type.
+
+NOTE: The `org.springframework.util.concurrent.ListenableFuture` has been deprecated starting with Spring Framework `6.0`.
+It is recommended now to migrate to the `CompletableFuture` which provides similar processing functionality.
 
 ====== Usage Scenarios
 
@@ -802,7 +779,7 @@ The calling thread continues, with `handleInvoice()` being called when the flow 
 
 ===== Downstream Flows Returning an Asynchronous Type
 
-As mentioned in the `ListenableFuture` section above, if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, and others), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
+As mentioned in the <<gateway-asynctaskexecutor>> section above, if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, and others), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
 The flow is then invoked on the caller thread and the result can be retrieved later.
 
 ===== `void` Return Type

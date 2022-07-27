@@ -19,6 +19,7 @@ package org.springframework.integration.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -43,8 +44,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * See INT-1688 for background.
@@ -210,7 +209,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		this.asyncIn.send(message);
 		Message<?> reply = replyChannel.receive(0);
 		assertThat(reply).isNull();
-		this.asyncService.future.set(this.asyncService.payload.toUpperCase());
+		this.asyncService.future.complete(this.asyncService.payload.toUpperCase());
 		reply = replyChannel.receive(0);
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("TEST");
@@ -225,7 +224,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("testing").setReplyChannel(replyChannel).build();
 		this.asyncIn.send(message);
 		assertThat(reply.get()).isNull();
-		this.asyncService.future.set(this.asyncService.payload.toUpperCase());
+		this.asyncService.future.complete(this.asyncService.payload.toUpperCase());
 		assertThat(reply.get()).isNotNull();
 		assertThat(reply.get().getPayload()).isEqualTo("TESTING");
 	}
@@ -235,7 +234,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		QueueChannel errorChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test").setErrorChannel(errorChannel).build();
 		this.asyncIn.send(message);
-		this.asyncService.future.setException(new RuntimeException("intended"));
+		this.asyncService.future.completeExceptionally(new RuntimeException("intended"));
 		Message<?> error = errorChannel.receive(0);
 		assertThat(error).isNotNull();
 		assertThat(error).isInstanceOf(ErrorMessage.class);
@@ -249,7 +248,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 	public void testAsyncErrorNoHeader() {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.asyncIn.send(message);
-		this.asyncService.future.setException(new RuntimeException("intended"));
+		this.asyncService.future.completeExceptionally(new RuntimeException("intended"));
 		Message<?> error = this.errorChannel.receive(0);
 		assertThat(error).isNotNull();
 		assertThat(error).isInstanceOf(ErrorMessage.class);
@@ -326,13 +325,13 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 
 	private static class AsyncService {
 
-		private volatile SettableListenableFuture<String> future;
+		private volatile CompletableFuture<String> future;
 
 		private volatile String payload;
 
 		@SuppressWarnings("unused")
-		public ListenableFuture<String> process(String payload) {
-			this.future = new SettableListenableFuture<>();
+		public CompletableFuture<String> process(String payload) {
+			this.future = new CompletableFuture<>();
 			this.payload = payload;
 			return this.future;
 		}

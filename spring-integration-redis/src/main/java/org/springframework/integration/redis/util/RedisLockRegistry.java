@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -54,7 +55,6 @@ import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * Implementation of {@link ExpirableLockRegistry} providing a distributed lock using Redis.
@@ -643,7 +643,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 		private static final class RedisUnLockNotifyMessageListener implements MessageListener {
 
-			private final Map<String, SettableListenableFuture<String>> notifyMap = new ConcurrentHashMap<>();
+			private final Map<String, CompletableFuture<String>> notifyMap = new ConcurrentHashMap<>();
 
 			@Override
 			public void onMessage(Message message, byte[] pattern) {
@@ -652,7 +652,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			}
 
 			public Future<String> subscribeLock(String lockKey) {
-				return this.notifyMap.computeIfAbsent(lockKey, key -> new SettableListenableFuture<>());
+				return this.notifyMap.computeIfAbsent(lockKey, key -> new CompletableFuture<>());
 			}
 
 			public void unSubscribeLock(String localLock) {
@@ -661,7 +661,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 			private void unlockNotify(String lockKey) {
 				this.notifyMap.computeIfPresent(lockKey, (key, lockFuture) -> {
-					lockFuture.set(key);
+					lockFuture.complete(key);
 					return lockFuture;
 				});
 			}

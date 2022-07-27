@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -403,7 +402,7 @@ public class GatewayParserTests {
 					.setCorrelationId(request.getHeaders().getId()).build();
 			Object payload = null;
 			if (request.getPayload().equals("futureSync")) {
-				payload = new AsyncResult<Message<?>>(reply);
+				payload = CompletableFuture.completedFuture(reply);
 			}
 			else if (request.getPayload().equals("flowCompletable")) {
 				payload = CompletableFuture.<String>completedFuture("SYNC_COMPLETABLE");
@@ -448,7 +447,7 @@ public class GatewayParserTests {
 		}
 
 		@Override
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings("unchecked")
 		public <T> Future<T> submit(Callable<T> task) {
 			try {
 				Future<?> result = super.submit(task);
@@ -462,7 +461,8 @@ public class GatewayParserTests {
 					modifiedMessage = MessageBuilder.fromMessage(message)
 							.setHeader("executor", this.beanName).build();
 				}
-				return new AsyncResult(modifiedMessage);
+
+				return (Future<T>) CompletableFuture.completedFuture(modifiedMessage);
 			}
 			catch (Exception e) {
 				throw new IllegalStateException("unexpected exception in testExecutor", e);

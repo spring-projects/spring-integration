@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 
-import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.CommonErrorHandler;
@@ -157,12 +157,10 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	 * Set the executor for threads that poll the consumer.
 	 * @param consumerTaskExecutor the executor
 	 * @return the spec.
-	 * @see ContainerProperties#setConsumerTaskExecutor(AsyncListenableTaskExecutor)
+	 * @see ContainerProperties#setListenerTaskExecutor(AsyncTaskExecutor)
 	 */
-	public KafkaMessageListenerContainerSpec<K, V> consumerTaskExecutor(
-			AsyncListenableTaskExecutor consumerTaskExecutor) {
-
-		this.target.getContainerProperties().setConsumerTaskExecutor(consumerTaskExecutor);
+	public KafkaMessageListenerContainerSpec<K, V> listenerTaskExecutor(AsyncTaskExecutor consumerTaskExecutor) {
+		this.target.getContainerProperties().setListenerTaskExecutor(consumerTaskExecutor);
 		return this;
 	}
 

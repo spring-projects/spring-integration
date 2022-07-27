@@ -51,7 +51,6 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.util.concurrent.ListenableFuture;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -106,9 +105,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	/**
-	 * Allow async replies. If the handler reply is a {@link ListenableFuture}, send
-	 * the output when it is satisfied rather than sending the future as the result.
-	 * Ignored for return types other than {@link ListenableFuture}.
+	 * Allow async replies. If the handler reply is a {@link CompletableFuture} or {@link Publisher},
+	 * send the output when it is satisfied rather than sending the future as the result.
+	 * Ignored for return types other than {@link CompletableFuture} or {@link Publisher}.
 	 * @param async true to allow.
 	 * @since 4.3
 	 */
@@ -299,6 +298,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return replyChannel;
 	}
 
+	@SuppressWarnings("deprecation")
 	private void doProduceOutput(Message<?> requestMessage, MessageHeaders requestHeaders, Object reply,
 			@Nullable Object replyChannelArg) {
 
@@ -307,7 +307,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			replyChannel = getOutputChannel();
 		}
 
-		if (this.async && (reply instanceof ListenableFuture<?>
+		if (this.async && (reply instanceof org.springframework.util.concurrent.ListenableFuture<?>
 				|| reply instanceof CompletableFuture<?>
 				|| reply instanceof Publisher<?>)) {
 
@@ -351,13 +351,14 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return builder;
 	}
 
+	@SuppressWarnings("deprecation")
 	private void asyncNonReactiveReply(Message<?> requestMessage, Object reply, @Nullable Object replyChannel) {
 		CompletableFuture<?> future;
 		if (reply instanceof CompletableFuture<?>) {
 			future = (CompletableFuture<?>) reply;
 		}
-		else if (reply instanceof ListenableFuture<?>) {
-			future = ((ListenableFuture<?>) reply).completable();
+		else if (reply instanceof org.springframework.util.concurrent.ListenableFuture<?>) {
+			future = ((org.springframework.util.concurrent.ListenableFuture<?>) reply).completable();
 		}
 		else {
 			Mono<?> reactiveReply;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,7 +37,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.PongMessage;
@@ -72,12 +72,12 @@ public class ClientWebSocketContainerTests {
 		StandardWebSocketClient webSocketClient = new StandardWebSocketClient() {
 
 			@Override
-			protected ListenableFuture<WebSocketSession> doHandshakeInternal(WebSocketHandler webSocketHandler,
+			protected CompletableFuture<WebSocketSession> executeInternal(WebSocketHandler webSocketHandler,
 					HttpHeaders headers, URI uri, List<String> protocols, List<WebSocketExtension> extensions,
 					Map<String, Object> attributes) {
 
-				ListenableFuture<WebSocketSession> future =
-						super.doHandshakeInternal(webSocketHandler, headers, uri, protocols, extensions,
+				CompletableFuture<WebSocketSession> future =
+						super.executeInternal(webSocketHandler, headers, uri, protocols, extensions,
 								attributes);
 				if (failure.get()) {
 					future.cancel(true);

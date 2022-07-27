@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -39,8 +40,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import reactor.core.publisher.Mono;
 
@@ -105,22 +104,15 @@ public class AsyncGatewayTests {
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
-		ListenableFuture<Message<?>> f = service.returnMessageListenable("foo");
+		CompletableFuture<Message<?>> f = service.returnMessageListenable("foo");
 		long start = System.currentTimeMillis();
 		final AtomicReference<Message<?>> result = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
-		f.addCallback(new ListenableFutureCallback<Message<?>>() {
-
-			@Override
-			public void onSuccess(Message<?> msg) {
-				result.set(msg);
+		f.whenComplete((message, throwable) -> {
+			if (throwable == null) {
+				result.set(message);
 				latch.countDown();
 			}
-
-			@Override
-			public void onFailure(Throwable t) {
-			}
-
 		});
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		long elapsed = System.currentTimeMillis() - start;
@@ -300,7 +292,7 @@ public class AsyncGatewayTests {
 			String header = (String) input.getHeaders().get("method");
 			if (header != null && header.startsWith("returnCustomFuture")) {
 				reply = MessageBuilder.withPayload(new CustomFuture(payload,
-						(Thread) input.getHeaders().get("thread")))
+								(Thread) input.getHeaders().get("thread")))
 						.copyHeaders(input.getHeaders())
 						.build();
 			}
@@ -317,7 +309,7 @@ public class AsyncGatewayTests {
 
 		Future<?> returnSomething(String s);
 
-		ListenableFuture<Message<?>> returnMessageListenable(String s);
+		CompletableFuture<Message<?>> returnMessageListenable(String s);
 
 		@Gateway(headers = @GatewayHeader(name = "method", expression = "#gatewayMethod.name"))
 		CustomFuture returnCustomFuture(String s);

@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -71,7 +72,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * An outbound Messaging Gateway for request/reply JMS.
@@ -101,7 +101,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private final ConcurrentHashMap<String, TimedReply> earlyOrLateReplies = new ConcurrentHashMap<>();
 
-	private final Map<String, SettableListenableFuture<AbstractIntegrationMessageBuilder<?>>> futures =
+	private final Map<String, CompletableFuture<AbstractIntegrationMessageBuilder<?>>> futures =
 			new ConcurrentHashMap<>();
 
 	private final Object lifeCycleMonitor = new Object();
@@ -1075,7 +1075,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			LinkedBlockingQueue<jakarta.jms.Message> replyQueue = null;
 			String correlationToLog = correlation;
 			logger.debug(() -> getComponentName() + " Sending message with correlationId " + correlationToLog);
-			SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> future = null;
+			CompletableFuture<AbstractIntegrationMessageBuilder<?>> future = null;
 			boolean async = isAsync();
 			if (!async) {
 				replyQueue = new LinkedBlockingQueue<>(1);
@@ -1112,7 +1112,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			messageProducer = session.createProducer(reqDestination);
 			LinkedBlockingQueue<jakarta.jms.Message> replyQueue = new LinkedBlockingQueue<>(1);
 
-			this.sendRequestMessage(jmsRequest, messageProducer, priority);
+			sendRequestMessage(jmsRequest, messageProducer, priority);
 
 			correlation = jmsRequest.getJMSMessageID();
 			String correlationToLog = correlation;
@@ -1169,8 +1169,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		return reply;
 	}
 
-	private SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> createFuture(final String correlationId) {
-		SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> future = new SettableListenableFuture<>();
+	private CompletableFuture<AbstractIntegrationMessageBuilder<?>> createFuture(final String correlationId) {
+		CompletableFuture<AbstractIntegrationMessageBuilder<?>> future = new CompletableFuture<>();
 		this.futures.put(correlationId, future);
 		if (this.receiveTimeout > 0) {
 			getTaskScheduler().schedule(() -> expire(correlationId), Instant.now().plusMillis(this.receiveTimeout));
@@ -1179,11 +1179,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	private void expire(String correlationId) {
-		SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> future = this.futures.remove(correlationId);
+		CompletableFuture<AbstractIntegrationMessageBuilder<?>> future = this.futures.remove(correlationId);
 		if (future != null) {
 			try {
 				if (getRequiresReply()) {
-					future.setException(new JmsTimeoutException("No reply in " + this.receiveTimeout + " ms"));
+					future.completeExceptionally(new JmsTimeoutException("No reply in " + this.receiveTimeout + " ms"));
 				}
 				else {
 					logger.debug(() -> "Reply expired and reply not required for " + correlationId);
@@ -1276,10 +1276,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	private void onMessageAsync(jakarta.jms.Message message, String correlationId) throws JMSException {
-		SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> future = this.futures.remove(correlationId);
+		CompletableFuture<AbstractIntegrationMessageBuilder<?>> future = this.futures.remove(correlationId);
 		if (future != null) {
 			message.setJMSCorrelationID(null);
-			future.set(buildReply(message));
+			future.complete(buildReply(message));
 		}
 		else {
 			logger.warn(() -> "Late reply for " + correlationId);

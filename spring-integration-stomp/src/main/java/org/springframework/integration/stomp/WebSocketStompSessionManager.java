@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package org.springframework.integration.stomp;
 
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
@@ -55,9 +55,9 @@ public class WebSocketStompSessionManager extends AbstractStompSessionManager {
 	}
 
 	@Override
-	protected ListenableFuture<StompSession> doConnect(StompSessionHandler handler) {
+	protected CompletableFuture<StompSession> doConnect(StompSessionHandler handler) {
 		return ((WebSocketStompClient) this.stompClient)
-				.connect(this.url, this.handshakeHeaders, getConnectHeaders(), handler, this.uriVariables);
+				.connectAsync(this.url, this.handshakeHeaders, getConnectHeaders(), handler, this.uriVariables);
 	}
 
 }

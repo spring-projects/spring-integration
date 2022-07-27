@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -105,8 +106,6 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * @author Gary Russell
@@ -474,8 +473,7 @@ class KafkaProducerMessageHandlerTests {
 		given(pf.transactionCapable()).willReturn(true);
 		Producer producer = mock(Producer.class);
 		given(pf.createProducer(isNull())).willReturn(producer);
-		ListenableFuture future = mock(ListenableFuture.class);
-		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		willReturn(mock(Future.class)).given(producer).send(any(ProducerRecord.class), any(Callback.class));
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
@@ -517,7 +515,7 @@ class KafkaProducerMessageHandlerTests {
 		ConsumerFactory cf = mock(ConsumerFactory.class);
 		willReturn(mockConsumer).given(cf).createConsumer("group", "", null, KafkaTestUtils.defaultPropertyOverrides());
 		Producer producer = mock(Producer.class);
-		given(producer.send(any(), any())).willReturn(new SettableListenableFuture<>());
+		given(producer.send(any(), any())).willReturn(mock(Future.class));
 		final CountDownLatch closeLatch = new CountDownLatch(2);
 		willAnswer(i -> {
 			closeLatch.countDown();
@@ -579,8 +577,7 @@ class KafkaProducerMessageHandlerTests {
 
 		};
 		pf.setTransactionIdPrefix("default.tx.id.");
-		ListenableFuture future = mock(ListenableFuture.class);
-		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		willReturn(mock(Future.class)).given(producer).send(any(ProducerRecord.class), any(Callback.class));
 		KafkaTemplate template = new KafkaTemplate(pf);
 		template.setTransactionIdPrefix("overridden.tx.id.");
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
@@ -604,8 +601,7 @@ class KafkaProducerMessageHandlerTests {
 		ProducerFactory pf = mock(ProducerFactory.class);
 		given(pf.transactionCapable()).willReturn(true);
 		given(pf.createProducer(isNull())).willReturn(producer);
-		ListenableFuture future = mock(ListenableFuture.class);
-		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		willReturn(mock(Future.class)).given(producer).send(any(ProducerRecord.class), any(Callback.class));
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
@@ -655,7 +651,7 @@ class KafkaProducerMessageHandlerTests {
 		ConsumerFactory cf = mock(ConsumerFactory.class);
 		willReturn(mockConsumer).given(cf).createConsumer("group", "", null, KafkaTestUtils.defaultPropertyOverrides());
 		Producer producer = mock(Producer.class);
-		given(producer.send(any(), any())).willReturn(new SettableListenableFuture<>());
+		given(producer.send(any(), any())).willReturn(mock(Future.class));
 		final CountDownLatch closeLatch = new CountDownLatch(2);
 		willAnswer(i -> {
 			closeLatch.countDown();
@@ -732,8 +728,7 @@ class KafkaProducerMessageHandlerTests {
 		ProducerFactory pf = mock(ProducerFactory.class);
 		Producer producer = mock(Producer.class);
 		given(pf.createProducer()).willReturn(producer);
-		ListenableFuture future = mock(ListenableFuture.class);
-		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		willReturn(mock(Future.class)).given(producer).send(any(ProducerRecord.class), any(Callback.class));
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
@@ -756,8 +751,7 @@ class KafkaProducerMessageHandlerTests {
 		ProducerFactory pf = mock(ProducerFactory.class);
 		Producer producer = mock(Producer.class);
 		given(pf.createProducer()).willReturn(producer);
-		ListenableFuture future = mock(ListenableFuture.class);
-		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		willReturn(mock(Future.class)).given(producer).send(any(ProducerRecord.class), any(Callback.class));
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
@@ -777,8 +771,7 @@ class KafkaProducerMessageHandlerTests {
 		ProducerFactory pf = mock(ProducerFactory.class);
 		Producer producer = mock(Producer.class);
 		given(pf.createProducer()).willReturn(producer);
-		ListenableFuture future = mock(ListenableFuture.class);
-		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		willReturn(mock(Future.class)).given(producer).send(any(ProducerRecord.class), any(Callback.class));
 		KafkaTemplate template = new KafkaTemplate(pf);
 		RecordMessageConverter converter = mock(RecordMessageConverter.class);
 		ProducerRecord recordFromConverter = mock(ProducerRecord.class);
