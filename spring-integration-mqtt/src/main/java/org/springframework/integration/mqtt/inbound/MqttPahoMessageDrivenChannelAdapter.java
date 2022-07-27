@@ -157,7 +157,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			String url = getUrl();
 			if (url != null) {
 				options = MqttUtils.cloneConnectOptions(options);
-				options.setServerURIs(new String[] {url});
+				options.setServerURIs(new String[]{ url });
 			}
 		}
 		return options;
@@ -236,6 +236,11 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			if (this.client != null && this.client.isConnected()) {
 				this.client.subscribe(topic, qos);
 			}
+			var theClientManager = getClientManager();
+			if (theClientManager != null) {
+				theClientManager.getClient().subscribe(topic, qos, new MessageListener())
+						.waitForCompletion(getCompletionTimeout());
+			}
 		}
 		catch (MqttException e) {
 			super.removeTopic(topic);
@@ -252,6 +257,10 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		try {
 			if (this.client != null && this.client.isConnected()) {
 				this.client.unsubscribe(topic);
+			}
+			var theClientManager = getClientManager();
+			if (theClientManager != null) {
+				theClientManager.getClient().unsubscribe(topic).waitForCompletion(getCompletionTimeout());
 			}
 			super.removeTopic(topic);
 		}
@@ -289,16 +298,18 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		try {
 			long completionTimeout = getCompletionTimeout();
-			if (!clientInstance.isConnected()) {
+			if (getClientManager() == null) {
 				clientInstance.connect(connectionOptions).waitForCompletion(completionTimeout);
+				clientInstance.setManualAcks(isManualAcks());
 			}
-			clientInstance.setManualAcks(isManualAcks());
 			if (topics.length > 0) {
 				int[] requestedQos = getQos();
 				MessageListener[] listeners = Stream.of(topics)
-						.map(t -> new MessageListener(client))
+						.map(t -> new MessageListener())
 						.toArray(MessageListener[]::new);
-				IMqttToken subscribeToken = clientInstance.subscribe(topics, requestedQos, listeners);
+				IMqttToken subscribeToken = getClientManager() == null ?
+						clientInstance.subscribe(topics, requestedQos) :
+						clientInstance.subscribe(topics, requestedQos, listeners);
 				subscribeToken.waitForCompletion(completionTimeout);
 				int[] grantedQos = subscribeToken.getGrantedQos();
 				if (grantedQos.length == 1 && grantedQos[0] == 0x80) {
@@ -358,6 +369,10 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	private synchronized void scheduleReconnect() {
+		if (getClientManager() != null) {
+			return;
+		}
+
 		cancelReconnect();
 		if (isActive()) {
 			try {
@@ -412,8 +427,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		AbstractIntegrationMessageBuilder<?> builder = toMessageBuilder(topic, mqttMessage);
 		if (builder != null) {
 			if (isManualAcks()) {
+				var theClient = this.client != null ? this.client : getClientManager().getClient();
 				builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
-						new AcknowledgmentImpl(mqttMessage.getId(), mqttMessage.getQos(), this.client));
+						new AcknowledgmentImpl(mqttMessage.getId(), mqttMessage.getQos(), theClient));
 			}
 			Message<?> message = builder.build();
 			try {
@@ -503,27 +519,11 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	}
 
-	private class MessageListener implements IMqttMessageListener, MqttCallback {
-
-		private final IMqttAsyncClient client;
-
-		MessageListener(IMqttAsyncClient client) {
-			this.client = client;
-		}
+	private class MessageListener implements IMqttMessageListener {
 
 		@Override
 		public void messageArrived(String topic, MqttMessage mqttMessage) {
 			MqttPahoMessageDrivenChannelAdapter.this.messageArrived(topic, mqttMessage);
-		}
-
-		@Override
-		public void connectionLost(Throwable cause) {
-			// not this component concern
-		}
-
-		@Override
-		public void deliveryComplete(IMqttDeliveryToken token) {
-			// not this component concern
 		}
 
 	}

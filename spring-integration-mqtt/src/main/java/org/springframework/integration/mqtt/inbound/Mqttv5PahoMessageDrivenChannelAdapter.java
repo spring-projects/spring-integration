@@ -18,8 +18,10 @@ package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
+import org.eclipse.paho.mqttv5.client.IMqttMessageListener;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.MqttCallback;
@@ -28,6 +30,7 @@ import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.client.MqttDisconnectResponse;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
+import org.eclipse.paho.mqttv5.common.MqttSubscription;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -90,7 +93,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		super(url, clientId, topic);
 		this.connectionOptions = new MqttConnectionOptions();
-		this.connectionOptions.setServerURIs(new String[] {url});
+		this.connectionOptions.setServerURIs(new String[]{ url });
 		this.connectionOptions.setAutomaticReconnect(true);
 	}
 
@@ -143,7 +146,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (this.mqttClient == null) {
+		if (getClientManager() == null && this.mqttClient == null) {
 			try {
 				this.mqttClient = new MqttAsyncClient(getUrl(), getClientId(), this.persistence);
 				this.mqttClient.setCallback(this);
@@ -162,6 +165,11 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 
 	@Override
 	protected void doStart() {
+		if (getClientManager() != null) {
+			subscribeToAll();
+			return;
+		}
+
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		try {
 			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
@@ -189,6 +197,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 		this.topicLock.lock();
 		String[] topics = getTopic();
 		try {
+			var theClientManager = getClientManager();
+			if (theClientManager != null) {
+				theClientManager.getClient().unsubscribe(topics).waitForCompletion(getCompletionTimeout());
+			}
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				this.mqttClient.unsubscribe(topics).waitForCompletion(getCompletionTimeout());
 				this.mqttClient.disconnect().waitForCompletion(getCompletionTimeout());
@@ -223,6 +235,11 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				this.mqttClient.subscribe(topic, qos).waitForCompletion(getCompletionTimeout());
 			}
+			var theClientManager = getClientManager();
+			if (theClientManager != null) {
+				theClientManager.getClient().subscribe(new MqttSubscription(topic, qos), new MessageListener())
+						.waitForCompletion(getCompletionTimeout());
+			}
 		}
 		catch (MqttException ex) {
 			throw new MessagingException("Failed to subscribe to topic " + topic, ex);
@@ -238,6 +255,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 		try {
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				this.mqttClient.unsubscribe(topic).waitForCompletion(getCompletionTimeout());
+			}
+			var theClientManager = getClientManager();
+			if (theClientManager != null) {
+				theClientManager.getClient().unsubscribe(topic).waitForCompletion(getCompletionTimeout());
 			}
 			super.removeTopic(topic);
 		}
@@ -259,8 +280,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 		headers.put(MqttHeaders.RECEIVED_TOPIC, topic);
 
 		if (isManualAcks()) {
+			var client = this.mqttClient != null ? this.mqttClient : getClientManager().getClient();
 			headers.put(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
-					new AcknowledgmentImpl(mqttMessage.getId(), mqttMessage.getQos(), this.mqttClient));
+					new AcknowledgmentImpl(mqttMessage.getId(), mqttMessage.getQos(), client));
 		}
 
 		Object payload =
@@ -309,36 +331,52 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (!reconnect) {
-			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-			String[] topics = getTopic();
-			this.topicLock.lock();
-			try {
-				if (topics.length > 0) {
-					int[] requestedQos = getQos();
-					this.mqttClient.subscribe(topics, requestedQos).waitForCompletion(getCompletionTimeout());
-					String message = "Connected and subscribed to " + Arrays.toString(topics);
-					logger.debug(message);
-					if (applicationEventPublisher != null) {
-						applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
-					}
-				}
-			}
-			catch (MqttException ex) {
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-				}
-				logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
-			}
-			finally {
-				this.topicLock.unlock();
-			}
+		if (reconnect) {
+			return;
 		}
+
+		subscribeToAll();
 	}
 
 	@Override
 	public void authPacketArrived(int reasonCode, MqttProperties properties) {
 
+	}
+
+	private void subscribeToAll() {
+		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+		String[] topics = getTopic();
+		this.topicLock.lock();
+		try {
+			if (topics.length == 0) {
+				return;
+			}
+
+			int[] requestedQos = getQos();
+			if (this.mqttClient != null) {
+				this.mqttClient.subscribe(topics, requestedQos).waitForCompletion(getCompletionTimeout());
+			}
+			if (getClientManager() != null) {
+				MqttSubscription[] subscriptions = IntStream.range(0, topics.length)
+						.mapToObj(i -> new MqttSubscription(topics[i], requestedQos[i]))
+						.toArray(MqttSubscription[]::new);
+				getClientManager().getClient().subscribe(subscriptions, new MessageListener());
+			}
+			String message = "Connected and subscribed to " + Arrays.toString(topics);
+			logger.debug(message);
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
+			}
+		}
+		catch (MqttException ex) {
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			}
+			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
+		}
+		finally {
+			this.topicLock.unlock();
+		}
 	}
 
 	private static String obtainServerUrlFromOptions(MqttConnectionOptions connectionOptions) {
@@ -380,6 +418,15 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 			catch (MqttException ex) {
 				throw new IllegalStateException(ex);
 			}
+		}
+
+	}
+
+	private class MessageListener implements IMqttMessageListener {
+
+		@Override
+		public void messageArrived(String topic, MqttMessage message) {
+			Mqttv5PahoMessageDrivenChannelAdapter.this.messageArrived(topic, message);
 		}
 
 	}

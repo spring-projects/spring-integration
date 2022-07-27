@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.support.management.ManageableLifecycle;
@@ -36,13 +37,15 @@ import org.springframework.util.Assert;
 /**
  * Abstract class for MQTT outbound channel adapters.
  *
+ * @param <T> MQTT Client type
+ *
  * @author Gary Russell
  * @author Artem Bilan
  *
  * @since 4.0
  *
  */
-public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler
+public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandler
 		implements ManageableLifecycle, ApplicationEventPublisherAware {
 
 	/**
@@ -85,6 +88,8 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private int clientInstance;
+
+	protected ClientManager<T> clientManager;
 
 	public AbstractMqttMessageHandler(@Nullable String url, String clientId) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
@@ -290,6 +295,15 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler
 
 	protected long getDisconnectCompletionTimeout() {
 		return this.disconnectCompletionTimeout;
+	}
+
+	protected ClientManager<T> getClientManager() {
+		return this.clientManager;
+	}
+
+	public void setClientManager(ClientManager<T> clientManager) {
+		Assert.notNull(clientManager, "'clientManager' cannot be null");
+		this.clientManager = clientManager;
 	}
 
 	@Override

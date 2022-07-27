@@ -195,7 +195,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 	}
 
 	protected boolean isManualAcks() {
-		return this.manualAcks;
+		return this.clientManager == null ? this.manualAcks : this.clientManager.isManualAcks();
 	}
 
 	/**

@@ -55,7 +55,7 @@ import org.springframework.util.Assert;
  *
  * @since 5.5.5
  */
-public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
+public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyncClient>
 		implements MqttCallback, MqttComponent<MqttConnectionOptions> {
 
 	private final MqttConnectionOptions connectionOptions;
@@ -131,9 +131,11 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	protected void onInit() {
 		super.onInit();
 		try {
-			this.mqttClient = new MqttAsyncClient(getUrl(), getClientId(), this.persistence);
-			this.mqttClient.setCallback(this);
-			incrementClientInstance();
+			if (getClientManager() == null) {
+				this.mqttClient = new MqttAsyncClient(getUrl(), getClientId(), this.persistence);
+				this.mqttClient.setCallback(this);
+				incrementClientInstance();
+			}
 		}
 		catch (MqttException ex) {
 			throw new BeanCreationException("Cannot create 'MqttAsyncClient' for: " + getComponentName(), ex);
@@ -152,17 +154,21 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	@Override
 	protected void doStart() {
 		try {
-			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
+			if (this.mqttClient != null) {
+				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
+			}
 		}
 		catch (MqttException ex) {
-				logger.error(ex, "MQTT client failed to connect.");
+			logger.error(ex, "MQTT client failed to connect.");
 		}
 	}
 
 	@Override
 	protected void doStop() {
 		try {
-			this.mqttClient.disconnect().waitForCompletion(getDisconnectCompletionTimeout());
+			if (this.mqttClient != null) {
+				this.mqttClient.disconnect().waitForCompletion(getDisconnectCompletionTimeout());
+			}
 		}
 		catch (MqttException ex) {
 			logger.error(ex, "Failed to disconnect 'MqttAsyncClient'");
@@ -173,7 +179,9 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 	public void destroy() {
 		super.destroy();
 		try {
-			this.mqttClient.close(true);
+			if (this.mqttClient != null) {
+				this.mqttClient.close(true);
+			}
 		}
 		catch (MqttException ex) {
 			logger.error(ex, "Failed to close 'MqttAsyncClient'");
@@ -237,10 +245,17 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage, "The 'mqttMessage' must be an instance of 'MqttMessage'");
 		long completionTimeout = getCompletionTimeout();
 		try {
-			if (!this.mqttClient.isConnected()) {
-				this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
+			IMqttAsyncClient theClient;
+			if (getClientManager() != null) {
+				theClient = getClientManager().getClient();
 			}
-			IMqttToken token = this.mqttClient.publish(topic, (MqttMessage) mqttMessage);
+			else {
+				if (!this.mqttClient.isConnected()) {
+					this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
+				}
+				theClient = this.mqttClient;
+			}
+			IMqttToken token = theClient.publish(topic, (MqttMessage) mqttMessage);
 			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 			if (!this.async) {
 				token.waitForCompletion(completionTimeout); // NOSONAR (sync)

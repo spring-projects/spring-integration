@@ -18,119 +18,110 @@ package org.springframework.integration.mqtt.core;
 
 import java.time.Instant;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.support.management.ManageableLifecycle;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.util.Assert;
 
-public class Mqttv3ClientManager extends IntegrationObjectSupport implements ClientManager<IMqttAsyncClient>,
-		ManageableLifecycle, MqttCallback {
+public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncClient> implements MqttCallback {
 
-	private AtomicReference<ScheduledFuture<?>> scheduledReconnect;
+	/**
+	 * The default reconnect timeout in millis.
+	 */
+	private static final long DEFAULT_RECOVERY_INTERVAL = 10_000;
 
-	private final MqttConnectOptions connectOptions;
+	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final String clientId;
+	private final MqttPahoClientFactory clientFactory;
 
-	private IMqttAsyncClient client;
+	private final TaskScheduler taskScheduler;
 
-	public Mqttv3ClientManager(MqttConnectOptions connectOptions, String clientId) throws MqttException {
-		this.connectOptions = connectOptions;
-		this.client = new MqttAsyncClient(connectOptions.getServerURIs()[0], clientId);
-		this.client.setCallback(this);
-		this.clientId = clientId;
+	private volatile ScheduledFuture<?> scheduledReconnect;
+
+	private volatile IMqttAsyncClient client;
+
+	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+
+	public Mqttv3ClientManager(MqttPahoClientFactory clientFactory, TaskScheduler taskScheduler, String url,
+			String clientId) {
+
+		super(url, clientId);
+		Assert.notNull(clientId, "'clientFactory' is required");
+		Assert.notNull(clientId, "'taskScheduler' is required");
+		if (url == null) {
+			Assert.notEmpty(clientFactory.getConnectionOptions().getServerURIs(), "'serverURIs' must be provided in the 'MqttConnectionOptions'");
+		}
+		this.clientFactory = clientFactory;
+		this.taskScheduler = taskScheduler;
 	}
 
 	@Override
 	public IMqttAsyncClient getClient() {
-		return client;
+		return this.client;
 	}
 
 	@Override
-	public void start() {
+	public synchronized void start() {
 		if (this.client == null) {
 			try {
-				this.client = new MqttAsyncClient(this.connectOptions.getServerURIs()[0], this.clientId);
+				this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
+				this.client.setManualAcks(isManualAcks());
+				this.client.setCallback(this);
 			}
 			catch (MqttException e) {
 				throw new IllegalStateException("could not start client manager", e);
 			}
-			this.client.setCallback(this);
 		}
 		try {
 			connect();
 		}
 		catch (MqttException e) {
-			logger.error(e, "could not start client manager, scheduling reconnect, client_id=" +
-					this.client.getClientId());
+			this.logger.error("could not start client manager, scheduling reconnect, client_id=" +
+					this.client.getClientId(), e);
 			scheduleReconnect();
 		}
 	}
 
 	@Override
-	public void stop() {
+	public synchronized void stop() {
 		if (this.client == null) {
 			return;
 		}
 		try {
-			this.client.disconnectForcibly(this.connectOptions.getConnectionTimeout());
+			this.client.disconnectForcibly(this.clientFactory.getConnectionOptions().getConnectionTimeout());
 		}
 		catch (MqttException e) {
-			logger.error(e, "could not disconnect from the client");
+			this.logger.error("could not disconnect from the client", e);
 		}
 		finally {
 			try {
 				this.client.close();
 			}
 			catch (MqttException e) {
-				logger.error(e, "could not close the client");
+				this.logger.error("could not close the client", e);
 			}
 			this.client = null;
 		}
 	}
 
 	@Override
-	public boolean isRunning() {
+	public synchronized boolean isRunning() {
 		return this.client != null;
-	}
-
-	private synchronized void connect() throws MqttException {
-		if (this.client == null) {
-			logger.error("could not connect on a null client reference");
-			return;
-		}
-		MqttConnectOptions options = Mqttv3ClientManager.this.connectOptions;
-		this.client.connect(options).waitForCompletion(options.getConnectionTimeout());
 	}
 
 	@Override
 	public synchronized void connectionLost(Throwable cause) {
-		logger.error(cause, "connection lost, scheduling reconnect, client_id=" + this.client.getClientId());
-		scheduleReconnect();
-	}
-
-	private void scheduleReconnect() {
-		if (this.scheduledReconnect.get() != null) {
-			this.scheduledReconnect.get().cancel(false);
-		}
-		this.scheduledReconnect.set(getTaskScheduler().schedule(() -> {
-			try {
-				connect();
-				this.scheduledReconnect.set(null);
-			}
-			catch (MqttException e) {
-				logger.error(e, "could not reconnect");
-				scheduleReconnect();
-			}
-		}, Instant.now().plusSeconds(10)));
+		this.logger.error("connection lost, scheduling reconnect, client_id=" + this.client.getClientId(),
+				cause);
+		scheduleReconnect(); // todo: do we need to resubscribe if con lost?
 	}
 
 	@Override
@@ -142,4 +133,38 @@ public class Mqttv3ClientManager extends IntegrationObjectSupport implements Cli
 	public void deliveryComplete(IMqttDeliveryToken token) {
 		// nor this manager concern
 	}
+
+	public long getRecoveryInterval() {
+		return this.recoveryInterval;
+	}
+
+	public void setRecoveryInterval(long recoveryInterval) {
+		this.recoveryInterval = recoveryInterval;
+	}
+
+	private synchronized void connect() throws MqttException {
+		MqttConnectOptions options = this.clientFactory.getConnectionOptions();
+		this.client.connect(options).waitForCompletion(options.getConnectionTimeout());
+	}
+
+	private synchronized void scheduleReconnect() {
+		if (this.scheduledReconnect != null) {
+			this.scheduledReconnect.cancel(false);
+		}
+		this.scheduledReconnect = this.taskScheduler.schedule(() -> {
+			try {
+				if (this.client.isConnected()) {
+					return;
+				}
+
+				connect();
+				this.scheduledReconnect = null;
+			}
+			catch (MqttException e) {
+				this.logger.error("could not reconnect", e);
+				scheduleReconnect();
+			}
+		}, Instant.now().plusMillis(getRecoveryInterval()));
+	}
+
 }

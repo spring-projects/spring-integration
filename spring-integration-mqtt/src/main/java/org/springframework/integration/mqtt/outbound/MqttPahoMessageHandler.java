@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,8 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public class MqttPahoMessageHandler extends AbstractMqttMessageHandler implements MqttCallback, MqttPahoComponent {
+public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyncClient>
+		implements MqttCallback, MqttPahoComponent {
 
 	private final MqttPahoClientFactory clientFactory;
 
@@ -169,6 +170,11 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler implement
 	}
 
 	private synchronized IMqttAsyncClient checkConnection() throws MqttException {
+		var theClientManager = getClientManager();
+		if (theClientManager != null) {
+			return theClientManager.getClient();
+		}
+
 		if (this.client != null && !this.client.isConnected()) {
 			this.client.setCallback(null);
 			this.client.close();

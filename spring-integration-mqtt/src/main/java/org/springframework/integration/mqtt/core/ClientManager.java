@@ -16,10 +16,12 @@
 
 package org.springframework.integration.mqtt.core;
 
-import org.springframework.integration.support.management.ManageableLifecycle;
+import org.springframework.context.SmartLifecycle;
 
-public interface ClientManager<T> extends ManageableLifecycle {
+public interface ClientManager<T> extends SmartLifecycle {
 
 	T getClient();
+
+	boolean isManualAcks();
 
 }
