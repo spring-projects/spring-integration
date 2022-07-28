@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -51,7 +52,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * A base {@link AbstractReplyProducingMessageHandler} extension for AMQP message handlers.
@@ -703,7 +703,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		}
 
 		@Override
-		public SettableListenableFuture<Confirm> getFuture() {
+		public CompletableFuture<Confirm> getFuture() {
 			if (this.userData instanceof CorrelationData) {
 				return ((CorrelationData) this.userData).getFuture();
 			}

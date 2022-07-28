@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -35,6 +36,7 @@ import org.mockito.ArgumentCaptor;
 
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import org.springframework.amqp.rabbit.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -99,7 +101,7 @@ public class OutboundEndpointTests {
 				new SimpleMessageListenerContainer(connectionFactory), "replyTo"));
 		amqpTemplate.setTaskScheduler(mock(TaskScheduler.class));
 		AsyncAmqpOutboundGateway gateway = new AsyncAmqpOutboundGateway(amqpTemplate);
-		willAnswer(invocation -> amqpTemplate.new RabbitMessageFuture("foo", invocation.getArgument(2)))
+		willReturn(mock(RabbitMessageFuture.class))
 				.given(amqpTemplate)
 				.sendAndReceive(anyString(), anyString(), any(Message.class));
 		gateway.setExchangeName("foo");
@@ -121,8 +123,7 @@ public class OutboundEndpointTests {
 		RabbitTemplate amqpTemplate = spy(new RabbitTemplate(connectionFactory));
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(amqpTemplate);
 		endpoint.setHeadersMappedLast(true);
-		final AtomicReference<Message> amqpMessage =
-				new AtomicReference<Message>();
+		final AtomicReference<Message> amqpMessage = new AtomicReference<>();
 		willAnswer(invocation -> {
 			amqpMessage.set(invocation.getArgument(2));
 			return null;
@@ -146,8 +147,7 @@ public class OutboundEndpointTests {
 		DefaultAmqpHeaderMapper mapper = DefaultAmqpHeaderMapper.inboundMapper();
 		mapper.setRequestHeaderNames("*");
 		endpoint.setHeaderMapper(mapper);
-		final AtomicReference<Message> amqpMessage =
-				new AtomicReference<Message>();
+		final AtomicReference<Message> amqpMessage = new AtomicReference<>();
 		willAnswer(invocation -> {
 			amqpMessage.set(invocation.getArgument(2));
 			return null;

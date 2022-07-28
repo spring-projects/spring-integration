@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -35,7 +36,7 @@ import org.mockito.ArgumentMatchers;
 
 import org.springframework.amqp.core.AmqpReplyTimeoutException;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
-import org.springframework.amqp.rabbit.AsyncRabbitTemplate.RabbitMessageFuture;
+import org.springframework.amqp.rabbit.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -58,7 +59,6 @@ import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * @author Gary Russell
@@ -198,15 +198,13 @@ class AsyncAmqpGatewayTests {
 		ackChannel.receive(10000);
 		ackChannel.purge(null);
 
+		RabbitMessageFuture future = mock(RabbitMessageFuture.class);
+		willReturn("nacknack").given(future).getNackCause();
+		willReturn(CompletableFuture.completedFuture(false)).given(future).getConfirm();
+
 		asyncTemplate = mock(AsyncRabbitTemplate.class);
-		RabbitMessageFuture future = asyncTemplate.new RabbitMessageFuture(null, null);
 		willReturn(future).given(asyncTemplate).sendAndReceive(anyString(), anyString(),
 				any(org.springframework.amqp.core.Message.class));
-		DirectFieldAccessor dfa = new DirectFieldAccessor(future);
-		dfa.setPropertyValue("nackCause", "nacknack");
-		SettableListenableFuture<Boolean> confirmFuture = new SettableListenableFuture<>();
-		confirmFuture.set(false);
-		dfa.setPropertyValue("confirm", confirmFuture);
 		new DirectFieldAccessor(gateway).setPropertyValue("template", asyncTemplate);
 
 		message = MessageBuilder.withPayload("buz").setErrorChannel(errorChannel).build();
