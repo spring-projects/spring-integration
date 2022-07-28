@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.websocket;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -25,8 +26,6 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.WebSocketSession;
@@ -241,26 +240,22 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 				logger.info("Connecting to WebSocket at " + getUri());
 			}
 			ClientWebSocketContainer.this.headers.setSecWebSocketProtocol(getSubProtocols());
-			ListenableFuture<WebSocketSession> future =
-					this.client.doHandshake(ClientWebSocketContainer.this.webSocketHandler,
+			CompletableFuture<WebSocketSession> future =
+					this.client.execute(ClientWebSocketContainer.this.webSocketHandler,
 							ClientWebSocketContainer.this.headers, getUri());
 
-			future.addCallback(new ListenableFutureCallback<WebSocketSession>() {
-
-				@Override
-				public void onSuccess(WebSocketSession session) {
+			future.whenComplete((session, throwable) -> {
+				if (throwable == null) {
 					ClientWebSocketContainer.this.clientSession = session;
 					logger.info("Successfully connected");
-					ClientWebSocketContainer.this.connectionLatch.countDown();
 				}
-
-				@Override
-				public void onFailure(Throwable t) {
-					logger.error("Failed to connect", t);
-					ClientWebSocketContainer.this.openConnectionException = t;
-					ClientWebSocketContainer.this.connectionLatch.countDown();
+				else {
+					Throwable cause = throwable.getCause();
+					cause = cause != null ? cause : throwable;
+					logger.error("Failed to connect", cause);
+					ClientWebSocketContainer.this.openConnectionException = cause;
 				}
-
+				ClientWebSocketContainer.this.connectionLatch.countDown();
 			});
 		}
 

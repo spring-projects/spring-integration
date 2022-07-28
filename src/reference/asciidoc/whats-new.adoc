@@ -52,6 +52,11 @@ The factory class will be removed in the future releases.
 
 See <<./dsl.adoc#java-dsl,Java DSL>> for more information.
 
+The `org.springframework.util.concurrent.ListenableFuture` has been deprecated starting with Spring Framework `6.0`.
+All Spring Integration async API has been migrated to the `CompletableFuture`.
+
+See <<./gateway.adoc#gw-completable-future, CompletableFuture support>> for more information.
+
 [[x6.0-http]]
 === HTTP Changes
 

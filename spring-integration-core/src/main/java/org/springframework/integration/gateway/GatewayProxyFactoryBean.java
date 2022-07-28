@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
@@ -49,7 +48,6 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
@@ -144,10 +142,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	private AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
 
 	private boolean asyncExecutorExplicitlySet;
-
-	private Class<?> asyncSubmitType;
-
-	private Class<?> asyncSubmitListenableType;
 
 	private volatile boolean initialized;
 
@@ -468,15 +462,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 					new ProxyFactory(this.serviceInterface, this);
 			gatewayProxyFactory.addAdvice(new DefaultMethodInvokingMethodInterceptor());
 			this.serviceProxy = gatewayProxyFactory.getProxy(this.beanClassLoader);
-			if (this.asyncExecutor != null) {
-				Callable<String> task = () -> null;
-				Future<String> submitType = this.asyncExecutor.submit(task);
-				this.asyncSubmitType = submitType.getClass();
-				if (this.asyncExecutor instanceof AsyncListenableTaskExecutor) {
-					submitType = ((AsyncListenableTaskExecutor) this.asyncExecutor).submitListenable(task);
-					this.asyncSubmitListenableType = submitType.getClass();
-				}
-			}
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 			this.initialized = true;
 		}
@@ -511,6 +496,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	@Override
 	@Nullable
+	@SuppressWarnings("deprecation")
 	public Object invoke(final MethodInvocation invocation) throws Throwable { // NOSONAR
 		final Class<?> returnType;
 		MethodInvocationGateway gateway = this.gatewayMap.get(invocation.getMethod());
@@ -522,14 +508,15 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 		if (this.asyncExecutor != null && !Object.class.equals(returnType)) {
 			Invoker invoker = new Invoker(invocation);
-			if (returnType.isAssignableFrom(this.asyncSubmitType)) {
+			if (Future.class.equals(returnType)) {
 				return this.asyncExecutor.submit(invoker::get);
-			}
-			else if (returnType.isAssignableFrom(this.asyncSubmitListenableType)) {
-				return ((AsyncListenableTaskExecutor) this.asyncExecutor).submitListenable(invoker::get);
 			}
 			else if (CompletableFuture.class.equals(returnType)) { // exact
 				return CompletableFuture.supplyAsync(invoker, this.asyncExecutor);
+			}
+			else if (org.springframework.util.concurrent.ListenableFuture.class.equals(returnType)) {
+				return ((org.springframework.core.task.AsyncListenableTaskExecutor) this.asyncExecutor)
+						.submitListenable(invoker::get);
 			}
 			else if (Future.class.isAssignableFrom(returnType)) {
 				logger.debug(() -> "AsyncTaskExecutor submit*() return types are incompatible with the method return " +

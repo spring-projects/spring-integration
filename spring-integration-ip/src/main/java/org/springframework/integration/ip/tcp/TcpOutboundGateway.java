@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
@@ -48,7 +49,6 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
-import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * TCP outbound gateway that uses a client connection factory. If the factory is configured
@@ -342,7 +342,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			}
 		}
 		if (isAsync()) {
-			reply.getFuture().set(message);
+			reply.getFuture().complete(message);
 			cleanUp(reply.isHaveSemaphore(), reply.getConnection(), connectionId);
 		}
 		else {
@@ -427,7 +427,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		private final boolean haveSemaphore;
 
-		private final SettableListenableFuture<Message<?>> future = new SettableListenableFuture<>();
+		private final CompletableFuture<Message<?>> future = new CompletableFuture<>();
 
 		private volatile Message<?> reply;
 
@@ -443,7 +443,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				getTaskScheduler()
 						.schedule(() -> {
 							TcpOutboundGateway.this.pendingReplies.remove(connection.getConnectionId());
-							this.future.setException(
+							this.future.completeExceptionally(
 									new MessageTimeoutException(requestMessage, "Timed out waiting for response"));
 						}, Instant.now().plusMillis(remoteTimeout));
 			}
@@ -495,7 +495,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			return this.reply;
 		}
 
-		SettableListenableFuture<Message<?>> getFuture() {
+		CompletableFuture<Message<?>> getFuture() {
 			return this.future;
 		}
 

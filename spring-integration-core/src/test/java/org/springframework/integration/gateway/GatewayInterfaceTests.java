@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,11 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -81,13 +81,10 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**
  * @author Oleg Zhurakousky
@@ -399,6 +396,7 @@ public class GatewayInterfaceTests {
 	 * performed the send() on gatewayThreadChannel.
 	 */
 	@Test
+	@SuppressWarnings("deprecation")
 	public void testExecs() throws Exception {
 		assertThat(TestUtils.getPropertyValue(execGatewayFB, "asyncExecutor")).isSameAs(exec);
 		assertThat(TestUtils.getPropertyValue(noExecGatewayFB, "asyncExecutor")).isNull();
@@ -414,24 +412,22 @@ public class GatewayInterfaceTests {
 		result = this.noExecGateway.test1(Thread.currentThread());
 		assertThat(result.get()).isEqualTo(Thread.currentThread());
 
-		ListenableFuture<Thread> result2 = this.execGateway.test2(Thread.currentThread());
+		CompletableFuture<Thread> result2 = this.execGateway.test2(Thread.currentThread());
 		final CountDownLatch latch = new CountDownLatch(1);
-		final AtomicReference<Thread> thread = new AtomicReference<>();
-		result2.addCallback(new ListenableFutureCallback<>() {
-
-			@Override
-			public void onSuccess(Thread result) {
-				thread.set(result);
+		result2.whenComplete((currentThread, throwable) -> {
+			if (throwable == null) {
 				latch.countDown();
 			}
-
-			@Override
-			public void onFailure(Throwable t) {
-			}
-
 		});
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(result2.get().getName()).startsWith("exec-");
+
+		org.springframework.util.concurrent.ListenableFuture<Thread> result3 =
+				this.execGateway.test3(Thread.currentThread());
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		result3.addCallback(data -> latch1.countDown(), ex -> { });
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(result3.get().getName()).startsWith("exec-");
 
 		/*
 		@IntegrationComponentScan(useDefaultFilters = false,
@@ -615,7 +611,7 @@ public class GatewayInterfaceTests {
 					Object payload;
 					if (Thread.currentThread().equals(message.getPayload())) {
 						// running on calling thread - need to return a Future.
-						payload = new AsyncResult<>(Thread.currentThread());
+						payload = CompletableFuture.completedFuture(Thread.currentThread());
 					}
 					else {
 						payload = Thread.currentThread();
@@ -683,7 +679,11 @@ public class GatewayInterfaceTests {
 		Future<Thread> test1(Thread caller);
 
 		@Gateway(requestChannel = "gatewayThreadChannel")
-		ListenableFuture<Thread> test2(Thread caller);
+		CompletableFuture<Thread> test2(Thread caller);
+
+		@Gateway(requestChannel = "gatewayThreadChannel")
+		@SuppressWarnings("deprecation")
+		org.springframework.util.concurrent.ListenableFuture<Thread> test3(Thread caller);
 
 	}
 

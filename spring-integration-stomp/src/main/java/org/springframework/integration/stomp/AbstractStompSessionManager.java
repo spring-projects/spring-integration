@@ -20,10 +20,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,7 +48,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**
  * Base {@link StompSessionManager} implementation to manage a single {@link StompSession}
@@ -103,7 +104,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private volatile boolean connected;
 
-	private volatile ListenableFuture<StompSession> stompSessionListenableFuture;
+	private volatile CompletableFuture<StompSession> stompSessionFuture;
 
 	private volatile ScheduledFuture<?> reconnectFuture;
 
@@ -187,7 +188,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			this.logger.debug("Connecting " + this);
 		}
 		try {
-			this.stompSessionListenableFuture = doConnect(this.compositeStompSessionHandler);
+			this.stompSessionFuture = doConnect(this.compositeStompSessionHandler);
 		}
 		catch (Exception e) {
 			if (currentEpoch == this.epoch.get()) {
@@ -216,29 +217,30 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private CountDownLatch addStompSessionCallback(int currentEpoch) {
 		CountDownLatch connectLatch = new CountDownLatch(1);
-		this.stompSessionListenableFuture.addCallback(
-				stompSession -> {
-					AbstractStompSessionManager.this.logger.debug("onSuccess");
-					AbstractStompSessionManager.this.connected = true;
-					AbstractStompSessionManager.this.connecting = false;
-					if (stompSession != null) {
-						stompSession.setAutoReceipt(isAutoReceiptEnabled());
+		this.stompSessionFuture.whenComplete((stompSession, throwable) -> {
+					if (throwable == null) {
+						AbstractStompSessionManager.this.logger.debug("onSuccess");
+						AbstractStompSessionManager.this.connected = true;
+						AbstractStompSessionManager.this.connecting = false;
+						if (stompSession != null) {
+							stompSession.setAutoReceipt(isAutoReceiptEnabled());
+						}
+						if (AbstractStompSessionManager.this.applicationEventPublisher != null) {
+							AbstractStompSessionManager.this.applicationEventPublisher.publishEvent(
+									new StompSessionConnectedEvent(this));
+						}
+						AbstractStompSessionManager.this.reconnectFuture = null;
+						connectLatch.countDown();
 					}
-					if (AbstractStompSessionManager.this.applicationEventPublisher != null) {
-						AbstractStompSessionManager.this.applicationEventPublisher.publishEvent(
-								new StompSessionConnectedEvent(this));
+					else {
+						AbstractStompSessionManager.this.logger.debug("onFailure", throwable);
+						connectLatch.countDown();
+						if (currentEpoch == AbstractStompSessionManager.this.epoch.get()) {
+							scheduleReconnect(throwable);
+						}
 					}
-					AbstractStompSessionManager.this.reconnectFuture = null;
-					connectLatch.countDown();
-
-				},
-				e -> {
-					AbstractStompSessionManager.this.logger.debug("onFailure", e);
-					connectLatch.countDown();
-					if (currentEpoch == AbstractStompSessionManager.this.epoch.get()) {
-						scheduleReconnect(e);
-					}
-				});
+				}
+		);
 		return connectLatch;
 	}
 
@@ -271,29 +273,21 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	@Override
 	public void destroy() {
-		if (this.stompSessionListenableFuture != null) {
+		if (this.stompSessionFuture != null) {
 			if (this.reconnectFuture != null) {
 				this.reconnectFuture.cancel(false);
 				this.reconnectFuture = null;
 			}
-			this.stompSessionListenableFuture.addCallback(
-					new ListenableFutureCallback<>() {
+			this.stompSessionFuture.whenComplete(new BiConsumer<StompSession, Throwable>() {
 
-						@Override
-						public void onFailure(Throwable ex) {
-							AbstractStompSessionManager.this.connected = false;
-						}
-
-						@Override
-						public void onSuccess(StompSession session) {
-							if (session != null) {
-								session.disconnect();
-							}
-							AbstractStompSessionManager.this.connected = false;
-						}
-
-					});
-			this.stompSessionListenableFuture = null;
+				@Override public void accept(StompSession session, Throwable throwable) {
+					if (session != null) {
+						session.disconnect();
+					}
+					AbstractStompSessionManager.this.connected = false;
+				}
+			});
+			this.stompSessionFuture = null;
 		}
 	}
 
@@ -353,7 +347,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 				'}';
 	}
 
-	protected abstract ListenableFuture<StompSession> doConnect(StompSessionHandler handler);
+	protected abstract CompletableFuture<StompSession> doConnect(StompSessionHandler handler);
 
 
 	private class CompositeStompSessionHandler extends StompSessionHandlerAdapter {

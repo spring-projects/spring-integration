@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,7 +47,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * @author Gary Russell
@@ -80,19 +80,14 @@ public class AsyncHandlerTests {
 
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				final SettableListenableFuture<String> future = new SettableListenableFuture<>();
+				CompletableFuture<String> future = new CompletableFuture<>();
 				AsyncHandlerTests.this.executor.execute(() -> {
 					try {
 						latch.await(10, TimeUnit.SECONDS);
 						switch (whichTest) {
-							case 0:
-								future.set("reply");
-								break;
-							case 1:
-								future.setException(new RuntimeException("foo"));
-								break;
-							case 2:
-								future.setException(new MessagingException(requestMessage));
+							case 0 -> future.complete("reply");
+							case 1 -> future.completeExceptionally(new RuntimeException("foo"));
+							case 2 -> future.completeExceptionally(new MessagingException(requestMessage));
 						}
 					}
 					catch (InterruptedException e) {

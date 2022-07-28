@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -46,7 +47,6 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.WebServiceClientException;
@@ -142,13 +142,13 @@ public class SimpleWebServiceOutboundGatewayTests {
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 
-		final SettableListenableFuture<WebServiceMessage> requestFuture = new SettableListenableFuture<>();
+		final CompletableFuture<WebServiceMessage> requestFuture = new CompletableFuture<>();
 
 		ClientInterceptorAdapter interceptorAdapter = new ClientInterceptorAdapter() {
 
 			@Override
 			public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {
-				requestFuture.set(messageContext.getRequest());
+				requestFuture.complete(messageContext.getRequest());
 				return super.handleRequest(messageContext);
 			}
 
@@ -202,13 +202,13 @@ public class SimpleWebServiceOutboundGatewayTests {
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 
-		final SettableListenableFuture<WebServiceMessage> requestFuture = new SettableListenableFuture<>();
+		final CompletableFuture<WebServiceMessage> requestFuture = new CompletableFuture<>();
 
 		ClientInterceptorAdapter interceptorAdapter = new ClientInterceptorAdapter() {
 
 			@Override
 			public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {
-				requestFuture.set(messageContext.getRequest());
+				requestFuture.complete(messageContext.getRequest());
 				return super.handleRequest(messageContext);
 			}
 

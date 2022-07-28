@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@
 package org.springframework.integration.config.annotation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.concurrent.CompletableFuture;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,9 +35,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.SettableListenableFuture;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Dave Syer
@@ -44,7 +44,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @author Artem Bilan
  * @author Yilin Wei
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class AnnotatedEndpointActivationTests {
 
@@ -72,7 +72,7 @@ public class AnnotatedEndpointActivationTests {
 	// them will get the message.
 	private static volatile int count = 0;
 
-	@Before
+	@BeforeEach
 	public void resetCount() {
 		count = 0;
 	}
@@ -108,11 +108,12 @@ public class AnnotatedEndpointActivationTests {
 		assertThat(count).isEqualTo(1);
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	@DirtiesContext
 	public void stopContext() {
 		applicationContext.stop();
-		this.input.send(new GenericMessage<>("foo"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.input.send(new GenericMessage<>("foo")));
 	}
 
 	@Test
@@ -159,9 +160,9 @@ public class AnnotatedEndpointActivationTests {
 	private static class AnnotatedEndpoint3 {
 
 		@ServiceActivator(inputChannel = "inputAsync", outputChannel = "outputAsync", async = "true")
-		public ListenableFuture<String> process(String message) {
-			SettableListenableFuture<String> future = new SettableListenableFuture<>();
-			future.set(message);
+		public CompletableFuture<String> process(String message) {
+			CompletableFuture<String> future = new CompletableFuture<>();
+			future.complete(message);
 			return future;
 		}
 
