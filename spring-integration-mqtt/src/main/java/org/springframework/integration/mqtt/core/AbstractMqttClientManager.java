@@ -16,20 +16,24 @@
 
 package org.springframework.integration.mqtt.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.util.Assert;
 
 public abstract class AbstractMqttClientManager<T> implements ClientManager<T> {
+
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private boolean manualAcks;
 
 	private String url;
 
-	private String clientId;
+	private final String clientId;
 
-	AbstractMqttClientManager(String url, String clientId) {
+	AbstractMqttClientManager(String clientId) {
 		Assert.notNull(clientId, "'clientId' is required");
 		this.clientId = clientId;
-		this.url = url;
 	}
 
 	@Override
@@ -53,7 +57,4 @@ public abstract class AbstractMqttClientManager<T> implements ClientManager<T> {
 		return this.clientId;
 	}
 
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
 }

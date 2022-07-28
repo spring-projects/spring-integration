@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mqtt.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttAsyncClient;
@@ -32,19 +30,29 @@ import org.springframework.util.Assert;
 
 public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncClient> implements MqttCallback {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
-
 	private final MqttConnectionOptions connectionOptions;
 
 	private volatile IMqttAsyncClient client;
 
-	public Mqttv5ClientManager(MqttConnectionOptions connectionOptions, String url, String clientId) {
-		super(url, clientId);
+	public Mqttv5ClientManager(String url, String clientId) {
+		super(clientId);
+		Assert.notNull(url, "'url' is required");
+		setUrl(url);
+		this.connectionOptions = new MqttConnectionOptions();
+		this.connectionOptions.setServerURIs(new String[]{ url });
+		this.connectionOptions.setAutomaticReconnect(true);
+	}
+
+	public Mqttv5ClientManager(MqttConnectionOptions connectionOptions, String clientId) {
+		super(clientId);
 		Assert.notNull(connectionOptions, "'connectionOptions' is required");
-		if (url == null) {
-			Assert.notEmpty(connectionOptions.getServerURIs(), "'serverURIs' must be provided in the 'MqttConnectionOptions'");
-		}
 		this.connectionOptions = connectionOptions;
+		if (!this.connectionOptions.isAutomaticReconnect()) {
+			logger.warn("It is recommended to set 'automaticReconnect' MQTT connection option. " +
+					"Otherwise connection check and reconnect should be done manually.");
+		}
+		Assert.notEmpty(connectionOptions.getServerURIs(), "'serverURIs' must be provided in the 'MqttConnectionOptions'");
+		setUrl(connectionOptions.getServerURIs()[0]);
 	}
 
 	@Override
@@ -69,7 +77,7 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 					.waitForCompletion(this.connectionOptions.getConnectionTimeout());
 		}
 		catch (MqttException e) {
-			this.logger.error("could not start client manager, client_id=" + this.client.getClientId(), e);
+			logger.error("could not start client manager, client_id=" + this.client.getClientId(), e);
 		}
 	}
 
@@ -83,14 +91,14 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 			this.client.disconnectForcibly(this.connectionOptions.getConnectionTimeout());
 		}
 		catch (MqttException e) {
-			this.logger.error("could not disconnect from the client", e);
+			logger.error("could not disconnect from the client", e);
 		}
 		finally {
 			try {
 				this.client.close();
 			}
 			catch (MqttException e) {
-				this.logger.error("could not close the client", e);
+				logger.error("could not close the client", e);
 			}
 			this.client = null;
 		}
@@ -113,8 +121,8 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (this.logger.isInfoEnabled()) {
-			this.logger.info("MQTT connect complete to " + serverURI);
+		if (logger.isInfoEnabled()) {
+			logger.info("MQTT connect complete to " + serverURI);
 		}
 		// probably makes sense to use custom callbacks in the future
 	}
@@ -126,14 +134,14 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 
 	@Override
 	public void disconnected(MqttDisconnectResponse disconnectResponse) {
-		if (this.logger.isInfoEnabled()) {
-			this.logger.info("MQTT disconnected" + disconnectResponse);
+		if (logger.isInfoEnabled()) {
+			logger.info("MQTT disconnected" + disconnectResponse);
 		}
 	}
 
 	@Override
 	public void mqttErrorOccurred(MqttException exception) {
-		this.logger.error("MQTT error occurred", exception);
+		logger.error("MQTT error occurred", exception);
 	}
 
 }

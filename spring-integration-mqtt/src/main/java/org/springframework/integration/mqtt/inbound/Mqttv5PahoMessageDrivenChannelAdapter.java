@@ -331,11 +331,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (reconnect) {
-			return;
+		if (!reconnect) {
+			subscribeToAll();
 		}
-
-		subscribeToAll();
 	}
 
 	@Override

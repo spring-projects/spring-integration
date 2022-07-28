@@ -79,6 +79,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
+import org.springframework.integration.mqtt.core.Mqttv3ClientManager;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
@@ -208,6 +209,72 @@ public class MqttAdapterTests {
 		handler.connectionLost(new IllegalStateException());
 		assertThat(failed.get()).isInstanceOf(MqttConnectionFailedEvent.class);
 		handler.stop();
+	}
+
+	@Test
+	void testClientManagerIsNotConnectedAndClosedInHandler() throws Exception {
+		// given
+		var clientManager = mock(Mqttv3ClientManager.class);
+		var client = mock(MqttAsyncClient.class);
+		given(clientManager.getClient()).willReturn(client);
+
+		var deliveryToken = mock(MqttDeliveryToken.class);
+		given(client.publish(anyString(), any(MqttMessage.class))).willReturn(deliveryToken);
+
+		var handler = new MqttPahoMessageHandler("foo", "bar",
+				new DefaultMqttPahoClientFactory());
+		handler.setClientManager(clientManager);
+		handler.setDefaultTopic("mqtt-foo");
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		handler.start();
+
+		// when
+		handler.handleMessage(new GenericMessage<>("Hello, world!"));
+		handler.connectionLost(new IllegalStateException());
+		handler.stop();
+
+		// then
+		verify(client, never()).connect(any(MqttConnectOptions.class));
+		verify(client).publish(anyString(), any(MqttMessage.class));
+		verify(client, never()).disconnect();
+		verify(client, never()).disconnect(anyLong());
+		verify(client, never()).close();
+	}
+
+	@Test
+	void testClientManagerIsNotConnectedAndClosedInAdapter() throws Exception {
+		// given
+		var clientManager = mock(Mqttv3ClientManager.class);
+		var client = mock(MqttAsyncClient.class);
+		given(clientManager.getClient()).willReturn(client);
+
+		var subscribeToken = mock(MqttToken.class);
+		given(subscribeToken.getGrantedQos()).willReturn(new int[]{ 2 });
+		given(client.subscribe(any(String[].class), any(int[].class), any()))
+				.willReturn(subscribeToken);
+
+		var adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar",
+				new DefaultMqttPahoClientFactory(), "mqtt-foo");
+		adapter.setClientManager(clientManager);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.afterPropertiesSet();
+
+		// when
+		adapter.start();
+		adapter.connectionLost(new IllegalStateException());
+		adapter.stop();
+
+		// then
+		verify(client, never()).connect(any(MqttConnectOptions.class));
+		verify(client).subscribe(eq(new String[]{ "mqtt-foo" }), any(int[].class), any());
+		verify(client).unsubscribe(new String[]{ "mqtt-foo" });
+		verify(client, never()).disconnect();
+		verify(client, never()).disconnect(anyLong());
+		verify(client, never()).close();
 	}
 
 	@Test
@@ -571,7 +638,7 @@ public class MqttAdapterTests {
 
 		willThrow(mqttException)
 				.given(client)
-				.subscribe(any(), ArgumentMatchers.any());
+				.subscribe(any(), any());
 
 		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
