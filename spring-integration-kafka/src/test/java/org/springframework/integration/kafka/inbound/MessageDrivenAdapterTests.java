@@ -50,6 +50,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -85,8 +86,6 @@ import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.kafka.support.converter.StringJsonMessageConverter;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
@@ -111,13 +110,6 @@ import org.springframework.retry.support.RetryTemplate;
  * @since 5.4
  *
  */
-@EmbeddedKafka(controlledShutdown = true,
-		topics = { MessageDrivenAdapterTests.topic1,
-				MessageDrivenAdapterTests.topic2,
-				MessageDrivenAdapterTests.topic3,
-				MessageDrivenAdapterTests.topic4,
-				MessageDrivenAdapterTests.topic5,
-				MessageDrivenAdapterTests.topic6 })
 class MessageDrivenAdapterTests {
 
 	static final String topic1 = "testTopic1";
@@ -132,9 +124,16 @@ class MessageDrivenAdapterTests {
 
 	static final String topic6 = "testTopic6";
 
+	static String EMBEDDED_BROKERS;
+
+	@BeforeAll
+	static void setup() {
+		EMBEDDED_BROKERS = System.getProperty("spring.global.embedded.kafka.brokers");
+	}
+
 	@Test
-	void testInboundRecord(EmbeddedKafkaBroker embeddedKafka) {
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "true", embeddedKafka);
+	void testInboundRecord() {
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test1", "true");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic1);
@@ -155,9 +154,9 @@ class MessageDrivenAdapterTests {
 
 		});
 		adapter.start();
-		ContainerTestUtils.waitForAssignment(container, 2);
+		ContainerTestUtils.waitForAssignment(container, 1);
 
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(EMBEDDED_BROKERS);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic1);
@@ -219,8 +218,8 @@ class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	void testInboundRecordRetryRecover(EmbeddedKafkaBroker embeddedKafka) {
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test4", "true", embeddedKafka);
+	void testInboundRecordRetryRecover() {
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test4", "true");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic4);
@@ -248,9 +247,9 @@ class MessageDrivenAdapterTests {
 		adapter.setRetryTemplate(retryTemplate);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		ContainerTestUtils.waitForAssignment(container, 2);
+		ContainerTestUtils.waitForAssignment(container, 1);
 
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(EMBEDDED_BROKERS);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic4);
@@ -286,8 +285,8 @@ class MessageDrivenAdapterTests {
 	 * to the consumer.
 	 */
 	@Test
-	void testInboundRecordRetryRecoverWithoutRecoveryCallback(EmbeddedKafkaBroker embeddedKafka) throws Exception {
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test6", "true", embeddedKafka);
+	void testInboundRecordRetryRecoverWithoutRecoveryCallback() throws Exception {
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test6", "true");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic6);
@@ -321,9 +320,9 @@ class MessageDrivenAdapterTests {
 
 		adapter.afterPropertiesSet();
 		adapter.start();
-		ContainerTestUtils.waitForAssignment(container, 2);
+		ContainerTestUtils.waitForAssignment(container, 1);
 
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(EMBEDDED_BROKERS);
 		DefaultKafkaProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic6);
@@ -336,8 +335,8 @@ class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	void testInboundRecordNoRetryRecover(EmbeddedKafkaBroker embeddedKafka) {
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test5", "true", embeddedKafka);
+	void testInboundRecordNoRetryRecover() {
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test5", "true");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic5);
@@ -362,9 +361,9 @@ class MessageDrivenAdapterTests {
 		adapter.setBindSourceRecord(true);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		ContainerTestUtils.waitForAssignment(container, 2);
+		ContainerTestUtils.waitForAssignment(container, 1);
 
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(EMBEDDED_BROKERS);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic5);
@@ -391,8 +390,8 @@ class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	void testInboundBatch(EmbeddedKafkaBroker embeddedKafka) throws Exception {
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test2", "true", embeddedKafka);
+	void testInboundBatch() throws Exception {
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test2", "true");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic2);
@@ -421,9 +420,9 @@ class MessageDrivenAdapterTests {
 
 		});
 		adapter.start();
-		ContainerTestUtils.waitForAssignment(container, 2);
+		ContainerTestUtils.waitForAssignment(container, 1);
 
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(EMBEDDED_BROKERS);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic2);
@@ -479,8 +478,8 @@ class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	void testInboundJson(EmbeddedKafkaBroker embeddedKafka) {
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test3", "true", embeddedKafka);
+	void testInboundJson() {
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test3", "true");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic3);
@@ -492,9 +491,9 @@ class MessageDrivenAdapterTests {
 		adapter.setOutputChannel(out);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		ContainerTestUtils.waitForAssignment(container, 2);
+		ContainerTestUtils.waitForAssignment(container, 1);
 
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(EMBEDDED_BROKERS);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic3);
@@ -521,8 +520,8 @@ class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	void testInboundJsonWithPayload(EmbeddedKafkaBroker embeddedKafka) {
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test6", "true", embeddedKafka);
+	void testInboundJsonWithPayload() {
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test6", "true");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, Foo> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic6);
@@ -538,9 +537,9 @@ class MessageDrivenAdapterTests {
 		adapter.setOutputChannel(out);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		ContainerTestUtils.waitForAssignment(container, 2);
+		ContainerTestUtils.waitForAssignment(container, 1);
 
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(EMBEDDED_BROKERS);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic6);

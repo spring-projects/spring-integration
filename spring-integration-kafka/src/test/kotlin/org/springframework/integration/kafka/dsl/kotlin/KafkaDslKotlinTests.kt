@@ -23,10 +23,9 @@ import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.TopicPartition
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.DisabledOnOs
-import org.junit.jupiter.api.condition.OS
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.integration.IntegrationMessageHeaderAccessor
@@ -48,8 +47,6 @@ import org.springframework.kafka.requestreply.ReplyingKafkaTemplate
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper
 import org.springframework.kafka.support.KafkaHeaders
-import org.springframework.kafka.test.EmbeddedKafkaBroker
-import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
@@ -72,24 +69,21 @@ import java.util.stream.Stream
  * @since 5.4
  */
 
-@DisabledOnOs(OS.WINDOWS)
 @SpringJUnitConfig
 @DirtiesContext
-@EmbeddedKafka(topics = [KafkaDslKotlinTests.TEST_TOPIC1, KafkaDslKotlinTests.TEST_TOPIC2,
-	KafkaDslKotlinTests.TEST_TOPIC3, KafkaDslKotlinTests.TEST_TOPIC4, KafkaDslKotlinTests.TEST_TOPIC5])
 class KafkaDslKotlinTests {
 
 	companion object {
 
-		const val TEST_TOPIC1 = "test-topic1"
+		const val TEST_TOPIC1 = "test-kotlin-topic1"
 
-		const val TEST_TOPIC2 = "test-topic2"
+		const val TEST_TOPIC2 = "test-kotlin-topic2"
 
-		const val TEST_TOPIC3 = "test-topic3"
+		const val TEST_TOPIC3 = "test-kotlin-topic3"
 
-		const val TEST_TOPIC4 = "test-topic4"
+		const val TEST_TOPIC4 = "test-kotlin-topic4"
 
-		const val TEST_TOPIC5 = "test-topic5"
+		const val TEST_TOPIC5 = "test-kotlin-topic5"
 
 	}
 
@@ -109,10 +103,6 @@ class KafkaDslKotlinTests {
 	private lateinit var kafkaProducer1: KafkaProducerMessageHandler<*, *>
 
 	@Autowired
-	@Qualifier("kafkaProducer2.handler")
-	private lateinit var kafkaProducer2: KafkaProducerMessageHandler<*, *>
-
-	@Autowired
 	private lateinit var errorChannel: PollableChannel
 
 	@Autowired(required = false)
@@ -120,11 +110,11 @@ class KafkaDslKotlinTests {
 	private lateinit var messageListenerContainer: MessageListenerContainer
 
 	@Autowired(required = false)
-	@Qualifier("kafkaTemplate:test-topic1")
+	@Qualifier("kafkaTemplate:test-kotlin-topic1")
 	private lateinit var kafkaTemplateTopic1: KafkaTemplate<Any, Any>
 
 	@Autowired(required = false)
-	@Qualifier("kafkaTemplate:test-topic2")
+	@Qualifier("kafkaTemplate:test-kotlin-topic2")
 	private lateinit var kafkaTemplateTopic2: KafkaTemplate<*, *>
 
 	@Autowired
@@ -215,12 +205,12 @@ class KafkaDslKotlinTests {
 
 		var fromSource: Any? = null
 
-		@Autowired
-		private lateinit var embeddedKafka: EmbeddedKafkaBroker
+		@Value("\${spring.global.embedded.kafka.brokers}")
+		lateinit var embeddedKafkaBrokers: String
 
 		@Bean
 		fun consumerFactory(): ConsumerFactory<Int, String> {
-			val props = KafkaTestUtils.consumerProps("test1", "false", this.embeddedKafka)
+			val props = KafkaTestUtils.consumerProps(this.embeddedKafkaBrokers, "test1", "false")
 			props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
 			return DefaultKafkaConsumerFactory(props)
 		}
@@ -230,96 +220,111 @@ class KafkaDslKotlinTests {
 
 		@Bean
 		fun topic1ListenerFromKafkaFlow() =
-				integrationFlow(
-						Kafka.messageDrivenChannelAdapter(consumerFactory(),
-								KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
-								.configureListenerContainer {
-									it.ackMode(ContainerProperties.AckMode.MANUAL)
-											.id("topic1ListenerContainer")
-								}
-								.errorChannel(errorChannel())
-								.retryTemplate(RetryTemplate())
-								.filterInRetry(true)) {
-					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_KEY] as Int) < 101 }) { throwExceptionOnRejection(true) }
-					transform<String> { it.uppercase() }
-					channel { queue("listeningFromKafkaResults1") }
+			integrationFlow(
+				Kafka.messageDrivenChannelAdapter(
+					consumerFactory(),
+					KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1
+				)
+					.configureListenerContainer {
+						it.ackMode(ContainerProperties.AckMode.MANUAL)
+							.id("topic1ListenerContainer")
+					}
+					.errorChannel(errorChannel())
+					.retryTemplate(RetryTemplate())
+					.filterInRetry(true)) {
+				filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_KEY] as Int) < 101 }) {
+					throwExceptionOnRejection(
+						true
+					)
 				}
+				transform<String> { it.uppercase() }
+				channel { queue("listeningFromKafkaResults1") }
+			}
 
 		@Bean
 		fun topic2ListenerFromKafkaFlow() =
-				integrationFlow(
-						Kafka.messageDrivenChannelAdapter(consumerFactory(),
-								KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC2)
-								.configureListenerContainer { it.ackMode(ContainerProperties.AckMode.MANUAL) }
-								.errorChannel(errorChannel())
-								.retryTemplate(RetryTemplate())
-								.filterInRetry(true)) {
-					filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_KEY] as Int) < 101 }) { throwExceptionOnRejection(true) }
-					transform<String> { it.uppercase() }
-					channel { queue("listeningFromKafkaResults2") }
+			integrationFlow(
+				Kafka.messageDrivenChannelAdapter(
+					consumerFactory(),
+					KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC2
+				)
+					.configureListenerContainer { it.ackMode(ContainerProperties.AckMode.MANUAL) }
+					.errorChannel(errorChannel())
+					.retryTemplate(RetryTemplate())
+					.filterInRetry(true)) {
+				filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_KEY] as Int) < 101 }) {
+					throwExceptionOnRejection(
+						true
+					)
 				}
+				transform<String> { it.uppercase() }
+				channel { queue("listeningFromKafkaResults2") }
+			}
 
 		@Bean
 		fun producerFactory(): DefaultKafkaProducerFactory<Int, String> {
-			val props = KafkaTestUtils.producerProps(this.embeddedKafka)
+			val props = KafkaTestUtils.producerProps(this.embeddedKafkaBrokers)
 			props[ProducerConfig.MAX_BLOCK_MS_CONFIG] = "10000"
 			return DefaultKafkaProducerFactory(props)
 		}
 
 		@Bean
 		fun sendToKafkaFlow() =
-				integrationFlow {
-					split<String> { p -> Stream.generate { p }.limit(101) }
-					publishSubscribe(PublishSubscribeChannel(),
-							{
-								handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
-										.timestampExpression("T(Long).valueOf('1487694048633')")
-								) { id("kafkaProducer1") }
-							},
-							{
-								handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
-										.timestamp<Any> { 1487694048644L }
-								) { id("kafkaProducer2") }
-							}
-					)
-				}
+			integrationFlow {
+				split<String> { p -> Stream.generate { p }.limit(101) }
+				publishSubscribe(PublishSubscribeChannel(),
+					{
+						handle(
+							kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
+								.timestampExpression("T(Long).valueOf('1487694048633')")
+						) { id("kafkaProducer1") }
+					},
+					{
+						handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
+							.timestamp<Any> { 1487694048644L }
+						) { id("kafkaProducer2") }
+					}
+				)
+			}
 
 		@Bean
 		fun mapper() = DefaultKafkaHeaderMapper()
 
 		private fun kafkaMessageHandler(producerFactory: ProducerFactory<Int, String>, topic: String) =
-				Kafka.outboundChannelAdapter(producerFactory)
-						.messageKey<Any> { it.headers[IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER] }
-						.headerMapper(mapper())
-						.sync(true)
-						.partitionId<Any> { 0 }
-						.topicExpression("headers[kafka_topic] ?: '$topic'")
-						.configureKafkaTemplate { it.id("kafkaTemplate:$topic") }
+			Kafka.outboundChannelAdapter(producerFactory)
+				.messageKey<Any> { it.headers[IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER] }
+				.headerMapper(mapper())
+				.sync(true)
+				.partitionId<Any> { 0 }
+				.topicExpression("headers[kafka_topic] ?: '$topic'")
+				.configureKafkaTemplate { it.id("kafkaTemplate:$topic") }
 
 
 		@Bean
 		fun sourceFlow() =
-				integrationFlow(Kafka.inboundChannelAdapter(consumerFactory(), ConsumerProperties(TEST_TOPIC3)),
-						{ poller(Pollers.fixedDelay(100)) }) {
-					handle { m ->
-						this@ContextConfiguration.fromSource = m.payload
-						this@ContextConfiguration.sourceFlowLatch.countDown()
-					}
+			integrationFlow(Kafka.inboundChannelAdapter(consumerFactory(), ConsumerProperties(TEST_TOPIC3)),
+				{ poller(Pollers.fixedDelay(100)) }) {
+				handle { m ->
+					this@ContextConfiguration.fromSource = m.payload
+					this@ContextConfiguration.sourceFlowLatch.countDown()
 				}
+			}
 
 		@Bean
 		fun replyingKafkaTemplate() =
-				ReplyingKafkaTemplate(producerFactory(), replyContainer())
-						.also {
-							it.setDefaultReplyTimeout(Duration.ofSeconds(30))
-						}
+			ReplyingKafkaTemplate(producerFactory(), replyContainer())
+				.also {
+					it.setDefaultReplyTimeout(Duration.ofSeconds(30))
+				}
 
 		@Bean
 		fun outboundGateFlow() =
-				integrationFlow<Gate> {
-					handle(Kafka.outboundGateway(replyingKafkaTemplate())
-							.sync(true))
-				}
+			integrationFlow<Gate> {
+				handle(
+					Kafka.outboundGateway(replyingKafkaTemplate())
+						.sync(true)
+				)
+			}
 
 		private fun replyContainer(): GenericMessageListenerContainer<Int, String> {
 			val containerProperties = ContainerProperties(TEST_TOPIC5)
@@ -340,15 +345,15 @@ class KafkaDslKotlinTests {
 
 		@Bean
 		fun serverGateway() =
-				integrationFlow(Kafka.inboundGateway(consumerFactory(), containerProperties(), producerFactory())) {
-					transform<String> { it.uppercase() }
-				}
+			integrationFlow(Kafka.inboundGateway(consumerFactory(), containerProperties(), producerFactory())) {
+				transform<String> { it.uppercase() }
+			}
 
 		private fun containerProperties() =
-				ContainerProperties(TEST_TOPIC4)
-						.also {
-							it.setGroupId("inGateGroup")
-						}
+			ContainerProperties(TEST_TOPIC4)
+				.also {
+					it.setGroupId("inGateGroup")
+				}
 
 	}
 

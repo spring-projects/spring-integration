@@ -34,8 +34,6 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ConsumerProperties;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -48,14 +46,14 @@ import org.springframework.messaging.support.GenericMessage;
  * @since 5.4
  *
  */
-@EmbeddedKafka(controlledShutdown = true, topics = MessageSourceIntegrationTests.TOPIC1, partitions = 1)
 class MessageSourceIntegrationTests {
 
 	static final String TOPIC1 = "MessageSourceIntegrationTests1";
 
 	@Test
-	void testSource(EmbeddedKafkaBroker embeddedKafka) throws Exception {
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testSource", "false", embeddedKafka);
+	void testSource() throws Exception {
+		String brokers = System.getProperty("spring.global.embedded.kafka.brokers");
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(brokers, "testSource", "false");
 		consumerProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		consumerProps.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 42);
@@ -81,7 +79,7 @@ class MessageSourceIntegrationTests {
 
 		KafkaMessageSource<Integer, String> source = new KafkaMessageSource<>(consumerFactory, consumerProperties);
 
-		Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
+		Map<String, Object> producerProps = KafkaTestUtils.producerProps(brokers);
 		DefaultKafkaProducerFactory<Object, Object> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		KafkaTemplate<Object, Object> template = new KafkaTemplate<>(producerFactory);
 		template.setDefaultTopic(TOPIC1);

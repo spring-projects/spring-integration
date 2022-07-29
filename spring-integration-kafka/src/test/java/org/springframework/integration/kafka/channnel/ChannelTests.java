@@ -27,6 +27,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.NullChannel;
@@ -44,8 +45,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -61,7 +60,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  *
  */
 @SpringJUnitConfig
-@EmbeddedKafka(topics = { "channel.1", "channel.2", "channel.3" }, partitions = 1)
 public class ChannelTests {
 
 	@Test
@@ -118,17 +116,18 @@ public class ChannelTests {
 	@Configuration
 	public static class Config {
 
-		@Autowired
-		private EmbeddedKafkaBroker broker;
+		@Value("${spring.global.embedded.kafka.brokers}")
+		String embeddedKafkaBrokers;
 
 		@Bean
 		public ProducerFactory<Integer, String> pf() {
-			return new DefaultKafkaProducerFactory<>(KafkaTestUtils.producerProps(this.broker));
+			return new DefaultKafkaProducerFactory<>(KafkaTestUtils.producerProps(this.embeddedKafkaBrokers));
 		}
 
 		@Bean
 		public ConsumerFactory<Integer, String> cf() {
-			Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("channelTests", "false", this.broker);
+			Map<String, Object> consumerProps =
+					KafkaTestUtils.consumerProps(this.embeddedKafkaBrokers, "channelTests", "false");
 			consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 			return new DefaultKafkaConsumerFactory<>(consumerProps);
 		}

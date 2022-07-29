@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,16 +28,17 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.integration.kafka.channel.PollableKafkaChannel;
 import org.springframework.integration.kafka.channel.SubscribableKafkaChannel;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaOperations;
 import org.springframework.kafka.listener.ConsumerProperties;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.4
  *
@@ -65,17 +66,17 @@ public class ChannelParserTests {
 
 	@Test
 	void testParser() {
-		assertThat(KafkaTestUtils.getPropertyValue(this.ptp, "topic")).isEqualTo("ptpTopic");
-		assertThat(KafkaTestUtils.getPropertyValue(this.pubSub, "topic")).isEqualTo("pubSubTopic");
-		assertThat(KafkaTestUtils.getPropertyValue(this.ptp, "container")).isNotNull();
-		assertThat(KafkaTestUtils.getPropertyValue(this.pubSub, "container")).isNotNull();
-		assertThat(KafkaTestUtils.getPropertyValue(this.ptp, "template")).isSameAs(this.template);
-		assertThat(KafkaTestUtils.getPropertyValue(this.pubSub, "template")).isSameAs(this.template);
-		assertThat(KafkaTestUtils.getPropertyValue(this.pollable, "template")).isSameAs(this.template);
-		assertThat(KafkaTestUtils.getPropertyValue(this.pollable, "source")).isSameAs(this.source);
-		assertThat(KafkaTestUtils.getPropertyValue(this.ptp, "groupId")).isEqualTo("ptpGroup");
-		assertThat(KafkaTestUtils.getPropertyValue(this.pubSub, "groupId")).isEqualTo("pubSubGroup");
-		assertThat(KafkaTestUtils.getPropertyValue(this.pollable, "groupId")).isEqualTo("pollableGroup");
+		assertThat(TestUtils.getPropertyValue(this.ptp, "topic")).isEqualTo("ptpTopic");
+		assertThat(TestUtils.getPropertyValue(this.pubSub, "topic")).isEqualTo("pubSubTopic");
+		assertThat(TestUtils.getPropertyValue(this.ptp, "container")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(this.pubSub, "container")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(this.ptp, "template")).isSameAs(this.template);
+		assertThat(TestUtils.getPropertyValue(this.pubSub, "template")).isSameAs(this.template);
+		assertThat(TestUtils.getPropertyValue(this.pollable, "template")).isSameAs(this.template);
+		assertThat(TestUtils.getPropertyValue(this.pollable, "source")).isSameAs(this.source);
+		assertThat(TestUtils.getPropertyValue(this.ptp, "groupId")).isEqualTo("ptpGroup");
+		assertThat(TestUtils.getPropertyValue(this.pubSub, "groupId")).isEqualTo("pubSubGroup");
+		assertThat(TestUtils.getPropertyValue(this.pollable, "groupId")).isEqualTo("pollableGroup");
 	}
 
 	@Configuration

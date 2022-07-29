@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -71,8 +72,6 @@ import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -97,9 +96,6 @@ import org.springframework.util.backoff.FixedBackOff;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@EmbeddedKafka(topics = { KafkaDslTests.TEST_TOPIC1, KafkaDslTests.TEST_TOPIC2, KafkaDslTests.TEST_TOPIC3,
-		KafkaDslTests.TEST_TOPIC4, KafkaDslTests.TEST_TOPIC5, KafkaDslTests.TEST_TOPIC6, KafkaDslTests.TEST_TOPIC7,
-		KafkaDslTests.TEST_TOPIC8, KafkaDslTests.TEST_TOPIC9 })
 public class KafkaDslTests {
 
 	static final String TEST_TOPIC1 = "test-topic1";
@@ -117,8 +113,6 @@ public class KafkaDslTests {
 	static final String TEST_TOPIC7 = "test-topic7";
 
 	static final String TEST_TOPIC8 = "test-topic8";
-
-	static final String TEST_TOPIC9 = "test-topic9";
 
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
@@ -266,7 +260,8 @@ public class KafkaDslTests {
 		assertThat(received)
 				.isNotNull()
 				.extracting("payload")
-				.isEqualTo("foo");	}
+				.isEqualTo("foo");
+	}
 
 	@Configuration
 	@EnableIntegration
@@ -281,14 +276,12 @@ public class KafkaDslTests {
 
 		private Object fromSource;
 
-		@Autowired
-		private EmbeddedKafkaBroker embeddedKafka;
-
+		@Value("${spring.global.embedded.kafka.brokers}")
+		String embeddedKafkaBrokers;
 
 		@Bean
 		public ConsumerFactory<Integer, String> consumerFactory() {
-			Map<String, Object> props = KafkaTestUtils
-					.consumerProps("test1", "false", this.embeddedKafka);
+			Map<String, Object> props = KafkaTestUtils.consumerProps(this.embeddedKafkaBrokers, "test1", "false");
 			props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 			return new DefaultKafkaConsumerFactory<>(props);
 		}
@@ -302,7 +295,7 @@ public class KafkaDslTests {
 		public IntegrationFlow topic1ListenerFromKafkaFlow() {
 			return IntegrationFlow
 					.from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
-							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
+									KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
 							.configureListenerContainer(c ->
 									c.ackMode(ContainerProperties.AckMode.MANUAL)
 											.idleEventInterval(100L)
@@ -344,7 +337,7 @@ public class KafkaDslTests {
 
 		@Bean
 		public ProducerFactory<Integer, String> producerFactory() {
-			Map<String, Object> props = KafkaTestUtils.producerProps(this.embeddedKafka);
+			Map<String, Object> props = KafkaTestUtils.producerProps(this.embeddedKafkaBrokers);
 			props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 10000);
 			return new DefaultKafkaProducerFactory<>(props);
 		}
@@ -479,8 +472,8 @@ public class KafkaDslTests {
 		public IntegrationFlow serverGateway() {
 			return IntegrationFlow
 					.from(Kafka.inboundGateway(consumerFactory(), containerProperties(),
-							producerFactory())
-								.configureListenerContainer(container -> container.errorHandler(eh())))
+									producerFactory())
+							.configureListenerContainer(container -> container.errorHandler(eh())))
 					.<String, String>transform(String::toUpperCase)
 					.get();
 		}
@@ -495,9 +488,9 @@ public class KafkaDslTests {
 			ContainerProperties props = containerProperties();
 			props.setGroupId("wreh");
 			return IntegrationFlow.from(Kafka.messageDrivenChannelAdapter(consumerFactory(), props)
-						.configureListenerContainer(container -> {
-							container.errorHandler(recoveringErrorHandler());
-						}))
+							.configureListenerContainer(container -> {
+								container.errorHandler(recoveringErrorHandler());
+							}))
 					.handle(p -> {
 						throw new RuntimeException("test");
 					})
