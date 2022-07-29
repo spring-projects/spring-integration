@@ -24,6 +24,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoComponent;
@@ -48,6 +49,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
@@ -95,6 +97,28 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 	 */
 	public MqttPahoMessageHandler(String url, String clientId) {
 		this(url, clientId, new DefaultMqttPahoClientFactory());
+	}
+
+	/**
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection) and a specific {@link MqttConnectOptions}.
+	 * @param clientManager The client manager.
+	 * @param connectOptions The connection options.
+	 */
+	public MqttPahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager, MqttConnectOptions connectOptions) {
+		super(clientManager);
+		var factory = new DefaultMqttPahoClientFactory();
+		factory.setConnectionOptions(connectOptions);
+		this.clientFactory = factory;
+	}
+
+	/**
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection).
+	 * @param clientManager The client manager.
+	 */
+	public MqttPahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager) {
+		this(clientManager, new MqttConnectOptions());
 	}
 
 	/**

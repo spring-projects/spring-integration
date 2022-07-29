@@ -34,6 +34,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.core.MqttComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
@@ -52,6 +53,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Lucas Bowler
+ * @author Artem Vozhdayenko
  *
  * @since 5.5.5
  */
@@ -73,14 +75,32 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 
 	public Mqttv5PahoMessageHandler(String url, String clientId) {
 		super(url, clientId);
-		this.connectionOptions = new MqttConnectionOptions();
-		this.connectionOptions.setServerURIs(new String[]{ url });
-		this.connectionOptions.setAutomaticReconnect(true);
+		this.connectionOptions = buildDefaultConnectionOptions(url);
 	}
 
 	public Mqttv5PahoMessageHandler(MqttConnectionOptions connectionOptions, String clientId) {
 		super(obtainServerUrlFromOptions(connectionOptions), clientId);
 		this.connectionOptions = connectionOptions;
+	}
+
+	public Mqttv5PahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager,
+			MqttConnectionOptions connectionOptions) {
+		super(clientManager);
+		this.connectionOptions = connectionOptions;
+	}
+
+	public Mqttv5PahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager) {
+		this(clientManager, buildDefaultConnectionOptions(null));
+	}
+
+	private static MqttConnectionOptions buildDefaultConnectionOptions(@Nullable String url) {
+		final MqttConnectionOptions connectionOptions;
+		connectionOptions = new MqttConnectionOptions();
+		if (url != null) {
+			connectionOptions.setServerURIs(new String[]{ url });
+		}
+		connectionOptions.setAutomaticReconnect(true);
+		return connectionOptions;
 	}
 
 

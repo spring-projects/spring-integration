@@ -33,6 +33,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.SimpleAcknowledgment;
+import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
@@ -57,6 +58,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
@@ -128,6 +130,32 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 */
 	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		this(url, clientId, new DefaultMqttPahoClientFactory(), topic);
+	}
+
+	/**
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection) and a specific {@link MqttConnectOptions}.
+	 * @param clientManager The client manager.
+	 * @param connectOptions The connection options.
+	 * @param topic The topic(s).
+	 */
+	public MqttPahoMessageDrivenChannelAdapter(ClientManager<IMqttAsyncClient> clientManager,
+			MqttConnectOptions connectOptions, String... topic) {
+
+		super(clientManager, topic);
+		var factory = new DefaultMqttPahoClientFactory();
+		factory.setConnectionOptions(connectOptions);
+		this.clientFactory = factory;
+	}
+
+	/**
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection).
+	 * @param clientManager The client manager.
+	 * @param topic The topic(s).
+	 */
+	public MqttPahoMessageDrivenChannelAdapter(ClientManager<IMqttAsyncClient> clientManager, String... topic) {
+		this(clientManager, new MqttConnectOptions(), topic);
 	}
 
 	/**
@@ -279,12 +307,12 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		if (this.consumerStopAction == null) {
 			this.consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
 		}
-		Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
-				"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
 
 		IMqttAsyncClient clientInstance;
 
 		if (getClientManager() == null) {
+			Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
+					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
 			this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
 			this.client.setCallback(this);
 			clientInstance = this.client;

@@ -28,31 +28,39 @@ import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 
 import org.springframework.util.Assert;
 
+/**
+ * @author Artem Vozhdayenko
+ * @since 6.0
+ */
 public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncClient> implements MqttCallback {
 
 	private final MqttConnectionOptions connectionOptions;
 
 	private volatile IMqttAsyncClient client;
 
-	public Mqttv5ClientManager(String url, String clientId) {
-		super(clientId);
-		Assert.notNull(url, "'url' is required");
-		setUrl(url);
-		this.connectionOptions = new MqttConnectionOptions();
-		this.connectionOptions.setServerURIs(new String[]{ url });
-		this.connectionOptions.setAutomaticReconnect(true);
-	}
-
 	public Mqttv5ClientManager(MqttConnectionOptions connectionOptions, String clientId) {
 		super(clientId);
 		Assert.notNull(connectionOptions, "'connectionOptions' is required");
 		this.connectionOptions = connectionOptions;
 		if (!this.connectionOptions.isAutomaticReconnect()) {
-			logger.warn("It is recommended to set 'automaticReconnect' MQTT connection option. " +
+			logger.info("If this `ClientManager` is used from message-driven channel adapters, " +
+					"it is recommended to set 'automaticReconnect' MQTT connection option. " +
 					"Otherwise connection check and reconnect should be done manually.");
 		}
 		Assert.notEmpty(connectionOptions.getServerURIs(), "'serverURIs' must be provided in the 'MqttConnectionOptions'");
 		setUrl(connectionOptions.getServerURIs()[0]);
+	}
+
+	public Mqttv5ClientManager(String url, String clientId) {
+		this(buildDefaultConnectionOptions(url), clientId);
+	}
+
+	private static MqttConnectionOptions buildDefaultConnectionOptions(String url) {
+		Assert.notNull(url, "'url' is required");
+		var connectionOptions = new MqttConnectionOptions();
+		connectionOptions.setServerURIs(new String[]{ url });
+		connectionOptions.setAutomaticReconnect(true);
+		return connectionOptions;
 	}
 
 	@Override
@@ -78,6 +86,15 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 		}
 		catch (MqttException e) {
 			logger.error("could not start client manager, client_id=" + this.client.getClientId(), e);
+
+			if (this.connectionOptions.isAutomaticReconnect()) {
+				try {
+					this.client.reconnect();
+				}
+				catch (MqttException ex) {
+					logger.error("MQTT client failed to re-connect.", ex);
+				}
+			}
 		}
 	}
 

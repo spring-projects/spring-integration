@@ -21,6 +21,13 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.util.Assert;
 
+/**
+ * @param <T> MQTT client type
+ *
+ * @author Artem Vozhdayenko
+ *
+ * @since 6.0
+ */
 public abstract class AbstractMqttClientManager<T> implements ClientManager<T> {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());

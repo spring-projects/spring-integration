@@ -39,6 +39,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.core.MqttComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttProtocolErrorEvent;
@@ -70,6 +71,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Mikhail Polivakha
  * @author Lucas Bowler
+ * @author Artem Vozhdayenko
  *
  * @since 5.5.5
  *
@@ -92,9 +94,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		super(url, clientId, topic);
-		this.connectionOptions = new MqttConnectionOptions();
-		this.connectionOptions.setServerURIs(new String[]{ url });
-		this.connectionOptions.setAutomaticReconnect(true);
+		this.connectionOptions = buildDefaultConnectionOptions(url);
 	}
 
 	public Mqttv5PahoMessageDrivenChannelAdapter(MqttConnectionOptions connectionOptions, String clientId,
@@ -107,6 +107,45 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 					"Otherwise the current channel adapter restart should be used explicitly, " +
 					"e.g. via handling 'MqttConnectionFailedEvent' on client disconnection.");
 		}
+	}
+
+	/**
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection) and a specific {@link MqttConnectionOptions}.
+	 * @param connectionOptions The connection options.
+	 * @param clientManager The client manager.
+	 * @param topic The topic(s).
+	 */
+	public Mqttv5PahoMessageDrivenChannelAdapter(MqttConnectionOptions connectionOptions,
+			ClientManager<IMqttAsyncClient> clientManager, String... topic) {
+
+		super(clientManager, topic);
+		this.connectionOptions = connectionOptions;
+		if (!this.connectionOptions.isAutomaticReconnect()) {
+			logger.warn("It is recommended to set 'automaticReconnect' MQTT client option. " +
+					"Otherwise the current channel adapter restart should be used explicitly, " +
+					"e.g. via handling 'MqttConnectionFailedEvent' on client disconnection.");
+		}
+	}
+
+	/**
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection).
+	 * @param clientManager The client manager.
+	 * @param topic The topic(s).
+	 */
+	public Mqttv5PahoMessageDrivenChannelAdapter(ClientManager<IMqttAsyncClient> clientManager, String... topic) {
+		this(buildDefaultConnectionOptions(null), clientManager, topic);
+	}
+
+	private static MqttConnectionOptions buildDefaultConnectionOptions(@Nullable String url) {
+		final MqttConnectionOptions connectionOptions;
+		connectionOptions = new MqttConnectionOptions();
+		if (url != null) {
+			connectionOptions.setServerURIs(new String[]{ url });
+		}
+		connectionOptions.setAutomaticReconnect(true);
+		return connectionOptions;
 	}
 
 	@Override
@@ -358,7 +397,11 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 				MqttSubscription[] subscriptions = IntStream.range(0, topics.length)
 						.mapToObj(i -> new MqttSubscription(topics[i], requestedQos[i]))
 						.toArray(MqttSubscription[]::new);
-				getClientManager().getClient().subscribe(subscriptions, new MessageListener());
+				MessageListener[] listeners = IntStream.range(0, topics.length)
+						.mapToObj(t -> new MessageListener())
+						.toArray(MessageListener[]::new);
+				getClientManager().getClient().subscribe(subscriptions, null, null, listeners, null)
+						.waitForCompletion(getCompletionTimeout());
 			}
 			String message = "Connected and subscribed to " + Arrays.toString(topics);
 			logger.debug(message);

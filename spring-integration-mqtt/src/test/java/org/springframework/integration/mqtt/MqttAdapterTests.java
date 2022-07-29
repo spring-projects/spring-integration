@@ -102,6 +102,7 @@ import org.springframework.util.ReflectionUtils;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
@@ -221,9 +222,7 @@ public class MqttAdapterTests {
 		var deliveryToken = mock(MqttDeliveryToken.class);
 		given(client.publish(anyString(), any(MqttMessage.class))).willReturn(deliveryToken);
 
-		var handler = new MqttPahoMessageHandler("foo", "bar",
-				new DefaultMqttPahoClientFactory());
-		handler.setClientManager(clientManager);
+		var handler = new MqttPahoMessageHandler(clientManager);
 		handler.setDefaultTopic("mqtt-foo");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
@@ -254,9 +253,7 @@ public class MqttAdapterTests {
 		given(client.subscribe(any(String[].class), any(int[].class), any()))
 				.willReturn(subscribeToken);
 
-		var adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar",
-				new DefaultMqttPahoClientFactory(), "mqtt-foo");
-		adapter.setClientManager(clientManager);
+		var adapter = new MqttPahoMessageDrivenChannelAdapter(clientManager, "mqtt-foo");
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);

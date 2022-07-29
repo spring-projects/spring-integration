@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Trung Pham
  * @author Mikhail Polivakha
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
@@ -59,9 +60,9 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 	 */
 	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
 
-	private final String url;
+	private String url;
 
-	private final String clientId;
+	private String clientId;
 
 	private final Set<Topic> topics;
 
@@ -79,24 +80,31 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 
 	public AbstractMqttMessageDrivenChannelAdapter(@Nullable String url, String clientId, String... topic) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
-		Assert.notNull(topic, "'topics' cannot be null");
-		Assert.noNullElements(topic, "'topics' cannot have null elements");
 		this.url = url;
 		this.clientId = clientId;
-		this.topics = new LinkedHashSet<>();
+		this.topics = initTopics(topic);
+	}
+
+	AbstractMqttMessageDrivenChannelAdapter(ClientManager<T> clientManager, String... topic) {
+		Assert.notNull(clientManager, "'clientManager' cannot be null");
+		this.clientManager = clientManager;
+		this.topics = initTopics(topic);
+	}
+
+	private Set<Topic> initTopics(String[] topic) {
+		Assert.notNull(topic, "'topics' cannot be null");
+		Assert.noNullElements(topic, "'topics' cannot have null elements");
+		final Set<Topic> initialTopics = new LinkedHashSet<>();
+		int defaultQos = 1;
 		for (String t : topic) {
-			this.topics.add(new Topic(t, 1));
+			initialTopics.add(new Topic(t, defaultQos));
 		}
+		return initialTopics;
 	}
 
 	public void setConverter(MqttMessageConverter converter) {
 		Assert.notNull(converter, "'converter' cannot be null");
 		this.converter = converter;
-	}
-
-	public void setClientManager(ClientManager<T> clientManager) {
-		Assert.notNull(clientManager, "'clientManager' cannot be null");
-		this.clientManager = clientManager;
 	}
 
 	public ClientManager<T> getClientManager() {

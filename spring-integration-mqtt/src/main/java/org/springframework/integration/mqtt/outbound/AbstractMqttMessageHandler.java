@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Artem Vozhdayenko
  *
  * @since 4.0
  *
@@ -63,9 +64,9 @@ public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandl
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
-	private final String url;
+	private String url;
 
-	private final String clientId;
+	private String clientId;
 
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
@@ -95,6 +96,11 @@ public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandl
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
 		this.url = url;
 		this.clientId = clientId;
+	}
+
+	AbstractMqttMessageHandler(ClientManager<T> clientManager) {
+		Assert.notNull(clientManager, "'clientManager' cannot be null or empty");
+		this.clientManager = clientManager;
 	}
 
 	@Override
@@ -299,11 +305,6 @@ public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandl
 
 	protected ClientManager<T> getClientManager() {
 		return this.clientManager;
-	}
-
-	public void setClientManager(ClientManager<T> clientManager) {
-		Assert.notNull(clientManager, "'clientManager' cannot be null");
-		this.clientManager = clientManager;
 	}
 
 	@Override
