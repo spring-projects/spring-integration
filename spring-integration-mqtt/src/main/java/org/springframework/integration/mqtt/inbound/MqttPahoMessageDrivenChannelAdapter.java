@@ -90,6 +90,16 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	private volatile ConsumerStopAction consumerStopAction;
 
 	/**
+	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
+	 * @param url The URL.
+	 * @param clientId The client id.
+	 * @param topic The topic(s).
+	 */
+	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
+		this(url, clientId, new DefaultMqttPahoClientFactory(), topic);
+	}
+
+	/**
 	 * Use this constructor for a single url (although it may be overridden if the server
 	 * URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()} provided by
 	 * the {@link MqttPahoClientFactory}).
@@ -121,15 +131,14 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this.clientFactory = clientFactory;
 	}
 
-
 	/**
-	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
-	 * @param url The URL.
-	 * @param clientId The client id.
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection).
+	 * @param clientManager The client manager.
 	 * @param topic The topic(s).
 	 */
-	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
-		this(url, clientId, new DefaultMqttPahoClientFactory(), topic);
+	public MqttPahoMessageDrivenChannelAdapter(ClientManager<IMqttAsyncClient> clientManager, String... topic) {
+		this(clientManager, new MqttConnectOptions(), topic);
 	}
 
 	/**
@@ -146,16 +155,6 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		var factory = new DefaultMqttPahoClientFactory();
 		factory.setConnectionOptions(connectOptions);
 		this.clientFactory = factory;
-	}
-
-	/**
-	 * Use this constructor when you need to use a single {@link ClientManager}
-	 * (for instance, to reuse an MQTT connection).
-	 * @param clientManager The client manager.
-	 * @param topic The topic(s).
-	 */
-	public MqttPahoMessageDrivenChannelAdapter(ClientManager<IMqttAsyncClient> clientManager, String... topic) {
-		this(clientManager, new MqttConnectOptions(), topic);
 	}
 
 	/**

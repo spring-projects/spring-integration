@@ -111,6 +111,16 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 
 	/**
 	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection).
+	 * @param clientManager The client manager.
+	 * @param topic The topic(s).
+	 */
+	public Mqttv5PahoMessageDrivenChannelAdapter(ClientManager<IMqttAsyncClient> clientManager, String... topic) {
+		this(buildDefaultConnectionOptions(null), clientManager, topic);
+	}
+
+	/**
+	 * Use this constructor when you need to use a single {@link ClientManager}
 	 * (for instance, to reuse an MQTT connection) and a specific {@link MqttConnectionOptions}.
 	 * @param connectionOptions The connection options.
 	 * @param clientManager The client manager.
@@ -126,16 +136,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 					"Otherwise the current channel adapter restart should be used explicitly, " +
 					"e.g. via handling 'MqttConnectionFailedEvent' on client disconnection.");
 		}
-	}
-
-	/**
-	 * Use this constructor when you need to use a single {@link ClientManager}
-	 * (for instance, to reuse an MQTT connection).
-	 * @param clientManager The client manager.
-	 * @param topic The topic(s).
-	 */
-	public Mqttv5PahoMessageDrivenChannelAdapter(ClientManager<IMqttAsyncClient> clientManager, String... topic) {
-		this(buildDefaultConnectionOptions(null), clientManager, topic);
 	}
 
 	private static MqttConnectionOptions buildDefaultConnectionOptions(@Nullable String url) {

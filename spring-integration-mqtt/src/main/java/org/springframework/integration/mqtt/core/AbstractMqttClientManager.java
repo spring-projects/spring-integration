@@ -19,6 +19,8 @@ package org.springframework.integration.mqtt.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.util.Assert;
 
 /**
@@ -28,9 +30,11 @@ import org.springframework.util.Assert;
  *
  * @since 6.0
  */
-public abstract class AbstractMqttClientManager<T> implements ClientManager<T> {
+public abstract class AbstractMqttClientManager<T> implements ClientManager<T>, ApplicationEventPublisherAware {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
+
+	private ApplicationEventPublisher applicationEventPublisher;
 
 	private boolean manualAcks;
 
@@ -38,9 +42,31 @@ public abstract class AbstractMqttClientManager<T> implements ClientManager<T> {
 
 	private final String clientId;
 
+	volatile T client;
+
 	AbstractMqttClientManager(String clientId) {
 		Assert.notNull(clientId, "'clientId' is required");
 		this.clientId = clientId;
+	}
+
+	protected void setManualAcks(boolean manualAcks) {
+		this.manualAcks = manualAcks;
+	}
+
+	protected String getUrl() {
+		return this.url;
+	}
+
+	protected void setUrl(String url) {
+		this.url = url;
+	}
+
+	protected String getClientId() {
+		return this.clientId;
+	}
+
+	protected ApplicationEventPublisher getApplicationEventPublisher() {
+		return this.applicationEventPublisher;
 	}
 
 	@Override
@@ -48,20 +74,18 @@ public abstract class AbstractMqttClientManager<T> implements ClientManager<T> {
 		return this.manualAcks;
 	}
 
-	public void setManualAcks(boolean manualAcks) {
-		this.manualAcks = manualAcks;
+	@Override
+	public T getClient() {
+		return this.client;
 	}
 
-	public String getUrl() {
-		return this.url;
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		Assert.notNull(applicationEventPublisher, "'applicationEventPublisher' cannot be null");
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public synchronized boolean isRunning() {
+		return this.client != null;
 	}
-
-	public String getClientId() {
-		return this.clientId;
-	}
-
 }

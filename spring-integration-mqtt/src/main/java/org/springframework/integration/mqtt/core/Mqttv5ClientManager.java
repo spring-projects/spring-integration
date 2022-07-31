@@ -26,6 +26,7 @@ import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 
+import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.util.Assert;
 
 /**
@@ -36,7 +37,9 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 
 	private final MqttConnectionOptions connectionOptions;
 
-	private volatile IMqttAsyncClient client;
+	public Mqttv5ClientManager(String url, String clientId) {
+		this(buildDefaultConnectionOptions(url), clientId);
+	}
 
 	public Mqttv5ClientManager(MqttConnectionOptions connectionOptions, String clientId) {
 		super(clientId);
@@ -51,21 +54,12 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 		setUrl(connectionOptions.getServerURIs()[0]);
 	}
 
-	public Mqttv5ClientManager(String url, String clientId) {
-		this(buildDefaultConnectionOptions(url), clientId);
-	}
-
 	private static MqttConnectionOptions buildDefaultConnectionOptions(String url) {
 		Assert.notNull(url, "'url' is required");
 		var connectionOptions = new MqttConnectionOptions();
 		connectionOptions.setServerURIs(new String[]{ url });
 		connectionOptions.setAutomaticReconnect(true);
 		return connectionOptions;
-	}
-
-	@Override
-	public IMqttAsyncClient getClient() {
-		return this.client;
 	}
 
 	@Override
@@ -95,6 +89,9 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 					logger.error("MQTT client failed to re-connect.", ex);
 				}
 			}
+			else if (getApplicationEventPublisher() != null) {
+				getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, e));
+			}
 		}
 	}
 
@@ -119,11 +116,6 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 			}
 			this.client = null;
 		}
-	}
-
-	@Override
-	public synchronized boolean isRunning() {
-		return this.client != null;
 	}
 
 	@Override
@@ -152,7 +144,7 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 	@Override
 	public void disconnected(MqttDisconnectResponse disconnectResponse) {
 		if (logger.isInfoEnabled()) {
-			logger.info("MQTT disconnected" + disconnectResponse);
+			logger.info("MQTT disconnected: " + disconnectResponse);
 		}
 	}
 

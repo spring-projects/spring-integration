@@ -60,9 +60,9 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 	 */
 	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
 
-	private String url;
+	private final String url;
 
-	private String clientId;
+	private final String clientId;
 
 	private final Set<Topic> topics;
 
@@ -74,7 +74,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 
 	private MqttMessageConverter converter;
 
-	protected ClientManager<T> clientManager;
+	private final ClientManager<T> clientManager;
 
 	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
 
@@ -83,12 +83,15 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 		this.url = url;
 		this.clientId = clientId;
 		this.topics = initTopics(topic);
+		this.clientManager = null;
 	}
 
 	AbstractMqttMessageDrivenChannelAdapter(ClientManager<T> clientManager, String... topic) {
 		Assert.notNull(clientManager, "'clientManager' cannot be null");
 		this.clientManager = clientManager;
 		this.topics = initTopics(topic);
+		this.url = null;
+		this.clientId = null;
 	}
 
 	private Set<Topic> initTopics(String[] topic) {
@@ -107,7 +110,8 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 		this.converter = converter;
 	}
 
-	public ClientManager<T> getClientManager() {
+	@Nullable
+	protected ClientManager<T> getClientManager() {
 		return this.clientManager;
 	}
 
@@ -155,6 +159,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 		return this.url;
 	}
 
+	@Nullable
 	protected String getClientId() {
 		return this.clientId;
 	}

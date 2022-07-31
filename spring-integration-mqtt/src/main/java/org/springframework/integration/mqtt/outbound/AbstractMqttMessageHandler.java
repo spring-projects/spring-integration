@@ -64,9 +64,9 @@ public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandl
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
-	private String url;
+	private final String url;
 
-	private String clientId;
+	private final String clientId;
 
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
@@ -90,17 +90,20 @@ public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandl
 
 	private int clientInstance;
 
-	protected ClientManager<T> clientManager;
+	private final ClientManager<T> clientManager;
 
 	public AbstractMqttMessageHandler(@Nullable String url, String clientId) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
 		this.url = url;
 		this.clientId = clientId;
+		this.clientManager = null;
 	}
 
 	AbstractMqttMessageHandler(ClientManager<T> clientManager) {
 		Assert.notNull(clientManager, "'clientManager' cannot be null or empty");
 		this.clientManager = clientManager;
+		this.url = null;
+		this.clientId = null;
 	}
 
 	@Override
@@ -253,6 +256,7 @@ public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandl
 		return this.url;
 	}
 
+	@Nullable
 	public String getClientId() {
 		return this.clientId;
 	}
@@ -303,6 +307,7 @@ public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandl
 		return this.disconnectCompletionTimeout;
 	}
 
+	@Nullable
 	protected ClientManager<T> getClientManager() {
 		return this.clientManager;
 	}

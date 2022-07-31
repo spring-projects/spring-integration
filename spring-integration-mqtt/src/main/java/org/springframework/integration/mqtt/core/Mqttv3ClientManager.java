@@ -23,6 +23,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.util.Assert;
 
 /**
@@ -33,7 +34,9 @@ public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private volatile IMqttAsyncClient client;
+	public Mqttv3ClientManager(String url, String clientId) {
+		this(buildDefaultClientFactory(url), clientId);
+	}
 
 	public Mqttv3ClientManager(MqttPahoClientFactory clientFactory, String clientId) {
 		super(clientId);
@@ -50,10 +53,6 @@ public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 		}
 	}
 
-	public Mqttv3ClientManager(String url, String clientId) {
-		this(buildDefaultClientFactory(url), clientId);
-	}
-
 	private static MqttPahoClientFactory buildDefaultClientFactory(String url) {
 		Assert.notNull(url, "'url' is required");
 		MqttConnectOptions connectOptions = new MqttConnectOptions();
@@ -62,11 +61,6 @@ public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 		DefaultMqttPahoClientFactory defaultFactory = new DefaultMqttPahoClientFactory();
 		defaultFactory.setConnectionOptions(connectOptions);
 		return defaultFactory;
-	}
-
-	@Override
-	public IMqttAsyncClient getClient() {
-		return this.client;
 	}
 
 	@Override
@@ -96,6 +90,9 @@ public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 					logger.error("MQTT client failed to re-connect.", ex);
 				}
 			}
+			else if (getApplicationEventPublisher() != null) {
+				getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, e));
+			}
 		}
 	}
 
@@ -119,11 +116,6 @@ public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 			}
 			this.client = null;
 		}
-	}
-
-	@Override
-	public synchronized boolean isRunning() {
-		return this.client != null;
 	}
 
 	@Override

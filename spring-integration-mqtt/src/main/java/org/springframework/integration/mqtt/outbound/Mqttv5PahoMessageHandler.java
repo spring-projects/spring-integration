@@ -83,14 +83,14 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		this.connectionOptions = connectionOptions;
 	}
 
+	public Mqttv5PahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager) {
+		this(clientManager, buildDefaultConnectionOptions(null));
+	}
+
 	public Mqttv5PahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager,
 			MqttConnectionOptions connectionOptions) {
 		super(clientManager);
 		this.connectionOptions = connectionOptions;
-	}
-
-	public Mqttv5PahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager) {
-		this(clientManager, buildDefaultConnectionOptions(null));
 	}
 
 	private static MqttConnectionOptions buildDefaultConnectionOptions(@Nullable String url) {

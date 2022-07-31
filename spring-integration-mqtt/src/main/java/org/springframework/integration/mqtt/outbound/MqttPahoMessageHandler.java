@@ -66,6 +66,15 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 	private volatile IMqttAsyncClient client;
 
 	/**
+	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
+	 * @param url The URL.
+	 * @param clientId The client id.
+	 */
+	public MqttPahoMessageHandler(String url, String clientId) {
+		this(url, clientId, new DefaultMqttPahoClientFactory());
+	}
+
+	/**
 	 * Use this constructor for a single url (although it may be overridden if the server
 	 * URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()} provided by
 	 * the {@link MqttPahoClientFactory}).
@@ -91,12 +100,12 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 	}
 
 	/**
-	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
-	 * @param url The URL.
-	 * @param clientId The client id.
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection).
+	 * @param clientManager The client manager.
 	 */
-	public MqttPahoMessageHandler(String url, String clientId) {
-		this(url, clientId, new DefaultMqttPahoClientFactory());
+	public MqttPahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager) {
+		this(clientManager, new MqttConnectOptions());
 	}
 
 	/**
@@ -110,15 +119,6 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 		var factory = new DefaultMqttPahoClientFactory();
 		factory.setConnectionOptions(connectOptions);
 		this.clientFactory = factory;
-	}
-
-	/**
-	 * Use this constructor when you need to use a single {@link ClientManager}
-	 * (for instance, to reuse an MQTT connection).
-	 * @param clientManager The client manager.
-	 */
-	public MqttPahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager) {
-		this(clientManager, new MqttConnectOptions());
 	}
 
 	/**
