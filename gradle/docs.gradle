@@ -1,31 +1,17 @@
 ext {
-	docResourcesVersion = '0.2.5'
-	blockSwitchVersion = '0.5.0'
+	backendVersion = '0.0.3'
 }
 
 configurations {
-	docs
-	asciidoctorExt
+	asciidoctorExtensions
 }
 
 dependencies {
-	docs "io.spring.docresources:spring-doc-resources:${docResourcesVersion}@zip"
-	asciidoctorExt "io.spring.asciidoctor:spring-asciidoctor-extensions-block-switch:$blockSwitchVersion"
-}
-
-task prepareAsciidocBuild(type: Sync) {
-	dependsOn configurations.docs
-	from {
-		configurations.docs.collect { zipTree(it) }
-	}
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
-	from 'src/reference/asciidoc/'
-	into "$buildDir/asciidoc"
+	asciidoctorExtensions "io.spring.asciidoctor.backends:spring-asciidoctor-backends:$backendVersion"
 }
 
 task checkAsciidocLinks {
-	dependsOn prepareAsciidocBuild
-	inputs.dir("$buildDir/asciidoc")
+	inputs.dir("src/reference/asciidoc/")
 	doLast {
 		def errors = new ArrayList<>();
 		errors.add('*** Anchor reference errors found:')
@@ -71,10 +57,9 @@ asciidoctorPdf {
 	}
 
 	baseDirFollowsSourceFile()
-	configurations 'asciidoctorExt'
 
 	asciidoctorj {
-		sourceDir "$buildDir/asciidoc"
+		sourceDir "src/reference/asciidoc/"
 		inputs.dir(sourceDir)
 		sources {
 			include 'index-single.adoc'
@@ -119,9 +104,12 @@ asciidoctor {
 		jvmArgs '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED'
 	}
 	baseDirFollowsSourceFile()
-	configurations 'asciidoctorExt'
-	sourceDir "$buildDir/asciidoc"
+	configurations 'asciidoctorExtensions'
+	sourceDir "src/reference/asciidoc/"
 	inputs.dir(sourceDir)
+	outputOptions {
+		backends "spring-html"
+	}
 	resources {
 		from(sourceDir) {
 			include 'images/*', 'css/**', 'js/**'
