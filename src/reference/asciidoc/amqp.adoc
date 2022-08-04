@@ -127,7 +127,6 @@ public MessageHandler handler() {
                                   tx-size=""                      <25>
                                   consumers-per-queue             <26>
                                   batch-mode="MESSAGES"/>         <27>
-----
 
 <1> The unique ID for this adapter.
 Optional.
@@ -221,7 +220,7 @@ See the https://docs.spring.io/spring-amqp/reference/html/[Spring AMQP Reference
 When set to `MESSAGES` (default), the payload is a `List<Message<?>>` where each message has headers mapped from the incoming AMQP `Message` and the payload is the converted `body`.
 When set to `EXTRACT_PAYLOADS`, the payload is a `List<?>` where the elements are converted from the AMQP `Message` body.
 `EXTRACT_PAYLOADS_WITH_HEADERS` is similar to `EXTRACT_PAYLOADS` but, in addition, the headers from each message are mapped from the `MessageProperties` into a `List<Map<String, Object>` at the corresponding index; the header name is `AmqpInboundChannelAdapter.CONSOLIDATED_HEADERS`.
-
+----
 ====
 
 [NOTE]
