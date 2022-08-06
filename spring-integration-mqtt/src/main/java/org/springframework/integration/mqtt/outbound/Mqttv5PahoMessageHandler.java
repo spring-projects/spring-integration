@@ -57,7 +57,7 @@ import org.springframework.util.Assert;
  *
  * @since 5.5.5
  */
-public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyncClient>
+public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyncClient, MqttConnectionOptions>
 		implements MqttCallback, MqttComponent<MqttConnectionOptions> {
 
 	private final MqttConnectionOptions connectionOptions;
@@ -83,14 +83,15 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		this.connectionOptions = connectionOptions;
 	}
 
-	public Mqttv5PahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager) {
-		this(clientManager, buildDefaultConnectionOptions(null));
-	}
-
-	public Mqttv5PahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager,
-			MqttConnectionOptions connectionOptions) {
+	/**
+	 * Use this constructor when you need to use a single {@link ClientManager}
+	 * (for instance, to reuse an MQTT connection).
+	 * @param clientManager The client manager.
+	 * @since 6.0
+	 */
+	public Mqttv5PahoMessageHandler(ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager) {
 		super(clientManager);
-		this.connectionOptions = connectionOptions;
+		this.connectionOptions = clientManager.getConnectionInfo();
 	}
 
 	private static MqttConnectionOptions buildDefaultConnectionOptions(@Nullable String url) {

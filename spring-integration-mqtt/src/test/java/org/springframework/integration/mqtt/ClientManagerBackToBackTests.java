@@ -19,6 +19,8 @@ package org.springframework.integration.mqtt;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -54,31 +56,36 @@ import org.springframework.messaging.PollableChannel;
 class ClientManagerBackToBackTests implements MosquittoContainerTest {
 
 	@Test
-	void testSameV3ClientIdWorksForPubAndSub() {
-		testSubscribeAndPublish(Mqttv3Config.class, Mqttv3Config.TOPIC_NAME);
+	void testSameV3ClientIdWorksForPubAndSub() throws Exception {
+		testSubscribeAndPublish(Mqttv3Config.class, Mqttv3Config.TOPIC_NAME, Mqttv3Config.subscribedLatch);
 	}
 
 	@Test
-	void testSameV5ClientIdWorksForPubAndSub() {
-		testSubscribeAndPublish(Mqttv5Config.class, Mqttv5Config.TOPIC_NAME);
+	void testSameV5ClientIdWorksForPubAndSub() throws Exception {
+		testSubscribeAndPublish(Mqttv5Config.class, Mqttv5Config.TOPIC_NAME, Mqttv5Config.subscribedLatch);
 	}
 
 	@Test
-	void testV3ClientManagerReconnect() {
-		testSubscribeAndPublish(Mqttv3ConfigWithDisconnect.class, Mqttv3ConfigWithDisconnect.TOPIC_NAME);
+	void testV3ClientManagerReconnect() throws Exception {
+		testSubscribeAndPublish(Mqttv3ConfigWithDisconnect.class, Mqttv3ConfigWithDisconnect.TOPIC_NAME,
+				Mqttv3ConfigWithDisconnect.subscribedLatch);
 	}
 
 	@Test
-	void testV5ClientManagerReconnect() {
-		testSubscribeAndPublish(Mqttv5ConfigWithDisconnect.class, Mqttv5ConfigWithDisconnect.TOPIC_NAME);
+	void testV5ClientManagerReconnect() throws Exception {
+		testSubscribeAndPublish(Mqttv5ConfigWithDisconnect.class, Mqttv5ConfigWithDisconnect.TOPIC_NAME,
+				Mqttv5ConfigWithDisconnect.subscribedLatch);
 	}
 
-	private void testSubscribeAndPublish(Class<?> configClass, String topicName) {
+	private void testSubscribeAndPublish(Class<?> configClass, String topicName, CountDownLatch subscribedLatch)
+			throws Exception {
+
 		try (var ctx = new AnnotationConfigApplicationContext(configClass)) {
 			// given
 			var input = ctx.getBean("mqttOutFlow.input", MessageChannel.class);
 			var output = ctx.getBean("fromMqttChannel", PollableChannel.class);
 			String testPayload = "foo";
+			assertThat(subscribedLatch.await(20, TimeUnit.SECONDS)).isTrue();
 
 			// when
 			input.send(MessageBuilder.withPayload(testPayload).setHeader(MqttHeaders.TOPIC, topicName).build());
@@ -101,6 +108,13 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 	public static class Mqttv3Config {
 
 		static final String TOPIC_NAME = "test-topic-v3";
+
+		static final CountDownLatch subscribedLatch = new CountDownLatch(1);
+
+		@EventListener
+		public void onSubscribed(MqttSubscribedEvent e) {
+			subscribedLatch.countDown();
+		}
 
 		@Bean
 		public Mqttv3ClientManager mqttv3ClientManager(MqttPahoClientFactory pahoClientFactory) {
@@ -137,9 +151,16 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 
 		static final String TOPIC_NAME = "test-topic-v3-reconnect";
 
+		static final CountDownLatch subscribedLatch = new CountDownLatch(1);
+
+		@EventListener
+		public void onSubscribed(MqttSubscribedEvent e) {
+			subscribedLatch.countDown();
+		}
+
 		@Bean
-		public ClientV3Disconnector disconnector(Mqttv3ClientManager mqttv3ClientManager) {
-			return new ClientV3Disconnector(mqttv3ClientManager);
+		public ClientV3Disconnector disconnector(Mqttv3ClientManager clientManager) {
+			return new ClientV3Disconnector(clientManager);
 		}
 
 		@Bean
@@ -177,6 +198,13 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 
 		static final String TOPIC_NAME = "test-topic-v5";
 
+		static final CountDownLatch subscribedLatch = new CountDownLatch(1);
+
+		@EventListener
+		public void onSubscribed(MqttSubscribedEvent e) {
+			subscribedLatch.countDown();
+		}
+
 		@Bean
 		public Mqttv5ClientManager mqttv5ClientManager() {
 			return new Mqttv5ClientManager(MosquittoContainerTest.mqttUrl(), "client-manager-client-id-v5");
@@ -202,9 +230,16 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 
 		static final String TOPIC_NAME = "test-topic-v5-reconnect";
 
+		static final CountDownLatch subscribedLatch = new CountDownLatch(1);
+
+		@EventListener
+		public void onSubscribed(MqttSubscribedEvent e) {
+			subscribedLatch.countDown();
+		}
+
 		@Bean
-		public ClientV5Disconnector disconnector(Mqttv5ClientManager mqttv5ClientManager) {
-			return new ClientV5Disconnector(mqttv5ClientManager);
+		public ClientV5Disconnector clientV3Disconnector(Mqttv5ClientManager clientManager) {
+			return new ClientV5Disconnector(clientManager);
 		}
 
 		@Bean
@@ -225,6 +260,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		}
 
 	}
+
 
 	public static class ClientV3Disconnector {
 

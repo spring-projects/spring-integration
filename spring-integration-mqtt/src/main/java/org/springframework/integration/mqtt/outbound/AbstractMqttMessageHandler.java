@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  * Abstract class for MQTT outbound channel adapters.
  *
  * @param <T> MQTT Client type
+ * @param <C> MQTT connection options type (v5 or v3)
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -46,7 +47,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandler
+public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHandler
 		implements ManageableLifecycle, ApplicationEventPublisherAware {
 
 	/**
@@ -67,6 +68,8 @@ public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandl
 	private final String url;
 
 	private final String clientId;
+
+	private final ClientManager<T, C> clientManager;
 
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
@@ -90,8 +93,6 @@ public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandl
 
 	private int clientInstance;
 
-	private final ClientManager<T> clientManager;
-
 	public AbstractMqttMessageHandler(@Nullable String url, String clientId) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
 		this.url = url;
@@ -99,7 +100,7 @@ public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandl
 		this.clientManager = null;
 	}
 
-	AbstractMqttMessageHandler(ClientManager<T> clientManager) {
+	public AbstractMqttMessageHandler(ClientManager<T, C> clientManager) {
 		Assert.notNull(clientManager, "'clientManager' cannot be null or empty");
 		this.clientManager = clientManager;
 		this.url = null;
@@ -308,7 +309,7 @@ public abstract class AbstractMqttMessageHandler<T> extends AbstractMessageHandl
 	}
 
 	@Nullable
-	protected ClientManager<T> getClientManager() {
+	protected ClientManager<T, C> getClientManager() {
 		return this.clientManager;
 	}
 

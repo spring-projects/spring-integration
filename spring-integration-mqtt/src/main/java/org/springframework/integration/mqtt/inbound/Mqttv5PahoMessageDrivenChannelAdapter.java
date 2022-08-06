@@ -76,7 +76,8 @@ import org.springframework.util.Assert;
  * @since 5.5.5
  *
  */
-public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient>
+public class Mqttv5PahoMessageDrivenChannelAdapter
+		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectionOptions>
 		implements MqttCallback, MqttComponent<MqttConnectionOptions> {
 
 	private final MqttConnectionOptions connectionOptions;
@@ -114,28 +115,13 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	 * (for instance, to reuse an MQTT connection).
 	 * @param clientManager The client manager.
 	 * @param topic The topic(s).
+	 * @since 6.0
 	 */
-	public Mqttv5PahoMessageDrivenChannelAdapter(ClientManager<IMqttAsyncClient> clientManager, String... topic) {
-		this(buildDefaultConnectionOptions(null), clientManager, topic);
-	}
-
-	/**
-	 * Use this constructor when you need to use a single {@link ClientManager}
-	 * (for instance, to reuse an MQTT connection) and a specific {@link MqttConnectionOptions}.
-	 * @param connectionOptions The connection options.
-	 * @param clientManager The client manager.
-	 * @param topic The topic(s).
-	 */
-	public Mqttv5PahoMessageDrivenChannelAdapter(MqttConnectionOptions connectionOptions,
-			ClientManager<IMqttAsyncClient> clientManager, String... topic) {
-
+	public Mqttv5PahoMessageDrivenChannelAdapter(ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager,
+			String... topic) {
 		super(clientManager, topic);
-		this.connectionOptions = connectionOptions;
-		if (!this.connectionOptions.isAutomaticReconnect()) {
-			logger.warn("It is recommended to set 'automaticReconnect' MQTT client option. " +
-					"Otherwise the current channel adapter restart should be used explicitly, " +
-					"e.g. via handling 'MqttConnectionFailedEvent' on client disconnection.");
-		}
+		this.connectionOptions = clientManager.getConnectionInfo();
+		setClientManagerCallback(new AdapterConnectCallback());
 	}
 
 	private static MqttConnectionOptions buildDefaultConnectionOptions(@Nullable String url) {
@@ -185,7 +171,8 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (getClientManager() == null && this.mqttClient == null) {
+		var clientManager = getClientManager();
+		if (clientManager == null && this.mqttClient == null) {
 			try {
 				this.mqttClient = new MqttAsyncClient(getUrl(), getClientId(), this.persistence);
 				this.mqttClient.setCallback(this);
@@ -200,34 +187,28 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 					.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
 							SmartMessageConverter.class));
 		}
+		if (clientManager != null) {
+			clientManager.addCallback(getClientManagerCallback());
+		}
 	}
 
 	@Override
 	protected void doStart() {
-		if (getClientManager() != null) {
-			subscribeToAll();
-			return;
-		}
-
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		try {
-			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
-		}
-		catch (MqttException ex) {
-			if (this.connectionOptions.isAutomaticReconnect()) {
-				try {
-					this.mqttClient.reconnect();
-				}
-				catch (MqttException e) {
-					logger.error(ex, "MQTT client failed to connect. Never happens.");
-				}
+		var clientManager = getClientManager();
+		if (clientManager == null) {
+			try {
+				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
 			}
-			else {
+			catch (MqttException ex) {
 				if (applicationEventPublisher != null) {
 					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 				}
 				logger.error(ex, "MQTT client failed to connect.");
 			}
+		}
+		else {
+			this.mqttClient = clientManager.getClient();
 		}
 	}
 
@@ -236,13 +217,12 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 		this.topicLock.lock();
 		String[] topics = getTopic();
 		try {
-			var theClientManager = getClientManager();
-			if (theClientManager != null) {
-				theClientManager.getClient().unsubscribe(topics).waitForCompletion(getCompletionTimeout());
-			}
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				this.mqttClient.unsubscribe(topics).waitForCompletion(getCompletionTimeout());
-				this.mqttClient.disconnect().waitForCompletion(getCompletionTimeout());
+
+				if (getClientManager() == null) {
+					this.mqttClient.disconnect().waitForCompletion(getCompletionTimeout());
+				}
 			}
 		}
 		catch (MqttException ex) {
@@ -256,13 +236,17 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	@Override
 	public void destroy() {
 		super.destroy();
+		var clientManager = getClientManager();
 		try {
-			if (this.mqttClient != null) {
+			if (clientManager == null && this.mqttClient != null) {
 				this.mqttClient.close(true);
 			}
 		}
 		catch (MqttException ex) {
 			logger.error(ex, "Failed to close 'MqttAsyncClient'");
+		}
+		if (clientManager != null) {
+			clientManager.removeCallback(getClientManagerCallback());
 		}
 	}
 
@@ -272,11 +256,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 		try {
 			super.addTopic(topic, qos);
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
-				this.mqttClient.subscribe(topic, qos).waitForCompletion(getCompletionTimeout());
-			}
-			var theClientManager = getClientManager();
-			if (theClientManager != null) {
-				theClientManager.getClient().subscribe(new MqttSubscription(topic, qos), new MessageListener())
+				this.mqttClient.subscribe(new MqttSubscription(topic, qos), new MessageListener())
 						.waitForCompletion(getCompletionTimeout());
 			}
 		}
@@ -294,10 +274,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 		try {
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				this.mqttClient.unsubscribe(topic).waitForCompletion(getCompletionTimeout());
-			}
-			var theClientManager = getClientManager();
-			if (theClientManager != null) {
-				theClientManager.getClient().unsubscribe(topic).waitForCompletion(getCompletionTimeout());
 			}
 			super.removeTopic(topic);
 		}
@@ -370,19 +346,16 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (!reconnect) {
-			subscribeToAll();
+		if (reconnect) {
+			return;
 		}
-	}
+		var clientManager = getClientManager();
+		if (clientManager != null && this.mqttClient == null) {
+			this.mqttClient = clientManager.getClient();
+		}
 
-	@Override
-	public void authPacketArrived(int reasonCode, MqttProperties properties) {
-
-	}
-
-	private void subscribeToAll() {
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		String[] topics = getTopic();
+		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		this.topicLock.lock();
 		try {
 			if (topics.length == 0) {
@@ -390,19 +363,14 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 			}
 
 			int[] requestedQos = getQos();
-			if (this.mqttClient != null) {
-				this.mqttClient.subscribe(topics, requestedQos).waitForCompletion(getCompletionTimeout());
-			}
-			if (getClientManager() != null) {
-				MqttSubscription[] subscriptions = IntStream.range(0, topics.length)
-						.mapToObj(i -> new MqttSubscription(topics[i], requestedQos[i]))
-						.toArray(MqttSubscription[]::new);
-				MessageListener[] listeners = IntStream.range(0, topics.length)
-						.mapToObj(t -> new MessageListener())
-						.toArray(MessageListener[]::new);
-				getClientManager().getClient().subscribe(subscriptions, null, null, listeners, null)
-						.waitForCompletion(getCompletionTimeout());
-			}
+			MqttSubscription[] subscriptions = IntStream.range(0, topics.length)
+					.mapToObj(i -> new MqttSubscription(topics[i], requestedQos[i]))
+					.toArray(MqttSubscription[]::new);
+			MessageListener[] listeners = IntStream.range(0, topics.length)
+					.mapToObj(t -> new MessageListener())
+					.toArray(MessageListener[]::new);
+			this.mqttClient.subscribe(subscriptions, null, null, listeners, null)
+					.waitForCompletion(getCompletionTimeout());
 			String message = "Connected and subscribed to " + Arrays.toString(topics);
 			logger.debug(message);
 			if (applicationEventPublisher != null) {
@@ -418,6 +386,11 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 		finally {
 			this.topicLock.unlock();
 		}
+	}
+
+	@Override
+	public void authPacketArrived(int reasonCode, MqttProperties properties) {
+
 	}
 
 	private static String obtainServerUrlFromOptions(MqttConnectionOptions connectionOptions) {
@@ -465,9 +438,24 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 
 	private class MessageListener implements IMqttMessageListener {
 
+		MessageListener() {
+		}
+
 		@Override
 		public void messageArrived(String topic, MqttMessage message) {
 			Mqttv5PahoMessageDrivenChannelAdapter.this.messageArrived(topic, message);
+		}
+
+	}
+
+	private class AdapterConnectCallback implements ClientManager.ConnectCallback {
+
+		AdapterConnectCallback() {
+		}
+
+		@Override
+		public void connectComplete(boolean isReconnect) {
+			Mqttv5PahoMessageDrivenChannelAdapter.this.connectComplete(isReconnect, null);
 		}
 
 	}

@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * Abstract class for MQTT Message-Driven Channel Adapters.
  *
  * @param <T> MQTT Client type
+ * @param <C> MQTT connection options type (v5 or v3)
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -52,7 +53,7 @@ import org.springframework.util.Assert;
  */
 @ManagedResource
 @IntegrationManagedResource
-public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends MessageProducerSupport
+public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends MessageProducerSupport
 		implements ApplicationEventPublisherAware {
 
 	/**
@@ -60,11 +61,15 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 	 */
 	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
 
+	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
+
 	private final String url;
 
 	private final String clientId;
 
 	private final Set<Topic> topics;
+
+	private final ClientManager<T, C> clientManager;
 
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
@@ -74,9 +79,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 
 	private MqttMessageConverter converter;
 
-	private final ClientManager<T> clientManager;
-
-	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
+	private ClientManager.ConnectCallback clientManagerConnectCallback;
 
 	public AbstractMqttMessageDrivenChannelAdapter(@Nullable String url, String clientId, String... topic) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
@@ -86,7 +89,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 		this.clientManager = null;
 	}
 
-	AbstractMqttMessageDrivenChannelAdapter(ClientManager<T> clientManager, String... topic) {
+	public AbstractMqttMessageDrivenChannelAdapter(ClientManager<T, C> clientManager, String... topic) {
 		Assert.notNull(clientManager, "'clientManager' cannot be null");
 		this.clientManager = clientManager;
 		this.topics = initTopics(topic);
@@ -111,8 +114,17 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T> extends Message
 	}
 
 	@Nullable
-	protected ClientManager<T> getClientManager() {
+	protected ClientManager<T, C> getClientManager() {
 		return this.clientManager;
+	}
+
+	@Nullable
+	protected ClientManager.ConnectCallback getClientManagerCallback() {
+		return this.clientManagerConnectCallback;
+	}
+
+	protected void setClientManagerCallback(ClientManager.ConnectCallback clientManagerConnectCallback) {
+		this.clientManagerConnectCallback = clientManagerConnectCallback;
 	}
 
 	/**

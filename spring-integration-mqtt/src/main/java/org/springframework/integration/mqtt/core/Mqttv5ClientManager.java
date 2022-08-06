@@ -33,7 +33,8 @@ import org.springframework.util.Assert;
  * @author Artem Vozhdayenko
  * @since 6.0
  */
-public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncClient> implements MqttCallback {
+public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncClient, MqttConnectionOptions>
+		implements MqttCallback {
 
 	private final MqttConnectionOptions connectionOptions;
 
@@ -64,57 +65,52 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 
 	@Override
 	public synchronized void start() {
-		if (this.client == null) {
+		if (getClient() == null) {
 			try {
-				this.client = new MqttAsyncClient(getUrl(), getClientId());
-				this.client.setManualAcks(isManualAcks());
-				this.client.setCallback(this);
+				var client = new MqttAsyncClient(getUrl(), getClientId());
+				client.setManualAcks(isManualAcks());
+				client.setCallback(this);
+				setClient(client);
 			}
 			catch (MqttException e) {
 				throw new IllegalStateException("could not start client manager", e);
 			}
 		}
 		try {
-			this.client.connect(this.connectionOptions)
+			getClient().connect(this.connectionOptions)
 					.waitForCompletion(this.connectionOptions.getConnectionTimeout());
 		}
 		catch (MqttException e) {
-			logger.error("could not start client manager, client_id=" + this.client.getClientId(), e);
+			logger.error("could not start client manager, client_id=" + getClientId(), e);
 
-			if (this.connectionOptions.isAutomaticReconnect()) {
-				try {
-					this.client.reconnect();
-				}
-				catch (MqttException ex) {
-					logger.error("MQTT client failed to re-connect.", ex);
-				}
-			}
-			else if (getApplicationEventPublisher() != null) {
-				getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, e));
+			var applicationEventPublisher = getApplicationEventPublisher();
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
 			}
 		}
 	}
 
 	@Override
 	public synchronized void stop() {
-		if (this.client == null) {
+		var client = getClient();
+		if (client == null) {
 			return;
 		}
 
 		try {
-			this.client.disconnectForcibly(this.connectionOptions.getConnectionTimeout());
+			client.disconnectForcibly(this.connectionOptions.getConnectionTimeout());
 		}
 		catch (MqttException e) {
 			logger.error("could not disconnect from the client", e);
 		}
 		finally {
 			try {
-				this.client.close();
+				client.close();
 			}
 			catch (MqttException e) {
 				logger.error("could not close the client", e);
 			}
-			this.client = null;
+			setClient(null);
 		}
 	}
 
@@ -130,10 +126,7 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (logger.isInfoEnabled()) {
-			logger.info("MQTT connect complete to " + serverURI);
-		}
-		// probably makes sense to use custom callbacks in the future
+		getCallbacks().forEach(callback -> callback.connectComplete(reconnect));
 	}
 
 	@Override
@@ -153,4 +146,8 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 		logger.error("MQTT error occurred", exception);
 	}
 
+	@Override
+	public MqttConnectionOptions getConnectionInfo() {
+		return this.connectionOptions;
+	}
 }

@@ -54,7 +54,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyncClient>
+public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyncClient, MqttConnectOptions>
 		implements MqttCallback, MqttPahoComponent {
 
 	private final MqttPahoClientFactory clientFactory;
@@ -103,21 +103,12 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 	 * Use this constructor when you need to use a single {@link ClientManager}
 	 * (for instance, to reuse an MQTT connection).
 	 * @param clientManager The client manager.
+	 * @since 6.0
 	 */
-	public MqttPahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager) {
-		this(clientManager, new MqttConnectOptions());
-	}
-
-	/**
-	 * Use this constructor when you need to use a single {@link ClientManager}
-	 * (for instance, to reuse an MQTT connection) and a specific {@link MqttConnectOptions}.
-	 * @param clientManager The client manager.
-	 * @param connectOptions The connection options.
-	 */
-	public MqttPahoMessageHandler(ClientManager<IMqttAsyncClient> clientManager, MqttConnectOptions connectOptions) {
+	public MqttPahoMessageHandler(ClientManager<IMqttAsyncClient, MqttConnectOptions> clientManager) {
 		super(clientManager);
 		var factory = new DefaultMqttPahoClientFactory();
-		factory.setConnectionOptions(connectOptions);
+		factory.setConnectionOptions(clientManager.getConnectionInfo());
 		this.clientFactory = factory;
 	}
 

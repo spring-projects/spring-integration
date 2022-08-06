@@ -24,15 +24,29 @@ import org.springframework.context.SmartLifecycle;
  * Using this manager in multiple MQTT integrations will preserve a single connection.
  *
  * @param <T> MQTT client type
+ * @param <C> MQTT connection options type (v5 or v3)
  *
  * @author Artem Vozhdayenko
  *
  * @since 6.0
  */
-public interface ClientManager<T> extends SmartLifecycle {
+public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 
 	T getClient();
 
 	boolean isManualAcks();
+
+	void addCallback(ConnectCallback connectCallback);
+
+	boolean removeCallback(ConnectCallback connectCallback);
+
+	/**
+	 * A contract for a custom callback if needed by a usage.
+	 */
+	interface ConnectCallback {
+
+		void connectComplete(boolean isReconnect);
+
+	}
 
 }

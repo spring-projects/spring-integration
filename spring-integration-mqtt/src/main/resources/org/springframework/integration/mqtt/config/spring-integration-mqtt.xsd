@@ -66,15 +66,6 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="recovery-interval" type="xsd:string" default="10000">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-						The time in milliseconds to wait between reconnection attempts.
-	 					Defaults to 10 seconds.
-					]]>
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="error-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
