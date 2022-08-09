@@ -42,6 +42,9 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 
 	/**
 	 * A contract for a custom callback if needed by a usage.
+	 *
+	 * @see org.eclipse.paho.mqttv5.client.MqttCallback#connectComplete
+	 * @see org.eclipse.paho.client.mqttv3.MqttCallbackExtended#connectComplete
 	 */
 	interface ConnectCallback {
 

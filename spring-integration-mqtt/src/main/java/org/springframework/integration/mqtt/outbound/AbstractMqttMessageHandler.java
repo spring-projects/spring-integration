@@ -103,6 +103,7 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	public AbstractMqttMessageHandler(ClientManager<T, C> clientManager) {
 		Assert.notNull(clientManager, "'clientManager' cannot be null or empty");
 		this.clientManager = clientManager;
+		clientManager.getConnectionInfo();
 		this.url = null;
 		this.clientId = null;
 	}

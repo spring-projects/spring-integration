@@ -135,7 +135,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 		var factory = new DefaultMqttPahoClientFactory();
 		factory.setConnectionOptions(clientManager.getConnectionInfo());
 		this.clientFactory = factory;
-		setClientManagerCallback(new AdapterConnectCallback());
 	}
 
 	/**
@@ -172,7 +171,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 		var clientManager = getClientManager();
 		if (clientManager != null) {
-			clientManager.addCallback(getClientManagerCallback());
+			clientManager.addCallback(this);
 		}
 	}
 
@@ -182,10 +181,20 @@ public class MqttPahoMessageDrivenChannelAdapter
 			connect();
 		}
 		catch (Exception ex) {
-			logger.error(ex, "Exception while connecting");
-			var applicationEventPublisher = getApplicationEventPublisher();
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			if (getConnectionInfo().isAutomaticReconnect()) {
+				try {
+					this.client.reconnect();
+				}
+				catch (MqttException re) {
+					logger.error(re, "MQTT client failed to connect. Never happens.");
+				}
+			}
+			else {
+				logger.error(ex, "Exception while connecting");
+				var applicationEventPublisher = getApplicationEventPublisher();
+				if (applicationEventPublisher != null) {
+					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+				}
 			}
 		}
 	}
@@ -221,7 +230,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 		super.destroy();
 		var clientManager = getClientManager();
 		if (clientManager != null) {
-			clientManager.removeCallback(getClientManagerCallback());
+			clientManager.removeCallback(this);
 		}
 		else {
 			try {
@@ -239,7 +248,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 		try {
 			super.addTopic(topic, qos);
 			if (this.client != null && this.client.isConnected()) {
-				this.client.subscribe(topic, qos, new MessageListener())
+				this.client.subscribe(topic, qos, this::messageArrived)
 						.waitForCompletion(getCompletionTimeout());
 			}
 		}
@@ -304,9 +313,10 @@ public class MqttPahoMessageDrivenChannelAdapter
 		try {
 			if (topics.length > 0) {
 				int[] requestedQos = getQos();
-				MessageListener[] listeners = Stream.of(topics)
-						.map(t -> new MessageListener())
-						.toArray(MessageListener[]::new);
+				IMqttMessageListener listener = this::messageArrived;
+				IMqttMessageListener[] listeners = Stream.of(topics)
+						.map(t -> listener)
+						.toArray(IMqttMessageListener[]::new);
 				IMqttToken subscribeToken = this.client.subscribe(topics, requestedQos, listeners);
 				subscribeToken.waitForCompletion(getCompletionTimeout());
 				int[] grantedQos = subscribeToken.getGrantedQos();
@@ -412,6 +422,11 @@ public class MqttPahoMessageDrivenChannelAdapter
 	}
 
 	@Override
+	public void connectComplete(boolean isReconnect) {
+		connectComplete(isReconnect, getUrl());
+	}
+
+	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
 		if (!reconnect) {
 			subscribe();
@@ -456,30 +471,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 			else {
 				throw new IllegalStateException("Client has changed");
 			}
-		}
-
-	}
-
-	private class MessageListener implements IMqttMessageListener {
-
-		MessageListener() {
-		}
-
-		@Override
-		public void messageArrived(String topic, MqttMessage mqttMessage) {
-			MqttPahoMessageDrivenChannelAdapter.this.messageArrived(topic, mqttMessage);
-		}
-
-	}
-
-	private class AdapterConnectCallback implements ClientManager.ConnectCallback {
-
-		AdapterConnectCallback() {
-		}
-
-		@Override
-		public void connectComplete(boolean isReconnect) {
-			MqttPahoMessageDrivenChannelAdapter.this.connectComplete(isReconnect, null);
 		}
 
 	}

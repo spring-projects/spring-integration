@@ -41,9 +41,13 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
+	private static final int DEFAULT_MANAGER_PHASE = 0;
+
 	private final Set<ConnectCallback> connectCallbacks;
 
 	private final String clientId;
+
+	private int phase = DEFAULT_MANAGER_PHASE;
 
 	private boolean manualAcks;
 
@@ -86,7 +90,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	}
 
 	protected Set<ConnectCallback> getCallbacks() {
-		return Collections.unmodifiableSet(this.connectCallbacks);
+		return this.connectCallbacks;
 	}
 
 	@Override
@@ -119,11 +123,13 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	 * The phase of component autostart in {@link SmartLifecycle}.
 	 * If the custom one is required, note that for the correct behavior it should be less than phase of
 	 * {@link AbstractMqttMessageDrivenChannelAdapter} implementations.
+	 * The default phase is {@link #DEFAULT_MANAGER_PHASE}.
 	 * @return {@link SmartLifecycle} autostart phase
+	 * @see #setPhase
 	 */
 	@Override
 	public int getPhase() {
-		return 0;
+		return this.phase;
 	}
 
 	@Override
@@ -138,6 +144,16 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	public synchronized boolean isRunning() {
 		return this.client != null;
+	}
+
+	/**
+	 * Sets the phase of component autostart in {@link SmartLifecycle}.
+	 * If the custom one is required, note that for the correct behavior it should be less than phase of
+	 * {@link AbstractMqttMessageDrivenChannelAdapter} implementations.
+	 * @see #getPhase
+	 */
+	public void setPhase(int phase) {
+		this.phase = phase;
 	}
 
 }

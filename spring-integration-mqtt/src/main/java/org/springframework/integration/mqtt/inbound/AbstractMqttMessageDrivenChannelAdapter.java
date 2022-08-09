@@ -54,7 +54,7 @@ import org.springframework.util.Assert;
 @ManagedResource
 @IntegrationManagedResource
 public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends MessageProducerSupport
-		implements ApplicationEventPublisherAware {
+		implements ApplicationEventPublisherAware, ClientManager.ConnectCallback {
 
 	/**
 	 * The default completion timeout in milliseconds.
@@ -78,8 +78,6 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private MqttMessageConverter converter;
-
-	private ClientManager.ConnectCallback clientManagerConnectCallback;
 
 	public AbstractMqttMessageDrivenChannelAdapter(@Nullable String url, String clientId, String... topic) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
@@ -116,15 +114,6 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	@Nullable
 	protected ClientManager<T, C> getClientManager() {
 		return this.clientManager;
-	}
-
-	@Nullable
-	protected ClientManager.ConnectCallback getClientManagerCallback() {
-		return this.clientManagerConnectCallback;
-	}
-
-	protected void setClientManagerCallback(ClientManager.ConnectCallback clientManagerConnectCallback) {
-		this.clientManagerConnectCallback = clientManagerConnectCallback;
 	}
 
 	/**

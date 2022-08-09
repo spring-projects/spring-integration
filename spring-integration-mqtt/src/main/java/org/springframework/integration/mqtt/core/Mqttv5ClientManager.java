@@ -83,9 +83,19 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 		catch (MqttException e) {
 			logger.error("could not start client manager, client_id=" + getClientId(), e);
 
-			var applicationEventPublisher = getApplicationEventPublisher();
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
+			if (getConnectionInfo().isAutomaticReconnect()) {
+				try {
+					getClient().reconnect();
+				}
+				catch (MqttException re) {
+					logger.error("MQTT client failed to connect. Never happens.", re);
+				}
+			}
+			else {
+				var applicationEventPublisher = getApplicationEventPublisher();
+				if (applicationEventPublisher != null) {
+					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
+				}
 			}
 		}
 	}

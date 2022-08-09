@@ -17,16 +17,17 @@
 package org.springframework.integration.mqtt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.net.UnknownHostException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptionsBuilder;
+import org.eclipse.paho.mqttv5.common.MqttException;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -41,6 +42,7 @@ import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -71,13 +73,23 @@ public class Mqttv5BackToBackAutomaticReconnectTests implements MosquittoContain
 
 	@Test
 	public void testReconnectionWhenFirstConnectionFails() throws InterruptedException {
+		Message<String> testMessage =
+				MessageBuilder.withPayload("testPayload")
+						.setHeader(MqttHeaders.TOPIC, "siTest")
+						.build();
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.mqttOutFlowInput.send(testMessage))
+				.withCauseExactlyInstanceOf(MqttException.class)
+				.withRootCauseExactlyInstanceOf(UnknownHostException.class);
+
+		connectionOptions.setServerURIs(new String[]{ MosquittoContainerTest.mqttUrl() });
+
 		assertThat(this.config.subscribeLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		this.mqttOutFlowInput.send(MessageBuilder.withPayload("testPayload")
-				.setHeader(MqttHeaders.TOPIC, "siTest")
-				.build());
+		this.mqttOutFlowInput.send(testMessage);
 
-		Message<?> receive = this.fromMqttChannel.receive(20_000);
+		Message<?> receive = this.fromMqttChannel.receive(10_000);
 
 		assertThat(receive).isNotNull();
 	}
@@ -92,7 +104,7 @@ public class Mqttv5BackToBackAutomaticReconnectTests implements MosquittoContain
 		@Bean
 		public MqttConnectionOptions mqttConnectOptions() {
 			return new MqttConnectionOptionsBuilder()
-					.serverURI(MosquittoContainerTest.mqttUrl())
+					.serverURI("wss://badMqttUrl")
 					.automaticReconnect(true)
 					.connectionTimeout(1)
 					.build();
@@ -108,48 +120,19 @@ public class Mqttv5BackToBackAutomaticReconnectTests implements MosquittoContain
 
 
 		@Bean
-		public IntegrationFlow mqttInFlow(Mqttv5PahoMessageDrivenChannelAdapter mqttAdapter) {
-			mqttAdapter.setPayloadType(String.class);
-			return IntegrationFlow.from(mqttAdapter)
+		public IntegrationFlow mqttInFlow() {
+			Mqttv5PahoMessageDrivenChannelAdapter messageProducer =
+					new Mqttv5PahoMessageDrivenChannelAdapter(mqttConnectOptions(), "mqttv5SIin", "siTest");
+			messageProducer.setPayloadType(String.class);
+
+			return IntegrationFlow.from(messageProducer)
 					.channel(c -> c.queue("fromMqttChannel"))
 					.get();
 		}
 
-		@Bean
-		public Mqttv5PahoMessageDrivenChannelAdapter mqttAdapter() {
-			return new Mqttv5PahoMessageDrivenChannelAdapter(mqttConnectOptions(), "mqttv5SIin", "siTest");
-		}
-
-		@EventListener
-		void mqttEvents(MqttSubscribedEvent e) {
+		@EventListener(MqttSubscribedEvent.class)
+		void mqttEvents() {
 			this.subscribeLatch.countDown();
-		}
-
-		@Bean
-		public ClientV5Disconnector disconnector(Mqttv5PahoMessageDrivenChannelAdapter mqttAdapter) {
-			return new ClientV5Disconnector(mqttAdapter);
-		}
-
-	}
-
-	public static class ClientV5Disconnector {
-
-		private final Mqttv5PahoMessageDrivenChannelAdapter mqttAdapter;
-
-		ClientV5Disconnector(Mqttv5PahoMessageDrivenChannelAdapter mqttAdapter) {
-			this.mqttAdapter = mqttAdapter;
-		}
-
-		@EventListener
-		public void handleSubscribedEvent(MqttSubscribedEvent e) {
-			// not ideal, but no idea what can be the better way of disconnecting the client
-			try {
-				((IMqttAsyncClient) new DirectFieldAccessor(mqttAdapter).getPropertyValue("mqttClient"))
-						.disconnect();
-			}
-			catch (Exception ex) {
-				throw new IllegalStateException("could not disconnect the client!");
-			}
 		}
 
 	}

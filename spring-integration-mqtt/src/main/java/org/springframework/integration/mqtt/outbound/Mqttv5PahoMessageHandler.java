@@ -95,8 +95,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	}
 
 	private static MqttConnectionOptions buildDefaultConnectionOptions(@Nullable String url) {
-		final MqttConnectionOptions connectionOptions;
-		connectionOptions = new MqttConnectionOptions();
+		var connectionOptions = new MqttConnectionOptions();
 		if (url != null) {
 			connectionOptions.setServerURIs(new String[]{ url });
 		}

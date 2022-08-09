@@ -121,12 +121,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			String... topic) {
 		super(clientManager, topic);
 		this.connectionOptions = clientManager.getConnectionInfo();
-		setClientManagerCallback(new AdapterConnectCallback());
 	}
 
 	private static MqttConnectionOptions buildDefaultConnectionOptions(@Nullable String url) {
-		final MqttConnectionOptions connectionOptions;
-		connectionOptions = new MqttConnectionOptions();
+		var connectionOptions = new MqttConnectionOptions();
 		if (url != null) {
 			connectionOptions.setServerURIs(new String[]{ url });
 		}
@@ -188,23 +186,33 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 							SmartMessageConverter.class));
 		}
 		if (clientManager != null) {
-			clientManager.addCallback(getClientManagerCallback());
+			clientManager.addCallback(this);
 		}
 	}
 
 	@Override
 	protected void doStart() {
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		var clientManager = getClientManager();
 		if (clientManager == null) {
 			try {
 				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
 			}
 			catch (MqttException ex) {
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+				if (getConnectionInfo().isAutomaticReconnect()) {
+					try {
+						this.mqttClient.reconnect();
+					}
+					catch (MqttException re) {
+						logger.error(re, "MQTT client failed to connect. Never happens.");
+					}
 				}
-				logger.error(ex, "MQTT client failed to connect.");
+				else {
+					ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+					if (applicationEventPublisher != null) {
+						applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+					}
+					logger.error(ex, "MQTT client failed to connect.");
+				}
 			}
 		}
 		else {
@@ -246,7 +254,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			logger.error(ex, "Failed to close 'MqttAsyncClient'");
 		}
 		if (clientManager != null) {
-			clientManager.removeCallback(getClientManagerCallback());
+			clientManager.removeCallback(this);
 		}
 	}
 
@@ -256,7 +264,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		try {
 			super.addTopic(topic, qos);
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
-				this.mqttClient.subscribe(new MqttSubscription(topic, qos), new MessageListener())
+				this.mqttClient.subscribe(new MqttSubscription(topic, qos), this::messageArrived)
 						.waitForCompletion(getCompletionTimeout());
 			}
 		}
@@ -345,6 +353,11 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	}
 
 	@Override
+	public void connectComplete(boolean isReconnect) {
+		connectComplete(isReconnect, getUrl());
+	}
+
+	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
 		if (reconnect) {
 			return;
@@ -366,9 +379,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			MqttSubscription[] subscriptions = IntStream.range(0, topics.length)
 					.mapToObj(i -> new MqttSubscription(topics[i], requestedQos[i]))
 					.toArray(MqttSubscription[]::new);
-			MessageListener[] listeners = IntStream.range(0, topics.length)
-					.mapToObj(t -> new MessageListener())
-					.toArray(MessageListener[]::new);
+			IMqttMessageListener listener = this::messageArrived;
+			IMqttMessageListener[] listeners = IntStream.range(0, topics.length)
+					.mapToObj(t -> listener)
+					.toArray(IMqttMessageListener[]::new);
 			this.mqttClient.subscribe(subscriptions, null, null, listeners, null)
 					.waitForCompletion(getCompletionTimeout());
 			String message = "Connected and subscribed to " + Arrays.toString(topics);
@@ -432,30 +446,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			catch (MqttException ex) {
 				throw new IllegalStateException(ex);
 			}
-		}
-
-	}
-
-	private class MessageListener implements IMqttMessageListener {
-
-		MessageListener() {
-		}
-
-		@Override
-		public void messageArrived(String topic, MqttMessage message) {
-			Mqttv5PahoMessageDrivenChannelAdapter.this.messageArrived(topic, message);
-		}
-
-	}
-
-	private class AdapterConnectCallback implements ClientManager.ConnectCallback {
-
-		AdapterConnectCallback() {
-		}
-
-		@Override
-		public void connectComplete(boolean isReconnect) {
-			Mqttv5PahoMessageDrivenChannelAdapter.this.connectComplete(isReconnect, null);
 		}
 
 	}
