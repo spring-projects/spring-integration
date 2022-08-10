@@ -95,7 +95,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		super(url, clientId, topic);
-		this.connectionOptions = buildDefaultConnectionOptions(url);
+		Assert.hasText(url, "'url' cannot be null or empty");
+		this.connectionOptions = new MqttConnectionOptions();
+		this.connectionOptions.setServerURIs(new String[]{ url });
+		this.connectionOptions.setAutomaticReconnect(true);
 	}
 
 	public Mqttv5PahoMessageDrivenChannelAdapter(MqttConnectionOptions connectionOptions, String clientId,
@@ -121,15 +124,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			String... topic) {
 		super(clientManager, topic);
 		this.connectionOptions = clientManager.getConnectionInfo();
-	}
-
-	private static MqttConnectionOptions buildDefaultConnectionOptions(@Nullable String url) {
-		var connectionOptions = new MqttConnectionOptions();
-		if (url != null) {
-			connectionOptions.setServerURIs(new String[]{ url });
-		}
-		connectionOptions.setAutomaticReconnect(true);
-		return connectionOptions;
 	}
 
 	@Override
@@ -169,8 +163,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	@Override
 	protected void onInit() {
 		super.onInit();
-		var clientManager = getClientManager();
-		if (clientManager == null && this.mqttClient == null) {
+		if (getClientManager() == null && this.mqttClient == null) {
 			try {
 				this.mqttClient = new MqttAsyncClient(getUrl(), getClientId(), this.persistence);
 				this.mqttClient.setCallback(this);
@@ -184,9 +177,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			setMessageConverter(getBeanFactory()
 					.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
 							SmartMessageConverter.class));
-		}
-		if (clientManager != null) {
-			clientManager.addCallback(this);
 		}
 	}
 
@@ -244,17 +234,13 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	@Override
 	public void destroy() {
 		super.destroy();
-		var clientManager = getClientManager();
 		try {
-			if (clientManager == null && this.mqttClient != null) {
+			if (getClientManager() == null && this.mqttClient != null) {
 				this.mqttClient.close(true);
 			}
 		}
 		catch (MqttException ex) {
 			logger.error(ex, "Failed to close 'MqttAsyncClient'");
-		}
-		if (clientManager != null) {
-			clientManager.removeCallback(this);
 		}
 	}
 

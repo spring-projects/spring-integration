@@ -75,7 +75,10 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 
 	public Mqttv5PahoMessageHandler(String url, String clientId) {
 		super(url, clientId);
-		this.connectionOptions = buildDefaultConnectionOptions(url);
+		Assert.hasText(url, "'url' cannot be null or empty");
+		this.connectionOptions = new MqttConnectionOptions();
+		this.connectionOptions.setServerURIs(new String[]{ url });
+		this.connectionOptions.setAutomaticReconnect(true);
 	}
 
 	public Mqttv5PahoMessageHandler(MqttConnectionOptions connectionOptions, String clientId) {
@@ -93,16 +96,6 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		super(clientManager);
 		this.connectionOptions = clientManager.getConnectionInfo();
 	}
-
-	private static MqttConnectionOptions buildDefaultConnectionOptions(@Nullable String url) {
-		var connectionOptions = new MqttConnectionOptions();
-		if (url != null) {
-			connectionOptions.setServerURIs(new String[]{ url });
-		}
-		connectionOptions.setAutomaticReconnect(true);
-		return connectionOptions;
-	}
-
 
 	private static String obtainServerUrlFromOptions(MqttConnectionOptions connectionOptions) {
 		Assert.notNull(connectionOptions, "'connectionOptions' must not be null");
@@ -174,8 +167,12 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	@Override
 	protected void doStart() {
 		try {
+			var clientManager = getClientManager();
 			if (this.mqttClient != null) {
 				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
+			}
+			else if (clientManager != null) {
+				this.mqttClient = clientManager.getClient();
 			}
 		}
 		catch (MqttException ex) {
@@ -265,17 +262,10 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage, "The 'mqttMessage' must be an instance of 'MqttMessage'");
 		long completionTimeout = getCompletionTimeout();
 		try {
-			IMqttAsyncClient theClient;
-			if (getClientManager() != null) {
-				theClient = getClientManager().getClient();
+			if (!this.mqttClient.isConnected()) {
+				this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
 			}
-			else {
-				if (!this.mqttClient.isConnected()) {
-					this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
-				}
-				theClient = this.mqttClient;
-			}
-			IMqttToken token = theClient.publish(topic, (MqttMessage) mqttMessage);
+			IMqttToken token = this.mqttClient.publish(topic, (MqttMessage) mqttMessage);
 			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 			if (!this.async) {
 				token.waitForCompletion(completionTimeout); // NOSONAR (sync)

@@ -82,8 +82,6 @@ public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 			getClient().connect(options).waitForCompletion(options.getConnectionTimeout());
 		}
 		catch (MqttException e) {
-			logger.error("could not start client manager, client_id=" + getClientId(), e);
-
 			// See GH-3822
 			if (getConnectionInfo().isAutomaticReconnect()) {
 				try {
@@ -97,6 +95,9 @@ public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 				var applicationEventPublisher = getApplicationEventPublisher();
 				if (applicationEventPublisher != null) {
 					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
+				}
+				else {
+					logger.error("could not start client manager, client_id=" + getClientId(), e);
 				}
 			}
 		}

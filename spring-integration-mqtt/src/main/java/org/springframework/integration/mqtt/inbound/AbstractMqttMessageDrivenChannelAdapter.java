@@ -95,7 +95,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		this.clientId = null;
 	}
 
-	private Set<Topic> initTopics(String[] topic) {
+	private static Set<Topic> initTopics(String[] topic) {
 		Assert.notNull(topic, "'topics' cannot be null");
 		Assert.noNullElements(topic, "'topics' cannot have null elements");
 		final Set<Topic> initialTopics = new LinkedHashSet<>();
@@ -182,6 +182,22 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		}
 		finally {
 			this.topicLock.unlock();
+		}
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		if (this.clientManager != null) {
+			this.clientManager.addCallback(this);
+		}
+	}
+
+	@Override
+	public void destroy() {
+		super.destroy();
+		if (this.clientManager != null) {
+			this.clientManager.removeCallback(this);
 		}
 	}
 

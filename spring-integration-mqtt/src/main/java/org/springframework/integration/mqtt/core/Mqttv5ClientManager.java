@@ -81,8 +81,6 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 					.waitForCompletion(this.connectionOptions.getConnectionTimeout());
 		}
 		catch (MqttException e) {
-			logger.error("could not start client manager, client_id=" + getClientId(), e);
-
 			if (getConnectionInfo().isAutomaticReconnect()) {
 				try {
 					getClient().reconnect();
@@ -95,6 +93,9 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 				var applicationEventPublisher = getApplicationEventPublisher();
 				if (applicationEventPublisher != null) {
 					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
+				}
+				else {
+					logger.error("could not start client manager, client_id=" + getClientId(), e);
 				}
 			}
 		}

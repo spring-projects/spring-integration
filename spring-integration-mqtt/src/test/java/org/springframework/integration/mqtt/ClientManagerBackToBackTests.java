@@ -43,7 +43,6 @@ import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.outbound.Mqttv5PahoMessageHandler;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -52,7 +51,6 @@ import org.springframework.messaging.PollableChannel;
  * @author Artem Vozhdayenko
  * @since 6.0
  */
-@LongRunningTest
 class ClientManagerBackToBackTests implements MosquittoContainerTest {
 
 	@Test

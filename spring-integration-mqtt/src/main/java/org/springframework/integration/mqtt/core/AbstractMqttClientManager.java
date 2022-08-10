@@ -30,6 +30,9 @@ import org.springframework.integration.mqtt.inbound.AbstractMqttMessageDrivenCha
 import org.springframework.util.Assert;
 
 /**
+ * Abstract class for MQTT client managers which can be a base for any common v3/v5 client manager implementation.
+ * Contains some basic utility  and implementation-agnostic fields and methods.
+ *
  * @param <T> MQTT client type
  * @param <C> MQTT connection options type (v5 or v3)
  *
@@ -43,7 +46,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	private static final int DEFAULT_MANAGER_PHASE = 0;
 
-	private final Set<ConnectCallback> connectCallbacks;
+	private final Set<ConnectCallback> connectCallbacks = Collections.synchronizedSet(new HashSet<>());
 
 	private final String clientId;
 
@@ -62,7 +65,6 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	AbstractMqttClientManager(String clientId) {
 		Assert.notNull(clientId, "'clientId' is required");
 		this.clientId = clientId;
-		this.connectCallbacks = Collections.synchronizedSet(new HashSet<>());
 	}
 
 	protected void setManualAcks(boolean manualAcks) {

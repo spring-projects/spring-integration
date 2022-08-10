@@ -168,11 +168,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 			pahoMessageConverter.setBeanFactory(getBeanFactory());
 			setConverter(pahoMessageConverter);
 		}
-
-		var clientManager = getClientManager();
-		if (clientManager != null) {
-			clientManager.addCallback(this);
-		}
 	}
 
 	@Override
@@ -228,11 +223,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 	@Override
 	public void destroy() {
 		super.destroy();
-		var clientManager = getClientManager();
-		if (clientManager != null) {
-			clientManager.removeCallback(this);
-		}
-		else {
+		if (getClientManager() == null) {
 			try {
 				this.client.close();
 			}
