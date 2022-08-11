@@ -35,12 +35,13 @@ import org.springframework.util.Assert;
  *
  * @param <T> MQTT client type
  * @param <C> MQTT connection options type (v5 or v3)
+ * @param <P> MQTT client persistence type (for v5 or v3)
  *
  * @author Artem Vozhdayenko
  *
  * @since 6.0
  */
-public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T, C>, ApplicationEventPublisherAware {
+public abstract class AbstractMqttClientManager<T, C, P> implements ClientManager<T, C>, ApplicationEventPublisherAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
@@ -56,11 +57,13 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
+	private P persistence;
+
 	private String url;
 
-	private volatile T client;
-
 	private String beanName;
+
+	private volatile T client;
 
 	AbstractMqttClientManager(String clientId) {
 		Assert.notNull(clientId, "'clientId' is required");
@@ -89,6 +92,18 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	protected synchronized void setClient(T client) {
 		this.client = client;
+	}
+
+	protected P getPersistence() {
+		return this.persistence;
+	}
+
+	/**
+	 * Set client persistence if some specific impl is required for topics QoS.
+	 * @param persistence persistence implementation to use for te client
+	 */
+	public void setPersistence(P persistence) {
+		this.persistence = persistence;
 	}
 
 	protected Set<ConnectCallback> getCallbacks() {
@@ -149,7 +164,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	}
 
 	/**
-	 * Sets the phase of component autostart in {@link SmartLifecycle}.
+	 * Set the phase of component autostart in {@link SmartLifecycle}.
 	 * If the custom one is required, note that for the correct behavior it should be less than phase of
 	 * {@link AbstractMqttMessageDrivenChannelAdapter} implementations.
 	 * @see #getPhase

@@ -32,8 +32,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
-import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.Mqttv3ClientManager;
 import org.springframework.integration.mqtt.core.Mqttv5ClientManager;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
@@ -115,18 +113,11 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		}
 
 		@Bean
-		public Mqttv3ClientManager mqttv3ClientManager(MqttPahoClientFactory pahoClientFactory) {
-			return new Mqttv3ClientManager(pahoClientFactory, "client-manager-client-id-v3");
-		}
-
-		@Bean
-		public MqttPahoClientFactory pahoClientFactory() {
-			var pahoClientFactory = new DefaultMqttPahoClientFactory();
+		public Mqttv3ClientManager mqttv3ClientManager() {
 			MqttConnectOptions connectionOptions = new MqttConnectOptions();
 			connectionOptions.setServerURIs(new String[]{ MosquittoContainerTest.mqttUrl() });
 			connectionOptions.setAutomaticReconnect(true);
-			pahoClientFactory.setConnectionOptions(connectionOptions);
-			return pahoClientFactory;
+			return new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3");
 		}
 
 		@Bean
@@ -162,18 +153,11 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		}
 
 		@Bean
-		public Mqttv3ClientManager mqttv3ClientManager(MqttPahoClientFactory pahoClientFactory) {
-			return new Mqttv3ClientManager(pahoClientFactory, "client-manager-client-id-v3-reconnect");
-		}
-
-		@Bean
-		public MqttPahoClientFactory pahoClientFactory() {
-			var pahoClientFactory = new DefaultMqttPahoClientFactory();
+		public Mqttv3ClientManager mqttv3ClientManager() {
 			MqttConnectOptions connectionOptions = new MqttConnectOptions();
 			connectionOptions.setServerURIs(new String[]{ MosquittoContainerTest.mqttUrl() });
 			connectionOptions.setAutomaticReconnect(true);
-			pahoClientFactory.setConnectionOptions(connectionOptions);
-			return pahoClientFactory;
+			return new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3-reconnect");
 		}
 
 		@Bean

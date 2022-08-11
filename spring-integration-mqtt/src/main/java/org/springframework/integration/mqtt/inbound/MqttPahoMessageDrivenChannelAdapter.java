@@ -277,14 +277,13 @@ public class MqttPahoMessageDrivenChannelAdapter
 			this.consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
 		}
 
-		long completionTimeout = getCompletionTimeout();
 		var clientManager = getClientManager();
 		if (clientManager == null) {
 			Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
 					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
 			this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
 			this.client.setCallback(this);
-			this.client.connect(connectionOptions).waitForCompletion(completionTimeout);
+			this.client.connect(connectionOptions).waitForCompletion(getCompletionTimeout());
 			this.client.setManualAcks(isManualAcks());
 		}
 		else {
@@ -293,11 +292,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 	}
 
 	private void subscribe() {
-		var clientManager = getClientManager();
-		if (clientManager != null && this.client == null) {
-			this.client = clientManager.getClient();
-		}
-
 		this.topicLock.lock();
 		String[] topics = getTopic();
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
@@ -311,7 +305,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 				IMqttToken subscribeToken = this.client.subscribe(topics, requestedQos, listeners);
 				subscribeToken.waitForCompletion(getCompletionTimeout());
 				int[] grantedQos = subscribeToken.getGrantedQos();
-				if (grantedQos.length == 1 && grantedQos[0] == 0x80) {
+				if (grantedQos.length == 1 && grantedQos[0] == 0x80) { // NOSONAR
 					throw new MqttException(MqttException.REASON_CODE_SUBSCRIBE_FAILED);
 				}
 				warnInvalidQosForSubscription(topics, requestedQos, grantedQos);

@@ -20,6 +20,7 @@ import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.MqttCallback;
+import org.eclipse.paho.mqttv5.client.MqttClientPersistence;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.client.MqttDisconnectResponse;
 import org.eclipse.paho.mqttv5.common.MqttException;
@@ -30,10 +31,16 @@ import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.util.Assert;
 
 /**
+ * A client manager implementation for MQTT v5 protocol. Requires a client ID and server URI.
+ * If needed, the connection options may be overridden and passed as a {@link MqttConnectionOptions} dependency.
+ * By default, automatic reconnect is used. If it is required to be turned off, one should listen for
+ * {@link MqttConnectionFailedEvent} and reconnect the MQTT client manually.
+ *
  * @author Artem Vozhdayenko
  * @since 6.0
  */
-public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncClient, MqttConnectionOptions>
+public class Mqttv5ClientManager
+		extends AbstractMqttClientManager<IMqttAsyncClient, MqttConnectionOptions, MqttClientPersistence>
 		implements MqttCallback {
 
 	private final MqttConnectionOptions connectionOptions;
@@ -67,10 +74,7 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 	public synchronized void start() {
 		if (getClient() == null) {
 			try {
-				var client = new MqttAsyncClient(getUrl(), getClientId());
-				client.setManualAcks(isManualAcks());
-				client.setCallback(this);
-				setClient(client);
+				setClient(createClient());
 			}
 			catch (MqttException e) {
 				throw new IllegalStateException("could not start client manager", e);
@@ -160,5 +164,17 @@ public class Mqttv5ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 	@Override
 	public MqttConnectionOptions getConnectionInfo() {
 		return this.connectionOptions;
+	}
+
+	private MqttAsyncClient createClient() throws MqttException {
+		var persistence = getPersistence();
+		var url = getUrl();
+		var clientId = getClientId();
+		var client = persistence == null ?
+				new MqttAsyncClient(url, clientId)
+				: new MqttAsyncClient(url, clientId, persistence);
+		client.setManualAcks(isManualAcks());
+		client.setCallback(this);
+		return client;
 	}
 }

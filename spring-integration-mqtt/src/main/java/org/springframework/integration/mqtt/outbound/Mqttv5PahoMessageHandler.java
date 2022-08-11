@@ -168,11 +168,11 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	protected void doStart() {
 		try {
 			var clientManager = getClientManager();
-			if (this.mqttClient != null) {
-				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
-			}
-			else if (clientManager != null) {
+			if (clientManager != null) {
 				this.mqttClient = clientManager.getClient();
+			}
+			else {
+				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
 			}
 		}
 		catch (MqttException ex) {
@@ -183,7 +183,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	@Override
 	protected void doStop() {
 		try {
-			if (this.mqttClient != null) {
+			if (getClientManager() == null) {
 				this.mqttClient.disconnect().waitForCompletion(getDisconnectCompletionTimeout());
 			}
 		}
@@ -196,7 +196,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	public void destroy() {
 		super.destroy();
 		try {
-			if (this.mqttClient != null) {
+			if (getClientManager() == null) {
 				this.mqttClient.close(true);
 			}
 		}

@@ -18,7 +18,9 @@ package org.springframework.integration.mqtt.core;
 
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -27,23 +29,28 @@ import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.util.Assert;
 
 /**
+ * A client manager implementation for MQTT v3 protocol. Requires a client ID and server URI.
+ * If needed, the connection options may be overridden and passed as a {@link MqttConnectOptions} dependency.
+ * By default, automatic reconnect is used. If it is required to be turned off, one should listen for
+ * {@link MqttConnectionFailedEvent} and reconnect the MQTT client manually.
+ *
  * @author Artem Vozhdayenko
  * @since 6.0
  */
-public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncClient, MqttConnectOptions>
+public class Mqttv3ClientManager
+		extends AbstractMqttClientManager<IMqttAsyncClient, MqttConnectOptions, MqttClientPersistence>
 		implements MqttCallbackExtended {
 
-	private final MqttPahoClientFactory clientFactory;
+	private final MqttConnectOptions connectionOptions;
 
 	public Mqttv3ClientManager(String url, String clientId) {
-		this(buildDefaultClientFactory(url), clientId);
+		this(buildDefaultConnectionOptions(url), clientId);
 	}
 
-	public Mqttv3ClientManager(MqttPahoClientFactory clientFactory, String clientId) {
+	public Mqttv3ClientManager(MqttConnectOptions connectionOptions, String clientId) {
 		super(clientId);
-		Assert.notNull(clientFactory, "'clientFactory' is required");
-		this.clientFactory = clientFactory;
-		MqttConnectOptions connectionOptions = clientFactory.getConnectionOptions();
+		Assert.notNull(connectionOptions, "'connectionOptions' is required");
+		this.connectionOptions = connectionOptions;
 		String[] serverURIs = connectionOptions.getServerURIs();
 		Assert.notEmpty(serverURIs, "'serverURIs' must be provided in the 'MqttConnectionOptions'");
 		setUrl(serverURIs[0]);
@@ -54,32 +61,27 @@ public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 		}
 	}
 
-	private static MqttPahoClientFactory buildDefaultClientFactory(String url) {
+	private static MqttConnectOptions buildDefaultConnectionOptions(String url) {
 		Assert.notNull(url, "'url' is required");
 		MqttConnectOptions connectOptions = new MqttConnectOptions();
 		connectOptions.setServerURIs(new String[]{ url });
 		connectOptions.setAutomaticReconnect(true);
-		DefaultMqttPahoClientFactory defaultFactory = new DefaultMqttPahoClientFactory();
-		defaultFactory.setConnectionOptions(connectOptions);
-		return defaultFactory;
+		return connectOptions;
 	}
 
 	@Override
 	public synchronized void start() {
 		if (getClient() == null) {
 			try {
-				var client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
-				client.setManualAcks(isManualAcks());
-				client.setCallback(this);
-				setClient(client);
+				setClient(createClient());
 			}
 			catch (MqttException e) {
 				throw new IllegalStateException("could not start client manager", e);
 			}
 		}
 		try {
-			MqttConnectOptions options = this.clientFactory.getConnectionOptions();
-			getClient().connect(options).waitForCompletion(options.getConnectionTimeout());
+			getClient().connect(this.connectionOptions)
+					.waitForCompletion(this.connectionOptions.getConnectionTimeout());
 		}
 		catch (MqttException e) {
 			// See GH-3822
@@ -110,7 +112,7 @@ public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 			return;
 		}
 		try {
-			client.disconnectForcibly(this.clientFactory.getConnectionOptions().getConnectionTimeout());
+			client.disconnectForcibly(this.connectionOptions.getConnectionTimeout());
 		}
 		catch (MqttException e) {
 			logger.error("could not disconnect from the client", e);
@@ -148,6 +150,18 @@ public class Mqttv3ClientManager extends AbstractMqttClientManager<IMqttAsyncCli
 
 	@Override
 	public MqttConnectOptions getConnectionInfo() {
-		return this.clientFactory.getConnectionOptions();
+		return this.connectionOptions;
+	}
+
+	private IMqttAsyncClient createClient() throws MqttException {
+		var persistence = getPersistence();
+		var url = getUrl();
+		var clientId = getClientId();
+		var client = persistence == null ?
+				new MqttAsyncClient(url, clientId) :
+				new MqttAsyncClient(url, clientId, persistence);
+		client.setManualAcks(isManualAcks());
+		client.setCallback(this);
+		return client;
 	}
 }
