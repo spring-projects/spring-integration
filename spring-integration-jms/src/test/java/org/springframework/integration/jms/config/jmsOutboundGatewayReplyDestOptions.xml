@@ -22,11 +22,6 @@
 	                      request-channel="requestChannel"
 	                      reply-destination-name="replyQueueName"/>
 
-	<jms:outbound-gateway id="jmsGatewayDestExpression"
-	                      request-destination="requestQueue"
-	                      request-channel="requestChannel"
-	                      reply-destination-expression="payload"/>
-
 	<jms:outbound-gateway id="jmsGatewayDestExpressionBeanRef"
 	                      request-destination="requestQueue"
 	                      request-channel="requestChannel"

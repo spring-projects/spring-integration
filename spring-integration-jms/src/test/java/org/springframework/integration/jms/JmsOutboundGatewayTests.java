@@ -46,6 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.jms.JmsOutboundGateway.ReplyContainerProperties;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
@@ -161,7 +162,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		String requestQ = "requests1";
 		gateway.setRequestDestinationName(requestQ);
 		String replyQ = "replies1";
-		gateway.setReplyDestinationName(replyQ);
+		gateway.setReplyDestinationExpression(new ValueExpression<>(replyQ));
 		QueueChannel queueChannel = new QueueChannel();
 		gateway.setOutputChannel(queueChannel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
