@@ -501,3 +501,64 @@ See more information in the `Mqttv5PahoMessageDrivenChannelAdapter` javadocs and
 
 IMPORTANT: It is recommended to have the `MqttConnectionOptions#setAutomaticReconnect(boolean)` set to true to let an internal `IMqttAsyncClient` instance to handle reconnects.
 Otherwise, only the manual restart of `Mqttv5PahoMessageDrivenChannelAdapter` can handle reconnects, e.g. via `MqttConnectionFailedEvent` handling on disconnection.
+
+[[mqtt-shared-client]]
+=== Shared MQTT Client Support
+
+If you need to use a single MQTT ClientID for several integrations, you cannot use different MQTT client instances because MQTT brokers may have a limitation on a number of connections per ClientID (typically, a single connection is allowed).
+For having a single client reused for different channel adapters, you may use a `org.springframework.integration.mqtt.core.ClientManager` component and pass it to any channel adapter you need.
+It will manage MQTT connection lifecycle and do automatic reconnects if needed.
+You can also provide a custom connection options and `MqttClientPersistence` just as you would do it for channel adapter components.
+
+Note that both MQTT v5 and v3 channel adapters are supported.
+
+The following Java DSL configuration sample demonstrates how to use this client manager in the integration flow:
+
+====
+[source,java]
+----
+@Bean
+public ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager() {
+    MqttConnectionOptions connectionOptions = new MqttConnectionOptions();
+    connectionOptions.setServerURIs(new String[]{ "tcp://localhost:1883" });
+    connectionOptions.setConnectionTimeout(30000);
+    connectionOptions.setMaxReconnectDelay(1000);
+    connectionOptions.setAutomaticReconnect(true);
+    Mqttv5ClientManager clientManager = new Mqttv5ClientManager(connectionOptions, "client-manager-client-id-v5");
+    clientManager.setPersistence(new MqttDefaultFilePersistence());
+    return clientManager;
+}
+
+@Bean
+public IntegrationFlow mqttInFlowFoo(
+        ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager) {
+
+    Mqttv5PahoMessageDrivenChannelAdapter messageProducer =
+        new Mqttv5PahoMessageDrivenChannelAdapter(clientManager, "foo-topic");
+    return IntegrationFlow.from(messageProducer)
+            .channel(c -> c.queue("fromMqttChannel"))
+            .get();
+}
+
+@Bean
+public IntegrationFlow mqttInFlowBar(
+        ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager) {
+
+    Mqttv5PahoMessageDrivenChannelAdapter messageProducer =
+        new Mqttv5PahoMessageDrivenChannelAdapter(clientManager, "bar-topic");
+    return IntegrationFlow.from(messageProducer)
+            .channel(c -> c.queue("fromMqttChannel"))
+            .get();
+}
+
+@Bean
+public IntegrationFlow mqttOutFlow(
+        ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager) {
+
+    return f -> f.handle(new Mqttv5PahoMessageHandler(clientManager));
+}
+----
+====
+
+IMPORTANT: You should use a single client manager instance so that the connection is reused.
+Ensure you do not create it for each channel adapter.
