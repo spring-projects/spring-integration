@@ -501,3 +501,61 @@ See more information in the `Mqttv5PahoMessageDrivenChannelAdapter` javadocs and
 
 IMPORTANT: It is recommended to have the `MqttConnectionOptions#setAutomaticReconnect(boolean)` set to true to let an internal `IMqttAsyncClient` instance to handle reconnects.
 Otherwise, only the manual restart of `Mqttv5PahoMessageDrivenChannelAdapter` can handle reconnects, e.g. via `MqttConnectionFailedEvent` handling on disconnection.
+
+[[mqtt-shared-client]]
+=== Shared MQTT Client Support
+
+If a single MQTT ClientID is required for several integrations, multiple MQTT client instances cannot be used because MQTT brokers may have a limitation on a number of connections per ClientID (typically, a single connection is allowed).
+For having a single client reused for different channel adapters, a `org.springframework.integration.mqtt.core.ClientManager` component may be used and passed to any channel adapter needed.
+It will manage MQTT connection lifecycle and do automatic reconnects if needed.
+Also, a custom connection options and `MqttClientPersistence` may be provided to the client manager just as currently it can be done for channel adapter components.
+
+Note that both MQTT v5 and v3 channel adapters are supported.
+
+The following Java DSL configuration sample demonstrates how to use this client manager in the integration flow:
+
+====
+[source,java]
+----
+@Bean
+public ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager() {
+    MqttConnectionOptions connectionOptions = new MqttConnectionOptions();
+    connectionOptions.setServerURIs(new String[]{ "tcp://localhost:1883" });
+    connectionOptions.setConnectionTimeout(30000);
+    connectionOptions.setMaxReconnectDelay(1000);
+    connectionOptions.setAutomaticReconnect(true);
+    Mqttv5ClientManager clientManager = new Mqttv5ClientManager(connectionOptions, "client-manager-client-id-v5");
+    clientManager.setPersistence(new MqttDefaultFilePersistence());
+    return clientManager;
+}
+
+@Bean
+public IntegrationFlow mqttInFlowTopic1(
+        ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager) {
+
+    Mqttv5PahoMessageDrivenChannelAdapter messageProducer =
+        new Mqttv5PahoMessageDrivenChannelAdapter(clientManager, "topic1");
+    return IntegrationFlow.from(messageProducer)
+            .channel(c -> c.queue("fromMqttChannel"))
+            .get();
+}
+
+@Bean
+public IntegrationFlow mqttInFlowTopic2(
+        ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager) {
+
+    Mqttv5PahoMessageDrivenChannelAdapter messageProducer =
+        new Mqttv5PahoMessageDrivenChannelAdapter(clientManager, "topic2");
+    return IntegrationFlow.from(messageProducer)
+            .channel(c -> c.queue("fromMqttChannel"))
+            .get();
+}
+
+@Bean
+public IntegrationFlow mqttOutFlow(
+        ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager) {
+
+    return f -> f.handle(new Mqttv5PahoMessageHandler(clientManager));
+}
+----
+====
