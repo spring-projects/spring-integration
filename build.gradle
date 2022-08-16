@@ -491,6 +491,7 @@ project('spring-integration-core') {
             exclude group: 'org.springframework'
         }
         api 'io.projectreactor:reactor-core'
+        api 'io.micrometer:micrometer-observation'
 
         optionalApi 'com.fasterxml.jackson.core:jackson-databind'
         optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
@@ -512,6 +513,8 @@ project('spring-integration-core') {
 
         testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
         testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
+        testImplementation 'io.micrometer:micrometer-observation-test'
+        testImplementation 'io.micrometer:micrometer-tracing-test'
     }
 
     dokkaHtmlPartial {
