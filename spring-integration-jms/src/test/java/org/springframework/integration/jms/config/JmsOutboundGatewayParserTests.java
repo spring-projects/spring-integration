@@ -30,6 +30,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
@@ -131,7 +132,7 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 	public void gatewayWithDestBeanRefExpression() {
 		try (var context = new ClassPathXmlApplicationContext("jmsOutboundGatewayReplyDestOptions.xml", getClass())) {
 			var endpoint = context.getBean("jmsGatewayDestExpressionBeanRef");
-			var processor =
+			MessageProcessor<?> processor =
 					TestUtils.getPropertyValue(endpoint, "handler.replyDestinationExpressionProcessor",
 							ExpressionEvaluatingMessageProcessor.class);
 			var expression = TestUtils.getPropertyValue(endpoint,
