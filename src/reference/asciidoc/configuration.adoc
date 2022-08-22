@@ -678,7 +678,7 @@ NOTE: The bean names are generated with the following algorithm:
 This works as though there were no messaging annotation on the `@Bean` method.
 * The `AbstractEndpoint` bean name is generated with the following pattern: `[@Bean name].[decapitalizedAnnotationClassShortName]`.
 For example, the `SourcePollingChannelAdapter` endpoint for the `consoleSource()` definition <<annotations_on_beans,shown earlier>> gets a bean name of `consoleSource.inboundChannelAdapter`.
-Unlike with POJO methods the bean method name is not included into an endpoint bean name.
+Unlike with POJO methods, the bean method name is not included in the endpoint bean name.
 See also <<./overview.adoc#endpoint-bean-names,Endpoint Bean Names>>.
 * If `@Bean` cannot be used directly in the target endpoint (not an instance of a `MessageSource`, `AbstractReplyProducingMessageHandler` or `AbstractMessageRouter`), a respective `AbstractStandardMessageHandlerFactoryBean` is registered to delegate to this `@Bean`.
 The bean name for this wrapper is generated with the following pattern: `[@Bean name].[decapitalizedAnnotationClassShortName].[handler (or source)]`.

@@ -241,7 +241,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 		Poller poller = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller.class);
 		Reactive reactive = MessagingAnnotationUtils.resolveAttribute(annotations, "reactive", Reactive.class);
-		Assert.state(reactive == null || poller == null, "The 'poller' and 'reactive' are mutually exclusive.");
+		Assert.state(reactive == null || poller == null,
+				() -> "The 'poller' and 'reactive' attributes are mutually exclusive." +
+						"The bean definition with the problem is: " + beanName);
 		if (poller != null) {
 			applyPollerForEndpoint(endpointBeanDefinition, poller);
 		}
