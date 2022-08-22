@@ -139,7 +139,7 @@ public class IntegrationGraphServerTests {
 		assertThat(links.size()).isEqualTo(34);
 
 		jsonArray =
-				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'expressionRouter')]");
+				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'expressionRouter.router')]");
 
 		Map<String, Object> expressionRouter = (Map<String, Object>) jsonArray.get(0);
 		assertThat(((List<?>) expressionRouter.get("routes")).size()).isEqualTo(0);
@@ -151,7 +151,7 @@ public class IntegrationGraphServerTests {
 		this.testSource.receive();
 		this.expressionRouterInput.send(MessageBuilder.withPayload("foo").setHeader("foo", "fizChannel").build());
 
-		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'router')]");
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'router.router')]");
 		String routerJson = jsonArray.toJSONString();
 
 		this.server.rebuild();
@@ -172,7 +172,7 @@ public class IntegrationGraphServerTests {
 		assertThat(links).isNotNull();
 		assertThat(links.size()).isEqualTo(37);
 
-		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'router')]");
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'router.router')]");
 		routerJson = jsonArray.toJSONString();
 		assertThat(routerJson).contains("\"sendTimers\":{\"successes\":{\"count\":4");
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'toRouter')]");
@@ -200,7 +200,7 @@ public class IntegrationGraphServerTests {
 		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":2,\"failures\":1");
 
 		jsonArray =
-				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'expressionRouter')]");
+				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'expressionRouter.router')]");
 
 		expressionRouter = (Map<String, Object>) jsonArray.get(0);
 		JSONArray routes = (JSONArray) expressionRouter.get("routes");

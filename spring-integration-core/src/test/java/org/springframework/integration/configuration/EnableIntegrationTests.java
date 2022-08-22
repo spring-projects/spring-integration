@@ -298,11 +298,11 @@ public class EnableIntegrationTests {
 	private CountDownLatch inputReceiveLatch;
 
 	@Autowired
-	@Qualifier("enableIntegrationTests.ContextConfiguration2.sendAsyncHandler.serviceActivator")
+	@Qualifier("sendAsyncHandler.serviceActivator")
 	private AbstractEndpoint sendAsyncHandler;
 
 	@Autowired
-	@Qualifier("enableIntegrationTests.ChildConfiguration.autoCreatedChannelMessageSource.inboundChannelAdapter")
+	@Qualifier("autoCreatedChannelMessageSource.inboundChannelAdapter")
 	private Lifecycle autoCreatedChannelMessageSourceAdapter;
 
 	@Autowired
@@ -669,8 +669,7 @@ public class EnableIntegrationTests {
 				.isThrownBy(() -> this.metaBridgeInput.send(testMessage))
 				.withMessageContaining("Dispatcher has no subscribers");
 
-		this.context.getBean("enableIntegrationTests.ContextConfiguration.metaBridgeOutput.bridgeFrom",
-				Lifecycle.class).start();
+		this.context.getBean("metaBridgeOutput.bridgeFrom", Lifecycle.class).start();
 
 		this.metaBridgeInput.send(testMessage);
 		receive = this.metaBridgeOutput.receive(10_000);
@@ -697,8 +696,7 @@ public class EnableIntegrationTests {
 				.isThrownBy(() -> this.myBridgeToInput.send(testMessage))
 				.withMessageContaining("Dispatcher has no subscribers");
 
-		this.context.getBean("enableIntegrationTests.ContextConfiguration.myBridgeToInput.bridgeTo",
-				Lifecycle.class).start();
+		this.context.getBean("myBridgeToInput.bridgeTo", Lifecycle.class).start();
 
 		this.myBridgeToInput.send(bridgeMessage);
 		receive = replyChannel.receive(10_000);
@@ -741,8 +739,7 @@ public class EnableIntegrationTests {
 		assertThat(this.roleController.noEndpointsRunning("bar")).isFalse();
 		Map<String, Boolean> state = this.roleController.getEndpointsRunningStatus("foo");
 		assertThat(state.get("annotationTestService.handle.serviceActivator")).isEqualTo(Boolean.FALSE);
-		assertThat(state.get("enableIntegrationTests.ContextConfiguration2.sendAsyncHandler.serviceActivator"))
-				.isEqualTo(Boolean.TRUE);
+		assertThat(state.get("sendAsyncHandler.serviceActivator")).isEqualTo(Boolean.TRUE);
 		this.roleController.startLifecyclesInRole("foo");
 		assertThat(this.roleController.allEndpointsRunning("foo")).isTrue();
 		this.roleController.stopLifecyclesInRole("foo");
@@ -1690,6 +1687,7 @@ public class EnableIntegrationTests {
 	@InboundChannelAdapter(value = "counterChannel", autoStartup = "false", phase = "23")
 	public @interface MyInboundChannelAdapter {
 
+		@AliasFor(annotation = InboundChannelAdapter.class, attribute = "value")
 		String value() default "";
 
 		String autoStartup() default "";

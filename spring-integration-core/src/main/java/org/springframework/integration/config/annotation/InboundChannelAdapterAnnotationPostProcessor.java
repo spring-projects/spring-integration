@@ -21,20 +21,24 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.ComponentDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.util.ClassUtils;
 import org.springframework.integration.util.MessagingAnnotationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
@@ -51,14 +55,55 @@ import org.springframework.util.Assert;
 public class InboundChannelAdapterAnnotationPostProcessor extends
 		AbstractMethodAnnotationPostProcessor<InboundChannelAdapter> {
 
-
-	public InboundChannelAdapterAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
-		super(beanFactory);
+	@Override
+	public String getInputChannelAttribute() {
+		return "value";
 	}
 
 	@Override
-	protected String getInputChannelAttribute() {
-		return AnnotationUtils.VALUE;
+	protected BeanDefinition resolveHandlerBeanDefinition(String beanName, AnnotatedBeanDefinition beanDefinition,
+			ResolvableType handlerBeanType, List<Annotation> annotationChain) {
+
+		Class<?> handlerBeanClass = handlerBeanType.toClass();
+
+		if (MessageSource.class.isAssignableFrom(handlerBeanClass)) {
+			return beanDefinition;
+		}
+
+		Method method = null;
+		if (Supplier.class.isAssignableFrom(handlerBeanClass)) {
+			method = ClassUtils.SUPPLIER_GET_METHOD;
+		}
+		else if (ClassUtils.isKotlinFunction0(handlerBeanClass)) {
+			method = ClassUtils.KOTLIN_FUNCTION_0_INVOKE_METHOD;
+		}
+
+		if (method != null) {
+			return BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageSource.class)
+					.addPropertyReference("object", beanName)
+					.addPropertyValue("method", method)
+					.getBeanDefinition();
+		}
+		else {
+			throw new IllegalArgumentException(
+					"The '" + this.annotationType + "' on @Bean method level is allowed only for: " +
+							MessageSource.class.getName() + ", or " + Supplier.class.getName() +
+							(ClassUtils.KOTLIN_FUNCTION_0_CLASS != null
+									? ", or " + ClassUtils.KOTLIN_FUNCTION_0_CLASS.getName()
+									: "") + " beans");
+		}
+	}
+
+	@Override
+	protected BeanDefinition createEndpointBeanDefinition(ComponentDefinition handlerBeanDefinition,
+			ComponentDefinition beanDefinition, List<Annotation> annotations) {
+
+		String channelName = MessagingAnnotationUtils.resolveAttribute(annotations, AnnotationUtils.VALUE, String.class);
+		Assert.hasText(channelName, "The channel ('value' attribute of @InboundChannelAdapter) can't be empty.");
+		return BeanDefinitionBuilder.rootBeanDefinition(SourcePollingChannelAdapterFactoryBean.class)
+				.addPropertyValue("outputChannelName", channelName)
+				.addPropertyReference("source", handlerBeanDefinition.getName())
+				.getBeanDefinition();
 	}
 
 	@Override
@@ -67,18 +112,7 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 				MessagingAnnotationUtils.resolveAttribute(annotations, AnnotationUtils.VALUE, String.class);
 		Assert.hasText(channelName, "The channel ('value' attribute of @InboundChannelAdapter) can't be empty.");
 
-		MessageSource<?> messageSource;
-		try {
-			messageSource = createMessageSource(bean, beanName, method);
-		}
-		catch (NoSuchBeanDefinitionException e) {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Skipping endpoint creation; "
-						+ e.getMessage()
-						+ "; perhaps due to some '@Conditional' annotation.");
-			}
-			return null;
-		}
+		MessageSource<?> messageSource = createMessageSource(bean, beanName, method);
 
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setOutputChannelName(channelName);
@@ -89,51 +123,21 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 		return adapter;
 	}
 
-	private MessageSource<?> createMessageSource(Object beanArg, String beanNameArg, Method methodArg) {
-		MessageSource<?> messageSource = null;
-		Object bean = beanArg;
-		Method method = methodArg;
-		String beanName = beanNameArg;
-		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			Class<?> targetClass = target.getClass();
-			Assert.isTrue(MessageSource.class.isAssignableFrom(targetClass) ||
-							Supplier.class.isAssignableFrom(targetClass) ||
-							ClassUtils.isKotlinFunction0(targetClass),
-					() -> "The '" + this.annotationType + "' on @Bean method " + "level is allowed only for: " +
-							MessageSource.class.getName() + ", or " + Supplier.class.getName() +
-							(ClassUtils.KOTLIN_FUNCTION_0_CLASS != null
-									? ", or " + ClassUtils.KOTLIN_FUNCTION_0_CLASS.getName()
-									: "") + " beans");
-			if (target instanceof MessageSource<?>) {
-				messageSource = (MessageSource<?>) target;
-			}
-			else if (target instanceof Supplier<?>) {
-				method = ClassUtils.SUPPLIER_GET_METHOD;
-				bean = target;
-				beanName += '.' + methodArg.getName();
-			}
-			else if (ClassUtils.KOTLIN_FUNCTION_0_INVOKE_METHOD != null) {
-				method = ClassUtils.KOTLIN_FUNCTION_0_INVOKE_METHOD;
-				bean = target;
-				beanName += '.' + methodArg.getName();
-			}
-		}
-		if (messageSource == null) {
-			MethodInvokingMessageSource methodInvokingMessageSource = new MethodInvokingMessageSource();
-			methodInvokingMessageSource.setObject(bean);
-			methodInvokingMessageSource.setMethod(method);
-			String messageSourceBeanName = generateHandlerBeanName(beanName, method);
-			this.definitionRegistry.registerBeanDefinition(messageSourceBeanName,
-					new RootBeanDefinition(MethodInvokingMessageSource.class, () -> methodInvokingMessageSource));
-			messageSource = this.beanFactory.getBean(messageSourceBeanName, MessageSource.class);
-		}
-		return messageSource;
+	private MessageSource<?> createMessageSource(Object bean, String beanName, Method method) {
+		MethodInvokingMessageSource methodInvokingMessageSource = new MethodInvokingMessageSource();
+		methodInvokingMessageSource.setObject(bean);
+		methodInvokingMessageSource.setMethod(method);
+		String messageSourceBeanName = generateHandlerBeanName(beanName, method);
+		getDefinitionRegistry().registerBeanDefinition(messageSourceBeanName,
+				new RootBeanDefinition(MethodInvokingMessageSource.class, () -> methodInvokingMessageSource));
+		return getBeanFactory().getBean(messageSourceBeanName, MessageSource.class);
 	}
 
 	@Override
-	protected String generateHandlerBeanName(String originalBeanName, Method method) {
-		return super.generateHandlerBeanName(originalBeanName, method)
+	protected String generateHandlerBeanName(String originalBeanName, MergedAnnotations mergedAnnotations,
+			@Nullable String methodName) {
+
+		return super.generateHandlerBeanName(originalBeanName, mergedAnnotations, methodName)
 				.replaceFirst(IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX + '$', ".source");
 	}
 

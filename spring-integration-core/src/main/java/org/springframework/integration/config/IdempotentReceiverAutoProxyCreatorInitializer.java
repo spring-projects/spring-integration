@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,8 +95,7 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 			List<Map<String, String>> idempotentEndpointsMapping, String beanName, BeanDefinition beanDefinition)
 			throws LinkageError {
 
-		if (beanDefinition.getSource() instanceof MethodMetadata) {
-			MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
+		if (beanDefinition.getSource() instanceof MethodMetadata beanMethod) {
 			String annotationType = IdempotentReceiver.class.getName();
 			if (beanMethod.isAnnotated(annotationType)) { // NOSONAR never null
 				Object value = beanMethod.getAnnotationAttributes(annotationType).get("value"); // NOSONAR
@@ -120,13 +119,7 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 
 					String endpoint = beanName;
 					if (!MessageHandler.class.isAssignableFrom(returnType)) {
-						/*
-						   MessageHandler beans, populated from @Bean methods, have a complex id,
-						   including @Configuration bean name, method name and the Messaging annotation name.
-						   The following pattern matches the bean name, regardless of the annotation name.
-						*/
-						endpoint = beanDefinition.getFactoryBeanName() + "." + beanName +
-								".*" + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
+						endpoint = beanName + ".*" + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
 					}
 
 					String[] interceptors = (String[]) value;

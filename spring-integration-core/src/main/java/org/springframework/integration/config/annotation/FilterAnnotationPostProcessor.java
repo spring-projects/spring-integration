@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,14 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.core.ResolvableType;
 import org.springframework.integration.annotation.Filter;
+import org.springframework.integration.config.FilterFactoryBean;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.filter.MethodInvokingSelector;
@@ -43,34 +47,45 @@ import org.springframework.util.StringUtils;
  */
 public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Filter> {
 
-	public FilterAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
-		super(beanFactory);
+	public FilterAnnotationPostProcessor() {
 		this.messageHandlerAttributes.addAll(Arrays.asList("discardChannel", "throwExceptionOnRejection",
 				"adviceChain", "discardWithinAdvice"));
 	}
 
+	@Override
+	protected BeanDefinition resolveHandlerBeanDefinition(String beanName, AnnotatedBeanDefinition beanDefinition,
+			ResolvableType handlerBeanType, List<Annotation> annotations) {
+
+		BeanDefinition handlerBeanDefinition =
+				super.resolveHandlerBeanDefinition(beanName, beanDefinition, handlerBeanType, annotations);
+
+		if (handlerBeanDefinition != null) {
+			return handlerBeanDefinition;
+		}
+
+		BeanMetadataElement targetObjectBeanDefinition = buildLambdaMessageProcessor(handlerBeanType, beanDefinition);
+		if (targetObjectBeanDefinition == null) {
+			targetObjectBeanDefinition = new RuntimeBeanReference(beanName);
+		}
+
+		BeanDefinition filterBeanDefinition =
+				BeanDefinitionBuilder.genericBeanDefinition(FilterFactoryBean.class)
+						.addPropertyValue("targetObject", targetObjectBeanDefinition)
+						.getBeanDefinition();
+
+		new BeanDefinitionPropertiesMapper(filterBeanDefinition, annotations)
+				.setPropertyValue("discardWithinAdvice")
+				.setPropertyValue("throwExceptionOnRejection")
+				.setPropertyReference("discardChannel");
+
+		return filterBeanDefinition;
+	}
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
-		MessageSelector selector;
-		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			if (target instanceof MessageSelector) {
-				selector = (MessageSelector) target;
-			}
-			else if (extractTypeIfPossible(target, MessageFilter.class) != null) {
-				checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
-				return (MessageHandler) target;
-			}
-			else {
-				selector = new MethodInvokingSelector(target);
-			}
-		}
-		else {
-			Assert.isTrue(boolean.class.equals(method.getReturnType()) || Boolean.class.equals(method.getReturnType()),
-					"The Filter annotation may only be applied to methods with a boolean return type.");
-			selector = new MethodInvokingSelector(bean, method);
-		}
+		Assert.isTrue(boolean.class.equals(method.getReturnType()) || Boolean.class.equals(method.getReturnType()),
+				"The Filter annotation may only be applied to methods with a boolean return type.");
+		MessageSelector selector = new MethodInvokingSelector(bean, method);
 
 		MessageFilter filter = new MessageFilter(selector);
 

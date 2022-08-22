@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,18 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.core.ResolvableType;
 import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.config.SplitterFactoryBean;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -41,43 +44,47 @@ import org.springframework.util.StringUtils;
  */
 public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Splitter> {
 
-	public SplitterAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
-		super(beanFactory);
+	public SplitterAnnotationPostProcessor() {
 		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", "applySequence", "adviceChain"));
 	}
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
+	protected BeanDefinition resolveHandlerBeanDefinition(String beanName, AnnotatedBeanDefinition beanDefinition,
+			ResolvableType handlerBeanType, List<Annotation> annotations) {
+
+		BeanDefinition handlerBeanDefinition =
+				super.resolveHandlerBeanDefinition(beanName, beanDefinition, handlerBeanType, annotations);
+
+		if (handlerBeanDefinition != null) {
+			return handlerBeanDefinition;
+		}
+
+		BeanMetadataElement targetObjectBeanDefinition = buildLambdaMessageProcessor(handlerBeanType, beanDefinition);
+		if (targetObjectBeanDefinition == null) {
+			targetObjectBeanDefinition = new RuntimeBeanReference(beanName);
+		}
+
+		BeanDefinitionBuilder splitterBeanDefinition =
+				BeanDefinitionBuilder.genericBeanDefinition(SplitterFactoryBean.class)
+						.addPropertyValue("targetObject", targetObjectBeanDefinition);
+
 		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
-
-		AbstractMessageSplitter splitter;
-		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			splitter = this.extractTypeIfPossible(target, AbstractMessageSplitter.class);
-			if (splitter == null) {
-				if (target instanceof MessageHandler) {
-					Assert.hasText(applySequence, "'applySequence' can be applied to 'AbstractMessageSplitter', but " +
-							"target handler is: " + target.getClass());
-					return (MessageHandler) target;
-				}
-				else {
-					splitter = new MethodInvokingSplitter(target);
-				}
-			}
-			else {
-				checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
-				return splitter;
-			}
+		if (StringUtils.hasText(applySequence)) {
+			splitterBeanDefinition.addPropertyValue("applySequence", applySequence);
 		}
-		else {
-			splitter = new MethodInvokingSplitter(bean, method);
-		}
+		return splitterBeanDefinition.getBeanDefinition();
+	}
 
+	@Override
+	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
+		AbstractMessageSplitter splitter = new MethodInvokingSplitter(bean, method);
+
+		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
 		if (StringUtils.hasText(applySequence)) {
 			splitter.setApplySequence(resolveAttributeToBoolean(applySequence));
 		}
 
-		this.setOutputChannelIfPresent(annotations, splitter);
+		setOutputChannelIfPresent(annotations, splitter);
 		return splitter;
 	}
 

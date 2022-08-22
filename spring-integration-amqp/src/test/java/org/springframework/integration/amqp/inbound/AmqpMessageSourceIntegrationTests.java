@@ -22,12 +22,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.aopalliance.intercept.MethodInterceptor;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.Queue;
@@ -36,7 +33,7 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.BrokerRunning;
+import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +56,7 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -67,23 +64,24 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @since 5.0.1
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
+@RabbitAvailable({
+		AmqpMessageSourceIntegrationTests.DSL_QUEUE,
+		AmqpMessageSourceIntegrationTests.INTERCEPT_QUEUE,
+		AmqpMessageSourceIntegrationTests.DLQ,
+		AmqpMessageSourceIntegrationTests.NOAUTOACK_QUEUE })
 public class AmqpMessageSourceIntegrationTests {
 
-	private static final String DSL_QUEUE = "AmqpMessageSourceIntegrationTests";
+	static final String DSL_QUEUE = "AmqpMessageSourceIntegrationTests";
 
-	private static final String QUEUE_WITH_DLQ = "AmqpMessageSourceIntegrationTests.withDLQ";
+	static final String QUEUE_WITH_DLQ = "AmqpMessageSourceIntegrationTests.withDLQ";
 
-	private static final String DLQ = QUEUE_WITH_DLQ + ".dlq";
+	static final String DLQ = QUEUE_WITH_DLQ + ".dlq";
 
-	private static final String INTERCEPT_QUEUE = "AmqpMessageSourceIntegrationTests.channel";
+	static final String INTERCEPT_QUEUE = "AmqpMessageSourceIntegrationTests.channel";
 
-	private static final String NOAUTOACK_QUEUE = "AmqpMessageSourceIntegrationTests.noAutoAck";
-
-	@ClassRule
-	public static BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues(DSL_QUEUE, INTERCEPT_QUEUE, DLQ,
-			NOAUTOACK_QUEUE);
+	static final String NOAUTOACK_QUEUE = "AmqpMessageSourceIntegrationTests.noAutoAck";
 
 	@Autowired
 	private Config config;
@@ -91,7 +89,7 @@ public class AmqpMessageSourceIntegrationTests {
 	@Autowired
 	private ConfigurableApplicationContext context;
 
-	@Before
+	@BeforeEach
 	public void before() {
 		RabbitAdmin admin = new RabbitAdmin(this.config.connectionFactory());
 		Queue queue = QueueBuilder.nonDurable(QUEUE_WITH_DLQ)
@@ -103,14 +101,9 @@ public class AmqpMessageSourceIntegrationTests {
 		this.context.start();
 	}
 
-	@After
+	@AfterEach
 	public void after() {
 		this.context.stop();
-	}
-
-	@AfterClass
-	public static void afterClass() {
-		brokerRunning.removeTestQueues(QUEUE_WITH_DLQ);
 	}
 
 	@Test
@@ -256,7 +249,7 @@ public class AmqpMessageSourceIntegrationTests {
 
 		@Bean
 		public ConnectionFactory connectionFactory() {
-			return new CachingConnectionFactory(brokerRunning.getConnectionFactory());
+			return new CachingConnectionFactory("localhost");
 		}
 
 	}

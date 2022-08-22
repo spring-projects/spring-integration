@@ -34,13 +34,14 @@ import org.springframework.integration.aggregator.ExpressionEvaluatingMessageGro
 import org.springframework.integration.aggregator.ExpressionEvaluatingReleaseStrategy;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.aggregator.MessageCountReleaseStrategy;
+import org.springframework.integration.annotation.BridgeFrom;
+import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.scattergather.ScatterGatherHandler;
@@ -58,6 +59,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1
  */
 @SpringJUnitConfig
@@ -79,7 +81,6 @@ public class ScatterGatherHandlerIntegrationTests {
 	@Test
 	public void testSimpleAuction() {
 		Message<String> quoteMessage = MessageBuilder.withPayload("testQuote").build();
-
 		this.inputAuctionWithoutGatherChannel.send(quoteMessage);
 		Message<?> bestQuoteMessage = this.output.receive(10000);
 		assertThat(bestQuoteMessage).isNotNull();
@@ -92,7 +93,6 @@ public class ScatterGatherHandlerIntegrationTests {
 	@Test
 	public void testAuctionWithGatherChannel() {
 		Message<String> quoteMessage = MessageBuilder.withPayload("testQuote").build();
-
 		this.inputAuctionWithGatherChannel.send(quoteMessage);
 		Message<?> bestQuoteMessage = this.output.receive(10000);
 		assertThat(bestQuoteMessage).isNotNull();
@@ -104,7 +104,6 @@ public class ScatterGatherHandlerIntegrationTests {
 	@Test
 	public void testDistribution() {
 		Message<String> quoteMessage = MessageBuilder.withPayload("testQuote").build();
-
 		this.distributionChannel.send(quoteMessage);
 		Message<?> bestQuoteMessage = this.output.receive(10000);
 		assertThat(bestQuoteMessage).isNotNull();
@@ -146,50 +145,24 @@ public class ScatterGatherHandlerIntegrationTests {
 		}
 
 		@Bean
-		public MessageChannel inputAuctionWithoutGatherChannel() {
-			return new DirectChannel();
-		}
-
-		@Bean
 		@ServiceActivator(inputChannel = "inputAuctionWithoutGatherChannel")
-		public MessageHandler scatterGatherAuctionWithoutGatherChannel() {
+		public ScatterGatherHandler scatterGatherAuctionWithoutGatherChannel() {
 			ScatterGatherHandler handler = new ScatterGatherHandler(scatterAuctionWithoutGatherChannel(), gatherer1());
 			handler.setOutputChannel(output());
 			return handler;
 		}
 
 		@Bean
-		@ServiceActivator(inputChannel = "scatterAuctionWithoutGatherChannel")
-		public MessageHandler auctionWithoutGatherChannelBridge1() {
-			BridgeHandler handler = new BridgeHandler();
-			handler.setOutputChannel(serviceChannel1());
-			return handler;
-		}
-
-		@Bean
-		@ServiceActivator(inputChannel = "scatterAuctionWithoutGatherChannel")
-		public MessageHandler auctionWithoutGatherChannelBridge2() {
-			BridgeHandler handler = new BridgeHandler();
-			handler.setOutputChannel(serviceChannel1());
-			return handler;
-		}
-
-		@Bean
-		@ServiceActivator(inputChannel = "scatterAuctionWithoutGatherChannel")
-		public MessageHandler auctionWithoutGatherChannelBridge3() {
-			BridgeHandler handler = new BridgeHandler();
-			handler.setOutputChannel(serviceChannel1());
-			return handler;
-		}
-
-		@Bean
+		@BridgeFrom("scatterAuctionWithoutGatherChannel")
+		@BridgeFrom("scatterAuctionWithoutGatherChannel")
+		@BridgeFrom("scatterAuctionWithoutGatherChannel")
 		public MessageChannel serviceChannel1() {
 			return new DirectChannel();
 		}
 
 		@Bean
 		@ServiceActivator(inputChannel = "serviceChannel1")
-		public MessageHandler service1() {
+		public AbstractReplyProducingMessageHandler service1() {
 			return new AbstractReplyProducingMessageHandler() {
 
 				@Override
@@ -201,7 +174,7 @@ public class ScatterGatherHandlerIntegrationTests {
 		}
 
 		@Bean
-		public MessageHandler distributor() {
+		public RecipientListRouter distributor() {
 			RecipientListRouter router = new RecipientListRouter();
 			router.setApplySequence(true);
 			router.setChannels(Arrays.asList(distributionChannel1(), distributionChannel2(), distributionChannel3()));
@@ -209,16 +182,19 @@ public class ScatterGatherHandlerIntegrationTests {
 		}
 
 		@Bean
+		@BridgeTo("serviceChannel1")
 		public MessageChannel distributionChannel1() {
 			return new DirectChannel();
 		}
 
 		@Bean
+		@BridgeTo("serviceChannel1")
 		public MessageChannel distributionChannel2() {
 			return new DirectChannel();
 		}
 
 		@Bean
+		@BridgeTo("serviceChannel1")
 		public MessageChannel distributionChannel3() {
 			return new DirectChannel();
 		}
@@ -230,33 +206,9 @@ public class ScatterGatherHandlerIntegrationTests {
 
 		@Bean
 		@ServiceActivator(inputChannel = "distributionChannel")
-		public MessageHandler scatterGatherDistribution() {
+		public ScatterGatherHandler scatterGatherDistribution() {
 			ScatterGatherHandler handler = new ScatterGatherHandler(distributor(), gatherer1());
 			handler.setOutputChannel(output());
-			return handler;
-		}
-
-		@Bean
-		@ServiceActivator(inputChannel = "distributionChannel1")
-		public MessageHandler distributionBridge1() {
-			BridgeHandler handler = new BridgeHandler();
-			handler.setOutputChannel(serviceChannel1());
-			return handler;
-		}
-
-		@Bean
-		@ServiceActivator(inputChannel = "distributionChannel2")
-		public MessageHandler distributionBridge2() {
-			BridgeHandler handler = new BridgeHandler();
-			handler.setOutputChannel(serviceChannel1());
-			return handler;
-		}
-
-		@Bean
-		@ServiceActivator(inputChannel = "distributionChannel3")
-		public MessageHandler distributionBridge3() {
-			BridgeHandler handler = new BridgeHandler();
-			handler.setOutputChannel(serviceChannel1());
 			return handler;
 		}
 
@@ -288,7 +240,7 @@ public class ScatterGatherHandlerIntegrationTests {
 
 		@Bean
 		@ServiceActivator(inputChannel = "inputAuctionWithGatherChannel")
-		public MessageHandler scatterGatherAuctionWithGatherChannel() {
+		public ScatterGatherHandler scatterGatherAuctionWithGatherChannel() {
 			ScatterGatherHandler handler =
 					new ScatterGatherHandler(scatterAuctionWithGatherChannel(null), gatherer2());
 			handler.setGatherChannel(gatherChannel());
@@ -297,38 +249,10 @@ public class ScatterGatherHandlerIntegrationTests {
 		}
 
 		@Bean
-		@ServiceActivator(inputChannel = "scatterAuctionWithGatherChannel")
-		public MessageHandler auctionWithGatherChannelBridge1() {
-			BridgeHandler handler = new BridgeHandler();
-			handler.setOutputChannel(serviceChannel2());
-			return handler;
-		}
-
-		@Bean
-		@ServiceActivator(inputChannel = "scatterAuctionWithGatherChannel")
-		public MessageHandler auctionWithGatherChannelBridge2() {
-			BridgeHandler handler = new BridgeHandler();
-			handler.setOutputChannel(serviceChannel2());
-			return handler;
-		}
-
-		@Bean
-		@ServiceActivator(inputChannel = "scatterAuctionWithGatherChannel")
-		public MessageHandler auctionWithGatherChannelBridge3() {
-			BridgeHandler handler = new BridgeHandler();
-			handler.setOutputChannel(serviceChannel2());
-			return handler;
-		}
-
-		@Bean
-		@ServiceActivator(inputChannel = "scatterAuctionWithGatherChannel")
-		public MessageHandler auctionWithGatherChannelBridge4() {
-			BridgeHandler handler = new BridgeHandler();
-			handler.setOutputChannel(serviceChannel2());
-			return handler;
-		}
-
-		@Bean
+		@BridgeFrom("scatterAuctionWithGatherChannel")
+		@BridgeFrom("scatterAuctionWithGatherChannel")
+		@BridgeFrom("scatterAuctionWithGatherChannel")
+		@BridgeFrom("scatterAuctionWithGatherChannel")
 		public MessageChannel serviceChannel2() {
 			return new DirectChannel();
 		}

@@ -100,9 +100,7 @@ public class MockMessageSourceTests {
 	@Test
 	public void testMockMessageSourceInConfig() {
 		Lifecycle channelAdapter =
-				this.applicationContext
-						.getBean("mockMessageSourceTests.Config.testingMessageSource.inboundChannelAdapter",
-								Lifecycle.class);
+				this.applicationContext.getBean("testingMessageSource.inboundChannelAdapter", Lifecycle.class);
 		channelAdapter.start();
 
 		Message<?> receive = this.results.receive(10_000);

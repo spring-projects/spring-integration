@@ -624,7 +624,7 @@ public class MyFlowConfiguration {
 
     @Bean
     @ServiceActivator(inputChannel = "httpChannel")
-    public MessageHandler httpHandler() {
+    public HttpRequestExecutingMessageHandler httpHandler() {
     HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("https://foo/service");
         handler.setExpectedResponseType(String.class);
         handler.setOutputChannelName("outputChannel");
@@ -676,12 +676,15 @@ NOTE: The bean names are generated with the following algorithm:
 
 * The `MessageHandler` (`MessageSource`) `@Bean` gets its own standard name from the method name or `name` attribute on the `@Bean`.
 This works as though there were no messaging annotation on the `@Bean` method.
-* The `AbstractEndpoint` bean name is generated with the following pattern: `[configurationComponentName].[methodName].[decapitalizedAnnotationClassShortName]`.
-For example, the `SourcePollingChannelAdapter` endpoint for the `consoleSource()` definition <<annotations_on_beans,shown earlier>> gets a bean name of `myFlowConfiguration.consoleSource.inboundChannelAdapter`.
+* The `AbstractEndpoint` bean name is generated with the following pattern: `[@Bean name].[decapitalizedAnnotationClassShortName]`.
+For example, the `SourcePollingChannelAdapter` endpoint for the `consoleSource()` definition <<annotations_on_beans,shown earlier>> gets a bean name of `consoleSource.inboundChannelAdapter`.
+Unlike with POJO methods, the bean method name is not included in the endpoint bean name.
 See also <<./overview.adoc#endpoint-bean-names,Endpoint Bean Names>>.
+* If `@Bean` cannot be used directly in the target endpoint (not an instance of a `MessageSource`, `AbstractReplyProducingMessageHandler` or `AbstractMessageRouter`), a respective `AbstractStandardMessageHandlerFactoryBean` is registered to delegate to this `@Bean`.
+The bean name for this wrapper is generated with the following pattern: `[@Bean name].[decapitalizedAnnotationClassShortName].[handler (or source)]`.
 
 IMPORTANT: When using these annotations on `@Bean` definitions, the `inputChannel` must reference a declared bean.
-Channels are not automatically declared in this case.
+Channels are automatically declared iif not present in the application context yet.
 
 [NOTE]
 =====

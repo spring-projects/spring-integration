@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,18 +21,18 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.core.ResolvableType;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.config.ServiceActivatorFactoryBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
-import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.util.StringUtils;
 
 /**
@@ -45,47 +45,41 @@ import org.springframework.util.StringUtils;
  */
 public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<ServiceActivator> {
 
-	public ServiceActivatorAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
-		super(beanFactory);
+	public ServiceActivatorAnnotationPostProcessor() {
 		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", "requiresReply", "adviceChain"));
 	}
 
+	@Override
+	protected BeanDefinition resolveHandlerBeanDefinition(String beanName, AnnotatedBeanDefinition beanDefinition,
+			ResolvableType handlerBeanType, List<Annotation> annotations) {
+
+		BeanDefinition handlerBeanDefinition =
+				super.resolveHandlerBeanDefinition(beanName, beanDefinition, handlerBeanType, annotations);
+
+		if (handlerBeanDefinition != null) {
+			return handlerBeanDefinition;
+		}
+
+		BeanMetadataElement targetObjectBeanDefinition = buildLambdaMessageProcessor(handlerBeanType, beanDefinition);
+		if (targetObjectBeanDefinition == null) {
+			targetObjectBeanDefinition = new RuntimeBeanReference(beanName);
+		}
+
+		BeanDefinition serviceActivatorBeanDefinition =
+				BeanDefinitionBuilder.genericBeanDefinition(ServiceActivatorFactoryBean.class)
+						.addPropertyValue("targetObject", targetObjectBeanDefinition)
+						.getBeanDefinition();
+
+		new BeanDefinitionPropertiesMapper(serviceActivatorBeanDefinition, annotations)
+				.setPropertyValue("requiresReply")
+				.setPropertyValue("async");
+
+		return serviceActivatorBeanDefinition;
+	}
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
-		AbstractReplyProducingMessageHandler serviceActivator;
-		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			serviceActivator = extractTypeIfPossible(target, AbstractReplyProducingMessageHandler.class);
-			if (serviceActivator == null) {
-				if (target instanceof ReactiveMessageHandler) {
-					return new ReactiveMessageHandlerAdapter((ReactiveMessageHandler) target);
-				}
-				if (target instanceof MessageHandler) {
-					/*
-					 * Return a reply-producing message handler so that we still get 'produced no reply' messages
-					 * and the super class will inject the advice chain to advise the handler method if needed.
-					 */
-					return new ReplyProducingMessageHandlerWrapper((MessageHandler) target);
-				}
-				else {
-					MessageProcessor<?> messageProcessor = buildLambdaMessageProcessorForBeanMethod(method, target);
-					if (messageProcessor != null) {
-						serviceActivator = new ServiceActivatingHandler(messageProcessor);
-					}
-					else {
-						serviceActivator = new ServiceActivatingHandler(target);
-					}
-				}
-			}
-			else {
-				checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
-				return (MessageHandler) target;
-			}
-		}
-		else {
-			serviceActivator = new ServiceActivatingHandler(bean, method);
-		}
+		AbstractReplyProducingMessageHandler serviceActivator = new ServiceActivatingHandler(bean, method);
 
 		String requiresReply = MessagingAnnotationUtils.resolveAttribute(annotations, "requiresReply", String.class);
 		if (StringUtils.hasText(requiresReply)) {

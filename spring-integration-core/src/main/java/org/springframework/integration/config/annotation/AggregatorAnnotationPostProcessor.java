@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
@@ -42,11 +41,6 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  */
 public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Aggregator> {
-
-	public AggregatorAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
-		super(beanFactory);
-	}
-
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
@@ -86,7 +80,8 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		return handler;
 	}
 
-	protected boolean beanAnnotationAware() {
+	@Override
+	public boolean beanAnnotationAware() {
 		return false;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,17 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.integration.util.MessagingAnnotationUtils;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for the {@link BridgeFrom @BridgeFrom} annotation.
@@ -42,46 +41,37 @@ import org.springframework.util.StringUtils;
  */
 public class BridgeFromAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<BridgeFrom> {
 
-	public BridgeFromAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
-		super(beanFactory);
-	}
-
 	@Override
-	public boolean shouldCreateEndpoint(Method method, List<Annotation> annotations) {
-		boolean isBean = AnnotatedElementUtils.isAnnotated(method, Bean.class.getName());
-		Assert.isTrue(isBean, "'@BridgeFrom' is eligible only for '@Bean' methods");
-
-		boolean isMessageChannelBean = MessageChannel.class.isAssignableFrom(method.getReturnType());
-		Assert.isTrue(isMessageChannelBean, "'@BridgeFrom' is eligible only for 'MessageChannel' '@Bean' methods");
-
-		String channel = MessagingAnnotationUtils.resolveAttribute(annotations, "value", String.class);
-		Assert.isTrue(StringUtils.hasText(channel), "'@BridgeFrom.value()' (inputChannelName) must not be empty");
-
-		boolean hasBridgeTo = AnnotatedElementUtils.isAnnotated(method, BridgeTo.class.getName());
-
-		Assert.isTrue(!hasBridgeTo, "'@BridgeFrom' and '@BridgeTo' are mutually exclusive 'MessageChannel' " +
-				"'@Bean' method annotations");
-
-
-		return true;
-	}
-
-	@Override
-	protected String getInputChannelAttribute() {
+	public String getInputChannelAttribute() {
 		return AnnotationUtils.VALUE;
 	}
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
-		BridgeHandler handler = new BridgeHandler();
-		String outputChannelName = resolveTargetBeanName(method);
-		handler.setOutputChannelName(outputChannelName);
-		return handler;
+	public boolean supportsPojoMethod() {
+		return false;
 	}
 
 	@Override
-	protected Object resolveTargetBeanFromMethodWithBeanAnnotation(Method method) {
-		return null;
+	public boolean shouldCreateEndpoint(MergedAnnotations mergedAnnotations, List<Annotation> annotations) {
+		Assert.isTrue(super.shouldCreateEndpoint(mergedAnnotations, annotations),
+				"'@BridgeFrom.value()' (inputChannelName) must not be empty");
+		Assert.isTrue(!mergedAnnotations.isPresent(BridgeTo.class),
+				"'@BridgeFrom' and '@BridgeTo' are mutually exclusive 'MessageChannel' '@Bean' method annotations");
+		return true;
+	}
+
+	@Override
+	protected BeanDefinition resolveHandlerBeanDefinition(String beanName, AnnotatedBeanDefinition beanDefinition,
+			ResolvableType handlerBeanType, List<Annotation> annotationChain) {
+
+		return BeanDefinitionBuilder.genericBeanDefinition(BridgeHandler.class)
+				.addPropertyReference("outputChannel", beanName)
+				.getBeanDefinition();
+	}
+
+	@Override
+	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
+		throw new UnsupportedOperationException();
 	}
 
 }

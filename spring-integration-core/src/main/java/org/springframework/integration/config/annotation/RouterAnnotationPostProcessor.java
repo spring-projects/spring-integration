@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,24 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.integration.annotation.Router;
+import org.springframework.integration.config.RouterFactoryBean;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -44,41 +50,62 @@ import org.springframework.util.StringUtils;
  */
 public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Router> {
 
-	public RouterAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
-		super(beanFactory);
+	public RouterAnnotationPostProcessor() {
 		this.messageHandlerAttributes.addAll(Arrays.asList("defaultOutputChannel", "applySequence",
 				"ignoreSendFailures", "resolutionRequired", "channelMappings", "prefix", "suffix"));
 	}
 
 	@Override
+	protected BeanDefinition resolveHandlerBeanDefinition(String beanName, AnnotatedBeanDefinition beanDefinition,
+			ResolvableType handlerBeanType, List<Annotation> annotations) {
+
+		BeanDefinition handlerBeanDefinition =
+				super.resolveHandlerBeanDefinition(beanName, beanDefinition, handlerBeanType, annotations);
+
+		if (handlerBeanDefinition != null) {
+			return handlerBeanDefinition;
+		}
+
+		BeanMetadataElement targetObjectBeanDefinition = buildLambdaMessageProcessor(handlerBeanType, beanDefinition);
+		if (targetObjectBeanDefinition == null) {
+			targetObjectBeanDefinition = new RuntimeBeanReference(beanName);
+		}
+
+		BeanDefinition routerBeanDefinition =
+				BeanDefinitionBuilder.genericBeanDefinition(RouterFactoryBean.class)
+						.addPropertyValue("targetObject", targetObjectBeanDefinition)
+						.getBeanDefinition();
+
+		new BeanDefinitionPropertiesMapper(routerBeanDefinition, annotations)
+				.setPropertyValue("applySequence")
+				.setPropertyValue("ignoreSendFailures")
+				.setPropertyValue("resolutionRequired")
+				.setPropertyValue("prefix")
+				.setPropertyValue("suffix");
+
+		String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, "channelMappings",
+				String[].class);
+		if (!ObjectUtils.isEmpty(channelMappings)) {
+			Map<String, String> mappings =
+					Arrays.stream(channelMappings)
+							.map((mapping) -> {
+								String[] keyValue = mapping.split("=");
+								return Map.entry(keyValue[0], keyValue[1]);
+							})
+							.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+			routerBeanDefinition.getPropertyValues()
+					.addPropertyValue("channelMappings", mappings);
+		}
+
+		return routerBeanDefinition;
+	}
+
+	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
-		AbstractMessageRouter router;
-		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			router = extractTypeIfPossible(target, AbstractMessageRouter.class);
-			if (router == null) {
-				if (target instanceof MessageHandler) {
-					Assert.isTrue(routerAttributesProvided(annotations),
-							"'defaultOutputChannel', 'applySequence', 'ignoreSendFailures', 'resolutionRequired', " +
-									"'channelMappings', 'prefix' and 'suffix' " +
-							"can be applied to 'AbstractMessageRouter' implementations, but target handler is: " +
-							target.getClass());
-					return (MessageHandler) target;
-				}
-				else {
-					router = new MethodInvokingRouter(target);
-				}
-			}
-			else {
-				checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
-				return router;
-			}
-		}
-		else {
-			router = new MethodInvokingRouter(bean, method);
-		}
-		String defaultOutputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations,
-				"defaultOutputChannel", String.class);
+		AbstractMessageRouter router = new MethodInvokingRouter(bean, method);
+		String defaultOutputChannelName =
+				MessagingAnnotationUtils.resolveAttribute(annotations, "defaultOutputChannel", String.class);
 		if (StringUtils.hasText(defaultOutputChannelName)) {
 			router.setDefaultOutputChannelName(defaultOutputChannelName);
 		}
@@ -110,14 +137,16 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 				methodInvokingRouter.setResolutionRequired(resolveAttributeToBoolean(resolutionRequired));
 			}
 
+			ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+
 			String prefix = MessagingAnnotationUtils.resolveAttribute(annotations, "prefix", String.class);
 			if (StringUtils.hasText(prefix)) {
-				methodInvokingRouter.setPrefix(this.beanFactory.resolveEmbeddedValue(prefix));
+				methodInvokingRouter.setPrefix(beanFactory.resolveEmbeddedValue(prefix));
 			}
 
 			String suffix = MessagingAnnotationUtils.resolveAttribute(annotations, "suffix", String.class);
 			if (StringUtils.hasText(suffix)) {
-				methodInvokingRouter.setSuffix(this.beanFactory.resolveEmbeddedValue(suffix));
+				methodInvokingRouter.setSuffix(beanFactory.resolveEmbeddedValue(suffix));
 			}
 
 			String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, "channelMappings",
@@ -127,7 +156,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 				for (String channelMapping : channelMappings) {
 					mappings.append(channelMapping).append("\n");
 				}
-				Properties properties = (Properties) this.conversionService.convert(mappings.toString(),
+				Properties properties = (Properties) getConversionService().convert(mappings.toString(),
 						TypeDescriptor.valueOf(String.class), TypeDescriptor.valueOf(Properties.class));
 				methodInvokingRouter.replaceChannelMappings(properties);
 			}

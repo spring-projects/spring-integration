@@ -80,9 +80,9 @@ public class StoredProcJavaConfigTests {
 		// verify maxMessagesPerPoll == 1
 		assertThat(received).isNull();
 		MessagingTemplate template = new MessagingTemplate(this.control);
-		template.convertAndSend("@'storedProcJavaConfigTests.Config.storedProc.inboundChannelAdapter'.stop()");
+		template.convertAndSend("@'storedProc.inboundChannelAdapter'.stop()");
 		assertThat(template.convertSendAndReceive(
-				"@'storedProcJavaConfigTests.Config.storedProc.inboundChannelAdapter'.isRunning()", Boolean.class))
+				"@'storedProc.inboundChannelAdapter'.isRunning()", Boolean.class))
 				.isFalse();
 	}
 
