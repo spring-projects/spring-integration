@@ -49,7 +49,7 @@ This API can be used in Kotlin as well:
 ----
 @Bean
 fun flowFromSupplier() =
-         IntegrationFlow.from<String>({ "bar" }) { e -> e.poller { p -> p.fixedDelay(10).maxMessagesPerPoll(1) } }
+         IntegrationFlow.fromSupplier({ "bar" }) { e -> e.poller { p -> p.fixedDelay(10).maxMessagesPerPoll(1) } }
                  .channel { c -> c.queue("fromSupplierQueue") }
                  .get()
 ----
@@ -94,4 +94,3 @@ fun convertFlow() =
 ====
 
 NOTE: The reified type can be a whole `Message<*>` if there need access to headers as well in the lambda of the operator.
-
