@@ -61,7 +61,7 @@ import org.springframework.util.StringUtils;
 /**
  * <p>
  * Channel-specific implementation of
- * {@link org.springframework.integration.store.MessageGroupStore} using a relational
+ * {@link org.springframework.integration.store.BasicMessageGroupStore} using a relational
  * database via JDBC.
  *
  * This message store shall be used for message channels only.
