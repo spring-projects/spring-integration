@@ -213,8 +213,8 @@ public class ObservationPropagationChannelInterceptorTests {
 			Observation.createNotStarted("user.code", receiverContext, this.observationRegistry)
 					.observe(() -> {
 						// Let's assume that this is the user code
-						handleLatch.countDown();
 					});
+			handleLatch.countDown();
 		});
 
 		// This would be the instrumentation code on the sender side (user's code would call e.g. MessageTemplate and this code
