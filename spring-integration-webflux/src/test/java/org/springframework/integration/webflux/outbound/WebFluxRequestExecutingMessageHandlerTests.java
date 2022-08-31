@@ -275,11 +275,10 @@ class WebFluxRequestExecutingMessageHandlerTests {
 
 		StepVerifier.create(
 						response.getBody()
-								.map(dataBuffer -> new String(dataBuffer.asByteBuffer().array())))
+								.map(dataBuffer -> new String(dataBuffer.toByteBuffer().array())))
 				.expectNext("foo", "bar", "baz")
 				.verifyComplete();
 	}
-
 
 	@Test
 	void testClientHttpResponseErrorAsReply() {

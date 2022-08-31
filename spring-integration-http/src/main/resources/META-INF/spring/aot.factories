@@ -1,1 +1,1 @@
-org.springframework.aot.hint.RuntimeHintsRegistrar=org.springframework.integration.http.aot.HttpRuntimeHintsRegistrar
+org.springframework.aot.hint.RuntimeHintsRegistrar=org.springframework.integration.http.aot.HttpRuntimeHints

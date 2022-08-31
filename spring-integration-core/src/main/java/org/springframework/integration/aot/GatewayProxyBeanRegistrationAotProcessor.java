@@ -16,15 +16,21 @@
 
 package org.springframework.integration.aot;
 
+import java.util.function.Predicate;
+
 import org.springframework.aop.SpringProxy;
 import org.springframework.aop.framework.Advised;
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.aot.generate.GenerationContext;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.aot.BeanRegistrationAotContribution;
 import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
+import org.springframework.beans.factory.aot.BeanRegistrationCode;
+import org.springframework.beans.factory.aot.BeanRegistrationCodeFragments;
 import org.springframework.beans.factory.support.RegisteredBean;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.DecoratingProxy;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
-import org.springframework.integration.gateway.RequestReplyExchanger;
+import org.springframework.javapoet.CodeBlock;
 
 /**
  * {@link BeanRegistrationAotProcessor} for registering proxy interfaces of the {@link GatewayProxyFactoryBean} beans.
@@ -37,21 +43,32 @@ class GatewayProxyBeanRegistrationAotProcessor implements BeanRegistrationAotPro
 
 	@Override
 	public BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
-		Class<?> beanType = registeredBean.getBeanClass();
-		if (GatewayProxyFactoryBean.class.isAssignableFrom(beanType)) {
-			GatewayProxyFactoryBean proxyFactoryBean =
-					registeredBean.getBeanFactory()
-							.getBean(BeanFactory.FACTORY_BEAN_PREFIX + registeredBean.getBeanName(),
-									GatewayProxyFactoryBean.class);
-			Class<?> serviceInterface = proxyFactoryBean.getObjectType();
-			if (!RequestReplyExchanger.class.equals(serviceInterface)) {
-				return (generationContext, beanRegistrationCode) ->
-						generationContext.getRuntimeHints().proxies()
-								.registerJdkProxy(serviceInterface, SpringProxy.class, Advised.class,
-										DecoratingProxy.class);
-			}
+		if (GatewayProxyFactoryBean.class.isAssignableFrom(registeredBean.getBeanClass())) {
+			return BeanRegistrationAotContribution
+					.ofBeanRegistrationCodeFragmentsCustomizer(GatewayProxyBeanRegistrationCodeFragments::new);
 		}
 		return null;
+	}
+
+	private static class GatewayProxyBeanRegistrationCodeFragments extends BeanRegistrationCodeFragments {
+
+		GatewayProxyBeanRegistrationCodeFragments(BeanRegistrationCodeFragments codeFragments) {
+			super(codeFragments);
+		}
+
+		@Override
+		public CodeBlock generateSetBeanDefinitionPropertiesCode(GenerationContext generationContext,
+				BeanRegistrationCode beanRegistrationCode, RootBeanDefinition beanDefinition,
+				Predicate<String> attributeFilter) {
+
+			Class<?> serviceInterface = (Class<?>) beanDefinition.getAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE);
+			generationContext.getRuntimeHints().proxies()
+					.registerJdkProxy(serviceInterface, SpringProxy.class, Advised.class, DecoratingProxy.class);
+
+			return super.generateSetBeanDefinitionPropertiesCode(generationContext, beanRegistrationCode,
+					beanDefinition, FactoryBean.OBJECT_TYPE_ATTRIBUTE::equals);
+		}
+
 	}
 
 }

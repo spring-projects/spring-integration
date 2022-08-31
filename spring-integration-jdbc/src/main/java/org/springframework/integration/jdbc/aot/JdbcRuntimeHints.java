@@ -26,7 +26,7 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
  *
  * @since 6.0
  */
-class JdbcRuntimeHintsRegistrar implements RuntimeHintsRegistrar {
+class JdbcRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {

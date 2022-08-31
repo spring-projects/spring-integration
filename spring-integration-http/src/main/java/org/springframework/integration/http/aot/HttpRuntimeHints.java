@@ -14,29 +14,34 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file.aot;
+package org.springframework.integration.http.aot;
 
-import java.util.stream.Stream;
-
+import org.springframework.aot.hint.MemberCategory;
+import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.aot.hint.SerializationHints;
-import org.springframework.integration.file.splitter.FileSplitter;
+import org.springframework.aot.hint.TypeReference;
+import org.springframework.web.HttpRequestHandler;
+import org.springframework.web.server.WebHandler;
 
 /**
- * {@link RuntimeHintsRegistrar} for Spring Integration file module.
+ * {@link RuntimeHintsRegistrar} for Spring Integration core module.
  *
  * @author Artem Bilan
  *
  * @since 6.0
  */
-class FileRuntimeHintsRegistrar implements RuntimeHintsRegistrar {
+class HttpRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-		SerializationHints serializationHints = hints.serialization();
-		Stream.of(FileSplitter.FileMarker.class, FileSplitter.FileMarker.Mark.class)
-				.forEach(serializationHints::registerType);
+		ReflectionHints reflectionHints = hints.reflection();
+		reflectionHints.registerType(WebHandler.class, builder ->
+				builder.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
+
+		reflectionHints.registerType(HttpRequestHandler.class, builder ->
+				builder.onReachableType(TypeReference.of("jakarta.servlet.http.HttpServletRequest"))
+						.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
 	}
 
 }

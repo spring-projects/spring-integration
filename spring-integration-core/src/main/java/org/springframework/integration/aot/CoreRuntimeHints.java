@@ -35,17 +35,14 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.SerializationHints;
 import org.springframework.aot.hint.TypeReference;
-import org.springframework.aot.hint.support.RuntimeHintsUtils;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.DecoratingProxy;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.gateway.MethodArgsHolder;
-import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.handler.GenericHandler;
@@ -58,6 +55,7 @@ import org.springframework.integration.store.MessageHolder;
 import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
+import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.ErrorMessage;
@@ -70,7 +68,7 @@ import org.springframework.messaging.support.GenericMessage;
  *
  * @since 6.0
  */
-class CoreRuntimeHintsRegistrar implements RuntimeHintsRegistrar {
+class CoreRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
@@ -87,7 +85,7 @@ class CoreRuntimeHintsRegistrar implements RuntimeHintsRegistrar {
 						AbstractReplyProducingMessageHandler.RequestHandler.class,
 						ExpressionEvaluatingRoutingSlipRouteStrategy.RequestAndReply.class,
 						Pausable.class,
-						SmartLifecycle.class)
+						ManageableSmartLifecycle.class)
 				.forEach(type ->
 						reflectionHints.registerType(type,
 								builder -> builder.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS)));
@@ -139,12 +137,8 @@ class CoreRuntimeHintsRegistrar implements RuntimeHintsRegistrar {
 
 		ProxyHints proxyHints = hints.proxies();
 
-		registerSpringJdkProxy(proxyHints, RequestReplyExchanger.class);
 		registerSpringJdkProxy(proxyHints, AbstractReplyProducingMessageHandler.RequestHandler.class);
 		registerSpringJdkProxy(proxyHints, IntegrationFlow.class, SmartLifecycle.class);
-
-		// For MessagingAnnotationPostProcessor
-		RuntimeHintsUtils.registerAnnotation(hints, Bean.class);
 	}
 
 	private static void registerSpringJdkProxy(ProxyHints proxyHints, Class<?>... proxiedInterfaces) {

@@ -16,7 +16,6 @@
 
 package org.springframework.integration.support.management;
 
-import org.springframework.aot.hint.annotation.Reflective;
 import org.springframework.context.Lifecycle;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -31,17 +30,14 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 public interface ManageableLifecycle extends Lifecycle {
 
 	@ManagedOperation(description = "Start the component")
-	@Reflective
 	@Override
 	void start();
 
 	@ManagedOperation(description = "Stop the component")
-	@Reflective
 	@Override
 	void stop();
 
 	@ManagedAttribute(description = "Is the component running?")
-	@Reflective
 	@Override
 	boolean isRunning();
 
