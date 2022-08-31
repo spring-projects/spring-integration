@@ -30,3 +30,4 @@ vf.gf.dmn-*
 /atlassian-ide-plugin.xml
 hostkey.ser
 .springBeans
+.sts4-cache
