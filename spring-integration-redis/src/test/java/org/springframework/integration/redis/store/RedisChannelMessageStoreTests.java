@@ -18,20 +18,32 @@ package org.springframework.integration.redis.store;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.JacksonObjectWriter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.redis.RedisContainerTest;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Gary Russell
@@ -167,6 +179,31 @@ class RedisChannelMessageStoreTests implements RedisContainerTest {
 		this.priorityCms.removeMessageGroup("priorityCms:testChannel3");
 		assertThat(this.priorityCms.getMessageGroupCount()).isZero();
 		assertThat(this.priorityCms.messageGroupSize("priorityCms:testChannel3")).isZero();
+	}
+
+	@Test
+	void testJsonSerialization() {
+		RedisChannelMessageStore store = new RedisChannelMessageStore(RedisContainerTest.connectionFactory());
+		ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
+		GenericJackson2JsonRedisSerializer serializer =
+				new GenericJackson2JsonRedisSerializer(mapper,
+						(mapper1, source, type) -> mapper1.readValue(source, Object.class),
+						JacksonObjectWriter.create());
+		store.setValueSerializer(serializer);
+
+		Message<?> genericMessage = new GenericMessage<>(new Date());
+		NullChannel testComponent = new NullChannel();
+		testComponent.setBeanName("testChannel");
+		genericMessage = MessageHistory.write(genericMessage, testComponent);
+
+		String groupId = "jsonMessagesStore";
+
+		store.addMessageToGroup(groupId, genericMessage);
+		MessageGroup messageGroup = store.getMessageGroup(groupId);
+		assertThat(messageGroup.size()).isEqualTo(1);
+		List<Message<?>> messages = new ArrayList<>(messageGroup.getMessages());
+		assertThat(messages.get(0)).isEqualTo(genericMessage);
+		assertThat(messages.get(0).getHeaders()).containsKeys(MessageHistory.HEADER_NAME);
 	}
 
 }
