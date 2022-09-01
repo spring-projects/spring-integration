@@ -40,9 +40,9 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.core.DecoratingProxy;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.GenericSelector;
-import org.springframework.integration.core.Pausable;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.gateway.MethodArgsHolder;
+import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.handler.GenericHandler;
@@ -55,7 +55,6 @@ import org.springframework.integration.store.MessageHolder;
 import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
-import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.ErrorMessage;
@@ -83,9 +82,7 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 						IntegrationContextUtils.class,
 						MethodArgsHolder.class,
 						AbstractReplyProducingMessageHandler.RequestHandler.class,
-						ExpressionEvaluatingRoutingSlipRouteStrategy.RequestAndReply.class,
-						Pausable.class,
-						ManageableSmartLifecycle.class)
+						ExpressionEvaluatingRoutingSlipRouteStrategy.RequestAndReply.class)
 				.forEach(type ->
 						reflectionHints.registerType(type,
 								builder -> builder.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS)));
@@ -137,6 +134,7 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 
 		ProxyHints proxyHints = hints.proxies();
 
+		registerSpringJdkProxy(proxyHints, RequestReplyExchanger.class);
 		registerSpringJdkProxy(proxyHints, AbstractReplyProducingMessageHandler.RequestHandler.class);
 		registerSpringJdkProxy(proxyHints, IntegrationFlow.class, SmartLifecycle.class);
 	}
