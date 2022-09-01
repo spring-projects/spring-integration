@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.JacksonObjectWriter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -185,10 +184,7 @@ class RedisChannelMessageStoreTests implements RedisContainerTest {
 	void testJsonSerialization() {
 		RedisChannelMessageStore store = new RedisChannelMessageStore(RedisContainerTest.connectionFactory());
 		ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
-		GenericJackson2JsonRedisSerializer serializer =
-				new GenericJackson2JsonRedisSerializer(mapper,
-						(mapper1, source, type) -> mapper1.readValue(source, Object.class),
-						JacksonObjectWriter.create());
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
 		store.setValueSerializer(serializer);
 
 		Message<?> genericMessage = new GenericMessage<>(new Date());
