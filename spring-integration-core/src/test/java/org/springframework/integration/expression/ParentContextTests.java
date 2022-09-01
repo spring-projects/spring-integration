@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,13 @@
 package org.springframework.integration.expression;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -34,6 +33,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.integration.channel.QueueChannel;
@@ -41,12 +41,17 @@ import org.springframework.integration.config.IntegrationEvaluationContextFactor
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.json.JsonPathUtils;
 import org.springframework.integration.json.TestPerson;
+import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.ClassUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Gary Russell
@@ -74,7 +79,7 @@ public class ParentContextTests {
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testSpelBeanReferencesInChildAndParent() {
+	public void testSpelBeanReferencesInChildAndParent() throws ClassNotFoundException {
 		AbstractApplicationContext parent = new ClassPathXmlApplicationContext("ParentContext-context.xml",
 				this.getClass());
 
@@ -153,40 +158,21 @@ public class ParentContextTests {
 		IntegrationEvaluationContextFactoryBean evaluationContextFactoryBean =
 				child.getBean("&" + IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 						IntegrationEvaluationContextFactoryBean.class);
-		try {
-			evaluationContextFactoryBean.setPropertyAccessors(Collections.emptyMap());
-			fail("IllegalArgumentException expected.");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalArgumentException.class);
-		}
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> evaluationContextFactoryBean.setPropertyAccessors(Collections.emptyMap()));
 
 		parent.getBean("fromParentToChild", MessageChannel.class).send(new GenericMessage<>("foo"));
 		out = child.getBean("output", QueueChannel.class).receive(0);
 		assertThat(out).isNotNull();
-		assertThat(out.getClass().getName()).isEqualTo("org.springframework.integration.support.MutableMessage");
+		assertThat(out).isInstanceOf(MutableMessage.class);
 		assertThat(out.getPayload()).isEqualTo("FOO");
 
-		assertThat(parent
-				.containsBean(IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER))
-				.isTrue();
-
-		assertThat(child
-				.containsBean(IntegrationContextUtils.JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER))
-				.isTrue();
-
-		Object converterRegistrar = parent.getBean(IntegrationContextUtils.CONVERTER_REGISTRAR_BEAN_NAME);
-		assertThat(converterRegistrar).isNotNull();
-		Set<?> converters = TestUtils.getPropertyValue(converterRegistrar, "converters", Set.class);
-		boolean jsonNodeWrapperToJsonNodeConverterPresent = false;
-		for (Object converter : converters) {
-			if ("JsonNodeWrapperToJsonNodeConverter".equals(converter.getClass().getSimpleName())) {
-				jsonNodeWrapperToJsonNodeConverterPresent = true;
-				break;
-			}
-		}
-
-		assertThat(jsonNodeWrapperToJsonNodeConverterPresent).isTrue();
+		ConversionService conversionService = IntegrationUtils.getConversionService(parent);
+		Class<?> jsonNodeWrapperClass =
+				ClassUtils.forName("org.springframework.integration.json.JsonPropertyAccessor.JsonNodeWrapper",
+						ClassUtils.getDefaultClassLoader());
+		assertThat(conversionService.canConvert(jsonNodeWrapperClass, JsonNode.class)).isTrue();
 
 		MessageChannel input = parent.getBean("testJsonNodeToStringConverterInputChannel", MessageChannel.class);
 		PollableChannel output = parent.getBean("testJsonNodeToStringConverterOutputChannel", PollableChannel.class);

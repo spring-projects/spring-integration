@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
+import org.springframework.aot.hint.annotation.Reflective;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -123,6 +124,7 @@ public class ConsumerEndpointFactoryBean
 
 	private volatile boolean initialized;
 
+	@Reflective // The native image doesn't see this method because its type is not specific
 	public void setHandler(Object handler) {
 		Assert.isTrue(handler instanceof MessageHandler || handler instanceof ReactiveMessageHandler,
 				"'handler' must be an instance of 'MessageHandler' or 'ReactiveMessageHandler'");

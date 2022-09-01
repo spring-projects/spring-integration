@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.config;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -44,17 +44,9 @@ import org.springframework.util.Assert;
  */
 class ConverterRegistrar implements InitializingBean, ApplicationContextAware {
 
-	private final Set<Object> converters;
-
 	private ApplicationContext applicationContext;
 
-
 	ConverterRegistrar() {
-		this(new HashSet<>());
-	}
-
-	ConverterRegistrar(Set<Object> converters) {
-		this.converters = converters;
 	}
 
 	@Override
@@ -75,11 +67,27 @@ class ConverterRegistrar implements InitializingBean, ApplicationContextAware {
 	}
 
 	private void registerConverters(GenericConversionService conversionService) {
-		this.converters.addAll(this.applicationContext.getBeansWithAnnotation(IntegrationConverter.class).values());
+		Set<Object> converters =
+				this.applicationContext.getBeansOfType(IntegrationConverterRegistration.class)
+						.values()
+						.stream().map(IntegrationConverterRegistration::converter)
+						.collect(Collectors.toSet());
 		if (JacksonPresent.isJackson2Present()) {
-			this.converters.add(new JsonNodeWrapperToJsonNodeConverter());
+			converters.add(new JsonNodeWrapperToJsonNodeConverter());
 		}
-		ConversionServiceFactory.registerConverters(this.converters, conversionService);
+		ConversionServiceFactory.registerConverters(converters, conversionService);
+	}
+
+	/**
+	 * A configuration supporting bean for converter with a {@link IntegrationConverter}
+	 * annotation.
+	 *
+	 * @param converter the target converter bean with a {@link IntegrationConverter}.
+	 *
+	 * @since 6.0
+	 */
+	record IntegrationConverterRegistration(Object converter) {
+
 	}
 
 }

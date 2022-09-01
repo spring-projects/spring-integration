@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,24 +110,6 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 
 	private String[] xsltParamHeaders;
 
-	private static final Class<?> SERVLET_CONTEXT_RESOURCE_CLASS;
-
-	static {
-		Class<?> aClass = null;
-		try {
-			aClass =
-					ClassUtils.forName("org.springframework.web.context.support.ServletContextResource",
-							ClassUtils.getDefaultClassLoader());
-		}
-
-		catch (ClassNotFoundException e) {
-			// No 'ServletContextResource' class present - ignoring
-		}
-		finally {
-			SERVLET_CONTEXT_RESOURCE_CLASS = aClass;
-		}
-	}
-
 	public XsltPayloadTransformer(Templates templates) {
 		this(templates, null);
 	}
@@ -160,8 +142,8 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		Assert.isTrue(xslResource instanceof ClassPathResource ||
 						xslResource instanceof FileSystemResource ||
 						xslResource instanceof VfsResource || // NOSONAR boolean complexity
-						(SERVLET_CONTEXT_RESOURCE_CLASS != null
-								&& SERVLET_CONTEXT_RESOURCE_CLASS.isInstance(xslResource)),
+						xslResource.getClass().getName()
+								.equals("org.springframework.web.context.support.ServletContextResource"),
 				"Only 'ClassPathResource', 'FileSystemResource', 'ServletContextResource' or 'VfsResource'" +
 						" are supported directly in this transformer. For any other 'Resource' implementations" +
 						" consider to use a 'Templates'-based constructor instantiation.");
@@ -288,7 +270,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 			else {
 				payload = message.getPayload();
 			}
-			Object transformedPayload = null;
+			Object transformedPayload;
 			if (this.alwaysUseResultFactory) {
 				transformedPayload = transformUsingResultFactory(payload, transformer);
 			}
