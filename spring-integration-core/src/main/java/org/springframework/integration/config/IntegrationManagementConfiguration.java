@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.util.Assert;
+
+import io.micrometer.observation.ObservationRegistry;
 
 /**
  * {@code @Configuration} class that registers a {@link IntegrationManagementConfigurer} bean.
@@ -64,12 +66,16 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 
 	@Bean(name = IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public IntegrationManagementConfigurer managementConfigurer(ObjectProvider<MetricsCaptor> metricsCaptorProvider) {
+	public IntegrationManagementConfigurer managementConfigurer(
+			ObjectProvider<MetricsCaptor> metricsCaptorProvider,
+			ObjectProvider<ObservationRegistry> observationRegistryProvider) {
+
 		IntegrationManagementConfigurer configurer = new IntegrationManagementConfigurer();
 		configurer.setDefaultLoggingEnabled(
 				Boolean.parseBoolean(this.environment.resolvePlaceholders(
 						(String) this.attributes.get("defaultLoggingEnabled"))));
 		configurer.setMetricsCaptorProvider(metricsCaptorProvider);
+		configurer.setObservationRegistry(observationRegistryProvider);
 		return configurer;
 	}
 

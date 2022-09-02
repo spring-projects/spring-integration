@@ -21,11 +21,14 @@ import org.reactivestreams.Subscription;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
+import org.springframework.integration.support.management.observation.MessageReceiverContext;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import reactor.core.CoreSubscriber;
 
 /**
@@ -40,16 +43,29 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 	@Override // NOSONAR
 	public void handleMessage(Message<?> message) {
 		Assert.notNull(message, "Message must not be null");
-		if (isLoggingEnabled() && this.logger.isDebugEnabled()) {
-			this.logger.debug(this + " received message: " + message);
+		if (isLoggingEnabled()) {
+			this.logger.debug(() -> this + " received message: " + message);
 		}
-		MetricsCaptor metricsCaptor = getMetricsCaptor();
-		if (metricsCaptor != null) {
-			handleWithMetrics(message, metricsCaptor);
+		ObservationRegistry observationRegistry = getObservationRegistry();
+		if (observationRegistry != null) {
+			handleWithObservation(message, observationRegistry);
 		}
 		else {
-			doHandleMessage(message);
+			MetricsCaptor metricsCaptor = getMetricsCaptor();
+			if (metricsCaptor != null) {
+				handleWithMetrics(message, metricsCaptor);
+			}
+			else {
+				doHandleMessage(message);
+			}
 		}
+	}
+
+	private void handleWithObservation(Message<?> message, ObservationRegistry observationRegistry) {
+		Observation.createNotStarted(CONSUME_OBSERVATION_NAME, new MessageReceiverContext(message), observationRegistry)
+				.lowCardinalityKeyValue("type", "handler")
+				.lowCardinalityKeyValue("name", getComponentName() == null ? "unknown" : getComponentName())
+				.observe(() -> doHandleMessage(message));
 	}
 
 	private void handleWithMetrics(Message<?> message, MetricsCaptor metricsCaptor) {

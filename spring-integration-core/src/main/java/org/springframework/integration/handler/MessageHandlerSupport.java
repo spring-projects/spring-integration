@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.TimerFacade;
 
+import io.micrometer.observation.ObservationRegistry;
+
 /**
  * Base class for Message handling components that provides basic validation and error
  * handling capabilities. Asserts that the incoming Message is not null and that it does
@@ -61,6 +63,8 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 
 	private MetricsCaptor metricsCaptor;
 
+	private ObservationRegistry observationRegistry;
+
 	private int order = Ordered.LOWEST_PRECEDENCE;
 
 	private String managedName;
@@ -87,6 +91,15 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 
 	protected MetricsCaptor getMetricsCaptor() {
 		return this.metricsCaptor;
+	}
+
+	@Override
+	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
+		this.observationRegistry = observationRegistry;
+	}
+
+	protected ObservationRegistry getObservationRegistry() {
+		return this.observationRegistry;
 	}
 
 	@Override
