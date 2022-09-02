@@ -93,7 +93,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				"(GROUP_KEY, REGION, COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE)"
 				+ " values (?, ?, 0, 0, ?, ?)"),
 
-		UPDATE_MESSAGE_GROUP("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, \"CONDITION\"=? " +
+		UPDATE_MESSAGE_GROUP("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, GROUP_CONDITION=? " +
 				"where GROUP_KEY=? and REGION=?"),
 
 		REMOVE_MESSAGE_FROM_GROUP("DELETE from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and MESSAGE_ID=? and " +
@@ -123,7 +123,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? " +
 				"and m.REGION = ?)"),
 
-		GET_GROUP_INFO("SELECT COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE, \"CONDITION\"" +
+		GET_GROUP_INFO("SELECT COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE, GROUP_CONDITION" +
 				" from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?"),
 
 		GET_MESSAGE("SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES from %PREFIX%MESSAGE where MESSAGE_ID=? and " +
@@ -452,7 +452,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				groupMetadata.setTimestamp(rs.getTimestamp("CREATED_DATE").getTime());
 				groupMetadata.setLastModified(rs.getTimestamp("UPDATED_DATE").getTime());
 				groupMetadata.setLastReleasedMessageSequenceNumber(rs.getInt("LAST_RELEASED_SEQUENCE"));
-				groupMetadata.setCondition(rs.getString("CONDITION"));
+				groupMetadata.setCondition(rs.getString("GROUP_CONDITION"));
 				return groupMetadata;
 			}, key, this.region);
 		}
@@ -587,15 +587,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 */
 	protected String getQuery(Query base) {
 		return this.queryCache.computeIfAbsent(base,
-				query -> {
-					String parsedSql = StringUtils.replace(query.getSql(), "%PREFIX%", this.tablePrefix);
-					if ((Query.GET_GROUP_INFO.equals(base) || Query.UPDATE_MESSAGE_GROUP.equals(base))
-							&& this.vendorName.equals("MySQL")) {
-
-						parsedSql = parsedSql.replaceFirst("\"(CONDITION)\"", "`$1`");
-					}
-					return parsedSql;
-				});
+				query -> StringUtils.replace(query.getSql(), "%PREFIX%", this.tablePrefix));
 	}
 
 	/**
