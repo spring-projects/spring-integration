@@ -274,6 +274,15 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
+	 * Returns the current region that was set or {@link #DEFAULT_REGION}, which is the default.
+	 * @return the set region name
+	 * @since 6.0
+	 */
+	public String getRegion() {
+		return this.region;
+	}
+
+	/**
 	 * A converter for serializing messages to byte arrays for storage.
 	 * @param serializer The serializer to set
 	 */
