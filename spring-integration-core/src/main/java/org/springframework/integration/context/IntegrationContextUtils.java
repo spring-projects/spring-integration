@@ -16,19 +16,13 @@
 
 package org.springframework.integration.context;
 
-import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.metadata.MetadataStore;
@@ -179,8 +173,6 @@ public abstract class IntegrationContextUtils {
 		return beanFactory.getBean(beanName, type);
 	}
 
-	// TODO Revise in favor of 'IntegrationProperties' instance in the next 6.0 version
-
 	/**
 	 * @param beanFactory The bean factory.
 	 * @return the global {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME}
@@ -191,59 +183,16 @@ public abstract class IntegrationContextUtils {
 	 *         {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME} bean in the
 	 *         provided {@code #beanFactory} or provided {@code #beanFactory} is null.
 	 */
-	public static Properties getIntegrationProperties(BeanFactory beanFactory) {
-		Properties properties;
+	public static IntegrationProperties getIntegrationProperties(BeanFactory beanFactory) {
+		IntegrationProperties integrationProperties = null;
 		if (beanFactory != null) {
-			properties = getBeanOfType(beanFactory, MERGED_INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Properties.class);
-			if (properties == null) {
-				Properties propertiesToRegister = new Properties();
-				propertiesToRegister.putAll(IntegrationProperties.defaults());
-				Properties userProperties = obtainUserProperties(beanFactory);
-				if (userProperties != null) {
-					propertiesToRegister.putAll(userProperties);
-				}
-
-				if (beanFactory instanceof BeanDefinitionRegistry registry) {
-					RootBeanDefinition beanDefinition = new RootBeanDefinition(Properties.class);
-					beanDefinition.setInstanceSupplier(() -> propertiesToRegister);
-
-					registry.registerBeanDefinition(MERGED_INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, beanDefinition);
-				}
-
-				properties = propertiesToRegister;
-			}
+			integrationProperties =
+					getBeanOfType(beanFactory, INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, IntegrationProperties.class);
 		}
-		else {
-			properties = new Properties();
-			properties.putAll(IntegrationProperties.defaults());
+		if (integrationProperties == null) {
+			integrationProperties = IntegrationProperties.DEFAULT_INSTANCE;
 		}
-		return properties;
-	}
-
-	@Nullable
-	private static Properties obtainUserProperties(BeanFactory beanFactory) {
-		Object userProperties = getBeanOfType(beanFactory, INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Object.class);
-		if (userProperties instanceof Properties) {
-			if (BeanDefinition.ROLE_INFRASTRUCTURE !=
-					((BeanDefinitionRegistry) beanFactory)
-							.getBeanDefinition(INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)
-							.getRole()) {
-
-				LOGGER.warn("The 'integrationGlobalProperties' bean must be declared as an instance of " +
-						"'org.springframework.integration.context.IntegrationProperties'. " +
-						"A 'java.util.Properties' support as a bean is deprecated for " +
-						"'integrationGlobalProperties' since version 5.5.");
-			}
-			return (Properties) userProperties;
-		}
-		else if (userProperties instanceof IntegrationProperties) {
-			return ((IntegrationProperties) userProperties).toProperties();
-		}
-		else if (userProperties != null) {
-			throw new BeanNotOfRequiredTypeException(INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME,
-					IntegrationProperties.class, userProperties.getClass());
-		}
-		return null;
+		return integrationProperties;
 	}
 
 	/**

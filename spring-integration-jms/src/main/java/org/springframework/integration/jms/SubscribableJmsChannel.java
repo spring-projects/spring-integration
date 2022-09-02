@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.BroadcastCapableChannel;
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
@@ -126,10 +125,10 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 			this.dispatcher = unicastingDispatcher;
 		}
 		if (this.maxSubscribers == null) {
-			this.maxSubscribers = this.getIntegrationProperty(isPubSub ?
-							IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS :
-							IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS,
-					Integer.class);
+			this.maxSubscribers =
+					isPubSub
+							? getIntegrationProperties().getChannelsMaxBroadcastSubscribers()
+							: getIntegrationProperties().getChannelsMaxUnicastSubscribers();
 		}
 		this.dispatcher.setMaxSubscribers(this.maxSubscribers);
 	}

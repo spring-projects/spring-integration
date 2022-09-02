@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.Executor;
 
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
@@ -42,13 +42,14 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 1.0.3
  */
 public class ExecutorChannel extends AbstractExecutorChannel {
 
-	private volatile boolean failover = true;
+	private final LoadBalancingStrategy loadBalancingStrategy;
 
-	private volatile LoadBalancingStrategy loadBalancingStrategy;
+	private boolean failover = true;
 
 	/**
 	 * Create an ExecutorChannel that delegates to the provided
@@ -69,13 +70,13 @@ public class ExecutorChannel extends AbstractExecutorChannel {
 	 * @param executor The executor.
 	 * @param loadBalancingStrategy The load balancing strategy implementation.
 	 */
-	public ExecutorChannel(Executor executor, LoadBalancingStrategy loadBalancingStrategy) {
+	public ExecutorChannel(Executor executor, @Nullable LoadBalancingStrategy loadBalancingStrategy) {
 		super(executor);
 		Assert.notNull(executor, "executor must not be null");
 		UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher(executor);
-		if (loadBalancingStrategy != null) {
-			this.loadBalancingStrategy = loadBalancingStrategy;
-			unicastingDispatcher.setLoadBalancingStrategy(loadBalancingStrategy);
+		this.loadBalancingStrategy = loadBalancingStrategy;
+		if (this.loadBalancingStrategy != null) {
+			unicastingDispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);
 		}
 		this.dispatcher = unicastingDispatcher;
 	}
@@ -108,8 +109,7 @@ public class ExecutorChannel extends AbstractExecutorChannel {
 		UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher(this.executor);
 		unicastingDispatcher.setFailover(this.failover);
 		if (this.maxSubscribers == null) {
-			this.maxSubscribers =
-					getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS, Integer.class);
+			this.maxSubscribers = getIntegrationProperties().getChannelsMaxUnicastSubscribers();
 		}
 		unicastingDispatcher.setMaxSubscribers(this.maxSubscribers);
 		if (this.loadBalancingStrategy != null) {

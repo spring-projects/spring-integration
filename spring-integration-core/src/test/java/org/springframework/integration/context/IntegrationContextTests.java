@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 package org.springframework.integration.context;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +37,7 @@ public class IntegrationContextTests {
 
 	@Autowired
 	@Qualifier(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)
-	private Properties integrationProperties;
+	private IntegrationProperties integrationProperties;
 
 	@Autowired
 	@Qualifier("fooService")
@@ -53,12 +51,10 @@ public class IntegrationContextTests {
 	private ThreadPoolTaskScheduler taskScheduler;
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void testIntegrationContextComponents() {
-		assertThat(this.integrationProperties.get(IntegrationProperties.THROW_EXCEPTION_ON_LATE_REPLY))
-				.isEqualTo("true");
-		assertThat(this.integrationProperties.get(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE)).isEqualTo("20");
-		assertThat(this.serviceActivator.getIntegrationProperties()).isEqualTo(this.integrationProperties);
+		assertThat(this.integrationProperties.isMessagingTemplateThrowExceptionOnLateReply()).isTrue();
+		assertThat(this.integrationProperties.getTaskSchedulerPoolSize()).isEqualTo(20);
+		assertThat(this.serviceActivator.getIntegrationProperties()).isSameAs(this.integrationProperties);
 		assertThat(TestUtils.getPropertyValue(this.taskScheduler, "poolSize")).isEqualTo(20);
 		assertThat(this.serviceActivator.isAutoStartup()).isFalse();
 		assertThat(this.serviceActivator.isRunning()).isFalse();

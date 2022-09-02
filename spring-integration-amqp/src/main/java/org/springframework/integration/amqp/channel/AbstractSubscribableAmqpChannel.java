@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -166,10 +165,10 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 		super.onInit();
 		this.dispatcher = this.createDispatcher();
 		if (this.maxSubscribers == null) {
-			this.maxSubscribers = this.getIntegrationProperty(this.isPubSub ?
-							IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS :
-							IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS,
-					Integer.class);
+			this.maxSubscribers =
+					this.isPubSub
+							? getIntegrationProperties().getChannelsMaxBroadcastSubscribers()
+							: getIntegrationProperties().getChannelsMaxUnicastSubscribers();
 		}
 		setMaxSubscribers(this.maxSubscribers);
 		String queue = obtainQueueName(this.channelName);

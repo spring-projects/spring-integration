@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.core;
 
-import java.util.Properties;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -32,6 +30,7 @@ import org.springframework.messaging.core.GenericMessagingTemplate;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 1.0
  *
  */
@@ -85,11 +84,10 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 		if (!this.throwExceptionOnLateReplySet) {
 			synchronized (this) {
 				if (!this.throwExceptionOnLateReplySet) {
-					Properties integrationProperties =
+					IntegrationProperties integrationProperties =
 							IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
-					Boolean throwExceptionOnLateReply = Boolean.valueOf(integrationProperties
-							.getProperty(IntegrationProperties.THROW_EXCEPTION_ON_LATE_REPLY));
-					super.setThrowExceptionOnLateReply(throwExceptionOnLateReply);
+					super.setThrowExceptionOnLateReply(
+							integrationProperties.isMessagingTemplateThrowExceptionOnLateReply());
 					this.throwExceptionOnLateReplySet = true;
 				}
 			}

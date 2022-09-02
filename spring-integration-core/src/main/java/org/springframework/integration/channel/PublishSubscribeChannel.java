@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationPatternType;
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.lang.Nullable;
@@ -38,9 +37,9 @@ import org.springframework.util.ErrorHandler;
  */
 public class PublishSubscribeChannel extends AbstractExecutorChannel implements BroadcastCapableChannel {
 
-	private ErrorHandler errorHandler;
-
 	private final boolean requireSubscribers;
+
+	private ErrorHandler errorHandler;
 
 	private boolean ignoreFailures;
 
@@ -122,7 +121,7 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 
 	/**
 	 * Specify whether failures for one or more of the handlers should be
-	 * ignored. By default this is false meaning that an Exception
+	 * ignored. By default, this is false meaning that an Exception
 	 * will be thrown whenever a handler fails. To override this and suppress
 	 * Exceptions, set the value to true.
 	 * @param ignoreFailures true if failures should be ignored.
@@ -188,9 +187,7 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 		}
 
 		if (this.maxSubscribers == null) {
-			Integer maxSubscribers =
-					getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class);
-			setMaxSubscribers(maxSubscribers);
+			setMaxSubscribers(getIntegrationProperties().getChannelsMaxBroadcastSubscribers());
 		}
 		dispatcherToUse.setBeanFactory(beanFactory);
 

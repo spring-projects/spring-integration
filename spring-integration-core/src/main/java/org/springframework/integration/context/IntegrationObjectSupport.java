@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.context;
 
-import java.util.Properties;
 import java.util.UUID;
 
 import org.springframework.aop.framework.AopProxyUtils;
@@ -86,7 +85,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	private TaskScheduler taskScheduler;
 
-	private Properties integrationProperties = IntegrationProperties.defaults();
+	private IntegrationProperties integrationProperties = new IntegrationProperties();
 
 	private ConversionService conversionService;
 
@@ -290,12 +289,9 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	/**
 	 * @return The global integration properties.
-	 * @deprecated since version 5.5 in favor of {@link #getIntegrationProperty(String, Class)};
-	 * will be replaced with {@link IntegrationProperties} variant in the next major version.
 	 * @see IntegrationContextUtils#getIntegrationProperties(BeanFactory)
 	 */
-	@Deprecated
-	protected Properties getIntegrationProperties() {
+	protected IntegrationProperties getIntegrationProperties() {
 		return this.integrationProperties;
 	}
 
@@ -315,9 +311,11 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 * @param  tClass the class to convert a value of Integration property.
 	 * @param <T> The expected type of the property.
 	 * @return the value of the Integration property converted to the provide type.
+	 * @deprecated in favor of {@link #getIntegrationProperties()}
 	 */
+	@Deprecated(since = "6.0")
 	protected <T> T getIntegrationProperty(String key, Class<T> tClass) {
-		return this.defaultConversionService.convert(this.integrationProperties.getProperty(key), tClass);
+		return this.defaultConversionService.convert(this.integrationProperties.toProperties().getProperty(key), tClass);
 	}
 
 	@Override

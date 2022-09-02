@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,11 @@ import org.springframework.util.StringUtils;
  * @since 3.0
  */
 public final class IntegrationProperties {
+
+	/**
+	 * A singleton with default values.
+	 */
+	public static final IntegrationProperties DEFAULT_INSTANCE = new IntegrationProperties();
 
 	public static final String INTEGRATION_PROPERTIES_PREFIX = "spring.integration.";
 
@@ -127,6 +132,8 @@ public final class IntegrationProperties {
 
 	private String[] noAutoStartupEndpoints = { };
 
+	private volatile Properties properties;
+
 	static {
 		DEFAULTS = new IntegrationProperties().toProperties();
 	}
@@ -137,6 +144,7 @@ public final class IntegrationProperties {
 	 */
 	public void setChannelsAutoCreate(boolean channelsAutoCreate) {
 		this.channelsAutoCreate = channelsAutoCreate;
+		this.properties = null;
 	}
 
 	/**
@@ -153,6 +161,7 @@ public final class IntegrationProperties {
 	 */
 	public void setChannelsMaxUnicastSubscribers(int channelsMaxUnicastSubscribers) {
 		this.channelsMaxUnicastSubscribers = channelsMaxUnicastSubscribers;
+		this.properties = null;
 	}
 
 	/**
@@ -169,6 +178,7 @@ public final class IntegrationProperties {
 	 */
 	public void setChannelsMaxBroadcastSubscribers(int channelsMaxBroadcastSubscribers) {
 		this.channelsMaxBroadcastSubscribers = channelsMaxBroadcastSubscribers;
+		this.properties = null;
 	}
 
 	/**
@@ -185,6 +195,7 @@ public final class IntegrationProperties {
 	 */
 	public void setErrorChannelRequireSubscribers(boolean errorChannelRequireSubscribers) {
 		this.errorChannelRequireSubscribers = errorChannelRequireSubscribers;
+		this.properties = null;
 	}
 
 	/**
@@ -201,6 +212,7 @@ public final class IntegrationProperties {
 	 */
 	public void setErrorChannelIgnoreFailures(boolean errorChannelIgnoreFailures) {
 		this.errorChannelIgnoreFailures = errorChannelIgnoreFailures;
+		this.properties = null;
 	}
 
 	/**
@@ -217,6 +229,7 @@ public final class IntegrationProperties {
 	 */
 	public void setTaskSchedulerPoolSize(int taskSchedulerPoolSize) {
 		this.taskSchedulerPoolSize = taskSchedulerPoolSize;
+		this.properties = null;
 	}
 
 	/**
@@ -233,6 +246,7 @@ public final class IntegrationProperties {
 	 */
 	public void setMessagingTemplateThrowExceptionOnLateReply(boolean messagingTemplateThrowExceptionOnLateReply) {
 		this.messagingTemplateThrowExceptionOnLateReply = messagingTemplateThrowExceptionOnLateReply;
+		this.properties = null;
 	}
 
 	/**
@@ -250,6 +264,7 @@ public final class IntegrationProperties {
 	public void setReadOnlyHeaders(String... readOnlyHeaders) {
 		Assert.notNull(readOnlyHeaders, "'readOnlyHeaders' must not be null.");
 		this.readOnlyHeaders = Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length);
+		this.properties = null;
 	}
 
 	/**
@@ -267,6 +282,7 @@ public final class IntegrationProperties {
 	public void setNoAutoStartupEndpoints(String... noAutoStartupEndpoints) {
 		Assert.notNull(noAutoStartupEndpoints, "'noAutoStartupEndpoints' must not be null.");
 		this.noAutoStartupEndpoints = Arrays.copyOf(noAutoStartupEndpoints, noAutoStartupEndpoints.length);
+		this.properties = null;
 	}
 
 	/**
@@ -283,20 +299,24 @@ public final class IntegrationProperties {
 	 * @since 5.5
 	 */
 	public Properties toProperties() {
-		Properties properties = new Properties();
+		if (this.properties == null) {
+			Properties props = new Properties();
 
-		properties.setProperty(CHANNELS_AUTOCREATE, "" + this.channelsAutoCreate);
-		properties.setProperty(CHANNELS_MAX_UNICAST_SUBSCRIBERS, "" + this.channelsMaxUnicastSubscribers);
-		properties.setProperty(CHANNELS_MAX_BROADCAST_SUBSCRIBERS, "" + this.channelsMaxBroadcastSubscribers);
-		properties.setProperty(ERROR_CHANNEL_REQUIRE_SUBSCRIBERS, "" + this.errorChannelRequireSubscribers);
-		properties.setProperty(ERROR_CHANNEL_IGNORE_FAILURES, "" + this.errorChannelIgnoreFailures);
-		properties.setProperty(TASK_SCHEDULER_POOL_SIZE, "" + this.taskSchedulerPoolSize);
-		properties.setProperty(THROW_EXCEPTION_ON_LATE_REPLY, "" + this.messagingTemplateThrowExceptionOnLateReply);
-		properties.setProperty(READ_ONLY_HEADERS, StringUtils.arrayToCommaDelimitedString(this.readOnlyHeaders));
-		properties.setProperty(ENDPOINTS_NO_AUTO_STARTUP,
-				StringUtils.arrayToCommaDelimitedString(this.noAutoStartupEndpoints));
+			props.setProperty(CHANNELS_AUTOCREATE, "" + this.channelsAutoCreate);
+			props.setProperty(CHANNELS_MAX_UNICAST_SUBSCRIBERS, "" + this.channelsMaxUnicastSubscribers);
+			props.setProperty(CHANNELS_MAX_BROADCAST_SUBSCRIBERS, "" + this.channelsMaxBroadcastSubscribers);
+			props.setProperty(ERROR_CHANNEL_REQUIRE_SUBSCRIBERS, "" + this.errorChannelRequireSubscribers);
+			props.setProperty(ERROR_CHANNEL_IGNORE_FAILURES, "" + this.errorChannelIgnoreFailures);
+			props.setProperty(TASK_SCHEDULER_POOL_SIZE, "" + this.taskSchedulerPoolSize);
+			props.setProperty(THROW_EXCEPTION_ON_LATE_REPLY, "" + this.messagingTemplateThrowExceptionOnLateReply);
+			props.setProperty(READ_ONLY_HEADERS, StringUtils.arrayToCommaDelimitedString(this.readOnlyHeaders));
+			props.setProperty(ENDPOINTS_NO_AUTO_STARTUP,
+					StringUtils.arrayToCommaDelimitedString(this.noAutoStartupEndpoints));
 
-		return properties;
+			this.properties = props;
+		}
+
+		return this.properties;
 	}
 
 	/**
@@ -349,7 +369,7 @@ public final class IntegrationProperties {
 	public static String getExpressionFor(String key) {
 		if (DEFAULTS.containsKey(key)) {
 			return "#{T(org.springframework.integration.context.IntegrationContextUtils)" +
-					".getIntegrationProperties(beanFactory).getProperty('" + key + "')}";
+					".getIntegrationProperties(beanFactory).toProperties().getProperty('" + key + "')}";
 		}
 		else {
 			throw new IllegalArgumentException("The provided key [" + key +

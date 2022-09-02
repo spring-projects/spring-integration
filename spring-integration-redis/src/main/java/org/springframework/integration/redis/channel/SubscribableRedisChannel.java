@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.channel.ChannelUtils;
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.support.management.ManageableSmartLifecycle;
@@ -139,8 +138,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 		}
 		super.onInit();
 		if (this.maxSubscribers == null) {
-			setMaxSubscribers(
-					getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class));
+			setMaxSubscribers(getIntegrationProperties().getChannelsMaxBroadcastSubscribers());
 		}
 		if (this.messageConverter == null) {
 			this.messageConverter = new SimpleMessageConverter();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
@@ -86,10 +85,7 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	protected void onInit() {
 		super.onInit();
 		if (this.maxSubscribers == null) {
-			Integer max = getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS, Integer.class);
-			if (max != null) {
-				setMaxSubscribers(max);
-			}
+			setMaxSubscribers(getIntegrationProperties().getChannelsMaxUnicastSubscribers());
 		}
 	}
 
