@@ -38,8 +38,10 @@ import org.springframework.aot.hint.TypeReference;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.DecoratingProxy;
+import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.GenericSelector;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.gateway.MethodArgsHolder;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -56,7 +58,9 @@ import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.integration.transformer.GenericTransformer;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -134,6 +138,10 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 
 		ProxyHints proxyHints = hints.proxies();
 
+		registerSpringJdkProxy(proxyHints, PollableChannel.class);
+		registerSpringJdkProxy(proxyHints, MessageSource.class);
+		registerSpringJdkProxy(proxyHints, MessageHandler.class);
+		registerSpringJdkProxy(proxyHints, MessageGroupProcessor.class);
 		registerSpringJdkProxy(proxyHints, RequestReplyExchanger.class);
 		registerSpringJdkProxy(proxyHints, AbstractReplyProducingMessageHandler.RequestHandler.class);
 		registerSpringJdkProxy(proxyHints, IntegrationFlow.class, SmartLifecycle.class);

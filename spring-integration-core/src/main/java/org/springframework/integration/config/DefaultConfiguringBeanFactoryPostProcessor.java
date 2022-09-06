@@ -23,7 +23,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
-import org.springframework.aot.AotDetector;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.HierarchicalBeanFactory;
@@ -107,28 +106,26 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-		if (!AotDetector.useGeneratedArtifacts()) {
-			this.registry = registry;
-			this.beanFactory = (ConfigurableListableBeanFactory) registry;
+		this.registry = registry;
+		this.beanFactory = (ConfigurableListableBeanFactory) registry;
 
-			registerBeanFactoryChannelResolver();
-			registerMessagePublishingErrorHandler();
-			registerNullChannel();
-			registerErrorChannel();
-			registerIntegrationEvaluationContext();
-			registerTaskScheduler();
-			registerIdGeneratorConfigurer();
-			registerIntegrationProperties();
-			registerBuiltInBeans();
-			registerRoleController();
-			registerMessageBuilderFactory();
-			registerHeaderChannelRegistry();
-			registerGlobalChannelInterceptorProcessor();
-			registerDefaultDatatypeChannelMessageConverter();
-			registerArgumentResolverMessageConverter();
-			registerMessageHandlerMethodFactory();
-			registerListMessageHandlerMethodFactory();
-		}
+		registerBeanFactoryChannelResolver();
+		registerMessagePublishingErrorHandler();
+		registerNullChannel();
+		registerErrorChannel();
+		registerIntegrationEvaluationContext();
+		registerTaskScheduler();
+		registerIdGeneratorConfigurer();
+		registerIntegrationProperties();
+		registerBuiltInBeans();
+		registerRoleController();
+		registerMessageBuilderFactory();
+		registerHeaderChannelRegistry();
+		registerGlobalChannelInterceptorProcessor();
+		registerDefaultDatatypeChannelMessageConverter();
+		registerArgumentResolverMessageConverter();
+		registerMessageHandlerMethodFactory();
+		registerListMessageHandlerMethodFactory();
 	}
 
 	@Override
