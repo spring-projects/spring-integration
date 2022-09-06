@@ -18,7 +18,6 @@ package org.springframework.integration.config;
 
 import java.util.List;
 
-import org.springframework.aot.AotDetector;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -39,16 +38,14 @@ public class IntegrationConfigurationBeanFactoryPostProcessor implements BeanDef
 
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-		if (!AotDetector.useGeneratedArtifacts()) {
-			ConfigurableListableBeanFactory beanFactory = (ConfigurableListableBeanFactory) registry;
+		ConfigurableListableBeanFactory beanFactory = (ConfigurableListableBeanFactory) registry;
 
-			List<IntegrationConfigurationInitializer> initializers =
-					SpringFactoriesLoader.loadFactories(IntegrationConfigurationInitializer.class,
-							beanFactory.getBeanClassLoader());
+		List<IntegrationConfigurationInitializer> initializers =
+				SpringFactoriesLoader.loadFactories(IntegrationConfigurationInitializer.class,
+						beanFactory.getBeanClassLoader());
 
-			for (IntegrationConfigurationInitializer initializer : initializers) {
-				initializer.initialize(beanFactory);
-			}
+		for (IntegrationConfigurationInitializer initializer : initializers) {
+			initializer.initialize(beanFactory);
 		}
 	}
 
