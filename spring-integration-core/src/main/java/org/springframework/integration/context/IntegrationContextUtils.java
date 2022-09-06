@@ -64,8 +64,6 @@ public abstract class IntegrationContextUtils {
 
 	public static final String INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME = "integrationGlobalProperties";
 
-	public static final String MERGED_INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME = "mergedIntegrationGlobalProperties";
-
 	public static final String CHANNEL_INITIALIZER_BEAN_NAME = "channelInitializer";
 
 	public static final String AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME = "$autoCreateChannelCandidates";
