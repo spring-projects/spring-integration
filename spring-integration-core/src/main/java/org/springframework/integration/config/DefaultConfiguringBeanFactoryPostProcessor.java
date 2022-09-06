@@ -138,7 +138,9 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	@Override
 	public void afterSingletonsInstantiated() {
 		if (LOGGER.isDebugEnabled()) {
-			Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+			Properties integrationProperties =
+					IntegrationContextUtils.getIntegrationProperties(this.beanFactory)
+							.toProperties();
 
 			StringWriter writer = new StringWriter();
 			integrationProperties.list(new PrintWriter(writer));
@@ -237,11 +239,8 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	}
 
 	private PublishSubscribeChannel createErrorChannel() {
-		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
-		String requireSubscribers =
-				integrationProperties.getProperty(IntegrationProperties.ERROR_CHANNEL_REQUIRE_SUBSCRIBERS);
-
-		return new PublishSubscribeChannel(Boolean.parseBoolean(requireSubscribers));
+		IntegrationProperties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+		return new PublishSubscribeChannel(integrationProperties.isErrorChannelRequireSubscribers());
 	}
 
 	/**
@@ -318,16 +317,19 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerIntegrationProperties() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)) {
-			// TODO Revise in favor of 'IntegrationProperties' instance in the next 6.0 version
-			BeanDefinitionBuilder integrationPropertiesBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(PropertiesFactoryBean.class,
-									PropertiesFactoryBean::new)
-							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
-							.addPropertyValue("properties", IntegrationProperties.defaults())
-							.addPropertyValue("locations", "classpath*:META-INF/spring.integration.properties");
+			BeanDefinition userProperties =
+					BeanDefinitionBuilder.genericBeanDefinition(PropertiesFactoryBean.class, PropertiesFactoryBean::new)
+							.addPropertyValue("locations", "classpath*:META-INF/spring.integration.properties")
+							.getBeanDefinition();
+
+			BeanDefinition integrationProperties =
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationProperties.class)
+							.setFactoryMethod("parse")
+							.addConstructorArgValue(userProperties)
+							.getBeanDefinition();
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME,
-					integrationPropertiesBuilder.getBeanDefinition());
+					integrationProperties);
 		}
 	}
 

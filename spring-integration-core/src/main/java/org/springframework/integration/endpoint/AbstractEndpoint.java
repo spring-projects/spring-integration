@@ -23,7 +23,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.ManageableSmartLifecycle;
@@ -98,9 +97,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		super.onInit();
 
 		if (!this.autoStartupSetExplicitly) {
-			String[] endpointNamePatterns =
-					getIntegrationProperty(IntegrationProperties.ENDPOINTS_NO_AUTO_STARTUP, String[].class);
-
+			String[] endpointNamePatterns = getIntegrationProperties().getNoAutoStartupEndpoints();
 			for (String pattern : endpointNamePatterns) {
 				if (PatternMatchUtils.simpleMatch(pattern, getComponentName())) {
 					this.autoStartup = false;

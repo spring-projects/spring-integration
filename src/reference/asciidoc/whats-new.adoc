@@ -60,6 +60,8 @@ All Spring Integration async API has been migrated to the `CompletableFuture`.
 
 See <<./gateway.adoc#gw-completable-future, CompletableFuture support>> for more information.
 
+The `integrationGlobalProperties` bean is now declared by the framework as an instance of `org.springframework.integration.context.IntegrationProperties` instead of the previously deprecated `java.util.Properties`.
+
 [[x6.0-http]]
 === HTTP Changes
 
