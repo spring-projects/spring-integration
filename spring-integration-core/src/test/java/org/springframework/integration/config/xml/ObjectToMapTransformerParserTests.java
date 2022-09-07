@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,15 @@
 package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,16 +39,15 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Mauro Franceschini
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class ObjectToMapTransformerParserTests {
 
 	@Autowired
@@ -89,7 +89,8 @@ public class ObjectToMapTransformerParserTests {
 		}
 	}
 
-	@Test(expected = MessageTransformationException.class)
+	@Disabled("StackOverflowError")
+	@Test
 	public void testObjectToSpelMapTransformerWithCycle() {
 		Employee employee = this.buildEmployee();
 		Child child = new Child();
@@ -97,7 +98,9 @@ public class ObjectToMapTransformerParserTests {
 		parent.setChild(child);
 		child.setParent(parent);
 		Message<Employee> message = MessageBuilder.withPayload(employee).build();
-		directInput.send(message);
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> directInput.send(message))
+				.withRootCauseInstanceOf(StackOverflowError.class);
 	}
 
 	@Test
@@ -124,9 +127,9 @@ public class ObjectToMapTransformerParserTests {
 		companyAddress.setStreet("1123 Main");
 		companyAddress.setZip("12345");
 
-		Map<String, Integer[]> coordinates = new HashMap<String, Integer[]>();
-		coordinates.put("latitude", new Integer[] { 1, 5, 13 });
-		coordinates.put("longitude", new Integer[] { 156 });
+		Map<String, Integer[]> coordinates = new HashMap<>();
+		coordinates.put("latitude", new Integer[]{ 1, 5, 13 });
+		coordinates.put("longitude", new Integer[]{ 156 });
 		companyAddress.setCoordinates(coordinates);
 
 		Employee employee = new Employee();
@@ -144,31 +147,31 @@ public class ObjectToMapTransformerParserTests {
 		Address personAddress = new Address();
 		personAddress.setCity("Philly");
 		personAddress.setStreet("123 Main");
-		List<String> listTestData = new ArrayList<String>();
+		List<String> listTestData = new ArrayList<>();
 		listTestData.add("hello");
 		listTestData.add("blah");
-		Map<String, List<String>> mapWithListTestData = new HashMap<String, List<String>>();
+		Map<String, List<String>> mapWithListTestData = new HashMap<>();
 		mapWithListTestData.put("mapWithListTestData", listTestData);
 		personAddress.setMapWithListData(mapWithListTestData);
 		person.setAddress(personAddress);
 
-		Map<String, Object> remarksA = new HashMap<String, Object>();
-		Map<String, Object> remarksB = new HashMap<String, Object>();
+		Map<String, Object> remarksA = new HashMap<>();
+		Map<String, Object> remarksB = new HashMap<>();
 		remarksA.put("foo", "foo");
 		remarksA.put("bar", "bar");
 		remarksB.put("baz", "baz");
-		List<Map<String, Object>> remarks = new ArrayList<Map<String, Object>>();
+		List<Map<String, Object>> remarks = new ArrayList<>();
 		remarks.add(remarksA);
 		remarks.add(remarksB);
 		person.setRemarks(remarks);
 		employee.setPerson(person);
 
-		Map<String, Map<String, Object>> testMapData = new HashMap<String, Map<String, Object>>();
+		Map<String, Map<String, Object>> testMapData = new HashMap<>();
 
-		Map<String, Object> internalMapA = new HashMap<String, Object>();
+		Map<String, Object> internalMapA = new HashMap<>();
 		internalMapA.put("foo", "foo");
 		internalMapA.put("bar", "bar");
-		Map<String, Object> internalMapB = new HashMap<String, Object>();
+		Map<String, Object> internalMapB = new HashMap<>();
 		internalMapB.put("baz", "baz");
 
 		testMapData.put("internalMapA", internalMapA);
@@ -230,6 +233,7 @@ public class ObjectToMapTransformerParserTests {
 		public void setDepartments(List<String> departments) {
 			this.departments = departments;
 		}
+
 	}
 
 	public static class Person {
@@ -293,6 +297,7 @@ public class ObjectToMapTransformerParserTests {
 		public void setAddress(Address address) {
 			this.address = address;
 		}
+
 	}
 
 	public static class Address {
@@ -346,6 +351,7 @@ public class ObjectToMapTransformerParserTests {
 		public void setCoordinates(Map<String, Integer[]> coordinates) {
 			this.coordinates = coordinates;
 		}
+
 	}
 
 	public static class Child {
@@ -359,6 +365,7 @@ public class ObjectToMapTransformerParserTests {
 		public void setParent(Person parent) {
 			this.parent = parent;
 		}
+
 	}
 
 }
