@@ -119,7 +119,7 @@ class MessageSourceIntegrationTests {
 		assertThat(received).isNull();
 		assertThat(KafkaTestUtils.getPropertyValue(source, "consumer.fetcher.minBytes")).isEqualTo(2);
 		source.destroy();
-		producerFactory.destroy();
+		template.destroy();
 	}
 
 }

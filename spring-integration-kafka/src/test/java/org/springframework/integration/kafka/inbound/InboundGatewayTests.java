@@ -189,6 +189,8 @@ class InboundGatewayTests {
 		assertThat(gateway.isPaused()).isFalse();
 
 		gateway.stop();
+		consumer.close();
+		pf.reset();
 	}
 
 	@Test
@@ -268,6 +270,8 @@ class InboundGatewayTests {
 		assertThat(record).has(value("ERROR"));
 
 		gateway.stop();
+		consumer.close();
+		pf.reset();
 	}
 
 	@Test
@@ -352,6 +356,8 @@ class InboundGatewayTests {
 		assertThat(record).has(value("ERROR"));
 
 		gateway.stop();
+		consumer.close();
+		pf.reset();
 	}
 
 	@Test
@@ -409,6 +415,7 @@ class InboundGatewayTests {
 
 		gateway.stop();
 		consumer.close();
+		pf.reset();
 	}
 
 }

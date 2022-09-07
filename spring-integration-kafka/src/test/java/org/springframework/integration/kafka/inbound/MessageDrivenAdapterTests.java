@@ -215,6 +215,7 @@ class MessageDrivenAdapterTests {
 		assertThat(((ConversionException) error.getPayload()).getRecord()).isNotNull();
 
 		adapter.stop();
+		pf.reset();
 	}
 
 	@Test
@@ -277,6 +278,7 @@ class MessageDrivenAdapterTests {
 		assertThat(receivedMessageHistory.get().toString()).isEqualTo("myNullChannel");
 
 		adapter.stop();
+		pf.reset();
 	}
 
 
@@ -387,6 +389,7 @@ class MessageDrivenAdapterTests {
 		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(originalMessage).get()).isEqualTo(1);
 
 		adapter.stop();
+		pf.reset();
 	}
 
 	@Test
@@ -474,7 +477,9 @@ class MessageDrivenAdapterTests {
 		assertThat(((ConversionException) error.getPayload()).getMessage())
 				.contains("Failed to convert to message");
 		assertThat(((ConversionException) error.getPayload()).getRecords()).hasSize(2);
+
 		adapter.stop();
+		pf.reset();
 	}
 
 	@Test
@@ -517,6 +522,7 @@ class MessageDrivenAdapterTests {
 		assertThat(received.getPayload()).isInstanceOf(Map.class);
 
 		adapter.stop();
+		pf.reset();
 	}
 
 	@Test
@@ -564,6 +570,7 @@ class MessageDrivenAdapterTests {
 		assertThat(received.getPayload()).isEqualTo(new Foo("baz"));
 
 		adapter.stop();
+		pf.reset();
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
