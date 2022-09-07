@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -107,7 +106,6 @@ public class LambdaMessageProcessorTests {
 
 
 	@Test
-	@Disabled("Until https://github.com/spring-projects/spring-integration/issues/3660")
 	public void testCustomConverter() {
 		LambdaMessageProcessor lmp = new LambdaMessageProcessor(Function.identity(), TestPojo.class);
 		lmp.setBeanFactory(this.beanFactory);

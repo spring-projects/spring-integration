@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,8 +32,11 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.GenericSelector;
+import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -85,9 +89,18 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 						"classes with single method - functional interface implementations.");
 
 		this.method = methods.iterator().next();
-		ReflectionUtils.makeAccessible(this.method);
+		if (!isExplicit(target)) {
+			ReflectionUtils.makeAccessible(this.method);
+		}
 		this.parameterTypes = this.method.getParameterTypes();
 		this.expectedType = expectedType;
+	}
+
+	private static boolean isExplicit(Object target) {
+		return target instanceof Function<?, ?> ||
+				target instanceof GenericHandler<?> ||
+				target instanceof GenericSelector<?> ||
+				target instanceof GenericTransformer<?, ?>;
 	}
 
 	@Override
@@ -102,20 +115,22 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		Object[] args = buildArgs(message);
 
 		try {
-			Object result = this.method.invoke(this.target, args);
+			Object result = invokeMethod(args);
 			if (result != null && org.springframework.integration.util.ClassUtils.isKotlinUnit(result.getClass())) {
 				result = null;
 			}
 			return result;
 		}
+		catch (RuntimeException ex) {
+			if (ex instanceof ClassCastException classCastException) {
+				logClassCastException(classCastException);
+			}
+			throw ex;
+		}
 		catch (InvocationTargetException e) {
 			final Throwable cause = e.getCause();
-			if (e.getTargetException() instanceof ClassCastException) {
-				LOGGER.error("Could not invoke the method '" + this.method + "' due to a class cast exception, " +
-						"if using a lambda in the DSL, consider using an overloaded EIP method " +
-						"that takes a Class<?> argument to explicitly  specify the type. " +
-						"An example of when this often occurs is if the lambda is configured to " +
-						"receive a Message<?> argument.", cause);
+			if (e.getTargetException() instanceof ClassCastException classCastException) {
+				logClassCastException(classCastException);
 			}
 			if (cause instanceof RuntimeException) { // NOSONAR
 				throw (RuntimeException) cause;
@@ -168,6 +183,43 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 			}
 		}
 		return args;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Object invokeMethod(Object[] args) throws InvocationTargetException, IllegalAccessException {
+		if (this.target instanceof Function function) {
+			return function.apply(args[0]);
+		}
+		else if (this.target instanceof GenericSelector selector) {
+			return selector.accept(args[0]);
+		}
+		else if (this.target instanceof GenericTransformer transformer) {
+			return transformer.transform(args[0]);
+		}
+		else if (this.target instanceof GenericHandler handler) {
+			return handler.handle(args[0], (MessageHeaders) args[1]);
+		}
+		else {
+			return this.method.invoke(this.target, args);
+		}
+
+		/* TODO when preview features are available in the next Java version
+		return switch (this.target) {
+			case Function function -> function.apply(args[0]);
+			case GenericSelector selector -> selector.accept(args[0]);
+			case GenericTransformer transformer -> transformer.transform(args[0]);
+			case GenericHandler handler -> handler.handle(args[0], (MessageHeaders) args[1]);
+			default -> this.method.invoke(this.target, args);
+		};
+*/
+	}
+
+	private void logClassCastException(ClassCastException classCastException) {
+		LOGGER.error("Could not invoke the method '" + this.method + "' due to a class cast exception, " +
+				"if using a lambda in the DSL, consider using an overloaded EIP method " +
+				"that takes a Class<?> argument to explicitly  specify the type. " +
+				"An example of when this often occurs is if the lambda is configured to " +
+				"receive a Message<?> argument.", classCastException);
 	}
 
 }
