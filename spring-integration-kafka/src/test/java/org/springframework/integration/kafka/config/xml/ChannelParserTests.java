@@ -34,6 +34,7 @@ import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaOperations;
 import org.springframework.kafka.listener.ConsumerProperties;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
@@ -44,6 +45,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  *
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class ChannelParserTests {
 
 	@Autowired

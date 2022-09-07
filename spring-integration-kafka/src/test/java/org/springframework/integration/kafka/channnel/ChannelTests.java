@@ -50,6 +50,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
@@ -60,6 +61,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  *
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class ChannelTests {
 
 	@Test
