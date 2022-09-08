@@ -39,8 +39,6 @@ public interface IntegrationManagement extends NamedComponent, DisposableBean {
 
 	String SEND_TIMER_NAME = METER_PREFIX + "send";
 
-	String CONSUME_OBSERVATION_NAME = SEND_TIMER_NAME;
-
 	String RECEIVE_COUNTER_NAME = METER_PREFIX + "receive";
 
 	/**

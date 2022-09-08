@@ -16,37 +16,23 @@
 
 package org.springframework.integration.support.management.observation;
 
-import org.springframework.lang.Nullable;
-import org.springframework.messaging.Message;
-
-import io.micrometer.observation.transport.ReceiverContext;
+import io.micrometer.common.KeyValues;
 
 /**
- * The {@link ReceiverContext} extension for {@link Message} context.
+ * A default {@link MessageReceiverObservationConvention} implementation.
+ * Provides low cardinalities as a {@link IntegrationObservation.HandlerTags} values.
  *
  * @author Artem Bilan
  *
  * @since 6.0
  */
-public class MessageReceiverContext extends ReceiverContext<Message<?>> {
-
-	private final Message<?> message;
-
-	private final String handlerName;
-
-	public MessageReceiverContext(Message<?> message, @Nullable String handlerName) {
-		super((carrier, key) -> carrier.getHeaders().get(key, String.class));
-		this.message = message;
-		this.handlerName = handlerName != null ? handlerName : "unknown";
-	}
+class DefaultMessageReceiverObservationConvention implements MessageReceiverObservationConvention {
 
 	@Override
-	public Message<?> getCarrier() {
-		return this.message;
-	}
-
-	public String getHandlerName() {
-		return this.handlerName;
+	public KeyValues getLowCardinalityKeyValues(MessageReceiverContext context) {
+		return KeyValues.of(
+				IntegrationObservation.HandlerTags.COMPONENT_NAME.withValue(context.getHandlerName()),
+				IntegrationObservation.HandlerTags.COMPONENT_TYPE.withValue("handler"));
 	}
 
 }

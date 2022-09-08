@@ -21,13 +21,12 @@ import org.reactivestreams.Subscription;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
-import org.springframework.integration.support.management.observation.MessageReceiverContext;
+import org.springframework.integration.support.management.observation.IntegrationObservations;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
-import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import reactor.core.CoreSubscriber;
 
@@ -62,9 +61,7 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 	}
 
 	private void handleWithObservation(Message<?> message, ObservationRegistry observationRegistry) {
-		Observation.createNotStarted(CONSUME_OBSERVATION_NAME, new MessageReceiverContext(message), observationRegistry)
-				.lowCardinalityKeyValue("type", "handler")
-				.lowCardinalityKeyValue("name", getComponentName() == null ? "unknown" : getComponentName())
+		IntegrationObservations.handlerObservation(observationRegistry, message, getComponentName())
 				.observe(() -> doHandleMessage(message));
 	}
 

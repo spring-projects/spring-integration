@@ -16,9 +16,9 @@
 
 package org.springframework.integration.support.management.observation;
 
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
+import io.micrometer.observation.Observation;
 import io.micrometer.observation.transport.ReceiverContext;
 
 /**
@@ -28,25 +28,17 @@ import io.micrometer.observation.transport.ReceiverContext;
  *
  * @since 6.0
  */
-public class MessageReceiverContext extends ReceiverContext<Message<?>> {
+public interface MessageReceiverObservationConvention
+		extends Observation.ObservationConvention<MessageReceiverContext> {
 
-	private final Message<?> message;
-
-	private final String handlerName;
-
-	public MessageReceiverContext(Message<?> message, @Nullable String handlerName) {
-		super((carrier, key) -> carrier.getHeaders().get(key, String.class));
-		this.message = message;
-		this.handlerName = handlerName != null ? handlerName : "unknown";
+	@Override
+	default boolean supportsContext(Observation.Context context) {
+		return context instanceof MessageReceiverContext;
 	}
 
 	@Override
-	public Message<?> getCarrier() {
-		return this.message;
-	}
-
-	public String getHandlerName() {
-		return this.handlerName;
+	default String getContextualName(MessageReceiverContext context) {
+		return context.getHandlerName() + " receive";
 	}
 
 }

@@ -43,7 +43,6 @@ import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilder;
-import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.observation.MessageSenderContext;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -202,7 +201,7 @@ public class ObservationPropagationChannelInterceptorTests {
 	}
 
 	@Test
-	void observationContextPropagatedOverDirectChannel() {
+	void observationContextPropagatedOverExecutorChannel() {
 		BridgeHandler handler = new BridgeHandler();
 		handler.registerObservationRegistry(this.observationRegistry);
 		handler.setBeanName("testBridge");
@@ -234,7 +233,7 @@ public class ObservationPropagationChannelInterceptorTests {
 				.hasSize(2)
 				.satisfies(simpleSpans -> assertSpans(simpleSpans)
 						.hasASpanWithName("sending")
-						.assertThatASpanWithNameEqualTo(IntegrationManagement.CONSUME_OBSERVATION_NAME)
+						.assertThatASpanWithNameEqualTo("testBridge receive")
 						.hasTag("foo", "some foo value")
 						.hasTag("bar", "some bar value")
 						.hasTag("type", "handler")
