@@ -16,7 +16,9 @@
 
 package org.springframework.integration.jdbc.lock;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -223,26 +225,30 @@ public class DefaultLockRepository
 
 	@Override
 	public boolean acquire(String lock) {
-		return this.serializableTransactionTemplate.execute(transactionStatus -> {
-			if (this.template.update(this.updateQuery, this.id, new Date(), this.region, lock, this.id,
-					new Date(System.currentTimeMillis() - this.ttl)) > 0) {
-				return true;
-			}
-			try {
-				return this.template.update(this.insertQuery, this.region, lock, this.id, new Date()) > 0;
-			}
-			catch (DataIntegrityViolationException ex) {
-				return false;
-			}
-		});
+		return this.serializableTransactionTemplate.execute(
+				transactionStatus -> {
+					if (this.template.update(this.updateQuery, this.id, LocalDateTime.now(ZoneOffset.UTC),
+							this.region, lock, this.id,
+							LocalDateTime.now(ZoneOffset.UTC).minus(this.ttl, ChronoUnit.MILLIS)) > 0) {
+						return true;
+					}
+					try {
+						return this.template.update(this.insertQuery, this.region, lock, this.id,
+								LocalDateTime.now(ZoneOffset.UTC)) > 0;
+					}
+					catch (DataIntegrityViolationException ex) {
+						return false;
+					}
+				});
 	}
 
 	@Override
 	public boolean isAcquired(String lock) {
-		return this.readOnlyTransactionTemplate.execute(transactionStatus ->
-				this.template.queryForObject(this.countQuery, // NOSONAR query never returns null
-						Integer.class, this.region, lock, this.id, new Date(System.currentTimeMillis() - this.ttl))
-						== 1);
+		return this.readOnlyTransactionTemplate.execute(
+				transactionStatus ->
+						this.template.queryForObject(this.countQuery, // NOSONAR query never returns null
+								Integer.class, this.region, lock, this.id,
+								LocalDateTime.now(ZoneOffset.UTC).minus(this.ttl, ChronoUnit.MILLIS)) == 1);
 	}
 
 	@Override
@@ -250,13 +256,15 @@ public class DefaultLockRepository
 		this.defaultTransactionTemplate.executeWithoutResult(
 				transactionStatus ->
 						this.template.update(this.deleteExpiredQuery, this.region,
-								new Date(System.currentTimeMillis() - this.ttl)));
+								LocalDateTime.now(ZoneOffset.UTC).minus(this.ttl, ChronoUnit.MILLIS)));
 	}
 
 	@Override
 	public boolean renew(String lock) {
 		return this.defaultTransactionTemplate.execute(
-				transactionStatus -> this.template.update(this.renewQuery, new Date(), this.region, lock, this.id) > 0);
+				transactionStatus ->
+						this.template.update(this.renewQuery, LocalDateTime.now(ZoneOffset.UTC),
+								this.region, lock, this.id) > 0);
 	}
 
 }
