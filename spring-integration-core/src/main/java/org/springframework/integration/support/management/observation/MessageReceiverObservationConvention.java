@@ -19,6 +19,7 @@ package org.springframework.integration.support.management.observation;
 import org.springframework.messaging.Message;
 
 import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.transport.ReceiverContext;
 
 /**
@@ -29,7 +30,7 @@ import io.micrometer.observation.transport.ReceiverContext;
  * @since 6.0
  */
 public interface MessageReceiverObservationConvention
-		extends Observation.ObservationConvention<MessageReceiverContext> {
+		extends ObservationConvention<MessageReceiverContext> {
 
 	@Override
 	default boolean supportsContext(Observation.Context context) {
