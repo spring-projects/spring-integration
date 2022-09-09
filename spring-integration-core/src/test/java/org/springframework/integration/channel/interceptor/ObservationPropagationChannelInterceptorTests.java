@@ -53,6 +53,9 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
@@ -80,6 +83,9 @@ public class ObservationPropagationChannelInterceptorTests {
 
 	@Autowired
 	ObservationRegistry observationRegistry;
+
+	@Autowired
+	MeterRegistry meterRegistry;
 
 	@Autowired
 	SimpleTracer simpleTracer;
@@ -239,6 +245,12 @@ public class ObservationPropagationChannelInterceptorTests {
 						.hasTag("type", "handler")
 						.hasTag("name", "testBridge")
 						.hasKindEqualTo(Span.Kind.CONSUMER));
+
+		assertThat(this.meterRegistry.get("spring.integration.handler")
+				.tag("name", "testBridge")
+				.tag("type", "handler")
+				.tag("error", "none")
+				.timer().count()).isEqualTo(1);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -256,17 +268,24 @@ public class ObservationPropagationChannelInterceptorTests {
 		}
 
 		@Bean
-		ObservationRegistry observationRegistry(Tracer tracer, Propagator propagator) {
+		MeterRegistry meterRegistry() {
+			return new SimpleMeterRegistry();
+		}
+
+		@Bean
+		ObservationRegistry observationRegistry(Tracer tracer, Propagator propagator, MeterRegistry meterRegistry) {
 			TestObservationRegistry observationRegistry = TestObservationRegistry.create();
-			observationRegistry.observationConfig().observationHandler(
-					// Composite will pick the first matching handler
-					new ObservationHandler.FirstMatchingCompositeObservationHandler(
-							// This is responsible for creating a child span on the sender side
-							new PropagatingSenderTracingObservationHandler<>(tracer, propagator),
-							// This is responsible for creating a span on the receiver side
-							new PropagatingReceiverTracingObservationHandler<>(tracer, propagator),
-							// This is responsible for creating a default span
-							new DefaultTracingObservationHandler(tracer)));
+			observationRegistry.observationConfig()
+					.observationHandler(new DefaultMeterObservationHandler(meterRegistry))
+					.observationHandler(
+							// Composite will pick the first matching handler
+							new ObservationHandler.FirstMatchingCompositeObservationHandler(
+									// This is responsible for creating a child span on the sender side
+									new PropagatingSenderTracingObservationHandler<>(tracer, propagator),
+									// This is responsible for creating a span on the receiver side
+									new PropagatingReceiverTracingObservationHandler<>(tracer, propagator),
+									// This is responsible for creating a default span
+									new DefaultTracingObservationHandler(tracer)));
 			return observationRegistry;
 		}
 
