@@ -267,7 +267,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 		}
 
 		@Override
-		protected boolean isConnected() {
+		public boolean isConnected() {
 			return ((ClientWebSocketContainer.this.clientSession != null)
 					&& (ClientWebSocketContainer.this.clientSession.isOpen()));
 		}
