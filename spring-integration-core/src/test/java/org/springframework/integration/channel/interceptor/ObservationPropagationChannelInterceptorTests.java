@@ -242,13 +242,13 @@ public class ObservationPropagationChannelInterceptorTests {
 						.assertThatASpanWithNameEqualTo("testBridge receive")
 						.hasTag("foo", "some foo value")
 						.hasTag("bar", "some bar value")
-						.hasTag("type", "handler")
-						.hasTag("name", "testBridge")
+						.hasTag("spring.integration.type", "handler")
+						.hasTag("spring.integration.name", "testBridge")
 						.hasKindEqualTo(Span.Kind.CONSUMER));
 
 		assertThat(this.meterRegistry.get("spring.integration.handler")
-				.tag("name", "testBridge")
-				.tag("type", "handler")
+				.tag("spring.integration.name", "testBridge")
+				.tag("spring.integration.type", "handler")
 				.tag("error", "none")
 				.timer().count()).isEqualTo(1);
 	}

@@ -38,6 +38,11 @@ public enum IntegrationObservation implements DocumentedObservation {
 		}
 
 		@Override
+		public String getPrefix() {
+			return "spring.integration.";
+		}
+
+		@Override
 		public Class<DefaultMessageReceiverObservationConvention> getDefaultConvention() {
 			return DefaultMessageReceiverObservationConvention.class;
 		}
@@ -60,7 +65,7 @@ public enum IntegrationObservation implements DocumentedObservation {
 		COMPONENT_NAME {
 			@Override
 			public String asString() {
-				return "name";
+				return "spring.integration.name";
 			}
 
 		},
@@ -71,7 +76,7 @@ public enum IntegrationObservation implements DocumentedObservation {
 		COMPONENT_TYPE {
 			@Override
 			public String asString() {
-				return "type";
+				return "spring.integration.type";
 			}
 
 		}

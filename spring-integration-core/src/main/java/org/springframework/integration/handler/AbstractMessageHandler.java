@@ -21,8 +21,12 @@ import org.reactivestreams.Subscription;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
-import org.springframework.integration.support.management.observation.IntegrationObservations;
+import org.springframework.integration.support.management.observation.DefaultMessageReceiverObservationConvention;
+import org.springframework.integration.support.management.observation.IntegrationObservation;
+import org.springframework.integration.support.management.observation.MessageReceiverContext;
+import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
@@ -38,6 +42,22 @@ import reactor.core.CoreSubscriber;
  */
 public abstract class AbstractMessageHandler extends MessageHandlerSupport
 		implements MessageHandler, CoreSubscriber<Message<?>> {
+
+	private static final DefaultMessageReceiverObservationConvention DEFAULT_MESSAGE_RECEIVER_OBSERVATION_CONVENTION =
+			new DefaultMessageReceiverObservationConvention();
+
+	@Nullable
+	private MessageReceiverObservationConvention observationConvention;
+
+	/**
+	 * Set a custom {@link MessageReceiverObservationConvention} for {@link IntegrationObservation#HANDLER}.
+	 * Ignored if an {@link ObservationRegistry} is not configured for this component.
+	 * @param observationConvention the {@link MessageReceiverObservationConvention} to use.
+	 * @since 6.0
+	 */
+	public void setObservationConvention(@Nullable MessageReceiverObservationConvention observationConvention) {
+		this.observationConvention = observationConvention;
+	}
 
 	@Override // NOSONAR
 	public void handleMessage(Message<?> message) {
@@ -61,7 +81,10 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 	}
 
 	private void handleWithObservation(Message<?> message, ObservationRegistry observationRegistry) {
-		IntegrationObservations.handlerObservation(observationRegistry, message, getComponentName())
+		IntegrationObservation.HANDLER.observation(this.observationConvention,
+						DEFAULT_MESSAGE_RECEIVER_OBSERVATION_CONVENTION,
+						new MessageReceiverContext(message, getComponentName()),
+						observationRegistry)
 				.observe(() -> doHandleMessage(message));
 	}
 

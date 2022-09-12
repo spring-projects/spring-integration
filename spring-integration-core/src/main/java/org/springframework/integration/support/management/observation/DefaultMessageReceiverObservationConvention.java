@@ -26,7 +26,7 @@ import io.micrometer.common.KeyValues;
  *
  * @since 6.0
  */
-class DefaultMessageReceiverObservationConvention implements MessageReceiverObservationConvention {
+public class DefaultMessageReceiverObservationConvention implements MessageReceiverObservationConvention {
 
 	@Override
 	public KeyValues getLowCardinalityKeyValues(MessageReceiverContext context) {
