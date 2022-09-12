@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@
 package org.springframework.integration.http.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,8 +29,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -63,20 +60,7 @@ public class MultipartAsRawByteArrayTests {
 
 		HttpServletRequest request = mock(HttpServletRequest.class);
 		ServletInputStream sis = mock(ServletInputStream.class);
-		doAnswer(new Answer<Integer>() {
-
-			int done;
-
-			@Override
-			public Integer answer(InvocationOnMock invocation) {
-				byte[] buff = invocation.getArgument(0);
-				buff[0] = 'f';
-				buff[1] = 'o';
-				buff[2] = 'o';
-				return done++ > 0 ? -1 : 3;
-			}
-
-		}).when(sis).read(any(byte[].class));
+		doReturn("test data".getBytes()).when(sis).readAllBytes();
 		when(request.getInputStream()).thenReturn(sis);
 		when(request.getMethod()).thenReturn("POST");
 		when(request.getHeaderNames()).thenReturn(mock(Enumeration.class));
@@ -87,7 +71,7 @@ public class MultipartAsRawByteArrayTests {
 		Message<?> received = requestChannel.receive(10000);
 		assertThat(received).isNotNull();
 		assertThat(received.getPayload()).isInstanceOf(byte[].class);
-		assertThat(new String((byte[]) received.getPayload())).isEqualTo("foo");
+		assertThat(new String((byte[]) received.getPayload())).isEqualTo("test data");
 	}
 
 }

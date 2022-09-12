@@ -111,7 +111,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 				MessageBuilder.withPayload(form)
 						.setHeader(MessageHeaders.CONTENT_TYPE,
 								MediaType.APPLICATION_FORM_URLENCODED_VALUE + ";charset=UTF-8")
-				.build();
+						.build();
 		QueueChannel replyChannel = new QueueChannel();
 		handler.setOutputChannel(replyChannel);
 
@@ -204,9 +204,9 @@ public class HttpRequestExecutingMessageHandlerTests {
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<>();
-		form.put("a", new String[] { "1", "2", "3" });
+		form.put("a", new String[]{ "1", "2", "3" });
 		form.put("b", "4");
-		form.put("c", new String[] { "5" });
+		form.put("c", new String[]{ "5" });
 		form.put("d", "6");
 		Message<?> message = MessageBuilder.withPayload(form).build();
 
@@ -249,9 +249,9 @@ public class HttpRequestExecutingMessageHandlerTests {
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<>();
-		form.put("a", new int[] { 1, 2, 3 });
+		form.put("a", new int[]{ 1, 2, 3 });
 		form.put("b", "4");
-		form.put("c", new String[] { "5" });
+		form.put("c", new String[]{ "5" });
 		form.put("d", "6");
 		Message<?> message = MessageBuilder.withPayload(form).build();
 
@@ -297,7 +297,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<>();
-		form.put("a", new Object[] { null, 4, null });
+		form.put("a", new Object[]{ null, 4, null });
 		form.put("b", "4");
 		Message<?> message = MessageBuilder.withPayload(form).build();
 
@@ -833,9 +833,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 	public void testNoContentTypeAndSmartConverter() {
 		Sinks.One<HttpHeaders> httpHeadersSink = Sinks.one();
 		RestTemplate testRestTemplate = new RestTemplate() {
+
 			@Nullable
-			protected <T> T doExecute(URI url, @Nullable HttpMethod method, @Nullable RequestCallback requestCallback,
-					@Nullable ResponseExtractor<T> responseExtractor) throws RestClientException {
+			protected <T> T doExecute(URI url, @Nullable String uriTemplate, @Nullable HttpMethod method,
+					@Nullable RequestCallback requestCallback, @Nullable ResponseExtractor<T> responseExtractor)
+					throws RestClientException {
 
 				try {
 					ClientHttpRequest request = createRequest(url, method);
@@ -847,11 +849,12 @@ public class HttpRequestExecutingMessageHandlerTests {
 				}
 				throw new RuntimeException("intentional");
 			}
+
 		};
 
 		HttpRequestExecutingMessageHandler handler =
 				new HttpRequestExecutingMessageHandler("https://www.springsource.org/spring-integration",
-				testRestTemplate);
+						testRestTemplate);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 
@@ -911,8 +914,10 @@ public class HttpRequestExecutingMessageHandlerTests {
 		private final AtomicReference<String> actualUrl = new AtomicReference<>();
 
 		@Nullable
-		protected <T> T doExecute(URI url, @Nullable HttpMethod method, @Nullable RequestCallback requestCallback,
-				@Nullable ResponseExtractor<T> responseExtractor) throws RestClientException {
+		protected <T> T doExecute(URI url, @Nullable String uriTemplate, @Nullable HttpMethod method,
+				@Nullable RequestCallback requestCallback, @Nullable ResponseExtractor<T> responseExtractor)
+				throws RestClientException {
+
 			this.actualUrl.set(url.toString());
 			this.lastRequestEntity.set(TestUtils.getPropertyValue(requestCallback, "requestEntity", HttpEntity.class));
 			throw new RuntimeException("intentional");
@@ -932,8 +937,10 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 
 		@Nullable
-		protected <T> T doExecute(URI url, @Nullable HttpMethod method, @Nullable RequestCallback requestCallback,
-				@Nullable ResponseExtractor<T> responseExtractor) throws RestClientException {
+		protected <T> T doExecute(URI url, @Nullable String uriTemplate, @Nullable HttpMethod method,
+				@Nullable RequestCallback requestCallback, @Nullable ResponseExtractor<T> responseExtractor)
+				throws RestClientException {
+
 			this.actualUrl.set(url.toString());
 			try {
 				return responseExtractor.extractData(new MockClientHttpResponse(new byte[0], HttpStatus.OK));
