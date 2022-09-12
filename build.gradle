@@ -920,7 +920,6 @@ project('spring-integration-stomp') {
     dependencies {
         api project(':spring-integration-core')
         optionalApi 'org.springframework:spring-websocket'
-        optionalApi 'io.projectreactor.netty:reactor-netty-core'
 
         testImplementation project(':spring-integration-websocket')
         testImplementation project(':spring-integration-websocket').sourceSets.test.output
@@ -932,6 +931,7 @@ project('spring-integration-stomp') {
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
 
         testRuntimeOnly 'org.springframework:spring-webmvc'
+        testRuntimeOnly 'io.projectreactor.netty:reactor-netty-http'
     }
 }
 
