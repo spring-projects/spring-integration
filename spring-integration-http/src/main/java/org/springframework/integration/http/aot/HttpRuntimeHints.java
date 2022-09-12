@@ -36,8 +36,7 @@ class HttpRuntimeHints implements RuntimeHintsRegistrar {
 	@Override
 	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
 		ReflectionHints reflectionHints = hints.reflection();
-		reflectionHints.registerType(WebHandler.class, builder ->
-				builder.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
+		reflectionHints.registerType(WebHandler.class, MemberCategory.INVOKE_PUBLIC_METHODS);
 
 		reflectionHints.registerType(HttpRequestHandler.class, builder ->
 				builder.onReachableType(TypeReference.of("jakarta.servlet.http.HttpServletRequest"))

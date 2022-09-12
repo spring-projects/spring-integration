@@ -26,8 +26,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.springframework.aop.SpringProxy;
-import org.springframework.aop.framework.Advised;
+import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.ProxyHints;
 import org.springframework.aot.hint.ReflectionHints;
@@ -37,9 +36,9 @@ import org.springframework.aot.hint.SerializationHints;
 import org.springframework.aot.hint.TypeReference;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.core.DecoratingProxy;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -84,12 +83,11 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 						Supplier.class,
 						BeanExpressionContext.class,
 						IntegrationContextUtils.class,
+						IntegrationProperties.class,
 						MethodArgsHolder.class,
 						AbstractReplyProducingMessageHandler.RequestHandler.class,
 						ExpressionEvaluatingRoutingSlipRouteStrategy.RequestAndReply.class)
-				.forEach(type ->
-						reflectionHints.registerType(type,
-								builder -> builder.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS)));
+				.forEach(type -> reflectionHints.registerType(type, MemberCategory.INVOKE_PUBLIC_METHODS));
 
 		reflectionHints.registerType(JsonPathUtils.class,
 				builder ->
@@ -98,15 +96,14 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 
 		// For #xpath() SpEL function
 		reflectionHints.registerTypeIfPresent(classLoader, "org.springframework.integration.xml.xpath.XPathUtils",
-				builder -> builder.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
+				MemberCategory.INVOKE_PUBLIC_METHODS);
 
 		Stream.of(
 						"kotlin.jvm.functions.Function0",
 						"kotlin.jvm.functions.Function1",
 						"kotlin.Unit")
 				.forEach(type ->
-						reflectionHints.registerTypeIfPresent(classLoader, type,
-								builder -> builder.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS)));
+						reflectionHints.registerTypeIfPresent(classLoader, type, MemberCategory.INVOKE_PUBLIC_METHODS));
 
 		hints.resources().registerPattern("META-INF/spring.integration.properties");
 
@@ -148,10 +145,7 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 	}
 
 	private static void registerSpringJdkProxy(ProxyHints proxyHints, Class<?>... proxiedInterfaces) {
-		proxyHints
-				.registerJdkProxy(builder ->
-						builder.proxiedInterfaces(proxiedInterfaces)
-								.proxiedInterfaces(SpringProxy.class, Advised.class, DecoratingProxy.class));
+		proxyHints.registerJdkProxy(AopProxyUtils.completeJdkProxyInterfaces(proxiedInterfaces));
 	}
 
 }
