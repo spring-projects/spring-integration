@@ -17,7 +17,6 @@
 package org.springframework.integration.camel.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.throwable;
 import static org.mockito.Mockito.mock;
 
 import org.apache.camel.CamelExecutionException;
@@ -27,6 +26,7 @@ import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit5.CamelTestSupport;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -139,7 +139,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload())
-				.asInstanceOf(throwable(MessageHandlingException.class))
+				.asInstanceOf(InstanceOfAssertFactories.throwable(MessageHandlingException.class))
 				.hasCauseInstanceOf(CamelExecutionException.class)
 				.hasRootCauseExactlyInstanceOf(RuntimeException.class)
 				.hasStackTraceContaining("intentional");
