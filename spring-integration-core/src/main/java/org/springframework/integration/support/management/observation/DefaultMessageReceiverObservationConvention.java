@@ -28,6 +28,12 @@ import io.micrometer.common.KeyValues;
  */
 public class DefaultMessageReceiverObservationConvention implements MessageReceiverObservationConvention {
 
+	/**
+	 * A shared singleton instance for {@link DefaultMessageReceiverObservationConvention}.
+	 */
+	public static final DefaultMessageReceiverObservationConvention INSTANCE =
+			new DefaultMessageReceiverObservationConvention();
+
 	@Override
 	public KeyValues getLowCardinalityKeyValues(MessageReceiverContext context) {
 		return KeyValues.of(

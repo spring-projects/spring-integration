@@ -43,9 +43,6 @@ import reactor.core.CoreSubscriber;
 public abstract class AbstractMessageHandler extends MessageHandlerSupport
 		implements MessageHandler, CoreSubscriber<Message<?>> {
 
-	private static final DefaultMessageReceiverObservationConvention DEFAULT_MESSAGE_RECEIVER_OBSERVATION_CONVENTION =
-			new DefaultMessageReceiverObservationConvention();
-
 	@Nullable
 	private MessageReceiverObservationConvention observationConvention;
 
@@ -81,8 +78,9 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 	}
 
 	private void handleWithObservation(Message<?> message, ObservationRegistry observationRegistry) {
-		IntegrationObservation.HANDLER.observation(this.observationConvention,
-						DEFAULT_MESSAGE_RECEIVER_OBSERVATION_CONVENTION,
+		IntegrationObservation.HANDLER.observation(
+						this.observationConvention,
+						DefaultMessageReceiverObservationConvention.INSTANCE,
 						new MessageReceiverContext(message, getComponentName()),
 						observationRegistry)
 				.observe(() -> doHandleMessage(message));

@@ -57,7 +57,7 @@ public enum IntegrationObservation implements DocumentedObservation {
 	/**
 	 * Key names for message handler observations.
 	 */
-	enum HandlerTags implements KeyName {
+	public enum HandlerTags implements KeyName {
 
 		/**
 		 * Name of the message handler component.

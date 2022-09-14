@@ -43,6 +43,7 @@ import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.integration.support.management.observation.IntegrationObservation;
 import org.springframework.integration.support.management.observation.MessageSenderContext;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -53,9 +54,11 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import io.micrometer.common.KeyValues;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.core.tck.MeterRegistryAssert;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
@@ -246,11 +249,14 @@ public class ObservationPropagationChannelInterceptorTests {
 						.hasTag("spring.integration.name", "testBridge")
 						.hasKindEqualTo(Span.Kind.CONSUMER));
 
-		assertThat(this.meterRegistry.get("spring.integration.handler")
-				.tag("spring.integration.name", "testBridge")
-				.tag("spring.integration.type", "handler")
-				.tag("error", "none")
-				.timer().count()).isEqualTo(1);
+
+		MeterRegistryAssert.assertThat(this.meterRegistry)
+				.hasTimerWithNameAndTags("spring.integration.handler",
+						KeyValues.of(IntegrationObservation.HandlerTags.COMPONENT_NAME.asString(), "testBridge",
+								IntegrationObservation.HandlerTags.COMPONENT_TYPE.asString(), "handler",
+								"error", "none"));
+
+		assertThat(this.meterRegistry.get("spring.integration.handler").timer().count()).isEqualTo(1);
 	}
 
 	@SuppressWarnings("unchecked")

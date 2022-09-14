@@ -515,6 +515,7 @@ project('spring-integration-core') {
         testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testImplementation 'io.micrometer:micrometer-observation-test'
         testImplementation 'io.micrometer:micrometer-tracing-test'
+        testImplementation 'io.micrometer:micrometer-test'
     }
 
     dokkaHtmlPartial {
