@@ -525,26 +525,6 @@ project('spring-integration-core') {
                 classpath.from(sourceSets['main'].runtimeClasspath)
                 externalDocumentationLink {
                     url.set(new URL("https://docs.spring.io/spring-integration/docs/$version/api/"))
-                    packageListUrl.set(file("$buildDir/api/element-list").toURI().toURL())
-                }
-                externalDocumentationLink {
-                    url.set(new URL('https://projectreactor.io/docs/core/release/api/'))
-                }
-                externalDocumentationLink {
-                    url.set(new URL('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
-                }
-            }
-        }
-    }
-
-    dokkaHtmlPartial {
-        outputDirectory.set(new File(buildDir, 'docs/kdoc'))
-        dokkaSourceSets {
-            main {
-                sourceRoots.setFrom(file('src/main/kotlin'))
-                classpath.from(sourceSets['main'].runtimeClasspath)
-                externalDocumentationLink {
-                    url.set(new URL("https://docs.spring.io/spring-integration/docs/$version/api/"))
                     packageListUrl.set(file("$buildDir/docs/javadoc/element-list").toURI().toURL())
                 }
                 externalDocumentationLink {
