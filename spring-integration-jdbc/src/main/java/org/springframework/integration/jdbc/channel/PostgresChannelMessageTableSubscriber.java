@@ -50,7 +50,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	@Nullable
 	private volatile PgConnection connection;
 
-	private final Map<String, Set<PostgresChannelMessageTableSubscription>> subscriptions = new ConcurrentHashMap<>();
+	private final Map<String, Set<Subscription>> subscriptions = new ConcurrentHashMap<>();
 
 	public PostgresChannelMessageTableSubscriber(PgConnectionSupplier connectionSupplier) {
 		this(connectionSupplier, JdbcChannelMessageStore.DEFAULT_TABLE_PREFIX);
@@ -73,13 +73,13 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		return PostgresChannelMessageTableSubscription.asSubscribableChannel(this, messageStore, groupId);
 	}
 
-	boolean subscribe(PostgresChannelMessageTableSubscription subscription) {
-		Set<PostgresChannelMessageTableSubscription> subscriptions = this.subscriptions.computeIfAbsent(subscription.getRegion() + " " + getKey(subscription.getGroupId()), ignored -> ConcurrentHashMap.newKeySet());
+	boolean subscribe(Subscription subscription) {
+		Set<Subscription> subscriptions = this.subscriptions.computeIfAbsent(subscription.getRegion() + " " + getKey(subscription.getGroupId()), ignored -> ConcurrentHashMap.newKeySet());
 		return subscriptions.add(subscription);
 	}
 
-	boolean unsubscribe(PostgresChannelMessageTableSubscription subscription) {
-		Set<PostgresChannelMessageTableSubscription> subscriptions = this.subscriptions.get(subscription.getRegion() + " " + getKey(subscription.getGroupId()));
+	boolean unsubscribe(Subscription subscription) {
+		Set<Subscription> subscriptions = this.subscriptions.get(subscription.getRegion() + " " + getKey(subscription.getGroupId()));
 		return subscriptions != null && subscriptions.remove(subscription);
 	}
 
@@ -127,12 +127,12 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 								if (notifications != null) {
 									for (PGNotification notification : notifications) {
 										String parameter = notification.getParameter();
-										Set<PostgresChannelMessageTableSubscription> subscriptions = this.subscriptions.get(parameter);
+										Set<Subscription> subscriptions = this.subscriptions.get(parameter);
 										if (subscriptions == null) {
 											continue;
 										}
-										for (PostgresChannelMessageTableSubscription subscription : subscriptions) {
-											subscription.onPossibleUpdate();
+										for (Subscription subscription : subscriptions) {
+											subscription.notifyUpdate();
 										}
 									}
 								}
@@ -195,4 +195,15 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	private String getKey(Object input) {
 		return input == null ? null : UUIDConverter.getUUID(input).toString();
 	}
+
+	public interface Subscription {
+
+		void notifyUpdate();
+
+		String getRegion();
+
+		Object getGroupId();
+
+	}
+
 }
