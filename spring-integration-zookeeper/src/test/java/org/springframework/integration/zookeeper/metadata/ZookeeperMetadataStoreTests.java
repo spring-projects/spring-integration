@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	@BeforeEach
 	public void setUp() {
 		super.setUp();
-		this.metadataStore = new ZookeeperMetadataStore(client);
+		this.metadataStore = new ZookeeperMetadataStore(this.client);
 		this.metadataStore.start();
 	}
 
@@ -65,6 +65,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	public void tearDown() throws Exception {
 		this.metadataStore.stop();
 		this.client.delete().deletingChildrenIfNeeded().forPath(this.metadataStore.getRoot());
+		super.tearDown();
 	}
 
 	@Test

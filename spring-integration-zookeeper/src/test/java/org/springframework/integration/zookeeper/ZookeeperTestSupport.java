@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,15 +79,6 @@ public class ZookeeperTestSupport {
 				new BoundedExponentialBackoffRetry(100, 1000, 3));
 		client.start();
 		return client;
-	}
-
-	protected void closeClient(CuratorFramework client) {
-		try {
-			CloseableUtils.closeQuietly(client);
-		}
-		catch (Exception e) {
-			log.warn("Exception thrown while closing client: ", e);
-		}
 	}
 
 }
