@@ -315,6 +315,10 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			ChildData data = Type.NODE_DELETED.equals(type) ? oldData : newData;
 			String eventPath = data.getPath();
 			String eventKey = getKey(eventPath);
+			if (ZookeeperMetadataStore.this.root.equals(eventKey)) {
+				// Ignore the root node for metadata tree
+				return;
+			}
 			String value = IntegrationUtils.bytesToString(data.getData(), ZookeeperMetadataStore.this.encoding);
 
 			switch (type) {
