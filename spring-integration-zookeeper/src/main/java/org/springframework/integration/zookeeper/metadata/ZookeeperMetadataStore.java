@@ -263,10 +263,6 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	public synchronized void start() {
 		if (!this.running) {
 			try {
-				this.client.checkExists()
-						.creatingParentContainersIfNeeded()
-						.forPath(this.root);
-
 				this.client.createContainers(this.root);
 				this.cache = CuratorCache.builder(this.client, this.root).build();
 				this.cache.listenable().addListener(new MetadataStoreCacheListener());
