@@ -118,12 +118,12 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				createNode(key, value);
 				return null;
 			}
-			catch (KeeperException.NodeExistsException e) {
+			catch (KeeperException.NodeExistsException ex) {
 				// so the data actually exists, we can read it
 				return get(key);
 			}
-			catch (Exception e) {
-				throw new ZookeeperMetadataStoreException("Error while trying to set '" + key + "':", e);
+			catch (Exception ex) {
+				throw new ZookeeperMetadataStoreException("Error while trying to set '" + key + "':", ex);
 			}
 		}
 	}
@@ -142,13 +142,13 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				}
 				return true;
 			}
-			catch (KeeperException.NoNodeException | KeeperException.BadVersionException e) {
+			catch (KeeperException.NoNodeException | KeeperException.BadVersionException ex) {
 				// ignore, the node doesn't exist there's nothing to replace
 				return false;
 			}
 			// ignore
-			catch (Exception e) {
-				throw new ZookeeperMetadataStoreException("Cannot replace value", e);
+			catch (Exception ex) {
+				throw new ZookeeperMetadataStoreException("Cannot replace value", ex);
 			}
 		}
 	}
@@ -183,8 +183,8 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 					updateNode(key, value, -1);
 				}
 			}
-			catch (Exception e) {
-				throw new ZookeeperMetadataStoreException("Error while setting value for key '" + key + "':", e);
+			catch (Exception ex) {
+				throw new ZookeeperMetadataStoreException("Error while setting value for key '" + key + "':", ex);
 			}
 		}
 	}
@@ -198,9 +198,9 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 					.map(currentData -> {
 						// our version is more recent than the cache
 						if (this.updateMap.containsKey(key) &&
-								this.updateMap.get(key).getVersion() >= currentData.getStat().getVersion()) {
+								this.updateMap.get(key).version() >= currentData.getStat().getVersion()) {
 
-							return this.updateMap.get(key).getValue();
+							return this.updateMap.get(key).value();
 						}
 						return IntegrationUtils.bytesToString(currentData.getData(), this.encoding);
 					})
@@ -208,7 +208,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 						if (this.updateMap.containsKey(key)) {
 							// we have saved the value, but the cache hasn't updated yet
 							// if the value had changed via replication, we would have been notified by the listener
-							return this.updateMap.get(key).getValue();
+							return this.updateMap.get(key).value();
 						}
 						else {
 							// the value just doesn't exist
@@ -229,12 +229,12 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				this.updateMap.put(key, new LocalChildData(null, Integer.MAX_VALUE));
 				return IntegrationUtils.bytesToString(bytes, this.encoding);
 			}
-			catch (KeeperException.NoNodeException e) {
+			catch (KeeperException.NoNodeException ex) {
 				// ignore - the node doesn't exist
 				return null;
 			}
-			catch (Exception e) {
-				throw new ZookeeperMetadataStoreException("Exception while deleting key '" + key + "'", e);
+			catch (Exception ex) {
+				throw new ZookeeperMetadataStoreException("Exception while deleting key '" + key + "'", ex);
 			}
 		}
 	}
@@ -254,7 +254,6 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		return "".equals(key) ? this.root : this.root + '/' + key;
 	}
 
-
 	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
@@ -268,14 +267,14 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 						.creatingParentContainersIfNeeded()
 						.forPath(this.root);
 
+				this.client.createContainers(this.root);
 				this.cache = CuratorCache.builder(this.client, this.root).build();
 				this.cache.listenable().addListener(new MetadataStoreCacheListener());
-				this.client.createContainers(this.root);
 				this.cache.start();
 				this.running = true;
 			}
-			catch (Exception e) {
-				throw new ZookeeperMetadataStoreException("Exception while starting bean", e);
+			catch (Exception ex) {
+				throw new ZookeeperMetadataStoreException("Exception while starting bean", ex);
 			}
 		}
 	}
@@ -306,24 +305,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 
-	private static final class LocalChildData {
-
-		private final String value;
-
-		private final int version;
-
-		LocalChildData(String value, int version) {
-			this.value = value;
-			this.version = version;
-		}
-
-		private String getValue() {
-			return this.value;
-		}
-
-		private int getVersion() {
-			return this.version;
-		}
+	private record LocalChildData(String value, int version) {
 
 	}
 
@@ -343,7 +325,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				case NODE_CREATED:
 					if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey) &&
 							data.getStat().getVersion() >=
-									ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
+									ZookeeperMetadataStore.this.updateMap.get(eventKey).version()) {
 
 						ZookeeperMetadataStore.this.updateMap.remove(eventPath);
 					}
@@ -352,7 +334,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				case NODE_CHANGED:
 					if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey) &&
 							data.getStat().getVersion() >=
-									ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
+									ZookeeperMetadataStore.this.updateMap.get(eventKey).version()) {
 
 						ZookeeperMetadataStore.this.updateMap.remove(eventPath);
 					}
