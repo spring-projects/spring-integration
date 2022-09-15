@@ -54,6 +54,7 @@ ext {
     assertkVersion = '0.25'
     avroVersion = '1.11.0'
     awaitilityVersion = '4.2.0'
+    camelVersion = '3.18.2'
     commonsDbcp2Version = '2.9.0'
     commonsIoVersion = '2.11.0'
     commonsNetVersion = '3.8.0'
@@ -163,6 +164,7 @@ allprojects {
             mavenBom "org.mockito:mockito-bom:$mockitoVersion"
             mavenBom "io.micrometer:micrometer-bom:$micrometerVersion"
             mavenBom "io.micrometer:micrometer-tracing-bom:$micrometerTracingVersion"
+            mavenBom "org.apache.camel:camel-bom:$camelVersion"
         }
 
     }
@@ -476,6 +478,18 @@ project('spring-integration-amqp') {
         testImplementation 'org.springframework:spring-web'
     }
 }
+
+project('spring-integration-camel') {
+    description = 'Spring Integration support for Apache Camel'
+
+    dependencies {
+        api project(':spring-integration-core')
+        api 'org.apache.camel:camel-api'
+
+        testImplementation 'org.apache.camel:camel-test-junit5'
+    }
+}
+
 
 project('spring-integration-core') {
     description = 'Spring Integration Core'

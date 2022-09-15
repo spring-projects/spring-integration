@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
@@ -535,7 +536,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 		@Override
 		public void accept(Object result, Throwable exception) {
-			if (exception == null) {
+			if (result != null) {
 				Message<?> replyMessage = null;
 				try {
 					replyMessage = createOutputMessage(result, this.requestMessage.getHeaders());
@@ -549,12 +550,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 							exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
 						}
 					}
-					logger.error(exceptionToLogAndSend, () -> "Failed to send async reply: " + result.toString());
+					logger.error(exceptionToLogAndSend, () -> "Failed to send async reply: " + result);
 					onFailure(exceptionToLogAndSend);
 				}
 			}
-			else {
-				onFailure(exception);
+			else if (exception != null) {
+				onFailure(exception instanceof CompletionException ? exception.getCause() : exception);
 			}
 		}
 
