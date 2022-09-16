@@ -16,22 +16,46 @@
 
 package org.springframework.integration.jdbc.channel;
 
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.postgresql.PGNotification;
 import org.postgresql.jdbc.PgConnection;
+
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.lang.Nullable;
-import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.*;
-
+/**
+ * A subscriber for new messages being received by a Postgres database via a
+ * {@link JdbcChannelMessageStore}. This subscriber implementation is using
+ * Postgres' <i>LISTEN</i>/<i>NOTIFY</i> mechanism to allow for receiving push
+ * notifications for new messages what functions even if a message is written
+ * and read from different JVMs or {@link JdbcChannelMessageStore}s.
+ * <p/>
+ * Note that this subscriber requires an unshared {@link PgConnection} which
+ * remains open for any lifecycle. It is therefore recommended to execute a single
+ * subscriber for any JVM. For this reason, this subscriber is region-agnostic.
+ * To listen for messages for a given region and group id, use a
+ * {@link PostgresSubscribableChannel} and register it with this subscriber.
+ * <p/>
+ * In order to function, the Postgres database that is used must define a trigger
+ * for sending notifications upon newly arrived messages. This trigger is defined
+ * in the <i>schema-postgresql.sql</i> file within this artifact but commented
+ * out.
+ */
 public final class PostgresChannelMessageTableSubscriber implements SmartLifecycle {
 
 	private static final LogAccessor LOGGER = new LogAccessor(PostgresChannelMessageTableSubscriber.class);
@@ -52,10 +76,19 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 
 	private final Map<String, Set<Subscription>> subscriptions = new ConcurrentHashMap<>();
 
+	/**
+	 * Creates a new subscriber using the {@link JdbcChannelMessageStore#DEFAULT_TABLE_PREFIX}.
+	 * @param connectionSupplier The connection supplier for the targeted Postgres database.
+	 */
 	public PostgresChannelMessageTableSubscriber(PgConnectionSupplier connectionSupplier) {
 		this(connectionSupplier, JdbcChannelMessageStore.DEFAULT_TABLE_PREFIX);
 	}
 
+	/**
+	 * Creates a new subscriber.
+	 * @param tablePrefix The table prefix of the {@link JdbcChannelMessageStore} to subscribe to.
+	 * @param connectionSupplier The connection supplier for the targeted Postgres database.
+	 */
 	public PostgresChannelMessageTableSubscriber(PgConnectionSupplier connectionSupplier, String tablePrefix) {
 		Assert.notNull(connectionSupplier, "A connectionSupplier must be provided.");
 		Assert.notNull(tablePrefix, "A table prefix must be set.");
@@ -63,22 +96,32 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		this.tablePrefix = tablePrefix;
 	}
 
-	public void setExecutor(ExecutorService executor) {
+	/**
+	 * Defines an executor to use for listening for new messages. Note that the Postgres SQL driver implements
+	 * listening for notifications as a blocking operation which will permanently block a thread of this executor
+	 * while running.
+	 * @param executor The executor to use or {@code null} if an executor should be created by this class.
+	 */
+	public void setExecutor(@Nullable ExecutorService executor) {
 		this.executor = executor;
 	}
 
-	public SubscribableChannel toSubscribableChannel(
-			JdbcChannelMessageStore messageStore,
-			Object groupId) {
-		return PostgresChannelMessageTableSubscription.asSubscribableChannel(this, messageStore, groupId);
-	}
-
-	boolean subscribe(Subscription subscription) {
+	/**
+	 * Adds a new subscription to this subscriber.
+	 * @param subscription The subscription to register.
+	 * @return {@code true} if the subscription was not already added.
+	 */
+	public boolean subscribe(Subscription subscription) {
 		Set<Subscription> subscriptions = this.subscriptions.computeIfAbsent(subscription.getRegion() + " " + getKey(subscription.getGroupId()), ignored -> ConcurrentHashMap.newKeySet());
 		return subscriptions.add(subscription);
 	}
 
-	boolean unsubscribe(Subscription subscription) {
+	/**
+	 * Removes a previous subscription from this subscriber.
+	 * @param subscription The subscription to remove.
+	 * @return {@code true} if the subscription was previously registered and is now removed.
+	 */
+	public boolean unsubscribe(Subscription subscription) {
 		Set<Subscription> subscriptions = this.subscriptions.get(subscription.getRegion() + " " + getKey(subscription.getGroupId()));
 		return subscriptions != null && subscriptions.remove(subscription);
 	}
@@ -108,10 +151,12 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 						PgConnection conn = this.connectionSupplier.get();
 						try (Statement stmt = conn.createStatement()) {
 							stmt.execute("LISTEN " + this.tablePrefix.toLowerCase() + "channel_message_notify");
-						} catch (Throwable t) {
+						}
+						catch (Throwable t) {
 							try {
 								conn.close();
-							} catch (Throwable suppressed) {
+							}
+							catch (Throwable suppressed) {
 								t.addSuppressed(suppressed);
 							}
 							throw t;
@@ -137,21 +182,25 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 									}
 								}
 							}
-						} finally {
+						}
+						finally {
 							conn.close();
 						}
-					} catch (Exception e) {
+					}
+					catch (Exception e) {
 						// The getNotifications method does not throw a meaningful message on interruption.
 						// Therefore, we do not log an error, unless it occurred while active.
 						if (isActive()) {
 							LOGGER.error(e, "Failed to poll notifications from Postgres database");
 						}
-					} catch (Throwable t) {
+					}
+					catch (Throwable t) {
 						LOGGER.error(t, "Failed to poll notifications from Postgres database");
 						return;
 					}
 				}
-			} finally {
+			}
+			finally {
 				this.latch.countDown();
 			}
 		});
@@ -176,14 +225,16 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		if (conn != null) {
 			try {
 				conn.close();
-			} catch (SQLException ignored) {
+			}
+			catch (SQLException ignored) {
 			}
 		}
 		try {
 			if (!this.latch.await(5, TimeUnit.SECONDS)) {
 				throw new IllegalStateException("Failed to stop " + PostgresChannelMessageTableSubscriber.class.getName());
 			}
-		} catch (InterruptedException ignored) {
+		}
+		catch (InterruptedException ignored) {
 		}
 	}
 
@@ -196,14 +247,32 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		return input == null ? null : UUIDConverter.getUUID(input).toString();
 	}
 
+	/**
+	 * A subscription to a {@link PostgresChannelMessageTableSubscriber} for
+	 * receiving push notifications for new messages that are added to
+	 * a {@link JdbcChannelMessageStore}.
+	 */
 	public interface Subscription {
 
+		/**
+		 * Indicates that a message was added to the represented region and
+		 * group id. Note that this method might also be invoked if there are
+		 * no new messages to read, for example if another subscription already
+		 * read those messages.
+		 */
 		void notifyUpdate();
 
+		/**
+		 * Returns the region for which this subscription receives notifications.
+		 * @return The relevant region of the {@link JdbcChannelMessageStore}.
+		 */
 		String getRegion();
 
+		/**
+		 * Returns the group id for which this subscription receives notifications.
+		 * @return The group id of the {@link JdbcChannelMessageStore}.
+		 */
 		Object getGroupId();
 
 	}
-
 }
