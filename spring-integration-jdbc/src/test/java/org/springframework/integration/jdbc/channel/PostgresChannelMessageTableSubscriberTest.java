@@ -36,7 +36,6 @@ import org.springframework.integration.jdbc.store.channel.PostgresChannelMessage
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.transaction.PlatformTransactionManager;
 
 @SpringJUnitConfig
 @DirtiesContext
@@ -48,9 +47,6 @@ public class PostgresChannelMessageTableSubscriberTest implements PostgresContai
 	private JdbcChannelMessageStore messageStore;
 
 	private PostgresChannelMessageTableSubscriber postgresChannelMessageTableSubscriber;
-
-	@Autowired
-	private PlatformTransactionManager transactionManager;
 
 	@BeforeEach
 	public void init() {
