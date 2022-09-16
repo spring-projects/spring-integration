@@ -64,7 +64,7 @@ CREATE TABLE INT_METADATA_STORE  (
 -- RETURNS TRIGGER AS
 -- $BODY$
 -- BEGIN
---     EXECUTE 'NOTIFY int_channel_message_notify, ''' ||  QUOTE_LITERAL(NEW.REGION || ' ' || NEW.GROUP_KEY) || '''';
+--     EXECUTE 'NOTIFY int_channel_message_notify, ' || QUOTE_LITERAL(NEW.REGION || ' ' || NEW.GROUP_KEY);
 --     RETURN NEW;
 -- END;
 -- $BODY$

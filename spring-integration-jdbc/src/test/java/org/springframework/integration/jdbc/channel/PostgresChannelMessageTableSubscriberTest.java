@@ -18,7 +18,10 @@ package org.springframework.integration.jdbc.channel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -32,6 +35,7 @@ import org.postgresql.jdbc.PgConnection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
+import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -55,6 +59,8 @@ public class PostgresChannelMessageTableSubscriberTest implements PostgresContai
 	public void init() {
 		messageStore = new JdbcChannelMessageStore(dataSource);
 		messageStore.setRegion("PostgresChannelMessageTableSubscriberTest");
+		messageStore.setChannelMessageStoreQueryProvider(new PostgresChannelMessageStoreQueryProvider());
+		messageStore.afterPropertiesSet();
 		postgresChannelMessageTableSubscriber = new PostgresChannelMessageTableSubscriber(
 				() -> DriverManager.getConnection(POSTGRES_CONTAINER.getJdbcUrl(),
 						POSTGRES_CONTAINER.getUsername(),
@@ -63,10 +69,10 @@ public class PostgresChannelMessageTableSubscriberTest implements PostgresContai
 	}
 
 	@Test
-	public void testMessagePollMessagesAddedAfterStart() throws InterruptedException {
+	public void testMessagePollMessagesAddedAfterStart() throws Exception {
 		CountDownLatch latch = new CountDownLatch(2);
 		List<Object> payloads = new ArrayList<>();
-		postgresChannelMessageTableSubscriber.start();
+		//postgresChannelMessageTableSubscriber.start();
 		try {
 			PostgresSubscribableChannel channel = new PostgresSubscribableChannel(messageStore,
 					"testMessagePollMessagesAddedAfterStart",
@@ -77,7 +83,9 @@ public class PostgresChannelMessageTableSubscriberTest implements PostgresContai
 			});
 			messageStore.addMessageToGroup("testMessagePollMessagesAddedAfterStart", new GenericMessage<>("1"));
 			messageStore.addMessageToGroup("testMessagePollMessagesAddedAfterStart", new GenericMessage<>("2"));
-			assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+			assertThat(latch.await(3, TimeUnit.SECONDS))
+					.as("Expected Postgres notification within 3 seconds")
+					.isTrue();
 		}
 		finally {
 			postgresChannelMessageTableSubscriber.stop();
@@ -100,7 +108,9 @@ public class PostgresChannelMessageTableSubscriberTest implements PostgresContai
 			messageStore.addMessageToGroup("testMessagePollMessagesAddedBeforeStart", new GenericMessage<>("2"));
 		postgresChannelMessageTableSubscriber.start();
 		try {
-			assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+			assertThat(latch.await(3, TimeUnit.SECONDS))
+					.as("Expected Postgres notification within 3 seconds")
+					.isTrue();
 		}
 		finally {
 			postgresChannelMessageTableSubscriber.stop();

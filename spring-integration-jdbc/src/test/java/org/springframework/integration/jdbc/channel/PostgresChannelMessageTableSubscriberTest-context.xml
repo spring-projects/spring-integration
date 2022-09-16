@@ -10,8 +10,7 @@
 		<property name="url" value="jdbc:postgresql://localhost:5432/test"/>
 		<property name="username" value="test"/>
 		<property name="password" value="test"/>
-		<property name="maxActive" value="10"/>
-		<property name="defaultAutoCommit" value="false"/>
+		<property name="defaultAutoCommit" value="true"/>
 	</bean>
 
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
