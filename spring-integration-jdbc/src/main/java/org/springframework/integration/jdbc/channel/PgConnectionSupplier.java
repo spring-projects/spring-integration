@@ -32,9 +32,10 @@ import org.postgresql.jdbc.PgConnection;
  * {@link java.sql.Connection} to receive notifications from the Postgres database. This
  * connection needs to remain open over a longer period of time. Typically, a
  * {@link PgConnection} should be created directly via
- * {@link java.sql.Driver#connect(String, Properties)} and a subsequent call to
- * {@link java.sql.Connection#unwrap(Class)}.
+ * {@link java.sql.Driver#connect(String, Properties)} and a subsequent call
+ * to {@link java.sql.Connection#unwrap(Class)}.
  *
+ * @since 6
  */
 @FunctionalInterface
 public interface PgConnectionSupplier {

@@ -722,6 +722,7 @@ project('spring-integration-jdbc') {
         testImplementation "mysql:mysql-connector-java:$mysqlVersion"
         testImplementation "org.apache.commons:commons-dbcp2:$commonsDbcp2Version"
         testImplementation 'org.testcontainers:mysql'
+        testImplementation 'org.testcontainers:postgresql'
 
         testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
     }

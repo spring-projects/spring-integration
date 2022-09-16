@@ -36,6 +36,8 @@ import org.springframework.util.Assert;
  * for sending notifications upon newly arrived messages. This trigger is defined
  * in the <i>schema-postgresql.sql</i> file within this artifact but commented
  * out.
+ *
+ * @since 6
  */
 public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 implements PostgresChannelMessageTableSubscriber.Subscription {
