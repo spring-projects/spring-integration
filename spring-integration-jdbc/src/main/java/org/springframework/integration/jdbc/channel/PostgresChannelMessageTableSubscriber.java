@@ -161,6 +161,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 							}
 							throw t;
 						}
+						this.subscriptions.values().forEach(subscriptions -> subscriptions.forEach(Subscription::notifyUpdate));
 						try {
 							this.connection = conn;
 							while (isActive()) {
@@ -258,7 +259,8 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		 * Indicates that a message was added to the represented region and
 		 * group id. Note that this method might also be invoked if there are
 		 * no new messages to read, for example if another subscription already
-		 * read those messages.
+		 * read those messages or if a new messages might have arrived during
+		 * a temporary connection loss.
 		 */
 		void notifyUpdate();
 

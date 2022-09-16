@@ -75,7 +75,6 @@ implements PostgresChannelMessageTableSubscriber.Subscription {
 
 	@Override
 	public boolean subscribe(MessageHandler handler) {
-		Assert.isTrue(this.messageTableSubscriber.isRunning(), PostgresChannelMessageTableSubscriber.class.getSimpleName() + " is not running");
 		boolean subscribed = super.subscribe(handler);
 		if (this.dispatcher.getHandlerCount() == 1) {
 			this.messageTableSubscriber.subscribe(this);
