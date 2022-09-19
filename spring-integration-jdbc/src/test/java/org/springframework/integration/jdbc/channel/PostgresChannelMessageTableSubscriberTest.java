@@ -65,7 +65,7 @@ public class PostgresChannelMessageTableSubscriberTest implements PostgresContai
 	public void testMessagePollMessagesAddedAfterStart() throws Exception {
 		CountDownLatch latch = new CountDownLatch(2);
 		List<Object> payloads = new ArrayList<>();
-		//postgresChannelMessageTableSubscriber.start();
+		postgresChannelMessageTableSubscriber.start();
 		try {
 			PostgresSubscribableChannel channel = new PostgresSubscribableChannel(messageStore,
 					"testMessagePollMessagesAddedAfterStart",

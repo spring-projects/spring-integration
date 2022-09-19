@@ -62,7 +62,7 @@ public interface PostgresContainerTest {
 					"RETURNS TRIGGER AS " +
 					"$BODY$ " +
 					"BEGIN" +
-					" EXECUTE 'NOTIFY int_channel_message_notify, ' || QUOTE_LITERAL(NEW.REGION || ' ' || NEW.GROUP_KEY);" +
+					" PERFORM pg_notify('int_channel_message_notify', NEW.REGION || ' ' || NEW.GROUP_KEY);" +
 					" RETURN NEW; " +
 					"END; " +
 					"$BODY$ " +
