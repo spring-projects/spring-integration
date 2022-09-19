@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,10 +38,12 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
+import io.micrometer.observation.ObservationRegistry;
+
 
 /**
  * Configures beans that implement {@link IntegrationManagement}.
- * Configures counts, stats, logging for all (or selected) components.
+ * Configures logging, {@link MetricsCaptor} and {@link ObservationRegistry} for all (or selected) components.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -74,6 +76,10 @@ public class IntegrationManagementConfigurer
 
 	private ObjectProvider<MetricsCaptor> metricsCaptorProvider;
 
+	private ObservationRegistry observationRegistry;
+
+	private ObjectProvider<ObservationRegistry> observationRegistryProvider;
+
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
@@ -95,8 +101,8 @@ public class IntegrationManagementConfigurer
 	 * {@link org.apache.commons.logging.Log#isDebugEnabled()} can be quite expensive
 	 * and account for an inordinate amount of CPU time.
 	 * <p>
-	 * Set this to false to disable logging by default in all framework components that implement
-	 * {@link IntegrationManagement} (channels, message handlers etc). This turns off logging such as
+	 * Set this to 'false' to disable logging by default in all framework components that implement
+	 * {@link IntegrationManagement} (channels, message handlers etc.) This turns off logging such as
 	 * "PreSend on channel", "Received message" etc.
 	 * <p>
 	 * After the context is initialized, individual components can have their setting changed by invoking
@@ -115,13 +121,20 @@ public class IntegrationManagementConfigurer
 		this.metricsCaptorProvider = metricsCaptorProvider;
 	}
 
-	@Nullable
-	MetricsCaptor obtainMetricsCaptor() {
-		if (this.metricsCaptor == null && this.metricsCaptorProvider != null) {
-			this.metricsCaptor = this.metricsCaptorProvider.getIfUnique();
-		}
-		return this.metricsCaptor;
+	/**
+	 * Set an {@link ObservationRegistry} to populate to the {@link IntegrationManagement} components
+	 * in the application context.
+	 * @param observationRegistry the {@link ObservationRegistry} to use.
+	 * @since 6.0
+	 */
+	public void setObservationRegistry(@Nullable ObservationRegistry observationRegistry) {
+		this.observationRegistry = observationRegistry;
 	}
+
+	void setObservationRegistry(ObjectProvider<ObservationRegistry> observationRegistryProvider) {
+		this.observationRegistryProvider = observationRegistryProvider;
+	}
+
 
 	@Override
 	public void afterSingletonsInstantiated() {
@@ -133,13 +146,27 @@ public class IntegrationManagementConfigurer
 			registerComponentGauges();
 		}
 
-		for (IntegrationManagement integrationManagement :
-				this.applicationContext.getBeansOfType(IntegrationManagement.class).values()) {
+		setupObservationRegistry();
 
-			enhanceIntegrationManagement(integrationManagement);
-		}
+		this.applicationContext.getBeansOfType(IntegrationManagement.class).values()
+				.forEach(this::enhanceIntegrationManagement);
 
 		this.singletonsInstantiated = true;
+	}
+
+	@Nullable
+	private MetricsCaptor obtainMetricsCaptor() {
+		if (this.metricsCaptor == null && this.metricsCaptorProvider != null) {
+			this.metricsCaptor = this.metricsCaptorProvider.getIfUnique();
+		}
+		return this.metricsCaptor;
+	}
+
+	@Nullable
+	private void setupObservationRegistry() {
+		if (this.observationRegistry == null && this.observationRegistryProvider != null) {
+			this.observationRegistry = this.observationRegistryProvider.getIfUnique();
+		}
 	}
 
 	private void registerComponentGauges() {
@@ -169,17 +196,21 @@ public class IntegrationManagementConfigurer
 		if (this.metricsCaptor != null) {
 			integrationManagement.registerMetricsCaptor(this.metricsCaptor);
 		}
+		if (this.observationRegistry != null) {
+			integrationManagement.registerObservationRegistry(this.observationRegistry);
+		}
 	}
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String name) throws BeansException {
-		if (this.singletonsInstantiated && bean instanceof IntegrationManagement) {
-			enhanceIntegrationManagement((IntegrationManagement) bean);
+		if (this.singletonsInstantiated && bean instanceof IntegrationManagement integrationManagement) {
+			enhanceIntegrationManagement(integrationManagement);
 		}
 		return bean;
 	}
 
-	@Override public void onApplicationEvent(ContextClosedEvent event) {
+	@Override
+	public void onApplicationEvent(ContextClosedEvent event) {
 		if (event.getApplicationContext().equals(this.applicationContext)) {
 			this.gauges.forEach(MeterFacade::remove);
 			this.gauges.clear();

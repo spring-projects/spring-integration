@@ -21,12 +21,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -40,22 +40,30 @@ import org.springframework.integration.channel.ExecutorChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.GlobalChannelInterceptor;
+import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.support.MutableMessage;
+import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.integration.support.management.observation.IntegrationObservation;
+import org.springframework.integration.support.management.observation.MessageSenderContext;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import io.micrometer.common.KeyValues;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.core.tck.MeterRegistryAssert;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistryAssert;
-import io.micrometer.observation.transport.ReceiverContext;
-import io.micrometer.observation.transport.SenderContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
@@ -78,6 +86,9 @@ public class ObservationPropagationChannelInterceptorTests {
 
 	@Autowired
 	ObservationRegistry observationRegistry;
+
+	@Autowired
+	MeterRegistry meterRegistry;
 
 	@Autowired
 	SimpleTracer simpleTracer;
@@ -199,36 +210,29 @@ public class ObservationPropagationChannelInterceptorTests {
 	}
 
 	@Test
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	void observationContextPropagatedOverDirectChannel() throws InterruptedException {
-		CountDownLatch handleLatch = new CountDownLatch(1);
-		this.testTracingChannel.subscribe(m -> {
-			// This would be the instrumentation code on the receiver side
-			// We would need to check if Zipkin wouldn't require us to create the receiving span and then an additional one for the user code...
-			ReceiverContext<Message<?>> receiverContext =
-					new ReceiverContext<>((carrier, key) -> carrier.getHeaders().get(key, String.class));
-			receiverContext.setCarrier(m);
+	void observationContextPropagatedOverExecutorChannel() {
+		BridgeHandler handler = new BridgeHandler();
+		handler.registerObservationRegistry(this.observationRegistry);
+		handler.setBeanName("testBridge");
+		this.testTracingChannel.subscribe(handler);
 
-			// ...and this would be the user's code
-			Observation.createNotStarted("user.code", receiverContext, this.observationRegistry)
-					.observe(() -> {
-						// Let's assume that this is the user code
-					});
-			handleLatch.countDown();
-		});
+		QueueChannel replyChannel = new QueueChannel();
 
-		// This would be the instrumentation code on the sender side (user's code would call e.g. MessageTemplate and this code
-		// would lay in MessageTemplate)
-		// We need to mutate the carrier, so we need to use the builder not the message since message headers are immutable
-		SenderContext<MessageBuilder<String>> senderContext =
-				new SenderContext<>((carrier, key, value) -> Objects.requireNonNull(carrier).setHeader(key, value));
-		MessageBuilder<String> builder = MessageBuilder.withPayload("test");
-		senderContext.setCarrier(builder);
+		MutableMessage<String> message =
+				(MutableMessage<String>) MutableMessageBuilder.withPayload("test")
+						.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
+						.build();
 
-		Observation.createNotStarted("sending", senderContext, this.observationRegistry)
-				.observe(() -> this.testTracingChannel.send(builder.build()));
+		Observation.createNotStarted("sending", new MessageSenderContext(message), this.observationRegistry)
+				.observe(() -> this.testTracingChannel.send(message));
 
-		assertThat(handleLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		Message<?> receive = replyChannel.receive();
+
+		assertThat(receive).isNotNull()
+				.extracting(Message::getHeaders)
+				.asInstanceOf(InstanceOfAssertFactories.MAP)
+				.containsEntry("foo", "some foo value")
+				.containsEntry("bar", "some bar value");
 
 		TestObservationRegistryAssert.assertThat(this.observationRegistry)
 				.doesNotHaveAnyRemainingCurrentObservation();
@@ -236,12 +240,28 @@ public class ObservationPropagationChannelInterceptorTests {
 		TracerAssert.assertThat(this.simpleTracer)
 				.reportedSpans()
 				.hasSize(2)
-				.satisfies(simpleSpans -> SpansAssert.assertThat((Collection<FinishedSpan>) (Collection) simpleSpans)
+				.satisfies(simpleSpans -> assertSpans(simpleSpans)
 						.hasASpanWithName("sending")
-						.assertThatASpanWithNameEqualTo("user.code")
+						.assertThatASpanWithNameEqualTo("testBridge receive")
 						.hasTag("foo", "some foo value")
 						.hasTag("bar", "some bar value")
+						.hasTag("spring.integration.type", "handler")
+						.hasTag("spring.integration.name", "testBridge")
 						.hasKindEqualTo(Span.Kind.CONSUMER));
+
+
+		MeterRegistryAssert.assertThat(this.meterRegistry)
+				.hasTimerWithNameAndTags("spring.integration.handler",
+						KeyValues.of(IntegrationObservation.HandlerTags.COMPONENT_NAME.asString(), "testBridge",
+								IntegrationObservation.HandlerTags.COMPONENT_TYPE.asString(), "handler",
+								"error", "none"));
+
+		assertThat(this.meterRegistry.get("spring.integration.handler").timer().count()).isEqualTo(1);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static SpansAssert assertSpans(Collection<? extends FinishedSpan> actual) {
+		return SpansAssert.assertThat((Collection<FinishedSpan>) actual);
 	}
 
 	@Configuration
@@ -254,17 +274,24 @@ public class ObservationPropagationChannelInterceptorTests {
 		}
 
 		@Bean
-		ObservationRegistry observationRegistry(Tracer tracer, Propagator propagator) {
+		MeterRegistry meterRegistry() {
+			return new SimpleMeterRegistry();
+		}
+
+		@Bean
+		ObservationRegistry observationRegistry(Tracer tracer, Propagator propagator, MeterRegistry meterRegistry) {
 			TestObservationRegistry observationRegistry = TestObservationRegistry.create();
-			observationRegistry.observationConfig().observationHandler(
-					// Composite will pick the first matching handler
-					new ObservationHandler.FirstMatchingCompositeObservationHandler(
-							// This is responsible for creating a child span on the sender side
-							new PropagatingSenderTracingObservationHandler<>(tracer, propagator),
-							// This is responsible for creating a span on the receiver side
-							new PropagatingReceiverTracingObservationHandler<>(tracer, propagator),
-							// This is responsible for creating a default span
-							new DefaultTracingObservationHandler(tracer)));
+			observationRegistry.observationConfig()
+					.observationHandler(new DefaultMeterObservationHandler(meterRegistry))
+					.observationHandler(
+							// Composite will pick the first matching handler
+							new ObservationHandler.FirstMatchingCompositeObservationHandler(
+									// This is responsible for creating a child span on the sender side
+									new PropagatingSenderTracingObservationHandler<>(tracer, propagator),
+									// This is responsible for creating a span on the receiver side
+									new PropagatingReceiverTracingObservationHandler<>(tracer, propagator),
+									// This is responsible for creating a default span
+									new DefaultTracingObservationHandler(tracer)));
 			return observationRegistry;
 		}
 
@@ -318,14 +345,13 @@ public class ObservationPropagationChannelInterceptorTests {
 					setter.set(carrier, "bar", "some bar value");
 				}
 
-
 				// This is called on the consumer side when the message is consumed
 				// Normally we would use tools like Extractor from tracing but for tests we are just manually creating a span
 				@Override
 				public <C> Span.Builder extract(C carrier, Getter<C> getter) {
 					String foo = getter.get(carrier, "foo");
 					String bar = getter.get(carrier, "bar");
-					return tracer.spanBuilder().kind(Span.Kind.CONSUMER).tag("foo", foo).tag("bar", bar);
+					return tracer.spanBuilder().tag("foo", foo).tag("bar", bar);
 				}
 			};
 		}

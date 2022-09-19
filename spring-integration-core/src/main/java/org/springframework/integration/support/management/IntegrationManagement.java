@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,14 @@ import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.lang.Nullable;
 
+import io.micrometer.observation.ObservationRegistry;
+
 /**
  * Base interface for Integration managed components.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
@@ -39,7 +43,7 @@ public interface IntegrationManagement extends NamedComponent, DisposableBean {
 
 	/**
 	 * Enable logging or not.
-	 * @param enabled dalse to disable.
+	 * @param enabled false to disable.
 	 */
 	@ManagedAttribute(description = "Use to disable debug logging during normal message flow")
 	default void setLoggingEnabled(boolean enabled) {
@@ -80,10 +84,25 @@ public interface IntegrationManagement extends NamedComponent, DisposableBean {
 
 	/**
 	 * Inject a {@link MetricsCaptor}.
+	 * Ignored if {@link ObservationRegistry} is provided.
 	 * @param captor the captor.
 	 * @since 5.0.4
+	 * @see #registerObservationRegistry(ObservationRegistry)
 	 */
 	default void registerMetricsCaptor(MetricsCaptor captor) {
+		// no op
+	}
+
+	/**
+	 * Inject an {@link ObservationRegistry}.
+	 * If provided, the {@link MetricsCaptor} is ignored.
+	 * The meters capturing has to be configured as an {@link io.micrometer.observation.ObservationHandler}
+	 * on the provided {@link ObservationRegistry}.
+	 * @param observationRegistry the {@link ObservationRegistry} to expose observations from the component.
+	 * @since 6.0
+	 * @see #registerMetricsCaptor(MetricsCaptor)
+	 */
+	default void registerObservationRegistry(ObservationRegistry observationRegistry) {
 		// no op
 	}
 

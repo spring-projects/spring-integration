@@ -528,7 +528,12 @@ project('spring-integration-core') {
         testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
         testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testImplementation 'io.micrometer:micrometer-observation-test'
-        testImplementation 'io.micrometer:micrometer-tracing-test'
+        testImplementation ('io.micrometer:micrometer-tracing-integration-test') {
+            exclude group: 'io.opentelemetry'
+            exclude group: 'com.wavefront'
+            exclude group: 'io.micrometer', module: 'micrometer-tracing-bridge-otel'
+
+        }
     }
 
     dokkaHtmlPartial {
