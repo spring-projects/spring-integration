@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
