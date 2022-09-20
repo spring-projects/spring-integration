@@ -120,6 +120,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		}
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		registry.destroy();
 	}
 
 	@Test
@@ -139,6 +140,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		}
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		registry.destroy();
 	}
 
 	@Test
@@ -166,6 +168,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		}
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		registry.destroy();
 	}
 
 	@Test
@@ -193,6 +196,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		}
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		registry.destroy();
 	}
 
 	@Test
@@ -220,6 +224,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		}
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		registry.destroy();
 	}
 
 	@Test
@@ -251,6 +256,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(((Exception) ise).getMessage()).contains("You do not own lock at");
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		registry.destroy();
 	}
 
 	@Test
@@ -290,6 +296,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(locked.get()).isTrue();
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		registry.destroy();
 	}
 
 	@Test
@@ -339,6 +346,8 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		registry2.expireUnusedOlderThan(-1000);
 		assertThat(TestUtils.getPropertyValue(registry1, "locks", Map.class).size()).isEqualTo(0);
 		assertThat(TestUtils.getPropertyValue(registry2, "locks", Map.class).size()).isEqualTo(0);
+		registry1.destroy();
+		registry2.destroy();
 	}
 
 	@Test
@@ -368,6 +377,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(((Exception) ise).getMessage()).contains("You do not own lock at");
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		registry.destroy();
 	}
 
 	@Test
@@ -384,6 +394,8 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		waitForExpire("foo");
 		assertThat(lock2.tryLock()).isTrue();
 		assertThat(lock1.tryLock()).isFalse();
+		registry1.destroy();
+		registry2.destroy();
 	}
 
 	@Test
@@ -397,6 +409,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThatIllegalStateException()
 				.isThrownBy(lock1::unlock)
 				.withMessageContaining("Lock was released in the store due to expiration.");
+		registry.destroy();
 	}
 
 
@@ -435,6 +448,9 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		lock2.lock();
 		lock1.unlock();
 		lock2.unlock();
+		registry1.destroy();
+		registry2.destroy();
+		registry3.destroy();
 	}
 
 	@Test
@@ -459,6 +475,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			lock.unlock();
 		}
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(10);
+		registry.destroy();
 	}
 
 	@Test
@@ -481,6 +498,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		result.get();
 		assertThat(getExpire(registry, "foo")).isEqualTo(expire);
 		lock.unlock();
+		registry.destroy();
 	}
 
 	@Test
@@ -523,6 +541,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		registry.destroy();
 	}
 
 	@Test
@@ -572,6 +591,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
 				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
+		registry.destroy();
 	}
 
 	@Test
@@ -627,6 +647,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
 				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
+		registry.destroy();
 	}
 
 	@Test
@@ -655,6 +676,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		registry.obtain("foo:5");
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(4);
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys("foo:3", "foo:4", "foo:5");
+		registry.destroy();
 	}
 
 	@RedisAvailable
@@ -701,6 +723,8 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		});
 
 		endDownLatch.await();
+		registry1.destroy();
+		registry2.destroy();
 	}
 
 	@RedisAvailable
@@ -795,6 +819,9 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(awaitTimeout.await(1, TimeUnit.SECONDS)).isFalse();
 		assertThat(expectOne.get()).isEqualTo(1);
 		executorService.shutdown();
+		registry1.destroy();
+		registry2.destroy();
+		registry3.destroy();
 	}
 
 
@@ -812,6 +839,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		registry = new RedisLockRegistry(mock(RedisConnectionFactory.class), "foo");
 		registry.setRedisLockType(testRedisLockType);
 		assertThat(TestUtils.getPropertyValue(registry, "ulinkAvailable", Boolean.class)).isTrue();
+		registry.destroy();
 	}
 
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {
