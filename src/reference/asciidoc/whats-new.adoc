@@ -17,22 +17,33 @@ In general the project has been moved to Java 17 baseline and migrated from Java
 [[x6.0-new-components]]
 === New Components
 
+[[x6.0-mqtt]]
+==== MQTT ClientManager
+
 A new MQTT `ClientManager` has been added to support a reusable MQTT connection across different channel adapters.
 See <<./mqtt.adoc#mqtt-shared-client,Shared MQTT Client Support>> for more information.
 
 [[x6.0-graphql]]
-=== GraphQL Support
+==== GraphQL Support
 
 The GraphQL support has been added.
 See <<./graphql.adoc#graphql,GraphQL Support>> for more information.
 
 [[x6.0-smb]]
-=== SMB Support
+==== SMB Support
 
 SMB support has been added from the Spring Integration Extensions project.
 The Java DSL (see `org.springframework.integration.smb.dsl.Smb` factory) also has been added to this module.
 An `SmbStreamingMessageSource` and `SmbOutboundGateway` implementation are introduced.
 See <<./smb.adoc#smb,SMB Support>> for more information.
+
+[[x6.0-jdbc]]
+==== PostgreSQL Push Notification
+
+A `PostgresSubscribableChannel` allows to receive push notifications via `PostgresChannelMessageTableSubscriber` upon new messages add to the `JdbcChannelMessageStore`.
+
+See <<./jdbc.adoc#postgresql-push,PostgreSQL: Receiving Push Notifications>> for more information.
+
 
 [[x6.0-general]]
 === General Changes
