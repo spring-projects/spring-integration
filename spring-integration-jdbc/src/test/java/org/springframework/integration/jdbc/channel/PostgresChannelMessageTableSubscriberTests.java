@@ -50,7 +50,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class PostgresChannelMessageTableSubscriberTest implements PostgresContainerTest {
+public class PostgresChannelMessageTableSubscriberTests implements PostgresContainerTest {
 
 	@Autowired
 	private JdbcChannelMessageStore messageStore;
