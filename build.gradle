@@ -97,7 +97,6 @@ ext {
     resilience4jVersion = '1.7.1'
     romeToolsVersion = '1.18.0'
     rsocketVersion = '1.1.3'
-    saajVersion = '3.0.0'
     servletApiVersion = '5.0.0'
     smackVersion = '4.4.6'
     springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '3.0.0-M4'
@@ -1010,7 +1009,6 @@ project('spring-integration-ws') {
         }
 
         providedImplementation "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
-        providedImplementation "com.sun.xml.messaging.saaj:saaj-impl:$saajVersion"
 
         testImplementation "com.thoughtworks.xstream:xstream:$xstreamVersion"
         testImplementation("org.springframework.ws:spring-ws-support:$springWsVersion") {
