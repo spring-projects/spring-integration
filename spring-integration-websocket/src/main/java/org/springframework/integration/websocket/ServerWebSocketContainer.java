@@ -195,7 +195,7 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 					.acceptIfNotNull(this.sockJsServiceOptions.messageCodec,
 							sockJsServiceRegistration::setMessageCodec)
 					.acceptIfNotNull(this.sockJsServiceOptions.suppressCors,
-							sockJsServiceRegistration::setSupressCors);
+							sockJsServiceRegistration::setSuppressCors);
 		}
 	}
 
