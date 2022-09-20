@@ -129,10 +129,6 @@ public class KafkaDslTests {
 	private KafkaProducerMessageHandler<?, ?> kafkaProducer1;
 
 	@Autowired
-	@Qualifier("kafkaProducer2.handler")
-	private KafkaProducerMessageHandler<?, ?> kafkaProducer2;
-
-	@Autowired
 	private PollableChannel errorChannel;
 
 	@Autowired
@@ -281,7 +277,7 @@ public class KafkaDslTests {
 
 		@Bean
 		public ConsumerFactory<Integer, String> consumerFactory() {
-			Map<String, Object> props = KafkaTestUtils.consumerProps(this.embeddedKafkaBrokers, "test1", "false");
+			Map<String, Object> props = KafkaTestUtils.consumerProps(this.embeddedKafkaBrokers, "dsl-group", "false");
 			props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 			return new DefaultKafkaConsumerFactory<>(props);
 		}

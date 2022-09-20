@@ -94,6 +94,7 @@ import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.kafka.transaction.KafkaTransactionManager;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -106,6 +107,8 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import io.micrometer.observation.Observation;
 
 /**
  * @author Gary Russell
@@ -313,7 +316,8 @@ class KafkaProducerMessageHandlerTests {
 
 			@Override
 			protected CompletableFuture<SendResult<Integer, String>> doSend(
-					ProducerRecord<Integer, String> producerRecord) {
+					ProducerRecord<Integer, String> producerRecord,
+					@Nullable Observation observation) {
 
 				CompletableFuture<SendResult<Integer, String>> future = new CompletableFuture<>();
 				future.completeExceptionally(fooException);

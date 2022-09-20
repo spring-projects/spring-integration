@@ -210,7 +210,7 @@ class KafkaDslKotlinTests {
 
 		@Bean
 		fun consumerFactory(): ConsumerFactory<Int, String> {
-			val props = KafkaTestUtils.consumerProps(this.embeddedKafkaBrokers, "test1", "false")
+			val props = KafkaTestUtils.consumerProps(this.embeddedKafkaBrokers, "kotlin-group-test1", "false")
 			props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
 			return DefaultKafkaConsumerFactory(props)
 		}
@@ -292,7 +292,7 @@ class KafkaDslKotlinTests {
 
 		private fun kafkaMessageHandler(producerFactory: ProducerFactory<Int, String>, topic: String) =
 			Kafka.outboundChannelAdapter(producerFactory)
-				.messageKey<Any> { it.headers[IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER] }
+				.messageKey { it.headers[IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER] }
 				.headerMapper(mapper())
 				.sync(true)
 				.partitionId<Any> { 0 }

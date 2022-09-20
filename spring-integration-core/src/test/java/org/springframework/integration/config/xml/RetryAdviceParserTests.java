@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,8 +28,8 @@ import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -39,8 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 4.0
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class RetryAdviceParserTests {
 
 	@Autowired
@@ -64,13 +62,16 @@ public class RetryAdviceParserTests {
 	@Autowired
 	private RequestHandlerRetryAdvice a7;
 
-	@Autowired @Qualifier("sa1.handler")
+	@Autowired
+	@Qualifier("sa1.handler")
 	private MessageHandler handler1;
 
-	@Autowired @Qualifier("sa2.handler")
+	@Autowired
+	@Qualifier("sa2.handler")
 	private MessageHandler handler2;
 
-	@Autowired @Qualifier("saDefaultRetry.handler")
+	@Autowired
+	@Qualifier("saDefaultRetry.handler")
 	private MessageHandler defaultRetryHandler;
 
 	@Autowired
@@ -86,8 +87,14 @@ public class RetryAdviceParserTests {
 		assertThat(TestUtils.getPropertyValue(a6, "retryTemplate.retryPolicy.maxAttempts")).isEqualTo(8);
 		assertThat(TestUtils.getPropertyValue(a7, "retryTemplate.retryPolicy.maxAttempts")).isEqualTo(3);
 
-		assertThat(TestUtils.getPropertyValue(a3, "retryTemplate.backOffPolicy.backOffPeriod")).isEqualTo(1000L);
-		assertThat(TestUtils.getPropertyValue(a4, "retryTemplate.backOffPolicy.backOffPeriod")).isEqualTo(1234L);
+		assertThat(
+				TestUtils.getPropertyValue(a3, "retryTemplate.backOffPolicy", FixedBackOffPolicy.class)
+						.getBackOffPeriod())
+				.isEqualTo(1000L);
+		assertThat(
+				TestUtils.getPropertyValue(a4, "retryTemplate.backOffPolicy", FixedBackOffPolicy.class)
+						.getBackOffPeriod())
+				.isEqualTo(1234L);
 
 		assertThat(TestUtils.getPropertyValue(a5, "retryTemplate.backOffPolicy.initialInterval")).isEqualTo(100L);
 		assertThat(TestUtils.getPropertyValue(a5, "retryTemplate.backOffPolicy.multiplier")).isEqualTo(2.0);

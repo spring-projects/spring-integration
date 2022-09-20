@@ -527,7 +527,7 @@ class MessageDrivenAdapterTests {
 
 	@Test
 	void testInboundJsonWithPayload() {
-		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test6", "true");
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test7", "true");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, Foo> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic6);
