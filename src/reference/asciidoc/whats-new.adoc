@@ -88,6 +88,10 @@ The `DefaultLockRepository` can now be supplied with a `PlatformTransactionManag
 
 See <<./jdbc.adoc#jdbc-lock-registry,JDBC Lock Registry>> for more information.
 
+Furthermore, a `PostgresChannelMessageTableSubscriber` allows to receive push notifications upon new messages to a `JdbcChannelMessageStore` if using PostgreSQL as a database.
+
+See <<./jdbc.adoc#postgresql-push,PostgreSQL: receiving push notifications>> for more information.
+
 === TCP/IP Changes
 
 The `lookupHost` property of the `AbstractConnectionFactory` and `DatagramPacketMessageMapper` is now set to `false` by default to avoid delays in the environments where DNS is not configured.
