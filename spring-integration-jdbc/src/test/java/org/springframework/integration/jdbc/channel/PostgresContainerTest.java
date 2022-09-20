@@ -16,12 +16,6 @@
 
 package org.springframework.integration.jdbc.channel;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Collections;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -39,40 +33,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 public interface PostgresContainerTest {
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer("postgres:11") {{
-		this.setPortBindings(Collections.singletonList("5432:5432"));
-	}};
+	PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>("postgres:11");
 
 	@BeforeAll
-	static void startContainer() throws SQLException {
+	static void startContainer() {
 		POSTGRES_CONTAINER.start();
-		try (Connection conn = DriverManager.getConnection(POSTGRES_CONTAINER.getJdbcUrl(),
-				POSTGRES_CONTAINER.getUsername(),
-				POSTGRES_CONTAINER.getPassword()); Statement stmt = conn.createStatement()) {
-			stmt.execute("CREATE SEQUENCE INT_MESSAGE_SEQ START WITH 1 INCREMENT BY 1 NO CYCLE");
-			stmt.execute("CREATE TABLE INT_CHANNEL_MESSAGE (MESSAGE_ID CHAR(36) NOT NULL," +
-					"GROUP_KEY CHAR(36) NOT NULL," +
-					"CREATED_DATE BIGINT NOT NULL," +
-					"MESSAGE_PRIORITY BIGINT," +
-					"MESSAGE_SEQUENCE BIGINT NOT NULL DEFAULT nextval('INT_MESSAGE_SEQ')," +
-					"MESSAGE_BYTES BYTEA," +
-					"REGION VARCHAR(100) NOT NULL," +
-					"constraint INT_CHANNEL_MESSAGE_PK primary key (REGION, GROUP_KEY, CREATED_DATE, MESSAGE_SEQUENCE))");
-			stmt.execute("CREATE FUNCTION INT_CHANNEL_MESSAGE_NOTIFY_FCT() " +
-					"RETURNS TRIGGER AS " +
-					"$BODY$ " +
-					"BEGIN" +
-					" PERFORM pg_notify('int_channel_message_notify', NEW.REGION || ' ' || NEW.GROUP_KEY);" +
-					" RETURN NEW; " +
-					"END; " +
-					"$BODY$ " +
-					"LANGUAGE PLPGSQL");
-			stmt.execute("CREATE TRIGGER INT_CHANNEL_MESSAGE_NOTIFY_TRG " +
-					"AFTER INSERT ON INT_CHANNEL_MESSAGE " +
-					"FOR EACH ROW " +
-					"EXECUTE PROCEDURE INT_CHANNEL_MESSAGE_NOTIFY_FCT()");
-		}
 	}
 
 	static String getDriverClassName() {

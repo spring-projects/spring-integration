@@ -18,7 +18,10 @@ package org.springframework.integration.jdbc.channel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -26,11 +29,16 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.dbcp2.BasicDataSource;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.postgresql.jdbc.PgConnection;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
 import org.springframework.messaging.support.GenericMessage;
@@ -45,18 +53,43 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 public class PostgresChannelMessageTableSubscriberTest implements PostgresContainerTest {
 
 	@Autowired
-	private DataSource dataSource;
-
 	private JdbcChannelMessageStore messageStore;
 
 	private PostgresChannelMessageTableSubscriber postgresChannelMessageTableSubscriber;
 
+	@BeforeAll
+	static void defineTables() throws SQLException {
+		try (Connection conn = DriverManager.getConnection(PostgresContainerTest.getJdbcUrl(),
+				PostgresContainerTest.getUsername(),
+				PostgresContainerTest.getPassword()); Statement stmt = conn.createStatement()) {
+			stmt.execute("CREATE SEQUENCE INT_MESSAGE_SEQ START WITH 1 INCREMENT BY 1 NO CYCLE");
+			stmt.execute("CREATE TABLE INT_CHANNEL_MESSAGE (MESSAGE_ID CHAR(36) NOT NULL," +
+					"GROUP_KEY CHAR(36) NOT NULL," +
+					"CREATED_DATE BIGINT NOT NULL," +
+					"MESSAGE_PRIORITY BIGINT," +
+					"MESSAGE_SEQUENCE BIGINT NOT NULL DEFAULT nextval('INT_MESSAGE_SEQ')," +
+					"MESSAGE_BYTES BYTEA," +
+					"REGION VARCHAR(100) NOT NULL," +
+					"constraint INT_CHANNEL_MESSAGE_PK primary key (REGION, GROUP_KEY, CREATED_DATE, MESSAGE_SEQUENCE))");
+			stmt.execute("CREATE FUNCTION INT_CHANNEL_MESSAGE_NOTIFY_FCT() " +
+					"RETURNS TRIGGER AS " +
+					"$BODY$ " +
+					"BEGIN" +
+					" PERFORM pg_notify('int_channel_message_notify', NEW.REGION || ' ' || NEW.GROUP_KEY);" +
+					" RETURN NEW; " +
+					"END; " +
+					"$BODY$ " +
+					"LANGUAGE PLPGSQL");
+			stmt.execute("CREATE TRIGGER INT_CHANNEL_MESSAGE_NOTIFY_TRG " +
+					"AFTER INSERT ON INT_CHANNEL_MESSAGE " +
+					"FOR EACH ROW " +
+					"EXECUTE PROCEDURE INT_CHANNEL_MESSAGE_NOTIFY_FCT()");
+		}
+	}
+
 	@BeforeEach
-	public void init() {
-		messageStore = new JdbcChannelMessageStore(dataSource);
-		messageStore.setRegion("PostgresChannelMessageTableSubscriberTest");
-		messageStore.setChannelMessageStoreQueryProvider(new PostgresChannelMessageStoreQueryProvider());
-		messageStore.afterPropertiesSet();
+	void setUp() {
+		// Not initiated as a bean to allow for registrations prior and post the life cycle
 		postgresChannelMessageTableSubscriber = new PostgresChannelMessageTableSubscriber(
 				() -> DriverManager.getConnection(POSTGRES_CONTAINER.getJdbcUrl(),
 						POSTGRES_CONTAINER.getUsername(),
@@ -112,6 +145,29 @@ public class PostgresChannelMessageTableSubscriberTest implements PostgresContai
 			postgresChannelMessageTableSubscriber.stop();
 		}
 		assertThat(payloads).containsExactly("1", "2");
+	}
+
+	@Configuration
+	@EnableIntegration
+	public static class Config {
+
+		@Bean(destroyMethod = "close")
+		public DataSource dataSource() {
+			BasicDataSource dataSource = new BasicDataSource();
+			dataSource.setUrl(PostgresContainerTest.getJdbcUrl());
+			dataSource.setUsername(PostgresContainerTest.getUsername());
+			dataSource.setPassword(PostgresContainerTest.getPassword());
+			return dataSource;
+		}
+
+		@Bean
+		public JdbcChannelMessageStore jdbcChannelMessageStore(DataSource dataSource) {
+			JdbcChannelMessageStore messageStore = new JdbcChannelMessageStore(dataSource);
+			messageStore.setRegion("PostgresChannelMessageTableSubscriberTest");
+			messageStore.setChannelMessageStoreQueryProvider(new PostgresChannelMessageStoreQueryProvider());
+			return messageStore;
+		}
+
 	}
 
 }
