@@ -16,12 +16,12 @@
 
 package org.springframework.integration.sftp.dsl;
 
+import org.apache.sshd.sftp.client.SftpClient;
+
 import org.springframework.integration.file.dsl.RemoteFileOutboundGatewaySpec;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
-
-import com.jcraft.jsch.ChannelSftp;
 
 /**
  * @author Artem Bilan
@@ -30,10 +30,10 @@ import com.jcraft.jsch.ChannelSftp;
  * @since 5.0
  */
 public class SftpOutboundGatewaySpec
-		extends RemoteFileOutboundGatewaySpec<ChannelSftp.LsEntry, SftpOutboundGatewaySpec> {
+		extends RemoteFileOutboundGatewaySpec<SftpClient.DirEntry, SftpOutboundGatewaySpec> {
 
 
-	protected SftpOutboundGatewaySpec(AbstractRemoteFileOutboundGateway<ChannelSftp.LsEntry> outboundGateway) {
+	protected SftpOutboundGatewaySpec(AbstractRemoteFileOutboundGateway<SftpClient.DirEntry> outboundGateway) {
 		super(outboundGateway);
 	}
 

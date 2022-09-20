@@ -19,11 +19,10 @@ package org.springframework.integration.sftp.inbound;
 import java.io.File;
 import java.util.Comparator;
 
+import org.apache.sshd.sftp.client.SftpClient;
+
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * A {@link org.springframework.integration.core.MessageSource} implementation for SFTP
@@ -31,18 +30,22 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-public class SftpInboundFileSynchronizingMessageSource extends AbstractInboundFileSynchronizingMessageSource<ChannelSftp.LsEntry> {
+public class SftpInboundFileSynchronizingMessageSource
+		extends AbstractInboundFileSynchronizingMessageSource<SftpClient.DirEntry> {
 
-	public SftpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<LsEntry> synchronizer) {
+	public SftpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<SftpClient.DirEntry> synchronizer) {
 		super(synchronizer);
 	}
 
-	public SftpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<LsEntry> synchronizer, Comparator<File> comparator) {
+	public SftpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<SftpClient.DirEntry> synchronizer,
+			Comparator<File> comparator) {
+
 		super(synchronizer, comparator);
 	}
-
 
 	public String getComponentType() {
 		return "sftp:inbound-channel-adapter";

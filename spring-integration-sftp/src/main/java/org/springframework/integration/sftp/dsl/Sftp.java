@@ -19,6 +19,8 @@ package org.springframework.integration.sftp.dsl;
 import java.io.File;
 import java.util.Comparator;
 
+import org.apache.sshd.sftp.client.SftpClient;
+
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
@@ -26,9 +28,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * The factory for SFTP components.
@@ -46,7 +45,7 @@ public final class Sftp {
 	 * @param sessionFactory the session factory.
 	 * @return the spec.
 	 */
-	public static SftpInboundChannelAdapterSpec inboundAdapter(SessionFactory<ChannelSftp.LsEntry> sessionFactory) {
+	public static SftpInboundChannelAdapterSpec inboundAdapter(SessionFactory<SftpClient.DirEntry> sessionFactory) {
 		return inboundAdapter(sessionFactory, null);
 	}
 
@@ -56,7 +55,7 @@ public final class Sftp {
 	 * @param receptionOrderComparator the comparator.
 	 * @return the spec.
 	 */
-	public static SftpInboundChannelAdapterSpec inboundAdapter(SessionFactory<ChannelSftp.LsEntry> sessionFactory,
+	public static SftpInboundChannelAdapterSpec inboundAdapter(SessionFactory<SftpClient.DirEntry> sessionFactory,
 			Comparator<File> receptionOrderComparator) {
 
 		return new SftpInboundChannelAdapterSpec(sessionFactory, receptionOrderComparator);
@@ -69,7 +68,7 @@ public final class Sftp {
 	 * @return the spec.
 	 */
 	public static SftpStreamingInboundChannelAdapterSpec inboundStreamingAdapter(
-			RemoteFileTemplate<LsEntry> remoteFileTemplate) {
+			RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate) {
 
 		return inboundStreamingAdapter(remoteFileTemplate, null);
 	}
@@ -82,8 +81,8 @@ public final class Sftp {
 	 * @return the spec.
 	 */
 	public static SftpStreamingInboundChannelAdapterSpec inboundStreamingAdapter(
-			RemoteFileTemplate<LsEntry> remoteFileTemplate,
-			Comparator<LsEntry> receptionOrderComparator) {
+			RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate,
+			Comparator<SftpClient.DirEntry> receptionOrderComparator) {
 
 		return new SftpStreamingInboundChannelAdapterSpec(remoteFileTemplate, receptionOrderComparator);
 	}
@@ -93,7 +92,7 @@ public final class Sftp {
 	 * @param sessionFactory the session factory.
 	 * @return the spec.
 	 */
-	public static SftpMessageHandlerSpec outboundAdapter(SessionFactory<ChannelSftp.LsEntry> sessionFactory) {
+	public static SftpMessageHandlerSpec outboundAdapter(SessionFactory<SftpClient.DirEntry> sessionFactory) {
 		return new SftpMessageHandlerSpec(sessionFactory);
 	}
 
@@ -103,7 +102,7 @@ public final class Sftp {
 	 * @param fileExistsMode the file exists mode.
 	 * @return the spec.
 	 */
-	public static SftpMessageHandlerSpec outboundAdapter(SessionFactory<ChannelSftp.LsEntry> sessionFactory,
+	public static SftpMessageHandlerSpec outboundAdapter(SessionFactory<SftpClient.DirEntry> sessionFactory,
 			FileExistsMode fileExistsMode) {
 
 		return outboundAdapter(new SftpRemoteFileTemplate(sessionFactory), fileExistsMode);
@@ -141,7 +140,7 @@ public final class Sftp {
 	 * @param expression the remoteFilePath SpEL expression.
 	 * @return the {@link SftpOutboundGatewaySpec}
 	 */
-	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<ChannelSftp.LsEntry> sessionFactory,
+	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory,
 			AbstractRemoteFileOutboundGateway.Command command, String expression) {
 
 		return outboundGateway(sessionFactory, command.getCommand(), expression);
@@ -157,7 +156,7 @@ public final class Sftp {
 	 * @return the {@link SftpOutboundGatewaySpec}
 	 * @see RemoteFileTemplate
 	 */
-	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<ChannelSftp.LsEntry> sessionFactory,
+	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory,
 			String command, String expression) {
 
 		return new SftpOutboundGatewaySpec(new SftpOutboundGateway(sessionFactory, command, expression));
@@ -172,7 +171,7 @@ public final class Sftp {
 	 * @return the {@link SftpOutboundGatewaySpec}
 	 * @see RemoteFileTemplate
 	 */
-	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate,
+	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate,
 			AbstractRemoteFileOutboundGateway.Command command, String expression) {
 
 		return outboundGateway(remoteFileTemplate, command.getCommand(), expression);
@@ -187,7 +186,7 @@ public final class Sftp {
 	 * @return the {@link SftpOutboundGatewaySpec}
 	 * @see RemoteFileTemplate
 	 */
-	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate,
+	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate,
 			String command, String expression) {
 
 		return new SftpOutboundGatewaySpec(new SftpOutboundGateway(remoteFileTemplate, command, expression));
@@ -201,8 +200,8 @@ public final class Sftp {
 	 * @return the {@link SftpOutboundGatewaySpec}
 	 * @see MessageSessionCallback
 	 */
-	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<ChannelSftp.LsEntry> sessionFactory,
-			MessageSessionCallback<ChannelSftp.LsEntry, ?> messageSessionCallback) {
+	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory,
+			MessageSessionCallback<SftpClient.DirEntry, ?> messageSessionCallback) {
 
 		return new SftpOutboundGatewaySpec(new SftpOutboundGateway(sessionFactory, messageSessionCallback));
 	}

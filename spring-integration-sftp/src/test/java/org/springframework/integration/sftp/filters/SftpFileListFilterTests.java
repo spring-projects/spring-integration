@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.util.List;
 
+import org.apache.sshd.sftp.client.SftpClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +33,10 @@ import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -50,9 +51,9 @@ public class SftpFileListFilterTests extends SftpTestSupport {
 	public void testMarkerFile() throws Exception {
 		SftpSystemMarkerFilePresentFileListFilter filter = new SftpSystemMarkerFilePresentFileListFilter(
 				new SftpSimplePatternFileListFilter("*.txt"));
-		LsEntry[] files = template.list("sftpSource");
+		SftpClient.DirEntry[] files = template.list("sftpSource");
 		assertThat(files.length).isGreaterThan(0);
-		List<LsEntry> filtered = filter.filterFiles(files);
+		List<SftpClient.DirEntry> filtered = filter.filterFiles(files);
 		assertThat(filtered.size()).isEqualTo(0);
 		File remoteDir = getSourceRemoteDirectory();
 		File marker = new File(remoteDir, "sftpSource2.txt.complete");
@@ -68,12 +69,12 @@ public class SftpFileListFilterTests extends SftpTestSupport {
 	public static class Config {
 
 		@Bean
-		public SessionFactory<LsEntry> sftpSessionFactory() {
+		public SessionFactory<SftpClient.DirEntry> sftpSessionFactory() {
 			return SftpFileListFilterTests.sessionFactory();
 		}
 
 		@Bean
-		public SftpRemoteFileTemplate remoteFileTempalte() {
+		public SftpRemoteFileTemplate remoteFileTemplate() {
 			return new SftpRemoteFileTemplate(sftpSessionFactory());
 		}
 

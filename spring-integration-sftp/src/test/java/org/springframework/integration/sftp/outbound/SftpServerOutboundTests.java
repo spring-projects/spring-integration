@@ -19,6 +19,10 @@ package org.springframework.integration.sftp.outbound;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -40,6 +44,7 @@ import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.sshd.sftp.client.SftpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -77,9 +82,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * @author Artem Bilan
@@ -128,7 +130,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 	private DirectChannel inboundMPutRecursiveFiltered;
 
 	@Autowired
-	private SessionFactory<LsEntry> sessionFactory;
+	private SessionFactory<SftpClient.DirEntry> sessionFactory;
 
 	@Autowired
 	private DirectChannel appending;
@@ -180,8 +182,8 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
 				.contains(dir.toUpperCase());
 		Session<?> session2 = this.sessionFactory.getSession();
-		assertThat(TestUtils.getPropertyValue(session2, "targetSession.jschSession"))
-				.isSameAs(TestUtils.getPropertyValue(session, "targetSession.jschSession"));
+		assertThat(TestUtils.getPropertyValue(session2, "targetSession.sftpClient"))
+				.isSameAs(TestUtils.getPropertyValue(session, "targetSession.sftpClient"));
 	}
 
 	@Test
@@ -284,10 +286,10 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		assertThat(files.stream()
 				.map(fi -> fi.getFilename())
 				.collect(Collectors.toList())).contains(
-						" sftpSource1.txt",
-						"sftpSource2.txt",
-						"subSftpSource",
-						"subSftpSource/subSftpSource1.txt");
+				" sftpSource1.txt",
+				"sftpSource2.txt",
+				"subSftpSource",
+				"subSftpSource/subSftpSource1.txt");
 	}
 
 	@Test
@@ -302,14 +304,14 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		assertThat(files.stream()
 				.map(fi -> fi.getFilename())
 				.collect(Collectors.toList())).contains(
-						" sftpSource1.txt",
-						"sftpSource2.txt",
-						"subSftpSource",
-						"subSftpSource/subSftpSource1.txt",
-						".",
-						"..",
-						"subSftpSource/.",
-						"subSftpSource/..");
+				" sftpSource1.txt",
+				"sftpSource2.txt",
+				"subSftpSource",
+				"subSftpSource/subSftpSource1.txt",
+				".",
+				"..",
+				"subSftpSource/.",
+				"subSftpSource/..");
 	}
 
 	@Test
@@ -324,9 +326,9 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		assertThat(files.stream()
 				.map(fi -> fi.getFilename())
 				.collect(Collectors.toList())).contains(
-						" sftpSource1.txt",
-						"sftpSource2.txt",
-						"subSftpSource/subSftpSource1.txt");
+				" sftpSource1.txt",
+				"sftpSource2.txt",
+				"subSftpSource/subSftpSource1.txt");
 		File newDeepFile = new File(this.sourceRemoteDirectory + "/subSftpSource/subSftpSource2.txt");
 		OutputStream fos = new FileOutputStream(newDeepFile);
 		fos.write("test".getBytes());
@@ -474,8 +476,9 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		Session<?> session = sessionFactory.getSession();
 		session.close();
 		session = TestUtils.getPropertyValue(session, "targetSession", Session.class);
-		ChannelSftp channel = spy(TestUtils.getPropertyValue(session, "channel", ChannelSftp.class));
-		new DirectFieldAccessor(session).setPropertyValue("channel", channel);
+		SftpClient sftpClient = spy(TestUtils.getPropertyValue(session, "sftpClient", SftpClient.class));
+		doNothing().when(sftpClient).setStat(anyString(), any(SftpClient.Attributes.class));
+		new DirectFieldAccessor(session).setPropertyValue("sftpClient", sftpClient);
 
 		String dir = "sftpSource/";
 		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
@@ -492,8 +495,8 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 				.isIn("sftpTarget/localSource1.txt", "sftpTarget/localSource2.txt");
 		assertThat(out.getPayload().get(1))
 				.isIn("sftpTarget/localSource1.txt", "sftpTarget/localSource2.txt");
-		verify(channel).chmod(0600, "sftpTarget/localSource1.txt");
-		verify(channel).chmod(0600, "sftpTarget/localSource2.txt");
+		verify(sftpClient).setStat(eq("sftpTarget/localSource1.txt"), any(SftpClient.Attributes.class));
+		verify(sftpClient).setStat(eq("sftpTarget/localSource2.txt"), any(SftpClient.Attributes.class));
 		resetSessionCache();
 		assertThat(this.config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.config.events).hasSize(6);
@@ -676,9 +679,10 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 	}
 
 	private void assertLength6(SftpRemoteFileTemplate template) {
-		LsEntry[] files = template.execute(session -> session.list("sftpTarget/appending.txt"));
-		assertThat(files.length).isEqualTo(1);
-		assertThat(files[0].getAttrs().getSize()).isEqualTo(6);
+		SftpClient.DirEntry[] files = template.execute(session -> session.list("sftpTarget"));
+		assertThat(files.length).isEqualTo(3);
+		assertThat(files[2].getFilename()).isEqualTo("appending.txt");
+		assertThat(files[2].getAttributes().getSize()).isEqualTo(6);
 	}
 
 	@Test
@@ -689,7 +693,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		sessionFactory.setUser("foo");
 		sessionFactory.setPassword("foo");
 		sessionFactory.setAllowUnknownKeys(true);
-		Session<LsEntry> session = sessionFactory.getSession();
+		Session<SftpClient.DirEntry> session = sessionFactory.getSession();
 
 		assertThat(session.exists("sftpSource")).isTrue();
 		assertThat(session.exists("notExist")).isFalse();
@@ -699,15 +703,15 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		assertThatExceptionOfType(UncheckedIOException.class)
 				.isThrownBy(() -> session.exists("any"))
 				.withRootCauseInstanceOf(IOException.class)
-				.withStackTraceContaining("Pipe closed");
+				.withStackTraceContaining("lstat(any) client is closed");
 	}
 
 	@SuppressWarnings("unused")
 	private static final class TestMessageSessionCallback
-			implements MessageSessionCallback<LsEntry, Object> {
+			implements MessageSessionCallback<SftpClient.DirEntry, Object> {
 
 		@Override
-		public Object doInSession(Session<ChannelSftp.LsEntry> session, Message<?> requestMessage) {
+		public Object doInSession(Session<SftpClient.DirEntry> session, Message<?> requestMessage) {
 			return ((String) requestMessage.getPayload()).toUpperCase();
 		}
 
@@ -722,13 +726,13 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		private volatile CountDownLatch latch;
 
 		@Bean
-		public SessionFactory<LsEntry> sftpSessionFactory(ApplicationContext context) {
+		public SessionFactory<SftpClient.DirEntry> sftpSessionFactory(ApplicationContext context) {
 			SftpServerOutboundTests.eventListener().setApplicationEventPublisher(context);
 			return SftpServerOutboundTests.sessionFactory();
 		}
 
 		@Bean
-		public SftpRemoteFileTemplate template(SessionFactory<LsEntry> sf) {
+		public SftpRemoteFileTemplate template(SessionFactory<SftpClient.DirEntry> sf) {
 			return new SftpRemoteFileTemplate(sf);
 		}
 

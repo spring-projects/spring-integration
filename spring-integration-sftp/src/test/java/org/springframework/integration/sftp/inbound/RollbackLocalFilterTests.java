@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.sshd.sftp.client.SftpClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -34,11 +35,10 @@ import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.1.7
  *
  */
@@ -85,12 +85,13 @@ public class RollbackLocalFilterTests extends SftpTestSupport {
 			this.file = in;
 			latch.countDown();
 		}
+
 	}
 
 	public static class Config {
 
 		@Bean
-		public SessionFactory<LsEntry> sftpSessionFactory() {
+		public SessionFactory<SftpClient.DirEntry> sftpSessionFactory() {
 			return RollbackLocalFilterTests.sessionFactory();
 		}
 

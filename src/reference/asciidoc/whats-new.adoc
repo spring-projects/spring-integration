@@ -50,6 +50,12 @@ See <<./jdbc.adoc#postgresql-push,PostgreSQL: Receiving Push Notifications>> for
 The AMQP module has been enhanced to provide support for inbound and outbound channel adapters using RabbitMQ Stream Queues.
 See <<./amqp.adoc#rmq-streams,RabbitMQ Stream Queue Support>> for more information.
 
+[[x6.0-sftp]]
+==== Apache MINA SFTP
+
+The SFTP modules has been fully reworked from outdated JCraft JSch library to more robust and modern `org.apache.sshd:sshd-sftp` module of the Apache MINA project.
+
+See <<./sftp.adoc#sftp,SFTP Adapters>> for more information.
 [[x6.0-general]]
 === General Changes
 

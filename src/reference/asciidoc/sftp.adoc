@@ -10,6 +10,12 @@ The SFTP protocol requires a secure channel, such as SSH, and visibility to a cl
 Spring Integration supports sending and receiving files over SFTP by providing three client side endpoints: inbound channel adapter, outbound channel adapter, and outbound gateway.
 It also provides convenient namespace configuration to define these client components.
 
+NOTE: Starting with version 6.0, an outdated JCraft JSch client has been replaced with modern https://mina.apache.org/sshd-project/index.html[Apache MINA SSHD] framework.
+This caused a lot of breaking changes in the framework components.
+However, in most cases, such a migration is hidden behind Spring Integration API.
+The most drastic changed has happened with a `DefaultSftpSessionFactory` which is based now on the `org.apache.sshd.client.SshClient` and exposes some if its configuration properties.
+
+
 You need to include this dependency into your project:
 
 ====
@@ -64,16 +70,16 @@ You can configure the SFTP session factory with a regular bean definition, as th
 ====
 
 Every time an adapter requests a session object from its `SessionFactory`, a new SFTP session is created.
-Under the covers, the SFTP Session Factory relies on the http://www.jcraft.com/jsch[JSch] library to provide the SFTP capabilities.
+Under the covers, the SFTP Session Factory relies on the https://mina.apache.org/sshd-project/index.html[Apache MINA SSHD] library to provide the SFTP capabilities.
 
 However, Spring Integration also supports the caching of SFTP sessions.
 See <<sftp-session-caching>> for more information.
 
 [IMPORTANT]
 =====
-JSch supports multiple channels (operations) over a connection to the server.
+The `SshClient` supports multiple channels (operations) over a connection to the server.
 By default, the Spring Integration session factory uses a separate physical connection for each channel.
-Since Spring Integration 3.0, you can configure the session factory (using a boolean constructor arg - default `false`) to use a single connection to the server and create multiple `JSch` channels on that single connection.
+Since Spring Integration 3.0, you can configure the session factory (using a boolean constructor arg - default `false`) to use a single connection to the server and create multiple `SftpClient` instances on that single connection.
 
 When using this feature, you must wrap the session factory in a caching session factory, as <<sftp-session-caching,described later>>, so that the connection is not physically closed when an operation completes.
 
@@ -81,9 +87,6 @@ If the cache is reset, the session is disconnected only when the last channel is
 
 The connection is refreshed if it is found to be disconnected when a new operation obtains a session.
 =====
-
-NOTE: If you experience connectivity problems and would like to trace session creation and see which sessions are polled, you may enable tracing by setting the logger to `TRACE` level (for example, `log4j.category.org.springframework.integration.sftp=TRACE`).
-See <<sftp-jsch-logging>>.
 
 Now all you need to do is inject this SFTP session factory into your adapters.
 
@@ -94,35 +97,32 @@ NOTE: A more practical way to provide values for the SFTP session factory is to 
 
 The following list describes all the properties that are exposed by the https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html[`DefaultSftpSessionFactory`].
 
-`isSharedSession` (constructor argument)::When `true`, a single connection is used, and `JSch Channels` are multiplexed.
+`isSharedSession` (constructor argument)::When `true`, a single `SftpClient` is used for all the requested `SftpSession` instances.
 It defaults to `false`.
 
-`clientVersion`::Lets you set the client version property.
-It's default depends on the underlying JSch version but it will look like: _SSH-2.0-JSCH-0.1.45_
+`sftpVersionSelector`::An `SftpVersionSelector` instance for SFTP protocol selection.
+The default one is `SftpVersionSelector.CURRENT`.
 
-`enableDaemonThread`::If `true`, all threads are daemon threads.
-If set to `false`, normal non-daemon threads are used instead.
-This property is set on the underlying https://epaul.github.io/jsch-documentation/javadoc/com/jcraft/jsch/Session.html[session].
-There, this property defaults to `false`.
-
-`host`::The URL of the host to which you want to connect.
+`host`::The URL of the host to which to connect.
 Required.
 
-`hostKeyAlias`::Sets the host key alias, which is used when comparing the host key to the known hosts list.
-
-`knownHostsResource`::Specifies the file resource that used for a host key repository.
-The file has the same format as OpenSSH's `known_hosts` file and is required and must be pre-populated if `allowUnknownKeys` is false.
-
-`password`::The password to authenticate against the remote host.
-If a password is not provided, then the `privateKey` property is required.
-It is not allowed if you set `userInfo`.
-The password is obtained from that object.
+`hostConfig`::An `org.apache.sshd.client.config.hosts.HostConfigEntry` instance as an alternative for the user/host/port options.
+Can be configured with a proxy jump property.
 
 `port`::The port over which the SFTP connection shall be established.
 If not specified, this value defaults to `22`.
 If specified, this properties must be a positive number.
 
-`privateKey`::Lets you set a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[resource] that represents the location of the private key used for authenticating against the remote host.
+`user`::The remote user to use.
+Required.
+
+`knownHostsResource`::An `org.springframework.core.io.Resource` that used for a host key repository.
+The content of the resource has to be the same format as OpenSSH `known_hosts` file and is required and must be pre-populated if `allowUnknownKeys` is false.
+
+`password`::The password to authenticate against the remote host.
+If a password is not provided, then the `privateKey` property is required.
+
+`privateKey`::An `org.springframework.core.io.Resource` that represents the location of the private key used for authenticating against the remote host.
 If the `privateKey` is not provided, then the `password` property is required.
 
 `privateKeyPassphrase`::The password for the private key.
@@ -130,66 +130,15 @@ If you set `userInfo`, `privateKeyPassphrase` is not allowed .
 The passphrase is obtained from that object.
 Optional.
 
-`proxy`::Allows for specifying a JSch-based https://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html[proxy].
-If set, the proxy object is used to create the connection to the remote host through the proxy.
-See <<sftp-proxy-factory-bean>> for a convenient way to configure the proxy.
-
-`serverAliveCountMax`::Specifies the number of server-alive messages, which are sent without any reply from the server before disconnecting.
-If not set, this property defaults to `1`.
-
-`serverAliveInterval`::Sets the timeout interval (in milliseconds) before a server-alive message is sent, in case no message is received from the server.
-
-`sessionConfig`::By using `Properties`, you can set additional configuration setting on the underlying JSch Session.
-
-`socketFactory`::Lets you pass in a https://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html[`SocketFactory`].
-The socket factory is used to create a socket to the target host.
-When a proxy is used, the socket factory is passed to the proxy.
-By default, plain TCP sockets are used.
-
 `timeout`::The timeout property is used as the socket timeout parameter, as well as the default connection timeout.
 Defaults to `0`, which means, that no timeout will occur.
-
-`user`::The remote user to use.
-Required.
 
 [[sftp-unk-keys]]
 `allowUnknownKeys`::Set to `true` to allow connections to hosts with unknown (or changed) keys.
 Its default is 'false'.
-It is applied only if no `userInfo` is provided.
 If `false`, a pre-populated `knownHosts` file is required.
 
-`userInfo`::Set a custom `UserInfo` to be used during authentication.
-In particular, `promptYesNo()` is invoked when an unknown (or changed) host key is received.
-See also <<sftp-unk-keys,`allowUnknownKeys`>>.
-When you provide a `UserInfo`, the `password` and private key `passphrase` are obtained from it, and you cannot set discrete `password` and `privateKeyPassphrase` properties.
-
-[[sftp-proxy-factory-bean]]
-=== Proxy Factory Bean
-
-`Jsch` provides a mechanism to connect to the server over an HTTP or SOCKS proxy.
-To use this feature, configure the `Proxy` and provide a reference to the `DefaultSftpSessionFactory`, as discussed earlier.
-Three implementations are provided by `Jsch`: `HTTP`, `SOCKS4`, and `SOCKS5`.
-Spring Integration 4.3 introduced a `FactoryBean`, easing configuration of these proxies by allowing property injection, as the following example shows:
-
-====
-[source, xml]
-----
-<bean id="proxySocks5" class="org.springframework.integration.sftp.session.JschProxyFactoryBean">
-    <constructor-arg value="SOCKS5" />
-    <constructor-arg value="${sftp.proxy.address}" />
-    <constructor-arg value="${sftp.proxy.port}" />
-    <constructor-arg value="${sftp.proxy.user}" />
-    <constructor-arg value="${sftp.proxy.pw}" />
-</bean>
-
-<bean id="sessionFactory"
-          class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory" >
-    ...
-    <property name="proxy" ref="proxySocks5" />
-    ...
-</bean>
-----
-====
+`userInteraction`::A custom `org.apache.sshd.client.auth.keyboard.UserInteraction` to be used during authentication.
 
 [[sftp-dsf]]
 === Delegating Session Factory
@@ -269,7 +218,7 @@ When using `isSharedSession=true`, the channel is closed and the shared session 
 New requests for sessions establish new sessions as necessary.
 
 Starting with version 5.1, the `CachingSessionFactory` has a new property `testSession`.
-When true, the session will be tested by performing a `stat(getHome())` command to ensure it is still active; if not, it will be removed from the cache; a new session is created if no active sessions are in the cache.
+When true, the session will be tested by performing a `REALPATH` command for an empty path to ensure it is still active; if not, it will be removed from the cache; a new session is created if no active sessions are in the cache.
 
 [[sftp-rft]]
 === Using `RemoteFileTemplate`
@@ -485,7 +434,7 @@ public class SftpJavaApplication {
     }
 
     @Bean
-    public SessionFactory<LsEntry> sftpSessionFactory() {
+    public SessionFactory<SftpClient.DirEntry> sftpSessionFactory() {
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
         factory.setHost("localhost");
         factory.setPort(port);
@@ -493,7 +442,7 @@ public class SftpJavaApplication {
         factory.setPassword("foo");
         factory.setAllowUnknownKeys(true);
         factory.setTestSession(true);
-        return new CachingSessionFactory<LsEntry>(factory);
+        return new CachingSessionFactory<>(factory);
     }
 
     @Bean
@@ -624,13 +573,9 @@ See <<sftp-max-fetch>> for more information.
 The adapter puts the remote directory and the file name in headers (`FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE`, respectively).
 Starting with version 5.0, the `FileHeaders.REMOTE_FILE_INFO` header provides additional remote file information (in JSON).
 If you set the `fileInfoJson` property on the `SftpStreamingMessageSource` to `false`, the header contains an `SftpFileInfo` object.
-You can access the `LsEntry` object provided by the underlying Jsch library by using the `SftpFileInfo.getFileInfo()` method.
+You can access the `SftpClient.DirEntry` object provided by the underlying `SftpClient` by using the `SftpFileInfo.getFileInfo()` method.
 The `fileInfoJson` property is not available when you use XML configuration, but you can set it by injecting the `SftpStreamingMessageSource` into one of your configuration classes.
 See also <<sftp-remote-file-info>>.
-
-Starting with version 5.1, the generic type of the `comparator` is `LsEntry`.
-Previously, it was `AbstractFileInfo<LsEntry>`.
-This is because the sort is now performed earlier in the processing, before filtering and applying `maxFetch`.
 
 [[sftp-streaming-java-config]]
 ==== Configuring with Java Configuration
@@ -689,7 +634,7 @@ public class SftpJavaApplication {
 ----
 ====
 
-Notice that, in this example, the message handler downstream of the transformer has an advice that removes the remote file after processing.
+Notice that, in this example, the message handler downstream of the transformer has an `advice` that removes the remote file after processing.
 
 [[sftp-rotating-server-advice]]
 === Inbound Channel Adapters: Polling Multiple Servers and Directories
@@ -800,7 +745,7 @@ Another use for `max-fetch-size` is when you want to stop fetching remote files 
 Setting the `maxFetchSize` property on the `MessageSource` (programmatically, via JMX, or via a <<./control-bus.adoc#control-bus, control bus>>) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
 If the poller is active when the property is changed, the change takes effect on the next poll.
 
-Starting with version 5.1, the synchronizer can be provided with a `Comparator<LsEntry>`.
+Starting with version 5.1, the synchronizer can be provided with a `Comparator<?>`.
 This is useful when restricting the number of files fetched with `maxFetchSize`.
 
 [[sftp-outbound]]
@@ -896,7 +841,7 @@ public class SftpJavaApplication {
     }
 
     @Bean
-    public SessionFactory<LsEntry> sftpSessionFactory() {
+    public SessionFactory<SftpClient.DirEntry> sftpSessionFactory() {
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
         factory.setHost("localhost");
         factory.setPort(port);
@@ -904,7 +849,7 @@ public class SftpJavaApplication {
         factory.setPassword("foo");
         factory.setAllowUnknownKeys(true);
         factory.setTestSession(true);
-        return new CachingSessionFactory<LsEntry>(factory);
+        return new CachingSessionFactory<SftpClient.DirEntry>(factory);
     }
 
     @Bean
@@ -1090,7 +1035,7 @@ The message payload resulting from an `mget` operation is a `List<File>` object 
 IMPORTANT: Starting with version 5.0, if the `FileExistsMode` is `IGNORE`, the payload of the output message no longer contain files that were not fetched due to the file already existing.
 Previously, the array contained all files, including those that already existed.
 
-The expression you use determine the remote path should produce a result that ends with `*` for example `myfiles/*` fetches the complete tree under `myfiles`.
+The expression you use determine the remote path should produce a result that ends with `\*` for example `myfiles/*` fetches the complete tree under `myfiles`.
 
 Starting with version 5.0, you can use a recursive `MGET`, combined with the `FileExistsMode.REPLACE_IF_MODIFIED` mode, to periodically synchronize an entire remote directory tree locally.
 This mode sets the local file's last modified timestamp to the remote file's timestamp, regardless of the `-P` (preserve timestamp) option.
@@ -1223,7 +1168,7 @@ It is particularly useful for mget (for example: `local-directory-expression="'/
 This attribute is mutually exclusive with the `local-directory` attribute.
 
 For all commands, the 'expression' property of the gateway holds the path on which the command acts.
-For the `mget` command, the expression might evaluate to `*`, meaning to retrieve all files, `somedirectory/*`, and other values that end with `*`.
+For the `mget` command, the expression might evaluate to `\*`, meaning to retrieve all files, `somedirectory/*`, and other values that end with `*`.
 
 The following example shows a gateway configured for an `ls` command:
 
@@ -1293,14 +1238,14 @@ public class SftpJavaApplication {
     }
 
     @Bean
-    public SessionFactory<LsEntry> sftpSessionFactory() {
+    public SessionFactory<SftpClient.DirEntry> sftpSessionFactory() {
         DefaultSftpSessionFactory sf = new DefaultSftpSessionFactory();
         sf.setHost("localhost");
         sf.setPort(port);
         sf.setUsername("foo");
         sf.setPassword("foo");
         factory.setTestSession(true);
-        return new CachingSessionFactory<LsEntry>(sf);
+        return new CachingSessionFactory<>(sf);
     }
 
     @Bean
@@ -1356,26 +1301,10 @@ root/
 If the exception occurs on `file3.txt`, the `PartialSuccessException` thrown by the gateway has `derivedInput` of `file1.txt`, `subdir`, and `zoo.txt` and `partialResults` of `file1.txt`.
 Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.txt` and `file3.txt` and `partialResults` of `file2.txt`.
 
-[[sftp-jsch-logging]]
-=== SFTP/JSCH Logging
-
-Since we use JSch libraries to provide SFTP support, you may at times require more information from the JSch API itself, especially if something is not working properly (such as authentication exceptions).
-Unfortunately JSch does not use `commons-logging` but instead relies on custom implementations of their `com.jcraft.jsch.Logger` interface.
-As of Spring Integration 2.0.1, we have implemented this interface.
-So now, to enable JSch logging, you can configure your logger the way you usually do.
-For example, the following example is valid configuration of a logger that uses Log4J:
-
-====
-[source,java]
-----
-log4j.category.com.jcraft.jsch=DEBUG
-----
-====
-
 [[sftp-session-callback]]
 === MessageSessionCallback
 
-Starting with Spring Integration version 4.2, you can use a `MessageSessionCallback<F, T>` implementation with the `<int-sftp:outbound-gateway/>` (`SftpOutboundGateway`) to perform any operation on the `Session<LsEntry>` with the `requestMessage` context.
+Starting with Spring Integration version 4.2, you can use a `MessageSessionCallback<F, T>` implementation with the `<int-sftp:outbound-gateway/>` (`SftpOutboundGateway`) to perform any operation on the `Session<SftpClient.DirEntry>` with the `requestMessage` context.
 You can use it for any non-standard or low-level SFTP operation (or several), such as allowing access from an integration flow definition, or functional interface (lambda) implementation injection.
 The following example uses a lambda:
 
@@ -1384,7 +1313,7 @@ The following example uses a lambda:
 ----
 @Bean
 @ServiceActivator(inputChannel = "sftpChannel")
-public MessageHandler sftpOutboundGateway(SessionFactory<ChannelSftp.LsEntry> sessionFactory) {
+public MessageHandler sftpOutboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory) {
     return new SftpOutboundGateway(sessionFactory,
          (session, requestMessage) -> session.list(requestMessage.getPayload()));
 }

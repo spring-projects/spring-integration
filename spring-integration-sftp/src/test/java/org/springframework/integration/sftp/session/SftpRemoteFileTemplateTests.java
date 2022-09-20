@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.apache.sshd.sftp.client.SftpClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -44,11 +45,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.SftpATTRS;
-import com.jcraft.jsch.SftpException;
-
 /**
  * @author Gary Russell
  * @author Artem Bilan
@@ -61,7 +57,7 @@ import com.jcraft.jsch.SftpException;
 public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 
 	@Autowired
-	private CachingSessionFactory<LsEntry> sessionFactory;
+	private CachingSessionFactory<SftpClient.DirEntry> sessionFactory;
 
 	@Test
 	public void testINT3412AppendStatRmdir() {
@@ -82,24 +78,24 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		template.append(new GenericMessage<>("foo"));
 		template.append(new GenericMessage<>("bar"));
 		assertThat(template.exists("foo/foobar.txt")).isTrue();
-		template.executeWithClient((ClientCallbackWithoutResult<ChannelSftp>) client -> {
+		template.executeWithClient((ClientCallbackWithoutResult<SftpClient>) client -> {
 			try {
-				SftpATTRS file = client.lstat("foo/foobar.txt");
+				SftpClient.Attributes file = client.lstat("foo/foobar.txt");
 				assertThat(file.getSize()).isEqualTo(6);
 			}
-			catch (SftpException e) {
+			catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		});
-		template.execute((SessionCallbackWithoutResult<LsEntry>) session -> {
-			LsEntry[] files = session.list("foo/");
+		template.execute((SessionCallbackWithoutResult<SftpClient.DirEntry>) session -> {
+			SftpClient.DirEntry[] files = session.list("foo/");
 			assertThat(files.length).isEqualTo(4);
 			assertThat(session.remove("foo/foobar.txt")).isTrue();
 			assertThat(session.rmdir("foo/bar/")).isTrue();
 			files = session.list("foo/");
 			assertThat(files.length).isEqualTo(2);
-			List<LsEntry> list = Arrays.asList(files);
-			assertThat(list.stream().map(l -> l.getFilename()).collect(Collectors.toList())).contains(".", "..");
+			List<String> fileNames = Arrays.stream(files).map(SftpClient.DirEntry::getFilename).toList();
+			assertThat(fileNames).contains(".", "..");
 			assertThat(session.rmdir("foo/")).isTrue();
 		});
 		assertThat(template.exists("foo")).isFalse();
@@ -107,8 +103,8 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 
 	@Test
 	public void testNoDeadLockOnSend() {
-		CachingSessionFactory<LsEntry> cachingSessionFactory = new CachingSessionFactory<>(sessionFactory(), 1);
-		SftpRemoteFileTemplate template = new SftpRemoteFileTemplate(cachingSessionFactory);
+		CachingSessionFactory<SftpClient.DirEntry> sessionFactory = new CachingSessionFactory<>(sessionFactory(), 1);
+		SftpRemoteFileTemplate template = new SftpRemoteFileTemplate(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression(""));
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.setUseTemporaryFileName(false);
@@ -125,14 +121,14 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 				.withCauseInstanceOf(MessagingException.class)
 				.withStackTraceContaining("he destination file already exists at 'test.file'.");
 
-		cachingSessionFactory.destroy();
+		sessionFactory.destroy();
 	}
 
 	@Configuration
 	public static class Config {
 
 		@Bean
-		public SessionFactory<LsEntry> ftpSessionFactory() {
+		public SessionFactory<SftpClient.DirEntry> ftpSessionFactory() {
 			return SftpRemoteFileTemplateTests.sessionFactory();
 		}
 

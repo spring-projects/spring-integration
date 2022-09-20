@@ -16,10 +16,10 @@
 
 package org.springframework.integration.sftp.filters;
 
+import org.apache.sshd.sftp.client.SftpClient;
+
 import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * Persistent file list filter using the server's file timestamp to detect if we've already
@@ -27,29 +27,31 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  *
  * @author Gary Russell
  * @author David Liu
+ * @author Artem Bilan
  *
  * @since 3.0
  *
  */
-public class SftpPersistentAcceptOnceFileListFilter extends AbstractPersistentAcceptOnceFileListFilter<LsEntry> {
+public class SftpPersistentAcceptOnceFileListFilter
+		extends AbstractPersistentAcceptOnceFileListFilter<SftpClient.DirEntry> {
 
 	public SftpPersistentAcceptOnceFileListFilter(ConcurrentMetadataStore store, String prefix) {
 		super(store, prefix);
 	}
 
 	@Override
-	protected long modified(LsEntry file) {
-		return ((long) file.getAttrs().getMTime()) * 1000; // NOSONAR magic number
+	protected long modified(SftpClient.DirEntry file) {
+		return file.getAttributes().getModifyTime().toMillis();
 	}
 
 	@Override
-	protected String fileName(LsEntry file) {
+	protected String fileName(SftpClient.DirEntry file) {
 		return file.getFilename();
 	}
 
 	@Override
-	protected boolean isDirectory(LsEntry file) {
-		return file.getAttrs().isDir();
+	protected boolean isDirectory(SftpClient.DirEntry file) {
+		return file.getAttributes().isDirectory();
 	}
 
 }

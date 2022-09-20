@@ -21,14 +21,14 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.sshd.sftp.client.SftpClient;
+
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.session.SftpFileInfo;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * Message source for streaming SFTP remote file contents.
@@ -39,13 +39,13 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * @since 4.3
  *
  */
-public class SftpStreamingMessageSource extends AbstractRemoteFileStreamingMessageSource<LsEntry> {
+public class SftpStreamingMessageSource extends AbstractRemoteFileStreamingMessageSource<SftpClient.DirEntry> {
 
 	/**
 	 * Construct an instance with the supplied template.
 	 * @param template the template.
 	 */
-	public SftpStreamingMessageSource(RemoteFileTemplate<LsEntry> template) {
+	public SftpStreamingMessageSource(RemoteFileTemplate<SftpClient.DirEntry> template) {
 		this(template, null);
 	}
 
@@ -56,8 +56,9 @@ public class SftpStreamingMessageSource extends AbstractRemoteFileStreamingMessa
 	 * @param template the template.
 	 * @param comparator the comparator.
 	 */
-	public SftpStreamingMessageSource(RemoteFileTemplate<LsEntry> template,
-			Comparator<LsEntry> comparator) {
+	public SftpStreamingMessageSource(RemoteFileTemplate<SftpClient.DirEntry> template,
+			Comparator<SftpClient.DirEntry> comparator) {
+
 		super(template, comparator);
 		doSetFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "sftpStreamingMessageSource"));
 	}
@@ -68,17 +69,17 @@ public class SftpStreamingMessageSource extends AbstractRemoteFileStreamingMessa
 	}
 
 	@Override
-	protected List<AbstractFileInfo<LsEntry>> asFileInfoList(Collection<LsEntry> files) {
-		List<AbstractFileInfo<LsEntry>> canonicalFiles = new ArrayList<AbstractFileInfo<LsEntry>>();
-		for (LsEntry file : files) {
+	protected List<AbstractFileInfo<SftpClient.DirEntry>> asFileInfoList(Collection<SftpClient.DirEntry> files) {
+		List<AbstractFileInfo<SftpClient.DirEntry>> canonicalFiles = new ArrayList<>();
+		for (SftpClient.DirEntry file : files) {
 			canonicalFiles.add(new SftpFileInfo(file));
 		}
 		return canonicalFiles;
 	}
 
 	@Override
-	protected boolean isDirectory(LsEntry file) {
-		return file != null && file.getAttrs().isDir();
+	protected boolean isDirectory(SftpClient.DirEntry file) {
+		return file != null && file.getAttributes().isDirectory();
 	}
 
 }

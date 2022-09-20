@@ -232,7 +232,7 @@ This section describes general changes to the Spring Integration SFTP functional
 ====== Factory Bean
 
 We added a new factory bean to simplify the configuration of Jsch proxies for SFTP.
-See <<./sftp.adoc#sftp-proxy-factory-bean,Proxy Factory Bean>> for more information.
+See `JschProxyFactoryBean` for more information.
 
 ====== `chmod` Changes
 

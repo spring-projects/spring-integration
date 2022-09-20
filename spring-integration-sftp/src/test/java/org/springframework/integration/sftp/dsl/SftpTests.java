@@ -20,10 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import org.apache.sshd.sftp.client.SftpClient;
+import org.apache.sshd.sftp.common.SftpHelper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -50,8 +53,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.jcraft.jsch.ChannelSftp;
-
 /**
  * @author Artem Bilan
  * @author Gary Russell
@@ -68,7 +69,6 @@ public class SftpTests extends SftpTestSupport {
 	private IntegrationFlowContext flowContext;
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testSftpInboundFlow() {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = IntegrationFlow
@@ -78,7 +78,7 @@ public class SftpTests extends SftpTestSupport {
 								.regexFilter(".*\\.txt$")
 								.localFilenameExpression("#this.toUpperCase() + '.a'")
 								.localDirectory(getTargetLocalDirectory())
-								.remoteComparator(Comparator.naturalOrder()),
+								.remoteComparator(Comparator.comparing(SftpClient.DirEntry::getFilename)),
 						e -> e.id("sftpInboundAdapter").poller(Pollers.fixedDelay(100)))
 				.channel(out)
 				.get();
@@ -122,7 +122,7 @@ public class SftpTests extends SftpTestSupport {
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isInstanceOf(InputStream.class);
 		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE)).isIn(" sftpSource1.txt", "sftpSource2.txt");
-		assertThat(message.getHeaders().get(FileHeaders.REMOTE_HOST_PORT, String.class)).contains("localhost:");
+		assertThat(message.getHeaders().get(FileHeaders.REMOTE_HOST_PORT, String.class)).contains("localhost");
 		((InputStream) message.getPayload()).close();
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
@@ -141,11 +141,11 @@ public class SftpTests extends SftpTestSupport {
 				.setHeader(FileHeaders.FILENAME, fileName)
 				.build());
 
-		RemoteFileTemplate<ChannelSftp.LsEntry> template = new RemoteFileTemplate<>(sessionFactory());
-		ChannelSftp.LsEntry[] files = template.execute(session ->
-				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		RemoteFileTemplate<SftpClient.DirEntry> template = new RemoteFileTemplate<>(sessionFactory());
+		SftpClient.DirEntry[] files =
+				template.execute(session -> session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
 		assertThat(files.length).isEqualTo(1);
-		assertThat(files[0].getAttrs().getSize()).isEqualTo(3);
+		assertThat(files[0].getAttributes().getSize()).isEqualTo(3);
 
 		registration.destroy();
 	}
@@ -163,10 +163,10 @@ public class SftpTests extends SftpTestSupport {
 				.setHeader(FileHeaders.FILENAME, fileName)
 				.build());
 
-		ChannelSftp.LsEntry[] files = sftpTemplate.execute(session ->
-				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		SftpClient.DirEntry[] files =
+				sftpTemplate.execute(session -> session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
 		assertThat(files.length).isEqualTo(1);
-		assertThat(files[0].getAttrs().getSize()).isEqualTo(3);
+		assertThat(files[0].getAttributes().getSize()).isEqualTo(3);
 
 		registration.destroy();
 	}
@@ -187,10 +187,10 @@ public class SftpTests extends SftpTestSupport {
 				.setHeader(FileHeaders.FILENAME, fileName)
 				.build());
 
-		ChannelSftp.LsEntry[] files = sftpTemplate.execute(session ->
-				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		SftpClient.DirEntry[] files =
+				sftpTemplate.execute(session -> session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
 		assertThat(files.length).isEqualTo(1);
-		assertThat(files[0].getAttrs().getSize()).isEqualTo(6);
+		assertThat(files[0].getAttributes().getSize()).isEqualTo(6);
 
 		registration.destroy();
 	}
@@ -210,12 +210,17 @@ public class SftpTests extends SftpTestSupport {
 				.setHeader(FileHeaders.FILENAME, fileName)
 				.build());
 
-		RemoteFileTemplate<ChannelSftp.LsEntry> template = new RemoteFileTemplate<>(sessionFactory());
-		ChannelSftp.LsEntry[] files = template.execute(session ->
-				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		RemoteFileTemplate<SftpClient.DirEntry> template = new RemoteFileTemplate<>(sessionFactory());
+		SftpClient.DirEntry[] files =
+				template.execute(session -> session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
 		assertThat(files.length).isEqualTo(1);
-		assertThat(files[0].getAttrs().getSize()).isEqualTo(3);
-		String[] permissions = files[0].getAttrs().getPermissionsString().substring(1).replaceAll("--", "-").split("-");
+		assertThat(files[0].getAttributes().getSize()).isEqualTo(3);
+		int permissionFlags = files[0].getAttributes().getPermissions();
+		String[] permissions =
+				PosixFilePermissions.toString(SftpHelper.permissionsToAttributes(permissionFlags))
+						.substring(1)
+						.replaceAll("--", "-")
+						.split("-");
 		assertThat(permissions[0]).isEqualTo("rw");
 		assertThat(permissions[1]).isEqualTo("r");
 		assertThat(permissions[2]).isEqualTo("r");
@@ -264,9 +269,9 @@ public class SftpTests extends SftpTestSupport {
 		Message<?> receive = out.receive(10_000);
 		assertThat(receive).isNotNull();
 		Object payload = receive.getPayload();
-		assertThat(payload).isInstanceOf(ChannelSftp.LsEntry[].class);
+		assertThat(payload).isInstanceOf(SftpClient.DirEntry[].class);
 
-		assertThat(((ChannelSftp.LsEntry[]) payload).length > 0).isTrue();
+		assertThat(((SftpClient.DirEntry[]) payload).length > 0).isTrue();
 
 		registration.destroy();
 	}

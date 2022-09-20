@@ -76,7 +76,6 @@ ext {
     jmsApiVersion = '3.0.0'
     jpaApiVersion = '3.0.3'
     jrubyVersion = '9.3.8.0'
-    jschVersion = '0.1.55'
     jsonpathVersion = '2.7.0'
     junit4Version = '4.13.2'
     junitJupiterVersion = '5.9.0'
@@ -900,13 +899,11 @@ project('spring-integration-sftp') {
     description = 'Spring Integration SFTP Support'
     dependencies {
         api project(':spring-integration-file')
-        api "com.jcraft:jsch:$jschVersion"
         api 'org.springframework:spring-context-support'
-        optionalApi ("org.apache.sshd:sshd-sftp:$apacheSshdVersion") {
+        api ("org.apache.sshd:sshd-sftp:$apacheSshdVersion") {
             exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
         }
 
-        testImplementation "org.apache.sshd:sshd-core:$apacheSshdVersion"
         testImplementation project(':spring-integration-event')
         testImplementation project(':spring-integration-file').sourceSets.test.output
     }

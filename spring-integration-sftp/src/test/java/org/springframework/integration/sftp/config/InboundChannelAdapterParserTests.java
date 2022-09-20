@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -124,16 +123,6 @@ public class InboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "source.maxFetchSize")).isEqualTo(Integer.MIN_VALUE);
 		context.close();
-	}
-
-	@Test
-	//exactly one of 'filename-pattern' or 'filter' is allowed on SFTP inbound adapter
-	public void testFailWithFilePatternAndFilter() {
-		assertThat(!new File("target/bar").exists()).isTrue();
-		assertThatExceptionOfType(BeanDefinitionStoreException.class)
-				.isThrownBy(() ->
-						new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context-fail.xml",
-								getClass()));
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,8 +151,9 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 * @param comparator the comparator.
 	 * @since 5.1
 	 */
-	public void setComparator(@Nullable Comparator<F> comparator) {
-		this.comparator = comparator;
+	@SuppressWarnings("unchecked")
+	public void setComparator(@Nullable Comparator<? extends F> comparator) {
+		this.comparator = (Comparator<F>) comparator;
 	}
 
 	/**

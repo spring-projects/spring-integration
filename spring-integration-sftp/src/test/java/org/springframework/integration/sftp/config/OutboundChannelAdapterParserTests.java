@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,15 +155,6 @@ public class OutboundChannelAdapterParserTests {
 						new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail.xml",
 								getClass()))
 				.withMessageContaining("Only one of 'remote-directory'");
-	}
-
-	@Test
-	public void testFailWithFileExpressionAndFileGenerator() {
-		assertThatExceptionOfType(BeanDefinitionStoreException.class)
-				.isThrownBy(() ->
-						new ClassPathXmlApplicationContext(
-								"OutboundChannelAdapterParserTests-context-fail-fileFileGen.xml",
-								getClass()));
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

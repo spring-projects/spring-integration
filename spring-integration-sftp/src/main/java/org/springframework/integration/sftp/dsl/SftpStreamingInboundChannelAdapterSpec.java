@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.sftp.dsl;
 
 import java.util.Comparator;
 
+import org.apache.sshd.sftp.client.SftpClient;
+
 import org.springframework.integration.file.dsl.RemoteFileStreamingInboundChannelAdapterSpec;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -28,8 +30,6 @@ import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilt
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.inbound.SftpStreamingMessageSource;
 
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-
 /**
  * @author Gary Russell
  *
@@ -37,11 +37,11 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  *
  */
 public class SftpStreamingInboundChannelAdapterSpec
-		extends RemoteFileStreamingInboundChannelAdapterSpec<LsEntry, SftpStreamingInboundChannelAdapterSpec,
-		SftpStreamingMessageSource> {
+		extends RemoteFileStreamingInboundChannelAdapterSpec<SftpClient.DirEntry,
+		SftpStreamingInboundChannelAdapterSpec, SftpStreamingMessageSource> {
 
-	protected SftpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<LsEntry> remoteFileTemplate,
-			Comparator<LsEntry> comparator) {
+	protected SftpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate,
+			Comparator<SftpClient.DirEntry> comparator) {
 
 		this.target = new SftpStreamingMessageSource(remoteFileTemplate, comparator);
 	}
@@ -68,8 +68,10 @@ public class SftpStreamingInboundChannelAdapterSpec
 		return filter(composeFilters(new SftpRegexPatternFileListFilter(regex)));
 	}
 
-	private CompositeFileListFilter<LsEntry> composeFilters(FileListFilter<LsEntry> fileListFilter) {
-		CompositeFileListFilter<LsEntry> compositeFileListFilter = new CompositeFileListFilter<>();
+	private CompositeFileListFilter<SftpClient.DirEntry> composeFilters(
+			FileListFilter<SftpClient.DirEntry> fileListFilter) {
+
+		CompositeFileListFilter<SftpClient.DirEntry> compositeFileListFilter = new CompositeFileListFilter<>();
 		compositeFileListFilter.addFilters(fileListFilter,
 				new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "sftpStreamingMessageSource"));
 		return compositeFileListFilter;

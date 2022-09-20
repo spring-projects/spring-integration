@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -290,7 +290,7 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 * @return the spec.
 	 * @since 5.2.9
 	 */
-	public S remoteComparator(Comparator<F> remoteComparator) {
+	public S remoteComparator(Comparator<? extends F> remoteComparator) {
 		this.synchronizer.setComparator(remoteComparator);
 		return _this();
 	}

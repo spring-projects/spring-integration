@@ -22,7 +22,6 @@
 		<beans:property name="password" value="hello"/>
 		<beans:property name="port" value="2222"/>
 		<beans:property name="user" value="oleg"/>
-		<beans:property name="sessionConfig" ref="sessionConfig"/>
 	</beans:bean>
 
 	<beans:bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
