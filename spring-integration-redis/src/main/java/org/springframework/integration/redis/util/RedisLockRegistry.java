@@ -248,6 +248,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		if (this.redisMessageListenerContainer != null) {
 			try {
 				this.redisMessageListenerContainer.destroy();
+				this.redisMessageListenerContainer = null;
+				this.isRunningRedisMessageListenerContainer = false;
 			}
 			catch (Exception ex) {
 				throw new IllegalStateException(ex);
