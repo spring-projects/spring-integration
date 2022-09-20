@@ -34,7 +34,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * started only once per JVM, therefore the target Docker container is reused automatically.
  *
  * @author Rafael Winterhalter
- * @since 6
+ * @since 6.0
  */
 @Testcontainers(disabledWithoutDocker = true)
 public interface PostgresContainerTest {

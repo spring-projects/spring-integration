@@ -36,15 +36,16 @@ import org.postgresql.jdbc.PgConnection;
  * to {@link java.sql.Connection#unwrap(Class)}.
  *
  * @author Rafael Winterhalter
- * @since 6
+ * @since 6.0
  */
 @FunctionalInterface
 public interface PgConnectionSupplier {
 
 	/**
-	 * Supplies an open, un-pooled connection to a Postgres database.
+	 * Supply an open, un-pooled connection to a Postgres database.
 	 * @return A dedicated connection to a Postgres database for listening.
 	 * @throws SQLException If the connection could not be established.
 	 */
 	PgConnection get() throws SQLException;
+
 }

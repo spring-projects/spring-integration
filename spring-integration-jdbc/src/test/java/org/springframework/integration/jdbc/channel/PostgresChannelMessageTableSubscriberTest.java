@@ -113,4 +113,5 @@ public class PostgresChannelMessageTableSubscriberTest implements PostgresContai
 		}
 		assertThat(payloads).containsExactly("1", "2");
 	}
+
 }

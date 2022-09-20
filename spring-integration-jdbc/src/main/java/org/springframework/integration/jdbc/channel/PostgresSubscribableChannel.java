@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  *
  * @author Rafael Winterhalter
  * @author Artem Bilan
- * @since 6
+ * @since 6.0
  */
 public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 implements PostgresChannelMessageTableSubscriber.Subscription {
@@ -124,4 +124,5 @@ implements PostgresChannelMessageTableSubscriber.Subscription {
 	public Object getGroupId() {
 		return this.groupId;
 	}
+
 }

@@ -58,7 +58,7 @@ import org.springframework.util.Assert;
  *
  * @author Rafael Winterhalter
  * @author Artem Bilan
- * @since 6
+ * @since 6.0
  */
 public final class PostgresChannelMessageTableSubscriber implements SmartLifecycle {
 
@@ -81,7 +81,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	private final Map<String, Set<Subscription>> subscriptions = new ConcurrentHashMap<>();
 
 	/**
-	 * Creates a new subscriber using the {@link JdbcChannelMessageStore#DEFAULT_TABLE_PREFIX}.
+	 * Create a new subscriber using the {@link JdbcChannelMessageStore#DEFAULT_TABLE_PREFIX}.
 	 * @param connectionSupplier The connection supplier for the targeted Postgres database.
 	 */
 	public PostgresChannelMessageTableSubscriber(PgConnectionSupplier connectionSupplier) {
@@ -89,7 +89,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	}
 
 	/**
-	 * Creates a new subscriber.
+	 * Create a new subscriber.
 	 * @param tablePrefix The table prefix of the {@link JdbcChannelMessageStore} to subscribe to.
 	 * @param connectionSupplier The connection supplier for the targeted Postgres database.
 	 */
@@ -101,7 +101,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	}
 
 	/**
-	 * Defines an executor to use for listening for new messages. Note that the Postgres SQL driver implements
+	 * Define an executor to use for listening for new messages. Note that the Postgres SQL driver implements
 	 * listening for notifications as a blocking operation which will permanently block a thread of this executor
 	 * while running.
 	 * @param executor The executor to use or {@code null} if an executor should be created by this class.
@@ -111,22 +111,25 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	}
 
 	/**
-	 * Adds a new subscription to this subscriber.
+	 * Add a new subscription to this subscriber.
 	 * @param subscription The subscription to register.
 	 * @return {@code true} if the subscription was not already added.
 	 */
 	public boolean subscribe(Subscription subscription) {
-		Set<Subscription> subscriptions = this.subscriptions.computeIfAbsent(subscription.getRegion() + " " + getKey(subscription.getGroupId()), ignored -> ConcurrentHashMap.newKeySet());
+		Set<Subscription> subscriptions = this.subscriptions.computeIfAbsent(
+				subscription.getRegion() + " " + getKey(subscription.getGroupId()),
+				ignored -> ConcurrentHashMap.newKeySet());
 		return subscriptions.add(subscription);
 	}
 
 	/**
-	 * Removes a previous subscription from this subscriber.
+	 * Remove a previous subscription from this subscriber.
 	 * @param subscription The subscription to remove.
 	 * @return {@code true} if the subscription was previously registered and is now removed.
 	 */
 	public boolean unsubscribe(Subscription subscription) {
-		Set<Subscription> subscriptions = this.subscriptions.get(subscription.getRegion() + " " + getKey(subscription.getGroupId()));
+		Set<Subscription> subscriptions = this.subscriptions.get(
+				subscription.getRegion() + " " + getKey(subscription.getGroupId()));
 		return subscriptions != null && subscriptions.remove(subscription);
 	}
 
@@ -165,12 +168,14 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 							}
 							throw t;
 						}
-						this.subscriptions.values().forEach(subscriptions -> subscriptions.forEach(Subscription::notifyUpdate));
+						this.subscriptions.values()
+								.forEach(subscriptions -> subscriptions.forEach(Subscription::notifyUpdate));
 						try {
 							this.connection = conn;
 							while (isActive()) {
 								PGNotification[] notifications = conn.getNotifications(0);
-								// Unfortunately, there is no good way of interrupting a notification poll but by closing its connection.
+								// Unfortunately, there is no good way of interrupting a notification
+								// poll but by closing its connection.
 								if (!isActive()) {
 									return;
 								}
@@ -236,7 +241,8 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		}
 		try {
 			if (!this.latch.await(5, TimeUnit.SECONDS)) {
-				throw new IllegalStateException("Failed to stop " + PostgresChannelMessageTableSubscriber.class.getName());
+				throw new IllegalStateException("Failed to stop "
+						+ PostgresChannelMessageTableSubscriber.class.getName());
 			}
 		}
 		catch (InterruptedException ignored) {
@@ -260,7 +266,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	public interface Subscription {
 
 		/**
-		 * Indicates that a message was added to the represented region and
+		 * Indicate that a message was added to the represented region and
 		 * group id. Note that this method might also be invoked if there are
 		 * no new messages to read, for example if another subscription already
 		 * read those messages or if a new messages might have arrived during
@@ -269,16 +275,17 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		void notifyUpdate();
 
 		/**
-		 * Returns the region for which this subscription receives notifications.
+		 * Return the region for which this subscription receives notifications.
 		 * @return The relevant region of the {@link JdbcChannelMessageStore}.
 		 */
 		String getRegion();
 
 		/**
-		 * Returns the group id for which this subscription receives notifications.
+		 * Return the group id for which this subscription receives notifications.
 		 * @return The group id of the {@link JdbcChannelMessageStore}.
 		 */
 		Object getGroupId();
 
 	}
+
 }
