@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
 public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<ServiceActivator> {
 
 	public ServiceActivatorAnnotationPostProcessor() {
-		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", "requiresReply", "adviceChain"));
+		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", "requiresReply"));
 	}
 
 	@Override

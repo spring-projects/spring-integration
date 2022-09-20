@@ -18,17 +18,23 @@ package org.springframework.integration.support.management.observation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.ObservationPropagationChannelInterceptor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.config.GlobalChannelInterceptor;
+import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
@@ -79,6 +85,9 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 				Message<?> receive = replyChannel.receive(10_000);
 				assertThat(receive).isNotNull()
 						.extracting("payload").isEqualTo("test data");
+				var configuration = applicationContext.getBean(ObservationIntegrationTestConfiguration.class);
+
+				assertThat(configuration.observedHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 			}
 
 			SpansAssert.assertThat(bb.getFinishedSpans())
@@ -105,6 +114,8 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 	@EnableIntegrationManagement
 	public static class ObservationIntegrationTestConfiguration {
 
+		CountDownLatch observedHandlerLatch = new CountDownLatch(1);
+
 		@Bean
 		@GlobalChannelInterceptor
 		public ChannelInterceptor observationPropagationInterceptor(ObservationRegistry observationRegistry) {
@@ -112,10 +123,29 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 		}
 
 		@Bean
-		@BridgeTo(poller = @Poller(fixedDelay = "100"))
-		@EndpointId("observedEndpoint")
 		public PollableChannel queueChannel() {
 			return new QueueChannel();
+		}
+
+		@Bean
+		@EndpointId("observedEndpoint")
+		@ServiceActivator(inputChannel = "queueChannel",
+				poller = @Poller(fixedDelay = "100"),
+				adviceChain = "observedHandlerAdvice")
+		BridgeHandler bridgeHandler() {
+			return new BridgeHandler();
+		}
+
+		@Bean
+		HandleMessageAdvice observedHandlerAdvice() {
+			return invocation -> {
+				try {
+					return invocation.proceed();
+				}
+				finally {
+					this.observedHandlerLatch.countDown();
+				}
+			};
 		}
 
 	}
