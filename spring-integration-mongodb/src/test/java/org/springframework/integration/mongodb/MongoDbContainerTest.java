@@ -22,7 +22,7 @@ import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
 import org.junit.jupiter.api.BeforeAll;
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.springframework.dao.DataAccessException;
@@ -66,8 +66,7 @@ import com.mongodb.client.MongoCollection;
 @Testcontainers(disabledWithoutDocker = true)
 public interface MongoDbContainerTest {
 
-	GenericContainer<?> MONGO_CONTAINER = new GenericContainer<>("mongo:5.0.9")
-			.withExposedPorts(27017);
+	MongoDBContainer MONGO_CONTAINER = new MongoDBContainer("mongo:5.0.9");
 
 	@BeforeAll
 	static void startContainer() {

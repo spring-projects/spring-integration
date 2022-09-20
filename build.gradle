@@ -164,6 +164,7 @@ allprojects {
             mavenBom "io.micrometer:micrometer-bom:$micrometerVersion"
             mavenBom "io.micrometer:micrometer-tracing-bom:$micrometerTracingVersion"
             mavenBom "org.apache.camel:camel-bom:$camelVersion"
+            mavenBom "org.testcontainers:testcontainers-bom:$testcontainersVersion"
         }
 
     }
@@ -268,7 +269,7 @@ configure(javaProjects) { subproject ->
         testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
         testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
         testImplementation 'io.projectreactor:reactor-test'
-        testImplementation "org.testcontainers:junit-jupiter:$testcontainersVersion"
+        testImplementation 'org.testcontainers:junit-jupiter'
 
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -719,7 +720,7 @@ project('spring-integration-jdbc') {
         testImplementation "org.postgresql:postgresql:$postgresVersion"
         testImplementation "mysql:mysql-connector-java:$mysqlVersion"
         testImplementation "org.apache.commons:commons-dbcp2:$commonsDbcp2Version"
-        testImplementation "org.testcontainers:mysql:$testcontainersVersion"
+        testImplementation 'org.testcontainers:mysql'
 
         testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
     }
@@ -801,6 +802,8 @@ project('spring-integration-mongodb') {
         }
         optionalApi "org.mongodb:mongodb-driver-sync:$mongoDriverVersion"
         optionalApi "org.mongodb:mongodb-driver-reactivestreams:$mongoDriverVersion"
+
+        testImplementation 'org.testcontainers:mongodb'
     }
 }
 
