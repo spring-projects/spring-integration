@@ -107,6 +107,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		}
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -126,6 +127,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		}
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -153,6 +155,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		}
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -180,6 +183,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		}
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -207,6 +211,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		}
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -238,6 +243,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThat(((Exception) ise).getMessage()).contains("You do not own lock at");
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -277,6 +283,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThat(locked.get()).isTrue();
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -326,6 +333,8 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		registry2.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry1)).isEmpty();
 		assertThat(getRedisLockRegistryLocks(registry2)).isEmpty();
+		registry1.destroy();
+		registry2.destroy();
 	}
 
 	@ParameterizedTest
@@ -355,6 +364,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThat(((Exception) ise).getMessage()).contains("You do not own lock at");
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -371,6 +381,8 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		waitForExpire("foo");
 		assertThat(lock2.tryLock()).isTrue();
 		assertThat(lock1.tryLock()).isFalse();
+		registry1.destroy();
+		registry2.destroy();
 	}
 
 	@ParameterizedTest
@@ -384,6 +396,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThatIllegalStateException()
 				.isThrownBy(lock1::unlock)
 				.withMessageContaining("Lock was released in the store due to expiration.");
+		registry.destroy();
 	}
 
 
@@ -422,6 +435,9 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		lock2.lock();
 		lock1.unlock();
 		lock2.unlock();
+		registry1.destroy();
+		registry2.destroy();
+		registry3.destroy();
 	}
 
 	@ParameterizedTest
@@ -446,6 +462,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			lock.unlock();
 		}
 		assertThat(getRedisLockRegistryLocks(registry)).hasSize(10);
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -468,6 +485,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		result.get();
 		assertThat(getExpire(registry, "foo")).isEqualTo(expire);
 		lock.unlock();
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -510,6 +528,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -558,7 +577,8 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		executorService.awaitTermination(5, TimeUnit.SECONDS);
 
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
-				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
+				remainLockCheckQueue.toArray(new String[0]));
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -613,7 +633,8 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		executorService.awaitTermination(5, TimeUnit.SECONDS);
 
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys(
-				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
+				remainLockCheckQueue.toArray(new String[0]));
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -642,6 +663,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		registry.obtain("foo:5");
 		assertThat(getRedisLockRegistryLocks(registry)).hasSize(4);
 		assertThat(getRedisLockRegistryLocks(registry)).containsKeys("foo:3", "foo:4", "foo:5");
+		registry.destroy();
 	}
 
 	@ParameterizedTest
@@ -690,6 +712,8 @@ class RedisLockRegistryTests implements RedisContainerTest {
 
 		assertThat(future1).isNotCompletedExceptionally();
 		assertThat(future2).isNotCompletedExceptionally();
+		registry1.destroy();
+		registry2.destroy();
 	}
 
 	@ParameterizedTest
@@ -782,6 +806,9 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThat(awaitTimeout.await(1, TimeUnit.SECONDS)).isFalse();
 		assertThat(expectOne.get()).isEqualTo(1);
 		executorService.shutdown();
+		registry1.destroy();
+		registry2.destroy();
+		registry3.destroy();
 	}
 
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {
