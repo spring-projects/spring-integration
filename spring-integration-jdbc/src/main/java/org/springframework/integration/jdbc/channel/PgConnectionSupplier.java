@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2022-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.postgresql.jdbc.PgConnection;
  * {@link java.sql.Driver#connect(String, Properties)} and a subsequent call
  * to {@link java.sql.Connection#unwrap(Class)}.
  *
+ * @author Rafael Winterhalter
  * @since 6
  */
 @FunctionalInterface
