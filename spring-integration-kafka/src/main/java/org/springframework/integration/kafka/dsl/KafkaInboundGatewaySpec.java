@@ -72,9 +72,7 @@ public class KafkaInboundGatewaySpec<K, V, R, S extends KafkaInboundGatewaySpec<
 	}
 
 	/**
-	 * Specify a {@link RetryTemplate} instance to wrap
-	 * {@code KafkaInboundGateway.IntegrationRecordMessageListener} into
-	 * {@link org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter}.
+	 * Specify a {@link RetryTemplate} instance to use for retrying deliveries.
 	 * @param retryTemplate the {@link RetryTemplate} to use.
 	 * @return the spec
 	 */

@@ -118,9 +118,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	}
 
 	/**
-	 * Specify a {@link RetryTemplate} instance to wrap
-	 * {@code KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
-	 * {@link org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter}.
+	 * Specify a {@link RetryTemplate} instance to use for retrying deliveries.
 	 * @param retryTemplate the {@link RetryTemplate} to use.
 	 * @return the spec
 	 */
@@ -153,17 +151,13 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	}
 
 	/**
-	 * The {@code boolean} flag to specify the order how
-	 * {@link org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter}
-	 * and
-	 * {@link org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter}
-	 * are wrapped to each other, if both of them are present. Does not make sense if only
-	 * one of {@link RetryTemplate} or {@link RecordFilterStrategy} is present, or any.
-	 * @param filterInRetry the order for
-	 * {@link org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter}
-	 * and
-	 * {@link org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter}
-	 * wrapping. Defaults to {@code false}.
+	 * The {@code boolean} flag to specify the order in which the filter and retry
+	 * operations are performed.
+	 * Does not make sense if only one of {@link RetryTemplate} or
+	 * {@link RecordFilterStrategy} is present, or none.
+	 * When true, the filter is called for each retry; when false, the filter is only
+	 * called once for each delivery from the container.
+	 * @param filterInRetry true to filter for each retry. Defaults to {@code false}.
 	 * @return the spec
 	 */
 	public S filterInRetry(boolean filterInRetry) {
