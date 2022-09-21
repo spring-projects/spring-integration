@@ -140,9 +140,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	}
 
 	/**
-	 * Specify a {@link RetryTemplate} instance to wrap
-	 * {@link KafkaInboundGateway.IntegrationRecordMessageListener} into
-	 * {@code RetryingMessageListenerAdapter}.
+	 * Specify a {@link RetryTemplate} instance to use for retrying deliveries.
 	 * <p>
 	 * IMPORTANT: This form of retry is blocking and could cause a rebalance if the
 	 * aggregate retry delays across all polled records might exceed the

@@ -199,9 +199,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	}
 
 	/**
-	 * Specify a {@link RetryTemplate} instance to wrap
-	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
-	 * {@code RetryingMessageListenerAdapter}.
+	 * Specify a {@link RetryTemplate} instance to use for retrying deliveries.
 	 * <p>
 	 * IMPORTANT: This form of retry is blocking and could cause a rebalance if the
 	 * aggregate retry delays across all polled records might exceed the
@@ -231,16 +229,13 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	}
 
 	/**
-	 * The {@code boolean} flag to specify the order how
-	 * {@code RetryingMessageListenerAdapter} and
-	 * {@link FilteringMessageListenerAdapter} are wrapped to each other,
-	 * if both of them are present.
+	 * The {@code boolean} flag to specify the order in which the filter and retry
+	 * operations are performed.
 	 * Does not make sense if only one of {@link RetryTemplate} or
-	 * {@link RecordFilterStrategy} is present, or any.
+	 * {@link RecordFilterStrategy} is present, or none.
 	 * When true, the filter is called for each retry; when false, the filter is only
 	 * called once for each delivery from the container.
-	 * @param filterInRetry the order for {@code RetryingMessageListenerAdapter} and
-	 * {@link FilteringMessageListenerAdapter} wrapping. Defaults to {@code false}.
+	 * @param filterInRetry true to filter for each retry. Defaults to {@code false}.
 	 */
 	public void setFilterInRetry(boolean filterInRetry) {
 		this.filterInRetry = filterInRetry;
