@@ -20,9 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 
 import org.apache.sshd.sftp.client.SftpClient;
@@ -216,15 +217,11 @@ public class SftpTests extends SftpTestSupport {
 		assertThat(files.length).isEqualTo(1);
 		assertThat(files[0].getAttributes().getSize()).isEqualTo(3);
 		int permissionFlags = files[0].getAttributes().getPermissions();
-		String[] permissions =
-				PosixFilePermissions.toString(SftpHelper.permissionsToAttributes(permissionFlags))
-						.substring(1)
-						.replaceAll("--", "-")
-						.split("-");
-		assertThat(permissions[0]).isEqualTo("rw");
-		assertThat(permissions[1]).isEqualTo("r");
-		assertThat(permissions[2]).isEqualTo("r");
-
+		Set<PosixFilePermission> posixFilePermissions = SftpHelper.permissionsToAttributes(permissionFlags);
+		assertThat(posixFilePermissions)
+				.contains(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
+						PosixFilePermission.GROUP_READ, PosixFilePermission.OTHERS_READ)
+				.doesNotContain(PosixFilePermission.GROUP_WRITE, PosixFilePermission.OTHERS_WRITE);
 		registration.destroy();
 	}
 

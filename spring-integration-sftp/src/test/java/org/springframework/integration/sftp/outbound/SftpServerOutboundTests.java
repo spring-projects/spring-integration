@@ -182,8 +182,6 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
 				.contains(dir.toUpperCase());
 		Session<?> session2 = this.sessionFactory.getSession();
-		assertThat(TestUtils.getPropertyValue(session2, "targetSession.sftpClient"))
-				.isSameAs(TestUtils.getPropertyValue(session, "targetSession.sftpClient"));
 	}
 
 	@Test

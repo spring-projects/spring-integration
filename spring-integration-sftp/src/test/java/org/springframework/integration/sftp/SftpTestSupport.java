@@ -77,7 +77,7 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 	}
 
 	public static SessionFactory<SftpClient.DirEntry> sessionFactory() {
-		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
+		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(false);
 		factory.setHost("localhost");
 		factory.setPort(port);
 		factory.setUser("foo");
