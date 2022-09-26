@@ -108,4 +108,4 @@ See <<./ip.adoc#ip,TCP and UDP Support>> for more information.
 === RabbitMQ Changes
 
 The AMQP module has been enhanced to provide support for inbound and outbound channel adapters using RabbitMQ Stream Queues.
-See <<./amqp.adocrmq-streams>> for more information.
+See <<./amqp.adoc#rmq-streams,RabbitMQ Stream Queue Support>> for more information.

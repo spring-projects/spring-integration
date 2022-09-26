@@ -1454,7 +1454,7 @@ IntegrationFlow flow(Environment env) {
 ----
 ====
 
-[[rmq-stream-inbound-channel-adapter]]
+[[rmq-stream-outbound-channel-adapter]]
 ==== RabbitMQ Stream Outbound Channel Adapter
 
 ====
