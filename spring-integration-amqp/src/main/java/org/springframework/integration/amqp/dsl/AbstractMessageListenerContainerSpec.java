@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,14 +28,14 @@ import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer
 import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.amqp.support.ConditionalExceptionLogger;
 import org.springframework.amqp.support.ConsumerTagStrategy;
-import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.backoff.BackOff;
 
 /**
- * Base class for container specs.
+ * Base class for container specs for containers that extend
+ * {@link AbstractMessageListenerContainer}.
  *
  * @param <S> the current spec extension type
  * @param <C> the listener container type
@@ -48,7 +48,7 @@ import org.springframework.util.backoff.BackOff;
  */
 public abstract class AbstractMessageListenerContainerSpec<S extends AbstractMessageListenerContainerSpec<S, C>,
 		C extends AbstractMessageListenerContainer>
-		extends IntegrationComponentSpec<S, C> {
+		extends MessageListenerContainerSpec<S, C> {
 
 	public AbstractMessageListenerContainerSpec(C listenerContainer) {
 		this.target = listenerContainer;
