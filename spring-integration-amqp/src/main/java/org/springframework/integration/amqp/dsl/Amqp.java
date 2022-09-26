@@ -25,11 +25,6 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.integration.amqp.channel.PollableAmqpChannel;
 import org.springframework.integration.amqp.inbound.AmqpMessageSource.AmqpAckCallbackFactory;
 import org.springframework.lang.Nullable;
-import org.springframework.rabbit.stream.listener.StreamListenerContainer;
-import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
-
-import com.rabbitmq.stream.Codec;
-import com.rabbitmq.stream.Environment;
 
 /**
  * Factory class for AMQP components.
@@ -245,64 +240,12 @@ public final class Amqp {
 	}
 
 	/**
-	 * Create an initial {@link RabbitInboundChannelAdapterSLCSpec}
-	 * with the provided {@link StreamListenerContainer}.
-	 * Note: only endpoint options are available from spec.
-	 * The {@code listenerContainer} options should be specified
-	 * on the provided {@link StreamListenerContainer} using
-	 * {@link RabbitInboundChannelAdapterSLCSpec#configureContainer(java.util.function.Consumer)}.
-	 * @param listenerContainer the listenerContainer.
-	 * @return the RabbitInboundChannelAdapterSLCSpec.
-	 */
-	public static RabbitInboundChannelAdapterSLCSpec inboundAdapter(StreamListenerContainer listenerContainer) {
-		return new RabbitInboundChannelAdapterSLCSpec(listenerContainer);
-	}
-
-	/**
-	 * Create an initial {@link RabbitInboundChannelAdapterSLCSpec}
-	 * with the provided {@link Environment}.
-	 * Note: only endpoint options are available from spec.
-	 * The {@code listenerContainer} options should be specified
-	 * on the provided {@link StreamListenerContainer} using
-	 * {@link RabbitInboundChannelAdapterSLCSpec#configureContainer(java.util.function.Consumer)}.
-	 * @param environment the environment.
-	 * @return the RabbitInboundChannelAdapterSLCSpec.
-	 */
-	public static RabbitInboundChannelAdapterSLCSpec inboundAdapter(Environment environment) {
-		return new RabbitInboundChannelAdapterSLCSpec(environment, null);
-	}
-
-	/**
-	 * Create an initial {@link RabbitInboundChannelAdapterSLCSpec}
-	 * with the provided {@link Environment}.
-	 * Note: only endpoint options are available from spec.
-	 * The {@code listenerContainer} options should be specified
-	 * on the provided {@link StreamListenerContainer} using
-	 * {@link RabbitInboundChannelAdapterSLCSpec#configureContainer(java.util.function.Consumer)}.
-	 * @param environment the environment.
-	 * @param codec the codec.
-	 * @return the RabbitInboundChannelAdapterSLCSpec.
-	 */
-	public static RabbitInboundChannelAdapterSLCSpec inboundAdapter(Environment environment, Codec codec) {
-		return new RabbitInboundChannelAdapterSLCSpec(environment, codec);
-	}
-
-	/**
 	 * Create an initial AmqpOutboundEndpointSpec (adapter).
 	 * @param amqpTemplate the amqpTemplate.
 	 * @return the AmqpOutboundEndpointSpec.
 	 */
 	public static AmqpOutboundChannelAdapterSpec outboundAdapter(AmqpTemplate amqpTemplate) {
 		return new AmqpOutboundChannelAdapterSpec(amqpTemplate);
-	}
-
-	/**
-	 * Create an initial {@link RabbitStreamMessageHandlerSpec} (adapter).
-	 * @param template the amqpTemplate.
-	 * @return the RabbitStreamMessageHandlerSpec.
-	 */
-	public static RabbitStreamMessageHandlerSpec outboundStreamAdapter(RabbitStreamTemplate template) {
-		return new RabbitStreamMessageHandlerSpec(template);
 	}
 
 	/**

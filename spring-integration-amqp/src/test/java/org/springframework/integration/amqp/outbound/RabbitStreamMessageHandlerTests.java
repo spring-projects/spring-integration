@@ -23,9 +23,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.RabbitMQContainer;
 
-import org.springframework.integration.amqp.dsl.Amqp;
+import org.springframework.integration.amqp.dsl.RabbitStream;
 import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
@@ -40,15 +39,13 @@ import com.rabbitmq.stream.OffsetSpecification;
  * @author Chris Bono
  * @since 6.0
  */
-public class RabbitStreamMessageHandlerTests {
-
-	private static final RabbitMQContainer RABBITMQ = RabbitTestContainer.sharedInstance();
+public class RabbitStreamMessageHandlerTests implements RabbitTestContainer {
 
 	@Test
 	void convertAndSend() throws InterruptedException {
 		Environment env = Environment.builder()
 				.lazyInitialization(true)
-				.addressResolver(add -> new Address("localhost", RABBITMQ.getMappedPort(5552)))
+				.addressResolver(add -> new Address("localhost", RabbitTestContainer.streamPort()))
 				.build();
 		try {
 			env.deleteStream("stream.stream");
@@ -58,7 +55,7 @@ public class RabbitStreamMessageHandlerTests {
 		env.streamCreator().stream("stream.stream").create();
 		RabbitStreamTemplate streamTemplate = new RabbitStreamTemplate(env, "stream.stream");
 
-		RabbitStreamMessageHandler handler = Amqp.outboundStreamAdapter(streamTemplate)
+		RabbitStreamMessageHandler handler = RabbitStream.outboundStreamAdapter(streamTemplate)
 				.sync(true)
 				.get();
 
@@ -79,13 +76,13 @@ public class RabbitStreamMessageHandlerTests {
 		assertThat(received.get().getBodyAsBinary()).isEqualTo("foo".getBytes());
 		assertThat((String) received.get().getApplicationProperties().get("bar")).isEqualTo("baz");
 		consumer.close();
-		handler.stop();
+		streamTemplate.close();
 	}
 
 	@Test
 	void sendNative() throws InterruptedException {
 		Environment env = Environment.builder()
-				.addressResolver(add -> new Address("localhost", RABBITMQ.getMappedPort(5552)))
+				.addressResolver(add -> new Address("localhost", RabbitTestContainer.streamPort()))
 				.lazyInitialization(true)
 				.build();
 		try {
@@ -117,7 +114,7 @@ public class RabbitStreamMessageHandlerTests {
 		assertThat(received.get().getBodyAsBinary()).isEqualTo("foo".getBytes());
 		assertThat((String) received.get().getApplicationProperties().get("bar")).isEqualTo("baz");
 		consumer.close();
-		handler.stop();
+		streamTemplate.close();
 	}
 
 }

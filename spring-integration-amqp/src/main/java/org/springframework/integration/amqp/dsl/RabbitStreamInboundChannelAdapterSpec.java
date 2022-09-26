@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.amqp.dsl;
 
 import java.util.function.Consumer;
 
-import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.lang.Nullable;
 import org.springframework.rabbit.stream.listener.StreamListenerContainer;
 
@@ -26,7 +25,7 @@ import com.rabbitmq.stream.Codec;
 import com.rabbitmq.stream.Environment;
 
 /**
- * Spec for an inbound channel adapter with a {@link DirectMessageListenerContainer}.
+ * Spec for an inbound channel adapter with a {@link StreamListenerContainer}.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -34,18 +33,18 @@ import com.rabbitmq.stream.Environment;
  * @since 6.0
  *
  */
-public class RabbitInboundChannelAdapterSLCSpec
-		extends AmqpInboundChannelAdapterSpec<RabbitInboundChannelAdapterSLCSpec, StreamListenerContainer> {
+public class RabbitStreamInboundChannelAdapterSpec
+		extends AmqpInboundChannelAdapterSpec<RabbitStreamInboundChannelAdapterSpec, StreamListenerContainer> {
 
-	protected RabbitInboundChannelAdapterSLCSpec(StreamListenerContainer listenerContainer) {
+	protected RabbitStreamInboundChannelAdapterSpec(StreamListenerContainer listenerContainer) {
 		super(new RabbitStreamMessageListenerContainerSpec(listenerContainer));
 	}
 
-	protected RabbitInboundChannelAdapterSLCSpec(Environment environment, @Nullable Codec codec) {
+	protected RabbitStreamInboundChannelAdapterSpec(Environment environment, @Nullable Codec codec) {
 		super(new RabbitStreamMessageListenerContainerSpec(environment, codec));
 	}
 
-	public RabbitInboundChannelAdapterSLCSpec configureContainer(
+	public RabbitStreamInboundChannelAdapterSpec configureContainer(
 			Consumer<RabbitStreamMessageListenerContainerSpec> configurer) {
 
 		configurer.accept((RabbitStreamMessageListenerContainerSpec) this.listenerContainerSpec);

@@ -275,7 +275,7 @@ public class AmqpTests {
 	void streamContainer() {
 		Environment env = mock(Environment.class);
 		given(env.consumerBuilder()).willReturn(mock(ConsumerBuilder.class));
-		RabbitInboundChannelAdapterSLCSpec inboundAdapter = Amqp.inboundAdapter(env);
+		RabbitStreamInboundChannelAdapterSpec inboundAdapter = RabbitStream.inboundAdapter(env);
 		ConsumerCustomizer customizer = mock(ConsumerCustomizer.class);
 		inboundAdapter.configureContainer(container -> container.consumerCustomizer(customizer));
 		inboundAdapter.start();

@@ -1,5 +1,5 @@
 [[amqp]]
-== AMQP Support
+== AMQP (RabbitMQ) Support
 
 Spring Integration provides channel adapters for receiving and sending messages by using the Advanced Message Queuing Protocol (AMQP).
 
@@ -29,6 +29,8 @@ The following adapters are available:
 * <<amqp-outbound-channel-adapter,Outbound Channel Adapter>>
 * <<amqp-outbound-gateway,Outbound Gateway>>
 * <<amqp-async-outbound-gateway,Async Outbound Gateway>>
+* <<rmq-stream-inbound-channel-adapter,RabbitMQ Stream Queue Inbound Channel Adapter>>
+* <<rmq-stream-outbound-channel-adapter,RabbitMQ Stream Queue Outbound Channel Adapter>>
 
 Spring Integration also provides a point-to-point message channel and a publish-subscribe message channel backed by AMQP Exchanges and Queues.
 
@@ -1417,3 +1419,53 @@ In return, that message is retrieved by Spring Integration and printed to the co
 The following image illustrates the basic set of Spring Integration components used in this sample.
 
 .The Spring Integration graph of the AMQP sample image::images/spring-integration-amqp-sample-graph.png[]
+
+[[rmq-streams]]
+=== RabbitMQ Stream Queue Support
+
+Version 6.0 introduced support for RabbitMQ Stream Queues.
+
+The DSL factory class for these endpoints is `Rabbit`.
+
+[[rmq-stream-inbound-channel-adapter]]
+==== RabbitMQ Stream Inbound Channel Adapter
+
+====
+[source, java]
+----
+@Bean
+IntegrationFlow flow(Environment env) {
+    @Bean
+	IntegrationFlow simpleStream(Environment env) {
+		return IntegrationFlow.from(RabbitStream.inboundAdapter(env)
+						.configureContainer(container -> container.queueName("my.stream")))
+				// ...
+				.get();
+	}
+
+	@Bean
+	IntegrationFlow superStream(Environment env) {
+		return IntegrationFlow.from(RabbitStream.inboundAdapter(env)
+						.configureContainer(container -> container.superStream("my.stream", "my.consumer")))
+				// ...
+				.get();
+	}
+}
+----
+====
+
+[[rmq-stream-inbound-channel-adapter]]
+==== RabbitMQ Stream Outbound Channel Adapter
+
+====
+[source, java]
+----
+@Bean
+IntegrationFlow outbound(RabbitStreamTemplate template) {
+    return f -> f
+            // ...
+            .handle(RabbitStream.outboundStreamAdapter(template));
+
+}
+----
+====

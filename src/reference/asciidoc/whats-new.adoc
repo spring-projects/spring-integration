@@ -104,3 +104,8 @@ See <<./jdbc.adoc#jdbc-lock-registry,JDBC Lock Registry>> for more information.
 The `lookupHost` property of the `AbstractConnectionFactory` and `DatagramPacketMessageMapper` is now set to `false` by default to avoid delays in the environments where DNS is not configured.
 
 See <<./ip.adoc#ip,TCP and UDP Support>> for more information.
+
+=== RabbitMQ Changes
+
+The AMQP module has been enhanced to provide support for inbound and outbound channel adapters using RabbitMQ Stream Queues.
+See <<./amqp.adocrmq-streams>> for more information.

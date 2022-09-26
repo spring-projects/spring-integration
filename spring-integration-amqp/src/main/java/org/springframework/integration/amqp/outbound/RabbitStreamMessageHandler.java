@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,15 @@ import java.util.concurrent.TimeoutException;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.MappingUtils;
-import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.rabbit.stream.producer.RabbitStreamOperations;
 import org.springframework.rabbit.stream.support.StreamMessageProperties;
 import org.springframework.util.Assert;
@@ -44,7 +45,7 @@ import org.springframework.util.Assert;
  * @since 6.0
  *
  */
-public class RabbitStreamMessageHandler extends AbstractMessageHandler implements Lifecycle {
+public class RabbitStreamMessageHandler extends AbstractMessageProducingHandler {
 
 	private static final int DEFAULT_CONFIRM_TIMEOUT = 10_000;
 
@@ -54,9 +55,13 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler implement
 
 	private long confirmTimeout = DEFAULT_CONFIRM_TIMEOUT;
 
-	private SuccessCallback successCallback = msg -> { };
+	private MessageChannel sendFailureChannel;
 
-	private FailureCallback failureCallback = (msg, ex) -> { };
+	private String sendFailureChannelName;
+
+	private MessageChannel sendSuccessChannel;
+
+	private String sendSuccessChannelName;
 
 	private AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
 
@@ -72,21 +77,41 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler implement
 	}
 
 	/**
-	 * Set a callback to be invoked when a send is successful.
-	 * @param successCallback the callback.
+	 * Set the failure channel. After a send failure, an
+	 * {@link org.springframework.messaging.support.ErrorMessage} will be sent
+	 * to this channel with a payload of the exception with the
+	 * failed message.
+	 * @param sendFailureChannel the failure channel.
 	 */
-	public void setSuccessCallback(SuccessCallback successCallback) {
-		Assert.notNull(successCallback, "'successCallback' cannot be null");
-		this.successCallback = successCallback;
+	public void setSendFailureChannel(MessageChannel sendFailureChannel) {
+		this.sendFailureChannel = sendFailureChannel;
 	}
 
 	/**
-	 * Set a callback to be invoked when a send fails.
-	 * @param failureCallback the callback.
+	 * Set the failure channel name. After a send failure, an
+	 * {@link org.springframework.messaging.support.ErrorMessage} will be sent
+	 * to this channel with a payload of the exception with the
+	 * failed message.
+	 * @param sendFailureChannelName the failure channel name.
 	 */
-	public void setFailureCallback(FailureCallback failureCallback) {
-		Assert.notNull(failureCallback, "'failureCallback' cannot be null");
-		this.failureCallback = failureCallback;
+	public void setSendFailureChannelName(String sendFailureChannelName) {
+		this.sendFailureChannelName = sendFailureChannelName;
+	}
+
+	/**
+	 * Set the success channel.
+	 * @param sendSuccessChannel the success channel.
+	 */
+	public void setSendSuccessChannel(MessageChannel sendSuccessChannel) {
+		this.sendSuccessChannel = sendSuccessChannel;
+	}
+
+	/**
+	 * Set the Success channel name.
+	 * @param sendSuccessChannelName the success channel name.
+	 */
+	public void setSendSuccessChannelName(String sendSuccessChannelName) {
+		this.sendSuccessChannelName = sendSuccessChannelName;
 	}
 
 	/**
@@ -142,6 +167,28 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler implement
 		return this.streamOperations;
 	}
 
+	protected MessageChannel getSendFailureChannel() {
+		if (this.sendFailureChannel != null) {
+			return this.sendFailureChannel;
+		}
+		else if (this.sendFailureChannelName != null) {
+			this.sendFailureChannel = getChannelResolver().resolveDestination(this.sendFailureChannelName);
+			return this.sendFailureChannel;
+		}
+		return null;
+	}
+
+	protected MessageChannel getSendSuccessChannel() {
+		if (this.sendSuccessChannel != null) {
+			return this.sendSuccessChannel;
+		}
+		else if (this.sendSuccessChannelName != null) {
+			this.sendSuccessChannel = getChannelResolver().resolveDestination(this.sendSuccessChannelName);
+			return this.sendSuccessChannel;
+		}
+		return null;
+	}
+
 	@Override
 	protected void handleMessageInternal(Message<?> requestMessage) {
 		CompletableFuture<Boolean> future;
@@ -162,10 +209,16 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler implement
 	private void handleConfirms(Message<?> message, CompletableFuture<Boolean> future) {
 		future.whenComplete((bool, ex) -> {
 			if (ex != null) {
-				this.failureCallback.failure(message, ex);
+				MessageChannel failures = getSendFailureChannel();
+				if (failures != null) {
+					this.messagingTemplate.send(failures, new ErrorMessage(ex, message));
+				}
 			}
 			else {
-				this.successCallback.onSuccess(message);
+				MessageChannel successes = getSendSuccessChannel();
+				if (successes != null) {
+					this.messagingTemplate.send(successes, message);
+				}
 			}
 		});
 		if (this.sync) {
@@ -188,44 +241,6 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler implement
 		MessageProperties amqpMessageProperties = new StreamMessageProperties();
 		return MappingUtils.mapMessage(message, converter, headerMapper, headersMappedLast, headersMappedLast,
 				amqpMessageProperties);
-	}
-
-	@Override
-	public void start() {
-	}
-
-	@Override
-	public void stop() {
-		this.streamOperations.close();
-	}
-
-	@Override
-	public boolean isRunning() {
-		return true;
-	}
-
-	/**
-	 * Callback for when publishing succeeds.
-	 */
-	public interface SuccessCallback {
-		/**
-		 * Called when the future completes with success.
-		 * Note that Exceptions raised by this method are ignored.
-		 * @param result the result of the future
-		 */
-		void onSuccess(Message<?> result);
-	}
-
-	/**
-	 * Callback for when publishing fails.
-	 */
-	public interface FailureCallback {
-		/**
-		 * Message publish failure.
-		 * @param message the message.
-		 * @param throwable the throwable.
-		 */
-		void failure(Message<?> message, Throwable throwable);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import org.springframework.integration.amqp.outbound.AbstractAmqpOutboundEndpoint;
 import org.springframework.integration.amqp.outbound.RabbitStreamMessageHandler;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.dsl.MessageHandlerSpec;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.rabbit.stream.producer.RabbitStreamOperations;
 
 /**
- * The base {@link MessageHandlerSpec} for {@link AbstractAmqpOutboundEndpoint}s.
+ * The base {@link MessageHandlerSpec} for {@link RabbitStreamMessageHandler}s.
  *
  * @author Gary Russell
  *
@@ -42,7 +42,7 @@ public class RabbitStreamMessageHandlerSpec
 	/**
 	 * Set a custom {@link AmqpHeaderMapper} for mapping request and reply headers.
 	 * @param headerMapper the {@link AmqpHeaderMapper} to use.
-	 * @return the spec
+	 * @return this spec.
 	 */
 	public RabbitStreamMessageHandlerSpec headerMapper(AmqpHeaderMapper headerMapper) {
 		this.target.setHeaderMapper(headerMapper);
@@ -53,7 +53,7 @@ public class RabbitStreamMessageHandlerSpec
 	 * Provide the header names that should be mapped from a request to a
 	 * {@link org.springframework.messaging.MessageHeaders}.
 	 * @param headers The request header names.
-	 * @return the spec
+	 * @return this spec.
 	 */
 	public RabbitStreamMessageHandlerSpec mappedRequestHeaders(String... headers) {
 		this.headerMapper.setRequestHeaderNames(headers);
@@ -64,8 +64,8 @@ public class RabbitStreamMessageHandlerSpec
 	 * Determine whether the headers are
 	 * mapped before the message is converted, or afterwards.
 	 * @param headersLast true to map headers last.
-	 * @return the spec.
-	 * @see AbstractAmqpOutboundEndpoint#setHeadersMappedLast(boolean)
+	 * @return this spec.
+	 * @see RabbitStreamMessageHandler#setHeadersMappedLast(boolean)
 	 */
 	public RabbitStreamMessageHandlerSpec headersMappedLast(boolean headersLast) {
 		this.target.setHeadersMappedLast(headersLast);
@@ -73,26 +73,55 @@ public class RabbitStreamMessageHandlerSpec
 	}
 
 	/**
-	 * Set a callback to be invoked when a send is successful.
-	 * @param callback the callback.
+	 * Set the success channel.
+	 * @param channel the channel.
+	 * @return this spec.
 	 */
-	public RabbitStreamMessageHandlerSpec successCallback(RabbitStreamMessageHandler.SuccessCallback callback) {
-		this.target.setSuccessCallback(callback);
+	public RabbitStreamMessageHandlerSpec sendSuccessChannel(MessageChannel channel) {
+		this.target.setSendSuccessChannel(channel);
 		return this;
 	}
 
 	/**
-	 * Set a callback to be invoked when a send fails.
-	 * @param callback the callback.
+	 * Set the failure channel. After a send failure, an
+	 * {@link org.springframework.messaging.support.ErrorMessage} will be sent
+	 * to this channel with a payload of the exception with the
+	 * failed message.
+	 * @param channel the channel.
+	 * @return this spec.
 	 */
-	public RabbitStreamMessageHandlerSpec failureCallback(RabbitStreamMessageHandler.FailureCallback callback) {
-		this.target.setFailureCallback(callback);
+	public RabbitStreamMessageHandlerSpec sendFailureChannel(MessageChannel channel) {
+		this.target.setSendFailureChannel(channel);
+		return this;
+	}
+
+	/**
+	 * Set the success channel.
+	 * @param channel the channel.
+	 * @return this spec.
+	 */
+	public RabbitStreamMessageHandlerSpec sendSuccessChannel(String channel) {
+		this.target.setSendSuccessChannelName(channel);
+		return this;
+	}
+
+	/**
+	 * Set the failure channel. After a send failure, an
+	 * {@link org.springframework.messaging.support.ErrorMessage} will be sent
+	 * to this channel with a payload of the exception with the
+	 * failed message.
+	 * @param channel the channel.
+	 * @return this spec.
+	 */
+	public RabbitStreamMessageHandlerSpec sendFailureChannel(String channel) {
+		this.target.setSendFailureChannelName(channel);
 		return this;
 	}
 
 	/**
 	 * Set to true to wait for a confirmation.
 	 * @param sync true to wait.
+	 * @return this spec.
 	 * @see #setConfirmTimeout(long)
 	 */
 	public RabbitStreamMessageHandlerSpec sync(boolean sync) {
@@ -103,7 +132,7 @@ public class RabbitStreamMessageHandlerSpec
 	/**
 	 * Set a timeout for the confirm result.
 	 * @param timeout the approximate timeout.
-	 * @return the spec.
+	 * @return this spec.
 	 * @see #sync(boolean)
 	 */
 	public RabbitStreamMessageHandlerSpec confirmTimeout(long timeout) {

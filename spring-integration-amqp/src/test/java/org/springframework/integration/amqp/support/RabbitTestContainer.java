@@ -18,39 +18,40 @@ package org.springframework.integration.amqp.support;
 
 import java.time.Duration;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.RabbitMQContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Provides a static {@link RabbitMQContainer} that can be shared across test classes.
  *
  * @author Chris Bono
+ * @author Gary Russell
  */
-public final class RabbitTestContainer {
+@Testcontainers(disabledWithoutDocker = true)
+public interface RabbitTestContainer {
 
-	private static final RabbitMQContainer RABBITMQ;
-
-	static {
-		String image = "rabbitmq:management";
-		String cache = System.getenv().get("IMAGE_CACHE");
-		if (cache != null) {
-			image = cache + image;
-		}
-		RABBITMQ = new RabbitMQContainer(image)
+	RabbitMQContainer RABBITMQ = new RabbitMQContainer("rabbitmq:management")
 			.withExposedPorts(5672, 15672, 5552)
 			.withEnv("RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS", "-rabbitmq_stream advertised_host localhost")
 			.withPluginsEnabled("rabbitmq_stream")
 			.withStartupTimeout(Duration.ofMinutes(2));
+
+	@BeforeAll
+	static void startContainer() {
 		RABBITMQ.start();
 	}
 
-	private RabbitTestContainer() {
+	static int amqpPort() {
+		return RABBITMQ.getMappedPort(5672);
 	}
 
-	/**
-	 * Should be called early by test that wants to ensure a shared {@link RabbitMQContainer} is up and running.
-	 */
-	public static RabbitMQContainer sharedInstance() {
-		return RABBITMQ;
+	static int managementPort() {
+		return RABBITMQ.getMappedPort(15672);
+	}
+
+	static int streamPort() {
+		return RABBITMQ.getMappedPort(5552);
 	}
 
 }
