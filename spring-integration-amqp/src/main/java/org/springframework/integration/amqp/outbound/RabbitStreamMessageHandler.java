@@ -27,7 +27,8 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.MappingUtils;
-import org.springframework.integration.handler.AbstractMessageProducingHandler;
+import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -45,11 +46,13 @@ import org.springframework.util.Assert;
  * @since 6.0
  *
  */
-public class RabbitStreamMessageHandler extends AbstractMessageProducingHandler {
+public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 
 	private static final int DEFAULT_CONFIRM_TIMEOUT = 10_000;
 
 	private final RabbitStreamOperations streamOperations;
+
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private boolean sync;
 
