@@ -33,11 +33,6 @@ public enum IntegrationObservation implements DocumentedObservation {
 	 */
 	HANDLER {
 		@Override
-		public String getName() {
-			return "spring.integration.handler";
-		}
-
-		@Override
 		public String getPrefix() {
 			return "spring.integration.";
 		}

@@ -78,10 +78,10 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 	}
 
 	private void handleWithObservation(Message<?> message, ObservationRegistry observationRegistry) {
-		IntegrationObservation.HANDLER.observation(
+		IntegrationObservation.HANDLER.createNotStarted(
 						this.observationConvention,
 						DefaultMessageReceiverObservationConvention.INSTANCE,
-						new MessageReceiverContext(message, getComponentName()),
+						() -> new MessageReceiverContext(message, getComponentName()),
 						observationRegistry)
 				.observe(() -> doHandleMessage(message));
 	}

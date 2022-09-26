@@ -33,6 +33,11 @@ public interface MessageReceiverObservationConvention
 		extends ObservationConvention<MessageReceiverContext> {
 
 	@Override
+	default String getName() {
+		return "spring.integration.handler";
+	}
+
+	@Override
 	default boolean supportsContext(Observation.Context context) {
 		return context instanceof MessageReceiverContext;
 	}

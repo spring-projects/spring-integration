@@ -84,8 +84,9 @@ ext {
     lettuceVersion = '6.2.0.RELEASE'
     log4jVersion = '2.19.0'
     mailVersion = '2.0.1'
-	micrometerVersion = '1.10.0-M6'
-    micrometerTracingVersion = '1.0.0-M8'
+    micrometerDocsVersion='1.0.0-SNAPSHOT'
+	micrometerVersion = '1.10.0-SNAPSHOT'
+    micrometerTracingVersion = '1.0.0-SNAPSHOT'
     mockitoVersion = '4.8.0'
     mongoDriverVersion = '4.7.1'
     mysqlVersion = '8.0.30'
@@ -498,6 +499,10 @@ project('spring-integration-core') {
 
     apply plugin: 'org.jetbrains.dokka'
 
+    configurations {
+        adoc
+    }
+
     dependencies {
         api 'org.springframework:spring-aop'
         api 'org.springframework:spring-context'
@@ -534,8 +539,10 @@ project('spring-integration-core') {
             exclude group: 'io.opentelemetry'
             exclude group: 'com.wavefront'
             exclude group: 'io.micrometer', module: 'micrometer-tracing-bridge-otel'
-
         }
+
+        adoc "io.micrometer:micrometer-docs-generator-spans:$micrometerDocsVersion"
+        adoc "io.micrometer:micrometer-docs-generator-metrics:$micrometerDocsVersion"
     }
 
     dokkaHtmlPartial {
@@ -556,6 +563,29 @@ project('spring-integration-core') {
                 }
             }
         }
+    }
+
+    def inputDir = file('src/main/java/org/springframework/integration/support/management/observation').absolutePath
+    def outputDir = rootProject.file('src/reference/asciidoc').absolutePath
+
+    task generateObservabilityMetricsDocs(type: JavaExec) {
+        mainClass = 'io.micrometer.docs.metrics.DocsFromSources'
+        inputs.dir(inputDir)
+        outputs.dir(outputDir)
+        classpath configurations.adoc
+        args inputDir, '.*', outputDir
+    }
+
+    task generateObservabilitySpansDocs(type: JavaExec) {
+        mainClass = 'io.micrometer.docs.spans.DocsFromSources'
+        inputs.dir(inputDir)
+        outputs.dir(outputDir)
+        classpath configurations.adoc
+        args inputDir, '.*', outputDir
+    }
+
+    javadoc {
+        finalizedBy generateObservabilityMetricsDocs, generateObservabilitySpansDocs
     }
 }
 

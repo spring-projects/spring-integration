@@ -56,6 +56,12 @@ See <<./amqp.adoc#rmq-streams,RabbitMQ Stream Queue Support>> for more informati
 The SFTP modules has been fully reworked from outdated JCraft JSch library to more robust and modern `org.apache.sshd:sshd-sftp` module of the Apache MINA project.
 
 See <<./sftp.adoc#sftp,SFTP Adapters>> for more information.
+
+[[x6.0-micrometer-observation]]
+==== Micrometer Observation
+
+Enabling observation for timers and tracing using Micrometer is now supported.
+See <<./metrics.adoc#micrometer-observation,Micrometer Observation>> for more information.
 [[x6.0-general]]
 === General Changes
 
