@@ -85,6 +85,7 @@ public class RabbitStreamMessageHandlerTests {
 	@Test
 	void sendNative() throws InterruptedException {
 		Environment env = Environment.builder()
+				.addressResolver(add -> new Address("localhost", RABBITMQ.getMappedPort(5552)))
 				.lazyInitialization(true)
 				.build();
 		try {
