@@ -123,7 +123,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	private BeanFactory beanFactory;
 
 	@Nullable
-	private Comparator<F> comparator;
+	private Comparator<? extends F> comparator;
 
 	private MetadataStore remoteFileMetadataStore = new SimpleMetadataStore();
 
@@ -141,7 +141,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 	@Nullable
-	protected Comparator<F> getComparator() {
+	protected Comparator<? extends F> getComparator() {
 		return this.comparator;
 	}
 
@@ -151,9 +151,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 * @param comparator the comparator.
 	 * @since 5.1
 	 */
-	@SuppressWarnings("unchecked")
 	public void setComparator(@Nullable Comparator<? extends F> comparator) {
-		this.comparator = (Comparator<F>) comparator;
+		this.comparator = comparator;
 	}
 
 	/**
