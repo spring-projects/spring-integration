@@ -44,6 +44,11 @@ A `PostgresSubscribableChannel` allows to receive push notifications via `Postgr
 
 See <<./jdbc.adoc#postgresql-push,PostgreSQL: Receiving Push Notifications>> for more information.
 
+[[x6.0-rmq]]
+==== RabbitMQ Stream Queue Support
+
+The AMQP module has been enhanced to provide support for inbound and outbound channel adapters using RabbitMQ Stream Queues.
+See <<./amqp.adoc#rmq-streams,RabbitMQ Stream Queue Support>> for more information.
 
 [[x6.0-general]]
 === General Changes

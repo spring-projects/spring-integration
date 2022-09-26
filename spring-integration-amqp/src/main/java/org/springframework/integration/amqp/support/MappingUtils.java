@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,17 +73,39 @@ public final class MappingUtils {
 	 * @since 5.1.9
 	 */
 	public static org.springframework.amqp.core.Message mapReplyMessage(Message<?> replyMessage,
-			MessageConverter converter, AmqpHeaderMapper headerMapper, MessageDeliveryMode defaultDeliveryMode,
-			boolean headersMappedLast) {
+			MessageConverter converter, AmqpHeaderMapper headerMapper,
+			@Nullable MessageDeliveryMode defaultDeliveryMode, boolean headersMappedLast) {
 
 		return doMapMessage(replyMessage, converter, headerMapper, defaultDeliveryMode, headersMappedLast, true);
 	}
 
 	private static org.springframework.amqp.core.Message doMapMessage(Message<?> message,
-			MessageConverter converter, AmqpHeaderMapper headerMapper, MessageDeliveryMode defaultDeliveryMode,
-			boolean headersMappedLast, boolean reply) {
+			MessageConverter converter, AmqpHeaderMapper headerMapper,
+			@Nullable MessageDeliveryMode defaultDeliveryMode, boolean headersMappedLast, boolean reply) {
 
 		MessageProperties amqpMessageProperties = new MessageProperties();
+		org.springframework.amqp.core.Message amqpMessage = mapMessage(message, converter, headerMapper,
+				headersMappedLast, reply, amqpMessageProperties);
+		checkDeliveryMode(message, amqpMessageProperties, defaultDeliveryMode);
+		return amqpMessage;
+	}
+
+	/**
+	 * Map a reply o.s.m.Message to an o.s.a.core.Message. When using a
+	 * {@link ContentTypeDelegatingMessageConverter}, {@link AmqpHeaders#CONTENT_TYPE} and
+	 * {@link MessageHeaders#CONTENT_TYPE} will be used for the selection, with the AMQP
+	 * header taking precedence.
+	 * @param replyMessage the reply message.
+	 * @param converter the message converter to use.
+	 * @param headerMapper the header mapper to use.
+	 * @param headersMappedLast true if headers are mapped after conversion.
+	 * @return the mapped Message.
+	 * @since 6.0
+	 */
+	public static org.springframework.amqp.core.Message mapMessage(Message<?> message, MessageConverter converter,
+			AmqpHeaderMapper headerMapper, boolean headersMappedLast, boolean reply,
+			MessageProperties amqpMessageProperties) {
+
 		org.springframework.amqp.core.Message amqpMessage;
 		if (!headersMappedLast) {
 			mapHeaders(message.getHeaders(), amqpMessageProperties, headerMapper, reply);
@@ -98,7 +120,6 @@ public final class MappingUtils {
 		if (headersMappedLast) {
 			mapHeaders(message.getHeaders(), amqpMessageProperties, headerMapper, reply);
 		}
-		checkDeliveryMode(message, amqpMessageProperties, defaultDeliveryMode);
 		return amqpMessage;
 	}
 

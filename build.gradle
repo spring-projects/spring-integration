@@ -99,7 +99,7 @@ ext {
     rsocketVersion = '1.1.3'
     servletApiVersion = '5.0.0'
     smackVersion = '4.4.6'
-    springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '3.0.0-M4'
+    springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '3.0.0-SNAPSHOT'
     springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2022.0.0-M6'
     springGraphqlVersion = '1.1.0-M1'
     springKafkaVersion = '3.0.0-M6'
@@ -470,12 +470,16 @@ project('spring-integration-amqp') {
         api("org.springframework.amqp:spring-rabbit:$springAmqpVersion") {
             exclude group: 'org.springframework'
         }
+        optionalApi("org.springframework.amqp:spring-rabbit-stream:$springAmqpVersion") {
+            exclude group: 'org.springframework'
+        }
 
         testImplementation("org.springframework.amqp:spring-rabbit-junit:$springAmqpVersion") {
             exclude group: 'org.springframework'
         }
         testImplementation project(':spring-integration-stream')
         testImplementation 'org.springframework:spring-web'
+        testImplementation 'org.testcontainers:rabbitmq'
     }
 }
 

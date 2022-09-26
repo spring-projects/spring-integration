@@ -162,7 +162,6 @@ public class IntegrationManagementConfigurer
 		return this.metricsCaptor;
 	}
 
-	@Nullable
 	private void setupObservationRegistry() {
 		if (this.observationRegistry == null && this.observationRegistryProvider != null) {
 			this.observationRegistry = this.observationRegistryProvider.getIfUnique();

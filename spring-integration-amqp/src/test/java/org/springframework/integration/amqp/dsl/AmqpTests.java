@@ -17,6 +17,10 @@
 package org.springframework.integration.amqp.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -67,8 +71,12 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.rabbit.stream.listener.ConsumerCustomizer;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import com.rabbitmq.stream.ConsumerBuilder;
+import com.rabbitmq.stream.Environment;
 
 /**
  * @author Artem Bilan
@@ -261,6 +269,17 @@ public class AmqpTests {
 				.containsEntry("REPLY_KEY", "REPLY_VALUE");
 
 		registration.destroy();
+	}
+
+	@Test
+	void streamContainer() {
+		Environment env = mock(Environment.class);
+		given(env.consumerBuilder()).willReturn(mock(ConsumerBuilder.class));
+		RabbitStreamInboundChannelAdapterSpec inboundAdapter = RabbitStream.inboundAdapter(env);
+		ConsumerCustomizer customizer = mock(ConsumerCustomizer.class);
+		inboundAdapter.configureContainer(container -> container.consumerCustomizer(customizer));
+		inboundAdapter.start();
+		verify(customizer).accept(any(), any());
 	}
 
 	@Configuration

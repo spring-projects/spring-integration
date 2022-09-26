@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.amqp.dsl;
 import java.util.Collections;
 import java.util.Map;
 
-import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.dsl.ComponentsRegistration;
 
@@ -36,13 +36,13 @@ import org.springframework.integration.dsl.ComponentsRegistration;
  * @since 5.0
  */
 public abstract class AmqpInboundChannelAdapterSpec
-			<S extends AmqpInboundChannelAdapterSpec<S, C>, C extends AbstractMessageListenerContainer>
+			<S extends AmqpInboundChannelAdapterSpec<S, C>, C extends MessageListenerContainer>
 		extends AmqpBaseInboundChannelAdapterSpec<S>
 		implements ComponentsRegistration {
 
-	protected final AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec; // NOSONAR final
+	protected final MessageListenerContainerSpec<?, C> listenerContainerSpec; // NOSONAR final
 
-	protected AmqpInboundChannelAdapterSpec(AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec) {
+	protected AmqpInboundChannelAdapterSpec(MessageListenerContainerSpec<?, C> listenerContainerSpec) {
 		super(new AmqpInboundChannelAdapter(listenerContainerSpec.get()));
 		this.listenerContainerSpec = listenerContainerSpec;
 	}
