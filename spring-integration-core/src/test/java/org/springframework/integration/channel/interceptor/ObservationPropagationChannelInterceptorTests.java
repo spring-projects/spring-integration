@@ -19,7 +19,6 @@ package org.springframework.integration.channel.interceptor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -67,7 +66,6 @@ import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
@@ -240,7 +238,7 @@ public class ObservationPropagationChannelInterceptorTests {
 		TracerAssert.assertThat(this.simpleTracer)
 				.reportedSpans()
 				.hasSize(2)
-				.satisfies(simpleSpans -> assertSpans(simpleSpans)
+				.satisfies(simpleSpans -> SpansAssert.assertThat(simpleSpans)
 						.hasASpanWithName("sending")
 						.assertThatASpanWithNameEqualTo("testBridge receive")
 						.hasTag("foo", "some foo value")
@@ -257,11 +255,6 @@ public class ObservationPropagationChannelInterceptorTests {
 								"error", "none"));
 
 		assertThat(this.meterRegistry.get("spring.integration.handler").timer().count()).isEqualTo(1);
-	}
-
-	@SuppressWarnings("unchecked")
-	private static SpansAssert assertSpans(Collection<? extends FinishedSpan> actual) {
-		return SpansAssert.assertThat((Collection<FinishedSpan>) actual);
 	}
 
 	@Configuration
