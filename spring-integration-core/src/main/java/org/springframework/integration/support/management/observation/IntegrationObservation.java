@@ -17,16 +17,16 @@
 package org.springframework.integration.support.management.observation;
 
 import io.micrometer.common.docs.KeyName;
-import io.micrometer.observation.docs.DocumentedObservation;
+import io.micrometer.observation.docs.ObservationDocumentation;
 
 /**
- * The {@link DocumentedObservation} implementation for Spring Integration infrastructure.
+ * The {@link ObservationDocumentation} implementation for Spring Integration infrastructure.
  *
  * @author Artem Bilan
  *
  * @since 6.0
  */
-public enum IntegrationObservation implements DocumentedObservation {
+public enum IntegrationObservation implements ObservationDocumentation {
 
 	/**
 	 * Observation for message handlers.

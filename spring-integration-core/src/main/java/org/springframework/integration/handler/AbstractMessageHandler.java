@@ -16,6 +16,8 @@
 
 package org.springframework.integration.handler;
 
+import java.util.function.Supplier;
+
 import org.reactivestreams.Subscription;
 
 import org.springframework.integration.history.MessageHistory;
@@ -78,10 +80,10 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 	}
 
 	private void handleWithObservation(Message<?> message, ObservationRegistry observationRegistry) {
-		IntegrationObservation.HANDLER.createNotStarted(
+		IntegrationObservation.HANDLER.observation(
 						this.observationConvention,
 						DefaultMessageReceiverObservationConvention.INSTANCE,
-						() -> new MessageReceiverContext(message, getComponentName()),
+						(Supplier<MessageReceiverContext>) () -> new MessageReceiverContext(message, getComponentName()),
 						observationRegistry)
 				.observe(() -> doHandleMessage(message));
 	}

@@ -569,6 +569,7 @@ project('spring-integration-core') {
     def outputDir = rootProject.file('src/reference/asciidoc').absolutePath
 
     task generateObservabilityMetricsDocs(type: JavaExec) {
+        onlyIf { !isCI }
         mainClass = 'io.micrometer.docs.metrics.DocsFromSources'
         inputs.dir(inputDir)
         outputs.dir(outputDir)
@@ -577,6 +578,7 @@ project('spring-integration-core') {
     }
 
     task generateObservabilitySpansDocs(type: JavaExec) {
+        onlyIf { !isCI }
         mainClass = 'io.micrometer.docs.spans.DocsFromSources'
         inputs.dir(inputDir)
         outputs.dir(outputDir)
