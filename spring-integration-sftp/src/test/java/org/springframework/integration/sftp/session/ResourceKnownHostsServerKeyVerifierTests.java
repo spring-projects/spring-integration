@@ -39,6 +39,7 @@ import org.apache.sshd.common.util.GenericUtils;
 import org.apache.sshd.common.util.net.SshdSocketAddress;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.mockito.Mockito;
 
@@ -52,6 +53,8 @@ import org.springframework.core.io.FileSystemResource;
  */
 @EnabledIf("isDefaultKnownHostsFilePresent")
 public class ResourceKnownHostsServerKeyVerifierTests {
+
+	private static final String HASHED_HOST = "192.168.1.61";
 
 	private static final Map<SshdSocketAddress, PublicKey> HOST_KEYS = new TreeMap<>(SshdSocketAddress.BY_HOST_AND_PORT);
 
@@ -99,7 +102,7 @@ public class ResourceKnownHostsServerKeyVerifierTests {
 			int pos = line.indexOf(' ');
 			String patterns = line.substring(0, pos);
 			if (entry.getHashedEntry() != null) {
-				hostsMap.put(new SshdSocketAddress("localhost", 0), entry);
+				hostsMap.put(new SshdSocketAddress(HASHED_HOST, 0), entry);
 			}
 			else {
 				String[] addrs = GenericUtils.split(patterns, ',');
