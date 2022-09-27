@@ -39,7 +39,6 @@ import org.apache.sshd.common.util.GenericUtils;
 import org.apache.sshd.common.util.net.SshdSocketAddress;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.mockito.Mockito;
 
