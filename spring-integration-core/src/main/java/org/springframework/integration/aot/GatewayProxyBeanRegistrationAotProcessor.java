@@ -26,6 +26,7 @@ import org.springframework.beans.factory.aot.BeanRegistrationAotContribution;
 import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
 import org.springframework.beans.factory.aot.BeanRegistrationCode;
 import org.springframework.beans.factory.aot.BeanRegistrationCodeFragments;
+import org.springframework.beans.factory.aot.BeanRegistrationCodeFragmentsDecorator;
 import org.springframework.beans.factory.support.RegisteredBean;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.DecoratingProxy;
@@ -45,15 +46,15 @@ class GatewayProxyBeanRegistrationAotProcessor implements BeanRegistrationAotPro
 	public BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
 		if (GatewayProxyFactoryBean.class.isAssignableFrom(registeredBean.getBeanClass())) {
 			return BeanRegistrationAotContribution
-					.ofBeanRegistrationCodeFragmentsCustomizer(GatewayProxyBeanRegistrationCodeFragments::new);
+					.withCustomCodeFragments(GatewayProxyBeanRegistrationCodeFragments::new);
 		}
 		return null;
 	}
 
-	private static class GatewayProxyBeanRegistrationCodeFragments extends BeanRegistrationCodeFragments {
+	private static class GatewayProxyBeanRegistrationCodeFragments extends BeanRegistrationCodeFragmentsDecorator {
 
-		GatewayProxyBeanRegistrationCodeFragments(BeanRegistrationCodeFragments codeFragments) {
-			super(codeFragments);
+		GatewayProxyBeanRegistrationCodeFragments(BeanRegistrationCodeFragments delegate) {
+			super(delegate);
 		}
 
 		@Override
