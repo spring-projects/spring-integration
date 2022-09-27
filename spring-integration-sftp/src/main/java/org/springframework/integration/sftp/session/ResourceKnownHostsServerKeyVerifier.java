@@ -131,8 +131,8 @@ public class ResourceKnownHostsServerKeyVerifier implements ServerKeyVerifier {
 	private static Collection<SshdSocketAddress> resolveHostNetworkIdentities(
 			ClientSession clientSession, SocketAddress remoteAddress) {
 		/*
-		 * NOTE !!! we do not resolve the fully-qualified name to avoid long DNS timeouts. Instead we use the reported
-		 * peer address and the original connection target host
+		 * NOTE !!! we do not resolve the fully-qualified name to avoid long DNS timeouts.
+		 * Instead, we use the reported peer address and the original connection target host
 		 */
 		Collection<SshdSocketAddress> candidates = new TreeSet<>(SshdSocketAddress.BY_HOST_AND_PORT);
 		candidates.add(SshdSocketAddress.toSshdSocketAddress(remoteAddress));

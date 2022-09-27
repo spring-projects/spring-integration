@@ -122,7 +122,7 @@ public class ResourceKnownHostsServerKeyVerifierTests {
 	}
 
 	static boolean isDefaultKnownHostsFilePresent() {
-		return KnownHostEntry.getDefaultKnownHostsFile().toFile().exists();
+		return System.getenv("bamboo_buildKey") == null && KnownHostEntry.getDefaultKnownHostsFile().toFile().exists();
 	}
 
 }
