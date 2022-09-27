@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.util.ObjectUtils;
  * Utilities for operations on Files.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0
  *
@@ -47,8 +48,8 @@ public final class FileUtils {
 	 * @since 5.0.7
 	 */
 	@SuppressWarnings("unchecked")
-	public static <F> F[] purgeUnwantedElements(F[] fileArray, Predicate<F> predicate,
-			@Nullable Comparator<F> comparator) {
+	public static <F> F[] purgeUnwantedElements(F[] fileArray, Predicate<? extends F> predicate,
+			@Nullable Comparator<? extends F> comparator) {
 
 		if (ObjectUtils.isEmpty(fileArray)) {
 			return fileArray;
@@ -56,13 +57,13 @@ public final class FileUtils {
 		else {
 			if (comparator == null) {
 				return Arrays.stream(fileArray)
-						.filter(predicate.negate())
+						.filter((Predicate<? super F>) predicate.negate())
 						.toArray(size -> (F[]) Array.newInstance(fileArray[0].getClass(), size));
 			}
 			else {
 				return Arrays.stream(fileArray)
-						.filter(predicate.negate())
-						.sorted(comparator)
+						.filter((Predicate<? super F>) predicate.negate())
+						.sorted((Comparator<? super F>) comparator)
 						.toArray(size -> (F[]) Array.newInstance(fileArray[0].getClass(), size));
 			}
 		}

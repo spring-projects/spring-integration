@@ -16,26 +16,28 @@
 
 package org.springframework.integration.sftp.outbound;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
+import org.apache.sshd.sftp.client.SftpClient;
+
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
-import org.springframework.integration.sftp.support.GeneralSftpException;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.SftpException;
 
 /**
  * Subclass of {@link FileTransferringMessageHandler} for SFTP.
  *
  * @author Gary Russell
+ * @author Artme Bilan
+ *
  * @since 4.3
  *
  */
-public class SftpMessageHandler extends FileTransferringMessageHandler<LsEntry> {
+public class SftpMessageHandler extends FileTransferringMessageHandler<SftpClient.DirEntry> {
 
 	/**
 	 * @param remoteFileTemplate the template.
@@ -62,7 +64,7 @@ public class SftpMessageHandler extends FileTransferringMessageHandler<LsEntry> 
 	 * @see FileTransferringMessageHandler#FileTransferringMessageHandler
 	 * (SessionFactory)
 	 */
-	public SftpMessageHandler(SessionFactory<LsEntry> sessionFactory) {
+	public SftpMessageHandler(SessionFactory<SftpClient.DirEntry> sessionFactory) {
 		this(new SftpRemoteFileTemplate(sessionFactory));
 	}
 
@@ -72,14 +74,16 @@ public class SftpMessageHandler extends FileTransferringMessageHandler<LsEntry> 
 	}
 
 	@Override
-	protected void doChmod(RemoteFileTemplate<LsEntry> remoteFileTemplate, final String path, final int chmod) {
-		remoteFileTemplate.executeWithClient((ClientCallbackWithoutResult<ChannelSftp>) client -> {
+	protected void doChmod(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate, String path, int chmod) {
+		remoteFileTemplate.executeWithClient((ClientCallbackWithoutResult<SftpClient>) client -> {
 			try {
-				client.chmod(chmod, path);
+				SftpClient.Attributes attributes = client.stat(path);
+				attributes.setPermissions(chmod);
+				client.setStat(path, attributes);
 			}
-			catch (SftpException e) {
-				throw new GeneralSftpException(
-						"Failed to execute 'chmod " + Integer.toOctalString(chmod) + " " + path + "'", e);
+			catch (IOException ex) {
+				throw new UncheckedIOException(
+						"Failed to execute 'chmod " + Integer.toOctalString(chmod) + " " + path + "'", ex);
 			}
 		});
 	}

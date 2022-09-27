@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,11 @@
 package org.springframework.integration.sftp.session;
 
 
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.spy;
+
+import org.apache.sshd.sftp.client.SftpClient;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -28,9 +33,12 @@ public class SftpTestSessionFactory {
 		super();
 	}
 
-	public static SftpSession createSftpSession(com.jcraft.jsch.Session jschSession) {
-		SftpSession sftpSession = new SftpSession(jschSession);
-		sftpSession.connect();
+	public static SftpSession createSftpSession(SftpClient sftpClient) {
+		SftpSession sftpSession = spy(new SftpSession(sftpClient));
+		willReturn("mock.sftp.host:22")
+				.given(sftpSession)
+				.getHostPort();
 		return sftpSession;
 	}
+
 }

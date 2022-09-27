@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Collections;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
+import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,8 +32,6 @@ import org.springframework.integration.file.remote.session.CachingSessionFactory
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.server.ApacheMinaSftpEventListener;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * Provides an embedded SFTP Server for test cases.
@@ -77,14 +76,16 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		port = server.getPort();
 	}
 
-	public static SessionFactory<LsEntry> sessionFactory() {
-		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
+	public static SessionFactory<SftpClient.DirEntry> sessionFactory() {
+		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(false);
 		factory.setHost("localhost");
 		factory.setPort(port);
 		factory.setUser("foo");
 		factory.setPassword("foo");
 		factory.setAllowUnknownKeys(true);
-		return new CachingSessionFactory<>(factory);
+		CachingSessionFactory<SftpClient.DirEntry> cachingSessionFactory = new CachingSessionFactory<>(factory);
+		cachingSessionFactory.setTestSession(true);
+		return cachingSessionFactory;
 	}
 
 	public static ApacheMinaSftpEventListener eventListener() {

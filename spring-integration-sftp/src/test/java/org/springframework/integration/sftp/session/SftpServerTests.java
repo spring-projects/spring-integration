@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import java.util.Collections;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
+import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.junit.jupiter.api.Test;
 
@@ -43,8 +44,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.FileCopyUtils;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * *
@@ -59,8 +58,7 @@ public class SftpServerTests {
 
 	@Test
 	public void testUcPw() throws Exception {
-		SshServer server = SshServer.setUpDefaultServer();
-		try {
+		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
 			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
@@ -76,11 +74,8 @@ public class SftpServerTests {
 			f.setUser("user");
 			f.setPassword("pass");
 			f.setAllowUnknownKeys(true);
-			Session<LsEntry> session = f.getSession();
+			Session<SftpClient.DirEntry> session = f.getSession();
 			doTest(server, session);
-		}
-		finally {
-			server.stop(true);
 		}
 	}
 
@@ -94,11 +89,9 @@ public class SftpServerTests {
 		testKeyExchange("id_rsa_pp.pub", "id_rsa_pp", "secret");
 	}
 
-	private void testKeyExchange(String pubKey, String privKey, String passphrase)
-			throws Exception {
-		SshServer server = SshServer.setUpDefaultServer();
+	private void testKeyExchange(String pubKey, String privKey, String passphrase) throws Exception {
 		final PublicKey allowedKey = decodePublicKey(pubKey);
-		try {
+		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPublickeyAuthenticator((username, key, session) -> key.equals(allowedKey));
 			server.setPort(0);
 			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
@@ -116,11 +109,8 @@ public class SftpServerTests {
 			InputStream stream = new ClassPathResource(privKey).getInputStream();
 			f.setPrivateKey(new ByteArrayResource(FileCopyUtils.copyToByteArray(stream)));
 			f.setPrivateKeyPassphrase(passphrase);
-			Session<LsEntry> session = f.getSession();
+			Session<SftpClient.DirEntry> session = f.getSession();
 			doTest(server, session);
-		}
-		finally {
-			server.stop(true);
 		}
 	}
 
@@ -155,12 +145,15 @@ public class SftpServerTests {
 		return new BigInteger(bytes);
 	}
 
-	protected void doTest(SshServer server, Session<LsEntry> session) throws IOException {
+	protected void doTest(SshServer server, Session<SftpClient.DirEntry> session) throws IOException {
 		assertThat(server.getActiveSessions().size()).isEqualTo(1);
-		LsEntry[] list = session.list(".");
-		if (list.length > 0) {
-			session.remove("*");
+		SftpClient.DirEntry[] list = session.list(".");
+		for (SftpClient.DirEntry entry : list) {
+			if (entry.getAttributes().isRegularFile()) {
+				session.remove(entry.getFilename());
+			}
 		}
+
 		session.write(new ByteArrayInputStream("foo".getBytes()), "bar");
 		list = session.list(".");
 		assertThat(list[1].getFilename()).isEqualTo("bar");

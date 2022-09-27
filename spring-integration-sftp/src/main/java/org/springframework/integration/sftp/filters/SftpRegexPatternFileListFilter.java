@@ -18,19 +18,20 @@ package org.springframework.integration.sftp.filters;
 
 import java.util.regex.Pattern;
 
-import org.springframework.integration.file.filters.AbstractRegexPatternFileListFilter;
+import org.apache.sshd.sftp.client.SftpClient;
 
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
+import org.springframework.integration.file.filters.AbstractRegexPatternFileListFilter;
 
 /**
  * Implementation of {@link AbstractRegexPatternFileListFilter} for SFTP.
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-public class SftpRegexPatternFileListFilter extends AbstractRegexPatternFileListFilter<ChannelSftp.LsEntry> {
+public class SftpRegexPatternFileListFilter extends AbstractRegexPatternFileListFilter<SftpClient.DirEntry> {
 
 	public SftpRegexPatternFileListFilter(String pattern) {
 		super(pattern);
@@ -42,13 +43,13 @@ public class SftpRegexPatternFileListFilter extends AbstractRegexPatternFileList
 
 
 	@Override
-	protected String getFilename(LsEntry entry) {
+	protected String getFilename(SftpClient.DirEntry entry) {
 		return (entry != null) ? entry.getFilename() : null;
 	}
 
 	@Override
-	protected boolean isDirectory(LsEntry file) {
-		return file.getAttrs().isDir();
+	protected boolean isDirectory(SftpClient.DirEntry file) {
+		return file.getAttributes().isDirectory();
 	}
 
 }

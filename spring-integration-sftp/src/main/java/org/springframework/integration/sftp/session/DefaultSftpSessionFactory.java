@@ -17,31 +17,38 @@
 package org.springframework.integration.sftp.session;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Properties;
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.sshd.client.SshClient;
+import org.apache.sshd.client.auth.keyboard.UserInteraction;
+import org.apache.sshd.client.auth.password.PasswordIdentityProvider;
+import org.apache.sshd.client.config.hosts.HostConfigEntry;
+import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
+import org.apache.sshd.client.keyverifier.RejectAllServerKeyVerifier;
+import org.apache.sshd.client.keyverifier.ServerKeyVerifier;
+import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.common.SshConstants;
+import org.apache.sshd.common.config.keys.FilePasswordProvider;
+import org.apache.sshd.common.keyprovider.KeyIdentityProvider;
+import org.apache.sshd.common.util.io.resource.AbstractIoResource;
+import org.apache.sshd.common.util.io.resource.IoResource;
+import org.apache.sshd.common.util.net.SshdSocketAddress;
+import org.apache.sshd.common.util.security.SecurityUtils;
+import org.apache.sshd.sftp.client.SftpClient;
+import org.apache.sshd.sftp.client.SftpClientFactory;
+import org.apache.sshd.sftp.client.SftpVersionSelector;
 
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.JavaUtils;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.session.SharedSessionCapable;
 import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Proxy;
-import com.jcraft.jsch.SocketFactory;
-import com.jcraft.jsch.UIKeyboardInteractive;
-import com.jcraft.jsch.UserInfo;
 
 /**
  * Factory for creating {@link SftpSession} instances.
@@ -57,29 +64,27 @@ import com.jcraft.jsch.UserInfo;
  *
  * @since 2.0
  */
-public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, SharedSessionCapable {
+public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirEntry>, SharedSessionCapable {
 
-	private static final Log LOGGER = LogFactory.getLog(DefaultSftpSessionFactory.class);
+	private final SshClient sshClient;
 
-	static {
-		JSch.setLogger(new JschLogger());
-	}
-
-	private final UserInfo userInfoWrapper = new UserInfoWrapper();
-
-	private final JSch jsch;
+	private final AtomicBoolean initialized = new AtomicBoolean();
 
 	private final boolean isSharedSession;
 
 	private final Lock sharedSessionLock;
 
+	private boolean isInnerClient = false;
+
 	private String host;
 
-	private int port = 22; // NOSONAR magic number. The default
+	private int port = SshConstants.DEFAULT_PORT;
 
 	private String user;
 
 	private String password;
+
+	private HostConfigEntry hostConfig;
 
 	private Resource knownHosts;
 
@@ -87,32 +92,15 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	private String privateKeyPassphrase;
 
-	private Properties sessionConfig;
-
-	private Proxy proxy;
-
-	private SocketFactory socketFactory;
-
-	private Integer timeout;
-
-	private String clientVersion;
-
-	private String hostKeyAlias;
-
-	private Integer serverAliveInterval;
-
-	private Integer serverAliveCountMax;
-
-	private Boolean enableDaemonThread;
-
-	private UserInfo userInfo;
+	private UserInteraction userInteraction;
 
 	private boolean allowUnknownKeys = false;
 
-	private Duration channelConnectTimeout;
+	private Integer timeout;
 
-	private volatile JSchSessionWrapper sharedJschSession;
+	private SftpVersionSelector sftpVersionSelector = SftpVersionSelector.CURRENT;
 
+	private volatile SftpClient sharedSftpClient;
 
 	public DefaultSftpSessionFactory() {
 		this(false);
@@ -122,16 +110,18 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * @param isSharedSession true if the session is to be shared.
 	 */
 	public DefaultSftpSessionFactory(boolean isSharedSession) {
-		this(new JSch(), isSharedSession);
+		this(SshClient.setUpDefaultClient(), isSharedSession);
+		this.isInnerClient = true;
 	}
 
 	/**
 	 * Intended for use in tests so the jsch can be mocked.
-	 * @param jsch The jsch instance.
+	 * @param sshClient The SshClient instance.
 	 * @param isSharedSession true if the session is to be shared.
 	 */
-	public DefaultSftpSessionFactory(JSch jsch, boolean isSharedSession) {
-		this.jsch = jsch;
+	public DefaultSftpSessionFactory(SshClient sshClient, boolean isSharedSession) {
+		Assert.notNull(sshClient, "'sshClient' must not be null");
+		this.sshClient = sshClient;
 		this.isSharedSession = isSharedSession;
 		if (this.isSharedSession) {
 			this.sharedSessionLock = new ReentrantLock();
@@ -142,9 +132,9 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	}
 
 	/**
-	 * The url of the host you want connect to. This is a mandatory property.
+	 * The url of the host you want to connect to. This is a mandatory property.
 	 * @param host The host.
-	 * @see JSch#getSession(String, String, int)
+	 * @see SshClient#connect(String, String, int)
 	 */
 	public void setHost(String host) {
 		this.host = host;
@@ -155,7 +145,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * this value defaults to <code>22</code>. If specified, this properties must
 	 * be a positive number.
 	 * @param port The port.
-	 * @see JSch#getSession(String, String, int)
+	 * @see SshClient#connect(String, String, int)
 	 */
 	public void setPort(int port) {
 		this.port = port;
@@ -164,7 +154,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * The remote user to use. This is a mandatory property.
 	 * @param user The user.
-	 * @see JSch#getSession(String, String, int)
+	 * @see SshClient#connect(String, String, int)
 	 */
 	public void setUser(String user) {
 		this.user = user;
@@ -174,23 +164,36 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * The password to authenticate against the remote host. If a password is
 	 * not provided, then a {@link DefaultSftpSessionFactory#setPrivateKey(Resource) privateKey} is
 	 * mandatory.
-	 * Not allowed if {@link #setUserInfo(UserInfo) userInfo} is provided - the password is obtained
-	 * from that object.
 	 * @param password The password.
-	 * @see com.jcraft.jsch.Session#setPassword(String)
+	 * @see SshClient#setPasswordIdentityProvider(PasswordIdentityProvider)
 	 */
 	public void setPassword(String password) {
+		Assert.state(this.isInnerClient,
+				"A password must be configured on the externally provided SshClient instance");
 		this.password = password;
 	}
 
 	/**
-	 * Specifies the filename that will be used for a host key repository.
-	 * The file has the same format as OpenSSH's known_hosts file.
+	 * Provide a {@link HostConfigEntry} as an alternative for the user/host/port options.
+	 * Can be configured with a proxy jump property.
+	 * @param hostConfig the {@link HostConfigEntry} for connection.
+	 * @since 6.0
+	 * @see SshClient#connect(HostConfigEntry)
+	 */
+	public void setHostConfig(HostConfigEntry hostConfig) {
+		this.hostConfig = hostConfig;
+	}
+
+	/**
+	 * Specifies a {@link Resource} that will be used for a host key repository.
+	 * The data has to have the same format as OpenSSH's known_hosts file.
 	 * @param knownHosts the resource for known hosts.
 	 * @since 5.2.5
-	 * @see JSch#setKnownHosts(java.io.InputStream)
+	 * @see SshClient#setServerKeyVerifier(ServerKeyVerifier)
 	 */
 	public void setKnownHostsResource(Resource knownHosts) {
+		Assert.state(this.isInnerClient,
+				"Known hosts must be configured on the externally provided SshClient instance");
 		this.knownHosts = knownHosts;
 	}
 
@@ -198,152 +201,43 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * Allows you to set a {@link Resource}, which represents the location of the
 	 * private key used for authenticating against the remote host. If the privateKey
 	 * is not provided, then the {@link DefaultSftpSessionFactory#setPassword(String) password}
-	 * property is mandatory (or {@link #setUserInfo(UserInfo) userInfo} that returns a
-	 * password.
+	 * property is mandatory.
 	 * @param privateKey The private key.
-	 * @see JSch#addIdentity(String)
-	 * @see JSch#addIdentity(String, String)
+	 * @see SshClient#setKeyIdentityProvider(KeyIdentityProvider)
 	 */
 	public void setPrivateKey(Resource privateKey) {
+		Assert.state(this.isInnerClient,
+				"A private key auth must be configured on the externally provided SshClient instance");
 		this.privateKey = privateKey;
 	}
 
 	/**
 	 * The password for the private key. Optional.
-	 * Not allowed if {@link #setUserInfo(UserInfo) userInfo} is provided - the passphrase is obtained
-	 * from that object.
 	 * @param privateKeyPassphrase The private key passphrase.
-	 * @see JSch#addIdentity(String, String)
+	 * @see SshClient#setKeyIdentityProvider(KeyIdentityProvider)
 	 */
 	public void setPrivateKeyPassphrase(String privateKeyPassphrase) {
+		Assert.state(this.isInnerClient,
+				"A private key auth must be configured on the externally provided SshClient instance");
 		this.privateKeyPassphrase = privateKeyPassphrase;
 	}
 
 	/**
-	 * Using {@link Properties}, you can set additional configuration settings on
-	 * the underlying JSch {@link com.jcraft.jsch.Session}.
-	 * @param sessionConfig The session configuration properties.
-	 * @see com.jcraft.jsch.Session#setConfig(Properties)
-	 */
-	public void setSessionConfig(Properties sessionConfig) {
-		this.sessionConfig = sessionConfig;
-	}
-
-	/**
-	 * Allows for specifying a JSch-based {@link Proxy}. If set, then the proxy
-	 * object is used to create the connection to the remote host.
-	 * @param proxy The proxy.
-	 * @see com.jcraft.jsch.Session#setProxy(Proxy)
-	 */
-	public void setProxy(Proxy proxy) {
-		this.proxy = proxy;
-	}
-
-	/**
-	 * Allows you to pass in a {@link SocketFactory}. The socket factory is used
-	 * to create a socket to the target host. When a {@link Proxy} is used, the
-	 * socket factory is passed to the proxy. By default plain TCP sockets are used.
-	 * @param socketFactory The socket factory.
-	 * @see com.jcraft.jsch.Session#setSocketFactory(SocketFactory)
-	 */
-	public void setSocketFactory(SocketFactory socketFactory) {
-		this.socketFactory = socketFactory;
-	}
-
-	/**
-	 * The timeout property is used as the socket timeout parameter, as well as
-	 * the default connection timeout. Defaults to <code>0</code>, which means,
-	 * that no timeout will occur.
-	 * @param timeout The timeout.
-	 * @see com.jcraft.jsch.Session#setTimeout(int)
-	 */
-	public void setTimeout(Integer timeout) {
-		this.timeout = timeout;
-	}
-
-	/**
-	 * Allows you to set the client version property. It's default depends on the
-	 * underlying JSch version but it will look like <code>SSH-2.0-JSCH-0.1.45</code>
-	 * @param clientVersion The client version.
-	 * @see com.jcraft.jsch.Session#setClientVersion(String)
-	 */
-	public void setClientVersion(String clientVersion) {
-		this.clientVersion = clientVersion;
-	}
-
-	/**
-	 * Sets the host key alias, used when comparing the host key to the known
-	 * hosts list.
-	 * @param hostKeyAlias The host key alias.
-	 * @see com.jcraft.jsch.Session#setHostKeyAlias(String)
-	 */
-	public void setHostKeyAlias(String hostKeyAlias) {
-		this.hostKeyAlias = hostKeyAlias;
-	}
-
-	/**
-	 * Sets the timeout interval (milliseconds) before a server alive message is
-	 * sent, in case no message is received from the server.
-	 * @param serverAliveInterval The server alive interval.
-	 * @see com.jcraft.jsch.Session#setServerAliveInterval(int)
-	 */
-	public void setServerAliveInterval(Integer serverAliveInterval) {
-		this.serverAliveInterval = serverAliveInterval;
-	}
-
-	/**
-	 * Specifies the number of server-alive messages, which will be sent without
-	 * any reply from the server before disconnecting. If not set, this property
-	 * defaults to <code>1</code>.
-	 * @param serverAliveCountMax The server alive count max.
-	 * @see com.jcraft.jsch.Session#setServerAliveCountMax(int)
-	 */
-	public void setServerAliveCountMax(Integer serverAliveCountMax) {
-		this.serverAliveCountMax = serverAliveCountMax;
-	}
-
-	/**
-	 * If true, all threads will be daemon threads. If set to <code>false</code>,
-	 * normal non-daemon threads will be used. This property will be set on the
-	 * underlying {@link com.jcraft.jsch.Session} using
-	 * {@link com.jcraft.jsch.Session#setDaemonThread(boolean)}. There, this
-	 * property will default to <code>false</code>, if not explicitly set.
-	 * @param enableDaemonThread true to enable a daemon thread.
-	 * @see com.jcraft.jsch.Session#setDaemonThread(boolean)
-	 */
-	public void setEnableDaemonThread(Boolean enableDaemonThread) {
-		this.enableDaemonThread = enableDaemonThread;
-	}
-
-	/**
-	 * Provide a {@link UserInfo} which exposes control over dealing with new keys or key
+	 * Provide a {@link UserInteraction} which exposes control over dealing with new keys or key
 	 * changes. As Spring Integration will not normally allow user interaction, the
-	 * implementation must respond to Jsch calls in a suitable way.
-	 * <p>
-	 * Jsch calls {@link UserInfo#promptYesNo(String)} when connecting to an unknown host,
-	 * or when a known host's key has changed (see {@link #setKnownHostsResource(Resource)}
-	 * knownHosts}). Generally, it should return false as returning true will accept all
-	 * new keys or key changes.
-	 * <p>
-	 * If no {@link UserInfo} is provided, the behavior is defined by
-	 * {@link #setAllowUnknownKeys(boolean) allowUnknownKeys}.
-	 * <p>
-	 * If {@link #setPassword(String) setPassword} is invoked with a non-null password, it will
-	 * override any password in the supplied {@link UserInfo}.
-	 * <p>
-	 * <b>NOTE: When this is provided, the {@link #setPassword(String) password} and
-	 * {@link #setPrivateKeyPassphrase(String) passphrase} are not allowed because those values
-	 * will be obtained from the {@link UserInfo}.</b>
-	 * @param userInfo the UserInfo.
+	 * implementation must respond to SSH protocol calls in a suitable way.
+	 * @param userInteraction the UserInteraction.
 	 * @since 4.1.7
-	 * @see com.jcraft.jsch.Session#setUserInfo(com.jcraft.jsch.UserInfo)
+	 * @see SshClient#setUserInteraction(UserInteraction)
 	 */
-	public void setUserInfo(UserInfo userInfo) {
-		this.userInfo = userInfo;
+	public void setUserInteraction(UserInteraction userInteraction) {
+		Assert.state(this.isInnerClient,
+				"A `UserInteraction` must be configured on the externally provided SshClient instance");
+		this.userInteraction = userInteraction;
 	}
 
 	/**
-	 * When no {@link UserInfo} has been provided, set to true to unconditionally allow
+	 * When no {@link #knownHosts} has been provided, set to true to unconditionally allow
 	 * connecting to an unknown host or when a host's key has changed (see
 	 * {@link #setKnownHostsResource(Resource) knownHosts}). Default false (since 4.2).
 	 * Set to true if a knownHosts file is not provided.
@@ -351,17 +245,25 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * @since 4.1.7
 	 */
 	public void setAllowUnknownKeys(boolean allowUnknownKeys) {
+		Assert.state(this.isInnerClient,
+				"An `AcceptAllServerKeyVerifier` must be configured on the externally provided SshClient instance");
 		this.allowUnknownKeys = allowUnknownKeys;
 	}
 
 	/**
-	 * Set the connection timeout.
-	 * @param timeout the timeout to set.
-	 * @since 5.2
+	 * The timeout property is used as the socket timeout parameter, as well as
+	 * the default connection timeout. Defaults to <code>0</code>, which means,
+	 * that no timeout will occur.
+	 * @param timeout The timeout.
+	 * @see org.apache.sshd.client.future.ConnectFuture#verify(long)
 	 */
-	public void setChannelConnectTimeout(Duration timeout) {
-		Assert.notNull(timeout, "'connectTimeout' cannot be null");
-		this.channelConnectTimeout = timeout;
+	public void setTimeout(Integer timeout) {
+		this.timeout = timeout;
+	}
+
+	public void setSftpVersionSelector(SftpVersionSelector sftpVersionSelector) {
+		Assert.notNull(sftpVersionSelector, "'sftpVersionSelector' must noy be null");
+		this.sftpVersionSelector = sftpVersionSelector;
 	}
 
 	@Override
@@ -370,18 +272,19 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		if (this.sharedSessionLock != null) {
 			this.sharedSessionLock.lock();
 		}
-		JSchSessionWrapper jschSession = this.sharedJschSession;
+		SftpClient sftpClient = this.sharedSftpClient;
 		try {
-			boolean freshJschSession = false;
-			if (jschSession == null || !jschSession.isConnected()) {
-				jschSession = new JSchSessionWrapper(initJschSession());
-				freshJschSession = true;
+			boolean freshSftpClient = false;
+			if (sftpClient == null || !sftpClient.isOpen()) {
+				sftpClient =
+						SftpClientFactory.instance()
+								.createSftpClient(initClientSession(), this.sftpVersionSelector);
+				freshSftpClient = true;
 			}
-			sftpSession = new SftpSession(jschSession);
-			JavaUtils.INSTANCE.acceptIfNotNull(this.channelConnectTimeout, sftpSession::setChannelConnectTimeout);
+			sftpSession = new SftpSession(sftpClient);
 			sftpSession.connect();
-			if (this.isSharedSession && freshJschSession) {
-				this.sharedJschSession = jschSession;
+			if (this.isSharedSession && freshSftpClient) {
+				this.sharedSftpClient = sftpClient;
 			}
 		}
 		catch (Exception e) {
@@ -392,60 +295,68 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				this.sharedSessionLock.unlock();
 			}
 		}
-		jschSession.addChannel();
 		return sftpSession;
 	}
 
-	private com.jcraft.jsch.Session initJschSession() throws JSchException, IOException {
+	private ClientSession initClientSession() throws IOException {
 		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
-		Assert.isTrue(StringUtils.hasText(this.userInfoWrapper.getPassword()) || this.privateKey != null,
-				"either a password or a private key is required");
 
-		if (this.port <= 0) {
-			this.port = 22; // NOSONAR magic number
-		}
-		if (this.knownHosts != null) {
-			this.jsch.setKnownHosts(this.knownHosts.getInputStream());
-		}
+		initClient();
 
-		// private key
-		if (this.privateKey != null) {
-			byte[] keyByteArray = FileCopyUtils.copyToByteArray(this.privateKey.getInputStream());
-			String passphrase = this.userInfoWrapper.getPassphrase();
-			if (StringUtils.hasText(passphrase)) {
-				this.jsch.addIdentity(this.user, keyByteArray, null, passphrase.getBytes());
-			}
-			else {
-				this.jsch.addIdentity(this.user, keyByteArray, null, null);
-			}
+		Duration verifyTimeout = this.timeout != null ? Duration.ofMillis(this.timeout) : null;
+		HostConfigEntry hostConfig = this.hostConfig;
+		if (hostConfig == null) {
+			hostConfig =
+					new HostConfigEntry(SshdSocketAddress.isIPv6Address(this.host) ? "" : this.host, this.host,
+							this.port, this.user);
 		}
-		com.jcraft.jsch.Session jschSession = this.jsch.getSession(this.user, this.host, this.port);
-		JavaUtils.INSTANCE
-				.acceptIfNotNull(this.sessionConfig, jschSession::setConfig)
-				.acceptIfHasText(this.userInfoWrapper.getPassword(), jschSession::setPassword);
-		jschSession.setUserInfo(this.userInfoWrapper);
+		ClientSession clientSession =
+				this.sshClient.connect(hostConfig)
+						.verify(verifyTimeout)
+						.getSession();
 
-		try {
-			if (this.timeout != null) {
-				jschSession.setTimeout(this.timeout);
+		clientSession.auth().verify(verifyTimeout);
+
+		return clientSession;
+	}
+
+	private void initClient() throws IOException {
+		if (this.initialized.compareAndSet(false, true)) {
+			if (this.port <= 0) {
+				this.port = SshConstants.DEFAULT_PORT;
 			}
-			if (this.serverAliveInterval != null) {
-				jschSession.setServerAliveInterval(this.serverAliveInterval);
+			ServerKeyVerifier serverKeyVerifier =
+					this.allowUnknownKeys ? AcceptAllServerKeyVerifier.INSTANCE : RejectAllServerKeyVerifier.INSTANCE;
+			if (this.knownHosts != null) {
+				serverKeyVerifier = new ResourceKnownHostsServerKeyVerifier(this.knownHosts);
 			}
-			JavaUtils.INSTANCE
-					.acceptIfNotNull(this.proxy, jschSession::setProxy)
-					.acceptIfNotNull(this.socketFactory, jschSession::setSocketFactory)
-					.acceptIfHasText(this.clientVersion, jschSession::setClientVersion)
-					.acceptIfHasText(this.hostKeyAlias, jschSession::setHostKeyAlias)
-					.acceptIfNotNull(this.serverAliveCountMax, jschSession::setServerAliveCountMax)
-					.acceptIfNotNull(this.enableDaemonThread, jschSession::setDaemonThread);
+			this.sshClient.setServerKeyVerifier(serverKeyVerifier);
+
+			this.sshClient.setPasswordIdentityProvider(PasswordIdentityProvider.wrapPasswords(this.password));
+			if (this.privateKey != null) {
+				IoResource<Resource> privateKeyResource =
+						new AbstractIoResource<>(Resource.class, this.privateKey) {
+
+							@Override
+							public InputStream openInputStream() throws IOException {
+								return getResourceValue().getInputStream();
+							}
+						};
+				try {
+					Collection<KeyPair> keys =
+							SecurityUtils.getKeyPairResourceParser()
+									.loadKeyPairs(null, privateKeyResource,
+											FilePasswordProvider.of(this.privateKeyPassphrase));
+					this.sshClient.setKeyIdentityProvider(KeyIdentityProvider.wrapKeyPairs(keys));
+				}
+				catch (GeneralSecurityException ex) {
+					throw new IOException("Cannot load private key: " + this.privateKey.getFilename(), ex);
+				}
+			}
+			this.sshClient.setUserInteraction(this.userInteraction);
+			this.sshClient.start();
 		}
-		catch (Exception e) {
-			throw new BeanCreationException("Attempt to set additional properties of " +
-					"the com.jcraft.jsch.Session resulted in error: " + e.getMessage(), e);
-		}
-		return jschSession;
 	}
 
 	@Override
@@ -456,130 +367,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	@Override
 	public void resetSharedSession() {
 		Assert.state(this.isSharedSession, "Shared sessions are not being used");
-		this.sharedJschSession = null;
-	}
-
-	/**
-	 * Wrapper class will delegate calls to a configured {@link UserInfo}, providing
-	 * sensible defaults if null. As the password is configured in this Factory, the
-	 * wrapper will return the factory's configured password and only delegate to the
-	 * UserInfo if null.
-	 *
-	 * @since 4.1.7
-	 */
-	private class UserInfoWrapper implements UserInfo, UIKeyboardInteractive {
-
-		UserInfoWrapper() {
-		}
-
-		/**
-		 * Convenience to check whether enclosing factory's UserInfo is configured.
-		 * @return true if there's a delegate.
-		 */
-		private boolean hasDelegate() {
-			return getDelegate() != null;
-		}
-
-		/**
-		 * Convenience to retrieve enclosing factory's UserInfo.
-		 * @return the {@link #userInfo} or null if not present.
-		 */
-		private UserInfo getDelegate() {
-			return DefaultSftpSessionFactory.this.userInfo;
-		}
-
-		@Override
-		public String getPassphrase() {
-			if (hasDelegate()) {
-				Assert.state(!StringUtils.hasText(DefaultSftpSessionFactory.this.privateKeyPassphrase),
-						"When a 'UserInfo' is provided, 'privateKeyPassphrase' is not allowed");
-				return getDelegate().getPassphrase();
-			}
-			else {
-				return DefaultSftpSessionFactory.this.privateKeyPassphrase;
-			}
-		}
-
-		@Override
-		public String getPassword() {
-			if (hasDelegate()) {
-				Assert.state(!StringUtils.hasText(DefaultSftpSessionFactory.this.password),
-						"When a 'UserInfo' is provided, 'password' is not allowed");
-				return getDelegate().getPassword();
-			}
-			else {
-				return DefaultSftpSessionFactory.this.password;
-			}
-		}
-
-		@Override
-		public boolean promptPassword(String message) {
-			if (hasDelegate()) {
-				return getDelegate().promptPassword(message);
-			}
-			else {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("No UserInfo provided - " + message + ", returning: true");
-				}
-				return true;
-			}
-		}
-
-		@Override
-		public boolean promptPassphrase(String message) {
-			if (hasDelegate()) {
-				return getDelegate().promptPassphrase(message);
-			}
-			else {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("No UserInfo provided - " + message + ", returning: true");
-				}
-				return true;
-			}
-		}
-
-		@Override
-		public boolean promptYesNo(String message) {
-			LOGGER.info(message);
-			if (hasDelegate()) {
-				return getDelegate().promptYesNo(message);
-			}
-			else {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("No UserInfo provided - " + message + ", returning: "
-							+ DefaultSftpSessionFactory.this.allowUnknownKeys);
-				}
-				return DefaultSftpSessionFactory.this.allowUnknownKeys;
-			}
-		}
-
-		@Override
-		public void showMessage(String message) {
-			if (hasDelegate()) {
-				getDelegate().showMessage(message);
-			}
-			else {
-				LOGGER.debug(message);
-			}
-		}
-
-		@Override
-		public String[] promptKeyboardInteractive(String destination, String name, String instruction, String[] prompt,
-				boolean[] echo) {
-
-			if (hasDelegate() && getDelegate() instanceof UIKeyboardInteractive) {
-				return ((UIKeyboardInteractive) getDelegate()).promptKeyboardInteractive(destination, name,
-						instruction, prompt, echo);
-			}
-			else {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("No UIKeyboardInteractive provided - " + destination + ":" + name + ":" + instruction
-							+ ":" + Arrays.asList(prompt) + ":" + Arrays.toString(echo));
-				}
-				return null;
-			}
-		}
-
+		this.sharedSftpClient = null;
 	}
 
 }

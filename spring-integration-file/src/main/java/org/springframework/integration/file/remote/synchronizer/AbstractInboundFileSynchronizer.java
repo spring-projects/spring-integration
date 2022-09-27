@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	private BeanFactory beanFactory;
 
 	@Nullable
-	private Comparator<F> comparator;
+	private Comparator<? extends F> comparator;
 
 	private MetadataStore remoteFileMetadataStore = new SimpleMetadataStore();
 
@@ -141,7 +141,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 	@Nullable
-	protected Comparator<F> getComparator() {
+	protected Comparator<? extends F> getComparator() {
 		return this.comparator;
 	}
 
@@ -151,7 +151,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 * @param comparator the comparator.
 	 * @since 5.1
 	 */
-	public void setComparator(@Nullable Comparator<F> comparator) {
+	public void setComparator(@Nullable Comparator<? extends F> comparator) {
 		this.comparator = comparator;
 	}
 

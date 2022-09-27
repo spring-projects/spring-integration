@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 
 package org.springframework.integration.sftp.gateway;
 
-import java.lang.reflect.Method;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.sshd.sftp.client.SftpClient;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
@@ -30,12 +33,6 @@ import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOut
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.session.SftpFileInfo;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
-import org.springframework.integration.sftp.support.GeneralSftpException;
-import org.springframework.util.ReflectionUtils;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.SftpException;
 
 /**
  * Outbound Gateway for performing remote file operations via SFTP.
@@ -45,16 +42,7 @@ import com.jcraft.jsch.SftpException;
  *
  * @since 2.1
  */
-public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEntry> {
-
-	private static final Method LS_ENTRY_SET_FILENAME_METHOD;
-
-	static {
-		LS_ENTRY_SET_FILENAME_METHOD = ReflectionUtils.findMethod(LsEntry.class, "setFilename", String.class);
-		if (LS_ENTRY_SET_FILENAME_METHOD != null) {
-			ReflectionUtils.makeAccessible(LS_ENTRY_SET_FILENAME_METHOD);
-		}
-	}
+public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<SftpClient.DirEntry> {
 
 	/**
 	 * Construct an instance using the provided session factory and callback for
@@ -62,8 +50,8 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	 * @param sessionFactory the session factory.
 	 * @param messageSessionCallback the callback.
 	 */
-	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory,
-			MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
+	public SftpOutboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory,
+			MessageSessionCallback<SftpClient.DirEntry, ?> messageSessionCallback) {
 
 		this(new SftpRemoteFileTemplate(sessionFactory), messageSessionCallback);
 		remoteFileTemplateExplicitlySet(false);
@@ -75,8 +63,8 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	 * @param remoteFileTemplate the remote file template.
 	 * @param messageSessionCallback the callback.
 	 */
-	public SftpOutboundGateway(RemoteFileTemplate<LsEntry> remoteFileTemplate,
-			MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
+	public SftpOutboundGateway(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate,
+			MessageSessionCallback<SftpClient.DirEntry, ?> messageSessionCallback) {
 
 		super(remoteFileTemplate, messageSessionCallback);
 	}
@@ -88,7 +76,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	 * @param command the command.
 	 * @param expression the filename expression.
 	 */
-	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory, String command, String expression) {
+	public SftpOutboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory, String command, String expression) {
 		this(new SftpRemoteFileTemplate(sessionFactory), command, expression);
 		remoteFileTemplateExplicitlySet(false);
 	}
@@ -100,46 +88,46 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	 * @param command the command.
 	 * @param expression the filename expression.
 	 */
-	public SftpOutboundGateway(RemoteFileTemplate<LsEntry> remoteFileTemplate, String command, String expression) {
+	public SftpOutboundGateway(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate, String command, String expression) {
 		super(remoteFileTemplate, command, expression);
 	}
 
 	@Override
-	protected boolean isDirectory(LsEntry file) {
-		return file.getAttrs().isDir();
+	protected boolean isDirectory(SftpClient.DirEntry file) {
+		return file.getAttributes().isDirectory();
 	}
 
 	@Override
-	protected boolean isLink(LsEntry file) {
-		return file.getAttrs().isLink();
+	protected boolean isLink(SftpClient.DirEntry file) {
+		return file.getAttributes().isSymbolicLink();
 	}
 
 	@Override
-	protected String getFilename(LsEntry file) {
+	protected String getFilename(SftpClient.DirEntry file) {
 		return file.getFilename();
 	}
 
 	@Override
-	protected String getFilename(AbstractFileInfo<LsEntry> file) {
+	protected String getFilename(AbstractFileInfo<SftpClient.DirEntry> file) {
 		return file.getFilename();
 	}
 
 	@Override
-	protected List<AbstractFileInfo<LsEntry>> asFileInfoList(Collection<LsEntry> files) {
+	protected List<AbstractFileInfo<SftpClient.DirEntry>> asFileInfoList(Collection<SftpClient.DirEntry> files) {
 		return files.stream()
 				.map(SftpFileInfo::new)
 				.collect(Collectors.toList());
 	}
 
 	@Override
-	protected long getModified(LsEntry file) {
-		return ((long) file.getAttrs().getMTime()) * 1000; // NOSONAR magic number
+	protected long getModified(SftpClient.DirEntry file) {
+		return file.getAttributes().getModifyTime().toMillis();
 	}
 
 	@Override
-	protected LsEntry enhanceNameWithSubDirectory(LsEntry file, String directory) {
-		ReflectionUtils.invokeMethod(LS_ENTRY_SET_FILENAME_METHOD, file, directory + file.getFilename());
-		return file;
+	protected SftpClient.DirEntry enhanceNameWithSubDirectory(SftpClient.DirEntry file, String directory) {
+		return new SftpClient.DirEntry(directory + file.getFilename(), directory + file.getFilename(),
+				file.getAttributes());
 	}
 
 	@Override
@@ -153,17 +141,18 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	}
 
 	@Override
-	protected void doChmod(RemoteFileOperations<LsEntry> remoteFileOperations, final String path, final int chmod) {
-		remoteFileOperations
-				.executeWithClient((ClientCallbackWithoutResult<ChannelSftp>) client -> {
-					try {
-						client.chmod(chmod, path);
-					}
-					catch (SftpException e) {
-						throw new GeneralSftpException(
-								"Failed to execute 'chmod " + Integer.toOctalString(chmod) + " " + path + "'", e);
-					}
-				});
+	protected void doChmod(RemoteFileOperations<SftpClient.DirEntry> remoteFileOperations, String path, int chmod) {
+		remoteFileOperations.executeWithClient((ClientCallbackWithoutResult<SftpClient>) client -> {
+			try {
+				SftpClient.Attributes attributes = client.stat(path);
+				attributes.setPermissions(chmod);
+				client.setStat(path, attributes);
+			}
+			catch (IOException ex) {
+				throw new UncheckedIOException(
+						"Failed to execute 'chmod " + Integer.toOctalString(chmod) + " " + path + "'", ex);
+			}
+		});
 	}
 
 }

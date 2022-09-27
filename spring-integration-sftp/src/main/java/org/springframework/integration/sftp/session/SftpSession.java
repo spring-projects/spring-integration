@@ -21,22 +21,19 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.sshd.sftp.SftpModuleProperties;
+import org.apache.sshd.sftp.client.SftpClient;
+import org.apache.sshd.sftp.common.SftpConstants;
+import org.apache.sshd.sftp.common.SftpException;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpATTRS;
-import com.jcraft.jsch.SftpException;
+import org.springframework.util.PatternMatchUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Default SFTP {@link Session} implementation. Wraps a JSCH session instance.
@@ -50,115 +47,66 @@ import com.jcraft.jsch.SftpException;
  *
  * @since 2.0
  */
-public class SftpSession implements Session<LsEntry> {
+public class SftpSession implements Session<SftpClient.DirEntry> {
 
-	private static final Log LOGGER = LogFactory.getLog(SftpSession.class);
+	private final SftpClient sftpClient;
 
-	private static final String SESSION_IS_NOT_CONNECTED = "session is not connected";
-
-	private static final Duration DEFAULT_CHANNEL_CONNECT_TIMEOUT = Duration.ofSeconds(5);
-
-	private final com.jcraft.jsch.Session jschSession;
-
-	private final JSchSessionWrapper wrapper;
-
-	private int channelConnectTimeout = (int) DEFAULT_CHANNEL_CONNECT_TIMEOUT.toMillis();
-
-	private volatile ChannelSftp channel;
-
-	private volatile boolean closed;
-
-
-	public SftpSession(com.jcraft.jsch.Session jschSession) {
-		Assert.notNull(jschSession, "jschSession must not be null");
-		this.jschSession = jschSession;
-		this.wrapper = null;
-	}
-
-	public SftpSession(JSchSessionWrapper wrapper) {
-		Assert.notNull(wrapper, "wrapper must not be null");
-		this.jschSession = wrapper.getSession();
-		this.wrapper = wrapper;
-	}
-
-	/**
-	 * Set the connect timeout.
-	 * @param timeout the timeout to set.
-	 * @since 5.2
-	 */
-	public void setChannelConnectTimeout(Duration timeout) {
-		Assert.notNull(timeout, "'timeout' cannot be null");
-		this.channelConnectTimeout = (int) timeout.toMillis();
+	public SftpSession(SftpClient sftpClient) {
+		Assert.notNull(sftpClient, "'sftpClient' must not be null");
+		this.sftpClient = sftpClient;
 	}
 
 	@Override
 	public boolean remove(String path) throws IOException {
-		Assert.state(this.channel != null, SESSION_IS_NOT_CONNECTED);
-		try {
-			this.channel.rm(path);
-			return true;
-		}
-		catch (SftpException ex) {
-			throw new IOException("Failed to remove file.", ex);
-		}
+		this.sftpClient.remove(path);
+		return true;
 	}
 
 	@Override
-	public LsEntry[] list(String path) throws IOException {
-		Assert.state(this.channel != null, SESSION_IS_NOT_CONNECTED);
-		try {
-			Vector<?> lsEntries = this.channel.ls(path); // NOSONAR (Vector)
-			if (lsEntries != null) {
-				LsEntry[] entries = new LsEntry[lsEntries.size()];
-				for (int i = 0; i < lsEntries.size(); i++) {
-					Object next = lsEntries.get(i);
-					Assert.state(next instanceof LsEntry, "expected only LsEntry instances from channel.ls()");
-					entries[i] = (LsEntry) next;
-				}
-				return entries;
-			}
-		}
-		catch (SftpException ex) {
-			throw new IOException("Failed to list files", ex);
-		}
-		return new LsEntry[0];
+	public SftpClient.DirEntry[] list(String path) throws IOException {
+		return doList(path)
+				.toArray(SftpClient.DirEntry[]::new);
 	}
 
 	@Override
 	public String[] listNames(String path) throws IOException {
-		LsEntry[] entries = this.list(path);
-		List<String> names = new ArrayList<>();
-		for (LsEntry entry : entries) {
-			String fileName = entry.getFilename();
-			SftpATTRS attrs = entry.getAttrs();
-			if (!attrs.isDir() && !attrs.isLink()) {
-				names.add(fileName);
-			}
-		}
-		return names.toArray(new String[0]);
+		return doList(path)
+				.map(SftpClient.DirEntry::getFilename)
+				.toArray(String[]::new);
 	}
 
+	public Stream<SftpClient.DirEntry> doList(String path) throws IOException {
+		String remotePath = StringUtils.trimTrailingCharacter(StringUtils.trimLeadingCharacter(path, '/'), '/');
+		String remoteDir = remotePath;
+		int lastIndex = remotePath.lastIndexOf('/');
+		if (lastIndex > 0) {
+			remoteDir = remoteDir.substring(0, lastIndex);
+		}
+		String remoteFile = lastIndex > 0 ? remotePath.substring(lastIndex + 1) : null;
+		boolean isPattern = remoteFile != null && remoteFile.contains("*");
+
+		if (!isPattern && remoteFile != null) {
+			SftpClient.Attributes attributes = this.sftpClient.lstat(path);
+			if (!attributes.isDirectory()) {
+				return Stream.of(new SftpClient.DirEntry(remoteFile, path, attributes));
+			}
+			else {
+				remoteDir = remotePath;
+			}
+		}
+		return StreamSupport.stream(this.sftpClient.readDir(remoteDir).spliterator(), false)
+				.filter((entry) -> !isPattern || PatternMatchUtils.simpleMatch(remoteFile, entry.getFilename()));
+	}
 
 	@Override
 	public void read(String source, OutputStream os) throws IOException {
-		Assert.state(this.channel != null, SESSION_IS_NOT_CONNECTED);
-		try {
-			InputStream is = this.channel.get(source);
-			FileCopyUtils.copy(is, os);
-		}
-		catch (SftpException ex) {
-			throw new IOException("failed to read file " + source, ex);
-		}
+		InputStream is = this.sftpClient.read(source);
+		FileCopyUtils.copy(is, os);
 	}
 
 	@Override
 	public InputStream readRaw(String source) throws IOException {
-		try {
-			return this.channel.get(source);
-		}
-		catch (SftpException ex) {
-			throw new IOException("failed to read file " + source, ex);
-		}
+		return this.sftpClient.read(source);
 	}
 
 	@Override
@@ -168,149 +116,91 @@ public class SftpSession implements Session<LsEntry> {
 
 	@Override
 	public void write(InputStream inputStream, String destination) throws IOException {
-		Assert.state(this.channel != null, SESSION_IS_NOT_CONNECTED);
-		try {
-			this.channel.put(inputStream, destination);
-		}
-		catch (SftpException ex) {
-			throw new IOException("failed to write file", ex);
+		synchronized (this.sftpClient) {
+			OutputStream outputStream = this.sftpClient.write(destination);
+			FileCopyUtils.copy(inputStream, outputStream);
 		}
 	}
 
 	@Override
 	public void append(InputStream inputStream, String destination) throws IOException {
-		Assert.state(this.channel != null, SESSION_IS_NOT_CONNECTED);
-		try {
-			this.channel.put(inputStream, destination, ChannelSftp.APPEND);
-		}
-		catch (SftpException ex) {
-			throw new IOException("failed to write file", ex);
+		synchronized (this.sftpClient) {
+			OutputStream outputStream =
+					this.sftpClient.write(destination, SftpClient.OpenMode.Create, SftpClient.OpenMode.Append);
+			FileCopyUtils.copy(inputStream, outputStream);
 		}
 	}
 
 	@Override
 	public void close() {
-		this.closed = true;
-		if (this.wrapper != null) {
-			if (this.channel != null) {
-				this.channel.disconnect();
-			}
-			this.wrapper.close();
+		try {
+			this.sftpClient.close();
 		}
-		else {
-			if (this.jschSession.isConnected()) {
-				this.jschSession.disconnect();
-			}
+		catch (IOException ex) {
+			throw new UncheckedIOException("failed to close an SFTP client", ex);
 		}
 	}
 
 	@Override
 	public boolean isOpen() {
-		return !this.closed && this.jschSession.isConnected();
+		return this.sftpClient.isOpen();
 	}
 
 	@Override
 	public void rename(String pathFrom, String pathTo) throws IOException {
-		try {
-			this.channel.rename(pathFrom, pathTo);
-		}
-		catch (SftpException sftpex) {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Initial File rename failed, possibly because file already exists. " +
-						"Will attempt to delete file: " + pathTo + " and execute rename again.");
-			}
-			try {
-				remove(pathTo);
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Delete file: " + pathTo + " succeeded. Will attempt rename again");
-				}
-			}
-			catch (IOException ioex) {
-				IOException exception = new IOException("Failed to delete file " + pathTo, sftpex);
-				exception.addSuppressed(ioex);
-				throw exception;
-			}
-			try {
-				// attempt to rename again
-				this.channel.rename(pathFrom, pathTo);
-			}
-			catch (SftpException sftpex2) {
-				IOException exception =
-						new IOException("failed to rename from " + pathFrom + " to " + pathTo, sftpex);
-				exception.addSuppressed(sftpex2);
-				throw exception;
-			}
-		}
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("File: " + pathFrom + " was successfully renamed to " + pathTo);
-		}
+		this.sftpClient.rename(pathFrom, pathTo, SftpClient.CopyMode.Overwrite);
 	}
 
 	@Override
 	public boolean mkdir(String remoteDirectory) throws IOException {
-		try {
-			this.channel.mkdir(remoteDirectory);
-		}
-		catch (SftpException ex) {
-			if (ex.id != ChannelSftp.SSH_FX_FAILURE || !exists(remoteDirectory)) {
-				throw new IOException("failed to create remote directory '" + remoteDirectory + "'.", ex);
-			}
-		}
+		this.sftpClient.mkdir(remoteDirectory);
 		return true;
 	}
 
 	@Override
 	public boolean rmdir(String remoteDirectory) throws IOException {
-		try {
-			this.channel.rmdir(remoteDirectory);
-		}
-		catch (SftpException ex) {
-			throw new IOException("failed to remove remote directory '" + remoteDirectory + "'.", ex);
-		}
+		this.sftpClient.rmdir(remoteDirectory);
 		return true;
 	}
 
 	@Override
 	public boolean exists(String path) {
 		try {
-			this.channel.lstat(path);
+			this.sftpClient.lstat(path);
 			return true;
 		}
-		catch (SftpException ex) {
-			if (ex.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+		catch (IOException ex) {
+			if (ex instanceof SftpException sftpException &&
+					SftpConstants.SSH_FX_NO_SUCH_FILE == sftpException.getStatus()) {
+
 				return false;
 			}
-			else {
-				throw new UncheckedIOException("Cannot check 'lstat' for path " + path,
-						new IOException(ex));
-			}
+			throw new UncheckedIOException("Cannot check 'lstat' for path " + path, ex);
 		}
 	}
 
 	void connect() {
 		try {
-			if (!this.jschSession.isConnected()) {
-				this.jschSession.connect();
-			}
-			this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
-			if (this.channel != null && !this.channel.isConnected()) {
-				this.channel.connect(this.channelConnectTimeout);
+			if (!this.sftpClient.isOpen()) {
+				Duration initializationTimeout =
+						SftpModuleProperties.SFTP_CHANNEL_OPEN_TIMEOUT.getRequired(this.sftpClient.getSession());
+				this.sftpClient.getClientChannel().open().verify(initializationTimeout);
 			}
 		}
-		catch (JSchException e) {
-			this.close();
-			throw new IllegalStateException("failed to connect", e);
+		catch (IOException ex) {
+			close();
+			throw new UncheckedIOException("failed to connect an SFTP client", ex);
 		}
 	}
 
 	@Override
-	public ChannelSftp getClientInstance() {
-		return this.channel;
+	public SftpClient getClientInstance() {
+		return this.sftpClient;
 	}
 
 	@Override
 	public String getHostPort() {
-		return this.jschSession.getHost() + ':' + this.jschSession.getPort();
+		return this.sftpClient.getSession().getConnectAddress().toString();
 	}
 
 	@Override
@@ -320,10 +210,10 @@ public class SftpSession implements Session<LsEntry> {
 
 	private boolean doTest() {
 		try {
-			this.channel.lstat(this.channel.getHome());
+			this.sftpClient.canonicalPath("");
 			return true;
 		}
-		catch (@SuppressWarnings("unused") Exception e) {
+		catch (@SuppressWarnings("unused") Exception ex) {
 			return false;
 		}
 	}

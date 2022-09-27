@@ -16,19 +16,20 @@
 
 package org.springframework.integration.sftp.filters;
 
-import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
+import org.apache.sshd.sftp.client.SftpClient;
 
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
+import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
 
 /**
  * Implementation of {@link AbstractSimplePatternFileListFilter} for SFTP.
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-public class SftpSimplePatternFileListFilter extends AbstractSimplePatternFileListFilter<ChannelSftp.LsEntry> {
+public class SftpSimplePatternFileListFilter extends AbstractSimplePatternFileListFilter<SftpClient.DirEntry> {
 
 	public SftpSimplePatternFileListFilter(String pattern) {
 		super(pattern);
@@ -36,13 +37,13 @@ public class SftpSimplePatternFileListFilter extends AbstractSimplePatternFileLi
 
 
 	@Override
-	protected String getFilename(LsEntry entry) {
+	protected String getFilename(SftpClient.DirEntry entry) {
 		return (entry != null) ? entry.getFilename() : null;
 	}
 
 	@Override
-	protected boolean isDirectory(LsEntry file) {
-		return file.getAttrs().isDir();
+	protected boolean isDirectory(SftpClient.DirEntry file) {
+		return file.getAttributes().isDirectory();
 	}
 
 }

@@ -16,12 +16,12 @@
 
 package org.springframework.integration.sftp.inbound;
 
+import org.apache.sshd.sftp.client.SftpClient;
+
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * Handles the synchronization between a remote SFTP directory and a local mount.
@@ -33,30 +33,30 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  *
  * @since 2.0
  */
-public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<LsEntry> {
+public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<SftpClient.DirEntry> {
 
 	/**
 	 * Create a synchronizer with the {@code SessionFactory} used to acquire {@code Session} instances.
 	 * @param sessionFactory The session factory.
 	 */
-	public SftpInboundFileSynchronizer(SessionFactory<LsEntry> sessionFactory) {
+	public SftpInboundFileSynchronizer(SessionFactory<SftpClient.DirEntry> sessionFactory) {
 		super(sessionFactory);
 		doSetFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "sftpMessageSource"));
 	}
 
 	@Override
-	protected boolean isFile(LsEntry file) {
-		return (file != null && file.getAttrs() != null && !file.getAttrs().isDir() && !file.getAttrs().isLink());
+	protected boolean isFile(SftpClient.DirEntry file) {
+		return file != null && file.getAttributes().isRegularFile();
 	}
 
 	@Override
-	protected String getFilename(LsEntry file) {
-		return (file != null ? file.getFilename() : null);
+	protected String getFilename(SftpClient.DirEntry file) {
+		return file != null ? file.getFilename() : null;
 	}
 
 	@Override
-	protected long getModified(LsEntry file) {
-		return (long) file.getAttrs().getMTime() * 1000; // NOSONAR magic number
+	protected long getModified(SftpClient.DirEntry file) {
+		return file.getAttributes().getModifyTime().toMillis();
 	}
 
 	@Override

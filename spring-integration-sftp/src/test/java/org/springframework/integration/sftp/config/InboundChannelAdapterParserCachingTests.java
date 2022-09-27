@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 package org.springframework.integration.sftp.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
 
@@ -38,22 +36,23 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @DirtiesContext
 public class InboundChannelAdapterParserCachingTests {
 
-	@Autowired private Object cachingAdapter;
+	@Autowired
+	private Object cachingAdapter;
 
-	@Autowired private Object nonCachingAdapter;
+	@Autowired
+	private Object nonCachingAdapter;
 
 	@Test
 	public void cachingAdapter() {
-		Object sessionFactory = TestUtils.getPropertyValue(cachingAdapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
+		Object sessionFactory =
+				TestUtils.getPropertyValue(cachingAdapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
 		assertThat(sessionFactory.getClass()).isEqualTo(CachingSessionFactory.class);
-		Properties sessionConfig = TestUtils.getPropertyValue(sessionFactory, "sessionFactory.sessionConfig", Properties.class);
-		assertThat(sessionConfig).isNotNull();
-		assertThat(sessionConfig.getProperty("StrictHostKeyChecking")).isEqualTo("no");
 	}
 
 	@Test
 	public void nonCachingAdapter() {
-		Object sessionFactory = TestUtils.getPropertyValue(nonCachingAdapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
+		Object sessionFactory =
+				TestUtils.getPropertyValue(nonCachingAdapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
 		assertThat(sessionFactory.getClass()).isEqualTo(DefaultSftpSessionFactory.class);
 	}
 

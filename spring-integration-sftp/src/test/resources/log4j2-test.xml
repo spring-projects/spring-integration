@@ -6,7 +6,7 @@
 		</Console>
 	</Appenders>
 	<Loggers>
-		<Logger name="com.jcraft.jsch" level="warn"/>
+		<Logger name="org.apache.sshd" level="error"/>
 		<Logger name="org.springframework.integration" level="warn"/>
 		<Logger name="org.springframework.integration.sftp" level="warn"/>
 		<Root level="warn">

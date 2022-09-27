@@ -25,6 +25,7 @@ import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.apache.sshd.sftp.client.SftpClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,8 +53,6 @@ import org.springframework.messaging.Message;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * @author Gary Russell
@@ -120,7 +119,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO)).isInstanceOf(SftpFileInfo.class);
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_HOST_PORT, String.class)).contains("localhost:");
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_HOST_PORT, String.class)).contains("localhost");
 		this.adapter.stop();
 	}
 
@@ -172,7 +171,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 	private SftpStreamingMessageSource buildSource() {
 		SftpStreamingMessageSource messageSource =
 				new SftpStreamingMessageSource(this.config.template(),
-						Comparator.comparing(LsEntry::getFilename));
+						Comparator.comparing(SftpClient.DirEntry::getFilename));
 		messageSource.setRemoteDirectory("sftpSource/");
 		messageSource.setBeanFactory(this.context);
 		return messageSource;
@@ -205,7 +204,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		@InboundChannelAdapter(channel = "stream", autoStartup = "false")
 		public MessageSource<InputStream> sftpMessageSource() {
 			SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(),
-					Comparator.comparing(LsEntry::getFilename));
+					Comparator.comparing(SftpClient.DirEntry::getFilename));
 			messageSource.setFilter(
 					new SftpPersistentAcceptOnceFileListFilter(
 							new SimpleMetadataStore(metadataMap()), "testStreaming"));
@@ -225,7 +224,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		}
 
 		@Bean
-		public SessionFactory<LsEntry> ftpSessionFactory() {
+		public SessionFactory<SftpClient.DirEntry> ftpSessionFactory() {
 			return SftpStreamingMessageSourceTests.sessionFactory();
 		}
 

@@ -16,11 +16,13 @@
 
 package org.springframework.integration.sftp.session;
 
+import java.nio.file.attribute.PosixFilePermissions;
+
+import org.apache.sshd.sftp.client.SftpClient;
+import org.apache.sshd.sftp.common.SftpHelper;
+
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.util.Assert;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.SftpATTRS;
 
 /**
  * A {@link org.springframework.integration.file.remote.FileInfo} implementation for SFTP.
@@ -30,37 +32,37 @@ import com.jcraft.jsch.SftpATTRS;
  *
  * @since 2.1
  */
-public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
+public class SftpFileInfo extends AbstractFileInfo<SftpClient.DirEntry> {
 
-	private final LsEntry lsEntry;
+	private final SftpClient.DirEntry lsEntry;
 
-	private final SftpATTRS attrs;
+	private final SftpClient.Attributes attrs;
 
 
-	public SftpFileInfo(LsEntry lsEntry) {
+	public SftpFileInfo(SftpClient.DirEntry lsEntry) {
 		Assert.notNull(lsEntry, "'lsEntry' must not be null");
 		this.lsEntry = lsEntry;
-		this.attrs = lsEntry.getAttrs();
+		this.attrs = lsEntry.getAttributes();
 	}
 
 	/**
-	 * @see SftpATTRS#isDir()
+	 * @see SftpClient.Attributes#isDirectory()
 	 */
 	@Override
 	public boolean isDirectory() {
-		return this.attrs.isDir();
+		return this.attrs.isDirectory();
 	}
 
 	/**
-	 * @see SftpATTRS#isLink()
+	 * @see SftpClient.Attributes#isSymbolicLink()
 	 */
 	@Override
 	public boolean isLink() {
-		return this.attrs.isLink();
+		return this.attrs.isSymbolicLink();
 	}
 
 	/**
-	 * @see SftpATTRS#getSize()
+	 * @see SftpClient.Attributes#getSize()
 	 */
 	@Override
 	public long getSize() {
@@ -68,15 +70,15 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	}
 
 	/**
-	 * @see SftpATTRS#getMTime()
+	 * @see SftpClient.Attributes#getModifyTime()
 	 */
 	@Override
 	public long getModified() {
-		return ((long) this.attrs.getMTime()) * 1000; // NOSONAR magic number
+		return this.attrs.getModifyTime().toMillis();
 	}
 
 	/**
-	 * @see LsEntry#getFilename()
+	 * @see SftpClient.DirEntry#getFilename()
 	 */
 	@Override
 	public String getFilename() {
@@ -85,11 +87,11 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 
 	@Override
 	public String getPermissions() {
-		return this.attrs.getPermissionsString();
+		return PosixFilePermissions.toString(SftpHelper.permissionsToAttributes(this.attrs.getPermissions()));
 	}
 
 	@Override
-	public LsEntry getFileInfo() {
+	public SftpClient.DirEntry getFileInfo() {
 		return this.lsEntry;
 	}
 

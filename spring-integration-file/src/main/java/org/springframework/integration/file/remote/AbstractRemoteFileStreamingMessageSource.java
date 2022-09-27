@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,11 +62,11 @@ import org.springframework.util.ObjectUtils;
 public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		extends AbstractFetchLimitingMessageSource<InputStream> implements ManageableLifecycle {
 
-	private final RemoteFileTemplate<F> remoteFileTemplate;
+	private final RemoteFileTemplate<? extends F> remoteFileTemplate;
 
 	private final BlockingQueue<AbstractFileInfo<F>> toBeReceived = new LinkedBlockingQueue<>();
 
-	private final Comparator<F> comparator;
+	private final Comparator<? extends F> comparator;
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
@@ -86,8 +86,8 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	 */
 	private FileListFilter<F> filter;
 
-	protected AbstractRemoteFileStreamingMessageSource(RemoteFileTemplate<F> template,
-			@Nullable Comparator<F> comparator) {
+	protected AbstractRemoteFileStreamingMessageSource(RemoteFileTemplate<? extends F> template,
+			@Nullable Comparator<? extends F> comparator) {
 
 		Assert.notNull(template, "'template' must not be null");
 		this.remoteFileTemplate = template;
@@ -143,7 +143,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		this.fileInfoJson = fileInfoJson;
 	}
 
-	protected RemoteFileTemplate<F> getRemoteFileTemplate() {
+	protected RemoteFileTemplate<? extends F> getRemoteFileTemplate() {
 		return this.remoteFileTemplate;
 	}
 
