@@ -221,7 +221,7 @@ public class ObservationPropagationChannelInterceptorTests {
 						.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
 						.build();
 
-		Observation.createNotStarted("sending", new MessageSenderContext(message), this.observationRegistry)
+		Observation.createNotStarted("sending", () -> new MessageSenderContext(message), this.observationRegistry)
 				.observe(() -> this.testTracingChannel.send(message));
 
 		Message<?> receive = replyChannel.receive();
