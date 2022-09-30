@@ -62,6 +62,7 @@ See <<./sftp.adoc#sftp,SFTP Adapters>> for more information.
 
 Enabling observation for timers and tracing using Micrometer is now supported.
 See <<./metrics.adoc#micrometer-observation,Micrometer Observation>> for more information.
+
 [[x6.0-general]]
 === General Changes
 
