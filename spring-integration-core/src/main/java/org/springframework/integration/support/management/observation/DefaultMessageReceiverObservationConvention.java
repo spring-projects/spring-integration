@@ -36,9 +36,11 @@ public class DefaultMessageReceiverObservationConvention implements MessageRecei
 
 	@Override
 	public KeyValues getLowCardinalityKeyValues(MessageReceiverContext context) {
-		return KeyValues.of(
-				IntegrationObservation.HandlerTags.COMPONENT_NAME.withValue(context.getHandlerName()),
-				IntegrationObservation.HandlerTags.COMPONENT_TYPE.withValue("handler"));
+		return KeyValues
+				// See IntegrationObservation.HandlerTags.COMPONENT_NAME - to avoid class tangle
+				.of("spring.integration.name", context.getHandlerName())
+				// See IntegrationObservation.HandlerTags.COMPONENT_TYPE - to avoid class tangle
+				.and("spring.integration.type", "handler");
 	}
 
 }

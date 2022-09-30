@@ -29,8 +29,7 @@ import io.micrometer.observation.transport.ReceiverContext;
  *
  * @since 6.0
  */
-public interface MessageReceiverObservationConvention
-		extends ObservationConvention<MessageReceiverContext> {
+public interface MessageReceiverObservationConvention extends ObservationConvention<MessageReceiverContext> {
 
 	@Override
 	default String getName() {
