@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.annotation;
+package org.springframework.integration.config;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -22,30 +22,29 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.parsing.ComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
-import org.springframework.integration.config.ConsumerEndpointFactoryBean;
-import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
- * Post-processor for the {@link BridgeTo @BridgeTo} annotation.
+ * Post-processor for the {@link BridgeFrom @BridgeFrom} annotation.
  *
  * @author Artem Bilan
  *
  * @since 4.0
  */
-public class BridgeToAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<BridgeTo> {
+public class BridgeFromAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<BridgeFrom> {
+
+	@Override
+	public String getInputChannelAttribute() {
+		return AnnotationUtils.VALUE;
+	}
 
 	@Override
 	public boolean supportsPojoMethod() {
@@ -54,7 +53,9 @@ public class BridgeToAnnotationPostProcessor extends AbstractMethodAnnotationPos
 
 	@Override
 	public boolean shouldCreateEndpoint(MergedAnnotations mergedAnnotations, List<Annotation> annotations) {
-		Assert.isTrue(!mergedAnnotations.isPresent(BridgeFrom.class),
+		Assert.isTrue(super.shouldCreateEndpoint(mergedAnnotations, annotations),
+				"'@BridgeFrom.value()' (inputChannelName) must not be empty");
+		Assert.isTrue(!mergedAnnotations.isPresent(BridgeTo.class),
 				"'@BridgeFrom' and '@BridgeTo' are mutually exclusive 'MessageChannel' '@Bean' method annotations");
 		return true;
 	}
@@ -63,29 +64,9 @@ public class BridgeToAnnotationPostProcessor extends AbstractMethodAnnotationPos
 	protected BeanDefinition resolveHandlerBeanDefinition(String beanName, AnnotatedBeanDefinition beanDefinition,
 			ResolvableType handlerBeanType, List<Annotation> annotationChain) {
 
-		GenericBeanDefinition bridgeHandlerBeanDefinition = new GenericBeanDefinition();
-		bridgeHandlerBeanDefinition.setBeanClass(BridgeHandler.class);
-		String outputChannelName = MessagingAnnotationUtils.resolveAttribute(annotationChain, "value", String.class);
-		if (StringUtils.hasText(outputChannelName)) {
-			bridgeHandlerBeanDefinition.getPropertyValues()
-					.addPropertyValue("outputChannel", new RuntimeBeanReference(outputChannelName));
-		}
-		return bridgeHandlerBeanDefinition;
-	}
-
-	@Override
-	protected BeanDefinition createEndpointBeanDefinition(ComponentDefinition handlerBeanDefinition,
-			ComponentDefinition beanDefinition, List<Annotation> annotations) {
-
-		return BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class)
-				.addPropertyReference("handler", handlerBeanDefinition.getName())
-				.addPropertyReference("inputChannel", beanDefinition.getName())
+		return BeanDefinitionBuilder.genericBeanDefinition(BridgeHandler.class)
+				.addPropertyReference("outputChannel", beanName)
 				.getBeanDefinition();
-	}
-
-	@Override
-	protected AbstractEndpoint createEndpoint(MessageHandler handler, Method method, List<Annotation> annotations) {
-		throw new UnsupportedOperationException();
 	}
 
 	@Override

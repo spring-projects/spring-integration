@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.core.GenericHandler;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.handler.GenericHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
@@ -79,6 +79,7 @@ public class MessagingMethodInvocableHelperTests {
 			public String handle(Map<String, String> mapPayload, MessageHeaders messageHeaders) {
 				return "Hello " + mapPayload.get("key");
 			}
+
 		}
 
 		public static class StringHandler implements GenericHandler<String> {
@@ -87,6 +88,7 @@ public class MessagingMethodInvocableHelperTests {
 			public String handle(String stringPayload, MessageHeaders messageHeaders) {
 				return stringPayload + " World!";
 			}
+
 		}
 
 	}

@@ -59,6 +59,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
@@ -77,7 +78,6 @@ import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
-import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.integration.transformer.PayloadSerializingTransformer;
 import org.springframework.integration.util.NoBeansOverrideAnnotationConfigContextLoader;
 import org.springframework.messaging.Message;
@@ -602,7 +602,7 @@ public class IntegrationFlowTests {
 		@Bean
 		public IntegrationFlow supplierFlow2() {
 			return IntegrationFlow.fromSupplier(() -> "foo",
-					c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
+							c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
 					.<String, String>transform(String::toUpperCase)
 					.channel("suppliedChannel2")
 					.get();
@@ -948,7 +948,7 @@ public class IntegrationFlowTests {
 		@Bean
 		public IntegrationFlow globalErrorChannelResolutionFlow(@Qualifier("taskScheduler") TaskExecutor taskExecutor) {
 			return IntegrationFlow.from(Consumer.class,
-					(gateway) -> gateway.beanName("globalErrorChannelResolutionFunction"))
+							(gateway) -> gateway.beanName("globalErrorChannelResolutionFunction"))
 					.channel(c -> c.executor(taskExecutor))
 					.handle((p, h) -> {
 						throw new RuntimeException("intentional");
@@ -1047,4 +1047,3 @@ public class IntegrationFlowTests {
 	}
 
 }
-

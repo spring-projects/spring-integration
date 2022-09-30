@@ -60,12 +60,12 @@ public abstract class ClassUtils {
 	public static final Method SELECTOR_ACCEPT_METHOD;
 
 	/**
-	 * The {@code org.springframework.integration.transformer.GenericTransformer#transform(Object)} method object.
+	 * The {@code org.springframework.integration.core.GenericTransformer#transform(Object)} method object.
 	 */
 	public static final Method TRANSFORMER_TRANSFORM_METHOD;
 
 	/**
-	 * The {@code org.springframework.integration.handler.GenericHandler#handle(Object, Map)} method object.
+	 * The {@code org.springframework.integration.core.GenericHandler#handle(Object, Map)} method object.
 	 */
 	public static final Method HANDLER_HANDLE_METHOD;
 
@@ -117,7 +117,7 @@ public abstract class ClassUtils {
 		try {
 			genericTransformerClass =
 					org.springframework.util.ClassUtils.forName(
-							"org.springframework.integration.transformer.GenericTransformer", defaultClassLoader);
+							"org.springframework.integration.core.GenericTransformer", defaultClassLoader);
 		}
 		catch (ClassNotFoundException e) {
 			ReflectionUtils.rethrowRuntimeException(e);
@@ -130,7 +130,7 @@ public abstract class ClassUtils {
 		try {
 			genericHandlerClass =
 					org.springframework.util.ClassUtils.forName(
-							"org.springframework.integration.handler.GenericHandler", defaultClassLoader);
+							"org.springframework.integration.core.GenericHandler", defaultClassLoader);
 		}
 		catch (ClassNotFoundException e) {
 			ReflectionUtils.rethrowRuntimeException(e);

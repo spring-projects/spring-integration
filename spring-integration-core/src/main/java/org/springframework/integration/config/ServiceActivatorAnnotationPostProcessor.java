@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.annotation;
+package org.springframework.integration.config;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -27,25 +27,25 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.core.ResolvableType;
-import org.springframework.integration.config.TransformerFactoryBean;
-import org.springframework.integration.transformer.MessageTransformingHandler;
-import org.springframework.integration.transformer.MethodInvokingTransformer;
-import org.springframework.integration.transformer.Transformer;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.util.StringUtils;
 
 /**
- * Post-processor for Methods annotated with a
- * {@link org.springframework.integration.annotation.Transformer @Transformer}.
+ * Post-processor for Methods annotated with {@link ServiceActivator @ServiceActivator}.
  *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Yilin Wei
  */
-public class TransformerAnnotationPostProcessor
-		extends AbstractMethodAnnotationPostProcessor<org.springframework.integration.annotation.Transformer> {
+public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<ServiceActivator> {
 
-	public TransformerAnnotationPostProcessor() {
-		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", "adviceChain"));
+	public ServiceActivatorAnnotationPostProcessor() {
+		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", "requiresReply"));
 	}
 
 	@Override
@@ -64,17 +64,34 @@ public class TransformerAnnotationPostProcessor
 			targetObjectBeanDefinition = new RuntimeBeanReference(beanName);
 		}
 
-		return BeanDefinitionBuilder.genericBeanDefinition(TransformerFactoryBean.class)
-				.addPropertyValue("targetObject", targetObjectBeanDefinition)
-				.getBeanDefinition();
+		BeanDefinition serviceActivatorBeanDefinition =
+				BeanDefinitionBuilder.genericBeanDefinition(ServiceActivatorFactoryBean.class)
+						.addPropertyValue("targetObject", targetObjectBeanDefinition)
+						.getBeanDefinition();
+
+		new BeanDefinitionPropertiesMapper(serviceActivatorBeanDefinition, annotations)
+				.setPropertyValue("requiresReply")
+				.setPropertyValue("async");
+
+		return serviceActivatorBeanDefinition;
 	}
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
-		Transformer transformer = new MethodInvokingTransformer(bean, method);
-		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		setOutputChannelIfPresent(annotations, handler);
-		return handler;
+		AbstractReplyProducingMessageHandler serviceActivator = new ServiceActivatingHandler(bean, method);
+
+		String requiresReply = MessagingAnnotationUtils.resolveAttribute(annotations, "requiresReply", String.class);
+		if (StringUtils.hasText(requiresReply)) {
+			serviceActivator.setRequiresReply(resolveAttributeToBoolean(requiresReply));
+		}
+
+		String isAsync = MessagingAnnotationUtils.resolveAttribute(annotations, "async", String.class);
+		if (StringUtils.hasText(isAsync)) {
+			serviceActivator.setAsync(resolveAttributeToBoolean(isAsync));
+		}
+
+		setOutputChannelIfPresent(annotations, serviceActivator);
+		return serviceActivator;
 	}
 
 }

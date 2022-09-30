@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.annotation;
+package org.springframework.integration.config;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -27,26 +27,28 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.core.ResolvableType;
-import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.config.ServiceActivatorFactoryBean;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.annotation.Filter;
+import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.filter.MessageFilter;
+import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Post-processor for Methods annotated with {@link ServiceActivator @ServiceActivator}.
+ * Post-processor for Methods annotated with {@link Filter @Filter}.
  *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
- * @author Yilin Wei
+ * @since 2.0
  */
-public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<ServiceActivator> {
+public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Filter> {
 
-	public ServiceActivatorAnnotationPostProcessor() {
-		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", "requiresReply"));
+	public FilterAnnotationPostProcessor() {
+		this.messageHandlerAttributes.addAll(Arrays.asList("discardChannel", "throwExceptionOnRejection",
+				"adviceChain", "discardWithinAdvice"));
 	}
 
 	@Override
@@ -65,34 +67,47 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 			targetObjectBeanDefinition = new RuntimeBeanReference(beanName);
 		}
 
-		BeanDefinition serviceActivatorBeanDefinition =
-				BeanDefinitionBuilder.genericBeanDefinition(ServiceActivatorFactoryBean.class)
+		BeanDefinition filterBeanDefinition =
+				BeanDefinitionBuilder.genericBeanDefinition(FilterFactoryBean.class)
 						.addPropertyValue("targetObject", targetObjectBeanDefinition)
 						.getBeanDefinition();
 
-		new BeanDefinitionPropertiesMapper(serviceActivatorBeanDefinition, annotations)
-				.setPropertyValue("requiresReply")
-				.setPropertyValue("async");
+		new BeanDefinitionPropertiesMapper(filterBeanDefinition, annotations)
+				.setPropertyValue("discardWithinAdvice")
+				.setPropertyValue("throwExceptionOnRejection")
+				.setPropertyReference("discardChannel");
 
-		return serviceActivatorBeanDefinition;
+		return filterBeanDefinition;
 	}
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
-		AbstractReplyProducingMessageHandler serviceActivator = new ServiceActivatingHandler(bean, method);
+		Assert.isTrue(boolean.class.equals(method.getReturnType()) || Boolean.class.equals(method.getReturnType()),
+				"The Filter annotation may only be applied to methods with a boolean return type.");
+		MessageSelector selector = new MethodInvokingSelector(bean, method);
 
-		String requiresReply = MessagingAnnotationUtils.resolveAttribute(annotations, "requiresReply", String.class);
-		if (StringUtils.hasText(requiresReply)) {
-			serviceActivator.setRequiresReply(resolveAttributeToBoolean(requiresReply));
+		MessageFilter filter = new MessageFilter(selector);
+
+		String discardWithinAdvice =
+				MessagingAnnotationUtils.resolveAttribute(annotations, "discardWithinAdvice", String.class);
+		if (StringUtils.hasText(discardWithinAdvice)) {
+			filter.setDiscardWithinAdvice(resolveAttributeToBoolean(discardWithinAdvice));
 		}
 
-		String isAsync = MessagingAnnotationUtils.resolveAttribute(annotations, "async", String.class);
-		if (StringUtils.hasText(isAsync)) {
-			serviceActivator.setAsync(resolveAttributeToBoolean(isAsync));
+		String throwExceptionOnRejection =
+				MessagingAnnotationUtils.resolveAttribute(annotations, "throwExceptionOnRejection", String.class);
+		if (StringUtils.hasText(throwExceptionOnRejection)) {
+			filter.setThrowExceptionOnRejection(resolveAttributeToBoolean(throwExceptionOnRejection));
 		}
 
-		setOutputChannelIfPresent(annotations, serviceActivator);
-		return serviceActivator;
+		String discardChannelName =
+				MessagingAnnotationUtils.resolveAttribute(annotations, "discardChannel", String.class);
+		if (StringUtils.hasText(discardChannelName)) {
+			filter.setDiscardChannelName(discardChannelName);
+		}
+
+		setOutputChannelIfPresent(annotations, filter);
+		return filter;
 	}
 
 }

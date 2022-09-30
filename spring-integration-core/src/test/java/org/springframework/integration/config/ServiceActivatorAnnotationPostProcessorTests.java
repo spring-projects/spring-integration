@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.MessageChannel;
@@ -42,32 +41,31 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 	@Test
 	public void testAnnotatedMethod() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
-		TestApplicationContext context = TestUtils.createTestApplicationContext();
-		RootBeanDefinition postProcessorDef = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
-		context.registerBeanDefinition("postProcessor", postProcessorDef);
-		context.registerBeanDefinition("testChannel", new RootBeanDefinition(DirectChannel.class));
-		RootBeanDefinition beanDefinition = new RootBeanDefinition(SimpleServiceActivatorAnnotationTestBean.class);
-		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(latch);
-		context.registerBeanDefinition("testBean", beanDefinition);
-		context.refresh();
-		SimpleServiceActivatorAnnotationTestBean testBean =
-				context.getBean("testBean", SimpleServiceActivatorAnnotationTestBean.class);
-		assertThat(latch.getCount()).isEqualTo(1);
-		assertThat(testBean.getMessageText()).isNull();
-		MessageChannel testChannel = (MessageChannel) context.getBean("testChannel");
-		testChannel.send(new GenericMessage<>("test-123"));
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		assertThat(latch.getCount()).isEqualTo(0);
-		assertThat(testBean.getMessageText()).isEqualTo("test-123");
-		context.close();
+		try (TestApplicationContext context = TestUtils.createTestApplicationContext()) {
+			RootBeanDefinition postProcessorDef = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
+			context.registerBeanDefinition("postProcessor", postProcessorDef);
+			context.registerBeanDefinition("testChannel", new RootBeanDefinition(DirectChannel.class));
+			RootBeanDefinition beanDefinition = new RootBeanDefinition(SimpleServiceActivatorAnnotationTestBean.class);
+			beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(latch);
+			context.registerBeanDefinition("testBean", beanDefinition);
+			context.refresh();
+			SimpleServiceActivatorAnnotationTestBean testBean =
+					context.getBean("testBean", SimpleServiceActivatorAnnotationTestBean.class);
+			assertThat(latch.getCount()).isEqualTo(1);
+			assertThat(testBean.getMessageText()).isNull();
+			MessageChannel testChannel = (MessageChannel) context.getBean("testChannel");
+			testChannel.send(new GenericMessage<>("test-123"));
+			assertThat(latch.await(1000, TimeUnit.MILLISECONDS)).isTrue();
+			assertThat(testBean.getMessageText()).isEqualTo("test-123");
+		}
 	}
 
 
 	public static class AbstractServiceActivatorAnnotationTestBean {
 
-		protected String messageText;
+		private final CountDownLatch latch;
 
-		private CountDownLatch latch;
+		protected String messageText;
 
 		public AbstractServiceActivatorAnnotationTestBean(CountDownLatch latch) {
 			this.latch = latch;
