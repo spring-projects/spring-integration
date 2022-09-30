@@ -564,7 +564,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 		boolean shouldReturnMessage =
 				Message.class.isAssignableFrom(gateway.returnType) || (!runningOnCallerThread && gateway.expectMessage);
-		boolean shouldReply = gateway.returnType != void.class;
+		boolean shouldReply = !gateway.isVoidReturn;
 		int paramCount = method.getParameterTypes().length;
 		Object response;
 		boolean hasPayloadExpression = findPayloadExpression(method);
@@ -640,7 +640,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 		}
 		else {
-			gateway.send(args);
+			if (gateway.isMonoReturn) {
+				return Mono.fromRunnable(() -> gateway.send(args));
+			}
+			else {
+				gateway.send(args);
+			}
 		}
 		return null;
 	}

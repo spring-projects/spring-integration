@@ -30,10 +30,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -42,6 +45,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageBuilder;
 
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * @author Mark Fisher
@@ -70,7 +74,7 @@ public class AsyncGatewayTests {
 	}
 
 	@Test
-	public void futureWithError() throws Exception {
+	public void futureWithError() {
 		final Error error = new Error("error");
 		DirectChannel channel = new DirectChannel() {
 
@@ -140,7 +144,7 @@ public class AsyncGatewayTests {
 	}
 
 	@Test
-	public void nonAsyncFutureReturned() throws Exception {
+	public void nonAsyncFutureReturned() {
 		QueueChannel requestChannel = new QueueChannel();
 		addThreadEnricher(requestChannel);
 		startResponder(requestChannel);
@@ -204,6 +208,30 @@ public class AsyncGatewayTests {
 		assertThat(result).isEqualTo("foobar");
 	}
 
+	@Test
+	public void futureVoid() throws Exception {
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
+		proxyFactory.setDefaultRequestChannel(new NullChannel());
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		Future<Void> f = service.asyncSendAndForget("test1");
+		Object result = f.get(10, TimeUnit.SECONDS);
+		assertThat(result).isNull();
+
+		new DirectFieldAccessor(proxyFactory).setPropertyValue("initialized", false);
+		proxyFactory.setDefaultRequestChannel((message, timeout) -> {
+			throw new MessageDispatchingException(message, "intentional dispatcher error");
+		});
+		proxyFactory.afterPropertiesSet();
+
+		Future<Void> futureError = service.asyncSendAndForget("test2");
+		assertThatExceptionOfType(ExecutionException.class)
+				.isThrownBy(() -> futureError.get(10, TimeUnit.SECONDS))
+				.withCauseInstanceOf(MessageDispatchingException.class)
+				.withMessageContaining("intentional dispatcher error");
+	}
 
 	@Test
 	public void monoWithMessageReturned() {
@@ -252,7 +280,7 @@ public class AsyncGatewayTests {
 	}
 
 	@Test
-	public void monoWithConsumer() throws Exception {
+	public void monoWithConsumer() {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
@@ -263,16 +291,38 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Mono<String> mono = service.returnStringPromise("foo");
 
-		final AtomicReference<String> result = new AtomicReference<>();
-		final CountDownLatch latch = new CountDownLatch(1);
+		StepVerifier.create(mono)
+				.expectNext("foobar")
+				.verifyComplete();
+	}
 
-		mono.subscribe(s -> {
-			result.set(s);
-			latch.countDown();
+	@Test
+	public void monoVoid() throws InterruptedException {
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
+		proxyFactory.setDefaultRequestChannel(new NullChannel());
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		Mono<Void> mono = service.monoVoid("test1");
+
+		CountDownLatch emptyMonoLatch = new CountDownLatch(1);
+		mono.switchIfEmpty(Mono.empty().doOnSuccess(v -> emptyMonoLatch.countDown()).then()).subscribe();
+
+		assertThat(emptyMonoLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		new DirectFieldAccessor(proxyFactory).setPropertyValue("initialized", false);
+		proxyFactory.setDefaultRequestChannel((message, timeout) -> {
+			throw new MessageDispatchingException(message, "intentional dispatcher error");
 		});
+		proxyFactory.afterPropertiesSet();
 
-		latch.await(10, TimeUnit.SECONDS);
-		assertThat(result.get()).isEqualTo("foobar");
+		Mono<Void> monoError = service.monoVoid("test2");
+
+		StepVerifier.create(monoError)
+				.expectSubscription()
+				.expectError(MessageDispatchingException.class)
+				.verify(Duration.ofSeconds(10));
 	}
 
 	private static void startResponder(final PollableChannel requestChannel) {
@@ -323,18 +373,13 @@ public class AsyncGatewayTests {
 
 		Mono<?> returnSomethingPromise(String s);
 
+		Future<Void> asyncSendAndForget(String s);
+
+		Mono<Void> monoVoid(String s);
+
 	}
 
-	private static class CustomFuture implements Future<String> {
-
-		private final String result;
-
-		private final Thread thread;
-
-		private CustomFuture(String result, Thread thread) {
-			this.result = result;
-			this.thread = thread;
-		}
+	private record CustomFuture(String result, Thread thread) implements Future<String> {
 
 		@Override
 		public boolean cancel(boolean mayInterruptIfRunning) {
