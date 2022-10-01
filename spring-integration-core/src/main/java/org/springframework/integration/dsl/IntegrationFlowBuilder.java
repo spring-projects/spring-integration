@@ -41,7 +41,7 @@ public final class IntegrationFlowBuilder extends IntegrationFlowDefinition<Inte
 	}
 
 	@Override
-	public  <T> Publisher<Message<T>> toReactivePublisher(boolean autoStartOnSubscribe) { // NOSONAR
+	public <T> Publisher<Message<T>> toReactivePublisher(boolean autoStartOnSubscribe) { // NOSONAR
 		return super.toReactivePublisher(autoStartOnSubscribe);
 	}
 
