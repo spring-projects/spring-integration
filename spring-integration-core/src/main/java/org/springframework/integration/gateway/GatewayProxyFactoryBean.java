@@ -1099,7 +1099,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			if (Future.class.isAssignableFrom(this.returnType) || Mono.class.isAssignableFrom(this.returnType)) {
 				returnTypeToCheck = resolvableType.getGeneric(0).resolve(Object.class);
 			}
-			return Void.class.isAssignableFrom(returnTypeToCheck);
+			return Void.class.isAssignableFrom(returnTypeToCheck) || void.class.isAssignableFrom(returnTypeToCheck);
 		}
 
 		private void setPollable() {
