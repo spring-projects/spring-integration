@@ -33,10 +33,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.MessageDispatchingException;
-import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
-import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -408,6 +406,7 @@ public class AsyncGatewayTests {
 		Future<Void> asyncSendAndForget(String s);
 
 		Future<Void> sendAndReceiveFutureVoid(String s);
+
 		Mono<Void> monoVoid(String s);
 
 	}
