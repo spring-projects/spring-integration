@@ -433,7 +433,7 @@ public class EerhaApplication {
 
     @Bean
     public IntegrationFlow advised() {
-        return f -> f.handle((GenericHandler<String>) (payload, headers) -> {
+        return f -> f.<String>handle((payload, headers) -> {
             if (payload.equals("good")) {
                 return null;
             }

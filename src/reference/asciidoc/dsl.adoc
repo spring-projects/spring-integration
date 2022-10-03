@@ -91,7 +91,7 @@ public IntegrationFlow integerFlow() {
 ====
 
 The `transform` method accepts a lambda as an endpoint argument to operate on the message payload.
-The real argument of this method is `GenericTransformer<S, T>`.
+The real argument of this method is a `GenericTransformer<S, T>` instance.
 Consequently, any of the provided transformers  (`ObjectToJsonTransformer`, `FileToStringTransformer`, and other) can be used here.
 
 Under the covers, `IntegrationFlowBuilder` recognizes the `MessageHandler` and the endpoint for it, with `MessageTransformingHandler` and `ConsumerEndpointFactoryBean`, respectively.
@@ -1300,7 +1300,7 @@ With Java 8, you can even create an integration gateway with the `java.util.func
 @Bean
 public IntegrationFlow errorRecovererFlow() {
     return IntegrationFlow.from(Function.class, (gateway) -> gateway.beanName("errorRecovererFunction"))
-            .handle((GenericHandler<?>) (p, h) -> {
+            .<Object>handle((p, h) -> {
                 throw new RuntimeException("intentional");
             }, e -> e.advice(retryAdvice()))
             .get();

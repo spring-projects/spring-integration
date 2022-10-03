@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.annotation;
+package org.springframework.integration.config;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -73,10 +73,7 @@ import org.springframework.integration.annotation.Reactive;
 import org.springframework.integration.annotation.Role;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
-import org.springframework.integration.config.ConsumerEndpointFactoryBean;
-import org.springframework.integration.config.IntegrationConfigUtils;
-import org.springframework.integration.config.RouterFactoryBean;
+import org.springframework.integration.config.annotation.MethodAnnotationPostProcessor;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;

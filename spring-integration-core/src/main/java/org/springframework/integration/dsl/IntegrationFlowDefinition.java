@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package org.springframework.integration.dsl;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.springframework.integration.core.GenericHandler;
 import org.springframework.integration.core.GenericSelector;
-import org.springframework.integration.handler.GenericHandler;
+import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
-import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 
 /**

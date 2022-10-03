@@ -28,7 +28,7 @@ import org.springframework.integration.filter.MessageFilter
 import org.springframework.integration.filter.MethodInvokingSelector
 import org.springframework.integration.handler.BridgeHandler
 import org.springframework.integration.handler.DelayHandler
-import org.springframework.integration.handler.GenericHandler
+import org.springframework.integration.core.GenericHandler
 import org.springframework.integration.handler.LoggingHandler
 import org.springframework.integration.handler.MessageProcessor
 import org.springframework.integration.handler.MessageTriggerAction

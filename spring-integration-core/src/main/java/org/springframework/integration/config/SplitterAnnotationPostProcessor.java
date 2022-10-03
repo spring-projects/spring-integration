@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.annotation;
+package org.springframework.integration.config;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -28,7 +28,6 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.annotation.Splitter;
-import org.springframework.integration.config.SplitterFactoryBean;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.util.MessagingAnnotationUtils;

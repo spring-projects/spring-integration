@@ -30,6 +30,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.MessagingAnnotationPostProcessor;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;

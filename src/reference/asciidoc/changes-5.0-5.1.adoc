@@ -50,7 +50,7 @@ The following changes have been made in version 5.1:
 The `IntegrationFlowContext` is now an interface and `IntegrationFlowRegistration` is an inner interface of `IntegrationFlowContext`.
 
 A new `logAndReply()` operator has been introduced for convenience when you wish to log at the end of a flow for request-reply configurations.
-This avoid confusion with `log()` which is treated as a one-way end flow component.
+This avoids confusion with `log()` which is treated as a one-way end flow component.
 
 A generated bean name for any `NamedComponent` within an integration flow is now based on the component type for better readability from visual tools, logs analyzers and metrics collectors.
 

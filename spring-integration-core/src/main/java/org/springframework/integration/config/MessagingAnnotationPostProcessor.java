@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.annotation;
+package org.springframework.integration.config;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -60,6 +60,7 @@ import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.config.annotation.MethodAnnotationPostProcessor;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.Assert;

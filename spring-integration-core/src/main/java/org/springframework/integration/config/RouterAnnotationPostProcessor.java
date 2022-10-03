@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.annotation;
+package org.springframework.integration.config;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -33,7 +33,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.integration.annotation.Router;
-import org.springframework.integration.config.RouterFactoryBean;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.util.MessagingAnnotationUtils;
