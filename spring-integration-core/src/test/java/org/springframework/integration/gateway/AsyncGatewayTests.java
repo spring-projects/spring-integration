@@ -44,6 +44,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.ReflectionUtils;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -246,8 +247,8 @@ public class AsyncGatewayTests {
 				readyForReplyLatch.await(10, TimeUnit.SECONDS);
 				reply.complete(null);
 			}
-			catch (InterruptedException e) {
-				System.err.println(e);
+			catch (InterruptedException ex) {
+				ReflectionUtils.rethrowRuntimeException(ex);
 			}
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
