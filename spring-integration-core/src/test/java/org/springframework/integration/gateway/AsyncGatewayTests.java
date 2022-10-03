@@ -33,8 +33,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.MessageDispatchingException;
+import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
+import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -42,6 +44,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 
 import reactor.core.publisher.Mono;
@@ -234,6 +237,35 @@ public class AsyncGatewayTests {
 	}
 
 	@Test
+	public void futureVoidReply() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		CountDownLatch readyForReplyLatch = new CountDownLatch(1);
+		new Thread(() -> {
+			try {
+				Message<?> input = requestChannel.receive();
+				CompletableFuture<Void> reply = new CompletableFuture<>();
+				((MessageChannel) input.getHeaders().getReplyChannel()).send(new GenericMessage<>(reply));
+				readyForReplyLatch.await(10, TimeUnit.SECONDS);
+				reply.complete(null);
+			}
+			catch (InterruptedException e) {
+				System.err.println(e);
+			}
+		}).start();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.setAsyncExecutor(null);
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		Future<Void> f = service.sendAndReceiveFutureVoid("test");
+		readyForReplyLatch.countDown();
+		Object result = f.get(10, TimeUnit.SECONDS);
+		assertThat(result).isNull();
+	}
+
+	@Test
 	public void monoWithMessageReturned() {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
@@ -375,6 +407,7 @@ public class AsyncGatewayTests {
 
 		Future<Void> asyncSendAndForget(String s);
 
+		Future<Void> sendAndReceiveFutureVoid(String s);
 		Mono<Void> monoVoid(String s);
 
 	}

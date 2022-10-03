@@ -801,8 +801,14 @@ public interface MyGateway {
 ====
 
 But downstream exceptions are not going to be propagated back to the caller.
-To ensure asynchronous behaviour for downstream flow invocation and exception propagation to the caller, starting with version 6.0, the framework provides support for the `Future<Void>` and `Mono<Void>` return types.
+To ensure asynchronous behavior for downstream flow invocation and exception propagation to the caller, starting with version 6.0, the framework provides support for the `Future<Void>` and `Mono<Void>` return types.
 The use-case is similar to send-and-forget behavior described before for plain `void` return type, but with a difference that flow execution happens asynchronously and returned `Future` (or `Mono`) is complete with a `null` or exceptionally according to the `send` operation result.
+
+NOTE: If the `Future<Void>` is exact downstream flow reply, then an `asyncExecutor` option of the gateway must be set to null (`AnnotationConstants.NULL` for a `@MessagingGateway` configuration) and the `send` part is performed on a producer thread.
+The reply one depends on the downstream flow configuration.
+This way it is up target application to produce a `Future<Void>` reply correctly.
+The `Mono` use-case is already out of the framework threading control, so setting `asyncExecutor` to null won't make sense.
+There `Mono<Void>` as a result of the request-reply gateway operation must be configured as a `Mono<?>` return type of the gateway method.
 
 [[gateway-no-response]]
 ==== Gateway Behavior When No response Arrives

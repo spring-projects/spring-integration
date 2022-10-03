@@ -564,15 +564,16 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 		boolean shouldReturnMessage =
 				Message.class.isAssignableFrom(gateway.returnType) || (!runningOnCallerThread && gateway.expectMessage);
-		boolean shouldReply = !gateway.isVoidReturn;
+		boolean oneWay =
+				void.class.isAssignableFrom(gateway.returnType) || (gateway.isVoidReturn && !runningOnCallerThread);
 		int paramCount = method.getParameterTypes().length;
 		Object response;
 		boolean hasPayloadExpression = findPayloadExpression(method);
 		if (paramCount == 0 && !hasPayloadExpression) {
-			response = receive(gateway, method, shouldReply, shouldReturnMessage);
+			response = receive(gateway, method, !oneWay, shouldReturnMessage);
 		}
 		else {
-			response = sendOrSendAndReceive(invocation, gateway, shouldReturnMessage, shouldReply);
+			response = sendOrSendAndReceive(invocation, gateway, shouldReturnMessage, !oneWay);
 		}
 		return response(gateway.returnType, shouldReturnMessage, response);
 	}
@@ -1099,7 +1100,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			if (Future.class.isAssignableFrom(this.returnType) || Mono.class.isAssignableFrom(this.returnType)) {
 				returnTypeToCheck = resolvableType.getGeneric(0).resolve(Object.class);
 			}
-			return Void.class.isAssignableFrom(returnTypeToCheck) || void.class.isAssignableFrom(returnTypeToCheck);
+			return Void.class.isAssignableFrom(returnTypeToCheck);
 		}
 
 		private void setPollable() {
