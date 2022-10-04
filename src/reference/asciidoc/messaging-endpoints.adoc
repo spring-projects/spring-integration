@@ -1,22 +1,13 @@
 [[messaging-endpoints-chapter]]
 == Messaging Endpoints
 
-// BE SURE TO PRECEDE ALL include:: with a blank line - see https://asciidoctor.org/docs/user-manual/#include-partitioning
 include::./endpoint.adoc[]
-
 include::./gateway.adoc[]
-
 include::./service-activator.adoc[]
-
 include::./delayer.adoc[]
-
 include::./scripting.adoc[]
-
 include::./groovy.adoc[]
-
 include::./handler-advice.adoc[]
-
 include::./logging-adapter.adoc[]
-
 include::./functions-support.adoc[]
-// BE SURE TO PRECEDE ALL include:: with a blank line - see https://asciidoctor.org/docs/user-manual/#include-partitioning
+include::./kotlin-functions.adoc[]

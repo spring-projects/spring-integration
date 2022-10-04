@@ -110,32 +110,3 @@ public IntegrationFlow supplierFlow() {
 ====
 
 This function support is useful when used together with the https://cloud.spring.io/spring-cloud-function/[Spring Cloud Function] framework, where we have a function catalog and can refer to its member functions from an integration flow definition.
-
-[[kotlin-functions-support]]
-==== Kotlin Lambdas
-
-The Framework also has been improved to support Kotlin lambdas for functions, so now you can use a combination of the Kotlin language and Spring Integration flow definitions:
-
-====
-[source, java]
-----
-@Bean
-@Transformer(inputChannel = "functionServiceChannel")
-fun kotlinFunction(): (String) -> String {
-    return { it.toUpperCase() }
-}
-
-@Bean
-@ServiceActivator(inputChannel = "messageConsumerServiceChannel")
-fun kotlinConsumer(): (Message<Any>) -> Unit {
-    return { print(it) }
-}
-
-@Bean
-@InboundChannelAdapter(value = "counterChannel",
-        poller = [Poller(fixedRate = "10", maxMessagesPerPoll = "1")])
-fun kotlinSupplier(): () -> String {
-    return { "baz" }
-}
-----
-====

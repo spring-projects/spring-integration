@@ -31,8 +31,10 @@ import java.util.function.BiConsumer;
 import org.reactivestreams.Publisher;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ReactiveAdapterRegistry;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -188,8 +190,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	/**
 	 * Add header patterns ("xxx*", "*xxx", "*xxx*" or "xxx*yyy")
 	 * that will NOT be copied from the inbound message if
-	 * {@link #shouldCopyRequestHeaders()} is true, instead of overwriting the existing
-	 * set.
+	 * {@link #shouldCopyRequestHeaders()} is true, instead of overwriting the existing set.
 	 * @param headers the headers to not propagate from the inbound message.
 	 * @since 4.3.10
 	 * @see #setNotPropagatedHeaders(String...)
@@ -308,25 +309,65 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			replyChannel = getOutputChannel();
 		}
 
-		if (this.async && (reply instanceof org.springframework.util.concurrent.ListenableFuture<?>
-				|| reply instanceof CompletableFuture<?>
-				|| reply instanceof Publisher<?>)) {
+		ReactiveAdapter reactiveAdapter = null;
 
-			if (reply instanceof Publisher<?> &&
-					replyChannel instanceof ReactiveStreamsSubscribableChannel) {
+		if (this.async &&
+				(reply instanceof org.springframework.util.concurrent.ListenableFuture<?>
+						|| reply instanceof CompletableFuture<?>
+						|| (reactiveAdapter = ReactiveAdapterRegistry.getSharedInstance().getAdapter(null, reply)) != null)) {
 
-				((ReactiveStreamsSubscribableChannel) replyChannel)
+			if (replyChannel instanceof ReactiveStreamsSubscribableChannel reactiveStreamsSubscribableChannel) {
+				Publisher<?> reactiveReply = toPublisherReply(reply, reactiveAdapter);
+				reactiveStreamsSubscribableChannel
 						.subscribeTo(
-								Flux.from((Publisher<?>) reply)
+								Flux.from(reactiveReply)
 										.doOnError((ex) -> sendErrorMessage(requestMessage, ex))
 										.map(result -> createOutputMessage(result, requestHeaders)));
 			}
 			else {
-				asyncNonReactiveReply(requestMessage, reply, replyChannel);
+				CompletableFuture<?> futureReply = toFutureReply(reply, reactiveAdapter);
+				futureReply.whenComplete(new ReplyFutureCallback(requestMessage, replyChannel));
 			}
 		}
 		else {
 			sendOutput(createOutputMessage(reply, requestHeaders), replyChannel, false);
+		}
+	}
+
+	private static Publisher<?> toPublisherReply(Object reply, @Nullable ReactiveAdapter reactiveAdapter) {
+		if (reactiveAdapter != null) {
+			return reactiveAdapter.toPublisher(reply);
+		}
+		else {
+			return Mono.fromFuture(toCompletableFuture(reply));
+		}
+	}
+
+	private static CompletableFuture<?> toFutureReply(Object reply, @Nullable ReactiveAdapter reactiveAdapter) {
+		if (reactiveAdapter != null) {
+			Mono<?> reactiveReply;
+			Publisher<?> publisher = reactiveAdapter.toPublisher(reply);
+			if (reactiveAdapter.isMultiValue()) {
+				reactiveReply = Mono.just(publisher);
+			}
+			else {
+				reactiveReply = Mono.from(publisher);
+			}
+
+			return reactiveReply.publishOn(Schedulers.boundedElastic()).toFuture();
+		}
+		else {
+			return toCompletableFuture(reply);
+		}
+	}
+
+	@SuppressWarnings("deprecation")
+	private static CompletableFuture<?> toCompletableFuture(Object reply) {
+		if (reply instanceof CompletableFuture<?>) {
+			return (CompletableFuture<?>) reply;
+		}
+		else {
+			return ((org.springframework.util.concurrent.ListenableFuture<?>) reply).completable();
 		}
 	}
 
@@ -350,30 +391,6 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			builder = getMessageBuilderFactory().withPayload(reply);
 		}
 		return builder;
-	}
-
-	@SuppressWarnings("deprecation")
-	private void asyncNonReactiveReply(Message<?> requestMessage, Object reply, @Nullable Object replyChannel) {
-		CompletableFuture<?> future;
-		if (reply instanceof CompletableFuture<?>) {
-			future = (CompletableFuture<?>) reply;
-		}
-		else if (reply instanceof org.springframework.util.concurrent.ListenableFuture<?>) {
-			future = ((org.springframework.util.concurrent.ListenableFuture<?>) reply).completable();
-		}
-		else {
-			Mono<?> reactiveReply;
-			ReactiveAdapter adapter = ReactiveAdapterRegistry.getSharedInstance().getAdapter(null, reply);
-			if (adapter != null && adapter.isMultiValue()) {
-				reactiveReply = Mono.just(reply);
-			}
-			else {
-				reactiveReply = Mono.from((Publisher<?>) reply);
-			}
-
-			future = reactiveReply.publishOn(Schedulers.boundedElastic()).toFuture();
-		}
-		future.whenComplete(new ReplyFutureCallback(requestMessage, replyChannel));
 	}
 
 	private Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<?> routingSlip,
@@ -444,7 +461,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
 	 * @param output the output object to send
 	 * @param replyChannelArg the 'replyChannel' value from the original request
-	 * @param useArgChannel - use the replyChannel argument (must not be null), not
+	 * @param useArgChannel use the replyChannel argument (must not be null), not
 	 * the configured output channel.
 	 */
 	protected void sendOutput(Object output, @Nullable Object replyChannelArg, boolean useArgChannel) {
@@ -520,6 +537,22 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 		}
 		return errorChannel;
+	}
+
+	protected void setupMessageProcessor(MessageProcessor<?> processor) {
+		if (processor instanceof AbstractMessageProcessor<?> abstractMessageProcessor) {
+			ConversionService conversionService = getConversionService();
+			if (conversionService != null) {
+				abstractMessageProcessor.setConversionService(conversionService);
+			}
+		}
+		BeanFactory beanFactory = getBeanFactory();
+		if (processor instanceof BeanFactoryAware beanFactoryAware && beanFactory != null) {
+			beanFactoryAware.setBeanFactory(beanFactory);
+		}
+		if (!this.async && processor instanceof MethodInvokingMessageProcessor<?> methodInvokingMessageProcessor) {
+			this.async = methodInvokingMessageProcessor.isAsync();
+		}
 	}
 
 	private final class ReplyFutureCallback implements BiConsumer<Object, Throwable> {

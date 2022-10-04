@@ -102,6 +102,10 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 		return this.delegate.isRunning();
 	}
 
+	public boolean isAsync() {
+		return this.delegate.isAsync();
+	}
+
 	@Override
 	@Nullable
 	@SuppressWarnings("unchecked")

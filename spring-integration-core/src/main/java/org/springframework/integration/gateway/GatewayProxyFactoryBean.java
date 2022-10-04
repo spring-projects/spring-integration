@@ -46,8 +46,10 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.core.KotlinDetector;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
@@ -67,6 +69,7 @@ import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
+import org.springframework.integration.util.CoroutinesUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -498,13 +501,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	@Nullable
 	@SuppressWarnings("deprecation")
 	public Object invoke(final MethodInvocation invocation) throws Throwable { // NOSONAR
-		final Class<?> returnType;
-		MethodInvocationGateway gateway = this.gatewayMap.get(invocation.getMethod());
+		Method method = invocation.getMethod();
+		Class<?> returnType;
+		MethodInvocationGateway gateway = this.gatewayMap.get(method);
 		if (gateway != null) {
 			returnType = gateway.returnType;
 		}
 		else {
-			returnType = invocation.getMethod().getReturnType();
+			returnType = method.getReturnType();
 		}
 		if (this.asyncExecutor != null && !Object.class.equals(returnType)) {
 			Invoker invoker = new Invoker(invocation);
@@ -524,7 +528,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 						+ returnType.getSimpleName());
 			}
 		}
-		if (Mono.class.isAssignableFrom(returnType)) {
+		if (Mono.class.isAssignableFrom(returnType) || KotlinDetector.isSuspendingFunction(method)) {
 			return doInvoke(invocation, false);
 		}
 		else {
@@ -534,8 +538,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	@Nullable
 	protected Object doInvoke(MethodInvocation invocation, boolean runningOnCallerThread) throws Throwable { // NOSONAR
-		Method method = invocation.getMethod();
-		if (AopUtils.isToStringMethod(method)) {
+		if (AopUtils.isToStringMethod(invocation.getMethod())) {
 			return "gateway proxy for service interface [" + this.serviceInterface + "]";
 		}
 		try {
@@ -575,16 +578,29 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		else {
 			response = sendOrSendAndReceive(invocation, gateway, shouldReturnMessage, !oneWay);
 		}
-		return response(gateway.returnType, shouldReturnMessage, response);
+
+		Object continuation = null;
+		if (gateway.isSuspendingFunction) {
+			for (Object argument : invocation.getArguments()) {
+				if (CoroutinesUtils.KOTLIN_CONTINUATION_CLASS.isAssignableFrom(argument.getClass())) {
+					continuation = argument;
+					break;
+				}
+			}
+		}
+
+		return response(gateway.returnType, shouldReturnMessage, response, continuation);
 	}
 
 	@Nullable
-	private Object response(Class<?> returnType, boolean shouldReturnMessage, @Nullable Object response) {
+	private Object response(Class<?> returnType, boolean shouldReturnMessage,
+			@Nullable Object response, @Nullable Object continuation) {
+
 		if (shouldReturnMessage) {
 			return response;
 		}
 		else {
-			return response != null ? convert(response, returnType) : null;
+			return response != null ? convert(response, returnType, continuation) : null;
 		}
 	}
 
@@ -627,7 +643,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 		Object[] args = invocation.getArguments();
 		if (shouldReply) {
-			if (gateway.isMonoReturn) {
+			if (gateway.isMonoReturn || gateway.isSuspendingFunction) {
 				Mono<Message<?>> messageMono = gateway.sendAndReceiveMessageReactive(args);
 				if (!shouldReturnMessage) {
 					return messageMono.map(Message::getPayload);
@@ -641,7 +657,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 		}
 		else {
-			if (gateway.isMonoReturn) {
+			if (gateway.isMonoReturn || gateway.isSuspendingFunction) {
 				return Mono.fromRunnable(() -> gateway.send(args));
 			}
 			else {
@@ -1015,15 +1031,26 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	@SuppressWarnings("unchecked")
 	@Nullable
-	private <T> T convert(Object source, Class<T> expectedReturnType) {
+	private <T> T convert(Object source, Class<T> expectedReturnType, @Nullable Object continuation) {
+		if (continuation != null) {
+			return CoroutinesUtils.monoAwaitSingleOrNull((Mono<T>) source, continuation);
+		}
 		if (Future.class.isAssignableFrom(expectedReturnType)) {
 			return (T) source;
 		}
 		if (Mono.class.isAssignableFrom(expectedReturnType)) {
 			return (T) source;
 		}
-		if (getConversionService() != null) {
-			return getConversionService().convert(source, expectedReturnType);
+
+
+		return doConvert(source, expectedReturnType);
+	}
+
+	@Nullable
+	private <T> T doConvert(Object source, Class<T> expectedReturnType) {
+		ConversionService conversionService = getConversionService();
+		if (conversionService != null) {
+			return conversionService.convert(source, expectedReturnType);
 		}
 		else {
 			return this.typeConverter.convertIfNecessary(source, expectedReturnType);
@@ -1049,6 +1076,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		private boolean isVoidReturn;
 
 		private boolean pollable;
+
+		private boolean isSuspendingFunction;
 
 		MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			setRequestMapper(messageMapper);
@@ -1088,6 +1117,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				this.expectMessage = hasReturnParameterizedWithMessage(resolvableType);
 			}
 			this.isVoidReturn = isVoidReturnType(resolvableType);
+			this.isSuspendingFunction = KotlinDetector.isSuspendingFunction(method);
 		}
 
 		private boolean hasReturnParameterizedWithMessage(ResolvableType resolvableType) {

@@ -17,27 +17,23 @@
 package org.springframework.integration.function
 
 import assertk.assertThat
-import assertk.assertions.containsAll
-import assertk.assertions.isEqualTo
-import assertk.assertions.isNotNull
-import assertk.assertions.isTrue
-import assertk.assertions.size
+import assertk.assertions.*
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.integration.annotation.EndpointId
-import org.springframework.integration.annotation.InboundChannelAdapter
-import org.springframework.integration.annotation.Poller
-import org.springframework.integration.annotation.ServiceActivator
-import org.springframework.integration.annotation.Transformer
+import org.springframework.integration.annotation.*
 import org.springframework.integration.channel.DirectChannel
+import org.springframework.integration.channel.FluxMessageChannel
 import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.integrationFlow
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter
 import org.springframework.integration.gateway.GatewayProxyFactoryBean
+import org.springframework.integration.handler.ServiceActivatingHandler
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.PollableChannel
@@ -46,8 +42,10 @@ import org.springframework.messaging.support.GenericMessage
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
+import java.time.Duration
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -88,8 +86,8 @@ class FunctionsTests {
 		val replyChannel = QueueChannel()
 
 		val message = MessageBuilder.withPayload("foo")
-				.setReplyChannel(replyChannel)
-				.build()
+			.setReplyChannel(replyChannel)
+			.build()
 
 		this.functionServiceChannel.send(message)
 
@@ -98,8 +96,8 @@ class FunctionsTests {
 		val payload = receive?.payload
 
 		assertThat(payload)
-				.isNotNull()
-				.isEqualTo("FOO")
+			.isNotNull()
+			.isEqualTo("FOO")
 	}
 
 	@Test
@@ -139,8 +137,8 @@ class FunctionsTests {
 		val mono = this.monoFunction.apply("test")
 
 		StepVerifier.create(mono.map(Message<*>::getPayload).cast(String::class.java))
-				.expectNext("TEST")
-				.verifyComplete()
+			.expectNext("TEST")
+			.verifyComplete()
 
 		val gateways = this.monoFunctionGateway.gateways
 		assertThat(gateways).size().isEqualTo(3)
@@ -148,8 +146,69 @@ class FunctionsTests {
 		assertThat(methodNames).containsAll("apply", "andThen", "compose")
 	}
 
+	@Autowired
+	private lateinit var suspendServiceChannel: MessageChannel
+
+	@Test
+	fun `verify suspend function`() {
+		val replyChannel = FluxMessageChannel()
+		val testPayload = "test coroutine"
+		val stepVerifier =
+			StepVerifier.create(Flux.from(replyChannel).map(Message<*>::getPayload).cast(String::class.java))
+				.expectNext(testPayload.uppercase())
+				.thenCancel()
+				.verifyLater()
+
+		suspendServiceChannel.send(
+			MessageBuilder.withPayload(testPayload)
+				.setReplyChannel(replyChannel)
+				.build()
+		)
+
+		stepVerifier.verify(Duration.ofSeconds(10))
+	}
+
+	@Autowired
+	private lateinit var flowServiceChannel: MessageChannel
+
+	@Test
+	fun `verify flow function`() {
+		val replyChannel = FluxMessageChannel()
+		val testPayload = "test flow"
+		val stepVerifier =
+			StepVerifier.create(Flux.from(replyChannel).map(Message<*>::getPayload).cast(String::class.java))
+				.expectNext("$testPayload #1", "$testPayload #2", "$testPayload #3")
+				.thenCancel()
+				.verifyLater()
+
+		flowServiceChannel.send(
+			MessageBuilder.withPayload(testPayload)
+				.setReplyChannel(replyChannel)
+				.build()
+		)
+
+		stepVerifier.verify(Duration.ofSeconds(10))
+	}
+
+	@Autowired
+	private lateinit var suspendRequestChannel: DirectChannel
+
+	@Autowired
+	private lateinit var suspendFunGateway: SuspendFunGateway
+
+	@Test
+	fun `suspend gateway`() {
+		suspendRequestChannel.subscribe(ServiceActivatingHandler { m -> m.payload.toString().uppercase() })
+
+		runBlocking {
+			val reply = suspendFunGateway.suspendGateway("test suspend gateway")
+			assertThat(reply).isEqualTo("TEST SUSPEND GATEWAY")
+		}
+	}
+
 	@Configuration
 	@EnableIntegration
+	@IntegrationComponentScan
 	class Config {
 
 		@Bean
@@ -171,8 +230,10 @@ class FunctionsTests {
 		fun counterChannel() = DirectChannel()
 
 		@Bean
-		@InboundChannelAdapter(value = "counterChannel", autoStartup = "false",
-				poller = Poller(fixedRate = "10", maxMessagesPerPoll = "1"))
+		@InboundChannelAdapter(
+			value = "counterChannel", autoStartup = "false",
+			poller = Poller(fixedRate = "10", maxMessagesPerPoll = "1")
+		)
 		@EndpointId("kotlinSupplierChannelAdapter")
 		fun kotlinSupplier(): () -> String {
 			return { "baz" }
@@ -180,16 +241,38 @@ class FunctionsTests {
 
 		@Bean
 		fun flowFromSupplier() =
-				integrationFlow({ "" }, { poller { it.fixedDelay(10).maxMessagesPerPoll(1) } }) {
-					transform<String> { "blank" }
-					channel { queue("fromSupplierQueue") }
-				}
+			integrationFlow({ "" }, { poller { it.fixedDelay(10).maxMessagesPerPoll(1) } }) {
+				transform<String> { "blank" }
+				channel { queue("fromSupplierQueue") }
+			}
 
 		@Bean
 		fun monoFunctionGateway() =
-				integrationFlow<MonoFunction>({ proxyDefaultMethods(true) }) {
-					handle<String>({ p, _ -> Mono.just(p).map(String::uppercase) }) { async(true) }
+			integrationFlow<MonoFunction>({ proxyDefaultMethods(true) }) {
+				handle<String>({ p, _ -> Mono.just(p).map(String::uppercase) }) { async(true) }
+			}
+
+
+		@ServiceActivator(inputChannel = "suspendServiceChannel")
+		suspend fun suspendServiceFunction(payload: String) = payload.uppercase()
+
+		@ServiceActivator(inputChannel = "flowServiceChannel")
+		fun flowServiceFunction(payload: String) =
+			flow {
+				for (i in 1..3) {
+					emit("$payload #$i")
 				}
+			}
+
+		@Bean
+		fun suspendRequestChannel() = DirectChannel()
+
+	}
+
+	@MessagingGateway(defaultRequestChannel = "suspendRequestChannel")
+	interface SuspendFunGateway {
+
+		suspend fun suspendGateway(payload: String): String
 
 	}
 

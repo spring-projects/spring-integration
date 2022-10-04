@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,88 +14,92 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.handler.support;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.handler.support.CollectionArgumentResolver;
-import org.springframework.integration.handler.support.MapArgumentResolver;
-import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
-import org.springframework.integration.handler.support.PayloadsArgumentResolver;
 import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
-import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolverComposite;
+import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 
 /**
- * The {@link FactoryBean} for creating integration-specific {@link MessageHandlerMethodFactory} instance.
- * It adds these custom {@link HandlerMethodArgumentResolver}s in the order:
- * <ul>
- *  <li>{@link PayloadExpressionArgumentResolver};
- *  <li>{@link NullAwarePayloadArgumentResolver};
- *  <li>{@link PayloadsArgumentResolver};
- *  <li>{@link CollectionArgumentResolver} if {@link #listCapable} is true;
- *  <li>{@link MapArgumentResolver}.
- * </ul>
+ * Extension of the {@link DefaultMessageHandlerMethodFactory} for Spring Integration requirements.
  *
- * @author Artyem Bilan
+ * @author Artem Bilan
  *
- * @since 5.5.7
+ * @since 6.0
  */
-class MessageHandlerMethodFactoryCreatingFactoryBean
-		implements FactoryBean<MessageHandlerMethodFactory>, BeanFactoryAware {
+public class IntegrationMessageHandlerMethodFactory extends DefaultMessageHandlerMethodFactory {
+
+	private final HandlerMethodArgumentResolverComposite argumentResolvers =
+			new HandlerMethodArgumentResolverComposite();
 
 	private final boolean listCapable;
 
-	private MessageConverter argumentResolverMessageConverter;
+	private MessageConverter messageConverter;
 
 	private BeanFactory beanFactory;
 
-	MessageHandlerMethodFactoryCreatingFactoryBean(boolean listCapable) {
+	public IntegrationMessageHandlerMethodFactory() {
+		this(false);
+	}
+
+	public IntegrationMessageHandlerMethodFactory(boolean listCapable) {
 		this.listCapable = listCapable;
 	}
 
-	public void setArgumentResolverMessageConverter(MessageConverter argumentResolverMessageConverter) {
-		this.argumentResolverMessageConverter = argumentResolverMessageConverter;
+	@Override
+	public void setMessageConverter(MessageConverter messageConverter) {
+		super.setMessageConverter(messageConverter);
+		this.messageConverter = messageConverter;
 	}
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+	public void setBeanFactory(BeanFactory beanFactory) {
+		super.setBeanFactory(beanFactory);
 		this.beanFactory = beanFactory;
 	}
 
 	@Override
-	public Class<?> getObjectType() {
-		return MessageHandlerMethodFactory.class;
+	public void afterPropertiesSet() {
+		setCustomArgumentResolvers(buildArgumentResolvers(this.listCapable));
+		super.afterPropertiesSet();
 	}
 
 	@Override
-	public MessageHandlerMethodFactory getObject() {
-		DefaultMessageHandlerMethodFactory handlerMethodFactory = new DefaultMessageHandlerMethodFactory();
-		handlerMethodFactory.setBeanFactory(this.beanFactory);
-		handlerMethodFactory.setMessageConverter(this.argumentResolverMessageConverter);
-		handlerMethodFactory.setCustomArgumentResolvers(buildArgumentResolvers(this.listCapable));
-		handlerMethodFactory.afterPropertiesSet();
-		return handlerMethodFactory;
+	protected List<HandlerMethodArgumentResolver> initArgumentResolvers() {
+		List<HandlerMethodArgumentResolver> resolvers = super.initArgumentResolvers();
+		this.argumentResolvers.addResolvers(resolvers);
+		return resolvers;
+	}
+
+	@Override
+	public InvocableHandlerMethod createInvocableHandlerMethod(Object bean, Method method) {
+		InvocableHandlerMethod handlerMethod = new IntegrationInvocableHandlerMethod(bean, method);
+		handlerMethod.setMessageMethodArgumentResolvers(this.argumentResolvers);
+		return handlerMethod;
 	}
 
 	private List<HandlerMethodArgumentResolver> buildArgumentResolvers(boolean listCapable) {
 		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
 		resolvers.add(new PayloadExpressionArgumentResolver());
-		resolvers.add(new NullAwarePayloadArgumentResolver(this.argumentResolverMessageConverter));
+		resolvers.add(new NullAwarePayloadArgumentResolver(this.messageConverter));
 		resolvers.add(new PayloadsArgumentResolver());
 		if (listCapable) {
 			resolvers.add(new CollectionArgumentResolver(true));
 		}
 		resolvers.add(new MapArgumentResolver());
+		resolvers.add(new ContinuationHandlerMethodArgumentResolver());
+
 		for (HandlerMethodArgumentResolver resolver : resolvers) {
 			if (resolver instanceof BeanFactoryAware) {
 				((BeanFactoryAware) resolver).setBeanFactory(this.beanFactory);
