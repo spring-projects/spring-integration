@@ -564,15 +564,16 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 		boolean shouldReturnMessage =
 				Message.class.isAssignableFrom(gateway.returnType) || (!runningOnCallerThread && gateway.expectMessage);
-		boolean shouldReply = gateway.returnType != void.class;
+		boolean oneWay =
+				void.class.isAssignableFrom(gateway.returnType) || (gateway.isVoidReturn && !runningOnCallerThread);
 		int paramCount = method.getParameterTypes().length;
 		Object response;
 		boolean hasPayloadExpression = findPayloadExpression(method);
 		if (paramCount == 0 && !hasPayloadExpression) {
-			response = receive(gateway, method, shouldReply, shouldReturnMessage);
+			response = receive(gateway, method, !oneWay, shouldReturnMessage);
 		}
 		else {
-			response = sendOrSendAndReceive(invocation, gateway, shouldReturnMessage, shouldReply);
+			response = sendOrSendAndReceive(invocation, gateway, shouldReturnMessage, !oneWay);
 		}
 		return response(gateway.returnType, shouldReturnMessage, response);
 	}
@@ -640,7 +641,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 		}
 		else {
-			gateway.send(args);
+			if (gateway.isMonoReturn) {
+				return Mono.fromRunnable(() -> gateway.send(args));
+			}
+			else {
+				gateway.send(args);
+			}
 		}
 		return null;
 	}

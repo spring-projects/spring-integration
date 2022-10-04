@@ -460,7 +460,7 @@ If you provide a one-way flow, nothing would be sent back to the caller.
 If you want to completely suppress exceptions, you can provide a reference to the global `nullChannel` (essentially a `/dev/null` approach).
 Finally, as mentioned above, if no `error-channel` is defined, then the exceptions propagate as usual.
 
-When you use the `@MessagingGateway` annotation (see `<<messaging-gateway-annotation>>`), you can use use the `errorChannel` attribute.
+When you use the `@MessagingGateway` annotation (see `<<messaging-gateway-annotation>>`), you can use an `errorChannel` attribute.
 
 Starting with version 5.0, when you use a gateway method with a `void` return type (one-way flow), the `error-channel` reference (if provided) is populated in the standard `errorChannel` header of each sent message.
 This feature allows a downstream asynchronous flow, based on the standard `ExecutorChannel` configuration (or a `QueueChannel`), to override a default global `errorChannel` exceptions sending behavior.
@@ -469,7 +469,7 @@ The `error-channel` property was ignored for `void` methods with an asynchronous
 Instead, error messages were sent to the default `errorChannel`.
 
 
-IMPORTANT: Exposing the messaging system through simple POJI Gateways  provides benefits, but "`hiding`" the reality of the underlying messaging system does come at a price, so there are certain things you should consider.
+IMPORTANT: Exposing the messaging system through simple POJI Gateways provides benefits, but "`hiding`" the reality of the underlying messaging system does come at a price, so there are certain things you should consider.
 We want our Java method to return as quickly as possible and not hang for an indefinite amount of time while the caller is waiting on it to return (whether void, a return value, or a thrown Exception).
 When regular methods are used as a proxies in front of the messaging system, we have to take into account the potentially asynchronous nature of the underlying messaging.
 This means that there might be a chance that a message that was initiated by a gateway could be dropped by a filter and never reach a component that is responsible for producing a reply.
@@ -782,10 +782,9 @@ The calling thread continues, with `handleInvoice()` being called when the flow 
 As mentioned in the <<gateway-asynctaskexecutor>> section above, if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, and others), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
 The flow is then invoked on the caller thread and the result can be retrieved later.
 
-===== `void` Return Type
+===== Asynchronous `void` Return Type
 
-Unlike the return types mentioned earlier, when the method return type is `void`, the framework cannot implicitly determine that you wish the downstream flow to run asynchronously, with the caller thread returning immediately.
-In this case, you must annotate the interface method with `@Async`, as the following example shows:
+The messaging gateway method can be declared like this:
 
 ====
 [source, java]
@@ -801,7 +800,15 @@ public interface MyGateway {
 ----
 ====
 
-Unlike the `Future<?>` return types, there is no way to inform the caller if some exception is thrown by the flow, unless some custom `TaskExecutor` (such as an `ErrorHandlingTaskExecutor`) is associated with the `@Async` annotation.
+But downstream exceptions are not going to be propagated back to the caller.
+To ensure asynchronous behavior for downstream flow invocation and exception propagation to the caller, starting with version 6.0, the framework provides support for the `Future<Void>` and `Mono<Void>` return types.
+The use-case is similar to send-and-forget behavior described before for plain `void` return type, but with a difference that flow execution happens asynchronously and returned `Future` (or `Mono`) is complete with a `null` or exceptionally according to the `send` operation result.
+
+NOTE: If the `Future<Void>` is exact downstream flow reply, then an `asyncExecutor` option of the gateway must be set to null (`AnnotationConstants.NULL` for a `@MessagingGateway` configuration) and the `send` part is performed on a producer thread.
+The reply one depends on the downstream flow configuration.
+This way it is up target application to produce a `Future<Void>` reply correctly.
+The `Mono` use-case is already out of the framework threading control, so setting `asyncExecutor` to null won't make sense.
+There `Mono<Void>` as a result of the request-reply gateway operation must be configured as a `Mono<?>` return type of the gateway method.
 
 [[gateway-no-response]]
 ==== Gateway Behavior When No response Arrives
