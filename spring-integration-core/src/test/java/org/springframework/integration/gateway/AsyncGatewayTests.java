@@ -248,7 +248,7 @@ public class AsyncGatewayTests {
 				reply.complete(null);
 			}
 			catch (InterruptedException ex) {
-				Thread.currentThread.interrupt();
+				Thread.currentThread().interrupt();
 				ReflectionUtils.rethrowRuntimeException(ex);
 			}
 		}).start();
