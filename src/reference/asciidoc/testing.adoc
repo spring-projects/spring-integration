@@ -30,7 +30,7 @@ Examples of such tools include the following:
 * There are tools for embedded MongoDB and Redis.
 * Tomcat and Jetty have embedded libraries to test real HTTP, Web Services, or WebSockets.
 * The `FtpServer` and `SshServer` from the Apache Mina project can be used for testing the FTP and SFTP protocols.
-* Gemfire and Hazelcast can be run as real-data grid nodes in the tests.
+* Hazelcast can be run as real-data grid nodes in the tests.
 * The Curator Framework provides a `TestingServer` for Zookeeper interaction.
 * Apache Kafka provides admin tools to embed a Kafka Broker in the tests.
 * The GreenMail is an open source, intuitive and easy-to-use test suite of email servers for testing purposes.

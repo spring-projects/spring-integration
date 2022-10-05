@@ -78,12 +78,6 @@ The following table summarizes the various endpoints with quick links to the app
 | N
 | <<./ftp.adoc#ftp-outbound-gateway,FTP Outbound Gateway>>
 
-| *Gemfire*
-| <<./gemfire.adoc#gemfire-inbound,Inbound Channel Adapter>> and <<./gemfire.adoc#gemfire-cq,Continuous Query Inbound Channel Adapter>>
-| <<./gemfire.adoc#gemfire-outbound,Outbound Channel Adapter>>
-| N
-| N
-
 | *GraphQL*
 | N
 | N

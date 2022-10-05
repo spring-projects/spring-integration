@@ -135,7 +135,6 @@ allprojects {
             'https://jakarta.ee/specifications/platform/9/apidocs/',
             'https://docs.spring.io/spring-framework/docs/current/javadoc-api',
             'https://docs.spring.io/spring-amqp/docs/current/api/',
-            'https://docs.spring.io/spring-data-gemfire/docs/current/api/',
             'https://docs.spring.io/spring-data/data-mongo/docs/current/api/',
             'https://docs.spring.io/spring-data/data-redis/docs/current/api/',
             'https://docs.spring.io/spring-ws/docs/current/api/'
@@ -583,11 +582,11 @@ project('spring-integration-file') {
 
         testImplementation project(':spring-integration-redis')
         testImplementation project(':spring-integration-redis').sourceSets.test.output
-        testImplementation project(':spring-integration-gemfire')
         testImplementation project(':spring-integration-jdbc')
         testImplementation "com.h2database:h2:$h2Version"
         testImplementation "io.lettuce:lettuce-core:$lettuceVersion"
         testImplementation "com.jayway.jsonpath:json-path:$jsonpathVersion"
+        testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     }
 }
 
@@ -601,31 +600,6 @@ project('spring-integration-ftp') {
 
         testImplementation project(':spring-integration-file').sourceSets.test.output
         testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
-    }
-}
-
-project('spring-integration-gemfire') {
-    description = 'Spring Integration GemFire Support'
-    dependencies {
-        api project(':spring-integration-core')
-        api('org.springframework.data:spring-data-geode') {
-            exclude group: 'org.springframework'
-            exclude group: 'org.apache.shiro', module: 'shiro-event'
-            exclude group: 'org.apache.shiro', module: 'shiro-lang'
-            exclude group: 'org.apache.shiro', module: 'shiro-crypto-hash'
-            exclude group: 'org.apache.shiro', module: 'shiro-crypto-cipher'
-            exclude group: 'org.apache.shiro', module: 'shiro-config-ogdl'
-            exclude group: 'org.apache.shiro', module: 'shiro-config-core'
-            exclude group: 'org.apache.shiro', module: 'shiro-cache'
-            exclude group: 'commons-logging'
-        }
-        api "commons-io:commons-io:$commonsIoVersion"
-
-        testImplementation project(':spring-integration-stream')
-    }
-
-    tasks.withType(JavaForkOptions) {
-        jvmArgs '--add-opens', 'jdk.management/com.sun.management.internal=ALL-UNNAMED'
     }
 }
 

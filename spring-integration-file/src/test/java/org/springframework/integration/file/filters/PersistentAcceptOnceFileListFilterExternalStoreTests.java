@@ -27,7 +27,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.geode.cache.CacheFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -35,7 +34,6 @@ import org.mockito.Mockito;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.gemfire.metadata.GemfireMetadataStore;
 import org.springframework.integration.jdbc.metadata.JdbcMetadataStore;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.redis.RedisContainerTest;
@@ -50,9 +48,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
  * @author Artem Bilan
  * @author Bojan Vukasovic
  * @author Artem Vozhdayenko
- *
  * @since 4.0
- *
  */
 public class PersistentAcceptOnceFileListFilterExternalStoreTests implements RedisContainerTest {
 
@@ -78,11 +74,6 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests implements Red
 		finally {
 			template.delete("persistentAcceptOnceFileListFilterRedisTests");
 		}
-	}
-
-	@Test
-	public void testFileSystemWithGemfireMetadataStore() throws Exception {
-		this.testFileSystem(new GemfireMetadataStore(new CacheFactory().create()));
 	}
 
 	@Test
@@ -135,21 +126,21 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests implements Red
 		final FileSystemPersistentAcceptOnceFileListFilter filter =
 				new FileSystemPersistentAcceptOnceFileListFilter(store, "foo:");
 		final File file = File.createTempFile("foo", ".txt");
-		assertThat(filter.filterFiles(new File[] {file})).hasSize(1);
+		assertThat(filter.filterFiles(new File[]{ file })).hasSize(1);
 		String ts = store.get("foo:" + file.getAbsolutePath());
 		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
-		assertThat(filter.filterFiles(new File[] {file})).isEmpty();
+		assertThat(filter.filterFiles(new File[]{ file })).isEmpty();
 		assertThat(file.setLastModified(file.lastModified() + 5000L)).isTrue();
-		assertThat(filter.filterFiles(new File[] {file})).hasSize(1);
+		assertThat(filter.filterFiles(new File[]{ file })).hasSize(1);
 		ts = store.get("foo:" + file.getAbsolutePath());
 		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
-		assertThat(filter.filterFiles(new File[] {file})).isEmpty();
+		assertThat(filter.filterFiles(new File[]{ file })).isEmpty();
 
 		suspend.set(true);
 		assertThat(file.setLastModified(file.lastModified() + 5000L)).isTrue();
 
 		Future<Integer> result = Executors.newSingleThreadExecutor()
-				.submit(() -> filter.filterFiles(new File[] {file}).size());
+				.submit(() -> filter.filterFiles(new File[]{ file }).size());
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		store.put("foo:" + file.getAbsolutePath(), "43");
 		latch1.countDown();

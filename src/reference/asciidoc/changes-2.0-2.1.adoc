@@ -22,14 +22,6 @@ Now you have the ability to use any scripting language that supports JSR-223 inc
 
 For further details, see <<./scripting.adoc#scripting,Scripting Support>>.
 
-[[x2.1-new-gemfire-support]]
-===== GemFire Support
-
-Spring Integration provides support for https://www.vmware.com/products/pivotal-gemfire.html[GemFire] by providing inbound adapters for entry and continuous query events, an outbound adapter to write entries to the cache, and https://docs.spring.io/spring-integration/api/org/springframework/integration/store/MessageStore.html[`MessageStore`] and https://docs.spring.io/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html[`MessageGroupStore`] implementations.
-Spring integration leverages the https://spring.io/projects/spring-data-gemfire[Spring Gemfire] project, providing a thin wrapper over its components.
-
-For further details, see <<./gemfire.adoc#gemfire,Pivotal GemFire and Apache Geode Support>>.
-
 [[x2.1-new-amqp-support]]
 ===== AMQP Support
 

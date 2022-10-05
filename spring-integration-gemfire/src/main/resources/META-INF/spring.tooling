@@ -1,4 +1,0 @@
-# Tooling related information for the integration gemfire namespace
-http\://www.springframework.org/schema/integration/gemfire@name=integration gemfire Namespace
-http\://www.springframework.org/schema/integration/gemfire@prefix=int-gfe
-http\://www.springframework.org/schema/integration@icon=org/springframework/integration/gemfire/config/xml/spring-integration-gemfire.gif

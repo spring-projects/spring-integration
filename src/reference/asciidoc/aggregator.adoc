@@ -477,7 +477,7 @@ Note that the actual time to expire an empty group is also affected by the reape
 It used to obtain a `Lock` based on the `groupId` for concurrent operations on the `MessageGroup`.
 By default, an internal `DefaultLockRegistry` is used.
 Use of a distributed `LockRegistry`, such as the `ZookeeperLockRegistry`, ensures only one instance of the aggregator can operate on a group concurrently.
-See <<./redis.adoc#redis-lock-registry,Redis Lock Registry>>, <<./gemfire.adoc#gemfire-lock-registry,Gemfire Lock Registry>>, and <<./zookeeper.adoc#zk-lock-registry,Zookeeper Lock Registry>> for more information.
+See <<./redis.adoc#redis-lock-registry,Redis Lock Registry>> or <<./zookeeper.adoc#zk-lock-registry,Zookeeper Lock Registry>> for more information.
 <21> A timeout (in milliseconds) to force the `MessageGroup` complete when the `ReleaseStrategy` does not release the group when the current message arrives.
 This attribute provides a built-in time-based release strategy for the aggregator when there is a need to emit a partial result (or discard the group) if a new message does not arrive for the `MessageGroup` within the timeout which counts from the time the last message arrived.
 To set up a timeout which counts from the time the `MessageGroup` was created see `group-timeout-expression` information.

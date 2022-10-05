@@ -101,12 +101,12 @@ For more information, see <<./security.adoc#security,Security in Spring Integrat
 The Redis support now provides the `<outbound-gateway>` component to perform generic Redis commands by using the `RedisConnection#execute` method.
 For more information, see <<./redis.adoc#redis-outbound-gateway,Redis Outbound Command Gateway>>.
 
-[[x4.0-redis-gemfire-lock-registry]]
-===== `RedisLockRegistry` and `GemfireLockRegistry`
+[[x4.0-redis-lock-registry]]
+===== `RedisLockRegistry`
 
-The `RedisLockRegistry` and `GemfireLockRegistry` are now available to support global locks visible to multiple application instances and servers.
+The `RedisLockRegistry` is now available to support global locks visible to multiple application instances and servers.
 These can be used with aggregating message handlers across multiple application instances such that group release occurs on only one instance.
-For more information, see <<./redis.adoc#redis-lock-registry,Redis Lock Registry>>, <<./gemfire.adoc#gemfire-lock-registry,Gemfire Lock Registry>>, and <<./aggregator.adoc#aggregator,Aggregator>>.
+For more information, see <<./redis.adoc#redis-lock-registry,Redis Lock Registry>> and <<./aggregator.adoc#aggregator,Aggregator>>.
 
 [[x4.0-poller-annotation]]
 ===== `@Poller`
@@ -129,12 +129,6 @@ For more information, see <<./configuration.adoc#annotations,Annotation Support>
 We added a new twitter endpoint: `<int-twitter-search-outbound-gateway/>`.
 Unlike the search inbound adapter, which polls by using the same search query each time, the outbound gateway allows on-demand customized queries.
 For more information, see https://github.com/spring-projects/spring-integration-extensions/tree/main/spring-integration-social-twitter[Spring Integration Social Twitter].
-
-[[x4.0-gemfire-metadata]]
-===== Gemfire Metadata Store
-
-We added the `GemfireMetadataStore`, letting it be used, for example, in an `AbstractPersistentAcceptOnceFileListFilter` implementation in a multiple application instance or server environment.
-For more information, see <<./meta-data-store.adoc#metadata-store,Metadata Store>>, <<./file.adoc#file-reading,Reading Files>>, <<./ftp.adoc#ftp-inbound,FTP Inbound Channel Adapter>>, and <<./sftp.adoc#sftp-inbound,SFTP Inbound Channel Adapter>>.
 
 [[x4.0-bridge-annotations]]
 ===== `@BridgeFrom` and `@BridgeTo` Annotations

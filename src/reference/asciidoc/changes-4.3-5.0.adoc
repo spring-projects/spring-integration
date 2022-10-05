@@ -271,11 +271,6 @@ We added a `ByteArrayElasticRawDeserializer` without `maxMessageSize` to control
 
 See <<./ip.adoc#ip,TCP and UDP Support>> for more information.
 
-===== Gemfire Changes
-
-The `GemfireMetadataStore` now implements `ListenableMetadataStore`, letting you listen to cache events by providing `MetadataStoreListener` instances to the store.
-See <<./gemfire.adoc#gemfire,Pivotal GemFire and Apache Geode Support>> for more information.
-
 ===== JDBC Changes
 
 The `JdbcMessageChannelStore` now provides a setter for `ChannelMessageStorePreparedStatementSetter`, letting you customize message insertion in the store.

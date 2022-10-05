@@ -326,7 +326,7 @@ The default `MetadataStore` is a `SimpleMetadataStore` that stores state in memo
 Since version 4.1.5, these filters have a new property called `flushOnUpdate`, which causes them to flush the
 metadata store on every update (if the store implements `Flushable`).
 
-IMPORTANT: Further, if you use a distributed `MetadataStore` (such as <<./redis.adoc#redis-metadata-store,Redis Metadata Store>> or <<./gemfire.adoc#gemfire-metadata-store,Gemfire Metadata Store>>), you can have multiple instances of the same adapter or application and be sure that one and only one instance processes a file.
+IMPORTANT: Further, if you use a distributed `MetadataStore` (such as <<./redis.adoc#redis-metadata-store,Redis Metadata Store>>), you can have multiple instances of the same adapter or application and be sure that one and only one instance processes a file.
 
 The actual local filter is a `CompositeFileListFilter` that contains the supplied filter and a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`).
 Files are downloaded with this suffix (the default is `.writing`), and the files are renamed to their final names when the transfer is complete, making them 'visible' to the filter.

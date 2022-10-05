@@ -43,7 +43,6 @@ The following is a complete list of supported implementations:
 * <<./jdbc.adoc#jdbc-message-store,JDBC Message Store>>: Uses an RDBMS to store messages
 * <<./redis.adoc#redis-message-store,Redis Message Store>>: Uses a Redis key/value datastore to store messages
 * <<./mongodb.adoc#mongodb-message-store,MongoDB Message Store>>: Uses a MongoDB document store to store messages
-* <<./gemfire.adoc#gemfire-message-store,Gemfire Message Store>>: Uses a Gemfire distributed cache to store messages
 
 [IMPORTANT]
 =====

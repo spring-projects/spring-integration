@@ -86,17 +86,22 @@ See <<./gateway.adoc#async-gateway, Asynchronous Gateway>> for more information.
 
 The `integrationGlobalProperties` bean is now declared by the framework as an instance of `org.springframework.integration.context.IntegrationProperties` instead of the previously deprecated `java.util.Properties`.
 
-[[x6.0-http]]
-=== HTTP Changes
-
-The `#cookies` variable for expression evaluation context, exposed in the `HttpRequestHandlingEndpointSupport`, is now a `MultiValueMap` to carry all the values for cookies set by the client.
-See <<./http.adoc#http,HTTP Support>> for more information.
-
 [[x6.0-rmi]]
 === RMI Removal
 
 The `spring-integration-rmi` module has been removed altogether after being deprecated in previous versions.
 There is no replacement: it is recommended to migrate to more secure network and application protocols, such as WebSockets, RSockets, gRPC or REST.
+
+[[x6.0-gemfire]]
+=== GemFire Removal
+
+The `spring-integration-gemfire` module has been removed altogether since there is no Spring Data `2022.0.0` support for VMware GemFire or Apache Geode.
+
+[[x6.0-http]]
+=== HTTP Changes
+
+The `#cookies` variable for expression evaluation context, exposed in the `HttpRequestHandlingEndpointSupport`, is now a `MultiValueMap` to carry all the values for cookies set by the client.
+See <<./http.adoc#http,HTTP Support>> for more information.
 
 === Apache Kafka Changes
 

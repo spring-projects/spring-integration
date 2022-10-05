@@ -38,7 +38,6 @@ Welcome to the Spring Integration reference documentation!
 <<./feed.adoc#feed,Feed Adapter>> :: RSS and Atom channel adapters
 <<./file.adoc#files,File Support>> :: Channel adapters and gateways for file system support
 <<./ftp.adoc#ftp,FTP/FTPS Adapters>> :: Channel adapters and gateways for FTP protocol
-<<./gemfire.adoc#gemfire,Apache Geode Support>> :: Apache Geode channel adapters, message store
 <<./graphql.adoc#graphql,GraphQL Support>> :: Channel adapters for GraphQL
 <<./http.adoc#http,HTTP Support>> :: Channel adapters and gateways for HTTP communication
 <<./jdbc.adoc#jdbc,JDBC Support>> :: Channel adapters and gateways for JDBC, message and metadata stores

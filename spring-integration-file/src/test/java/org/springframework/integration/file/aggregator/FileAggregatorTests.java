@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2021-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
@@ -56,7 +55,6 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Artem Bilan
- *
  * @since 5.5
  */
 @SpringJUnitConfig
@@ -80,12 +78,6 @@ public class FileAggregatorTests {
 
 	@Autowired
 	PollableChannel resultChannel;
-
-	@Autowired
-	MessageChannel input;
-
-	@Autowired
-	PollableChannel output;
 
 	@BeforeAll
 	static void setup() throws IOException {
@@ -146,26 +138,8 @@ public class FileAggregatorTests {
 				.isEmpty();
 	}
 
-	@Test
-	void testFileAggregatorXmlConfig() {
-		this.input.send(new GenericMessage<>(file));
-
-		Message<?> receive = this.output.receive(10_000);
-		assertThat(receive).isNotNull();
-		assertThat(receive.getHeaders())
-				.containsEntry(FileHeaders.FILENAME, "foo.txt")
-				.containsEntry(FileHeaders.LINE_COUNT, 4L)
-				.doesNotContainKeys("firstLine", IntegrationMessageHeaderAccessor.CORRELATION_ID);
-
-		assertThat(receive.getPayload())
-				.isInstanceOf(List.class)
-				.asList()
-				.containsExactly("file header", "first line", "second line", "last line");
-	}
-
 	@Configuration
 	@EnableIntegration
-	@ImportResource("org/springframework/integration/file/aggregator/FileAggregatorTests.xml")
 	public static class Config {
 
 		@Bean
