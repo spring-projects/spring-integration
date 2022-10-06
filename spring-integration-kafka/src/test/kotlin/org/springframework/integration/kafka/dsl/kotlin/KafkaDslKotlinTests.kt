@@ -328,7 +328,7 @@ class KafkaDslKotlinTests {
 
 		private fun replyContainer(): GenericMessageListenerContainer<Int, String> {
 			val containerProperties = ContainerProperties(TEST_TOPIC5)
-			containerProperties.setGroupId("outGate")
+			containerProperties.setGroupId("kotlinOutGate")
 			containerProperties.setConsumerRebalanceListener(object : ConsumerRebalanceListener {
 
 				override fun onPartitionsRevoked(partitions: Collection<TopicPartition>) {
@@ -352,7 +352,7 @@ class KafkaDslKotlinTests {
 		private fun containerProperties() =
 			ContainerProperties(TEST_TOPIC4)
 				.also {
-					it.setGroupId("inGateGroup")
+					it.setGroupId("kotlinInGateGroup")
 				}
 
 	}
