@@ -18,7 +18,7 @@ package org.springframework.integration.function
 
 import assertk.assertThat
 import assertk.assertions.*
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -191,6 +191,34 @@ class FunctionsTests {
 	}
 
 	@Autowired
+	private lateinit var syncFlowServiceChannel: MessageChannel
+
+	@Test
+	fun `verify sync flow function reply`() {
+		val replyChannel = QueueChannel()
+		val testPayload = "test flow"
+
+		syncFlowServiceChannel.send(
+			MessageBuilder.withPayload(testPayload)
+				.setReplyChannel(replyChannel)
+				.build()
+		)
+
+		val receive = replyChannel.receive(10_000)
+
+		val payload = receive?.payload
+
+		assertThat(payload)
+			.isNotNull()
+			.isInstanceOf(Flow::class)
+
+		runBlocking {
+			val strings = (payload as Flow<String>).toList()
+			assertThat(strings).containsExactly("Sync $testPayload #1", "Sync $testPayload #2", "Sync $testPayload #3")
+		}
+	}
+
+	@Autowired
 	private lateinit var suspendRequestChannel: DirectChannel
 
 	@Autowired
@@ -256,13 +284,18 @@ class FunctionsTests {
 		@ServiceActivator(inputChannel = "suspendServiceChannel")
 		suspend fun suspendServiceFunction(payload: String) = payload.uppercase()
 
-		@ServiceActivator(inputChannel = "flowServiceChannel")
+		@ServiceActivator(inputChannel = "flowServiceChannel", async = "true")
 		fun flowServiceFunction(payload: String) =
 			flow {
 				for (i in 1..3) {
 					emit("$payload #$i")
 				}
 			}
+
+		@ServiceActivator(inputChannel = "syncFlowServiceChannel")
+		fun syncFlowServiceFunction(payload: String) =
+			(1..3).asFlow()
+				.map { "Sync $payload #$it" }
 
 		@Bean
 		fun suspendRequestChannel() = DirectChannel()

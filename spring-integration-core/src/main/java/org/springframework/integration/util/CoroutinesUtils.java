@@ -66,6 +66,7 @@ public final class CoroutinesUtils {
 		return KOTLIN_CONTINUATION_CLASS != null && KOTLIN_CONTINUATION_CLASS.isAssignableFrom(candidate);
 	}
 
+	@Nullable
 	@SuppressWarnings("unchecked")
 	public static <T> T monoAwaitSingleOrNull(Mono<? extends T> source, Object continuation) {
 		Assert.notNull(KOTLIN_CONTINUATION_CLASS, "Kotlin Coroutines library is not present in classpath");
