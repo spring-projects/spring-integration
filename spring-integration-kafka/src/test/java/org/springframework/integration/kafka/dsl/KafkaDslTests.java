@@ -445,7 +445,8 @@ public class KafkaDslTests {
 					.get();
 		}
 
-		private GenericMessageListenerContainer<Integer, String> replyContainer() {
+		@Bean
+		public GenericMessageListenerContainer<Integer, String> replyContainer() {
 			ContainerProperties containerProperties = new ContainerProperties(TEST_TOPIC5);
 			containerProperties.setGroupId("outGate");
 			containerProperties.setConsumerRebalanceListener(new ConsumerRebalanceListener() {

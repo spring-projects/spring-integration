@@ -190,7 +190,7 @@ class KafkaDslKotlinTests {
 
 	@Test
 	fun testGateways() {
-		assertThat(this.config.replyContainerLatch.await(30, TimeUnit.SECONDS))
+		assertThat(this.config.replyContainerLatch.await(30, TimeUnit.SECONDS)).isTrue()
 		assertThat(this.gate.exchange(TEST_TOPIC4, "foo")).isEqualTo("FOO")
 	}
 
@@ -292,7 +292,7 @@ class KafkaDslKotlinTests {
 
 		private fun kafkaMessageHandler(producerFactory: ProducerFactory<Int, String>, topic: String) =
 			Kafka.outboundChannelAdapter(producerFactory)
-				.messageKey { it.headers[IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER] }
+				.messageKey<Any> { it.headers[IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER] }
 				.headerMapper(mapper())
 				.sync(true)
 				.partitionId<Any> { 0 }
@@ -326,7 +326,8 @@ class KafkaDslKotlinTests {
 				)
 			}
 
-		private fun replyContainer(): GenericMessageListenerContainer<Int, String> {
+		@Bean
+		fun replyContainer(): GenericMessageListenerContainer<Int, String> {
 			val containerProperties = ContainerProperties(TEST_TOPIC5)
 			containerProperties.setGroupId("kotlinOutGate")
 			containerProperties.setConsumerRebalanceListener(object : ConsumerRebalanceListener {
