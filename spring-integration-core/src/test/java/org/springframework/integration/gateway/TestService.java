@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public interface TestService {
 
 	void oneWay(String input);
 
-	@Payload("#args[0]")
+	@Payload("args[0]")
 	void oneWayWithTimeouts(String input, Long sendTimeout, Long receiveTimeout);
 
 	String solicitResponse();
@@ -51,7 +51,7 @@ public interface TestService {
 
 	Message<?> requestReplyWithMessageReturnValue(String input);
 
-	@Payload("#gatewayMethod.name + #args.length")
+	@Payload("method.name + args.length")
 	String requestReplyWithPayloadAnnotation();
 
 	Future<Message<?>> async(String s);

@@ -1467,7 +1467,7 @@ public class EnableIntegrationTests {
 	@TestMessagingGateway
 	public interface TestGateway {
 
-		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "#gatewayMethod.name"))
+		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "method.name"))
 		String echo(String payload);
 
 		@Gateway(requestChannel = "sendAsyncChannel")
@@ -1482,7 +1482,7 @@ public class EnableIntegrationTests {
 	@TestMessagingGateway2
 	public interface TestGateway2 {
 
-		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "#gatewayMethod.name"))
+		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "method.name"))
 		String echo2(String payload);
 
 	}

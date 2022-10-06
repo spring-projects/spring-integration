@@ -393,10 +393,10 @@ public class AsyncGatewayTests {
 
 		CompletableFuture<Message<?>> returnMessageListenable(String s);
 
-		@Gateway(headers = @GatewayHeader(name = "method", expression = "#gatewayMethod.name"))
+		@Gateway(headers = @GatewayHeader(name = "method", expression = "method.name"))
 		CustomFuture returnCustomFuture(String s);
 
-		@Gateway(headers = @GatewayHeader(name = "method", expression = "#gatewayMethod.name"))
+		@Gateway(headers = @GatewayHeader(name = "method", expression = "method.name"))
 		Future<?> returnCustomFutureWithTypeFuture(String s);
 
 		Mono<String> returnStringPromise(String s);

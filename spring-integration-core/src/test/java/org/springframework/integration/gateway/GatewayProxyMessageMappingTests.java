@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -226,10 +226,10 @@ public class GatewayProxyMessageMappingTests {
 
 		void twoMapsAndOneAnnotatedWithPayload(@Payload Map<String, Object> payload, Map<String, Object> headers);
 
-		@Payload("#args[0] + #args[1] + '!'")
+		@Payload("args[0] + args[1] + '!'")
 		void payloadAnnotationAtMethodLevel(String a, String b);
 
-		@Payload("@testBean.exclaim(#args[0])")
+		@Payload("@testBean.exclaim(args[0])")
 		void payloadAnnotationAtMethodLevelUsingBeanResolver(String s);
 
 		void payloadAnnotationWithExpression(@Payload("toUpperCase()") String s);

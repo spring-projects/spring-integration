@@ -8,9 +8,9 @@
 	<int:gateway id="sampleGateway"
 			service-interface="org.springframework.integration.gateway.GatewayInterfaceTests.Bar"
 			default-request-channel="requestChannelBaz" default-payload-expression="'foo'">
-		<int:default-header name="name" expression="#gatewayMethod.name"/>
-		<int:default-header name="string" expression="#gatewayMethod.toString()"/>
-		<int:default-header name="object" expression="#gatewayMethod"/>
+		<int:default-header name="name" expression="method.name"/>
+		<int:default-header name="string" expression="method.toString()"/>
+		<int:default-header name="object" expression="method"/>
 		<int:method name="baz">
 			<int:header name="name" value="overrideGlobal"/>
 		</int:method>

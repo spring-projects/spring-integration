@@ -522,8 +522,8 @@ public class GatewayInterfaceTests {
 
 		void baz(String payload);
 
-		@Gateway(payloadExpression = "#args[0]", requestChannel = "lateReplyChannel",
-				requestTimeoutExpression = "#args[1]", replyTimeoutExpression = "#args[2]")
+		@Gateway(payloadExpression = "args[0]", requestChannel = "lateReplyChannel",
+				requestTimeoutExpression = "args[1]", replyTimeoutExpression = "args[2]")
 		String lateReply(String payload, long requestTimeout, long replyTimeout);
 
 	}
@@ -651,7 +651,7 @@ public class GatewayInterfaceTests {
 	@Profile("gatewayTest")
 	public interface Int2634Gateway {
 
-		@Gateway(requestChannel = "gatewayChannel", payloadExpression = "#args[0]")
+		@Gateway(requestChannel = "gatewayChannel", payloadExpression = "args[0]")
 		Object test1(Map<Object, ?> map);
 
 		@Gateway(requestChannel = "gatewayChannel")
