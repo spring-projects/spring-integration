@@ -1025,10 +1025,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	public boolean isAsync() {
 		if (this.handlerMethodsList.size() == 1) {
 			Method methodToCheck = this.handlerMethodsList.get(0).values().iterator().next().method;
-			return Publisher.class.isAssignableFrom(methodToCheck.getReturnType())
-					|| CompletableFuture.class.isAssignableFrom(methodToCheck.getReturnType())
-					|| KotlinDetector.isSuspendingFunction(methodToCheck)
-					|| ReactiveAdapterRegistry.getSharedInstance().getAdapter(methodToCheck.getReturnType()) != null;
+			return KotlinDetector.isSuspendingFunction(methodToCheck);
 		}
 		return false;
 	}
