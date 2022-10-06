@@ -73,13 +73,13 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 				PollableChannel queueChannel = applicationContext.getBean("queueChannel", PollableChannel.class);
 				PollableChannel replyChannel = new QueueChannel();
 
-				MutableMessage<String> testMessage =
+				MutableMessage<String> message =
 						(MutableMessage<String>) MutableMessageBuilder.withPayload("test data")
 								.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
 								.build();
 
-				Observation.createNotStarted("Test send", new MessageSenderContext(testMessage), observationRegistry)
-						.observe(() -> queueChannel.send(testMessage));
+				Observation.createNotStarted("Test send", () -> new MessageSenderContext(message), observationRegistry)
+						.observe(() -> queueChannel.send(message));
 
 				Message<?> receive = replyChannel.receive(10_000);
 				assertThat(receive).isNotNull()

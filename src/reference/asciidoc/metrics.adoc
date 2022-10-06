@@ -145,6 +145,32 @@ registry.config().meterFilter(MeterFilter.deny(id ->
 ----
 ====
 
+[[micrometer-observation]]
+==== Micrometer Observation
+
+Starting with version 6.0, Spring Integration utilizes a Micrometer Observation abstraction which can handle metrics as well as https://micrometer.io/docs/tracing[tracing] via appropriate `ObservationHandler` configuration.
+
+The observation handling is enabled on the `IntegrationManagement` components whenever an `ObservationRegistry` bean is present in the application context.
+The meters are not gathered in this case independently, but delegated to an appropriate `ObservationHandler` configured on the provided `ObservationRegistry`.
+
+An observation production on the `IntegrationManagement` components can be customized via `ObservationConvention` configuration.
+For example an `AbstractMessageHandler` expects a `MessageReceiverObservationConvention` via its `setObservationConvention()` API.
+
+The following are supported metrics, spans and conventions for Observation API:
+
+include::./generated/metrics.adoc[leveloffset=+2]
+
+include::./generated/spans.adoc[leveloffset=+2]
+
+include::./generated/conventions.adoc[leveloffset=+2]
+
+==== Observation Propagation
+
+To supply a connected chain of spans in one trace, independently of the nature of the messaging flow, Spring Integration provides an `ObservationPropagationChannelInterceptor` implementation.
+This can be configured on `MessageChannnel` beans individually or as a `@GlobalChannelInterceptor` with respective `MessageChannnel` bean names pattern matching.
+The goal of this interceptor is to propagate an `Observation` from the producer thread to the consumer one independently of the `MessageChannnel` implementation and nature.
+A `DirectChannel`, though, is ignored since its consumer is executed directly on the producer thread.
+
 ==== Spring Integration JMX Support
 
 Also see <<./jmx.adoc#jmx,JMX Support>>.
