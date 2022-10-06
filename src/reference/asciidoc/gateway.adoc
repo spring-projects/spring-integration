@@ -163,13 +163,7 @@ NOTE: If a no-argument gateway is specified in XML, and the interface method has
 The `<header/>` element supports `expression` as an alternative to `value`.
 The SpEL expression is evaluated to determine the value of the header.
 Starting with version 5.2, the `#root` object of the evaluation context is a `MethodArgsHolder` with `getMethod()` and `getArgs()` accessors.
-
-These two expression evaluation context variables are deprecated since version 5.2:
-
-* #args: An `Object[]` containing the method arguments
-* #gatewayMethod: The object (derived from `java.reflect.Method`) that represents the method in the `service-interface` that was invoked.
-A header containing this variable can be used later in the flow (for example, for routing).
-For example, if you wish to route on the simple method name, you might add a header with the following expression: `#gatewayMethod.name`.
+For example, if you wish to route on the simple method name, you might add a header with the following expression: `method.name`.
 
 NOTE: The `java.reflect.Method` is not serializable.
 A header with an expression of `method` is lost if you later serialize the message.

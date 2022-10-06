@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,15 @@
 package org.springframework.integration.gateway;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
@@ -40,6 +42,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class GatewayMethodInboundMessageMapperToMessageTests {
 
@@ -52,20 +55,22 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void toMessageWithTooManyParameters() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		mapper.toMessage(new Object[] { "test", "oops" });
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> mapper.toMessage(new Object[] { "test", "oops" }));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void toMessageWithEmptyParameterArray() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		mapper.toMessage(new Object[] {});
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> mapper.toMessage(new Object[] {}));
 	}
 
 	@Test
@@ -79,13 +84,14 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
-	@Test(expected = MessageMappingException.class)
+	@Test
 	public void toMessageWithPayloadAndRequiredHeaderButNullValue() throws Exception {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeader", String.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		mapper.toMessage(new Object[] { "test", null });
+		assertThatExceptionOfType(MessageMappingException.class)
+				.isThrownBy(() -> mapper.toMessage(new Object[] { "test", null }));
 	}
 
 	@Test
@@ -116,7 +122,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 				"sendPayloadAndHeadersMap", String.class, Map.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		headers.put("abc", 123);
 		headers.put("def", 456);
 		Message<?> message = mapper.toMessage(new Object[] { "test", headers });
@@ -135,15 +141,16 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
-	@Test(expected = MessageMappingException.class)
+	@Test
 	public void toMessageWithPayloadAndHeadersMapWithNonStringKey() throws Exception {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeadersMap", String.class, Map.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		Map<Integer, String> headers = new HashMap<Integer, String>();
+		Map<Integer, String> headers = new HashMap<>();
 		headers.put(123, "abc");
-		mapper.toMessage(new Object[] { "test", headers });
+		assertThatExceptionOfType(MessageMappingException.class)
+				.isThrownBy(() -> mapper.toMessage(new Object[] { "test", headers }));
 	}
 
 	@Test
@@ -167,13 +174,14 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
-	@Test(expected = MessageMappingException.class)
+	@Test
 	public void toMessageWithMessageParameterAndRequiredHeaderButNullValue() throws Exception {
 		Method method = TestService.class.getMethod("sendMessageAndHeader", Message.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
-		mapper.toMessage(new Object[] { inputMessage, null });
+		assertThatExceptionOfType(MessageMappingException.class)
+				.isThrownBy(() -> mapper.toMessage(new Object[] { inputMessage, null }));
 	}
 
 	@Test
@@ -198,26 +206,28 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertThat(message.getHeaders().get("foo")).isNull();
 	}
 
-	@Test(expected = MessageMappingException.class)
+	@Test
 	public void noArgs() throws Exception {
-		Method method = TestService.class.getMethod("noArgs", new Class<?>[] {});
+		Method method = TestService.class.getMethod("noArgs");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		mapper.toMessage(new Object[] {});
+		assertThatExceptionOfType(MessageMappingException.class)
+				.isThrownBy(() -> mapper.toMessage(new Object[] {}));
 	}
 
-	@Test(expected = MessageMappingException.class)
+	@Test
 	public void onlyHeaders() throws Exception {
 		Method method = TestService.class.getMethod("onlyHeaders", String.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		mapper.toMessage(new Object[] { "abc", "def" });
+		assertThatExceptionOfType(MessageMappingException.class)
+				.isThrownBy(() -> mapper.toMessage(new Object[] { "abc", "def" }));
 	}
 
 	@Test
 	public void toMessageWithPayloadAndHeaders() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
-		Map<String, Expression> headers = new HashMap<String, Expression>();
+		Map<String, Expression> headers = new HashMap<>();
 		headers.put("foo", new LiteralExpression("foo"));
 		headers.put("bar", new SpelExpressionParser().parseExpression("6 * 7"));
 		headers.put("baz", new LiteralExpression("hello"));
@@ -232,7 +242,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	@Test
 	public void toMessageWithNonHeaderMapPayloadExpressionA() throws Exception {
 		Method method = TestService.class.getMethod("sendNonHeadersMap", Map.class);
-		Map<Integer, Object> map = new HashMap<Integer, Object>();
+		Map<Integer, Object> map = new HashMap<>();
 		map.put(1, "One");
 		map.put(2, "Two");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
@@ -258,7 +268,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	@Test
 	public void toMessageWithNonHeaderMapPayloadAnnotation() throws Exception {
 		Method method = TestService.class.getMethod("sendNonHeadersMapWithPayloadAnnotation", Map.class);
-		Map<Integer, Object> map = new HashMap<Integer, Object>();
+		Map<Integer, Object> map = new HashMap<>();
 		map.put(1, "One");
 		map.put(2, "Two");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
@@ -270,10 +280,10 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	@Test
 	public void toMessageWithTwoMapsOneNonHeaderPayloadExpression() throws Exception {
 		Method method = TestService.class.getMethod("sendNonHeadersMapFirstArgument", Map.class, Map.class);
-		Map<Integer, Object> mapA = new HashMap<Integer, Object>();
+		Map<Integer, Object> mapA = new HashMap<>();
 		mapA.put(1, "One");
 		mapA.put(2, "Two");
-		Map<String, Object> mapB = new HashMap<String, Object>();
+		Map<String, Object> mapB = new HashMap<>();
 		mapB.put("1", "ONE");
 		mapB.put("2", "TWO");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
@@ -310,7 +320,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 
 		void sendNonHeadersMap(Map<Integer, Object> map);
 
-		@Payload("#args[0]")
+		@Payload("args[0]")
 		void sendNonHeadersMapWithPayloadAnnotation(Map<Integer, Object> map);
 
 		void sendNonHeadersMapFirstArgument(Map<Integer, Object> mapA, Map<String, Object> mapB);
