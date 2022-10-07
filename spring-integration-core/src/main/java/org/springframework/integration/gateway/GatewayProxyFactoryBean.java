@@ -582,7 +582,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		Object continuation = null;
 		if (gateway.isSuspendingFunction) {
 			for (Object argument : invocation.getArguments()) {
-				if (CoroutinesUtils.KOTLIN_CONTINUATION_CLASS.isAssignableFrom(argument.getClass())) {
+				if (argument != null && CoroutinesUtils.isContinuation(argument)) {
 					continuation = argument;
 					break;
 				}
@@ -1029,8 +1029,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		this.gatewayMap.values().forEach(MethodInvocationGateway::stop);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Nullable
+	@SuppressWarnings("unchecked")
 	private <T> T convert(Object source, Class<T> expectedReturnType, @Nullable Object continuation) {
 		if (continuation != null) {
 			return CoroutinesUtils.monoAwaitSingleOrNull((Mono<T>) source, continuation);

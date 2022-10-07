@@ -19,7 +19,6 @@ package org.springframework.integration.util;
 import org.springframework.core.KotlinDetector;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 import reactor.core.publisher.Mono;
 
@@ -34,43 +33,20 @@ import reactor.core.publisher.Mono;
  */
 public final class CoroutinesUtils {
 
-	/**
-	 * The {@link kotlin.coroutines.Continuation} class object.
-	 */
-	@Nullable
-	public static final Class<?> KOTLIN_CONTINUATION_CLASS;
-
-	static {
-		if (KotlinDetector.isKotlinPresent()) {
-			Class<?> kotlinClass = null;
-			try {
-				kotlinClass = ClassUtils.forName("kotlin.coroutines.Continuation", ClassUtils.getDefaultClassLoader());
-			}
-			catch (ClassNotFoundException ex) {
-				//Ignore: assume no Kotlin in classpath
-			}
-			finally {
-				KOTLIN_CONTINUATION_CLASS = kotlinClass;
-			}
-		}
-		else {
-			KOTLIN_CONTINUATION_CLASS = null;
-		}
-	}
-
 	public static boolean isContinuation(Object candidate) {
 		return isContinuationType(candidate.getClass());
 	}
 
 	public static boolean isContinuationType(Class<?> candidate) {
-		return KOTLIN_CONTINUATION_CLASS != null && KOTLIN_CONTINUATION_CLASS.isAssignableFrom(candidate);
+		return KotlinDetector.isKotlinPresent() && kotlin.coroutines.Continuation.class.isAssignableFrom(candidate);
 	}
 
 	@Nullable
 	@SuppressWarnings("unchecked")
 	public static <T> T monoAwaitSingleOrNull(Mono<? extends T> source, Object continuation) {
-		Assert.notNull(KOTLIN_CONTINUATION_CLASS, "Kotlin Coroutines library is not present in classpath");
-		Assert.isAssignable(KOTLIN_CONTINUATION_CLASS, continuation.getClass());
+		Assert.state(isContinuation(continuation), () ->
+				"The 'continuation' must be an instance of 'kotlin.coroutines.Continuation', but it is: "
+						+ continuation.getClass());
 		return (T) kotlinx.coroutines.reactor.MonoKt.awaitSingleOrNull(
 				source, (kotlin.coroutines.Continuation<T>) continuation);
 	}

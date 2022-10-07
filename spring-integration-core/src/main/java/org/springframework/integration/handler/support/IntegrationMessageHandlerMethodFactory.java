@@ -24,6 +24,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.KotlinDetector;
 import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
@@ -98,7 +99,9 @@ public class IntegrationMessageHandlerMethodFactory extends DefaultMessageHandle
 			resolvers.add(new CollectionArgumentResolver(true));
 		}
 		resolvers.add(new MapArgumentResolver());
-		resolvers.add(new ContinuationHandlerMethodArgumentResolver());
+		if (KotlinDetector.isKotlinPresent()) {
+			resolvers.add(new ContinuationHandlerMethodArgumentResolver());
+		}
 
 		for (HandlerMethodArgumentResolver resolver : resolvers) {
 			if (resolver instanceof BeanFactoryAware) {
