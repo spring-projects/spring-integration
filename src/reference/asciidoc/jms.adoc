@@ -44,6 +44,9 @@ Prior to Spring Integration 2.2, if necessary, a `TemporaryQueue` was created (a
 Beginning with Spring Integration 2.2, you can configure the outbound gateway to use a `MessageListener` container to receive replies instead of directly using a new (or cached) `Consumer` to receive the reply for each request.
 When so configured, and no explicit reply destination is provided, a single `TemporaryQueue` is used for each gateway instead of one for each request.
 
+Starting with version 6.0, the outbound gateway creates a `TemporaryTopic` instead of `TemporaryQueue` if `replyPubSubDomain` option is set to `true`.
+Some JMS vendors handle these destinations differently.
+
 [[jms-inbound-channel-adapter]]
 === Inbound Channel Adapter
 
@@ -412,13 +415,13 @@ To revert to the previous behavior, set the `shutdownContainerOnStop` on the `Jm
 === Outbound Gateway
 
 The outbound gateway creates JMS messages from Spring Integration messages and sends them to a 'request-destination'.
-It then handles the JMS reply message either by using a selector to receive from the 'reply-destination' that you configure or, if no 'reply-destination' is provided, by creating JMS `TemporaryQueue` instances.
+It then handles the JMS reply message either by using a selector to receive from the 'reply-destination' that you configure or, if no 'reply-destination' is provided, by creating JMS `TemporaryQueue` (or `TemporaryTopic` if `replyPubSubDomain= true`) instances.
 
 [[jms-outbound-gateway-memory-caution]]
 [CAUTION]
 =====
 Using a `reply-destination` (or `reply-destination-name`) together with a `CachingConnectionFactory` that has cacheConsumers set to `true` can cause out-of-memory conditions.
-This is because each request gets a new consumer with a new selector (selecting on the `correlation-key` value or, when there is no `correlation-key`, on the sent JMSMessageID).
+This is because each request gets a new consumer with a new selector (selecting on the `correlation-key` value or when there is no `correlation-key`, on the sent JMSMessageID).
 Given that these selectors are unique, they remain in the cache (unused) after the current request completes.
 
 If you specify a reply destination, you are advised to not use cached consumers.
@@ -450,6 +453,7 @@ This provides a number of performance benefits as well as alleviating the cached
 
 When using a `<reply-listener/>` with an outbound gateway that has no `reply-destination`, instead of creating a `TemporaryQueue` for each request, a single `TemporaryQueue` is used.
 (The gateway creates an additional `TemporaryQueue`, as necessary, if the connection to the broker is lost and recovered).
+If `replyPubSubDomain` is set to `true`, starting with version 6.0, a `TemporaryTopic` is created instead.
 
 When using a `correlation-key`, multiple gateways can share the same reply destination, because the listener container uses a selector that is unique to each gateway.
 

@@ -399,6 +399,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		public IntegrationFlow jmsOutboundGatewayFlow() {
 			return f -> f.handle(Jms.outboundGateway(connectionFactory)
 							.replyContainer(c -> c.idleReplyContainerTimeout(10))
+							.replyPubSubDomain(true)
 							.requestDestination("jmsPipelineTest"),
 					e -> e.id("jmsOutboundGateway"));
 		}
