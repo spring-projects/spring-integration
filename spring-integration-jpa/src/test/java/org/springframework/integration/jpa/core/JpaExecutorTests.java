@@ -94,15 +94,13 @@ public class JpaExecutorTests {
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> executor.setNamedQuery("NamedQuery"))
-				.withMessage("You can define only one of the "
-						+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
+				.withMessage("Only one of the properties 'jpaQuery', 'nativeQuery', 'namedQuery' can be defined");
 
 		assertThat(TestUtils.getPropertyValue(executor, "namedQuery")).isNull();
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> executor.setNativeQuery("select * from Student"))
-				.withMessage("You can define only one of the "
-						+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
+				.withMessage("Only one of the properties 'jpaQuery', 'nativeQuery', 'namedQuery' can be defined");
 
 		assertThat(TestUtils.getPropertyValue(executor, "nativeQuery")).isNull();
 
@@ -112,8 +110,7 @@ public class JpaExecutorTests {
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> executor2.setJpaQuery("select s from Student s"))
-				.withMessage("You can define only one of the "
-						+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
+				.withMessage("Only one of the properties 'jpaQuery', 'nativeQuery', 'namedQuery' can be defined");
 
 		assertThat(TestUtils.getPropertyValue(executor2, "jpaQuery")).isNull();
 	}

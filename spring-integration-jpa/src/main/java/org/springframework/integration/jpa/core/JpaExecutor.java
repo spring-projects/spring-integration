@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,6 @@ import org.springframework.util.CollectionUtils;
  *     <li>JpQl Named Query</li>
  *     <li>Sql Native Named Query</li>
  * </ul>.
- *
  * When objects are being retrieved, it also possibly to:
  *
  * <ul>
@@ -176,8 +175,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @param jpaQuery The provided JPA query must neither be null nor empty.
 	 */
 	public void setJpaQuery(String jpaQuery) {
-		Assert.isTrue(this.nativeQuery == null && this.namedQuery == null, "You can define only one of the "
-				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
+		Assert.isTrue(this.nativeQuery == null && this.namedQuery == null,
+				"Only one of the properties 'jpaQuery', 'nativeQuery', 'namedQuery' can be defined");
 		Assert.hasText(jpaQuery, "jpaQuery must neither be null nor empty.");
 		this.jpaQuery = jpaQuery;
 	}
@@ -190,8 +189,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @param nativeQuery The provided SQL query must neither be null nor empty.
 	 */
 	public void setNativeQuery(String nativeQuery) {
-		Assert.isTrue(this.namedQuery == null && this.jpaQuery == null, "You can define only one of the "
-				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
+		Assert.isTrue(this.namedQuery == null && this.jpaQuery == null,
+				"Only one of the properties 'jpaQuery', 'nativeQuery', 'namedQuery' can be defined");
 		Assert.hasText(nativeQuery, "nativeQuery must neither be null nor empty.");
 		this.nativeQuery = nativeQuery;
 	}
@@ -202,8 +201,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @param namedQuery Must neither be null nor empty
 	 */
 	public void setNamedQuery(String namedQuery) {
-		Assert.isTrue(this.jpaQuery == null && this.nativeQuery == null, "You can define only one of the "
-				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
+		Assert.isTrue(this.jpaQuery == null && this.nativeQuery == null,
+				"Only one of the properties 'jpaQuery', 'nativeQuery', 'namedQuery' can be defined");
 		Assert.hasText(namedQuery, "namedQuery must neither be null nor empty.");
 		this.namedQuery = namedQuery;
 	}
@@ -312,7 +311,6 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * <p>If set to <code>false</code>, the complete result list is returned as the
 	 * payload.
 	 * @param expectSingleResult true if a single object is expected.
-	 *
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;
@@ -339,7 +337,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * Set the expression for maximum number of results expression. It has be a non null value
+	 * Set the expression for maximum number of results expression. It has to be a non-null value
 	 * Not setting one will default to the behavior of fetching all the records
 	 * @param maxResultsExpression The maximum results expression.
 	 */
@@ -413,7 +411,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	/**
 	 * Execute the actual Jpa Operation. Call this method, if you need access to
-	 * process return values. This methods return a Map that contains either
+	 * process return values. These methods return a Map that contains either
 	 * the number of affected entities or the affected entity itself.
 	 *<p>Keep in mind that the number of entities effected by the operation may
 	 * not necessarily correlate with the number of rows effected in the database.
@@ -497,7 +495,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			payload = this.jpaOperations.find(entityClazz, id);
 		}
 		else {
-			final List<?> result;
+			List<?> result;
 			int maxNumberOfResults = evaluateExpressionForNumericResult(requestMessage, this.maxResultsExpression);
 			if (requestMessage == null) {
 				result = doPoll(this.parameterSource, 0, maxNumberOfResults);
@@ -511,26 +509,17 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 				result = doPoll(paramSource, firstResult, maxNumberOfResults);
 			}
 
-			if (result.isEmpty()) {
-				payload = null;
-			}
-			else {
-				if (this.expectSingleResult) {
-					if (result.size() == 1) {
-						payload = result.iterator().next();
-					}
-					else if (requestMessage != null) {
-						throw new MessagingException(requestMessage,
-								"The Jpa operation returned more than 1 result for expectSingleResult mode.");
-					}
-					else {
-						throw new MessagingException(
-								"The Jpa operation returned more than 1 result for expectSingleResult mode.");
-					}
+			if (this.expectSingleResult && !result.isEmpty()) {
+				if (result.size() == 1) {
+					payload = result.iterator().next();
 				}
 				else {
-					payload = result;
+					throw new MessagingException(requestMessage, // NOSONAR
+							"The Jpa operation returned more than 1 result for expectSingleResult mode.");
 				}
+			}
+			else {
+				payload = result;
 			}
 		}
 

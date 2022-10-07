@@ -1011,10 +1011,89 @@ public class JpaJavaApplication {
 [[jpa-retrieving-outbound-gateway]]
 ==== Retrieving Outbound Gateway
 
-The following example shows all the attributes that you can set on a retrieving outbound gateway and describes the key attributes:
+The following example demonstrates how to configure a retrieving outbound gateway:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@SpringBootApplication
+@EntityScan(basePackageClasses = StudentDomain.class)
+public class JpaJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(JpaJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
+
+    @Bean
+    public IntegrationFlow retrievingGatewayFlow() {
+        return f -> f
+                .handle(Jpa.retrievingGateway(this.entityManagerFactory)
+                       .jpaQuery("from Student s where s.id = :id")
+                       .expectSingleResult(true)
+                       .parameterExpression("id", "payload"))
+                .channel(c -> c.queue("retrieveResults"));
+    }
+
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun retrievingGatewayFlow() =
+    integrationFlow {
+        handle(Jpa.retrievingGateway(this.entityManagerFactory)
+                .jpaQuery("from Student s where s.id = :id")
+                .expectSingleResult(true)
+                .parameterExpression("id", "payload"))
+        channel { queue("retrieveResults") }
+    }
+----
+[source, java, role="secondary"]
+.Java
+----
+@SpringBootApplication
+@EntityScan(basePackageClasses = StudentDomain.class)
+public class JpaJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(JpaJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
+
+
+    @Bean
+    public JpaExecutor jpaExecutor() {
+        JpaExecutor executor = new JpaExecutor(this.entityManagerFactory);
+        jpaExecutor.setJpaQuery("from Student s where s.id = :id");
+        executor.setJpaParameters(Collections.singletonList(new JpaParameter("id", null, "payload")));
+        jpaExecutor.setExpectSingleResult(true);
+        return executor;
+    }
+
+    @Bean
+    @ServiceActivator(channel = "jpaRetrievingChannel")
+    public MessageHandler jpaOutbound() {
+        JpaOutboundGateway adapter = new JpaOutboundGateway(jpaExecutor());
+        adapter.setOutputChannelName("retrieveResults");
+        adapter.setGatewayType(OutboundGatewayType.RETRIEVING);
+        return adapter;
+    }
+
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int-jpa:retrieving-outbound-gateway request-channel=""
     auto-startup="true"
@@ -1075,86 +1154,6 @@ Version 3.0 introduced this attribute.
 Optional.
 ====
 
-The remaining attributes are described earlier in this chapter.
-See <<jpaInboundChannelAdapterParameters>> and <<jpaOutboundChannelAdapterParameters>>.
-
-==== Configuring with Java Configuration
-
-The following Spring Boot application shows an example of how configure the outbound adapter with Java:
-
-====
-[source, java]
-----
-@SpringBootApplication
-@EntityScan(basePackageClasses = StudentDomain.class)
-public class JpaJavaApplication {
-
-    public static void main(String[] args) {
-        new SpringApplicationBuilder(JpaJavaApplication.class)
-            .web(false)
-            .run(args);
-    }
-
-    @Autowired
-    private EntityManagerFactory entityManagerFactory;
-
-
-    @Bean
-    public JpaExecutor jpaExecutor() {
-        JpaExecutor executor = new JpaExecutor(this.entityManagerFactory);
-        jpaExecutor.setJpaQuery("from Student s where s.id = :id");
-        executor.setJpaParameters(Collections.singletonList(new JpaParameter("id", null, "payload")));
-        jpaExecutor.setExpectSingleResult(true);
-        return executor;
-    }
-
-    @Bean
-    @ServiceActivator(channel = "jpaRetrievingChannel")
-    public MessageHandler jpaOutbound() {
-        JpaOutboundGateway adapter = new JpaOutboundGateway(jpaExecutor());
-        adapter.setOutputChannelName("retrieveResults");
-        adapter.setGatewayType(OutboundGatewayType.RETRIEVING);
-        return adapter;
-    }
-
-}
-----
-====
-
-==== Configuring with the Java DSL
-
-The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
-
-====
-[source, java]
-----
-@SpringBootApplication
-@EntityScan(basePackageClasses = StudentDomain.class)
-public class JpaJavaApplication {
-
-    public static void main(String[] args) {
-        new SpringApplicationBuilder(JpaJavaApplication.class)
-            .web(false)
-            .run(args);
-    }
-
-    @Autowired
-    private EntityManagerFactory entityManagerFactory;
-
-    @Bean
-    public IntegrationFlow retrievingGatewayFlow() {
-        return f -> f
-                .handle(Jpa.retrievingGateway(this.entityManagerFactory)
-                       .jpaQuery("from Student s where s.id = :id")
-                       .expectSingleResult(true)
-                       .parameterExpression("id", "payload"))
-                .channel(c -> c.queue("retrieveResults"));
-    }
-
-}
-----
-====
-
 [IMPORTANT]
 ====
 When you choose to delete entities upon retrieval, and you have retrieved a collection of entities, by default, entities are deleted on a per-entity basis.
@@ -1170,6 +1169,11 @@ It does not cascade to related entities.`"
 
 For more information, see https://jcp.org/en/jsr/detail?id=317[JSR 317: Java™ Persistence 2.0]
 ====
+
+NOTE: Starting with version 6.0, the `Jpa.retrievingGateway()` returns an empty list result as is.
+Previously it was converted to `null` with the meaning "no reply".
+It causes an extra configuration in the applications where empty list handling is a part of business logic.
+See <<./splitter.adoc#split-stream-and-flux,Splitter Discard Channel>> for possible empty list handling option.
 
 [[outboundGatewaySamples]]
 ==== JPA Outbound Gateway Samples

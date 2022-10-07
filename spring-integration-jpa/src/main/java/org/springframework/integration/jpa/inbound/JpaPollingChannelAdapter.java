@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.jpa.inbound;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Polling message source that produces messages from the result of the provided:
@@ -30,10 +31,7 @@ import org.springframework.util.Assert;
  *     <li>JpQl Named Query</li>
  *     <li>Sql Native Named Query</li>
  * </ul>.
- *
  * After the objects have been polled, it also possibly to either:
- *
- * executes an update after the select possibly to updated the state of selected records
  *
  * <ul>
  *     <li>executes an update (per retrieved object or for the entire payload)</li>
@@ -73,13 +71,14 @@ public class JpaPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 	/**
 	 * Use {@link JpaExecutor#poll()} to executes the JPA operation.
-	 * If {@link JpaExecutor#poll()} returns null, this method will return
-	 * <code>null</code>. Otherwise, a new {@link org.springframework.messaging.Message}
-	 * is constructed and returned.
+	 * Return {@code null} if result of {@link JpaExecutor#poll()} is {@link ObjectUtils#isEmpty}.
+	 * The empty collection means there is no data to retrieve from DB at the moment therefore
+	 * no reason to emit an empty message from this message source.
 	 */
 	@Override
 	protected Object doReceive() {
-		return this.jpaExecutor.poll();
+		Object result = this.jpaExecutor.poll();
+		return ObjectUtils.isEmpty(result) ? null : result;
 	}
 
 	@Override
