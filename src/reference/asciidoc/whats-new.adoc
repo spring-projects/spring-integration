@@ -129,3 +129,9 @@ See <<./jdbc.adoc#jdbc-lock-registry,JDBC Lock Registry>> for more information.
 The `lookupHost` property of the `AbstractConnectionFactory` and `DatagramPacketMessageMapper` is now set to `false` by default to avoid delays in the environments where DNS is not configured.
 
 See <<./ip.adoc#ip,TCP and UDP Support>> for more information.
+
+=== JMS Changes
+
+The `JmsOutboundGateway` now creates a `TemporaryTopic` instead of `TemporaryQueue` if `replyPubSubDomain` option is set to `true`.
+
+See <<./jms.adoc#jms,JMS Support>> for more information.

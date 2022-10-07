@@ -502,7 +502,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 					"Evaluation of replyDestinationExpression failed to produce a Destination or destination name. " +
 							"Result was: " + result);
 		}
-		return session.createTemporaryQueue();
+		return this.replyPubSubDomain ? session.createTemporaryTopic() : session.createTemporaryQueue();
 	}
 
 	private Destination resolveReplyDestination(String repDestinationName, Session session) throws JMSException {
@@ -1327,7 +1327,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		@Override
 		protected Destination resolveDestinationName(Session session, String destinationName) throws JMSException {
 			if (!StringUtils.hasText(destinationName)) {
-				this.replyDestination = session.createTemporaryQueue();
+				this.replyDestination =
+						isPubSubDomain() ? session.createTemporaryTopic() : session.createTemporaryQueue();
 			}
 			else {
 				this.replyDestination = super.resolveDestinationName(session, destinationName);
