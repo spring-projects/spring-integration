@@ -100,8 +100,7 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 
 		Stream.of(
 						"kotlin.jvm.functions.Function0",
-						"kotlin.jvm.functions.Function1",
-						"kotlin.Unit")
+						"kotlin.jvm.functions.Function1")
 				.forEach(type ->
 						reflectionHints.registerTypeIfPresent(classLoader, type, MemberCategory.INVOKE_PUBLIC_METHODS));
 

@@ -84,11 +84,6 @@ public abstract class ClassUtils {
 	 */
 	public static final Class<?> KOTLIN_FUNCTION_1_CLASS;
 
-	/**
-	 * The {@code kotlin.Unit} class object.
-	 */
-	public static final Class<?> KOTLIN_UNIT_CLASS;
-
 	static {
 		PRIMITIVE_WRAPPER_TYPE_MAP.put(Boolean.class, boolean.class);
 		PRIMITIVE_WRAPPER_TYPE_MAP.put(Byte.class, byte.class);
@@ -166,23 +161,11 @@ public abstract class ClassUtils {
 			finally {
 				KOTLIN_FUNCTION_1_CLASS = kotlinClass;
 			}
-
-			kotlinClass = null;
-			try {
-				kotlinClass = org.springframework.util.ClassUtils.forName("kotlin.Unit", defaultClassLoader);
-			}
-			catch (ClassNotFoundException e) {
-				//Ignore: assume no Kotlin in classpath
-			}
-			finally {
-				KOTLIN_UNIT_CLASS = kotlinClass;
-			}
 		}
 		else {
 			KOTLIN_FUNCTION_0_CLASS = null;
 			KOTLIN_FUNCTION_0_INVOKE_METHOD = null;
 			KOTLIN_FUNCTION_1_CLASS = null;
-			KOTLIN_UNIT_CLASS = null;
 		}
 	}
 
@@ -278,7 +261,7 @@ public abstract class ClassUtils {
 	 * @since 5.3.2
 	 */
 	public static boolean isKotlinUnit(Class<?> aClass) {
-		return KOTLIN_UNIT_CLASS != null && KOTLIN_UNIT_CLASS.isAssignableFrom(aClass);
+		return "kotlin.Unit".equals(aClass.getName());
 	}
 
 }
