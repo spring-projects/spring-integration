@@ -10,8 +10,7 @@ configurations {
 
 dependencies {
 	asciidoctorExtensions "io.spring.asciidoctor.backends:spring-asciidoctor-backends:$backendVersion"
-	micrometerDocs "io.micrometer:micrometer-docs-generator-spans:$micrometerDocsVersion"
-	micrometerDocs "io.micrometer:micrometer-docs-generator-metrics:$micrometerDocsVersion"
+	micrometerDocs "io.micrometer:micrometer-docs-generator:$micrometerDocsVersion"
 }
 
 task checkAsciidocLinks {
@@ -55,24 +54,16 @@ task checkAsciidocLinks {
 def observationInputDir = file('spring-integration-core/src/main/java/org/springframework/integration/support/management/observation').absolutePath
 def generatedDocsDir = file("$buildDir/docs/generated").absolutePath
 
-task generateObservabilityMetricsDocs(type: JavaExec) {
+task generateObservabilityDocs(type: JavaExec) {
 	inputs.dir(observationInputDir)
 	outputs.dir(generatedDocsDir)
 	classpath configurations.micrometerDocs
 	args observationInputDir, /.+/, generatedDocsDir
-	mainClass = 'io.micrometer.docs.metrics.DocsFromSources'
-}
-
-task generateObservabilitySpansDocs(type: JavaExec) {
-	inputs.dir(observationInputDir)
-	outputs.dir(generatedDocsDir)
-	classpath configurations.micrometerDocs
-	args observationInputDir, /.+/, generatedDocsDir
-	mainClass = 'io.micrometer.docs.spans.DocsFromSources'
+	mainClass = 'io.micrometer.docs.DocsGeneratorCommand'
 }
 
 task filterMetricsDocsContent(type: Copy) {
-	dependsOn generateObservabilitySpansDocs, generateObservabilityMetricsDocs
+	dependsOn generateObservabilityDocs
 	from generatedDocsDir
 	include '_*.adoc'
 	into generatedDocsDir
