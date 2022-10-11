@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.QueueChannel;
@@ -38,6 +39,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  *
  * @since 2.0
  */
+@EnabledIfSystemProperty(named = "org.graalvm.language.js.home", matches = ".+js$")
 @SpringJUnitConfig
 public class Jsr223TransformerTests {
 

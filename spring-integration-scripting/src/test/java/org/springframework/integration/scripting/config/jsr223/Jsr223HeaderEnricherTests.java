@@ -19,6 +19,7 @@ package org.springframework.integration.scripting.config.jsr223;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.QueueChannel;
@@ -34,6 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  *
  * @since 2.1
  */
+@EnabledIfSystemProperty(named = "org.graalvm.language.js.home", matches = ".+js$")
 @SpringJUnitConfig
 public class Jsr223HeaderEnricherTests {
 

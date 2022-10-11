@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Date;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,6 +36,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  *
  * @since 2.0
  */
+@EnabledIfSystemProperty(named = "org.graalvm.language.js.home", matches = ".+js$")
 @SpringJUnitConfig
 @DirtiesContext
 public class Jsr223InboundChannelAdapterTests {
