@@ -100,6 +100,9 @@ See <<./gateway.adoc#async-gateway, Asynchronous Gateway>> for more information.
 
 The `integrationGlobalProperties` bean is now declared by the framework as an instance of `org.springframework.integration.context.IntegrationProperties` instead of the previously deprecated `java.util.Properties`.
 
+Message handlers which produce a collection as a reply (e.g. `JpaOutboundGateway`, `JdbcOutboundGateway` and other DB-based gateways) now return an empty result list if no records are returned by the query.
+Previously, `null` was returned ending the flow, or throwing an exception, depending on `requiresReply`.
+
 [[x6.0-rmi]]
 === RMI Removal
 
