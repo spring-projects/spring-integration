@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.scripting.jsr223;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 
+import org.springframework.integration.scripting.PolyglotScriptExecutor;
 import org.springframework.integration.scripting.ScriptExecutor;
 import org.springframework.util.Assert;
 
@@ -42,6 +43,9 @@ public final class ScriptExecutorFactory {
 		else if (language.equalsIgnoreCase("kotlin")) {
 			return new KotlinScriptExecutor();
 		}
+		else if (language.equalsIgnoreCase("js") || language.equalsIgnoreCase("javascript")) {
+			return new PolyglotScriptExecutor("js");
+		}
 		return new DefaultScriptExecutor(language);
 	}
 
@@ -57,6 +61,9 @@ public final class ScriptExecutorFactory {
 		String extension = scriptLocation.substring(index);
 		if (extension.equals("kts")) {
 			return "kotlin";
+		}
+		else if (extension.equals("js")) {
+			return "js";
 		}
 		ScriptEngineManager engineManager = new ScriptEngineManager();
 		ScriptEngine engine = engineManager.getEngineByExtension(extension);

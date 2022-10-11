@@ -63,6 +63,13 @@ See <<./sftp.adoc#sftp,SFTP Adapters>> for more information.
 Enabling observation for timers and tracing using Micrometer is now supported.
 See <<./metrics.adoc#micrometer-observation,Micrometer Observation>> for more information.
 
+[[x6.0-graalmv-polyglot]]
+==== GraalVM Polyglot Support
+
+The Scripting module now provides a `PolyglotScriptExecutor` implementation based on the GraalVM Polyglot support.
+JavaScript support is now based on this executor since its JSR223 implementation has been removed from Java by itself.
+See <<./scripting.adoc#scripting,Scripting Support>> for more information.
+
 [[x6.0-general]]
 === General Changes
 

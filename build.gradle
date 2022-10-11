@@ -65,6 +65,7 @@ ext {
     derbyVersion = '10.14.2.0'
     findbugsVersion = '3.0.1'
     ftpServerVersion = '1.2.0'
+    graalvmVersion = '22.2.0'
     greenmailVersion = '2.0.0-alpha-2'
     groovyVersion = '3.0.13'
     hamcrestVersion = '2.2'
@@ -848,9 +849,9 @@ project('spring-integration-scripting') {
             exclude group: 'org.jetbrains.kotlin', module: 'kotlin-daemon-client'
         }
         optionalApi 'org.jetbrains.kotlin:kotlin-compiler-embeddable'
+        providedImplementation "org.graalvm.sdk:graal-sdk:$graalvmVersion"
 
         testImplementation "org.jruby:jruby-complete:$jrubyVersion"
-        testImplementation "org.codehaus.groovy:groovy:$groovyVersion"
         testImplementation "org.codehaus.groovy:groovy-jsr223:$groovyVersion"
         testImplementation "org.python:jython-standalone:$jythonVersion"
 

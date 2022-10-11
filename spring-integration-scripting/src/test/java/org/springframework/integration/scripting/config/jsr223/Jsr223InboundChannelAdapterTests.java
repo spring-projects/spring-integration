@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Date;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,7 +35,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  *
  * @since 2.0
  */
-@EnabledIfSystemProperty(named = "org.graalvm.language.js.home", matches = ".+js$")
 @SpringJUnitConfig
 @DirtiesContext
 public class Jsr223InboundChannelAdapterTests {
