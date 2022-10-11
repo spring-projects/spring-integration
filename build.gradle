@@ -481,6 +481,7 @@ project('spring-integration-amqp') {
         testImplementation project(':spring-integration-stream')
         testImplementation 'org.springframework:spring-web'
         testImplementation 'org.testcontainers:rabbitmq'
+        testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     }
 }
 
