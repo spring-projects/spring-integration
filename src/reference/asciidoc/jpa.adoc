@@ -1170,10 +1170,11 @@ It does not cascade to related entities.`"
 For more information, see https://jcp.org/en/jsr/detail?id=317[JSR 317: Java™ Persistence 2.0]
 ====
 
-NOTE: Starting with version 6.0, the `Jpa.retrievingGateway()` returns an empty list result as is.
-Previously it was converted to `null` with the meaning "no reply".
-It causes an extra configuration in the applications where empty list handling is a part of business logic.
-See <<./splitter.adoc#split-stream-and-flux,Splitter Discard Channel>> for possible empty list handling option.
+NOTE: Starting with version 6.0, the `Jpa.retrievingGateway()` returns an empty list result when there are no entities returned by the query.
+Previously `null` was returned ending the flow, or throwing an exception, depending on `requiresReply`.
+Or, to revert to the previous behavior, add a `filter` after the gateway to filter out empty lists.
+It requires extra configuration in applications where empty list handling is a part of the downstream logic.
+See <<./splitter.adoc#split-stream-and-flux,Splitter Discard Channel>> for possible empty list handling options.
 
 [[outboundGatewaySamples]]
 ==== JPA Outbound Gateway Samples
