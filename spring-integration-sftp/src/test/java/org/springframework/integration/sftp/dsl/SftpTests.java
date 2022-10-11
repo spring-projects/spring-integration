@@ -123,7 +123,7 @@ public class SftpTests extends SftpTestSupport {
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isInstanceOf(InputStream.class);
 		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE)).isIn(" sftpSource1.txt", "sftpSource2.txt");
-		assertThat(message.getHeaders().get(FileHeaders.REMOTE_HOST_PORT, String.class)).contains("localhost");
+		assertThat(message.getHeaders().get(FileHeaders.REMOTE_HOST_PORT, String.class)).contains("localhost:");
 		((InputStream) message.getPayload()).close();
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 

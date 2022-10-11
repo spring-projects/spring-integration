@@ -119,7 +119,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO)).isInstanceOf(SftpFileInfo.class);
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_HOST_PORT, String.class)).contains("localhost");
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_HOST_PORT, String.class)).contains("localhost:");
 		this.adapter.stop();
 	}
 

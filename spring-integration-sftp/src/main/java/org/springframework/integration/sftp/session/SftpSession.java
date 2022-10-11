@@ -20,10 +20,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.net.SocketAddress;
 import java.time.Duration;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.sshd.common.util.net.SshdSocketAddress;
 import org.apache.sshd.sftp.SftpModuleProperties;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.common.SftpConstants;
@@ -200,7 +202,8 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 
 	@Override
 	public String getHostPort() {
-		return this.sftpClient.getSession().getConnectAddress().toString();
+		SocketAddress connectAddress = this.sftpClient.getSession().getConnectAddress();
+		return SshdSocketAddress.toAddressString(connectAddress) + ':' + SshdSocketAddress.toAddressPort(connectAddress);
 	}
 
 	@Override
