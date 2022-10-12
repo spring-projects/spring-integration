@@ -1,0 +1,4 @@
+# Tooling related information for the integration cassandra namespace
+http\://www.springframework.org/schema/integration/cassandra@name=integration cassandra Namespace
+http\://www.springframework.org/schema/integration/cassandra@prefix=int-cassandra
+http\://www.springframework.org/schema/integration/cassandra@icon=org/springframework/integration/config/xml/spring-integration-cassandra.gif

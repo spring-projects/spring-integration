@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-cassandra="http://www.springframework.org/schema/integration/cassandra"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/cassandra https://www.springframework.org/schema/integration/cassandra/spring-integration-cassandra.xsd">
+
+	<int-cassandra:outbound-channel-adapter id="cassandraMessageHandler1"
+											cassandra-template="reactiveCassandraTemplate"
+											async="false"/>
+
+	<int-cassandra:outbound-channel-adapter id="cassandraMessageHandler2"
+											cassandra-template="reactiveCassandraTemplate"
+											async="false"/>
+
+	<int-cassandra:outbound-channel-adapter id="cassandraMessageHandler3"
+											cassandra-template="reactiveCassandraTemplate"
+											ingest-query="insert into book (isbn, title, author, pages, saleDate, isInStock) values (?, ?, ?, ?, ?, ?)"
+											async="false"/>
+
+	<int-cassandra:outbound-channel-adapter id="cassandraMessageHandler4"
+											cassandra-template="reactiveCassandraTemplate"
+											statement-expression="T(QueryBuilder).truncate('book').build()"
+											async="false"/>
+
+	<int:channel id="inputChannel"/>
+
+	<bean id="resultChannel" class="org.springframework.integration.channel.FluxMessageChannel"/>
+
+	<int-cassandra:outbound-gateway id="cassandraMessageHandler5"
+									request-channel="inputChannel"
+									cassandra-template="reactiveCassandraTemplate"
+									mode="STATEMENT"
+									query="SELECT * FROM book limit :size"
+									reply-channel="resultChannel">
+		<int-cassandra:parameter-expression name="author" expression="payload"/>
+		<int-cassandra:parameter-expression name="size" expression="headers.limit"/>
+	</int-cassandra:outbound-gateway>
+
+</beans>

@@ -34,6 +34,7 @@ Welcome to the Spring Integration reference documentation!
 [horizontal]
 <<./endpoint-summary.adoc#spring-integration-endpoints,Integration Endpoint Summary>> :: Protocol-specific channel adapters and gateways summary
 <<./amqp.adoc#amqp,AMQP Support>> :: AMQP channels, adapters and gateways
+<<./cassandra.adoc#cassandra,Apache Cassandra Support>> :: Apache Cassandra channel adapters
 <<./event.adoc#applicationevent,Spring `ApplicationEvent` Support>> :: Handling and consuming Spring application events with channel adapters
 <<./feed.adoc#feed,Feed Adapter>> :: RSS and Atom channel adapters
 <<./file.adoc#files,File Support>> :: Channel adapters and gateways for file system support
