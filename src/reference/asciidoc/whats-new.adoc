@@ -17,6 +17,9 @@ In general the project has been moved to Java 17 baseline and migrated from Java
 [[x6.0-new-components]]
 === New Components
 
+A Groovy DSL implementation for integration flow definitions has been added.
+See <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>  for more information.
+
 [[x6.0-mqtt]]
 ==== MQTT ClientManager
 

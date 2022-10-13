@@ -1,5 +1,5 @@
 [[groovy]]
-=== Groovy support
+=== Groovy Support
 
 In Spring Integration 2.0, we added Groovy support, letting you use the Groovy scripting language to provide the logic for various integration components -- similar to the way the Spring Expression Language (SpEL) is supported for routing, transformation, and other integration concerns.
 For more information about Groovy, see the Groovy documentation, which you can find on the https://groovy-lang.org/[project website].
@@ -22,6 +22,8 @@ You need to include this dependency into your project:
 compile "org.springframework.integration:spring-integration-groovy:{project-version}"
 ----
 ====
+
+In addition, starting with version 6.0, a <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>> for integration flow configurations is provided.
 
 [[groovy-config]]
 ==== Groovy Configuration

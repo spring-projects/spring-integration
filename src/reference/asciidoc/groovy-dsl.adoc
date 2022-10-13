@@ -1,0 +1,103 @@
+[[groovy-dsl]]
+== Groovy DSL
+
+The Groovy DSL is a wrapper and extension to <<./dsl.adoc#java-dsl,Java DSL>>.
+The main goal we pursue here is to make Spring Integration development on Groovy as smooth and straightforward as is it possible with interoperability with existing Java DSL and some Groovy extensions or language-specific structures.
+The implementation is a part of <<./groovy.adoc#groovy,Groovy Support>> module.
+
+All you need to get started is just an import for `import static org.springframework.integration.groovy.dsl.IntegrationGroovyDsl.integrationFlow` - an overloaded factory methods for Groovy DSL.
+
+For `IntegrationFlow` definitions as lambdas we typically don't need anything else from Groovy and just declare a bean like this:
+
+====
+[source, groovy]
+----
+@Bean
+IntegrationFlow oddFlow() {
+    { IntegrationFlowDefinition flow ->
+	    flow.handle(Object, { p, h -> 'odd' })
+    }
+}
+----
+====
+
+In this case Groovy understands that the closure should be translated into an `IntegrationFlow` anonymous instance and target Java DSL processor parses this construction properly into Java objects.
+
+As an alternative to the construction above and for consistency with use-cases explained below, this project suggest a Groovy-specific DSL for declaring integration flows in the *builder* pattern style:
+
+====
+[source, groovy]
+----
+@Bean
+flowLambda() {
+    integrationFlow {
+        filter String, { it == 'test' }, { id 'filterEndpoint' }
+        wireTap integrationFlow {
+            channel { queue 'wireTapChannel' }
+        }
+        delay 'delayGroup', { defaultDelay 100 }
+        transform String, { it.toUpperCase() }
+    }
+}
+----
+====
+
+Such a global `integrationFlow()` function expects a closure in builder style for a `GroovyIntegrationFlowDefinition` (a Groovy wrapper for the `IntegrationFlowDefinition`) and produces a regular `IntegrationFlow` lambda implementation.
+See more overloaded `integrationFlow()` variants below.
+
+Many other scenarios require an `IntegrationFlow` to be started from source of data (e.g. `JdbcPollingChannelAdapter`, `JmsInboundGateway` or just an existing `MessageChannel`).
+For this purpose Spring Integration Java DSL provides an `IntegrationFlows` factory with its bunch of overloaded `from()` methods.
+This factory can be used in groovy as well:
+
+====
+[source, groovy]
+----
+@Bean
+flowFromSupplier() {
+    IntegrationFlows.fromSupplier({ 'bar' }) { e -> e.poller { p -> p.fixedDelay(10).maxMessagesPerPoll(1) } }
+            .channel({ c -> c.queue('fromSupplierQueue') } as Function)
+            .get()
+}
+----
+====
+
+But unfortunately not all `from()` methods are compatible with Groovy structures.
+To fix a gap, Spring Integration provides a Groovy DSL around an `IntegrationFlows` factory.
+It is done as a set of overloaded `integrationFlow()` functions.
+With a consumer for a `GroovyIntegrationFlowDefinition` to declare the rest of the flow as an `IntegrationFlow` closure to reuse the mentioned above experience and also avoid `get()` call in the end.
+For example:
+
+====
+[source, groovy]
+----
+@Bean
+functionFlow() {
+    integrationFlow Function<byte[], String>,
+            { beanName 'functionGateway' },
+            {
+                transform Transformers.objectToString(), { id 'objectToStringTransformer' }
+                transform String, { it.toUpperCase() }
+                split Message<?>, { it.payload }
+                split Object, { it }, { id 'splitterEndpoint' }
+                resequence()
+                aggregate {
+                    id 'aggregator'
+                    outputProcessor { it.one }
+                }
+            }
+}
+
+@Bean
+someFlow() {
+    integrationFlow ({ 'test' },
+            {
+                poller { it.trigger new OnlyOnceTrigger() }
+                id 'pollingSource'
+            })
+            {
+                log LoggingHandler.Level.WARN, 'test.category'
+                channel { queue 'pollerResultChannel' }
+            }
+}
+----
+====
