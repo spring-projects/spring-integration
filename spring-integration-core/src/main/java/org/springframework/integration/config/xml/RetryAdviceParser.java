@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@ import org.springframework.util.xml.DomUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -46,16 +48,20 @@ public class RetryAdviceParser extends AbstractBeanDefinitionParser {
 		Element backOffPolicyEle = DomUtils.getChildElementByTagName(element, "fixed-back-off");
 		BeanDefinitionBuilder backOffBuilder = null;
 		if (backOffPolicyEle != null) {
-			backOffBuilder = BeanDefinitionBuilder.genericBeanDefinition(FixedBackOffPolicy.class);
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(backOffBuilder, backOffPolicyEle, "interval", "backOffPeriod");
+			backOffBuilder = BeanDefinitionBuilder.genericBeanDefinition(ParsedFixedBackOffPolicy.class);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(
+					backOffBuilder, backOffPolicyEle, "interval", "backOffPeriodSimple");
 		}
 		else {
 			backOffPolicyEle = DomUtils.getChildElementByTagName(element, "exponential-back-off");
 			if (backOffPolicyEle != null) {
-				backOffBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExponentialBackOffPolicy.class);
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(backOffBuilder, backOffPolicyEle, "initial", "initialInterval");
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(backOffBuilder, backOffPolicyEle, "multiplier");
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(backOffBuilder, backOffPolicyEle, "maximum", "maxInterval");
+				backOffBuilder = BeanDefinitionBuilder.genericBeanDefinition(ParsedExponentialBackOffPolicy.class);
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(backOffBuilder, backOffPolicyEle, "initial",
+						"initialIntervalSimple");
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(backOffBuilder, backOffPolicyEle,
+						"multiplier", "multiplierSimple");
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(backOffBuilder, backOffPolicyEle, "maximum",
+						"maxIntervalSimple");
 			}
 		}
 		if (backOffBuilder != null) {
@@ -64,8 +70,9 @@ public class RetryAdviceParser extends AbstractBeanDefinitionParser {
 		}
 		String maxAttemptsAttr = element.getAttribute("max-attempts");
 		if (StringUtils.hasText(maxAttemptsAttr)) {
-			BeanDefinitionBuilder retryPolicyBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleRetryPolicy.class);
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(retryPolicyBuilder, element, "max-attempts");
+			BeanDefinitionBuilder retryPolicyBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(SimpleRetryPolicy.class)
+							.addConstructorArgValue(element.getAttribute("max-attempts"));
 			retryTemplateBuilder.addPropertyValue("retryPolicy", retryPolicyBuilder.getBeanDefinition());
 			customTemplate = true;
 		}
@@ -74,12 +81,42 @@ public class RetryAdviceParser extends AbstractBeanDefinitionParser {
 		}
 		String recoveryChannelAttr = element.getAttribute("recovery-channel");
 		if (StringUtils.hasText(recoveryChannelAttr)) {
-			BeanDefinitionBuilder emsrBuilder = BeanDefinitionBuilder.genericBeanDefinition(ErrorMessageSendingRecoverer.class);
+			BeanDefinitionBuilder emsrBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(ErrorMessageSendingRecoverer.class);
 			emsrBuilder.addConstructorArgReference(recoveryChannelAttr);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(emsrBuilder, element, "send-timeout");
 			builder.addPropertyValue("recoveryCallback", emsrBuilder.getBeanDefinition());
 		}
 		return builder.getBeanDefinition();
+	}
+
+	private static final class ParsedFixedBackOffPolicy extends FixedBackOffPolicy {
+
+		ParsedFixedBackOffPolicy() {
+		}
+
+		public void setBackOffPeriodSimple(long backOffPeriod) {
+			setBackOffPeriod(backOffPeriod);
+		}
+
+	}
+	private static final class ParsedExponentialBackOffPolicy extends ExponentialBackOffPolicy {
+
+		ParsedExponentialBackOffPolicy() {
+		}
+
+		public void setInitialIntervalSimple(long initialInterval) {
+			setInitialInterval(initialInterval);
+		}
+
+		public void setMultiplierSimple(double multiplier) {
+			setMultiplier(multiplier);
+		}
+
+		public void setMaxIntervalSimple(long maxInterval) {
+			setMaxInterval(maxInterval);
+		}
+
 	}
 
 }
