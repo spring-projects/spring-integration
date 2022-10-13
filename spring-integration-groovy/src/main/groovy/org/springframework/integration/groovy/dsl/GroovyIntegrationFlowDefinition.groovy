@@ -535,9 +535,9 @@ class GroovyIntegrationFlowDefinition {
 			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
-//		GenericHandler<P> lambdaWrapper = (payload, headers) -> handler(payload, headers)
+		GenericHandler<P> lambdaWrapper = (payload, headers) -> handler(payload, headers)
 
-		this.delegate.handle expectedType, handler, createConfigurerIfAny(endpointConfigurer)
+		this.delegate.handle expectedType, lambdaWrapper, createConfigurerIfAny(endpointConfigurer)
 		this
 	}
 
