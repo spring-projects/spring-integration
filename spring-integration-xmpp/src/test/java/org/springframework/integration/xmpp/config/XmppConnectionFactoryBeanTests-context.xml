@@ -7,15 +7,10 @@
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp">
 
-	<bean id="xmppConnectionConfigurationBuilder" class="org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration"
-		  factory-method="builder">
-		<property name="xmppDomain" value="#{T(org.jxmpp.jid.impl.JidCreate).domainBareFrom('myServiceName')}"/>
-	</bean>
 
 	<bean id="xmppConnection" class="org.springframework.integration.xmpp.config.XmppConnectionFactoryBean">
-		<property name="connectionConfiguration">
-			<bean factory-bean="xmppConnectionConfigurationBuilder" factory-method="build"/>
-		</property>
+		<property name="host" value="localhost"/>
+		<property name="user" value="test"/>
 		<property name="autoStartup" value="false"/>
 	</bean>
 
