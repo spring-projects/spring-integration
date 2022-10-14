@@ -16,6 +16,7 @@
 
 package org.springframework.integration.groovy.dsl.test
 
+
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -143,18 +144,16 @@ class GroovyDslTests {
 	@Qualifier('scatterGatherFlow.input')
 	private MessageChannel scatterGatherFlowInput
 
-	def 'Scatter-Gather'() {
-		given:
+	@Test
+	void 'Scatter-Gather'() {
 		def replyChannel = new QueueChannel()
 		def request =
 				MessageBuilder.withPayload("foo")
 						.setReplyChannel(replyChannel)
 						.build()
 
-		when:
 		this.scatterGatherFlowInput.send(request)
 
-		then:
 		def bestQuoteMessage = replyChannel.receive(10000)
 		(bestQuoteMessage?.payload as List).size() >= 1
 	}
@@ -163,18 +162,16 @@ class GroovyDslTests {
 	@Qualifier('oddFlow.input')
 	private MessageChannel oddFlowInput
 
-	def 'oddFlow must reply'() {
-		given:
+	@Test
+	void 'oddFlow must reply'() {
 		def replyChannel = new QueueChannel()
 		def testMessage =
 				MessageBuilder.withPayload('test')
 						.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
 						.build()
 
-		when:
 		this.oddFlowInput.send(testMessage)
 
-		then:
 		replyChannel.receive(1000).payload == 'odd'
 	}
 
@@ -186,15 +183,13 @@ class GroovyDslTests {
 	@Autowired
 	private PollableChannel wireTapChannel
 
-	def 'flow from lambda'() {
-		given:
+	@Test
+	void 'flow from lambda'() {
 		def replyChannel = new QueueChannel()
 		def message = MessageBuilder.withPayload('test').setReplyChannel(replyChannel).build()
 
-		when:
 		this.flowLambdaInput.send message
 
-		then:
 		replyChannel.receive(10_000)?.payload == 'TEST'
 		this.wireTapChannel.receive(10_000)?.payload == 'test'
 	}
