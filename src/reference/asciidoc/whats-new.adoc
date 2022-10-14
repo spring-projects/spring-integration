@@ -154,3 +154,9 @@ See <<./ip.adoc#ip,TCP and UDP Support>> for more information.
 The `JmsOutboundGateway` now creates a `TemporaryTopic` instead of `TemporaryQueue` if `replyPubSubDomain` option is set to `true`.
 
 See <<./jms.adoc#jms,JMS Support>> for more information.
+
+=== Security Changes
+
+The `ChannelSecurityInterceptor` and its annotation `@SecuredChannel` and XML `<secured-channels>` configurations have been deprecated in favor of `AuthorizationChannelInterceptor`.
+
+See <<./security.adoc#security,Security Support>> for more information.

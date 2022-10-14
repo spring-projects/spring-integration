@@ -1,22 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-			 xmlns:si-security="http://www.springframework.org/schema/integration/security"
 			 xmlns:beans="http://www.springframework.org/schema/beans"
 			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			 xmlns:task="http://www.springframework.org/schema/task"
+			 xmlns:security="http://www.springframework.org/schema/security"
 			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			https://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/integration/security
-			https://www.springframework.org/schema/integration/security/spring-integration-security.xsd
+			http://www.springframework.org/schema/security https://www.springframework.org/schema/security/spring-security.xsd
 			http://www.springframework.org/schema/task https://www.springframework.org/schema/task/spring-task.xsd">
 
-	<beans:import resource="classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml"/>
+	<security:user-service id="userDetailsService">
+		<security:user name="jimi" password="jimispassword" authorities="ROLE_USER, ROLE_ADMIN"/>
+		<security:user name="bob" password="bobspassword" authorities="ROLE_USER"/>
+	</security:user-service>
 
-	<si-security:secured-channels>
-		<si-security:access-policy pattern="securedChannel.*" send-access="ROLE_ADMIN, ROLE_PRESIDENT"/>
-	</si-security:secured-channels>
+	<channel-interceptor pattern="securedChannel*">
+		<beans:bean
+				class="org.springframework.security.messaging.access.intercept.AuthorizationChannelInterceptor">
+			<beans:constructor-arg>
+				<beans:bean class="org.springframework.security.authorization.AuthorityAuthorizationManager"
+							factory-method="hasAnyRole">
+					<beans:constructor-arg>
+						<beans:array>
+							<beans:value>ADMIN</beans:value>
+							<beans:value>PRESIDENT</beans:value>
+						</beans:array>
+					</beans:constructor-arg>
+				</beans:bean>
+			</beans:constructor-arg>
+		</beans:bean>
+	</channel-interceptor>
 
 	<beans:bean id="testHandler" class="org.springframework.integration.security.TestHandler"/>
 

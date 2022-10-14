@@ -28,7 +28,6 @@ import java.util.Collections;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 
@@ -59,9 +58,6 @@ import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingM
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.access.vote.AffirmativeBased;
-import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -294,7 +290,6 @@ public class WebFluxDslTests {
 	private Validator validator;
 
 	@Test
-	@Disabled("Fails after some recent SF change")
 	public void testValidation() {
 		IntegrationFlow flow =
 				IntegrationFlow.from(
@@ -480,11 +475,6 @@ public class WebFluxDslTests {
 					.enrichHeaders(Collections.singletonMap("aHeader", new String[]{ "foo", "bar", "baz" }))
 					.handle((p, h) -> Flux.fromArray(h.get("aHeader", String[].class)))
 					.get();
-		}
-
-		@Bean
-		public AccessDecisionManager accessDecisionManager() {
-			return new AffirmativeBased(Collections.singletonList(new RoleVoter()));
 		}
 
 	}

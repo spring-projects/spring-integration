@@ -7,6 +7,10 @@ Messaging independence and loose coupling let target systems communicate with ea
 We can either trust all those messages or secure our service against "`infecting`" messages.
 
 Spring Integration, together with https://projects.spring.io/spring-security/[Spring Security], provides a simple and comprehensive way to secure message channels, as well as other part of the integration solution.
+Starting with version 6.0, the `ChannelSecurityInterceptor` as well as its configuration via `@SecuredChannel` annotation and  XML `<secured-channels>` have been deprecation in favor of `AuthorizationChannelInterceptor` from `spring-security-messaging` module.
+The respective `AuthorizationManager` infrastructure fully covers previously supported role-based authentication, plus it allows to configure any other possible authorization strategies including.
+
+The only remaining Spring Integration feature is a `SecurityContextPropagationChannelInterceptor` which may be promoted to the mentioned `spring-security-messaging` module in the future as well.
 
 You need to include this dependency into your project:
 
@@ -30,92 +34,40 @@ compile "org.springframework.integration:spring-integration-security:{project-ve
 [[securing-channels]]
 === Securing channels
 
-Spring Integration provides the `ChannelSecurityInterceptor` interceptor, which extends `AbstractSecurityInterceptor` and intercepts send and receive calls on the channel.
-Access decisions are then made with reference to a `ChannelSecurityMetadataSource`, which provides the metadata that describes the `send()` and `receive()` access policies for certain channels.
-The interceptor requires that a valid `SecurityContext` has been established by authenticating with Spring Security.
-See the https://docs.spring.io/spring-security/reference/[Spring Security Reference Guide] for details.
-
-Spring Integration provides Namespace support to allow easy configuration of security constraints.
-This support consists of the secured channels tag, which allows definition of one or more channel name patterns in conjunction with a definition of the security configuration for  `send()` and `receive()`.
-The pattern is a `java.util.regexp.Pattern`.
-
-The following example shows how to configure a bean that includes security and how to set up policies with patterns:
+To secure message channels in the integration flow, an `AuthorizationChannelInterceptor` has to be added to those channels, or it can be configured as a global channel interceptor with respective pattern:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java
 ----
-<?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns:int="http://www.springframework.org/schema/integration"
-   xmlns:int-security="http://www.springframework.org/schema/integration/security"
-  xmlns:beans="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:security="http://www.springframework.org/schema/security"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans
-      https://www.springframework.org/schema/beans/spring-beans.xsd
-      http://www.springframework.org/schema/security
-      https://www.springframework.org/schema/security/spring-security.xsd
-      http://www.springframework.org/schema/integration
-      https://www.springframework.org/schema/integration/spring-integration.xsd
-      http://www.springframework.org/schema/integration/security
-      https://www.springframework.org/schema/integration/security/spring-integration-security.xsd">
-
-<int-security:secured-channels>
-    <int-security:access-policy pattern="admin.*" send-access="ROLE_ADMIN"/>
-    <int-security:access-policy pattern="user.*" receive-access="ROLE_USER"/>
-</int-security:secured-channels>
-----
-====
-
-By default, the `secured-channels` namespace element expects a bean named `authenticationManager` (which implements `AuthenticationManager`) and a bean named `accessDecisionManager` (which implements `AccessDecisionManager`).
-Where this is not the case, references to the appropriate beans can be configured as attributes of the `secured-channels` element, as the following example shows:
-
-====
-[source,xml]
-----
-<int-security:secured-channels access-decision-manager="customAccessDecisionManager"
-                              authentication-manager="customAuthenticationManager">
-    <int-security:access-policy pattern="admin.*" send-access="ROLE_ADMIN"/>
-    <int-security:access-policy pattern="user.*" receive-access="ROLE_USER"/>
-</int-security:secured-channels>
-----
-====
-
-Starting with version 4.2, the `@SecuredChannel` annotation is available for Java configuration in `@Configuration` classes.
-
-The following example shows the Java equivalent of the preceding XML examples:
-
-====
-[source,java]
-----
-@Configuration
-@EnableIntegration
-public class ContextConfiguration {
-
-    @Bean
-    @SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = "ROLE_ADMIN")
-    public SubscribableChannel adminChannel() {
-    	return new DirectChannel();
-    }
-
-    @Bean
-    @SecuredChannel(interceptor = "channelSecurityInterceptor", receiveAccess = "ROLE_USER")
-    public SubscribableChannel userChannel() {
-    	return new DirectChannel();
-    }
-
-    @Bean
-    public ChannelSecurityInterceptor channelSecurityInterceptor(
-            AuthenticationManager authenticationManager,
-    		AccessDecisionManager accessDecisionManager) {
-    	ChannelSecurityInterceptor channelSecurityInterceptor = new ChannelSecurityInterceptor();
-    	channelSecurityInterceptor.setAuthenticationManager(authenticationManager);
-    	channelSecurityInterceptor.setAccessDecisionManager(accessDecisionManager);
-    	return channelSecurityInterceptor;
-    }
-
+@Bean
+@GlobalChannelInterceptor(patterns = "secured*")
+AuthorizationChannelInterceptor authorizationChannelInterceptor() {
+    return new AuthorizationChannelInterceptor(AuthorityAuthorizationManager.hasAnyRole("ADMIN", "PRESIDENT"));
 }
 ----
+[source, xml, role="secondary"]
+.XML
+----
+<channel-interceptor pattern="securedChannel*">
+    <beans:bean class="org.springframework.security.messaging.access.intercept.AuthorizationChannelInterceptor">
+        <beans:constructor-arg>
+            <beans:bean class="org.springframework.security.authorization.AuthorityAuthorizationManager"
+                        factory-method="hasAnyRole">
+                <beans:constructor-arg>
+                    <beans:array>
+                        <beans:value>ADMIN</beans:value>
+                        <beans:value>PRESIDENT</beans:value>
+                    </beans:array>
+                </beans:constructor-arg>
+            </beans:bean>
+        </beans:constructor-arg>
+    </beans:bean>
+</channel-interceptor>
+----
 ====
+
+See <<./channel.adoc#global-channel-configuration-interceptors,Global Channel Interceptor Configuration>> for more information.
 
 [[security-context-propagation]]
 === Security Context Propagation
@@ -175,8 +127,6 @@ public class ContextConfiguration {
     }
 
 }
-
-...
 
 @MessagingGateway(asyncExecutor = "securityContextExecutor")
 public interface SecuredGateway {
