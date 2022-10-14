@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,15 +39,13 @@ import org.springframework.messaging.Message;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public abstract class AbstractMailMessageTransformer<T> implements Transformer,
-		BeanFactoryAware {
+public abstract class AbstractMailMessageTransformer<T> implements Transformer, BeanFactoryAware {
 
 	private BeanFactory beanFactory;
 
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	private boolean messageBuilderFactorySet;
-
 
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
@@ -67,28 +65,19 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer,
 	@Override
 	public Message<?> transform(Message<?> message) {
 		Object payload = message.getPayload();
-		if (!(payload instanceof jakarta.mail.Message)) {
+		if (!(payload instanceof jakarta.mail.Message mailMessage)) {
 			throw new MessageTransformationException(message, getClass().getSimpleName()
 					+ " requires a jakarta.mail.Message payload");
 		}
-		jakarta.mail.Message mailMessage = (jakarta.mail.Message) payload;
 		AbstractIntegrationMessageBuilder<T> builder;
-		try {
-			builder = this.doTransform(mailMessage);
-		}
-		catch (Exception e) {
-			throw new MessageTransformationException(message, "failed to transform mail message", e);
-		}
+		builder = doTransform(mailMessage);
 		if (builder == null) {
 			throw new MessageTransformationException(message, "failed to transform mail message");
 		}
-		builder.copyHeaders(extractHeaderMapFromMailMessage(mailMessage));
-		return builder.build();
+		return builder.copyHeaders(extractHeaderMapFromMailMessage(mailMessage)).build();
 	}
 
-	protected abstract AbstractIntegrationMessageBuilder<T> doTransform(jakarta.mail.Message mailMessage)
-			throws Exception; // NOSONAR
-
+	protected abstract AbstractIntegrationMessageBuilder<T> doTransform(jakarta.mail.Message mailMessage);
 
 	private static Map<String, Object> extractHeaderMapFromMailMessage(jakarta.mail.Message mailMessage) {
 		return MailUtils.extractStandardHeaders(mailMessage);

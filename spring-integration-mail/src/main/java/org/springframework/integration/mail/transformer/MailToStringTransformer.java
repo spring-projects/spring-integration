@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import jakarta.mail.Multipart;
 import jakarta.mail.Part;
 
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.util.Assert;
 
 /**
@@ -51,27 +52,34 @@ public class MailToStringTransformer extends AbstractMailMessageTransformer<Stri
 	}
 
 	@Override
-	protected AbstractIntegrationMessageBuilder<String> doTransform(jakarta.mail.Message mailMessage)
-			throws Exception { // NOSONAR
+	protected AbstractIntegrationMessageBuilder<String> doTransform(jakarta.mail.Message mailMessage) {
+		try {
+			String payload;
+			Object content = mailMessage.getContent();
+			if (content instanceof String value) {
+				payload = value;
+			}
+			else if (content instanceof Multipart multipart) {
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+				multipart.writeTo(outputStream);
+				payload = outputStream.toString(this.charset);
+			}
+			else if (content instanceof Part part) {
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+				part.writeTo(outputStream);
+				payload = outputStream.toString(this.charset);
+			}
+			else {
+				throw new IllegalArgumentException("failed to transform contentType ["
+						+ mailMessage.getContentType() + "] to String.");
+			}
 
-		Object content = mailMessage.getContent();
-		if (content instanceof String) {
-			return this.getMessageBuilderFactory().withPayload((String) content);
+			return getMessageBuilderFactory().withPayload(payload);
 		}
-		if (content instanceof Multipart) {
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			((Multipart) content).writeTo(outputStream);
-			return this.getMessageBuilderFactory().withPayload(
-					new String(outputStream.toByteArray(), this.charset));
+		catch (Exception ex) {
+			throw new MessageTransformationException("Cannot transform mail message", ex);
 		}
-		else if (content instanceof Part) {
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			((Part) content).writeTo(outputStream);
-			return this.getMessageBuilderFactory().withPayload(
-					new String(outputStream.toByteArray(), this.charset));
-		}
-		throw new IllegalArgumentException("failed to transform contentType ["
-				+ mailMessage.getContentType() + "] to String.");
+
 	}
 
 }

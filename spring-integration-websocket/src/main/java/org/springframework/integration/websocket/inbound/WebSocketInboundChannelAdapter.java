@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -224,39 +224,54 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	}
 
 	@Override
-	public void afterSessionStarted(WebSocketSession session) throws Exception { // NOSONAR Thrown from the delegate
+	public void afterSessionStarted(WebSocketSession session) {
 		if (isActive()) {
-			SubProtocolHandler protocolHandler = this.subProtocolHandlerRegistry.findProtocolHandler(session);
-			protocolHandler.afterSessionStarted(session, this.subProtocolHandlerChannel);
-			if (!this.server && protocolHandler instanceof StompSubProtocolHandler) {
-				StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECT);
-				accessor.setSessionId(session.getId());
-				accessor.setLeaveMutable(true);
-				accessor.setAcceptVersion("1.1,1.2");
+			try {
+				SubProtocolHandler protocolHandler = this.subProtocolHandlerRegistry.findProtocolHandler(session);
+				protocolHandler.afterSessionStarted(session, this.subProtocolHandlerChannel);
+				if (!this.server && protocolHandler instanceof StompSubProtocolHandler) {
+					StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECT);
+					accessor.setSessionId(session.getId());
+					accessor.setLeaveMutable(true);
+					accessor.setAcceptVersion("1.1,1.2");
 
-				Message<?> connectMessage = MessageBuilder.createMessage(EMPTY_PAYLOAD, accessor.getMessageHeaders());
-				protocolHandler.handleMessageToClient(session, connectMessage);
+					Message<?> connectMessage =
+							MessageBuilder.createMessage(EMPTY_PAYLOAD, accessor.getMessageHeaders());
+					protocolHandler.handleMessageToClient(session, connectMessage);
+				}
+			}
+			catch (Exception ex) {
+				logger.error(ex, () -> "WebSocketHandler.afterConnectionEstablished threw exception in " + this);
 			}
 		}
 	}
 
 	@Override
-	public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus)
-			throws Exception { // NOSONAR Thrown from the delegate
+	public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus) {
 
 		if (isActive()) {
-			this.subProtocolHandlerRegistry.findProtocolHandler(session)
-					.afterSessionEnded(session, closeStatus, this.subProtocolHandlerChannel);
+			try {
+				this.subProtocolHandlerRegistry.findProtocolHandler(session)
+						.afterSessionEnded(session, closeStatus, this.subProtocolHandlerChannel);
+			}
+			catch (Exception ex) {
+				logger.warn(ex, () -> "Unhandled exception after connection closed for " + this);
+			}
 		}
 	}
 
 	@Override
-	public void onMessage(WebSocketSession session, WebSocketMessage<?> webSocketMessage)
-			throws Exception { // NOSONAR Thrown from the delegate
-
+	public void onMessage(WebSocketSession session, WebSocketMessage<?> webSocketMessage) {
 		if (isActive()) {
-			this.subProtocolHandlerRegistry.findProtocolHandler(session)
-					.handleMessageFromClient(session, webSocketMessage, this.subProtocolHandlerChannel);
+			try {
+				this.subProtocolHandlerRegistry.findProtocolHandler(session)
+						.handleMessageFromClient(session, webSocketMessage, this.subProtocolHandlerChannel);
+			}
+			catch (Exception ex) {
+				logger.error(ex,
+						() -> "SubProtocolHandler.handleMessageFromClient threw an exception on message: " +
+								webSocketMessage + " in " + this);
+			}
 		}
 	}
 
