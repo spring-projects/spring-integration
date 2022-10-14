@@ -78,8 +78,8 @@ class GroovyDslTests {
 
 	@Test
 	void 'when application starts, it emits message to pollerResultChannel'() {
-		this.pollerResultChannel.receive(10000) != null
-		this.pollerResultChannel.receive(10000) != null
+		assert this.pollerResultChannel.receive(10000) != null
+		assert this.pollerResultChannel.receive(10000) != null
 	}
 
 	@Test
@@ -92,7 +92,7 @@ class GroovyDslTests {
 
 		this.requestReplyFlowInput.send(testMessage)
 
-		replyChannel.receive(1000).payload == 'HELLO'
+		assert replyChannel.receive(1000).payload == 'HELLO'
 	}
 
 	@Test
@@ -105,12 +105,12 @@ class GroovyDslTests {
 
 		this.requestReplyFixedFlowInput.send(testMessage)
 
-		replyChannel.receive(1000).payload == 16
+		assert replyChannel.receive(1000).payload == 16
 	}
 
 	@Test
 	void 'uppercase function'() {
-		this.upperCaseFunction.apply('test'.bytes) == 'TEST'
+		assert this.upperCaseFunction.apply('test'.bytes) == 'TEST'
 	}
 
 	@Test
@@ -155,7 +155,7 @@ class GroovyDslTests {
 		this.scatterGatherFlowInput.send(request)
 
 		def bestQuoteMessage = replyChannel.receive(10000)
-		(bestQuoteMessage?.payload as List).size() >= 1
+		assert (bestQuoteMessage?.payload as List).size() >= 1
 	}
 
 	@Autowired
@@ -172,7 +172,7 @@ class GroovyDslTests {
 
 		this.oddFlowInput.send(testMessage)
 
-		replyChannel.receive(1000).payload == 'odd'
+		assert replyChannel.receive(1000).payload == 'odd'
 	}
 
 
@@ -190,8 +190,8 @@ class GroovyDslTests {
 
 		this.flowLambdaInput.send message
 
-		replyChannel.receive(10_000)?.payload == 'TEST'
-		this.wireTapChannel.receive(10_000)?.payload == 'test'
+		assert replyChannel.receive(10_000)?.payload == 'TEST'
+		assert this.wireTapChannel.receive(10_000)?.payload == 'test'
 	}
 
 	@Configuration
