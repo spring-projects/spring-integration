@@ -19,4 +19,6 @@ include::./handler-advice.adoc[]
 include::./logging-adapter.adoc[]
 
 include::./functions-support.adoc[]
+
+include::./kotlin-functions.adoc[]
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://asciidoctor.org/docs/user-manual/#include-partitioning

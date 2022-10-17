@@ -37,6 +37,8 @@ include::./kotlin-dsl.adoc[]
 
 include::./system-management.adoc[]
 
+include::./reactive-streams.adoc[]
+
 include::./endpoint-summary.adoc[]
 
 include::./amqp.adoc[]

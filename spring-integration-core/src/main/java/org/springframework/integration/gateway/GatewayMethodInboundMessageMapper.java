@@ -44,6 +44,7 @@ import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.util.CoroutinesUtils;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -289,6 +290,9 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			for (int i = 0; i < GatewayMethodInboundMessageMapper.this.parameterList.size(); i++) {
 				Object argumentValue = arguments[i];
 				MethodParameter methodParameter = GatewayMethodInboundMessageMapper.this.parameterList.get(i);
+				if (CoroutinesUtils.isContinuationType(methodParameter.getParameterType())) {
+					continue;
+				}
 				Annotation annotation =
 						MessagingAnnotationUtils.findMessagePartAnnotation(methodParameter.getParameterAnnotations(),
 								false);

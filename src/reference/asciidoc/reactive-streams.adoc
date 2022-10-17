@@ -49,6 +49,8 @@ With a `ReactiveStreamsSubscribableChannel` for the `outputChannel`, there is no
 
 See <<./service-activator.adoc#async-service-activator,Asynchronous Service Activator>> for more information.
 
+Also see <<./kotlin-functions.adoc#kotlin-coroutines,Kotlin Coroutines>> for more information.
+
 === `FluxMessageChannel` and `ReactiveStreamsConsumer`
 
 The `FluxMessageChannel` is a combined implementation of `MessageChannel` and `Publisher<Message<?>>`.

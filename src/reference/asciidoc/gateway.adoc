@@ -771,6 +771,8 @@ mono.subscribe(invoice -> handleInvoice(invoice));
 
 The calling thread continues, with `handleInvoice()` being called when the flow completes.
 
+Also see <<./kotlin-functions.adoc#kotlin-coroutines,Kotlin Coroutines>> for more information.
+
 ===== Downstream Flows Returning an Asynchronous Type
 
 As mentioned in the <<gateway-asynctaskexecutor>> section above, if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, and others), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
