@@ -16,7 +16,7 @@
 
 package org.springframework.integration.groovy.dsl.test
 
-
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -45,6 +45,7 @@ import reactor.core.publisher.Flux
 import reactor.test.StepVerifier
 
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Function
 
 import static org.springframework.integration.groovy.dsl.IntegrationGroovyDsl.integrationFlow
@@ -196,6 +197,19 @@ class GroovyDslTests {
 		assert this.wireTapChannel.receive(10_000)?.payload == 'test'
 	}
 
+	@Autowired
+	@Qualifier('externalServiceFlow.input')
+	private MessageChannel externalServiceFlowInput
+
+	@Autowired
+	GroovyTestService groovyTestService
+
+	@Test
+	void 'handle service'() {
+		this.externalServiceFlowInput.send(new GenericMessage<Object>('test'))
+		assert groovyTestService.result.get() == 'TEST'
+	}
+
 	@Configuration
 	@EnableIntegration
 	static class Config {
@@ -299,6 +313,30 @@ class GroovyDslTests {
 			integrationFlow({ 'bar' }, { poller { it.fixedDelay(10).maxMessagesPerPoll(1) } }) {
 				channel { queue 'fromSupplierQueue' }
 			}
+		}
+
+		@Bean
+		myService() {
+			new GroovyTestService()
+		}
+
+		@Bean
+		externalServiceFlow(GroovyTestService groovyTestService) {
+			integrationFlow {
+				handle groovyTestService
+			}
+
+		}
+
+	}
+
+	@CompileStatic
+	static class GroovyTestService {
+
+		AtomicReference<String> result = new AtomicReference<>()
+
+		void handlePayload(String payload) {
+			result.set payload.toUpperCase()
 		}
 
 	}

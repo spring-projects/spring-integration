@@ -53,6 +53,7 @@ import org.springframework.core.KotlinDetector;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.ConversionFailedException;
@@ -759,7 +760,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 						ambiguousFallbackType, ambiguousFallbackMessageGenericType, matchesAnnotation, handlerMethod1);
 			}
 
-		}, new UniqueMethodFilter(targetClass));
+		}, ((ReflectionUtils.MethodFilter) this::isHandlerMethod).and(new UniqueMethodFilter(targetClass)));
 
 		if (candidateMethods.isEmpty() && candidateMessageMethods.isEmpty() && fallbackMethods.isEmpty()
 				&& fallbackMessageMethods.isEmpty()) {
@@ -767,36 +768,16 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		}
 	}
 
-	@Nullable
-	private HandlerMethod obtainHandlerMethodIfAny(Method methodToProcess) {
-		HandlerMethod handlerMethodToUse = null;
-		if (isMethodEligible(methodToProcess)) {
-			try {
-				handlerMethodToUse = createHandlerMethod(
-						AopUtils.selectInvocableMethod(methodToProcess, ClassUtils.getUserClass(this.targetObject)));
-			}
-			catch (Exception ex) {
-				LOGGER.debug(ex, "Method [" + methodToProcess + "] is not eligible for Message handling.");
-				return null;
-			}
-
-			if (AnnotationUtils.getAnnotation(methodToProcess, Default.class) != null) {
-				Assert.state(this.defaultHandlerMethod == null,
-						() -> "Only one method can be @Default, but there are more for: " + this.targetObject);
-				this.defaultHandlerMethod = handlerMethodToUse;
-			}
-		}
-
-		return handlerMethodToUse;
-	}
-
-	private boolean isMethodEligible(Method methodToProcess) {
-		return !(methodToProcess.isBridge() || // NOSONAR boolean complexity
-				isMethodDefinedOnObjectClass(methodToProcess) ||
-				methodToProcess.getDeclaringClass().equals(Proxy.class) ||
-				(this.requiresReply && void.class.equals(methodToProcess.getReturnType())) ||
-				(this.methodName != null && !this.methodName.equals(methodToProcess.getName())) ||
-				(this.methodName == null && isPausableMethod(methodToProcess)));
+	private boolean isHandlerMethod(Method method) {
+		Class<?> declaringClass = method.getDeclaringClass();
+		return !(method.isSynthetic() ||
+				ReflectionUtils.isObjectMethod(method) ||
+				AnnotatedElementUtils.isAnnotated(method, "groovy.transform.Generated") ||
+				declaringClass.getName().equals("groovy.lang.GroovyObject") ||
+				declaringClass.equals(Proxy.class) ||
+				(this.requiresReply && void.class.equals(method.getReturnType())) ||
+				(this.methodName != null && !this.methodName.equals(method.getName())) ||
+				(this.methodName == null && isPausableMethod(method)));
 	}
 
 	private boolean isPausableMethod(Method pausableMethod) {
@@ -809,6 +790,27 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			this.logger.trace(() -> pausableMethod + " is not considered a candidate method unless explicitly requested");
 		}
 		return pausable;
+	}
+
+	@Nullable
+	private HandlerMethod obtainHandlerMethodIfAny(Method methodToProcess) {
+		HandlerMethod handlerMethodToUse;
+		try {
+			handlerMethodToUse = createHandlerMethod(
+					AopUtils.selectInvocableMethod(methodToProcess, ClassUtils.getUserClass(this.targetObject)));
+		}
+		catch (Exception ex) {
+			LOGGER.debug(ex, "Method [" + methodToProcess + "] is not eligible for Message handling.");
+			return null;
+		}
+
+		if (AnnotationUtils.getAnnotation(methodToProcess, Default.class) != null) {
+			Assert.state(this.defaultHandlerMethod == null,
+					() -> "Only one method can be @Default, but there are more for: " + this.targetObject);
+			this.defaultHandlerMethod = handlerMethodToUse;
+		}
+
+		return handlerMethodToUse;
 	}
 
 	private void populateHandlerMethod(Map<Class<?>, HandlerMethod> candidateMethods,
@@ -1013,8 +1015,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private static boolean isMethodDefinedOnObjectClass(Method method) {
 		return method != null && // NOSONAR
-				(method.getDeclaringClass().equals(Object.class) || ReflectionUtils.isEqualsMethod(method) ||
-						ReflectionUtils.isHashCodeMethod(method) || ReflectionUtils.isToStringMethod(method) ||
+				(ReflectionUtils.isObjectMethod(method) ||
 						AopUtils.isFinalizeMethod(method) || (method.getName().equals("clone")
 						&& method.getParameterTypes().length == 0));
 	}
