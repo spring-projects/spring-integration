@@ -488,7 +488,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private synchronized void initialize() {
 		if (isProvidedMessageHandlerFactoryBean()) {
-			LOGGER.trace("Overriding default instance of MessageHandlerMethodFactory with provided one.");
+			LOGGER.trace("Overriding default instance of MessageHandlerMethodFactory with the one provided.");
 			this.messageHandlerMethodFactory =
 					getBeanFactory()
 							.getBean(

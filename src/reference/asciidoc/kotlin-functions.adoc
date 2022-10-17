@@ -31,7 +31,7 @@ fun kotlinSupplier(): () -> String {
 ==== Kotlin Coroutines
 
 Starting with version 6.0, Spring Integration provides support for https://kotlinlang.org/docs/coroutines-guide.html[Kotlin Coroutines].
-Now the `suspend` functions and `kotlinx.coroutines.Deferred` & `kotlinx.coroutines.flow.Flow` return types can be used for service methods:
+Now `suspend` functions and `kotlinx.coroutines.Deferred` & `kotlinx.coroutines.flow.Flow` return types can be used for service methods:
 
 ====
 [source, kotlin]
@@ -53,10 +53,10 @@ The framework treats them as Reactive Streams interactions and uses `ReactiveAda
 Such a function reply is processed then in the reply channel, if it is a `ReactiveStreamsSubscribableChannel`, or as a result of `CompletableFuture` in the respective callback.
 
 NOTE: The functions with `Flow` result are not `async` by default on the `@ServiceActivator`, so `Flow` instance is produced as a reply message payload.
-It is already target application to process this object as a coroutine or convert it to `Flux`, respectively.
+It is the target application's responsibility to process this object as a coroutine or convert it to `Flux`, respectively.
 
 The `@MessagingGateway` interface methods also can be marked with a `suspend` modifier when declared in Kotlin.
-The framework utilizes a `Mono` logic internally to perform request-reply for downstream flow.
+The framework utilizes a `Mono` internally to perform request-reply using the downstream flow.
 Such a `Mono` result is processed by the `MonoKt.awaitSingleOrNull()` API internally to fulfil a `kotlin.coroutines.Continuation` argument fo the called `suspend` function of the gateway:
 
 ====
