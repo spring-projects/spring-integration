@@ -73,6 +73,12 @@ The Scripting module now provides a `PolyglotScriptExecutor` implementation base
 JavaScript support is now based on this executor since its JSR223 implementation has been removed from Java by itself.
 See <<./scripting.adoc#scripting,Scripting Support>> for more information.
 
+[[x6.0-cassandra]]
+==== Apache Cassandra Support
+
+The Apache Cassandra Spring Integration Extensions project has been migrated as the `spring-integration-cassandra` module.
+See <<./cassandra.adoc#cassandra,Apache Cassandra Support>> for more information.
+
 [[x6.0-general]]
 === General Changes
 

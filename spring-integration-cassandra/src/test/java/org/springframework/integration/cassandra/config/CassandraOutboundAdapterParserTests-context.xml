@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-cassandra="http://www.springframework.org/schema/integration/cassandra"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/cassandra https://www.springframework.org/schema/integration/cassandra/spring-integration-cassandra.xsd">
+
+
+	<int:poller default="true" fixed-delay="50"/>
+
+	<int:channel id="input">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="resultChannel">
+		<int:queue/>
+	</int:channel>
+
+	<bean id="cassandraTemplate" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.data.cassandra.core.ReactiveCassandraOperations"/>
+	</bean>
+
+	<bean id="writeOptions" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.data.cassandra.core.InsertOptions"/>
+	</bean>
+
+	<int-cassandra:outbound-channel-adapter id="outbound1"
+											cassandra-template="cassandraTemplate"
+											write-options="writeOptions"
+											auto-startup="false"
+											async="false"/>
+
+	<int-cassandra:outbound-channel-adapter id="outbound2"
+											channel="input"
+											cassandra-template="cassandraTemplate"
+											ingest-query="insert into book (isbn, title, author, pages, saleDate, isInStock) values (?, ?, ?, ?, ?, ?)"/>
+
+	<int-cassandra:outbound-gateway id="outgateway"
+									request-channel="input"
+									cassandra-template="cassandraTemplate"
+									mode="STATEMENT"
+									write-options="writeOptions"
+									query="SELECT * FROM book limit :size"
+									reply-channel="resultChannel"
+									auto-startup="true">
+		<int-cassandra:parameter-expression name="author" expression="payload"/>
+		<int-cassandra:parameter-expression name="size" expression="headers.limit"/>
+	</int-cassandra:outbound-gateway>
+
+	<int-cassandra:outbound-channel-adapter id="outbound4"
+											cassandra-template="cassandraTemplate"
+											write-options="writeOptions"
+											statement-expression="T(QueryBuilder).truncate('book')"
+											auto-startup="false"/>
+
+
+</beans>

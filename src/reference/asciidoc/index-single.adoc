@@ -41,6 +41,8 @@ include::./endpoint-summary.adoc[]
 
 include::./amqp.adoc[]
 
+include::./cassandra.adoc[]
+
 include::./event.adoc[]
 
 include::./feed.adoc[]
