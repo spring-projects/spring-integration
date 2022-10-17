@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,6 +82,8 @@ import java.util.function.Function
  * The Groovy-specific {@link org.springframework.integration.dsl.IntegrationFlowDefinition} wrapper.
  *
  * @author Artem Bilan
+ *
+ * @since 6.0
  *
  * @see org.springframework.integration.dsl.IntegrationFlowDefinition
  */

@@ -50,6 +50,8 @@ import java.util.function.Function
 import static org.springframework.integration.groovy.dsl.IntegrationGroovyDsl.integrationFlow
 
 /**
+ * @author Artem Bilan
+ *
  * @since 6.0
  */
 @SpringJUnitConfig

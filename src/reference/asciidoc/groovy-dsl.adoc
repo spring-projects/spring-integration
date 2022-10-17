@@ -23,7 +23,7 @@ IntegrationFlow oddFlow() {
 
 In this case Groovy understands that the closure should be translated into an `IntegrationFlow` anonymous instance and the target Java DSL processor parses this construction properly into Java objects.
 
-As an alternative to the construction above and for consistency with use-cases explained below, this project provides a Groovy-specific DSL for declaring integration flows in the *builder* pattern style:
+As an alternative to the construction above and for consistency with use-cases explained below, the `spring-integration-groovy` module provides a Groovy-specific DSL for declaring integration flows in a *builder* pattern style:
 
 ====
 [source, groovy]
@@ -46,7 +46,7 @@ Such a global `integrationFlow()` function expects a closure in the builder styl
 See more overloaded `integrationFlow()` variants below.
 
 Many other scenarios require an `IntegrationFlow` to be started from the source of data (e.g. `JdbcPollingChannelAdapter`, `JmsInboundGateway` or just an existing `MessageChannel`).
-For this purpose, Spring Integration Java DSL provides an `IntegrationFlows` factory with a number of overloaded `from()` methods.
+For this purpose, Spring Integration Java DSL provides an `IntegrationFlow` factory with a number of overloaded `from()` methods.
 This factory can be used in groovy as well:
 
 ====
@@ -54,7 +54,7 @@ This factory can be used in groovy as well:
 ----
 @Bean
 flowFromSupplier() {
-    IntegrationFlows.fromSupplier({ 'bar' }) { e -> e.poller { p -> p.fixedDelay(10).maxMessagesPerPoll(1) } }
+    IntegrationFlow.fromSupplier({ 'bar' }) { e -> e.poller { p -> p.fixedDelay(10).maxMessagesPerPoll(1) } }
             .channel({ c -> c.queue('fromSupplierQueue') } as Function)
             .get()
 }
