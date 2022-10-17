@@ -27,7 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -52,22 +51,18 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.multipart.UploadedMultipartFile;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
-import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
-import org.springframework.integration.security.channel.SecuredChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.mock.web.MockPart;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.access.vote.AffirmativeBased;
-import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.messaging.access.intercept.AuthorizationChannelInterceptor;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -335,9 +330,11 @@ public class HttpDslTests {
 		}
 
 		@Bean
-		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = "ROLE_ADMIN")
 		public MessageChannel transformSecuredChannel() {
-			return new DirectChannel();
+			DirectChannel directChannel = new DirectChannel();
+			directChannel.addInterceptor(
+					new AuthorizationChannelInterceptor(AuthorityAuthorizationManager.hasRole("ADMIN")));
+			return directChannel;
 		}
 
 		@Bean
@@ -391,21 +388,6 @@ public class HttpDslTests {
 		@Bean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
 		public MultipartResolver multipartResolver() {
 			return new StandardServletMultipartResolver();
-		}
-
-		@Bean
-		public AccessDecisionManager accessDecisionManager() {
-			return new AffirmativeBased(Collections.singletonList(new RoleVoter()));
-		}
-
-		@Bean
-		public ChannelSecurityInterceptor channelSecurityInterceptor(AccessDecisionManager accessDecisionManager,
-				AuthenticationManagerBuilder authenticationManagerBuilder) {
-
-			ChannelSecurityInterceptor channelSecurityInterceptor = new ChannelSecurityInterceptor();
-			channelSecurityInterceptor.setAuthenticationManager(authenticationManagerBuilder.getOrBuild());
-			channelSecurityInterceptor.setAccessDecisionManager(accessDecisionManager);
-			return channelSecurityInterceptor;
 		}
 
 		@Bean

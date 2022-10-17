@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 package org.springframework.integration.security.channel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,25 +28,22 @@ import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.integration.security.TestHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ChannelAdapterSecurityIntegrationTests {
 
@@ -78,59 +75,67 @@ public class ChannelAdapterSecurityIntegrationTests {
 	TestHandler testConsumer;
 
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		SecurityContextHolder.clearContext();
 	}
 
 
-	@Test(expected = AccessDeniedException.class)
+	@Test
 	public void testSecuredWithNotEnoughPermission() {
 		login("bob", "bobspassword", "ROLE_ADMINA");
-		securedChannelAdapter.send(new GenericMessage<String>("test"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.securedChannelAdapter.send(new GenericMessage<>("test")))
+				.withRootCauseExactlyInstanceOf(AccessDeniedException.class);
 	}
 
 	@Test
 	public void testSecuredWithPermission() {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
-		securedChannelAdapter.send(new GenericMessage<String>("test"));
-		securedChannelAdapter2.send(new GenericMessage<String>("test"));
+		securedChannelAdapter.send(new GenericMessage<>("test"));
+		securedChannelAdapter2.send(new GenericMessage<>("test"));
 		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(2);
 	}
 
 	@Test
 	public void testSecurityContextPropagation() {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
-		this.queueChannel.send(new GenericMessage<String>("test"));
+		this.queueChannel.send(new GenericMessage<>("test"));
 		Message<?> receive = this.securedChannelQueue.receive(10000);
 		assertThat(receive).isNotNull();
 
 		SecurityContextHolder.clearContext();
 
-		this.queueChannel.send(new GenericMessage<String>("test"));
+		this.queueChannel.send(new GenericMessage<>("test"));
 		Message<?> errorMessage = this.errorChannel.receive(10000);
 		assertThat(errorMessage).isNotNull();
 		Object payload = errorMessage.getPayload();
-		assertThat(payload).isInstanceOf(MessageHandlingException.class);
-		assertThat(((MessageHandlingException) payload).getCause())
+		assertThat(payload).isInstanceOf(MessageDeliveryException.class);
+		assertThat(((MessageDeliveryException) payload).getCause())
 				.isInstanceOf(AuthenticationCredentialsNotFoundException.class);
 	}
 
-	@Test(expected = AccessDeniedException.class)
+	@Test
 	public void testSecuredWithoutPermission() {
 		login("bob", "bobspassword", "ROLE_USER");
-		securedChannelAdapter.send(new GenericMessage<String>("test"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.securedChannelAdapter.send(new GenericMessage<>("test")))
+				.withRootCauseExactlyInstanceOf(AccessDeniedException.class);
 	}
 
-	@Test(expected = AccessDeniedException.class)
+	@Test
 	public void testSecured2WithoutPermission() {
 		login("bob", "bobspassword", "ROLE_USER");
-		securedChannelAdapter2.send(new GenericMessage<String>("test"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.securedChannelAdapter2.send(new GenericMessage<>("test")))
+				.withRootCauseExactlyInstanceOf(AccessDeniedException.class);
 	}
 
-	@Test(expected = AuthenticationException.class)
+	@Test
 	public void testSecuredWithoutAuthenticating() {
-		securedChannelAdapter.send(new GenericMessage<String>("test"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.securedChannelAdapter.send(new GenericMessage<>("test")))
+				.withRootCauseExactlyInstanceOf(AuthenticationCredentialsNotFoundException.class);
 	}
 
 	@Test

@@ -169,6 +169,7 @@ allprojects {
             mavenBom "org.apache.camel:camel-bom:$camelVersion"
             mavenBom "org.testcontainers:testcontainers-bom:$testcontainersVersion"
             mavenBom "org.apache.groovy:groovy-bom:$groovyVersion"
+            mavenBom "org.springframework.security:spring-security-bom:$springSecurityVersion"
             mavenBom "org.jetbrains.kotlinx:kotlinx-coroutines-bom:$kotlinCoroutinesVersion"
         }
 
@@ -675,10 +676,10 @@ project('spring-integration-http') {
 
         testImplementation project(':spring-integration-security')
         testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
-        testImplementation("org.springframework.security:spring-security-config:$springSecurityVersion") {
+        testImplementation('org.springframework.security:spring-security-config') {
             exclude group: 'org.springframework'
         }
-        testImplementation("org.springframework.security:spring-security-test:$springSecurityVersion") {
+        testImplementation('org.springframework.security:spring-security-test') {
             exclude group: 'org.springframework'
         }
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -879,11 +880,11 @@ project('spring-integration-security') {
     description = 'Spring Integration Security Support'
     dependencies {
         api project(':spring-integration-core')
-        api("org.springframework.security:spring-security-core:$springSecurityVersion") {
+        api('org.springframework.security:spring-security-messaging') {
             exclude group: 'org.springframework'
         }
 
-        testImplementation("org.springframework.security:spring-security-config:$springSecurityVersion") {
+        testImplementation('org.springframework.security:spring-security-config') {
             exclude group: 'org.springframework'
         }
     }
@@ -971,10 +972,10 @@ project('spring-integration-webflux') {
         testImplementation "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
         testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testImplementation 'org.springframework:spring-webmvc'
-        testImplementation("org.springframework.security:spring-security-config:$springSecurityVersion") {
+        testImplementation('org.springframework.security:spring-security-config') {
             exclude group: 'org.springframework'
         }
-        testImplementation("org.springframework.security:spring-security-test:$springSecurityVersion") {
+        testImplementation('org.springframework.security:spring-security-test') {
             exclude group: 'org.springframework'
         }
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'

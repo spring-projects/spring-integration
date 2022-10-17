@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,19 @@
 package org.springframework.integration.security.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -50,13 +49,11 @@ import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.integration.security.TestHandler;
-import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
-import org.springframework.integration.security.channel.SecuredChannel;
 import org.springframework.integration.security.channel.SecurityContextPropagationChannelInterceptor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
@@ -64,27 +61,27 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.messaging.access.intercept.AuthorizationChannelInterceptor;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
  *
  * @since 4.0
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
+public class ChannelSecurityAnnotationTests {
 
 	@Autowired
 	MessageChannel securedChannel;
@@ -125,96 +122,104 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 	@Autowired
 	TestGateway testGateway;
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		SecurityContextHolder.clearContext();
 	}
 
 
-	@Test(expected = AccessDeniedException.class)
+	@Test
 	public void testSecuredWithNotEnoughPermission() {
 		login("bob", "bobspassword", "ROLE_ADMINA");
-		securedChannel.send(new GenericMessage<String>("test"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.securedChannel.send(new GenericMessage<>("test")))
+				.withRootCauseExactlyInstanceOf(AccessDeniedException.class);
 	}
 
 	@Test
 	public void testSecuredWithPermission() {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
-		securedChannel.send(new GenericMessage<String>("test"));
-		securedChannel2.send(new GenericMessage<String>("test"));
+		securedChannel.send(new GenericMessage<>("test"));
+		securedChannel2.send(new GenericMessage<>("test"));
 		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(2);
 	}
 
-	@Test(expected = AccessDeniedException.class)
+	@Test
 	public void testSecuredWithoutPermision() {
 		login("bob", "bobspassword", "ROLE_USER");
-		securedChannel.send(new GenericMessage<String>("test"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.securedChannel.send(new GenericMessage<>("test")))
+				.withRootCauseExactlyInstanceOf(AccessDeniedException.class);
 	}
 
-	@Test(expected = AccessDeniedException.class)
+	@Test
 	public void testSecured2WithoutPermision() {
 		login("bob", "bobspassword", "ROLE_USER");
-		securedChannel2.send(new GenericMessage<String>("test"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.securedChannel2.send(new GenericMessage<>("test")))
+				.withRootCauseExactlyInstanceOf(AccessDeniedException.class);
 	}
 
-	@Test(expected = AuthenticationException.class)
+	@Test
 	public void testSecuredWithoutAuthenticating() {
-		securedChannel.send(new GenericMessage<String>("test"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.securedChannel2.send(new GenericMessage<>("test")))
+				.withRootCauseExactlyInstanceOf(AuthenticationCredentialsNotFoundException.class);
 	}
 
 	@Test
 	public void testUnsecuredAsAdmin() {
 		login("bob", "bobspassword", "ROLE_ADMIN");
-		unsecuredChannel.send(new GenericMessage<String>("test"));
+		unsecuredChannel.send(new GenericMessage<>("test"));
 		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(1);
 	}
 
 	@Test
 	public void testUnsecuredAsUser() {
 		login("bob", "bobspassword", "ROLE_USER");
-		unsecuredChannel.send(new GenericMessage<String>("test"));
+		unsecuredChannel.send(new GenericMessage<>("test"));
 		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(1);
 	}
 
 	@Test
 	public void testUnsecuredWithoutAuthenticating() {
-		unsecuredChannel.send(new GenericMessage<String>("test"));
+		unsecuredChannel.send(new GenericMessage<>("test"));
 		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(1);
 	}
 
 	@Test
 	public void testSecurityContextPropagationQueueChannel() {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
-		this.queueChannel.send(new GenericMessage<String>("test"));
+		this.queueChannel.send(new GenericMessage<>("test"));
 		Message<?> receive = this.securedChannelQueue.receive(10000);
 		assertThat(receive).isNotNull();
 
 		SecurityContextHolder.clearContext();
 
-		this.queueChannel.send(new GenericMessage<String>("test"));
+		this.queueChannel.send(new GenericMessage<>("test"));
 		Message<?> errorMessage = this.errorChannel.receive(10000);
 		assertThat(errorMessage).isNotNull();
 		Object payload = errorMessage.getPayload();
-		assertThat(payload).isInstanceOf(MessageHandlingException.class);
-		assertThat(((MessageHandlingException) payload).getCause())
+		assertThat(payload).isInstanceOf(MessageDeliveryException.class);
+		assertThat(((MessageDeliveryException) payload).getCause())
 				.isInstanceOf(AuthenticationCredentialsNotFoundException.class);
 	}
 
 	@Test
 	public void testSecurityContextPropagationExecutorChannel() {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
-		this.executorChannel.send(new GenericMessage<String>("test"));
+		this.executorChannel.send(new GenericMessage<>("test"));
 		Message<?> receive = this.securedChannelQueue.receive(10000);
 		assertThat(receive).isNotNull();
 
 		SecurityContextHolder.clearContext();
 
-		this.executorChannel.send(new GenericMessage<String>("test"));
+		this.executorChannel.send(new GenericMessage<>("test"));
 		Message<?> errorMessage = this.errorChannel.receive(10000);
 		assertThat(errorMessage).isNotNull();
 		Object payload = errorMessage.getPayload();
-		assertThat(payload).isInstanceOf(MessageHandlingException.class);
-		assertThat(((MessageHandlingException) payload).getCause())
+		assertThat(payload).isInstanceOf(MessageDeliveryException.class);
+		assertThat(((MessageDeliveryException) payload).getCause())
 				.isInstanceOf(AuthenticationCredentialsNotFoundException.class);
 	}
 
@@ -222,7 +227,7 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 	public void testSecurityContextPropagationPublishSubscribeChannel() {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
 
-		this.publishSubscribeChannel.send(new GenericMessage<String>("test"));
+		this.publishSubscribeChannel.send(new GenericMessage<>("test"));
 
 		Message<?> receive = this.securedChannelQueue.receive(10000);
 		assertThat(receive).isNotNull();
@@ -236,7 +241,7 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 
 		this.publishSubscribeChannel.setApplySequence(true);
 
-		this.publishSubscribeChannel.send(new GenericMessage<String>("test"));
+		this.publishSubscribeChannel.send(new GenericMessage<>("test"));
 
 		receive = this.securedChannelQueue.receive(10000);
 		assertThat(receive).isNotNull();
@@ -252,12 +257,12 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 
 		SecurityContextHolder.clearContext();
 
-		this.publishSubscribeChannel.send(new GenericMessage<String>("test"));
+		this.publishSubscribeChannel.send(new GenericMessage<>("test"));
 		Message<?> errorMessage = this.errorChannel.receive(10000);
 		assertThat(errorMessage).isNotNull();
 		Object payload = errorMessage.getPayload();
-		assertThat(payload).isInstanceOf(MessageHandlingException.class);
-		assertThat(((MessageHandlingException) payload).getCause())
+		assertThat(payload).isInstanceOf(MessageDeliveryException.class);
+		assertThat(((MessageDeliveryException) payload).getCause())
 				.isInstanceOf(AuthenticationCredentialsNotFoundException.class);
 	}
 
@@ -285,8 +290,20 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 	@Configuration
 	@EnableIntegration
 	@IntegrationComponentScan
-	@ImportResource("classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml")
 	public static class ContextConfiguration {
+
+		@Bean
+		UserDetailsService userDetailsService() {
+			return new InMemoryUserDetailsManager(
+					User.withUsername("jimi")
+							.password("jimispassword")
+							.authorities("ROLE_USER", "ROLE_ADMIN")
+							.build(),
+					User.withUsername("bob")
+							.password("bobspassword")
+							.authorities("ROLE_USER")
+							.build());
+		}
 
 		@Bean
 		public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -294,13 +311,17 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		}
 
 		@Bean
-		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
+		@GlobalChannelInterceptor(patterns = "secured*")
+		AuthorizationChannelInterceptor authorizationChannelInterceptor() {
+			return new AuthorizationChannelInterceptor(AuthorityAuthorizationManager.hasAnyRole("ADMIN", "PRESIDENT"));
+		}
+
+		@Bean
 		public SubscribableChannel securedChannel() {
 			return new DirectChannel();
 		}
 
 		@Bean
-		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
 		public SubscribableChannel securedChannel2() {
 			return new DirectChannel();
 		}
@@ -326,7 +347,6 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		}
 
 		@Bean
-		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
 		public PollableChannel securedChannelQueue() {
 			return new QueueChannel();
 		}
@@ -353,7 +373,6 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		}
 
 		@Bean
-		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
 		public PollableChannel securedChannelQueue2() {
 			return new QueueChannel();
 		}
@@ -384,15 +403,6 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 			this.securedChannel2().subscribe(testHandler);
 			this.unsecuredChannel().subscribe(testHandler);
 			return testHandler;
-		}
-
-		@Bean
-		public ChannelSecurityInterceptor channelSecurityInterceptor(AuthenticationManager authenticationManager,
-				AccessDecisionManager accessDecisionManager) {
-			ChannelSecurityInterceptor channelSecurityInterceptor = new ChannelSecurityInterceptor();
-			channelSecurityInterceptor.setAuthenticationManager(authenticationManager);
-			channelSecurityInterceptor.setAccessDecisionManager(accessDecisionManager);
-			return channelSecurityInterceptor;
 		}
 
 		@Bean
