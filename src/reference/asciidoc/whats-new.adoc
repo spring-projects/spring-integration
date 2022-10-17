@@ -73,7 +73,7 @@ See <<./scripting.adoc#scripting,Scripting Support>> for more information.
 [[x6.0-cassandra]]
 ==== Apache Cassandra Support
 
-The Apache Cassandra Spring Integration Extensions project has been migrated as a `spring-integration-cassandra` module.
+The Apache Cassandra Spring Integration Extensions project has been migrated as the `spring-integration-cassandra` module.
 See <<./cassandra.adoc#cassandra,Apache Cassandra Support>> for more information.
 
 [[x6.0-general]]
