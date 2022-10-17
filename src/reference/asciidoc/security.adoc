@@ -7,8 +7,8 @@ Messaging independence and loose coupling let target systems communicate with ea
 We can either trust all those messages or secure our service against "`infecting`" messages.
 
 Spring Integration, together with https://projects.spring.io/spring-security/[Spring Security], provides a simple and comprehensive way to secure message channels, as well as other part of the integration solution.
-Starting with version 6.0, the `ChannelSecurityInterceptor` as well as its configuration via `@SecuredChannel` annotation and  XML `<secured-channels>` have been deprecation in favor of `AuthorizationChannelInterceptor` from `spring-security-messaging` module.
-The respective `AuthorizationManager` infrastructure fully covers previously supported role-based authentication, plus it allows to configure any other possible authorization strategies including.
+Starting with version 6.0, the `ChannelSecurityInterceptor` as well as its configuration via `@SecuredChannel` annotation and  XML `<secured-channels>` have been deprecation in favor of using `AuthorizationChannelInterceptor` from the `spring-security-messaging` module.
+The respective `AuthorizationManager` infrastructure fully covers the previously supported role-based authentication, plus it allows the configuration of any other possible authorization strategies.
 
 The only remaining Spring Integration feature is a `SecurityContextPropagationChannelInterceptor` which may be promoted to the mentioned `spring-security-messaging` module in the future as well.
 
