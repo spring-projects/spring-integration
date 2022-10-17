@@ -32,7 +32,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  *
  * @since 6.0
  */
-
 @SpringJUnitConfig
 class CassandraOutboundAdapterParserTests {
 

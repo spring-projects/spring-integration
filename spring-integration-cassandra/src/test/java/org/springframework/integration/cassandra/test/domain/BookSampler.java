@@ -24,6 +24,8 @@ import java.util.UUID;
 /**
  * @author Filippo Balicchia
  * @author Artem Bilan
+ *
+ * @since 6.0
  */
 public final class BookSampler {
 

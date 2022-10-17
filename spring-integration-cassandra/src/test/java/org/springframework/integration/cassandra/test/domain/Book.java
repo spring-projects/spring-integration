@@ -28,6 +28,8 @@ import org.springframework.data.cassandra.core.mapping.Table;
  *
  * @author David Webb
  * @author Artem Bilan
+ *
+ * @since 6.0
  */
 @Table("book")
 public record Book(
