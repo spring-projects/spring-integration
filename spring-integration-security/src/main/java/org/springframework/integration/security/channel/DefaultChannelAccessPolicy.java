@@ -37,7 +37,7 @@ import org.springframework.util.StringUtils;
  * @deprecated since 6.0 in favor of literally
  * {@code new AuthorizationChannelInterceptor(AuthorityAuthorizationManager.hasAnyRole())}
  */
-@Deprecated(since = "6.0", forRemoval = true)
+@Deprecated(since = "6.0")
 public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 
 	private final Collection<ConfigAttribute> configAttributeDefinitionForSend;

@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * However, the {@link org.springframework.security.messaging.access.intercept.AuthorizationChannelInterceptor}
  * can be configured with any {@link org.springframework.security.authorization.AuthorizationManager} implementation.
  */
-@Deprecated(since = "6.0", forRemoval = true)
+@Deprecated(since = "6.0")
 public final class ChannelSecurityInterceptor extends AbstractSecurityInterceptor implements MethodInterceptor {
 
 	private final ChannelSecurityMetadataSource securityMetadataSource;
