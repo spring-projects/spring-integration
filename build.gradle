@@ -84,6 +84,7 @@ ext {
     junit4Version = '4.13.2'
     junitJupiterVersion = '5.9.0'
     jythonVersion = '2.7.3'
+    kotlinCoroutinesVersion = '1.6.4'
     kryoVersion = '5.3.0'
     lettuceVersion = '6.2.0.RELEASE'
     log4jVersion = '2.19.0'
@@ -169,6 +170,7 @@ allprojects {
             mavenBom "org.testcontainers:testcontainers-bom:$testcontainersVersion"
             mavenBom "org.apache.groovy:groovy-bom:$groovyVersion"
             mavenBom "org.springframework.security:spring-security-bom:$springSecurityVersion"
+            mavenBom "org.jetbrains.kotlinx:kotlinx-coroutines-bom:$kotlinCoroutinesVersion"
         }
 
     }
@@ -542,7 +544,7 @@ project('spring-integration-core') {
         }
         optionalApi "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion"
         optionalApi "org.apache.avro:avro:$avroVersion"
-        optionalApi 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+        optionalApi 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
 
         testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
         testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"

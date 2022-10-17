@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.expression.StandardBeanExpressionResolver;
+import org.springframework.core.KotlinDetector;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -73,13 +74,13 @@ import org.springframework.integration.annotation.UseSpelInvoker;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.support.MutableMessage;
-import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.integration.util.AnnotatedMethodFilter;
+import org.springframework.integration.util.CoroutinesUtils;
 import org.springframework.integration.util.FixedMethodFilter;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.integration.util.UniqueMethodFilter;
@@ -91,9 +92,7 @@ import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
-import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.messaging.handler.invocation.MethodArgumentResolutionException;
 import org.springframework.util.Assert;
@@ -119,7 +118,6 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Trung Pham
- *
  * @since 2.0
  */
 public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator implements ManageableLifecycle {
@@ -162,8 +160,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		SPEL_COMPILERS.put(SpelCompilerMode.MIXED, EXPRESSION_PARSER_MIXED);
 	}
 
-	private MessageHandlerMethodFactory messageHandlerMethodFactory =
-			new DefaultMessageHandlerMethodFactory();
+	private MessageHandlerMethodFactory messageHandlerMethodFactory;
 
 	private final Object targetObject;
 
@@ -491,7 +488,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private synchronized void initialize() {
 		if (isProvidedMessageHandlerFactoryBean()) {
-			LOGGER.info("Overriding default instance of MessageHandlerMethodFactory with provided one.");
+			LOGGER.trace("Overriding default instance of MessageHandlerMethodFactory with the one provided.");
 			this.messageHandlerMethodFactory =
 					getBeanFactory()
 							.getBean(
@@ -521,7 +518,6 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	 * This should not be needed in production but we have many tests
 	 * that don't run in an application context.
 	 */
-
 	private void initializeHandler(HandlerMethod candidate) {
 		ExpressionParser parser;
 		if (candidate.useSpelInvoker == null) {
@@ -547,35 +543,13 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		messageConverter.setBeanFactory(beanFactory);
 		messageConverter.afterPropertiesSet();
 
-		List<HandlerMethodArgumentResolver> customArgumentResolvers = new LinkedList<>();
-		PayloadExpressionArgumentResolver payloadExpressionArgumentResolver = new PayloadExpressionArgumentResolver();
-		PayloadsArgumentResolver payloadsArgumentResolver = new PayloadsArgumentResolver();
-
-		customArgumentResolvers.add(payloadExpressionArgumentResolver);
-		customArgumentResolvers.add(new NullAwarePayloadArgumentResolver(messageConverter));
-		customArgumentResolvers.add(payloadsArgumentResolver);
-
-		CollectionArgumentResolver collectionArgumentResolver = null;
-
-		if (this.canProcessMessageList) {
-			collectionArgumentResolver = new CollectionArgumentResolver(true);
-			customArgumentResolvers.add(collectionArgumentResolver);
-		}
-
-		MapArgumentResolver mapArgumentResolver = new MapArgumentResolver();
-		customArgumentResolvers.add(mapArgumentResolver);
-		payloadExpressionArgumentResolver.setBeanFactory(beanFactory);
-		payloadsArgumentResolver.setBeanFactory(beanFactory);
-		mapArgumentResolver.setBeanFactory(beanFactory);
-		if (collectionArgumentResolver != null) {
-			collectionArgumentResolver.setBeanFactory(beanFactory);
-		}
-
-		DefaultMessageHandlerMethodFactory localHandlerMethodFactory =
-				(DefaultMessageHandlerMethodFactory) this.messageHandlerMethodFactory;
+		IntegrationMessageHandlerMethodFactory localHandlerMethodFactory =
+				new IntegrationMessageHandlerMethodFactory(this.canProcessMessageList);
 		localHandlerMethodFactory.setMessageConverter(messageConverter);
-		localHandlerMethodFactory.setCustomArgumentResolvers(customArgumentResolvers);
+		localHandlerMethodFactory.setBeanFactory(beanFactory);
 		localHandlerMethodFactory.afterPropertiesSet();
+
+		this.messageHandlerMethodFactory = localHandlerMethodFactory;
 	}
 
 	@Nullable
@@ -802,7 +776,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 						AopUtils.selectInvocableMethod(methodToProcess, ClassUtils.getUserClass(this.targetObject)));
 			}
 			catch (Exception ex) {
-					LOGGER.debug(ex, "Method [" + methodToProcess + "] is not eligible for Message handling.");
+				LOGGER.debug(ex, "Method [" + methodToProcess + "] is not eligible for Message handling.");
 				return null;
 			}
 
@@ -828,9 +802,9 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	private boolean isPausableMethod(Method pausableMethod) {
 		Class<?> declaringClass = pausableMethod.getDeclaringClass();
 		boolean pausable = (Pausable.class.isAssignableFrom(declaringClass)
-					|| Lifecycle.class.isAssignableFrom(declaringClass))
+				|| Lifecycle.class.isAssignableFrom(declaringClass))
 				&& ReflectionUtils.findMethod(Pausable.class, pausableMethod.getName(),
-						pausableMethod.getParameterTypes()) != null;
+				pausableMethod.getParameterTypes()) != null;
 		if (pausable) {
 			this.logger.trace(() -> pausableMethod + " is not considered a candidate method unless explicitly requested");
 		}
@@ -870,7 +844,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			if (handlerMethod1.isMessageMethod()) {
 				if (fallbackMessageMethods.containsKey(targetParameterType)) {
 					// we need to check for duplicate type matches,
-					// but only if we end up falling back
+					// but only if we end up falling back,
 					// and we'll only keep track of the first one
 					ambiguousFallbackMessageGenericType.compareAndSet(null, targetParameterType);
 				}
@@ -910,7 +884,6 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			Map<Class<?>, HandlerMethod> candidateMethods) {
 		if (AopUtils.isAopProxy(this.targetObject)) {
 			final AtomicReference<Method> targetMethod = new AtomicReference<>();
-			final AtomicReference<Class<?>> targetClass = new AtomicReference<>();
 			Class<?>[] interfaces = ((Advised) this.targetObject).getProxiedInterfaces();
 			for (Class<?> clazz : interfaces) {
 				ReflectionUtils.doWithMethods(clazz, method1 -> {
@@ -920,7 +893,6 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 					}
 					else {
 						targetMethod.set(method1);
-						targetClass.set(clazz);
 					}
 				}, method12 -> method12.getName().equals(this.methodName));
 			}
@@ -1047,6 +1019,14 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 						&& method.getParameterTypes().length == 0));
 	}
 
+	public boolean isAsync() {
+		if (this.handlerMethodsList.size() == 1) {
+			Method methodToCheck = this.handlerMethodsList.get(0).values().iterator().next().method;
+			return KotlinDetector.isSuspendingFunction(methodToCheck);
+		}
+		return false;
+	}
+
 	/**
 	 * Helper class for generating and exposing metadata for a candidate handler method. The metadata includes the SpEL
 	 * expression and the expected payload type.
@@ -1079,7 +1059,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 		// The number of times InvocableHandlerMethod was attempted and failed - enables us to eventually
 		// give up trying to call it when it just doesn't seem to be possible.
-		// Switching to spelOnly afterwards forever.
+		// Switching to 'spelOnly' afterwards forever.
 		private volatile int failedAttempts = 0;
 
 		HandlerMethod(Method method, boolean canProcessMessageList) {
@@ -1190,6 +1170,9 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 								+ "Consider using @Payload or @Headers on at least one of the parameters.");
 				populateMapParameterForExpression(sb, parameterType);
 				return true;
+			}
+			else if (CoroutinesUtils.isContinuationType(parameterType)) {
+				sb.append("null");
 			}
 			else {
 				sb.append("payload");
@@ -1370,7 +1353,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		/**
 		 * SpEL Function to retrieve a required header.
 		 * @param headers the headers.
-		 * @param header the header name
+		 * @param header  the header name
 		 * @return the header
 		 * @throws IllegalArgumentException if the header does not exist
 		 */

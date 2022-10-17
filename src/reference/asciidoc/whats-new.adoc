@@ -79,6 +79,12 @@ See <<./scripting.adoc#scripting,Scripting Support>> for more information.
 The Apache Cassandra Spring Integration Extensions project has been migrated as the `spring-integration-cassandra` module.
 See <<./cassandra.adoc#cassandra,Apache Cassandra Support>> for more information.
 
+[[x6.0-kotlin-coroutines]]
+==== Kotlin Coroutines
+
+Kotlin Coroutines support has been introduced to the framework.
+
+See <<./kotlin-functions.adoc#kotlin-coroutines,Kotlin Coroutines>> for more information.
 [[x6.0-general]]
 === General Changes
 

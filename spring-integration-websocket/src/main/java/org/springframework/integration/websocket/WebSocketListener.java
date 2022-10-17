@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,25 +42,20 @@ public interface WebSocketListener extends SubProtocolCapable {
 	 * Handle the received {@link WebSocketMessage}.
 	 * @param session the WebSocket session
 	 * @param message the WebSocket message
-	 * @throws Exception the 'onMessage' Exception
 	 */
-	void onMessage(WebSocketSession session, WebSocketMessage<?> message)
-			throws Exception; // NOSONAR Remove in 5.2
+	void onMessage(WebSocketSession session, WebSocketMessage<?> message);
 
 	/**
 	 * Invoked after a {@link WebSocketSession} has started.
 	 * @param session the WebSocket session
-	 * @throws Exception the 'afterSessionStarted' Exception
 	 */
-	void afterSessionStarted(WebSocketSession session) throws Exception; // NOSONAR Remove in 5.2
+	void afterSessionStarted(WebSocketSession session);
 
 	/**
 	 * Invoked after a {@link WebSocketSession} has ended.
 	 * @param session the WebSocket session
 	 * @param closeStatus the reason why the session was closed
-	 * @throws Exception the 'afterSessionEnded' Exception
 	 */
-	void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus)
-			throws Exception; // NOSONAR Remove in 5.2
+	void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus);
 
 }

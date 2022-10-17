@@ -18,9 +18,7 @@ package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
 
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -69,15 +67,7 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 
 	@Override
 	protected void doInit() {
-		if (this.processor instanceof AbstractMessageProcessor) {
-			ConversionService conversionService = getConversionService();
-			if (conversionService != null) {
-				((AbstractMessageProcessor<?>) this.processor).setConversionService(conversionService);
-			}
-		}
-		if (this.processor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
-			((BeanFactoryAware) this.processor).setBeanFactory(this.getBeanFactory());
-		}
+		setupMessageProcessor(this.processor);
 	}
 
 	@Override

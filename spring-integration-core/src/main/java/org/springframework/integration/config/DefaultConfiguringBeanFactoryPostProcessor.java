@@ -45,6 +45,7 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.handler.LoggingHandler;
+import org.springframework.integration.handler.support.IntegrationMessageHandlerMethodFactory;
 import org.springframework.integration.json.JsonPathUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.SmartLifecycleRoleController;
@@ -462,10 +463,10 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	}
 
 	private static BeanDefinitionBuilder createMessageHandlerMethodFactoryBeanDefinition(boolean listCapable) {
-		return BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerMethodFactoryCreatingFactoryBean.class,
-						() -> new MessageHandlerMethodFactoryCreatingFactoryBean(listCapable))
+		return BeanDefinitionBuilder.genericBeanDefinition(IntegrationMessageHandlerMethodFactory.class,
+						() -> new IntegrationMessageHandlerMethodFactory(listCapable))
 				.addConstructorArgValue(listCapable)
-				.addPropertyReference("argumentResolverMessageConverter",
+				.addPropertyReference("messageConverter",
 						IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
 	}
 
