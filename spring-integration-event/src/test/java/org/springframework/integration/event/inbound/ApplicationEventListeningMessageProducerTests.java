@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 package org.springframework.integration.event.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationEvent;
@@ -193,7 +194,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		assertThat(message2.getPayload()).isEqualTo("test");
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void anyApplicationEventCausesExceptionWithErrorHandling() {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new AbstractReplyProducingMessageHandler() {
@@ -213,11 +214,12 @@ public class ApplicationEventListeningMessageProducerTests {
 		assertThat(message).isNotNull();
 		assertThat(((Exception) message.getPayload()).getCause().getMessage()).isEqualTo("Failed");
 		adapter.setErrorChannel(null);
-		adapter.onApplicationEvent(new TestApplicationEvent1());
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> adapter.onApplicationEvent(new TestApplicationEvent1()));
 	}
 
 	@Test
-	@SuppressWarnings({ "unchecked", "serial" })
+	@SuppressWarnings("unchecked")
 	public void testInt2935CheckRetrieverCache() {
 		GenericApplicationContext ctx = TestUtils.createTestApplicationContext();
 		ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();

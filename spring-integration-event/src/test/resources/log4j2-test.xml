@@ -7,7 +7,7 @@
 	</Appenders>
 	<Loggers>
 		<Logger name="org.springframework.integration" level="warn"/>
-		<Logger name="org.springframework.integration.event" level="info"/>
+		<Logger name="org.springframework.integration.event" level="warn"/>
 		<Root level="warn">
 			<AppenderRef ref="STDOUT" />
 		</Root>

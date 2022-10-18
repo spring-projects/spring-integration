@@ -18,8 +18,6 @@ package org.springframework.integration.event.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -46,6 +44,8 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
@@ -54,6 +54,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  * @since 5.0
  */
 @SpringJUnitConfig
+@RecordApplicationEvents
 @DirtiesContext
 public class IntegrationFlowEventsTests {
 
@@ -81,14 +82,15 @@ public class IntegrationFlowEventsTests {
 	private MessageChannel flow3Input;
 
 	@Autowired
-	private AtomicReference<Object> eventHolder;
+	private ApplicationEvents applicationEvents;
 
 	@Test
 	public void testEventsFlow() {
-		assertThat(this.eventHolder.get()).isNull();
+		assertThat(this.applicationEvents.stream(MessagingEvent.class)).isEmpty();
 		this.flow3Input.send(new GenericMessage<>("2"));
-		assertThat(this.eventHolder.get()).isNotNull();
-		assertThat(this.eventHolder.get()).isEqualTo(4);
+		assertThat(this.applicationEvents.stream(MessagingEvent.class))
+				.hasSize(1)
+				.satisfiesExactly(event -> assertThat(event.getMessage().getPayload()).isEqualTo(4));
 	}
 
 	@Test
@@ -117,16 +119,6 @@ public class IntegrationFlowEventsTests {
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
-
-		@Bean
-		public AtomicReference<Object> eventHolder() {
-			return new AtomicReference<>();
-		}
-
-		@Bean
-		public ApplicationListener<MessagingEvent> eventListener() {
-			return event -> eventHolder().set(event.getMessage().getPayload());
-		}
 
 		@Bean
 		public IntegrationFlow flow3() {
