@@ -228,6 +228,8 @@ class KafkaDslKotlinTests {
 					.configureListenerContainer {
 						it.ackMode(ContainerProperties.AckMode.MANUAL)
 							.id("topic1ListenerContainer")
+							.groupId("kotlin_topic1_group")
+
 					}
 					.errorChannel(errorChannel())
 					.retryTemplate(RetryTemplate())
@@ -248,7 +250,10 @@ class KafkaDslKotlinTests {
 					consumerFactory(),
 					KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC2
 				)
-					.configureListenerContainer { it.ackMode(ContainerProperties.AckMode.MANUAL) }
+					.configureListenerContainer {
+						it.ackMode(ContainerProperties.AckMode.MANUAL)
+							.groupId("kotlin_topic2_group")
+					}
 					.errorChannel(errorChannel())
 					.retryTemplate(RetryTemplate())
 					.filterInRetry(true)) {
@@ -302,7 +307,10 @@ class KafkaDslKotlinTests {
 
 		@Bean
 		fun sourceFlow() =
-			integrationFlow(Kafka.inboundChannelAdapter(consumerFactory(), ConsumerProperties(TEST_TOPIC3)),
+			integrationFlow(Kafka.inboundChannelAdapter(consumerFactory(),
+				ConsumerProperties(TEST_TOPIC3).also {
+					it.setGroupId("kotlinMessageSourceGroup")
+				}),
 				{ poller(Pollers.fixedDelay(100)) }) {
 				handle { m ->
 					this@ContextConfiguration.fromSource = m.payload
