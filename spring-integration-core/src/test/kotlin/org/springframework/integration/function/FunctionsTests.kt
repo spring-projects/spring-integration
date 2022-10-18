@@ -213,6 +213,7 @@ class FunctionsTests {
 			.isInstanceOf(Flow::class)
 
 		runBlocking {
+			@Suppress("UNCHECKED_CAST")
 			val strings = (payload as Flow<String>).toList()
 			assertThat(strings).containsExactly("Sync $testPayload #1", "Sync $testPayload #2", "Sync $testPayload #3")
 		}

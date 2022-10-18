@@ -111,6 +111,12 @@ public class CookieTests {
 					return null;
 				}
 
+				@Override
+				@Deprecated
+				public String getMethodValue() {
+					return null;
+				}
+
 				public ClientHttpResponse execute() {
 					allHeaders.add(headers);
 					return new ClientHttpResponse() {
