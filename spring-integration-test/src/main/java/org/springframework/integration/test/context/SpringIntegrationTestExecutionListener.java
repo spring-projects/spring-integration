@@ -28,7 +28,7 @@ import org.springframework.util.PatternMatchUtils;
 /**
  * A {@link TestExecutionListener} to customize {@link AbstractEndpoint} beans according
  * to the provided options in the {@link SpringIntegrationTest} annotation
- * before and after test class phases.
+ * on prepare test instance and after test class phases.
  *
  * @author Artem Bilan
  *
@@ -37,7 +37,7 @@ import org.springframework.util.PatternMatchUtils;
 class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 
 	@Override
-	public void beforeTestClass(TestContext testContext) {
+	public void prepareTestInstance(TestContext testContext) {
 		SpringIntegrationTest springIntegrationTest =
 				AnnotatedElementUtils.findMergedAnnotation(testContext.getTestClass(), SpringIntegrationTest.class);
 
