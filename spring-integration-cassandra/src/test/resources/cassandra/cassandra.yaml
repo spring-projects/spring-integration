@@ -1320,7 +1320,7 @@ dynamic_snitch_badness_threshold: 1.0
 # **NOTE** this default configuration is an insecure configuration. If you need to
 # enable server-to-server encryption generate server keystores (and truststores for mutual
 # authentication) per:
-# http://download.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#CreateKeystore
+# https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#CreateKeystore
 # Then perform the following configuration changes:
 #
 # Step 1: Set internode_encryption=<dc|rack|all> and explicitly set optional=true. Restart all nodes
@@ -1373,7 +1373,7 @@ server_encryption_options:
 # **NOTE** this default configuration is an insecure configuration. If you need to
 # enable client-to-server encryption generate server keystores (and truststores for mutual
 # authentication) per:
-# http://download.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#CreateKeystore
+# https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#CreateKeystore
 # Then perform the following configuration changes:
 #
 # Step 1: Set enabled=true and explicitly set optional=true. Restart all nodes
@@ -1451,7 +1451,7 @@ scripted_user_defined_functions_enabled: false
 #
 # It is strongly recommended to download and install Java Cryptography Extension (JCE)
 # Unlimited Strength Jurisdiction Policy Files for your version of the JDK.
-# (current link: http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)
+# (current link: https://www.oracle.com/java/technologies/javase-jce8-downloads.html)
 #
 # Currently, only the following file types are supported for transparent data encryption, although
 # more are coming in future cassandra releases: commitlog, hints
@@ -1480,7 +1480,7 @@ transparent_data_encryption_options:
 # will use them to make sure other replicas also know about the deleted rows.
 # With workloads that generate a lot of tombstones, this can cause performance
 # problems and even exaust the server heap.
-# (http://www.datastax.com/dev/blog/cassandra-anti-patterns-queues-and-queue-like-datasets)
+# (https://www.datastax.com/blog/cassandra-anti-patterns-queues-and-queue-datasets)
 # Adjust the thresholds here if you understand the dangers and want to
 # scan more tombstones anyway.  These thresholds may also be adjusted at runtime
 # using the StorageService mbean.
