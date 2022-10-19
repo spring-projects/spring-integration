@@ -31,7 +31,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -60,7 +59,6 @@ import org.springframework.messaging.support.GenericMessage;
  * @since 2.0
  *
  */
-@Disabled("SF doesn't handle [] in query params any more")
 public class JdbcOutboundGatewayParserTests {
 
 	private JdbcTemplate jdbcTemplate;

@@ -25,7 +25,6 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.ConfigurableApplicationContext;
@@ -49,7 +48,6 @@ import org.springframework.messaging.MessageChannel;
  * @since 2.0
  *
  */
-@Disabled("SF doesn't handle [] in query params any more")
 public class JdbcMessageHandlerParserTests {
 
 	private JdbcTemplate jdbcTemplate;
@@ -168,4 +166,5 @@ public class JdbcMessageHandlerParserTests {
 		}
 
 	}
+
 }

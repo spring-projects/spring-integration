@@ -34,7 +34,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 public interface CassandraContainerTest {
 
-	CassandraContainer<?> CASSANDRA_CONTAINER = new CassandraContainer<>("cassandra:4.1");
+	CassandraContainer<?> CASSANDRA_CONTAINER =
+			new CassandraContainer<>("cassandra:4.1")
+					.withConfigurationOverride("cassandra");
 
 	@BeforeAll
 	static void startContainer() {

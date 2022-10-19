@@ -28,7 +28,6 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -183,10 +182,9 @@ public class JdbcMessageHandlerIntegrationTests {
 	}
 
 	@Test
-	@Disabled("SF doesn't handle [] in query params any more")
 	public void testIdHeaderDynamicInsert() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
-				"insert into foos (id, status, name) values (headers[idAsString], 0, :payload)");
+				"insert into foos (id, status, name) values (:headers[idAsString], 0, :payload)");
 		handler.afterPropertiesSet();
 		Message<String> message = new GenericMessage<>("foo");
 		String id = message.getHeaders().getId().toString();
@@ -200,7 +198,6 @@ public class JdbcMessageHandlerIntegrationTests {
 	}
 
 	@Test
-	@Disabled("SF doesn't handle [] in query params any more")
 	public void testDottedHeaderDynamicInsert() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
 				"insert into foos (id, status, name) values (:headers[business.id], 0, :payload)");
