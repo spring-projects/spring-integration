@@ -48,7 +48,7 @@ public class IntegrationTestConfig extends AbstractReactiveCassandraConfiguratio
 
 	@Override
 	protected String getContactPoints() {
-		return CassandraContainerTest.CASSANDRA_CONTAINER.getContactPoint().getHostName();
+		return CassandraContainerTest.CASSANDRA_CONTAINER.getContactPoint().getAddress().getHostAddress();
 	}
 
 	@Override

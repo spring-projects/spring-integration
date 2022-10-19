@@ -284,6 +284,7 @@ configure(javaProjects) { subproject ->
 
         testRuntimeOnly 'org.apache.logging.log4j:log4j-core'
         testRuntimeOnly 'org.apache.logging.log4j:log4j-jcl'
+        testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j-impl'
         testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j2-impl'
     }
 

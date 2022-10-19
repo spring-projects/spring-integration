@@ -34,12 +34,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 public interface CassandraContainerTest {
 
-	CassandraContainer<?> CASSANDRA_CONTAINER =
-			new CassandraContainer<>("cassandra:4.1")
-					.withConfigurationOverride("cassandra");
+	CassandraContainer<?> CASSANDRA_CONTAINER = new CassandraContainer<>("cassandra:4.1");
 
 	@BeforeAll
 	static void startContainer() {
+		System.setProperty("datastax-java-driver.basic.request.timeout", "10 seconds");
 		CASSANDRA_CONTAINER.start();
 	}
 
