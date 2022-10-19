@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,25 +20,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.integration.aggregator.AggregatingMessageHandler;
+import org.springframework.integration.aggregator.SimpleMessageGroupProcessor;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CorrelationStrategy;
 import org.springframework.integration.annotation.ReleaseStrategy;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.AggregatorFactoryBean;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig(classes = AnnotationAggregatorTests.TestConfiguration.class)
 public class AnnotationAggregatorTests {
 
 	@Autowired
@@ -47,16 +55,53 @@ public class AnnotationAggregatorTests {
 	@Autowired
 	PollableChannel output;
 
+	@Autowired
+	DirectChannel input2;
+
+	@Autowired
+	BeanFactory beanFactory;
 
 	@Test
 	public void testAggregationWithAnnotationStrategies() {
 		input.send(MessageBuilder.withPayload("a").build());
 		input.send(MessageBuilder.withPayload("b").build());
-		@SuppressWarnings("unchecked")
-		Message<String> result = (Message<String>) output.receive();
-		String payload = result.getPayload();
-		assertThat(payload.matches(".*payload.*?=a.*")).as("Wrong payload: " + payload).isTrue();
-		assertThat(payload.matches(".*payload.*?=b.*")).as("Wrong payload: " + payload).isTrue();
+		Message<?> result = output.receive(10_000);
+		assertThat(result).isNotNull()
+				.extracting(Message::getPayload)
+				.asString()
+				.matches(".*payload.*?=a.*")
+				.matches(".*payload.*?=b.*");
+	}
+
+	@Test
+	public void aggregatorFromFactoryBean() {
+		assertThat(this.beanFactory.getBeanProvider(AggregatingMessageHandler.class).stream()).hasSize(2);
+
+		this.input2.send(
+				MessageBuilder.withPayload("test")
+						.setCorrelationId(1)
+						.setSequenceSize(1)
+						.setSequenceNumber(0)
+						.build());
+
+		Message<?> result = this.output.receive(10_000);
+		assertThat(result).isNotNull().extracting(Message::getPayload).isEqualTo("test");
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@EnableIntegration
+	@ImportResource("org/springframework/integration/aggregator/integration/AnnotationAggregatorTests-context.xml")
+	public static class TestConfiguration {
+
+		@Bean
+		@ServiceActivator(inputChannel = "input2")
+		AggregatorFactoryBean aggregatorFactoryBean(QueueChannel output) {
+			AggregatorFactoryBean aggregatorFactoryBean = new AggregatorFactoryBean();
+			aggregatorFactoryBean.setProcessorBean(new SimpleMessageGroupProcessor());
+			aggregatorFactoryBean.setOutputChannel(output);
+			return aggregatorFactoryBean;
+		}
+
 	}
 
 	@SuppressWarnings("unused")
@@ -76,6 +121,7 @@ public class AnnotationAggregatorTests {
 		public Object getKey(Message<?> message) {
 			return "1";
 		}
+
 	}
 
 }

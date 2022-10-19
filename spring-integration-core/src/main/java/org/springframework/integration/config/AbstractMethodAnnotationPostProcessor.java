@@ -395,11 +395,16 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 		Class<?> classToCheck = handlerBeanType.toClass();
 
+		// Any out-of-the-box MessageHandler factory bean is considered as direct handler usage.
+		if (AbstractSimpleMessageHandlerFactoryBean.class.isAssignableFrom(classToCheck)) {
+			return beanDefinition;
+		}
+
 		if (FactoryBean.class.isAssignableFrom(classToCheck)) {
 			classToCheck = this.beanFactory.getType(beanName);
 		}
 
-		if (isClassIn(classToCheck, AbstractReplyProducingMessageHandler.class, AbstractMessageRouter.class)) {
+		if (isClassIn(classToCheck, AbstractMessageProducingHandler.class, AbstractMessageRouter.class)) {
 			checkMessageHandlerAttributes(beanName, annotations);
 			return beanDefinition;
 		}
