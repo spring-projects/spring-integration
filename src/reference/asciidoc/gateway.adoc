@@ -317,6 +317,8 @@ See also <<./configuration.adoc#annotations,Annotation Support>>.
 
 Along with the `@MessagingGateway` annotation you can mark a service interface with the `@Profile` annotation to avoid the bean creation, if such a profile is not active.
 
+Starting with version 6.0, an interface with the `@MessagingGateway` can also be marked with a `@Primary` annotation for respective configuration logic as its possible with any Spring `@Component` definition.
+
 NOTE: If you have no XML configuration, the `@EnableIntegration` annotation is required on at least one `@Configuration` class.
 See <<./overview.adoc#configuration-enable-integration,Configuration and `@EnableIntegration`>> for more information.
 

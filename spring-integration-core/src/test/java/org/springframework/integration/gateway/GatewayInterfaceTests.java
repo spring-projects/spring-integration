@@ -40,6 +40,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -48,6 +50,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -98,6 +101,9 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 public class GatewayInterfaceTests {
 
 	private static final String IGNORE_HEADER = "ignoreHeader";
+
+	@Autowired
+	private BeanFactory beanFactory;
 
 	@Autowired
 	private Int2634Gateway int2634Gateway;
@@ -305,7 +311,7 @@ public class GatewayInterfaceTests {
 	}
 
 	@Test
-	public void testWithServiceEquals() throws Exception {
+	public void testWithServiceEquals() {
 		ConfigurableApplicationContext ac =
 				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
@@ -515,6 +521,34 @@ public class GatewayInterfaceTests {
 		ac.close();
 	}
 
+	@Test
+	@SuppressWarnings("unchecked")
+	void primaryMarkerWins() {
+		PrimaryGateway primaryGateway = this.beanFactory.getBean(PrimaryGateway.class);
+		assertThat(AopUtils.isAopProxy(primaryGateway)).isTrue();
+
+		MessageHandler messageHandler = mock(MessageHandler.class);
+
+		((SubscribableChannel) this.errorChannel).subscribe(messageHandler);
+
+		primaryGateway.testGateway("test data");
+
+		ArgumentCaptor<Message<?>> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
+
+		verify(messageHandler).handleMessage(messageArgumentCaptor.capture());
+
+		Message<?> receive = messageArgumentCaptor.getValue();
+
+		assertThat(receive).isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("test data");
+
+		PrimaryGateway notPrimaryGateway = this.beanFactory.getBean("notPrimaryGatewayInstance", PrimaryGateway.class);
+		assertThat(AopUtils.isAopProxy(notPrimaryGateway)).isFalse();
+
+		((SubscribableChannel) this.errorChannel).unsubscribe(messageHandler);
+	}
+
 	public interface Foo {
 
 		@Gateway(requestChannel = "requestChannelFoo")
@@ -644,6 +678,11 @@ public class GatewayInterfaceTests {
 			return new AnnotationGatewayProxyFactoryBean(GatewayByAnnotationGPFB.class);
 		}
 
+		@Bean
+		PrimaryGateway notPrimaryGatewayInstance() {
+			return payload -> { };
+		}
+
 	}
 
 	@MessagingGateway
@@ -735,6 +774,15 @@ public class GatewayInterfaceTests {
 	public interface GatewayByAnnotationGPFB {
 
 		String foo(String payload);
+
+	}
+
+	@Primary
+	@MessagingGateway(defaultRequestChannel = "errorChannel")
+	@TestMessagingGateway
+	public interface PrimaryGateway {
+
+		void testGateway(Object payload);
 
 	}
 
