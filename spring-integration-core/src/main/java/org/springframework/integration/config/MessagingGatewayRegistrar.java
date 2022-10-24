@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.AnnotationConstants;
@@ -64,6 +65,8 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 
 	private static final String PROXY_DEFAULT_METHODS_ATTR = "proxyDefaultMethods";
 
+	private static final String PRIMARY_ATTR = "primary";
+
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		if (importingClassMetadata != null && importingClassMetadata.isAnnotated(MessagingGateway.class.getName())) {
@@ -76,6 +79,9 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 			annotationAttributes.put("serviceInterface", importingClassMetadata.getClassName());
 			annotationAttributes.put(PROXY_DEFAULT_METHODS_ATTR,
 					"" + annotationAttributes.remove(PROXY_DEFAULT_METHODS_ATTR));
+			if (importingClassMetadata.isAnnotated(Primary.class.getName())) {
+				annotationAttributes.put(PRIMARY_ATTR, true);
+			}
 			BeanDefinitionReaderUtils.registerBeanDefinition(parse(annotationAttributes, registry), registry);
 		}
 	}
@@ -182,6 +188,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		}
 
 		gatewayProxyBuilder.addConstructorArgValue(serviceInterface);
+		gatewayProxyBuilder.setPrimary(gatewayAttributes.containsKey(PRIMARY_ATTR));
 
 		AbstractBeanDefinition beanDefinition = gatewayProxyBuilder.getBeanDefinition();
 		beanDefinition.setAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE, serviceInterface);
