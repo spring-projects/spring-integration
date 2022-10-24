@@ -65,7 +65,6 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
@@ -432,7 +431,7 @@ public class GatewayInterfaceTests {
 		org.springframework.util.concurrent.ListenableFuture<Thread> result3 =
 				this.execGateway.test3(Thread.currentThread());
 		final CountDownLatch latch1 = new CountDownLatch(1);
-		result3.addCallback(data -> latch1.countDown(), ex -> {});
+		result3.addCallback(data -> latch1.countDown(), ex -> { });
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(result3.get().getName()).startsWith("exec-");
 
@@ -681,7 +680,7 @@ public class GatewayInterfaceTests {
 
 		@Bean
 		PrimaryGateway notPrimaryGatewayInstance() {
-			return payload -> {};
+			return payload -> { };
 		}
 
 	}
