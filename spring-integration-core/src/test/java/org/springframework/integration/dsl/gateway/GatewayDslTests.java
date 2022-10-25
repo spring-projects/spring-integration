@@ -114,7 +114,7 @@ public class GatewayDslTests {
 
 	@Autowired
 	@Qualifier("&functionGateway.gateway")
-	private GatewayProxyFactoryBean functionGatewayFactoryBean;
+	private GatewayProxyFactoryBean<?> functionGatewayFactoryBean;
 
 	@Test
 	void testHeadersFromFunctionGateway() {
@@ -154,7 +154,7 @@ public class GatewayDslTests {
 
 	@Autowired
 	@Qualifier("&routingGateway")
-	private GatewayProxyFactoryBean routingGatewayProxy;
+	private GatewayProxyFactoryBean<?> routingGatewayProxy;
 
 	@Test
 	void testRoutingGateway() {

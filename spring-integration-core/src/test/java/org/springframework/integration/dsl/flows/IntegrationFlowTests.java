@@ -34,7 +34,7 @@ import java.util.function.Supplier;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -527,7 +527,7 @@ public class IntegrationFlowTests {
 	public void testStandardIntegrationFlowLifecycle() {
 		this.controlBusFlow.stop();
 
-		GatewayProxyFactoryBean controlBusGateway =
+		GatewayProxyFactoryBean<?> controlBusGateway =
 				this.beanFactory.getBean("&controlBusGateway", GatewayProxyFactoryBean.class);
 		assertThat(controlBusGateway.isRunning()).isFalse();
 		Lifecycle controlBus = this.beanFactory.getBean("controlBus", Lifecycle.class);
@@ -540,7 +540,7 @@ public class IntegrationFlowTests {
 	}
 
 
-	@After
+	@AfterEach
 	public void cleanUpList() {
 		outputStringList.clear();
 	}

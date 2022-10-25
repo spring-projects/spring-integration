@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,14 +33,14 @@ import org.springframework.messaging.MessageChannel;
  */
 public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler implements ManageableLifecycle {
 
-	private final GatewayProxyFactoryBean gatewayProxyFactoryBean;
+	private final GatewayProxyFactoryBean<?> gatewayProxyFactoryBean;
 
-	private RequestReplyExchanger exchanger;
+	private volatile RequestReplyExchanger exchanger;
 
 	private volatile boolean running;
 
 	public GatewayMessageHandler() {
-		this.gatewayProxyFactoryBean = new GatewayProxyFactoryBean();
+		this.gatewayProxyFactoryBean = new GatewayProxyFactoryBean<>();
 	}
 
 	public void setRequestChannel(MessageChannel requestChannel) {

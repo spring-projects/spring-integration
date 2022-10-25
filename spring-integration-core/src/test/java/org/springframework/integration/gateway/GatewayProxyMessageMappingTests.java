@@ -51,7 +51,7 @@ public class GatewayProxyMessageMappingTests {
 
 	@BeforeEach
 	public void initializeGateway() {
-		GatewayProxyFactoryBean factoryBean = new GatewayProxyFactoryBean(TestGateway.class);
+		GatewayProxyFactoryBean<TestGateway> factoryBean = new GatewayProxyFactoryBean<>(TestGateway.class);
 		factoryBean.setDefaultRequestChannel(channel);
 		factoryBean.setBeanName("testGateway");
 		GenericApplicationContext context = new GenericApplicationContext();
@@ -60,7 +60,7 @@ public class GatewayProxyMessageMappingTests {
 		context.refresh();
 		factoryBean.setBeanFactory(context);
 		factoryBean.afterPropertiesSet();
-		this.gateway = (TestGateway) factoryBean.getObject();
+		this.gateway = factoryBean.getObject();
 	}
 
 	@Test

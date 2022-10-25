@@ -215,15 +215,15 @@ public class AsyncHandlerTests {
 	}
 
 	@Test
-	public void testGateway() throws Exception {
+	public void testGateway() {
 		this.whichTest = 0;
-		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean(Foo.class);
+		GatewayProxyFactoryBean<Foo> gpfb = new GatewayProxyFactoryBean<>(Foo.class);
 		gpfb.setBeanFactory(mock(BeanFactory.class));
 		DirectChannel input = new DirectChannel();
 		gpfb.setDefaultRequestChannel(input);
 		gpfb.setDefaultReplyTimeout(10000L);
 		gpfb.afterPropertiesSet();
-		Foo foo = (Foo) gpfb.getObject();
+		Foo foo = gpfb.getObject();
 		this.handler.setOutputChannel(null);
 		EventDrivenConsumer consumer = new EventDrivenConsumer(input, this.handler);
 		consumer.afterPropertiesSet();
@@ -234,15 +234,15 @@ public class AsyncHandlerTests {
 	}
 
 	@Test
-	public void testGatewayWithException() throws Exception {
+	public void testGatewayWithException() {
 		this.whichTest = 0;
-		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean(Foo.class);
+		GatewayProxyFactoryBean<Foo> gpfb = new GatewayProxyFactoryBean<>(Foo.class);
 		gpfb.setBeanFactory(mock(BeanFactory.class));
 		DirectChannel input = new DirectChannel();
 		gpfb.setDefaultRequestChannel(input);
 		gpfb.setDefaultReplyTimeout(10000L);
 		gpfb.afterPropertiesSet();
-		Foo foo = (Foo) gpfb.getObject();
+		Foo foo = gpfb.getObject();
 		this.handler.setOutputChannel(null);
 		EventDrivenConsumer consumer = new EventDrivenConsumer(input, this.handler);
 		consumer.afterPropertiesSet();

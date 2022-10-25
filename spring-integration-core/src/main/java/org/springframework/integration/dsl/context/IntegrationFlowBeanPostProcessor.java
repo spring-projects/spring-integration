@@ -252,8 +252,7 @@ public class IntegrationFlowBeanPostProcessor
 						registerComponent(component, subFlowBeanName, flowBeanName);
 						targetIntegrationComponents.put(component, subFlowBeanName);
 					}
-					else if (component instanceof AnnotationGatewayProxyFactoryBean) {
-						AnnotationGatewayProxyFactoryBean gateway = (AnnotationGatewayProxyFactoryBean) component;
+					else if (component instanceof AnnotationGatewayProxyFactoryBean<?> gateway) {
 						String gatewayId = entry.getValue();
 
 						if (gatewayId == null) {
@@ -264,10 +263,8 @@ public class IntegrationFlowBeanPostProcessor
 						}
 
 						registerComponent(gateway, gatewayId, flowBeanName,
-								beanDefinition -> {
-									((AbstractBeanDefinition) beanDefinition)
-											.setSource(new DescriptiveResource("" + gateway.getObjectType()));
-								});
+								beanDefinition -> ((AbstractBeanDefinition) beanDefinition)
+										.setSource(new DescriptiveResource("" + gateway.getObjectType())));
 
 						targetIntegrationComponents.put(component, gatewayId);
 					}
@@ -431,7 +428,7 @@ public class IntegrationFlowBeanPostProcessor
 			BeanDefinitionCustomizer... customizers) {
 
 		AbstractBeanDefinition beanDefinition =
-				BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) component.getClass(), () -> component)
+				BeanDefinitionBuilder.rootBeanDefinition((Class<Object>) component.getClass(), () -> component)
 						.applyCustomizers(customizers)
 						.getRawBeanDefinition();
 

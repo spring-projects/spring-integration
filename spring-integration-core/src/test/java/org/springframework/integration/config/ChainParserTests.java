@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -392,8 +392,8 @@ public class ChainParserTests {
 				.isTrue();
 		assertThat(this.beanFactory.containsBean("subComponentsIdSupport1$child.gatewayWithinChain.handler")).isTrue();
 		//INT-3117
-		GatewayProxyFactoryBean gatewayProxyFactoryBean = this.beanFactory.getBean("&subComponentsIdSupport1$child" +
-						".gatewayWithinChain.handler",
+		GatewayProxyFactoryBean<?> gatewayProxyFactoryBean =
+				this.beanFactory.getBean("&subComponentsIdSupport1$child.gatewayWithinChain.handler",
 				GatewayProxyFactoryBean.class);
 		assertThat(TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestChannelName"))
 				.isEqualTo("strings");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,18 +39,20 @@ import org.springframework.util.StringUtils;
 /**
  * A {@link GatewayProxyFactoryBean} extension for Java configuration.
  * The service interface may be marked with the {@link MessagingGateway} annotation.
- * Otherwise the default state is applied.
+ * Otherwise, the default state is applied.
+ *
+ * @param <T> the target gateway interface to build a proxy against.
  *
  * @author Artem Bilan
  * @author Gary Russell
  *
  * @since 5.0
  */
-public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
+public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBean<T> {
 
 	private final AnnotationAttributes gatewayAttributes;
 
-	public AnnotationGatewayProxyFactoryBean(Class<?> serviceInterface) {
+	public AnnotationGatewayProxyFactoryBean(Class<T> serviceInterface) {
 		super(serviceInterface);
 
 		AnnotationAttributes annotationAttributes =
