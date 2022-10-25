@@ -312,7 +312,7 @@ public interface TestGateway {
 IMPORTANT: Similarly to the XML version, when Spring Integration discovers these annotations during a component scan, it creates the `proxy` implementation with its messaging infrastructure.
 To perform this scan and register the `BeanDefinition` in the application context, add the `@IntegrationComponentScan` annotation to a `@Configuration` class.
 The standard `@ComponentScan` infrastructure does not deal with interfaces.
-Consequently, we introduced the custom `@IntegrationComponentScan` logic to fine the `@MessagingGateway` annotation on the interfaces and register `GatewayProxyFactoryBean` instances for them.
+Consequently, we introduced the custom `@IntegrationComponentScan` logic to find the `@MessagingGateway` annotation on the interfaces and register `GatewayProxyFactoryBean` instances for them.
 See also <<./configuration.adoc#annotations,Annotation Support>>.
 
 Along with the `@MessagingGateway` annotation you can mark a service interface with the `@Profile` annotation to avoid the bean creation, if such a profile is not active.
