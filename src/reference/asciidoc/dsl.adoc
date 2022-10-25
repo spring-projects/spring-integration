@@ -4,6 +4,7 @@
 The Spring Integration Java configuration and DSL provides a set of convenient builders and a fluent API that lets you configure Spring Integration message flows from Spring `@Configuration` classes.
 
 (See also <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>>.)
+
 (See also <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>.)
 
 The Java DSL for Spring Integration is essentially a facade for Spring Integration.

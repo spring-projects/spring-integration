@@ -24,6 +24,7 @@ Welcome to the Spring Integration reference documentation!
 <<./message-transformation.adoc#messaging-transformation-chapter,Message Transformation>> :: Transformer, content enricher, claim check, codec
 <<./messaging-endpoints.adoc#messaging-endpoints-chapter,Messaging Endpoints>> :: Consumer endpoints, service activator, gateway, scripting, AOP aspects etc.
 <<./dsl.adoc#java-dsl,Java DSL>> :: Details about Java DSL for EIP
+<<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>> :: Details about Groovy DSL for EIP
 <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>> :: Details about Kotlin DSL for EIP
 <<./system-management.adoc#system-management-chapter,System Management>> :: Message store, control bus, integration graph, metrics, JMX
 <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> :: Details about Reactive Streams support: message channels, channel adapters etc.

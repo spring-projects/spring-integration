@@ -33,6 +33,8 @@ include::./messaging-endpoints.adoc[]
 
 include::./dsl.adoc[]
 
+include::./groovy-dsl.adoc[]
+
 include::./kotlin-dsl.adoc[]
 
 include::./system-management.adoc[]
