@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.config.MessagingGatewayRegistrar;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.util.Assert;
@@ -88,7 +89,8 @@ public class GatewayParser implements BeanDefinitionParser {
 
 		gatewayAttributes.put("proxyDefaultMethods", element.getAttribute("proxy-default-methods"));
 
-		BeanDefinitionHolder gatewayHolder = this.registrar.parse(gatewayAttributes, parserContext.getRegistry());
+		BeanDefinitionHolder gatewayHolder = this.registrar.parse(gatewayAttributes, parserContext.getRegistry(),
+				IntegrationConfigUtils.annotationBeanNameGenerator(parserContext.getRegistry()));
 		if (isNested) {
 			return gatewayHolder.getBeanDefinition();
 		}

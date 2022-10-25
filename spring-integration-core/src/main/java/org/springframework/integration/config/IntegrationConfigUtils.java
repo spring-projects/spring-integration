@@ -16,9 +16,13 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.beans.factory.config.SingletonBeanRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.annotation.AnnotationBeanNameGenerator;
+import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.integration.channel.DirectChannel;
 
 /**
@@ -62,6 +66,20 @@ public final class IntegrationConfigUtils {
 
 	public static void autoCreateDirectChannel(String channelName, BeanDefinitionRegistry registry) {
 		registry.registerBeanDefinition(channelName, new RootBeanDefinition(DirectChannel.class, DirectChannel::new));
+	}
+
+	public static BeanNameGenerator annotationBeanNameGenerator(BeanDefinitionRegistry registry) {
+		BeanNameGenerator beanNameGenerator = AnnotationBeanNameGenerator.INSTANCE;
+		if (registry instanceof SingletonBeanRegistry singletonBeanRegistry) {
+			BeanNameGenerator generator =
+					(BeanNameGenerator) singletonBeanRegistry.getSingleton(
+							AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR);
+			if (generator != null) {
+				beanNameGenerator = generator;
+			}
+		}
+
+		return beanNameGenerator;
 	}
 
 	private IntegrationConfigUtils() {

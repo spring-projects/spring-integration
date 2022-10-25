@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.AliasFor;
@@ -104,5 +105,18 @@ public @interface IntegrationComponentScan {
 	 * @see #includeFilters()
 	 */
 	Filter[] excludeFilters() default { };
+
+
+	/**
+	 * The {@link BeanNameGenerator} class to be used for naming detected Spring Integration components.
+	 * <p>The default value of the {@link BeanNameGenerator} interface itself indicates
+	 * that the scanner used to process this {@code @IntegrationComponentScan} annotation should
+	 * use its inherited bean name generator, e.g. the default
+	 * {@link org.springframework.context.annotation.AnnotationBeanNameGenerator}
+	 * or any custom instance supplied to the application context at bootstrap time.
+	 * @since 6.0
+	 * @see org.springframework.context.annotation.ComponentScan#nameGenerator()
+	 */
+	Class<? extends BeanNameGenerator> nameGenerator() default BeanNameGenerator.class;
 
 }
