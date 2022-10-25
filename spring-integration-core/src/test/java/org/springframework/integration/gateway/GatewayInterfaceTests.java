@@ -41,13 +41,16 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Primary;
@@ -55,6 +58,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.AnnotationConstants;
@@ -103,7 +107,7 @@ public class GatewayInterfaceTests {
 	private static final String IGNORE_HEADER = "ignoreHeader";
 
 	@Autowired
-	private BeanFactory beanFactory;
+	private ListableBeanFactory beanFactory;
 
 	@Autowired
 	private Int2634Gateway int2634Gateway;
@@ -116,11 +120,11 @@ public class GatewayInterfaceTests {
 
 	@Autowired
 	@Qualifier("&gatewayInterfaceTests$ExecGateway")
-	private GatewayProxyFactoryBean execGatewayFB;
+	private GatewayProxyFactoryBean<?> execGatewayFB;
 
 	@Autowired
 	@Qualifier("&gatewayInterfaceTests$NoExecGateway")
-	private GatewayProxyFactoryBean noExecGatewayFB;
+	private GatewayProxyFactoryBean<?> noExecGatewayFB;
 
 	@Autowired
 	private SimpleAsyncTaskExecutor exec;
@@ -136,7 +140,7 @@ public class GatewayInterfaceTests {
 
 	@Autowired
 	@Qualifier("&annotationGatewayProxyFactoryBean")
-	private GatewayProxyFactoryBean annotationGatewayProxyFactoryBean;
+	private GatewayProxyFactoryBean<?> annotationGatewayProxyFactoryBean;
 
 	@Autowired
 	private MessageChannel gatewayChannel;
@@ -319,7 +323,7 @@ public class GatewayInterfaceTests {
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
 		assertThat(ac.getBean(Bar.class)).isSameAs(bar);
-		GatewayProxyFactoryBean fb = new GatewayProxyFactoryBean(Bar.class);
+		GatewayProxyFactoryBean<Bar> fb = new GatewayProxyFactoryBean<>(Bar.class);
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton("requestChannelBar", channel);
 		bf.registerSingleton("requestChannelBaz", channel);
@@ -346,7 +350,7 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithServiceAsNotAnInterface() {
-		assertThatIllegalArgumentException().isThrownBy(() -> new GatewayProxyFactoryBean(NotAnInterface.class));
+		assertThatIllegalArgumentException().isThrownBy(() -> new GatewayProxyFactoryBean<>(NotAnInterface.class));
 	}
 
 	@Test
@@ -399,7 +403,7 @@ public class GatewayInterfaceTests {
 
 	/*
 	 * Tests use current thread in payload and reply has the thread that actually
-	 * performed the send() on gatewayThreadChannel.
+	 * performed the 'send()' on gatewayThreadChannel.
 	 */
 	@Test
 	@SuppressWarnings("deprecation")
@@ -674,12 +678,13 @@ public class GatewayInterfaceTests {
 
 
 		@Bean
-		public GatewayProxyFactoryBean annotationGatewayProxyFactoryBean() {
-			return new AnnotationGatewayProxyFactoryBean(GatewayByAnnotationGPFB.class);
+		public GatewayProxyFactoryBean<GatewayByAnnotationGPFB> annotationGatewayProxyFactoryBean() {
+			return new AnnotationGatewayProxyFactoryBean<>(GatewayByAnnotationGPFB.class);
 		}
 
+		@Conditional(GatewayByAnnotationGPFBCondition.class)
 		@Bean
-		PrimaryGateway notPrimaryGatewayInstance() {
+		PrimaryGateway notPrimaryGatewayInstance(GatewayByAnnotationGPFB annotationGPFB) {
 			return payload -> { };
 		}
 
@@ -789,6 +794,15 @@ public class GatewayInterfaceTests {
 	@Target({ ElementType.TYPE, ElementType.ANNOTATION_TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface TestMessagingGateway {
+
+	}
+
+	public static class GatewayByAnnotationGPFBCondition implements Condition {
+
+		@Override
+		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+			return context.getBeanFactory().getBeanNamesForType(GatewayByAnnotationGPFB.class).length > 0;
+		}
 
 	}
 

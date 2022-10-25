@@ -99,20 +99,22 @@ import reactor.core.publisher.Mono;
  * to
  * perform type conversions when necessary (thanks to Jon Schneider's contribution and suggestion in INT-1230).
  *
+ * @param <T> the target gateway interface to build a proxy against.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class GatewayProxyFactoryBean extends AbstractEndpoint
-		implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware,
+public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
+		implements TrackableComponent, FactoryBean<T>, MethodInterceptor, BeanClassLoaderAware,
 		IntegrationManagement {
 
 	private final Object initializationMonitor = new Object();
 
 	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<>();
 
-	private final Class<?> serviceInterface;
+	private final Class<T> serviceInterface;
 
 	private final Set<Method> havePayloadExpressions = new HashSet<>();
 
@@ -140,7 +142,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
-	private Object serviceProxy;
+	private T serviceProxy;
 
 	private AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
 
@@ -165,11 +167,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	 * If none is set, it will fall back to the default service interface type,
 	 * {@link RequestReplyExchanger}, upon initialization.
 	 */
+	@SuppressWarnings("unchecked")
 	public GatewayProxyFactoryBean() {
-		this.serviceInterface = RequestReplyExchanger.class;
+		this((Class<T>) RequestReplyExchanger.class);
 	}
 
-	public GatewayProxyFactoryBean(Class<?> serviceInterface) {
+	public GatewayProxyFactoryBean(Class<T> serviceInterface) {
 		Assert.notNull(serviceInterface, "'serviceInterface' must not be null");
 		Assert.isTrue(serviceInterface.isInterface(), "'serviceInterface' must be an interface");
 		this.serviceInterface = serviceInterface;
@@ -449,6 +452,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected void onInit() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
@@ -464,7 +468,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			ProxyFactory gatewayProxyFactory =
 					new ProxyFactory(this.serviceInterface, this);
 			gatewayProxyFactory.addAdvice(new DefaultMethodInvokingMethodInterceptor());
-			this.serviceProxy = gatewayProxyFactory.getProxy(this.beanClassLoader);
+			this.serviceProxy = (T) gatewayProxyFactory.getProxy(this.beanClassLoader);
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 			this.initialized = true;
 		}
@@ -489,7 +493,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	@Override
-	public Object getObject() {
+	public T getObject() {
 		if (this.serviceProxy == null) {
 			this.onInit();
 			Assert.notNull(this.serviceProxy, "failed to initialize proxy");

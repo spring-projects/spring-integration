@@ -345,8 +345,8 @@ public class MicrometerMetricsTests {
 		}
 
 		@Bean
-		public GatewayProxyFactoryBean gates() {
-			GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean(Gate.class);
+		public GatewayProxyFactoryBean<Gate> gates() {
+			GatewayProxyFactoryBean<Gate> gpfb = new GatewayProxyFactoryBean<>(Gate.class);
 			gpfb.setDefaultRequestChannelName("nullChannel");
 			return gpfb;
 		}

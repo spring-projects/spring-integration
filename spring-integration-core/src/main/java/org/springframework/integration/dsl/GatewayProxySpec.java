@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -42,15 +41,16 @@ import org.springframework.messaging.MessageChannel;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.2
  */
-public class GatewayProxySpec implements ComponentsRegistration {
+public class GatewayProxySpec {
 
-	protected  static final SpelExpressionParser PARSER = new SpelExpressionParser(); // NOSONAR - final
+	protected static final SpelExpressionParser PARSER = new SpelExpressionParser(); // NOSONAR - final
 
 	protected final MessageChannel gatewayRequestChannel = new DirectChannel(); // NOSONAR - final
 
-	protected final GatewayProxyFactoryBean gatewayProxyFactoryBean; // NOSONAR - final
+	protected final GatewayProxyFactoryBean<?> gatewayProxyFactoryBean; // NOSONAR - final
 
 	protected final GatewayMethodMetadata gatewayMethodMetadata = new GatewayMethodMetadata(); // NOSONAR - final
 
@@ -59,7 +59,7 @@ public class GatewayProxySpec implements ComponentsRegistration {
 	private boolean populateGatewayMethodMetadata;
 
 	protected GatewayProxySpec(Class<?> serviceInterface) {
-		this.gatewayProxyFactoryBean = new AnnotationGatewayProxyFactoryBean(serviceInterface);
+		this.gatewayProxyFactoryBean = new AnnotationGatewayProxyFactoryBean<>(serviceInterface);
 		this.gatewayProxyFactoryBean.setDefaultRequestChannel(this.gatewayRequestChannel);
 	}
 
@@ -145,7 +145,7 @@ public class GatewayProxySpec implements ComponentsRegistration {
 
 	/**
 	 * Allows to specify how long this gateway will wait for the reply {@code Message}
-	 * before returning. By default it will wait indefinitely. {@code null} is returned if
+	 * before returning. By default, it will wait indefinitely. {@code null} is returned if
 	 * the gateway times out. Value is specified in milliseconds.
 	 * @param replyTimeout the timeout for replies in milliseconds.
 	 * @return current {@link GatewayProxySpec}.
@@ -280,18 +280,12 @@ public class GatewayProxySpec implements ComponentsRegistration {
 		return this.gatewayRequestChannel;
 	}
 
-	GatewayProxyFactoryBean getGatewayProxyFactoryBean() {
+	GatewayProxyFactoryBean<?> getGatewayProxyFactoryBean() {
 		if (this.populateGatewayMethodMetadata) {
 			this.gatewayMethodMetadata.setHeaderExpressions(this.headerExpressions);
 			this.gatewayProxyFactoryBean.setGlobalMethodMetadata(this.gatewayMethodMetadata);
 		}
 		return this.gatewayProxyFactoryBean;
-	}
-
-	@Override
-	public Map<Object, String> getComponentsToRegister() {
-		return Collections.singletonMap(this.gatewayProxyFactoryBean, this.gatewayProxyFactoryBean.getBeanName()
-				+ ".gateway");
 	}
 
 }

@@ -24,11 +24,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -37,6 +35,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.AnnotationConstants;
@@ -112,8 +111,8 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		Class<?> serviceInterface = getServiceInterface((String) gatewayAttributes.get("serviceInterface"), beanFactory);
 
 		BeanDefinitionBuilder gatewayProxyBuilder =
-				BeanDefinitionBuilder.genericBeanDefinition(GatewayProxyFactoryBean.class,
-						() -> new GatewayProxyFactoryBean(serviceInterface));
+				BeanDefinitionBuilder.rootBeanDefinition(GatewayProxyFactoryBean.class,
+						() -> new GatewayProxyFactoryBean<>(serviceInterface));
 
 		if (hasDefaultHeaders || hasDefaultPayloadExpression) {
 			BeanDefinitionBuilder methodMetadataBuilder =
@@ -190,8 +189,9 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		gatewayProxyBuilder.addConstructorArgValue(serviceInterface);
 		gatewayProxyBuilder.setPrimary(gatewayAttributes.containsKey(PRIMARY_ATTR));
 
-		AbstractBeanDefinition beanDefinition = gatewayProxyBuilder.getBeanDefinition();
-		beanDefinition.setAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE, serviceInterface);
+		RootBeanDefinition beanDefinition = (RootBeanDefinition) gatewayProxyBuilder.getBeanDefinition();
+		beanDefinition.setTargetType(
+				ResolvableType.forClassWithGenerics(GatewayProxyFactoryBean.class, serviceInterface));
 		return new BeanDefinitionHolder(beanDefinition, id);
 	}
 

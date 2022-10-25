@@ -21,6 +21,8 @@ import assertk.assertions.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.BeanFactory
+import org.springframework.beans.factory.ListableBeanFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
@@ -130,7 +132,7 @@ class FunctionsTests {
 
 	@Autowired
 	@Qualifier("&monoFunctionGateway.gateway")
-	private lateinit var monoFunctionGateway: GatewayProxyFactoryBean
+	private lateinit var monoFunctionGateway: GatewayProxyFactoryBean<*>
 
 	@Test
 	fun `verify Mono gateway`() {
