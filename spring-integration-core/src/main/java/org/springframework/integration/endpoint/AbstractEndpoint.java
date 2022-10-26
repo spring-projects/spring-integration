@@ -149,9 +149,15 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 	public final void start() {
 		this.lifecycleLock.lock();
 		try {
-			if (!this.running) {
+			if (!this.running && !this.active) {
 				this.active = true;
-				doStart();
+				try {
+					doStart();
+				}
+				catch (Exception ex) {
+					this.active = false;
+					throw new IllegalStateException("Cannot start endpoint", ex);
+				}
 				this.running = true;
 				logger.info(() -> "started " + this);
 			}
