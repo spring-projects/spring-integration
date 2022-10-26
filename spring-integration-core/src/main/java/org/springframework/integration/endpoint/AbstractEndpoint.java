@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
