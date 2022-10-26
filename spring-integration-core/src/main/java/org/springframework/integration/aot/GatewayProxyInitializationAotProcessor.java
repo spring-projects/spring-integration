@@ -45,7 +45,7 @@ class GatewayProxyInitializationAotProcessor implements BeanFactoryInitializatio
 				Arrays.stream(beanFactory.getBeanDefinitionNames())
 						.map((beanName) -> RegisteredBean.of(beanFactory, beanName))
 						.filter((bean) -> ProxyFactoryBean.class.isAssignableFrom(bean.getBeanClass()))
-						.map((bean) -> bean.getBeanType().resolve(RequestReplyExchanger.class))
+						.map((bean) -> bean.getBeanType().getGeneric(0).resolve(RequestReplyExchanger.class))
 						.toList();
 
 		return (generationContext, beanFactoryInitializationCode) -> {
