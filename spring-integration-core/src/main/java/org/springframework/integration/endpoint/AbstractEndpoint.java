@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -154,9 +155,9 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 				try {
 					doStart();
 				}
-				catch (Exception ex) {
+				catch (RuntimeException ex) {
 					this.active = false;
-					throw new IllegalStateException("Cannot start endpoint", ex);
+					throw ex;
 				}
 				this.running = true;
 				logger.info(() -> "started " + this);
