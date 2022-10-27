@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.Advised;
@@ -55,6 +56,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
@@ -116,6 +118,34 @@ public class FlowServiceTests {
 		Message<?> message = replyChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("FOO");
+	}
+
+	@Autowired
+	@Qualifier("delaysBetweenPollsInput")
+	private MessageChannel delaysBetweenPollsInput;
+
+	@Autowired
+	@Qualifier("delaysBetweenPollsOutput")
+	private PollableChannel delaysBetweenPollsOutput;
+
+	@Test
+	public void noDoubleStartForEndpoints() {
+		this.delaysBetweenPollsInput.send(new GenericMessage<>("A,B"));
+
+		Message<?> receive1 = this.delaysBetweenPollsOutput.receive(10_000);
+
+		assertThat(receive1).isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("A");
+
+		Message<?> receive2 = this.delaysBetweenPollsOutput.receive(10_000);
+
+		assertThat(receive2).isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("B");
+
+		assertThat(receive2.getHeaders().getTimestamp() - receive1.getHeaders().getTimestamp())
+				.isCloseTo(500, Percentage.withPercentage(10));
 	}
 
 	@Configuration
@@ -222,6 +252,25 @@ public class FlowServiceTests {
 		@ServiceActivator
 		public String handle(String payload, @Header String foo) {
 			return payload + ":" + foo;
+		}
+
+	}
+
+	@Component
+	public static class DelaysBetweenPollsAdapter extends IntegrationFlowAdapter {
+
+		@ServiceActivator
+		public String handle(String payload) {
+			return payload;
+		}
+
+		@Override
+		protected IntegrationFlowDefinition<?> buildFlow() {
+			return from("delaysBetweenPollsInput")
+					.split(splitter -> splitter.delimiters(","))
+					.channel(MessageChannels.queue())
+					.handle(this, "handle", e -> e.poller(poller -> poller.fixedDelay(500).maxMessagesPerPoll(1)))
+					.channel(MessageChannels.queue("delaysBetweenPollsOutput"));
 		}
 
 	}
