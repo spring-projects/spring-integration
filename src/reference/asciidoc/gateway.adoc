@@ -320,13 +320,9 @@ Along with the `@MessagingGateway` annotation you can mark a service interface w
 Starting with version 6.0, an interface with the `@MessagingGateway` can also be marked with a `@Primary` annotation for respective configuration logic as its possible with any Spring `@Component` definition.
 
 Starting with version 6.0, `@MessagingGateway` interfaces can be used in the standard Spring `@Import` configuration.
-This may be used as an alternative to the  `@IntegrationComponentScan` or manual `AnnotationGatewayProxyFactoryBean` bean definitions.
-
-The `@MessagingGateway.name()` attribute specifies a name for the target bean registered.
-If it is not provided, the  `@IntegrationComponentScan.nameGenerator()` (since version `6.0`) is consulted.
-And if that is not provided as well, an `AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR` bean, provided for the application context, is used.
-Otherwise, the bean name generation falls back to the `AnnotationBeanNameGenerator` which results with an uncapitalized simple class name.
-In other words, the current naming strategy for gateway proxy beans is aligned with standard Spring Framework `@ComponentScan` approach.
+This may be used as an alternative to the  `@IntegrationComponentScan` or manual `AnnotationGatewayProxyFactoryBean` bean definitions.The `@MessagingGateway` is meta-annotated with a `@MessageEndpoint` since version `6.0` and the `name()` attribute is, essentially, aliased to the `@Compnent.value()`.
+This way the bean names generating strategy for gateway proxies is realigned with the standard Spring annotation configuration for scanned and imported components.
+The default `AnnotationBeanNameGenerator` can be overridden globally via an `AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR` or as a `@IntegrationComponentScan.nameGenerator()` attribute.
 NOTE: If you have no XML configuration, the `@EnableIntegration` annotation is required on at least one `@Configuration` class.
 See <<./overview.adoc#configuration-enable-integration,Configuration and `@EnableIntegration`>> for more information.
 

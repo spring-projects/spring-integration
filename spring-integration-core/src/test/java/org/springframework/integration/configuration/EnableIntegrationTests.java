@@ -48,7 +48,10 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
@@ -64,6 +67,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.expression.EnvironmentAccessor;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.serializer.support.SerializingConverter;
@@ -79,6 +83,7 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
+import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.Publisher;
@@ -143,6 +148,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -488,6 +494,10 @@ public class EnableIntegrationTests {
 
 	@Test
 	public void testMessagingGateway() throws InterruptedException {
+		String gatewayBeanName = AnnotatedElementUtils.findMergedAnnotation(TestGateway.class, Component.class).value();
+		assertThat(gatewayBeanName).isEqualTo("namedTestGateway");
+		assertThat(this.testGateway).isSameAs(this.context.getBean(gatewayBeanName));
+
 		String payload = "bar";
 		String result = this.testGateway.echo(payload);
 		assertThat(result.substring(0, payload.length())).isEqualTo(payload.toUpperCase());
@@ -1464,7 +1474,7 @@ public class EnableIntegrationTests {
 
 	}
 
-	@TestMessagingGateway
+	@TestMessagingGateway(name = "namedTestGateway")
 	public interface TestGateway {
 
 		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "method.name"))
@@ -1493,6 +1503,9 @@ public class EnableIntegrationTests {
 			defaultRequestTimeout = "${default.request.timeout:12300}", defaultReplyTimeout = "#{13400}",
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public @interface TestMessagingGateway {
+
+		@AliasFor(annotation = MessagingGateway.class)
+		String name() default "";
 
 		@AliasFor(annotation = MessagingGateway.class, attribute = "defaultRequestChannel")
 		String defaultRequestChannel() default "";
