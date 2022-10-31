@@ -120,7 +120,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 	private void registerGatewayProxyInstantiationPostProcessor(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition("gatewayProxyBeanDefinitionPostProcessor")) {
 			BeanDefinitionBuilder builder =
-					BeanDefinitionBuilder.genericBeanDefinition(GatewayProxyInstantiationPostProcessor.class,
+					BeanDefinitionBuilder.genericBeanDefinition(GatewayProxyInstantiationPostProcessor.class)
 							.addConstructorArgValue(registry)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
