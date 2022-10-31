@@ -63,6 +63,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 		if (importingClassMetadata != null) {
 			registerMessagingAnnotationPostProcessors(registry);
 		}
+		registerGatewayProxyInstantiationPostProcessor(registry);
 	}
 
 	/**
@@ -113,6 +114,17 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 
 			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME,
 					builder.getBeanDefinition());
+		}
+	}
+
+	private void registerGatewayProxyInstantiationPostProcessor(BeanDefinitionRegistry registry) {
+		if (!registry.containsBeanDefinition("gatewayProxyBeanDefinitionPostProcessor")) {
+			BeanDefinitionBuilder builder =
+					BeanDefinitionBuilder.genericBeanDefinition(GatewayProxyInstantiationPostProcessor.class)
+							.addConstructorArgValue(registry)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+			registry.registerBeanDefinition("gatewayProxyBeanDefinitionPostProcessor", builder.getBeanDefinition());
 		}
 	}
 

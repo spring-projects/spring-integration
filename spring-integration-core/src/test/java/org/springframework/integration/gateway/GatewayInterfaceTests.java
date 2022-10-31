@@ -41,6 +41,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,6 +54,7 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -553,6 +555,26 @@ public class GatewayInterfaceTests {
 		((SubscribableChannel) this.errorChannel).unsubscribe(messageHandler);
 	}
 
+	@Autowired
+	ImportedGateway importedGateway;
+
+	@Test
+	void importedGatewayIsProxied() {
+		assertThat(AopUtils.isAopProxy(this.importedGateway)).isTrue();
+
+		AnnotationGatewayProxyFactoryBean<?> gatewayProxyFactoryBean =
+				this.beanFactory.getBean(BeanFactory.FACTORY_BEAN_PREFIX + ImportedGateway.class.getName(),
+						AnnotationGatewayProxyFactoryBean.class);
+
+		assertThat(gatewayProxyFactoryBean.getObjectType()).isEqualTo(ImportedGateway.class);
+		assertThat(gatewayProxyFactoryBean.getGateways().keySet())
+				.hasSize(1)
+				.extracting("name")
+				.contains("handle");
+
+		assertThat(gatewayProxyFactoryBean.getComponentName()).isEqualTo(ImportedGateway.class.getName());
+	}
+
 	public interface Foo {
 
 		@Gateway(requestChannel = "requestChannelFoo")
@@ -623,6 +645,7 @@ public class GatewayInterfaceTests {
 	@IntegrationComponentScan(useDefaultFilters = false,
 			includeFilters = @ComponentScan.Filter(TestMessagingGateway.class))
 	@EnableIntegration
+	@Import(ImportedGateway.class)
 	public static class TestConfig {
 
 		@Bean(name = IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)
@@ -753,6 +776,13 @@ public class GatewayInterfaceTests {
 	public interface NotAGatewayByScanFilter {
 
 		String foo(String payload);
+
+	}
+
+	@MessagingGateway
+	public interface ImportedGateway {
+
+		String handle(String payload);
 
 	}
 

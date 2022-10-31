@@ -114,6 +114,8 @@ The Messaging Gateway interface method can now return `Future<Void>` and `Mono<V
 
 Alongside with a `@MessagingGateway` annotation the interface can also be marked with a `@Primary`.
 
+`@MessagingGateway` interfaces can now be `@Import`ed into a configuration.
+
 See <<./gateway.adoc#gateway, Messaging Gateway>> for more information.
 
 The `integrationGlobalProperties` bean is now declared by the framework as an instance of `org.springframework.integration.context.IntegrationProperties` instead of the previously deprecated `java.util.Properties`.
