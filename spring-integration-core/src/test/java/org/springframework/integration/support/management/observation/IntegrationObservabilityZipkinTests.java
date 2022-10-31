@@ -110,7 +110,7 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 
 	@Configuration
 	@EnableIntegration
-	@EnableIntegrationManagement
+	@EnableIntegrationManagement(observationPatterns = "observedEndpoint")
 	public static class ObservationIntegrationTestConfiguration {
 
 		CountDownLatch observedHandlerLatch = new CountDownLatch(1);

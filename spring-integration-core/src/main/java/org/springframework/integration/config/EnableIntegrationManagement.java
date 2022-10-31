@@ -62,4 +62,12 @@ public @interface EnableIntegrationManagement {
 	 */
 	String defaultLoggingEnabled() default "true";
 
+	/**
+	 * Set simple pattern component names matching for observation registry injection.
+	 * @return simple pattern component names matching for observation registry injection.
+	 * @since 6.0
+	 * @see org.springframework.integration.support.utils.PatternMatchUtils#smartMatch(String, String...)
+	 */
+	String[] observationPatterns() default "*";
+
 }

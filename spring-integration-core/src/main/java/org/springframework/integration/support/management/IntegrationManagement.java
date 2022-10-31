@@ -19,6 +19,7 @@ package org.springframework.integration.support.management;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
+import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.lang.Nullable;
 

@@ -53,6 +53,10 @@ import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.management.metrics.TimerFacade;
+import org.springframework.integration.support.management.observation.DefaultMessageRequestReplyReceiverObservationConvention;
+import org.springframework.integration.support.management.observation.IntegrationObservation;
+import org.springframework.integration.support.management.observation.MessageRequestReplyReceiverContext;
+import org.springframework.integration.support.management.observation.MessageRequestReplyReceiverObservationConvention;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -62,10 +66,13 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
@@ -87,7 +94,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private static final long DEFAULT_TIMEOUT = 1000L;
 
-	protected final MessagingTemplate messagingTemplate; // NOSONAR
+	protected final ConvertingMessagingTemplate messagingTemplate; // NOSONAR
 
 	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
 
@@ -130,6 +137,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private TimerFacade successTimer;
 
+	private ObservationRegistry observationRegistry;
+
+	@Nullable
+	private MessageRequestReplyReceiverObservationConvention observationConvention;
+
 	private volatile AbstractEndpoint replyMessageCorrelator;
 
 	private volatile boolean initialized;
@@ -152,7 +164,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * @see #setErrorOnTimeout
 	 */
 	public MessagingGatewaySupport(boolean errorOnTimeout) {
-		MessagingTemplate template = new MessagingTemplate();
+		ConvertingMessagingTemplate template = new ConvertingMessagingTemplate();
 		template.setMessageConverter(this.messageConverter);
 		template.setSendTimeout(DEFAULT_TIMEOUT);
 		template.setReceiveTimeout(this.replyTimeout);
@@ -355,6 +367,17 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	@Override
+	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
+		this.observationRegistry = observationRegistry;
+	}
+
+	public void setObservationConvention(
+			@Nullable MessageRequestReplyReceiverObservationConvention observationConvention) {
+
+		this.observationConvention = observationConvention;
+	}
+
+	@Override
 	protected void onInit() {
 		Assert.state(!(this.requestChannelName != null && this.requestChannel != null),
 				"'requestChannelName' and 'requestChannel' are mutually exclusive.");
@@ -494,16 +517,16 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	@Nullable
 	protected Object sendAndReceive(Object object) {
-		return doSendAndReceive(object, true);
+		return sendAndReceive(object, true);
 	}
 
 	@Nullable
 	protected Message<?> sendAndReceiveMessage(Object object) {
-		return (Message<?>) doSendAndReceive(object, false);
+		return (Message<?>) sendAndReceive(object, false);
 	}
 
-	@Nullable // NOSONAR
-	private Object doSendAndReceive(Object object, boolean shouldConvert) {
+	@Nullable
+	private Object sendAndReceive(Object object, boolean shouldConvert) {
 		initializeIfNecessary();
 		Assert.notNull(object, "request must not be null");
 		MessageChannel channel = getRequestChannel();
@@ -515,36 +538,30 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 		Object reply;
 		Message<?> requestMessage = null;
-		SampleFacade sample = null;
 		try {
-			if (this.metricsCaptor != null) {
-				sample = this.metricsCaptor.start();
+			requestMessage = convertToRequestMessage(object, shouldConvert);
+			Message<?> replyMessage;
+
+			if (this.observationRegistry != null) {
+				replyMessage = sendAndReceiveWithObservation(requestChannel, object, requestMessage);
 			}
-			if (shouldConvert) {
-				reply = this.messagingTemplate.convertSendAndReceive(channel, object, Object.class,
-						this.historyWritingPostProcessor);
+			else if (this.metricsCaptor != null) {
+				replyMessage = sendAndReceiveWithMetrics(requestChannel, object, requestMessage);
 			}
 			else {
-				requestMessage = (object instanceof Message<?>)
-						? (Message<?>) object : this.requestMapper.toMessage(object);
-				Assert.state(requestMessage != null, () -> "request mapper resulted in no message for " + object);
-				requestMessage = this.historyWritingPostProcessor.postProcessMessage(requestMessage);
-				reply = this.messagingTemplate.sendAndReceive(channel, requestMessage);
+				replyMessage = doSendAndReceive(requestChannel, object, requestMessage);
 			}
 
-			if (reply == null && this.errorOnTimeout) {
-				throwMessageTimeoutException(object, "No reply received within timeout");
+			if (shouldConvert) {
+				reply = this.messagingTemplate.getMessageConverter().fromMessage(replyMessage, Object.class);
 			}
-			if (sample != null) {
-				sample.stop(sendTimer());
+			else {
+				reply = replyMessage;
 			}
 		}
 		catch (Throwable ex) { // NOSONAR (catch throwable)
 			logger.debug(() -> "failure occurred in gateway sendAndReceive: " + ex.getMessage());
 			reply = ex;
-			if (sample != null) {
-				sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
-			}
 		}
 
 		if (reply instanceof Throwable || reply instanceof ErrorMessage) {
@@ -555,6 +572,75 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			return handleSendAndReceiveError(object, requestMessage, error, shouldConvert);
 		}
 		return reply;
+	}
+
+	private Message<?> convertToRequestMessage(Object object, boolean shouldConvert) {
+		if (shouldConvert) {
+			return this.messagingTemplate.doConvert(object, null, this.historyWritingPostProcessor);
+		}
+		else {
+			Message<?> requestMessage = (object instanceof Message<?>)
+					? (Message<?>) object : this.requestMapper.toMessage(object);
+			Assert.state(requestMessage != null, () -> "request mapper resulted in no message for " + object);
+			return this.historyWritingPostProcessor.postProcessMessage(requestMessage);
+		}
+	}
+
+	private Message<?> sendAndReceiveWithObservation(MessageChannel requestChannel, Object object,
+			Message<?> requestMessage) {
+
+		MessageRequestReplyReceiverContext context;
+
+		if (this.observationRegistry.isNoop()) {
+			context = null;
+		}
+		else {
+			context = new MessageRequestReplyReceiverContext(requestMessage, getComponentName());
+		}
+
+		Observation observation =
+				IntegrationObservation.GATEWAY.observation(this.observationConvention,
+						DefaultMessageRequestReplyReceiverObservationConvention.INSTANCE,
+						() -> context, this.observationRegistry);
+
+		observation.start();
+		try (Observation.Scope ignored = observation.openScope()) {
+			Message<?> replyMessage = doSendAndReceive(requestChannel, object, requestMessage);
+			if (context != null) {
+				context.setResponse(replyMessage);
+			}
+			return replyMessage;
+		}
+		catch (Exception exception) {
+			observation.error(exception);
+			throw exception;
+		}
+		finally {
+			observation.stop();
+		}
+	}
+
+	private Message<?> sendAndReceiveWithMetrics(MessageChannel requestChannel, Object object,
+			Message<?> requestMessage) {
+
+		SampleFacade sample = this.metricsCaptor.start();
+		try {
+			Message<?> replyMessage = doSendAndReceive(requestChannel, object, requestMessage);
+			sample.stop(sendTimer());
+			return replyMessage;
+		}
+		catch (Throwable ex) {
+			sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
+			throw ex;
+		}
+	}
+
+	private Message<?> doSendAndReceive(MessageChannel requestChannel, Object object, Message<?> requestMessage) {
+		Message<?> replyMessage = this.messagingTemplate.sendAndReceive(requestChannel, requestMessage);
+		if (replyMessage == null && this.errorOnTimeout) {
+			throwMessageTimeoutException(object, "No reply received within timeout");
+		}
+		return replyMessage;
 	}
 
 	@Nullable
@@ -646,23 +732,23 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 
 		return Mono.defer(() -> {
-			Object originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
-			Object originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
+					Object originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
+					Object originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
 
-			MonoReplyChannel replyChan = new MonoReplyChannel();
+					MonoReplyChannel replyChan = new MonoReplyChannel();
 
-			Message<?> messageToSend = MutableMessageBuilder.fromMessage(requestMessage)
-					.setReplyChannel(replyChan)
-					.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
-					.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
-					.setErrorChannel(replyChan)
-					.build();
+					Message<?> messageToSend = MutableMessageBuilder.fromMessage(requestMessage)
+							.setReplyChannel(replyChan)
+							.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
+							.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
+							.setErrorChannel(replyChan)
+							.build();
 
-			sendMessageForReactiveFlow(requestChannel, messageToSend);
+					sendMessageForReactiveFlow(requestChannel, messageToSend);
 
-			return buildReplyMono(requestMessage, replyChan.replyMono.asMono(), error, originalReplyChannelHeader,
-					originalErrorChannelHeader);
-		})
+					return buildReplyMono(requestMessage, replyChan.replyMono.asMono(), error, originalReplyChannelHeader,
+							originalErrorChannelHeader);
+				})
 				.onErrorResume(t -> error ? Mono.error(t) : handleSendError(requestMessage, t));
 	}
 
@@ -912,6 +998,21 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 					.subscribe(
 							(value) -> this.replyMono.emitValue(value, Sinks.EmitFailureHandler.FAIL_FAST),
 							this.replyMono::tryEmitError, this.replyMono::tryEmitEmpty);
+		}
+
+	}
+
+	/**
+	 * The {@link MessagingTemplate} extension to increase {@link #doConvert(Object, Map, MessagePostProcessor)}
+	 * visibility to get access to the request message from an observation context.
+	 */
+	private static class ConvertingMessagingTemplate extends MessagingTemplate {
+
+		@Override // NOSONAR Increase visibility
+		public Message<?> doConvert(Object payload, @Nullable Map<String, Object> headers,
+				@Nullable MessagePostProcessor postProcessor) {
+
+			return super.doConvert(payload, headers, postProcessor);
 		}
 
 	}

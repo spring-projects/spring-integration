@@ -19,6 +19,8 @@ package org.springframework.integration.config;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.ObjectProvider;
@@ -33,6 +35,7 @@ import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
 import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
+import org.springframework.integration.support.utils.PatternMatchUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -80,6 +83,8 @@ public class IntegrationManagementConfigurer
 
 	private ObjectProvider<ObservationRegistry> observationRegistryProvider;
 
+	private String[] observationPatterns = { "*" };
+
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
@@ -98,7 +103,7 @@ public class IntegrationManagementConfigurer
 	 * Exception logging (debug or otherwise) is not affected by this setting.
 	 * <p>
 	 * It has been found that in high-volume messaging environments, calls to methods such as
-	 * {@link org.apache.commons.logging.Log#isDebugEnabled()} can be quite expensive
+	 * {@link Log#isDebugEnabled()} can be quite expensive
 	 * and account for an inordinate amount of CPU time.
 	 * <p>
 	 * Set this to 'false' to disable logging by default in all framework components that implement
@@ -135,6 +140,16 @@ public class IntegrationManagementConfigurer
 		this.observationRegistryProvider = observationRegistryProvider;
 	}
 
+	/**
+	 * Set simple patterns for component names matching which has to be instrumented with a {@link ObservationRegistry}.
+	 * @param observationPatterns the simple patterns to use.
+	 * @since 6.0
+	 * @see PatternMatchUtils#smartMatch(String, String...)
+	 */
+	public void setObservationPatterns(String... observationPatterns) {
+		Assert.notEmpty(observationPatterns, "'observationPatterns' must not be empty");
+		this.observationPatterns = observationPatterns;
+	}
 
 	@Override
 	public void afterSingletonsInstantiated() {
@@ -171,19 +186,19 @@ public class IntegrationManagementConfigurer
 	private void registerComponentGauges() {
 		this.gauges.add(
 				this.metricsCaptor.gaugeBuilder("spring.integration.channels", this,
-						(c) -> this.applicationContext.getBeansOfType(MessageChannel.class).size())
+								(c) -> this.applicationContext.getBeansOfType(MessageChannel.class).size())
 						.description("The number of message channels")
 						.build());
 
 		this.gauges.add(
 				this.metricsCaptor.gaugeBuilder("spring.integration.handlers", this,
-						(c) -> this.applicationContext.getBeansOfType(MessageHandler.class).size())
+								(c) -> this.applicationContext.getBeansOfType(MessageHandler.class).size())
 						.description("The number of message handlers")
 						.build());
 
 		this.gauges.add(
 				this.metricsCaptor.gaugeBuilder("spring.integration.sources", this,
-						(c) -> this.applicationContext.getBeansOfType(MessageSource.class).size())
+								(c) -> this.applicationContext.getBeansOfType(MessageSource.class).size())
 						.description("The number of message sources")
 						.build());
 	}
@@ -195,7 +210,10 @@ public class IntegrationManagementConfigurer
 		if (this.metricsCaptor != null) {
 			integrationManagement.registerMetricsCaptor(this.metricsCaptor);
 		}
-		if (this.observationRegistry != null) {
+		if (this.observationRegistry != null &&
+				Boolean.TRUE.equals(PatternMatchUtils.smartMatch(
+						integrationManagement.getComponentName(), this.observationPatterns))) {
+
 			integrationManagement.registerObservationRegistry(this.observationRegistry);
 		}
 	}
