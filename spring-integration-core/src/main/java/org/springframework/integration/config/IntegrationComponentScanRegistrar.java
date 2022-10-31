@@ -20,10 +20,8 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -33,12 +31,12 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
+import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -68,15 +66,14 @@ import org.springframework.util.StringUtils;
 public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRegistrar,
 		ResourceLoaderAware, EnvironmentAware {
 
-	private final Map<TypeFilter, ImportBeanDefinitionRegistrar> componentRegistrars = new HashMap<>();
+	private final List<TypeFilter> defaultFilters = new ArrayList<>();
 
 	private ResourceLoader resourceLoader;
 
 	private Environment environment;
 
 	public IntegrationComponentScanRegistrar() {
-		this.componentRegistrars.put(new AnnotationTypeFilter(MessagingGateway.class, true),
-				new MessagingGatewayRegistrar());
+		this.defaultFilters.add(new AnnotationTypeFilter(MessagingGateway.class, true));
 	}
 
 	@Override
@@ -101,25 +98,20 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 			basePackages = Collections.singleton(ClassUtils.getPackageName(importingClassMetadata.getClassName()));
 		}
 
-		ClassPathScanningCandidateComponentProvider scanner =
-				new ClassPathScanningCandidateComponentProvider(false, this.environment) {
+		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(registry, false) {
 
-					@Override
-					protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
-						return beanDefinition.getMetadata().isIndependent()
-								&& !beanDefinition.getMetadata().isAnnotation();
-					}
+			@Override
+			protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+				return beanDefinition.getMetadata().isIndependent()
+						&& !beanDefinition.getMetadata().isAnnotation();
+			}
 
-					@Override
-					protected BeanDefinitionRegistry getRegistry() {
-						return registry;
-					}
-
-				};
+		};
 
 		filter(registry, componentScan, scanner); // NOSONAR - never null
 
 		scanner.setResourceLoader(this.resourceLoader);
+		scanner.setEnvironment(this.environment);
 
 		BeanNameGenerator beanNameGenerator = IntegrationConfigUtils.annotationBeanNameGenerator(registry);
 
@@ -128,24 +120,15 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 			beanNameGenerator = BeanUtils.instantiateClass(generatorClass);
 		}
 
-		for (String basePackage : basePackages) {
-			Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(basePackage);
-			for (BeanDefinition candidateComponent : candidateComponents) {
-				if (candidateComponent instanceof AnnotatedBeanDefinition) {
-					for (ImportBeanDefinitionRegistrar registrar : this.componentRegistrars.values()) {
-						registrar.registerBeanDefinitions(((AnnotatedBeanDefinition) candidateComponent).getMetadata(),
-								registry, beanNameGenerator);
-					}
-				}
-			}
-		}
+		scanner.setBeanNameGenerator(beanNameGenerator);
+		scanner.scan(basePackages.toArray(String[]::new));
 	}
 
 	private void filter(BeanDefinitionRegistry registry, AnnotationAttributes componentScan,
 			ClassPathScanningCandidateComponentProvider scanner) {
 
 		if (componentScan.getBoolean("useDefaultFilters")) { // NOSONAR - never null
-			for (TypeFilter typeFilter : this.componentRegistrars.keySet()) {
+			for (TypeFilter typeFilter : this.defaultFilters) {
 				scanner.addIncludeFilter(typeFilter);
 			}
 		}

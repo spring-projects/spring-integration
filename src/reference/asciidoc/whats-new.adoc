@@ -114,7 +114,7 @@ The Messaging Gateway interface method can now return `Future<Void>` and `Mono<V
 
 Alongside with a `@MessagingGateway` annotation the interface can also be marked with a `@Primary`.
 
-`@MessagingGateway` interfaces can now be `@Import`ed into a configuration.
+`@MessagingGateway` interfaces can now be use as an `@Import` resources for configuration.
 
 The default naming strategy for gateway proxy beans can be customized via `@IntegrationComponentScan.nameGenerator()` attribute.
 If `AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR` bean is present, it is consulted otherwise before falling back to the `AnnotationBeanNameGenerator`.

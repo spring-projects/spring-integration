@@ -110,7 +110,7 @@ public @interface IntegrationComponentScan {
 	/**
 	 * The {@link BeanNameGenerator} class to be used for naming detected Spring Integration components.
 	 * <p>The default value of the {@link BeanNameGenerator} interface itself indicates
-	 * that the scanner used to process this {@code @IntegrationComponentScan} annotation should
+	 * that the scanner used to process this {@link IntegrationComponentScan} annotation should
 	 * use its inherited bean name generator, e.g. the default
 	 * {@link org.springframework.context.annotation.AnnotationBeanNameGenerator}
 	 * or any custom instance supplied to the application context at bootstrap time.

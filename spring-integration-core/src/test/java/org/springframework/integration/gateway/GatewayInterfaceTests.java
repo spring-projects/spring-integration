@@ -46,11 +46,9 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationBeanNameGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Condition;
@@ -843,11 +841,18 @@ public class GatewayInterfaceTests {
 
 	}
 
-	public static class CustomBeanNameGenerator implements BeanNameGenerator {
+	public static class CustomBeanNameGenerator extends AnnotationBeanNameGenerator {
 
 		@Override
-		public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
-			return ClassUtils.getShortNameAsProperty(((AbstractBeanDefinition) definition).getBeanClass());
+		protected String buildDefaultBeanName(BeanDefinition definition) {
+			try {
+				Class<?> beanClass = ClassUtils.forName(definition.getBeanClassName(),
+						ClassUtils.getDefaultClassLoader());
+				return ClassUtils.getShortNameAsProperty(beanClass);
+			}
+			catch (ClassNotFoundException ex) {
+				throw new IllegalStateException(ex);
+			}
 		}
 
 	}

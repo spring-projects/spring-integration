@@ -1469,7 +1469,7 @@ public class EnableIntegrationTests {
 
 	}
 
-	@TestMessagingGateway(name = "namedTestGateway")
+	@TestMessagingGateway("namedTestGateway")
 	public interface TestGateway {
 
 		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "method.name"))
@@ -1499,8 +1499,8 @@ public class EnableIntegrationTests {
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public @interface TestMessagingGateway {
 
-		@AliasFor(annotation = MessagingGateway.class)
-		String name() default "";
+		@AliasFor(annotation = MessagingGateway.class, attribute = "value")
+		String value() default "";
 
 		@AliasFor(annotation = MessagingGateway.class, attribute = "defaultRequestChannel")
 		String defaultRequestChannel() default "";

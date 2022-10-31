@@ -320,9 +320,12 @@ Along with the `@MessagingGateway` annotation you can mark a service interface w
 Starting with version 6.0, an interface with the `@MessagingGateway` can also be marked with a `@Primary` annotation for respective configuration logic as its possible with any Spring `@Component` definition.
 
 Starting with version 6.0, `@MessagingGateway` interfaces can be used in the standard Spring `@Import` configuration.
-This may be used as an alternative to the  `@IntegrationComponentScan` or manual `AnnotationGatewayProxyFactoryBean` bean definitions.The `@MessagingGateway` is meta-annotated with a `@MessageEndpoint` since version `6.0` and the `name()` attribute is, essentially, aliased to the `@Compnent.value()`.
+This may be used as an alternative to the  `@IntegrationComponentScan` or manual `AnnotationGatewayProxyFactoryBean` bean definitions.
+
+The `@MessagingGateway` is meta-annotated with a `@MessageEndpoint` since version `6.0` and the `name()` attribute is, essentially, aliased to the `@Compnent.value()`.
 This way the bean names generating strategy for gateway proxies is realigned with the standard Spring annotation configuration for scanned and imported components.
 The default `AnnotationBeanNameGenerator` can be overridden globally via an `AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR` or as a `@IntegrationComponentScan.nameGenerator()` attribute.
+
 NOTE: If you have no XML configuration, the `@EnableIntegration` annotation is required on at least one `@Configuration` class.
 See <<./overview.adoc#configuration-enable-integration,Configuration and `@EnableIntegration`>> for more information.
 

@@ -16,21 +16,29 @@
 
 package org.springframework.integration.gateway;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.BeanExpressionContext;
+import org.springframework.beans.factory.config.BeanExpressionResolver;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.expression.StandardBeanExpressionResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -52,31 +60,57 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 
 	private final AnnotationAttributes gatewayAttributes;
 
+	private BeanExpressionResolver resolver = new StandardBeanExpressionResolver();
+
+	private BeanExpressionContext expressionContext;
+
 	public AnnotationGatewayProxyFactoryBean(Class<T> serviceInterface) {
 		super(serviceInterface);
+		this.gatewayAttributes = mergeAnnotationAttributes(serviceInterface);
+	}
 
+	private static AnnotationAttributes mergeAnnotationAttributes(Class<?> serviceInterface) {
 		AnnotationAttributes annotationAttributes =
-				AnnotatedElementUtils.getMergedAnnotationAttributes(serviceInterface,
-						MessagingGateway.class.getName(), false, true);
-		if (annotationAttributes == null) {
-			annotationAttributes = AnnotationUtils.getAnnotationAttributes(
-					AnnotationUtils.synthesizeAnnotation(MessagingGateway.class), false, true);
+				AnnotationUtils.getAnnotationAttributes(AnnotationUtils.synthesizeAnnotation(MessagingGateway.class),
+						false, true);
+
+		if (AnnotatedElementUtils.isAnnotated(serviceInterface, MessagingGateway.class)) {
+			Annotation annotation =
+					MergedAnnotations.from(serviceInterface)
+							.get(MessagingGateway.class)
+							.getRoot()
+							.synthesize();
+
+			List<MergedAnnotation<Annotation>> annotationChain =
+					MessagingAnnotationUtils.getAnnotationChain(annotation, MessagingGateway.class)
+							.stream()
+							.map(MergedAnnotation::from)
+							.toList();
+
+			for (Map.Entry<String, Object> attribute : annotationAttributes.entrySet()) {
+				String key = attribute.getKey();
+				Object value = MessagingAnnotationUtils.resolveMergedAttribute(annotationChain, key, Object.class);
+				if (value != null) {
+					attribute.setValue(value);
+				}
+			}
 		}
 
-		this.gatewayAttributes = annotationAttributes;
-
-		String id = annotationAttributes.getString("name");
-		if (StringUtils.hasText(id)) {
-			setBeanName(id);
-		}
+		return annotationAttributes;
 	}
 
 	@Override
 	protected void onInit() {
+		if (getBeanFactory() instanceof ConfigurableBeanFactory beanFactory) {
+			this.resolver = beanFactory.getBeanExpressionResolver();
+			this.expressionContext = new BeanExpressionContext(beanFactory, null);
+		}
+
 		populateGatewayMethodMetadataIfAny();
 
 		String defaultRequestTimeout = resolveAttribute("defaultRequestTimeout");
 		String defaultReplyTimeout = resolveAttribute("defaultReplyTimeout");
+
 
 		JavaUtils.INSTANCE
 				.acceptIfCondition(getDefaultRequestChannel() == null && getDefaultRequestChannelName() == null,
@@ -89,11 +123,11 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 						resolveAttribute("errorChannel"),
 						this::setErrorChannelName)
 				.acceptIfCondition(getDefaultRequestTimeout() == null && StringUtils.hasText(defaultRequestTimeout),
-						defaultRequestTimeout,
-						value -> setDefaultRequestTimeout(Long.parseLong(value)))
+						evaluateExpression(defaultRequestTimeout, Long.class),
+						this::setDefaultRequestTimeout)
 				.acceptIfCondition(getDefaultReplyTimeout() == null && StringUtils.hasText(defaultReplyTimeout),
-						defaultReplyTimeout,
-						value -> setDefaultReplyTimeout(Long.parseLong(value)));
+						evaluateExpression(defaultReplyTimeout, Long.class),
+						this::setDefaultReplyTimeout);
 
 		populateAsyncExecutorIfAny();
 
@@ -109,7 +143,7 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 			return;
 		}
 
-		ConfigurableListableBeanFactory beanFactory = (ConfigurableListableBeanFactory) getBeanFactory();
+		ConfigurableBeanFactory beanFactory = (ConfigurableBeanFactory) getBeanFactory();
 
 		String defaultPayloadExpression = resolveAttribute("defaultPayloadExpression");
 
@@ -180,8 +214,19 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 
 	@Nullable
 	private String resolveAttribute(String attributeName) {
-		ConfigurableListableBeanFactory beanFactory = (ConfigurableListableBeanFactory) getBeanFactory();
+		ConfigurableBeanFactory beanFactory = (ConfigurableBeanFactory) getBeanFactory();
 		return beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString(attributeName));
+	}
+
+	@Nullable
+	private <V> V evaluateExpression(@Nullable String value, Class<V> targetClass) {
+		if (StringUtils.hasText(value)) {
+			Object result = this.resolver.evaluate(value, this.expressionContext);
+			return getConversionService().convert(result, targetClass);
+		}
+		else {
+			return null;
+		}
 	}
 
 }

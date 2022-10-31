@@ -52,6 +52,15 @@ public @interface MessagingGateway {
 	 * The value may indicate a suggestion for a logical component name,
 	 * to be turned into a Spring bean in case of an autodetected component.
 	 * @return the suggested component name, if any
+	 * @since 6.0
+	 */
+	@AliasFor(annotation = MessageEndpoint.class)
+	String value() default "";
+
+	/**
+	 * The value may indicate a suggestion for a logical component name,
+	 * to be turned into a Spring bean in case of an autodetected component.
+	 * @return the suggested component name, if any
 	 */
 	@AliasFor(annotation = MessageEndpoint.class, attribute = "value")
 	String name() default "";
@@ -92,7 +101,7 @@ public @interface MessagingGateway {
 
 	/**
 	 * Allows to specify how long this gateway will wait for the reply {@code Message}
-	 * before returning. By default it will wait indefinitely. {@code null} is returned if
+	 * before returning. By default, it will wait indefinitely. {@code null} is returned if
 	 * the gateway times out. Value is specified in milliseconds; it can be a simple long
 	 * value or a SpEL expression; array variable #args is available.
 	 * @return the suggested timeout in milliseconds, if any
