@@ -497,7 +497,7 @@ public class GatewayProxyFactoryBeanTests {
 		Map<Method, MessagingGatewaySupport> gateways = gpfb.getGateways();
 		assertThat(gateways.size()).isEqualTo(2);
 	}
-	
+
 	@Test
 	public void testAliasForSupport() {
 		GatewayProxyFactoryBean<AliasForGatewayService> gpfb = new GatewayProxyFactoryBean<>(AliasForGatewayService.class);
@@ -525,17 +525,24 @@ public class GatewayProxyFactoryBeanTests {
 		Message<?> echo(String s);
 
 	}
-	
+
+
 	@Gateway
 	@interface AnnotationWithAliasForGateway {
+
 		@AliasFor(annotation = Gateway.class, attribute = "requestChannel")
 		String requestChannelName() default "";
+
 	}
-	
+
+
 	interface AliasForGatewayService {
+
 		@AnnotationWithAliasForGateway(requestChannelName = "foo")
 		void foo();
+
 	}
+
 
 	interface HeadersParamService {
 
