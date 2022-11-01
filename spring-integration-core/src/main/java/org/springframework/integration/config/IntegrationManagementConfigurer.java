@@ -83,7 +83,7 @@ public class IntegrationManagementConfigurer
 
 	private ObjectProvider<ObservationRegistry> observationRegistryProvider;
 
-	private String[] observationPatterns = { "*" };
+	private String[] observationPatterns = { };
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
