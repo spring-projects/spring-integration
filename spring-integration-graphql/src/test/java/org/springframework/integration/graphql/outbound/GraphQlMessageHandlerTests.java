@@ -46,7 +46,6 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.graphql.dsl.GraphQl;
-import org.springframework.integration.graphql.dsl.GraphQlMessageHandlerSpec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
@@ -275,7 +274,7 @@ public class GraphQlMessageHandlerTests {
 		@Bean
 		IntegrationFlow graphqlQueryMessageHandlerFlow(ExecutionGraphQlService graphQlService) {
 			return IntegrationFlow.from(MessageChannels.flux("inputChannel"))
-					.handle(GraphQl.outboundChannelAdapter(graphQlService))
+					.handle(GraphQl.outboundGateway(graphQlService))
 					.channel(c -> c.flux("resultChannel"))
 					.get();
 		}

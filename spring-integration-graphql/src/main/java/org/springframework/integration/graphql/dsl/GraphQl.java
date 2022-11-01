@@ -32,7 +32,7 @@ public class GraphQl {
 	 * @param graphQlService the {@link ExecutionGraphQlService} to use.
 	 * @return the spec.
 	 */
-	public static GraphQlMessageHandlerSpec outboundChannelAdapter(ExecutionGraphQlService graphQlService) {
+	public static GraphQlMessageHandlerSpec outboundGateway(ExecutionGraphQlService graphQlService) {
 		return new GraphQlMessageHandlerSpec(graphQlService);
 	}
 
