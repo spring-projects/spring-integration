@@ -54,12 +54,23 @@ public @interface EnableIntegrationManagement {
 	 * <p>
 	 * Set this to false for disabling logging by default in all framework components that implement
 	 * {@link org.springframework.integration.support.management.IntegrationManagement}
-	 * (channels, message handlers etc). It turns off logging such as "PreSend on channel", "Received message" etc.
+	 * (channels, message handlers etc.). It turns off logging such as "PreSend on channel", "Received message" etc.
 	 * <p>
 	 * After the context is initialized, individual components can have their setting changed by invoking
 	 * {@link org.springframework.integration.support.management.IntegrationManagement#setLoggingEnabled(boolean)}.
 	 * @return the value; true by default.
 	 */
 	String defaultLoggingEnabled() default "true";
+
+	/**
+	 * Set simple pattern component names matching for observation registry injection.
+	 * @return simple pattern component names matching for observation registry injection.
+	 * None by default - no unconditional observation instrumentation.
+	 * Can be set to {@code *} to instrumentation all the integration components.
+	 * The pattern can start with {@code !} to negate the matching.
+	 * @since 6.0
+	 * @see org.springframework.integration.support.utils.PatternMatchUtils#smartMatch(String, String...)
+	 */
+	String[] observationPatterns() default { };
 
 }

@@ -32,18 +32,17 @@ import org.springframework.integration.channel.interceptor.ObservationPropagatio
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.config.GlobalChannelInterceptor;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
-import org.springframework.integration.support.MutableMessage;
-import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.GenericMessage;
 
 import io.micrometer.common.KeyValues;
 import io.micrometer.core.tck.MeterRegistryAssert;
-import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.test.SampleTestRunner;
@@ -70,18 +69,11 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 				applicationContext.register(ObservationIntegrationTestConfiguration.class);
 				applicationContext.refresh();
 
-				PollableChannel queueChannel = applicationContext.getBean("queueChannel", PollableChannel.class);
-				PollableChannel replyChannel = new QueueChannel();
+				TestMessagingGatewaySupport messagingGateway =
+						applicationContext.getBean(TestMessagingGatewaySupport.class);
 
-				MutableMessage<String> message =
-						(MutableMessage<String>) MutableMessageBuilder.withPayload("test data")
-								.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
-								.build();
+				Message<?> receive = messagingGateway.process(new GenericMessage<>("test data"));
 
-				Observation.createNotStarted("Test send", () -> new MessageSenderContext(message), observationRegistry)
-						.observe(() -> queueChannel.send(message));
-
-				Message<?> receive = replyChannel.receive(10_000);
 				assertThat(receive).isNotNull()
 						.extracting("payload").isEqualTo("test data");
 				var configuration = applicationContext.getBean(ObservationIntegrationTestConfiguration.class);
@@ -91,7 +83,11 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 
 			SpansAssert.assertThat(bb.getFinishedSpans())
 					.haveSameTraceId()
-					.hasASpanWithName("Test send", spanAssert -> spanAssert.hasKindEqualTo(Span.Kind.PRODUCER))
+					.hasASpanWithName("testInboundGateway process", spanAssert -> spanAssert
+							.hasTag(IntegrationObservation.GatewayTags.COMPONENT_NAME.asString(), "testInboundGateway")
+							.hasTag(IntegrationObservation.GatewayTags.COMPONENT_TYPE.asString(), "gateway")
+							.hasTagWithKey("test.message.id")
+							.hasKindEqualTo(Span.Kind.SERVER))
 					.hasASpanWithName("observedEndpoint receive", spanAssert -> spanAssert
 							.hasTag(IntegrationObservation.HandlerTags.COMPONENT_NAME.asString(), "observedEndpoint")
 							.hasTag(IntegrationObservation.HandlerTags.COMPONENT_TYPE.asString(), "handler")
@@ -110,7 +106,7 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 
 	@Configuration
 	@EnableIntegration
-	@EnableIntegrationManagement
+	@EnableIntegrationManagement(observationPatterns = { "observedEndpoint", "testInboundGateway" })
 	public static class ObservationIntegrationTestConfiguration {
 
 		CountDownLatch observedHandlerLatch = new CountDownLatch(1);
@@ -119,6 +115,22 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 		@GlobalChannelInterceptor
 		public ChannelInterceptor observationPropagationInterceptor(ObservationRegistry observationRegistry) {
 			return new ObservationPropagationChannelInterceptor(observationRegistry);
+		}
+
+		@Bean
+		TestMessagingGatewaySupport testInboundGateway(PollableChannel queueChannel) {
+			TestMessagingGatewaySupport messagingGatewaySupport = new TestMessagingGatewaySupport();
+			messagingGatewaySupport.setObservationConvention(
+					new DefaultMessageRequestReplyReceiverObservationConvention() {
+
+						@Override
+						public KeyValues getHighCardinalityKeyValues(MessageRequestReplyReceiverContext context) {
+							return KeyValues.of("test.message.id", context.getCarrier().getHeaders().getId().toString());
+						}
+
+					});
+			messagingGatewaySupport.setRequestChannel(queueChannel);
+			return messagingGatewaySupport;
 		}
 
 		@Bean
@@ -145,6 +157,15 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 					this.observedHandlerLatch.countDown();
 				}
 			};
+		}
+
+	}
+
+	private static class TestMessagingGatewaySupport extends MessagingGatewaySupport {
+
+		@Nullable
+		Message<?> process(Message<?> request) {
+			return sendAndReceiveMessage(request);
 		}
 
 	}

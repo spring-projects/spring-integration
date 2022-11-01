@@ -31,7 +31,12 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
+import org.springframework.integration.support.management.IntegrationInboundManagement;
 import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.integration.support.management.observation.DefaultMessageReceiverObservationConvention;
+import org.springframework.integration.support.management.observation.IntegrationObservation;
+import org.springframework.integration.support.management.observation.MessageReceiverContext;
+import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -40,6 +45,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import io.micrometer.observation.ObservationRegistry;
 import reactor.core.publisher.Flux;
 
 /**
@@ -50,12 +56,18 @@ import reactor.core.publisher.Flux;
  * @author Artem Bilan
  * @author Gary Russell
  */
-public abstract class MessageProducerSupport extends AbstractEndpoint implements MessageProducer, TrackableComponent,
-		SmartInitializingSingleton, IntegrationPattern {
+public abstract class MessageProducerSupport extends AbstractEndpoint
+		implements MessageProducer, TrackableComponent,
+		SmartInitializingSingleton, IntegrationPattern, IntegrationInboundManagement {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
+
+	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
+
+	@Nullable
+	private MessageReceiverObservationConvention observationConvention;
 
 	private MessageChannel outputChannel;
 
@@ -135,7 +147,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	/**
 	 * Configure the default timeout value to use for send operations.
 	 * May be overridden for individual messages.
-	 * @param sendTimeout the send timeout in milliseconds
+	 * @param sendTimeout the 'send' operation timeout in milliseconds
 	 * @see MessagingTemplate#setSendTimeout
 	 */
 	public void setSendTimeout(long sendTimeout) {
@@ -170,6 +182,22 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	protected MessagingTemplate getMessagingTemplate() {
 		return this.messagingTemplate;
+	}
+
+	/**
+	 * Set a custom {@link MessageReceiverObservationConvention} for {@link IntegrationObservation#HANDLER}.
+	 * Ignored if an {@link ObservationRegistry} is not configured for this component.
+	 * @param observationConvention the {@link MessageReceiverObservationConvention} to use.
+	 * @since 6.0
+	 */
+	public void setObservationConvention(@Nullable MessageReceiverObservationConvention observationConvention) {
+		this.observationConvention = observationConvention;
+	}
+
+	@Override
+	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
+		Assert.notNull(observationRegistry, "'observationRegistry' must not be null");
+		this.observationRegistry = observationRegistry;
 	}
 
 	@Override
@@ -216,14 +244,18 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		}
 	}
 
-	protected void sendMessage(Message<?> messageArg) {
-		Message<?> message = messageArg;
+	protected void sendMessage(Message<?> message) {
 		if (message == null) {
 			throw new MessagingException("cannot send a null message");
 		}
-		message = trackMessageIfAny(message);
+
 		try {
-			this.messagingTemplate.send(getRequiredOutputChannel(), message);
+			IntegrationObservation.HANDLER.observation(
+							this.observationConvention,
+							DefaultMessageReceiverObservationConvention.INSTANCE,
+							() -> new MessageReceiverContext(message, getComponentName()),
+							this.observationRegistry)
+					.observe(() -> this.messagingTemplate.send(getRequiredOutputChannel(), trackMessageIfAny(message)));
 		}
 		catch (RuntimeException ex) {
 			if (!sendErrorMessageIfNecessary(message, ex)) {

@@ -21,6 +21,9 @@ import io.micrometer.observation.docs.ObservationDocumentation;
 
 /**
  * The {@link ObservationDocumentation} implementation for Spring Integration infrastructure.
+ * <p>
+ * NOTE: This class is mostly intended for observation docs generation, so any string literals,
+ * even if they are the same, cannot be extracted into constants or super methods.
  *
  * @author Artem Bilan
  *
@@ -45,6 +48,27 @@ public enum IntegrationObservation implements ObservationDocumentation {
 		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
 			return HandlerTags.values();
+		}
+
+	},
+
+	/**
+	 * Observation for inbound message gateways.
+	 */
+	GATEWAY {
+		@Override
+		public String getPrefix() {
+			return "spring.integration.";
+		}
+
+		@Override
+		public Class<DefaultMessageRequestReplyReceiverObservationConvention> getDefaultConvention() {
+			return DefaultMessageRequestReplyReceiverObservationConvention.class;
+		}
+
+		@Override
+		public KeyName[] getLowCardinalityKeyNames() {
+			return GatewayTags.values();
 		}
 
 	};
@@ -75,6 +99,45 @@ public enum IntegrationObservation implements ObservationDocumentation {
 			}
 
 		}
+
+	}
+
+	/**
+	 * Key names for message handler observations.
+	 */
+	public enum GatewayTags implements KeyName {
+
+		/**
+		 * Name of the message gateway component.
+		 */
+		COMPONENT_NAME {
+			@Override
+			public String asString() {
+				return "spring.integration.name";
+			}
+
+		},
+
+		/**
+		 * Type of the component - 'gateway'.
+		 */
+		COMPONENT_TYPE {
+			@Override
+			public String asString() {
+				return "spring.integration.type";
+			}
+
+		},
+
+		/**
+		 * Outcome of the request/reply execution.
+		 */
+		OUTCOME {
+			@Override
+			public String asString() {
+				return "spring.integration.outcome";
+			}
+		},
 
 	}
 

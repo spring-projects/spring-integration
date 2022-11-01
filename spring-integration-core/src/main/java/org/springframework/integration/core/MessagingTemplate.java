@@ -21,6 +21,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.GenericMessagingTemplate;
@@ -80,6 +81,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	}
 
 	@Override
+	@Nullable
 	public Message<?> sendAndReceive(MessageChannel destination, Message<?> requestMessage) {
 		if (!this.throwExceptionOnLateReplySet) {
 			synchronized (this) {

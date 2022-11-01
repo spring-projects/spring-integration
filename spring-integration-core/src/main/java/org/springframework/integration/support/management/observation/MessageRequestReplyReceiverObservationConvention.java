@@ -20,27 +20,28 @@ import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationConvention;
 
 /**
- * A {@link MessageReceiverContext}-based {@link ObservationConvention} contract.
+ * A {@link MessageRequestReplyReceiverContext}-based {@link ObservationConvention} contract.
  *
  * @author Artem Bilan
  *
  * @since 6.0
  */
-public interface MessageReceiverObservationConvention extends ObservationConvention<MessageReceiverContext> {
+public interface MessageRequestReplyReceiverObservationConvention
+		extends ObservationConvention<MessageRequestReplyReceiverContext> {
 
 	@Override
 	default String getName() {
-		return "spring.integration.handler";
+		return "spring.integration.gateway";
 	}
 
 	@Override
 	default boolean supportsContext(Observation.Context context) {
-		return context instanceof MessageReceiverContext;
+		return context instanceof MessageRequestReplyReceiverContext;
 	}
 
 	@Override
-	default String getContextualName(MessageReceiverContext context) {
-		return context.getHandlerName() + " receive";
+	default String getContextualName(MessageRequestReplyReceiverContext context) {
+		return context.getGatewayName() + " process";
 	}
 
 }
