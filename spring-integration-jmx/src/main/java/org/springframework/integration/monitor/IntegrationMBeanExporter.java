@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.lang.model.SourceVersion;
@@ -268,6 +269,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 				.stream()
 				// If the source is proxied, we have to extract the target to expose as an MBean.
 				// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
+				.filter(Predicate.not(MessageProducer.class::isInstance))
 				.map(this::extractTarget)
 				.map(IntegrationInboundManagement.class::cast)
 				.forEach(src -> this.sources.put(src.getComponentName(), src));
