@@ -71,7 +71,6 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 
-import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -544,13 +543,13 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			Message<?> replyMessage;
 
 			if (this.observationRegistry != ObservationRegistry.NOOP) {
-				replyMessage = sendAndReceiveWithObservation(requestChannel, object, requestMessage);
+				replyMessage = sendAndReceiveWithObservation(channel, object, requestMessage);
 			}
 			else if (this.metricsCaptor != null) {
-				replyMessage = sendAndReceiveWithMetrics(requestChannel, object, requestMessage);
+				replyMessage = sendAndReceiveWithMetrics(channel, object, requestMessage);
 			}
 			else {
-				replyMessage = doSendAndReceive(requestChannel, object, requestMessage);
+				replyMessage = doSendAndReceive(channel, object, requestMessage);
 			}
 
 			reply = replyMessage;

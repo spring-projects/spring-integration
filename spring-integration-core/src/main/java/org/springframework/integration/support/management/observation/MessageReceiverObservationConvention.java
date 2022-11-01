@@ -16,11 +16,8 @@
 
 package org.springframework.integration.support.management.observation;
 
-import org.springframework.messaging.Message;
-
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationConvention;
-import io.micrometer.observation.transport.ReceiverContext;
 
 /**
  * A {@link MessageReceiverContext}-based {@link ObservationConvention} contract.
