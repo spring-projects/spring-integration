@@ -33,6 +33,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.NoSuchElementException;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -49,6 +50,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.KotlinDetector;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -105,6 +107,7 @@ import reactor.core.publisher.Mono;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author JingPeng Xie
  */
 public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		implements TrackableComponent, FactoryBean<T>, MethodInterceptor, BeanClassLoaderAware,
@@ -478,7 +481,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(this.serviceInterface);
 		for (Method method : methods) {
 			if (Modifier.isAbstract(method.getModifiers())
-					|| method.getAnnotation(Gateway.class) != null
+					|| MergedAnnotations.from(method.getAnnotations()).get(Gateway.class).isPresent()
 					|| (method.isDefault() && this.proxyDefaultMethods)) {
 
 				MethodInvocationGateway gateway = createGatewayForMethod(method);
@@ -693,7 +696,12 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 	}
 
 	private MethodInvocationGateway createGatewayForMethod(Method method) {
-		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
+		Gateway gatewayAnnotation = null;
+		try {
+			gatewayAnnotation = MergedAnnotations.from(method.getAnnotations()).get(Gateway.class).synthesize();
+		} catch (NoSuchElementException e) {
+			logger.debug("No @Gateway annotation found on method: " + method);
+		}
 		GatewayMethodMetadata methodMetadata = null;
 		if (!CollectionUtils.isEmpty(this.methodMetadataMap)) {
 			methodMetadata = this.methodMetadataMap.get(method.getName());
