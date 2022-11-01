@@ -161,8 +161,6 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		SPEL_COMPILERS.put(SpelCompilerMode.MIXED, EXPRESSION_PARSER_MIXED);
 	}
 
-	private MessageHandlerMethodFactory messageHandlerMethodFactory;
-
 	private final Object targetObject;
 
 	private final JsonObjectMapper<?, ?> jsonObjectMapper;
@@ -196,6 +194,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	private BeanExpressionContext expressionContext;
 
 	private boolean useSpelInvoker;
+
+	private volatile MessageHandlerMethodFactory messageHandlerMethodFactory;
 
 	private volatile boolean initialized;
 
@@ -515,10 +515,26 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 						: IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME);
 	}
 
+	private void configureLocalMessageHandlerFactory() {
+		BeanFactory beanFactory = getBeanFactory();
+
+		ConfigurableCompositeMessageConverter messageConverter = new ConfigurableCompositeMessageConverter();
+		messageConverter.setBeanFactory(beanFactory);
+		messageConverter.afterPropertiesSet();
+
+		IntegrationMessageHandlerMethodFactory localHandlerMethodFactory =
+				new IntegrationMessageHandlerMethodFactory(this.canProcessMessageList);
+		localHandlerMethodFactory.setMessageConverter(messageConverter);
+		localHandlerMethodFactory.setBeanFactory(beanFactory);
+		localHandlerMethodFactory.afterPropertiesSet();
+
+		this.messageHandlerMethodFactory = localHandlerMethodFactory;
+	}
 	/*
-	 * This should not be needed in production but we have many tests
+	 * This should not be needed in production, but we have many tests
 	 * that don't run in an application context.
 	 */
+
 	private void initializeHandler(HandlerMethod candidate) {
 		ExpressionParser parser;
 		if (candidate.useSpelInvoker == null) {
@@ -535,22 +551,6 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			candidate.setInvocableHandlerMethod(createInvocableHandlerMethod(candidate.method));
 		}
 		candidate.initialized = true;
-	}
-
-	private void configureLocalMessageHandlerFactory() {
-		BeanFactory beanFactory = getBeanFactory();
-
-		ConfigurableCompositeMessageConverter messageConverter = new ConfigurableCompositeMessageConverter();
-		messageConverter.setBeanFactory(beanFactory);
-		messageConverter.afterPropertiesSet();
-
-		IntegrationMessageHandlerMethodFactory localHandlerMethodFactory =
-				new IntegrationMessageHandlerMethodFactory(this.canProcessMessageList);
-		localHandlerMethodFactory.setMessageConverter(messageConverter);
-		localHandlerMethodFactory.setBeanFactory(beanFactory);
-		localHandlerMethodFactory.afterPropertiesSet();
-
-		this.messageHandlerMethodFactory = localHandlerMethodFactory;
 	}
 
 	@Nullable

@@ -346,7 +346,7 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 
 	}
 
-	private final class ReactiveWriteResult extends WriteResult {
+	private static final class ReactiveWriteResult extends WriteResult {
 
 		ReactiveWriteResult(ReactiveResultSet reactiveResultSet) {
 			super(reactiveResultSet.getAllExecutionInfo(),

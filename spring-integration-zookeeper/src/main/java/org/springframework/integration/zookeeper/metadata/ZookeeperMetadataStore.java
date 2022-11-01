@@ -110,46 +110,42 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	@Override
-	public String putIfAbsent(String key, String value) {
+	public synchronized String putIfAbsent(String key, String value) {
 		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(value, "'value' must not be null.");
-		synchronized (this.updateMap) {
-			try {
-				createNode(key, value);
-				return null;
-			}
-			catch (KeeperException.NodeExistsException ex) {
-				// so the data actually exists, we can read it
-				return get(key);
-			}
-			catch (Exception ex) {
-				throw new ZookeeperMetadataStoreException("Error while trying to set '" + key + "':", ex);
-			}
+		try {
+			createNode(key, value);
+			return null;
+		}
+		catch (KeeperException.NodeExistsException ex) {
+			// so the data actually exists, we can read it
+			return get(key);
+		}
+		catch (Exception ex) {
+			throw new ZookeeperMetadataStoreException("Error while trying to set '" + key + "':", ex);
 		}
 	}
 
 	@Override
-	public boolean replace(String key, String oldValue, String newValue) {
+	public synchronized boolean replace(String key, String oldValue, String newValue) {
 		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
-		synchronized (this.updateMap) {
-			Stat currentStat = new Stat();
-			try {
-				byte[] bytes = this.client.getData().storingStatIn(currentStat).forPath(getPath(key));
-				if (oldValue.equals(IntegrationUtils.bytesToString(bytes, this.encoding))) {
-					updateNode(key, newValue, currentStat.getVersion());
-				}
-				return true;
+		Stat currentStat = new Stat();
+		try {
+			byte[] bytes = this.client.getData().storingStatIn(currentStat).forPath(getPath(key));
+			if (oldValue.equals(IntegrationUtils.bytesToString(bytes, this.encoding))) {
+				updateNode(key, newValue, currentStat.getVersion());
 			}
-			catch (KeeperException.NoNodeException | KeeperException.BadVersionException ex) {
-				// ignore, the node doesn't exist there's nothing to replace
-				return false;
-			}
-			// ignore
-			catch (Exception ex) {
-				throw new ZookeeperMetadataStoreException("Cannot replace value", ex);
-			}
+			return true;
+		}
+		catch (KeeperException.NoNodeException | KeeperException.BadVersionException ex) {
+			// ignore, the node doesn't exist there's nothing to replace
+			return false;
+		}
+		// ignore
+		catch (Exception ex) {
+			throw new ZookeeperMetadataStoreException("Cannot replace value", ex);
 		}
 	}
 
@@ -165,77 +161,71 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	@Override
-	public void put(String key, String value) {
+	public synchronized void put(String key, String value) {
 		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(value, "'value' must not be null.");
-		synchronized (this.updateMap) {
-			try {
-				Stat currentNode = this.client.checkExists().forPath(getPath(key));
-				if (currentNode == null) {
-					try {
-						createNode(key, value);
-					}
-					catch (KeeperException.NodeExistsException e) {
-						updateNode(key, value, -1);
-					}
+		try {
+			Stat currentNode = this.client.checkExists().forPath(getPath(key));
+			if (currentNode == null) {
+				try {
+					createNode(key, value);
 				}
-				else {
+				catch (KeeperException.NodeExistsException e) {
 					updateNode(key, value, -1);
 				}
 			}
-			catch (Exception ex) {
-				throw new ZookeeperMetadataStoreException("Error while setting value for key '" + key + "':", ex);
+			else {
+				updateNode(key, value, -1);
 			}
+		}
+		catch (Exception ex) {
+			throw new ZookeeperMetadataStoreException("Error while setting value for key '" + key + "':", ex);
 		}
 	}
 
 	@Override
-	public String get(String key) {
+	public synchronized String get(String key) {
 		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.state(isRunning(), "ZookeeperMetadataStore has to be started before using.");
-		synchronized (this.updateMap) {
-			return this.cache.get(getPath(key))
-					.map(currentData -> {
-						// our version is more recent than the cache
-						if (this.updateMap.containsKey(key) &&
-								this.updateMap.get(key).version() >= currentData.getStat().getVersion()) {
+		return this.cache.get(getPath(key))
+				.map(currentData -> {
+					// our version is more recent than the cache
+					if (this.updateMap.containsKey(key) &&
+							this.updateMap.get(key).version() >= currentData.getStat().getVersion()) {
 
-							return this.updateMap.get(key).value();
-						}
-						return IntegrationUtils.bytesToString(currentData.getData(), this.encoding);
-					})
-					.orElseGet(() -> {
-						if (this.updateMap.containsKey(key)) {
-							// we have saved the value, but the cache hasn't updated yet
-							// if the value had changed via replication, we would have been notified by the listener
-							return this.updateMap.get(key).value();
-						}
-						else {
-							// the value just doesn't exist
-							return null;
-						}
-					});
-		}
+						return this.updateMap.get(key).value();
+					}
+					return IntegrationUtils.bytesToString(currentData.getData(), this.encoding);
+				})
+				.orElseGet(() -> {
+					if (this.updateMap.containsKey(key)) {
+						// we have saved the value, but the cache hasn't updated yet
+						// if the value had changed via replication, we would have been notified by the listener
+						return this.updateMap.get(key).value();
+					}
+					else {
+						// the value just doesn't exist
+						return null;
+					}
+				});
 	}
 
 	@Override
-	public String remove(String key) {
+	public synchronized String remove(String key) {
 		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
-		synchronized (this.updateMap) {
-			try {
-				byte[] bytes = this.client.getData().forPath(getPath(key));
-				this.client.delete().forPath(getPath(key));
-				// we guarantee that the deletion will supersede the existing data
-				this.updateMap.put(key, new LocalChildData(null, Integer.MAX_VALUE));
-				return IntegrationUtils.bytesToString(bytes, this.encoding);
-			}
-			catch (KeeperException.NoNodeException ex) {
-				// ignore - the node doesn't exist
-				return null;
-			}
-			catch (Exception ex) {
-				throw new ZookeeperMetadataStoreException("Exception while deleting key '" + key + "'", ex);
-			}
+		try {
+			byte[] bytes = this.client.getData().forPath(getPath(key));
+			this.client.delete().forPath(getPath(key));
+			// we guarantee that the deletion will supersede the existing data
+			this.updateMap.put(key, new LocalChildData(null, Integer.MAX_VALUE));
+			return IntegrationUtils.bytesToString(bytes, this.encoding);
+		}
+		catch (KeeperException.NoNodeException ex) {
+			// ignore - the node doesn't exist
+			return null;
+		}
+		catch (Exception ex) {
+			throw new ZookeeperMetadataStoreException("Exception while deleting key '" + key + "'", ex);
 		}
 	}
 

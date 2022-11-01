@@ -108,7 +108,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	 * while running.
 	 * @param executor The executor to use or {@code null} if an executor should be created by this class.
 	 */
-	public void setExecutor(@Nullable ExecutorService executor) {
+	public synchronized void setExecutor(@Nullable ExecutorService executor) {
 		this.executor = executor;
 	}
 

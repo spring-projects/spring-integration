@@ -55,7 +55,7 @@ public class MessageHistoryParser implements BeanDefinitionParser {
 
 					@Override
 					public Set<MethodMetadata> getDeclaredMethods() {
-						return null;
+						throw new UnsupportedOperationException("The class doesn't support this operation");
 					}
 
 				}, parserContext.getRegistry());
