@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.IntegrationComponentScanRegistrar;
 import org.springframework.integration.dsl.flows.IntegrationFlowTests;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -44,7 +44,7 @@ import org.springframework.util.ClassUtils;
  *
  * @since 4.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class EnableComponentScanTests {
 
@@ -68,13 +68,15 @@ public class EnableComponentScanTests {
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
 				BeanDefinitionRegistry registry) {
+
 			super.registerBeanDefinitions(
 					AnnotationMetadata.introspect(IntegrationComponentScanConfiguration.class), registry);
 		}
 
 		@Override
-		protected Collection<String> getBasePackages(AnnotationMetadata importingClassMetadata,
+		protected Collection<String> getBasePackages(AnnotationAttributes importingClassMetadata,
 				BeanDefinitionRegistry registry) {
+
 			return Collections.singleton(ClassUtils.getPackageName(IntegrationFlowTests.ControlBusGateway.class));
 		}
 

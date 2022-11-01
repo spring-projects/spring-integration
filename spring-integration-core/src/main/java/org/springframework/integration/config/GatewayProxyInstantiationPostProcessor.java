@@ -18,10 +18,12 @@ package org.springframework.integration.config;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.ScannedGenericBeanDefinition;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
@@ -54,20 +56,23 @@ class GatewayProxyInstantiationPostProcessor implements
 
 	@Override
 	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
-		if (beanClass.isInterface()
-				&& AnnotatedElementUtils.hasAnnotation(beanClass, MessagingGateway.class)
-				&& this.registry.getBeanDefinition(beanName) instanceof AnnotatedGenericBeanDefinition) {
+		if (beanClass.isInterface() && AnnotatedElementUtils.hasAnnotation(beanClass, MessagingGateway.class)) {
+			BeanDefinition beanDefinition = this.registry.getBeanDefinition(beanName);
+			if (beanDefinition instanceof AnnotatedGenericBeanDefinition
+					|| beanDefinition instanceof ScannedGenericBeanDefinition) {
 
-			AnnotationGatewayProxyFactoryBean<?> gatewayProxyFactoryBean =
-					new AnnotationGatewayProxyFactoryBean<>(beanClass);
-			gatewayProxyFactoryBean.setApplicationContext(this.applicationContext);
-			gatewayProxyFactoryBean.setBeanFactory(this.applicationContext.getAutowireCapableBeanFactory());
-			ClassLoader classLoader = this.applicationContext.getClassLoader();
-			if (classLoader != null) {
-				gatewayProxyFactoryBean.setBeanClassLoader(classLoader);
+				AnnotationGatewayProxyFactoryBean<?> gatewayProxyFactoryBean =
+						new AnnotationGatewayProxyFactoryBean<>(beanClass);
+				gatewayProxyFactoryBean.setApplicationContext(this.applicationContext);
+				gatewayProxyFactoryBean.setBeanFactory(this.applicationContext.getAutowireCapableBeanFactory());
+				ClassLoader classLoader = this.applicationContext.getClassLoader();
+				if (classLoader != null) {
+					gatewayProxyFactoryBean.setBeanClassLoader(classLoader);
+				}
+				gatewayProxyFactoryBean.setBeanName(beanName);
+				gatewayProxyFactoryBean.afterPropertiesSet();
+				return gatewayProxyFactoryBean;
 			}
-			gatewayProxyFactoryBean.setBeanName(beanName);
-			return gatewayProxyFactoryBean;
 		}
 		return null;
 	}

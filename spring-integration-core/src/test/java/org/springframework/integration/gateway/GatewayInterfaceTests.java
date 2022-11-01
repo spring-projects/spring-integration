@@ -45,8 +45,10 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationBeanNameGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Condition;
@@ -94,6 +96,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.util.ClassUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -121,11 +124,11 @@ public class GatewayInterfaceTests {
 	private NoExecGateway noExecGateway;
 
 	@Autowired
-	@Qualifier("&gatewayInterfaceTests$ExecGateway")
+	@Qualifier("&execGateway")
 	private GatewayProxyFactoryBean<?> execGatewayFB;
 
 	@Autowired
-	@Qualifier("&gatewayInterfaceTests$NoExecGateway")
+	@Qualifier("&noExecutorGateway")
 	private GatewayProxyFactoryBean<?> noExecGatewayFB;
 
 	@Autowired
@@ -642,8 +645,10 @@ public class GatewayInterfaceTests {
 	@Configuration
 	@ComponentScan(includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
 			classes = AutoCreateChannelService.class))
-	@IntegrationComponentScan(useDefaultFilters = false,
-			includeFilters = @ComponentScan.Filter(TestMessagingGateway.class))
+	@IntegrationComponentScan(
+			useDefaultFilters = false,
+			includeFilters = @ComponentScan.Filter(TestMessagingGateway.class),
+			nameGenerator = CustomBeanNameGenerator.class)
 	@EnableIntegration
 	@Import(ImportedGateway.class)
 	public static class TestConfig {
@@ -754,7 +759,7 @@ public class GatewayInterfaceTests {
 
 	}
 
-	@MessagingGateway(asyncExecutor = AnnotationConstants.NULL)
+	@MessagingGateway(name = "noExecutorGateway", asyncExecutor = AnnotationConstants.NULL)
 	@TestMessagingGateway
 	public interface NoExecGateway {
 
@@ -832,6 +837,22 @@ public class GatewayInterfaceTests {
 		@Override
 		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
 			return context.getBeanFactory().getBeanNamesForType(GatewayByAnnotationGPFB.class).length > 0;
+		}
+
+	}
+
+	public static class CustomBeanNameGenerator extends AnnotationBeanNameGenerator {
+
+		@Override
+		protected String buildDefaultBeanName(BeanDefinition definition) {
+			try {
+				Class<?> beanClass = ClassUtils.forName(definition.getBeanClassName(),
+						ClassUtils.getDefaultClassLoader());
+				return ClassUtils.getShortNameAsProperty(beanClass);
+			}
+			catch (ClassNotFoundException ex) {
+				throw new IllegalStateException(ex);
+			}
 		}
 
 	}

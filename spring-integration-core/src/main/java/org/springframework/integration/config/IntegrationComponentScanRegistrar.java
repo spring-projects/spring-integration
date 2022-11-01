@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,8 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -33,11 +31,12 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
+import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -67,15 +66,14 @@ import org.springframework.util.StringUtils;
 public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRegistrar,
 		ResourceLoaderAware, EnvironmentAware {
 
-	private final Map<TypeFilter, ImportBeanDefinitionRegistrar> componentRegistrars = new HashMap<>();
+	private final List<TypeFilter> defaultFilters = new ArrayList<>();
 
 	private ResourceLoader resourceLoader;
 
 	private Environment environment;
 
 	public IntegrationComponentScanRegistrar() {
-		this.componentRegistrars.put(new AnnotationTypeFilter(MessagingGateway.class, true),
-				new MessagingGatewayRegistrar());
+		this.defaultFilters.add(new AnnotationTypeFilter(MessagingGateway.class, true));
 	}
 
 	@Override
@@ -90,84 +88,75 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		Map<String, Object> componentScan =
-				importingClassMetadata.getAnnotationAttributes(IntegrationComponentScan.class.getName());
+		AnnotationAttributes componentScan =
+				AnnotationAttributes.fromMap(
+						importingClassMetadata.getAnnotationAttributes(IntegrationComponentScan.class.getName()));
 
-		Collection<String> basePackages = getBasePackages(importingClassMetadata, registry);
+		Collection<String> basePackages = getBasePackages(componentScan, registry);
 
 		if (basePackages.isEmpty()) {
 			basePackages = Collections.singleton(ClassUtils.getPackageName(importingClassMetadata.getClassName()));
 		}
 
-		ClassPathScanningCandidateComponentProvider scanner =
-				new ClassPathScanningCandidateComponentProvider(false, this.environment) {
+		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(registry, false) {
 
-					@Override
-					protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
-						return beanDefinition.getMetadata().isIndependent()
-								&& !beanDefinition.getMetadata().isAnnotation();
-					}
+			@Override
+			protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+				return beanDefinition.getMetadata().isIndependent()
+						&& !beanDefinition.getMetadata().isAnnotation();
+			}
 
-					@Override
-					protected BeanDefinitionRegistry getRegistry() {
-						return registry;
-					}
-
-				};
+		};
 
 		filter(registry, componentScan, scanner); // NOSONAR - never null
 
 		scanner.setResourceLoader(this.resourceLoader);
+		scanner.setEnvironment(this.environment);
 
-		for (String basePackage : basePackages) {
-			Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(basePackage);
-			for (BeanDefinition candidateComponent : candidateComponents) {
-				if (candidateComponent instanceof AnnotatedBeanDefinition) {
-					for (ImportBeanDefinitionRegistrar registrar : this.componentRegistrars.values()) {
-						registrar.registerBeanDefinitions(((AnnotatedBeanDefinition) candidateComponent).getMetadata(),
-								registry);
-					}
-				}
-			}
+		BeanNameGenerator beanNameGenerator = IntegrationConfigUtils.annotationBeanNameGenerator(registry);
+
+		Class<? extends BeanNameGenerator> generatorClass = componentScan.getClass("nameGenerator");
+		if (!(BeanNameGenerator.class == generatorClass)) {
+			beanNameGenerator = BeanUtils.instantiateClass(generatorClass);
 		}
+
+		scanner.setBeanNameGenerator(beanNameGenerator);
+		scanner.scan(basePackages.toArray(String[]::new));
 	}
 
-	private void filter(BeanDefinitionRegistry registry, Map<String, Object> componentScan,
+	private void filter(BeanDefinitionRegistry registry, AnnotationAttributes componentScan,
 			ClassPathScanningCandidateComponentProvider scanner) {
 
-		if ((boolean) componentScan.get("useDefaultFilters")) { // NOSONAR - never null
-			for (TypeFilter typeFilter : this.componentRegistrars.keySet()) {
+		if (componentScan.getBoolean("useDefaultFilters")) { // NOSONAR - never null
+			for (TypeFilter typeFilter : this.defaultFilters) {
 				scanner.addIncludeFilter(typeFilter);
 			}
 		}
 
-		for (AnnotationAttributes filter : (AnnotationAttributes[]) componentScan.get("includeFilters")) {
+		for (AnnotationAttributes filter : componentScan.getAnnotationArray("includeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter, registry)) {
 				scanner.addIncludeFilter(typeFilter);
 			}
 		}
-		for (AnnotationAttributes filter : (AnnotationAttributes[]) componentScan.get("excludeFilters")) {
+		for (AnnotationAttributes filter : componentScan.getAnnotationArray("excludeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter, registry)) {
 				scanner.addExcludeFilter(typeFilter);
 			}
 		}
 	}
 
-	protected Collection<String> getBasePackages(AnnotationMetadata importingClassMetadata,
+	protected Collection<String> getBasePackages(AnnotationAttributes componentScan,
 			@SuppressWarnings("unused") BeanDefinitionRegistry registry) {
-
-		Map<String, Object> componentScan =
-				importingClassMetadata.getAnnotationAttributes(IntegrationComponentScan.class.getName());
 
 		Set<String> basePackages = new HashSet<>();
 
-		for (String pkg : (String[]) componentScan.get("value")) { // NOSONAR - never null
+		for (String pkg : componentScan.getStringArray("value")) {
 			if (StringUtils.hasText(pkg)) {
 				basePackages.add(pkg);
 			}
 		}
 
-		for (Class<?> clazz : (Class<?>[]) componentScan.get("basePackageClasses")) {
+		for (Class<?> clazz : componentScan.getClassArray("basePackageClasses")) {
 			basePackages.add(ClassUtils.getPackageName(clazz));
 		}
 
@@ -180,38 +169,33 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 
 		for (Class<?> filterClass : filter.getClassArray("classes")) {
 			switch (filterType) {
-				case ANNOTATION:
+				case ANNOTATION -> {
 					Assert.isAssignable(Annotation.class, filterClass,
 							"An error occurred while processing a @IntegrationComponentScan ANNOTATION type filter: ");
 					@SuppressWarnings("unchecked")
 					Class<Annotation> annotationType = (Class<Annotation>) filterClass;
 					typeFilters.add(new AnnotationTypeFilter(annotationType));
-					break;
-				case ASSIGNABLE_TYPE:
-					typeFilters.add(new AssignableTypeFilter(filterClass));
-					break;
-				case CUSTOM:
+				}
+				case ASSIGNABLE_TYPE -> typeFilters.add(new AssignableTypeFilter(filterClass));
+				case CUSTOM -> {
 					Assert.isAssignable(TypeFilter.class, filterClass,
 							"An error occurred while processing a @IntegrationComponentScan CUSTOM type filter: ");
 					TypeFilter typeFilter = BeanUtils.instantiateClass(filterClass, TypeFilter.class);
 					invokeAwareMethods(filter, this.environment, this.resourceLoader, registry);
 					typeFilters.add(typeFilter);
-					break;
-				default:
-					throw new IllegalArgumentException("Filter type not supported with Class value: " + filterType);
+				}
+				default -> throw new IllegalArgumentException("Filter type not supported with Class value: " +
+						filterType);
 			}
 		}
 
 		for (String expression : filter.getStringArray("pattern")) {
 			switch (filterType) {
-				case ASPECTJ:
-					typeFilters.add(new AspectJTypeFilter(expression, this.resourceLoader.getClassLoader()));
-					break;
-				case REGEX:
-					typeFilters.add(new RegexPatternTypeFilter(Pattern.compile(expression)));
-					break;
-				default:
-					throw new IllegalArgumentException("Filter type not supported with String pattern: " + filterType);
+				case ASPECTJ ->
+						typeFilters.add(new AspectJTypeFilter(expression, this.resourceLoader.getClassLoader()));
+				case REGEX -> typeFilters.add(new RegexPatternTypeFilter(Pattern.compile(expression)));
+				default -> throw new IllegalArgumentException("Filter type not supported with String pattern: "
+						+ filterType);
 			}
 		}
 

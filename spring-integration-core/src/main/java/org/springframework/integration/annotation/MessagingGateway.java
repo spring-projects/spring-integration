@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.stereotype.Indexed;
+import org.springframework.core.annotation.AliasFor;
 
 /**
  * A stereotype annotation to provide an Integration Messaging Gateway Proxy
- * ({@code <gateway/>}) as an abstraction over the messaging API. The target
- * application's business logic may be completely unaware of the Spring Integration
+ * as an abstraction over the messaging API. The target application's
+ * business logic may be completely unaware of the Spring Integration
  * API, with the code interacting only via the interface.
  * <p>
  * Important: The {@link IntegrationComponentScan} annotation is required along with
@@ -41,17 +41,28 @@ import org.springframework.stereotype.Indexed;
  * @since 4.0
  *
  * @see IntegrationComponentScan
+ * @see MessageEndpoint
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Indexed
+@MessageEndpoint
 public @interface MessagingGateway {
 
 	/**
 	 * The value may indicate a suggestion for a logical component name,
 	 * to be turned into a Spring bean in case of an autodetected component.
 	 * @return the suggested component name, if any
+	 * @since 6.0
 	 */
+	@AliasFor(annotation = MessageEndpoint.class)
+	String value() default "";
+
+	/**
+	 * The value may indicate a suggestion for a logical component name,
+	 * to be turned into a Spring bean in case of an autodetected component.
+	 * @return the suggested component name, if any
+	 */
+	@AliasFor(annotation = MessageEndpoint.class, attribute = "value")
 	String name() default "";
 
 	/**
@@ -90,7 +101,7 @@ public @interface MessagingGateway {
 
 	/**
 	 * Allows to specify how long this gateway will wait for the reply {@code Message}
-	 * before returning. By default it will wait indefinitely. {@code null} is returned if
+	 * before returning. By default, it will wait indefinitely. {@code null} is returned if
 	 * the gateway times out. Value is specified in milliseconds; it can be a simple long
 	 * value or a SpEL expression; array variable #args is available.
 	 * @return the suggested timeout in milliseconds, if any
