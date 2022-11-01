@@ -25,7 +25,7 @@ import org.springframework.graphql.ExecutionGraphQlService;
  *
  * @since 6.0
  */
-public class GraphQl {
+public final class GraphQl {
 
 	/**
 	 * Create an instance of {@link GraphQlMessageHandlerSpec} for the provided {@link ExecutionGraphQlService}.
@@ -34,6 +34,9 @@ public class GraphQl {
 	 */
 	public static GraphQlMessageHandlerSpec outboundGateway(ExecutionGraphQlService graphQlService) {
 		return new GraphQlMessageHandlerSpec(graphQlService);
+	}
+
+	private GraphQl() {
 	}
 
 }
