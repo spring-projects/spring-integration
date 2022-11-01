@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -69,31 +68,6 @@ public final class MessagingAnnotationUtils {
 	public static <T> T resolveAttribute(List<Annotation> annotations, String name, Class<T> requiredType) {
 		for (Annotation annotation : annotations) {
 			Object value = AnnotationUtils.getValue(annotation, name);
-			if (requiredType.isInstance(value) && hasValue(value)) {
-				return (T) value;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Get the attribute value from the annotation hierarchy, returning the first
-	 * {@link MessagingAnnotationUtils#hasValue non-empty}) value closest to the annotated method.
-	 * @param annotations The meta-annotations in order (closest first).
-	 * @param name The attribute name.
-	 * @param requiredType The expected type.
-	 * @param <T> The type.
-	 * @return The value.
-	 * @since 6.0
-	 */
-	@Nullable
-	@SuppressWarnings("unchecked")
-	public static <T> T resolveMergedAttribute(List<MergedAnnotation<Annotation>> annotations, String name,
-			Class<T> requiredType) {
-
-		for (MergedAnnotation<?> annotation : annotations) {
-			Map<String, Object> values = annotation.asMap(MergedAnnotation.Adapt.ANNOTATION_TO_MAP);
-			Object value = values.get(name);
 			if (requiredType.isInstance(value) && hasValue(value)) {
 				return (T) value;
 			}

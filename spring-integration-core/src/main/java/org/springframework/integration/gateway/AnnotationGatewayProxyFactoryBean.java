@@ -31,12 +31,12 @@ import org.springframework.context.expression.StandardBeanExpressionResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.annotation.AnnotationConstants;
+import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.lang.Nullable;
@@ -71,8 +71,8 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 
 	private static AnnotationAttributes mergeAnnotationAttributes(Class<?> serviceInterface) {
 		AnnotationAttributes annotationAttributes =
-				AnnotationUtils.getAnnotationAttributes(AnnotationUtils.synthesizeAnnotation(MessagingGateway.class),
-						false, true);
+				AnnotationUtils.getAnnotationAttributes(null,
+						AnnotationUtils.synthesizeAnnotation(MessagingGateway.class));
 
 		if (AnnotatedElementUtils.isAnnotated(serviceInterface, MessagingGateway.class)) {
 			Annotation annotation =
@@ -81,15 +81,12 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 							.getRoot()
 							.synthesize();
 
-			List<MergedAnnotation<Annotation>> annotationChain =
-					MessagingAnnotationUtils.getAnnotationChain(annotation, MessagingGateway.class)
-							.stream()
-							.map(MergedAnnotation::from)
-							.toList();
+			List<Annotation> annotationChain =
+					MessagingAnnotationUtils.getAnnotationChain(annotation, MessagingGateway.class);
 
 			for (Map.Entry<String, Object> attribute : annotationAttributes.entrySet()) {
 				String key = attribute.getKey();
-				Object value = MessagingAnnotationUtils.resolveMergedAttribute(annotationChain, key, Object.class);
+				Object value = MessagingAnnotationUtils.resolveAttribute(annotationChain, key, Object.class);
 				if (value != null) {
 					attribute.setValue(value);
 				}
@@ -147,8 +144,7 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 
 		String defaultPayloadExpression = resolveAttribute("defaultPayloadExpression");
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object>[] defaultHeaders = (Map<String, Object>[]) this.gatewayAttributes.get("defaultHeaders");
+		GatewayHeader[] defaultHeaders = (GatewayHeader[]) this.gatewayAttributes.get("defaultHeaders");
 
 		String mapper = resolveAttribute("mapper");
 
@@ -175,14 +171,14 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 			Map<String, Expression> headerExpressions =
 					Arrays.stream(defaultHeaders)
 							.collect(Collectors.toMap(
-									header -> beanFactory.resolveEmbeddedValue((String) header.get("name")),
+									header -> beanFactory.resolveEmbeddedValue(header.name()),
 									header -> {
 										String headerValue =
-												beanFactory.resolveEmbeddedValue((String) header.get("value"));
+												beanFactory.resolveEmbeddedValue(header.value());
 										boolean hasValue = StringUtils.hasText(headerValue);
 
 										String headerExpression =
-												beanFactory.resolveEmbeddedValue((String) header.get("expression"));
+												beanFactory.resolveEmbeddedValue(header.expression());
 
 										Assert.state(!(hasValue == StringUtils.hasText(headerExpression)),
 												"exactly one of 'value' or 'expression' is required on a gateway's " +
