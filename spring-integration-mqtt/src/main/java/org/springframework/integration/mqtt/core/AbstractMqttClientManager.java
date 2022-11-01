@@ -61,7 +61,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	private String beanName;
 
-	private volatile T client;
+	private T client;
 
 	protected AbstractMqttClientManager(String clientId) {
 		Assert.notNull(clientId, "'clientId' is required");
@@ -102,7 +102,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	}
 
 	@Override
-	public T getClient() {
+	public synchronized T getClient() {
 		return this.client;
 	}
 

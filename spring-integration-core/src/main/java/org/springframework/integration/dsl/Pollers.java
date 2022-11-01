@@ -21,6 +21,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -46,7 +47,7 @@ public final class Pollers {
 	}
 
 	public static PollerSpec fixedRate(Duration period) {
-		return fixedRate(period, null);
+		return periodicTrigger(period, true, null);
 	}
 
 	/**
@@ -75,7 +76,7 @@ public final class Pollers {
 	}
 
 	public static PollerSpec fixedDelay(Duration period) {
-		return fixedDelay(period, null);
+		return periodicTrigger(period, false, null);
 	}
 
 	public static PollerSpec fixedDelay(long period) {
@@ -107,10 +108,12 @@ public final class Pollers {
 		return fixedDelay(Duration.of(period, chronoUnit), Duration.of(initialDelay, chronoUnit));
 	}
 
-	private static PollerSpec periodicTrigger(Duration period, boolean fixedRate, Duration initialDelay) {
+	private static PollerSpec periodicTrigger(Duration period, boolean fixedRate, @Nullable Duration initialDelay) {
 		PeriodicTrigger periodicTrigger = new PeriodicTrigger(period);
 		periodicTrigger.setFixedRate(fixedRate);
-		periodicTrigger.setInitialDelay(initialDelay);
+		if (initialDelay != null) {
+			periodicTrigger.setInitialDelay(initialDelay);
+		}
 		return new PollerSpec(periodicTrigger);
 	}
 

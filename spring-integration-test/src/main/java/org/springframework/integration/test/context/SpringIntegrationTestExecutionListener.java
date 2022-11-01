@@ -41,7 +41,7 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 		SpringIntegrationTest springIntegrationTest =
 				AnnotatedElementUtils.findMergedAnnotation(testContext.getTestClass(), SpringIntegrationTest.class);
 
-		String[] patterns = springIntegrationTest.noAutoStartup();
+		String[] patterns = springIntegrationTest != null ? springIntegrationTest.noAutoStartup() : new String[0];
 
 		ApplicationContext applicationContext = testContext.getApplicationContext();
 		MockIntegrationContext mockIntegrationContext = applicationContext.getBean(MockIntegrationContext.class);

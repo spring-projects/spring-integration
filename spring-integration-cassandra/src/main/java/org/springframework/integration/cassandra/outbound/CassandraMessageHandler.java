@@ -80,7 +80,7 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 	/**
 	 * Various options that can be used for Cassandra writes.
 	 */
-	private WriteOptions writeOptions = WriteOptions.empty();
+	private WriteOptions writeOptions;
 
 	private ReactiveSessionMessageCallback sessionMessageCallback;
 
@@ -95,18 +95,15 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 
 		Assert.notNull(cassandraOperations, "'cassandraOperations' must not be null.");
 		Assert.notNull(queryType, "'queryType' must not be null.");
-		this.cassandraOperations = cassandraOperations;
+		this.cassandraOperations = cassandraOperations; // NOSONAR
 		this.mode = queryType;
 		setAsync(true);
-		switch (this.mode) {
-
-			case INSERT:
-				this.writeOptions = InsertOptions.empty();
-				break;
-			case UPDATE:
-				this.writeOptions = UpdateOptions.empty();
-				break;
-		}
+		this.writeOptions =
+				switch (this.mode) {
+					case INSERT -> InsertOptions.empty();
+					case UPDATE -> UpdateOptions.empty();
+					case DELETE, STATEMENT -> WriteOptions.empty();
+				};
 	}
 
 	public void setIngestQuery(String ingestQuery) {
@@ -183,7 +180,7 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
 		if (typeLocator instanceof StandardTypeLocator) {
 			/*
-			 * Register the Cassandra Query DSL package so they don't need a FQCN for QueryBuilder, for example.
+			 * Register the Cassandra Query DSL package, so they don't need a FQCN for QueryBuilder, for example.
 			 */
 			((StandardTypeLocator) typeLocator).registerImport(QueryBuilder.class.getPackage().getName());
 		}
@@ -193,28 +190,15 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Object payload = requestMessage.getPayload();
 
-		Mono<? extends WriteResult> result = null;
+		Type modeToUse = payload instanceof Statement ? modeToUse = Type.STATEMENT : this.mode;
 
-		Type mode = this.mode;
-
-		if (payload instanceof Statement) {
-			mode = Type.STATEMENT;
-		}
-
-		switch (mode) {
-			case INSERT:
-				result = handleInsert(payload);
-				break;
-			case UPDATE:
-				result = handleUpdate(payload);
-				break;
-			case DELETE:
-				result = handleDelete(payload);
-				break;
-			case STATEMENT:
-				result = handleStatement(requestMessage);
-				break;
-		}
+		Mono<? extends WriteResult> result =
+				switch (modeToUse) {
+					case INSERT -> handleInsert(payload);
+					case UPDATE -> handleUpdate(payload);
+					case DELETE -> handleDelete(payload);
+					case STATEMENT -> handleStatement(requestMessage);
+				};
 
 		if (this.producesReply) {
 			return isAsync() ? result : result.block();

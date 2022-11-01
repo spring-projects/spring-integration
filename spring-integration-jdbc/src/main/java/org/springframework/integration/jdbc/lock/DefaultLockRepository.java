@@ -225,30 +225,34 @@ public class DefaultLockRepository
 
 	@Override
 	public boolean acquire(String lock) {
-		return this.serializableTransactionTemplate.execute(
-				transactionStatus -> {
-					if (this.template.update(this.updateQuery, this.id, LocalDateTime.now(ZoneOffset.UTC),
-							this.region, lock, this.id,
-							LocalDateTime.now(ZoneOffset.UTC).minus(this.ttl, ChronoUnit.MILLIS)) > 0) {
-						return true;
-					}
-					try {
-						return this.template.update(this.insertQuery, this.region, lock, this.id,
-								LocalDateTime.now(ZoneOffset.UTC)) > 0;
-					}
-					catch (DataIntegrityViolationException ex) {
-						return false;
-					}
-				});
+		Boolean result =
+				this.serializableTransactionTemplate.execute(
+						transactionStatus -> {
+							if (this.template.update(this.updateQuery, this.id, LocalDateTime.now(ZoneOffset.UTC),
+									this.region, lock, this.id,
+									LocalDateTime.now(ZoneOffset.UTC).minus(this.ttl, ChronoUnit.MILLIS)) > 0) {
+								return true;
+							}
+							try {
+								return this.template.update(this.insertQuery, this.region, lock, this.id,
+										LocalDateTime.now(ZoneOffset.UTC)) > 0;
+							}
+							catch (DataIntegrityViolationException ex) {
+								return false;
+							}
+						});
+		return Boolean.TRUE.equals(result);
 	}
 
 	@Override
 	public boolean isAcquired(String lock) {
-		return this.readOnlyTransactionTemplate.execute(
+		final Boolean result = this.readOnlyTransactionTemplate.execute(
 				transactionStatus ->
-						this.template.queryForObject(this.countQuery, // NOSONAR query never returns null
-								Integer.class, this.region, lock, this.id,
-								LocalDateTime.now(ZoneOffset.UTC).minus(this.ttl, ChronoUnit.MILLIS)) == 1);
+						Integer.valueOf(1).equals(
+								this.template.queryForObject(this.countQuery,
+										Integer.class, this.region, lock, this.id,
+										LocalDateTime.now(ZoneOffset.UTC).minus(this.ttl, ChronoUnit.MILLIS))));
+		return Boolean.TRUE.equals(result);
 	}
 
 	@Override
@@ -261,10 +265,11 @@ public class DefaultLockRepository
 
 	@Override
 	public boolean renew(String lock) {
-		return this.defaultTransactionTemplate.execute(
+		final Boolean result = this.defaultTransactionTemplate.execute(
 				transactionStatus ->
 						this.template.update(this.renewQuery, LocalDateTime.now(ZoneOffset.UTC),
 								this.region, lock, this.id) > 0);
+		return Boolean.TRUE.equals(result);
 	}
 
 }

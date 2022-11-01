@@ -32,6 +32,8 @@ import com.rabbitmq.stream.Environment;
  * Spec for {@link StreamListenerContainer}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 6.0
  *
  */
@@ -47,17 +49,8 @@ public class RabbitStreamMessageListenerContainerSpec extends
 	}
 
 	/**
-	 * Set the Stream queue name;
-	 * Mutually exclusive with {@link #superStream(String, String)}.
-	 * @return this spec.
-	 */
-	public RabbitStreamMessageListenerContainerSpec queueName(String queueName) {
-		return super.queueName(queueName);
-	}
-
-	/**
 	 * Enable Single Active Consumer on a Super Stream.
-	 * Mutually exclusive with {@link #setQueueName(String...)}.
+	 * Mutually exclusive with {@link #queueName(String...)}.
 	 * @param superStream the stream.
 	 * @param name the consumer name.
 	 * @return this spec.

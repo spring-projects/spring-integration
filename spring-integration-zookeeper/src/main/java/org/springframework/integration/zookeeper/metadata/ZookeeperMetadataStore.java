@@ -74,7 +74,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	public ZookeeperMetadataStore(CuratorFramework client) {
 		Assert.notNull(client, "Client cannot be null");
-		this.client = client;
+		this.client = client;  // NOSONAR
 	}
 
 	/**
@@ -195,7 +195,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 						return this.updateMap.get(key).value();
 					}
-					return IntegrationUtils.bytesToString(currentData.getData(), this.encoding);
+					return IntegrationUtils.bytesToString(currentData.getData(), this.encoding); // NOSONAR
 				})
 				.orElseGet(() -> {
 					if (this.updateMap.containsKey(key)) {
@@ -312,7 +312,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			String value = IntegrationUtils.bytesToString(data.getData(), ZookeeperMetadataStore.this.encoding);
 
 			switch (type) {
-				case NODE_CREATED:
+				case NODE_CREATED -> {
 					if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey) &&
 							data.getStat().getVersion() >=
 									ZookeeperMetadataStore.this.updateMap.get(eventKey).version()) {
@@ -320,8 +320,8 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 						ZookeeperMetadataStore.this.updateMap.remove(eventPath);
 					}
 					ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onAdd(eventKey, value));
-					break;
-				case NODE_CHANGED:
+				}
+				case NODE_CHANGED -> {
 					if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey) &&
 							data.getStat().getVersion() >=
 									ZookeeperMetadataStore.this.updateMap.get(eventKey).version()) {
@@ -329,11 +329,11 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 						ZookeeperMetadataStore.this.updateMap.remove(eventPath);
 					}
 					ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onUpdate(eventKey, value));
-					break;
-				case NODE_DELETED:
+				}
+				case NODE_DELETED -> {
 					ZookeeperMetadataStore.this.updateMap.remove(eventKey);
 					ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onRemove(eventKey, value));
-					break;
+				}
 			}
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2021-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.http.config;
+
+import java.util.Arrays;
 
 import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
@@ -34,9 +36,9 @@ final class WebFluxIntegrationGraphCorsConfigurer implements WebFluxConfigurer {
 
 	private final String[] allowedOrigins;
 
-	WebFluxIntegrationGraphCorsConfigurer(String path, String[] allowedOrigins) { // NOSONAR
+	WebFluxIntegrationGraphCorsConfigurer(String path, String[] allowedOrigins) {
 		this.path = path;
-		this.allowedOrigins = allowedOrigins;
+		this.allowedOrigins = Arrays.copyOf(allowedOrigins, allowedOrigins.length);
 	}
 
 	@Override
