@@ -75,8 +75,11 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 				Boolean.parseBoolean(this.environment.resolvePlaceholders(
 						(String) this.attributes.get("defaultLoggingEnabled"))));
 		configurer.setMetricsCaptorProvider(metricsCaptorProvider);
-		configurer.setObservationPatterns((String[]) this.attributes.get("observationPatterns"));
-		configurer.setObservationRegistry(observationRegistryProvider);
+		String[] observationPatterns = (String[]) this.attributes.get("observationPatterns");
+		if (observationPatterns.length > 0) {
+			configurer.setObservationPatterns(observationPatterns);
+			configurer.setObservationRegistry(observationRegistryProvider);
+		}
 		return configurer;
 	}
 
