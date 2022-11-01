@@ -45,6 +45,8 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.graphql.dsl.GraphQl;
+import org.springframework.integration.graphql.dsl.GraphQlMessageHandlerSpec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
@@ -121,8 +123,8 @@ public class GraphQlMessageHandlerTests {
 		Locale locale = Locale.getDefault();
 		this.graphQlMessageHandler.setLocale(locale);
 
-		Mono<ExecutionGraphQlResponse> resultMono =
-				(Mono<ExecutionGraphQlResponse>) this.graphQlMessageHandler.handleRequestMessage(new GenericMessage<>(fakeQuery));
+		var resultMono = (Mono<ExecutionGraphQlResponse>) this.graphQlMessageHandler.handleRequestMessage(
+				new GenericMessage<>(fakeQuery));
 		StepVerifier.create(resultMono)
 				.consumeNextWith(result -> {
 					assertThat(result).isInstanceOf(ExecutionGraphQlResponse.class);
@@ -243,18 +245,9 @@ public class GraphQlMessageHandlerTests {
 
 		@SubscriptionMapping
 		public Flux<QueryResult> results() {
-			return Flux.just(
-					new QueryResult("test-data-01"),
-					new QueryResult("test-data-02"),
-					new QueryResult("test-data-03"),
-					new QueryResult("test-data-04"),
-					new QueryResult("test-data-05"),
-					new QueryResult("test-data-06"),
-					new QueryResult("test-data-07"),
-					new QueryResult("test-data-08"),
-					new QueryResult("test-data-09"),
-					new QueryResult("test-data-10")
-			);
+			return Flux.range(1, 10)
+					.map(d -> String.format("test-data-%02d", d))
+					.map(QueryResult::new);
 		}
 
 	}
@@ -280,14 +273,9 @@ public class GraphQlMessageHandlerTests {
 	static class TestConfig {
 
 		@Bean
-		GraphQlMessageHandler handler(ExecutionGraphQlService graphQlService) {
-			return new GraphQlMessageHandler(graphQlService);
-		}
-
-		@Bean
-		IntegrationFlow graphqlQueryMessageHandlerFlow(GraphQlMessageHandler handler) {
+		IntegrationFlow graphqlQueryMessageHandlerFlow(ExecutionGraphQlService graphQlService) {
 			return IntegrationFlow.from(MessageChannels.flux("inputChannel"))
-					.handle(handler)
+					.handle(GraphQl.outboundChannelAdapter(graphQlService))
 					.channel(c -> c.flux("resultChannel"))
 					.get();
 		}

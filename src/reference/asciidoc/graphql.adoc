@@ -44,19 +44,18 @@ See documentation for the `ExecutionGraphQlResponse` how to process the GraphQL 
 [source, java]
 ----
 @Bean
-GraphQlMessageHandler handler(ExecutionGraphQlService graphQlService) {
-    GraphQlMessageHandler graphQlMessageHandler = new GraphQlMessageHandler(graphQlService);
-    graphQlMessageHandler.setOperation("""
-            query HeroNameAndFriends($episode: Episode) {
-              hero(episode: $episode) {
-                name
-                friends {
-                  name
-                }
-              }
-            }""");
-    graphQlMessageHandler.setVariablesExpression(new SpelExpressionParser().parseExpression("{episode:'JEDI'}"));
-    return graphQlMessageHandler;
+GraphQlMessageHandlerSpec graphQlMessageHandlerSpec(ExecutionGraphQlService graphQlService) {
+    return GraphQl.outboundChannelAdapter(graphQlService)
+            .operation("""
+                    query HeroNameAndFriends($episode: Episode) {
+                      hero(episode: $episode) {
+                        name
+                        friends {
+                          name
+                        }
+                      }
+                    }""")
+            .variablesExpression("{episode:'JEDI'}");
 }
 
 @Bean
