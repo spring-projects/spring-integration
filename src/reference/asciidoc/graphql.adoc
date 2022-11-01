@@ -45,7 +45,7 @@ See documentation for the `ExecutionGraphQlResponse` how to process the GraphQL 
 ----
 @Bean
 GraphQlMessageHandlerSpec graphQlMessageHandlerSpec(ExecutionGraphQlService graphQlService) {
-    return GraphQl.outboundGateway(graphQlService)
+    return GraphQl.gateway(graphQlService)
             .operation("""
                     query HeroNameAndFriends($episode: Episode) {
                       hero(episode: $episode) {

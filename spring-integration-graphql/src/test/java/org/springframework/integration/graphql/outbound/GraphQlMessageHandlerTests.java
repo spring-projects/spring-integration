@@ -274,7 +274,7 @@ public class GraphQlMessageHandlerTests {
 		@Bean
 		IntegrationFlow graphqlQueryMessageHandlerFlow(ExecutionGraphQlService graphQlService) {
 			return IntegrationFlow.from(MessageChannels.flux("inputChannel"))
-					.handle(GraphQl.outboundGateway(graphQlService))
+					.handle(GraphQl.gateway(graphQlService))
 					.channel(c -> c.flux("resultChannel"))
 					.get();
 		}
