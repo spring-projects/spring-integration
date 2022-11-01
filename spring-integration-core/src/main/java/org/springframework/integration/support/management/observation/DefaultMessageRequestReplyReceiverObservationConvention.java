@@ -20,7 +20,7 @@ import io.micrometer.common.KeyValues;
 
 /**
  * A default {@link MessageRequestReplyReceiverObservationConvention} implementation.
- * Provides low cardinalities as a {@link IntegrationObservation.HandlerTags} values.
+ * Provides low cardinalities as a {@link IntegrationObservation.GatewayTags} values.
  *
  * @author Artem Bilan
  *

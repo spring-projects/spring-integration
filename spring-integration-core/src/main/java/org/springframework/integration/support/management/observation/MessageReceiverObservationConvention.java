@@ -23,7 +23,7 @@ import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.transport.ReceiverContext;
 
 /**
- * The {@link ReceiverContext} extension for {@link Message} context.
+ * A {@link MessageReceiverContext}-based {@link ObservationConvention} contract.
  *
  * @author Artem Bilan
  *

@@ -21,6 +21,9 @@ import io.micrometer.observation.docs.ObservationDocumentation;
 
 /**
  * The {@link ObservationDocumentation} implementation for Spring Integration infrastructure.
+ * <p>
+ * NOTE: This class is mostly intended for observation docs generation, so any string literals,
+ * even if they are the same, cannot be extracted into constants or super methods.
  *
  * @author Artem Bilan
  *

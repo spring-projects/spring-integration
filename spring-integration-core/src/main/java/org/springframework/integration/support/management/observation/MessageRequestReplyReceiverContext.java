@@ -22,7 +22,7 @@ import org.springframework.messaging.Message;
 import io.micrometer.observation.transport.RequestReplyReceiverContext;
 
 /**
- * The {@link RequestReplyReceiverContext} extension for {@link Message} context with inbound gateways.
+ * The {@link RequestReplyReceiverContext} extension for a {@link Message} contract with inbound gateways.
  *
  * @author Artem Bilan
  *

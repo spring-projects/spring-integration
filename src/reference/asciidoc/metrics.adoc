@@ -150,7 +150,10 @@ registry.config().meterFilter(MeterFilter.deny(id ->
 
 Starting with version 6.0, Spring Integration utilizes a Micrometer Observation abstraction which can handle metrics as well as https://micrometer.io/docs/tracing[tracing] via appropriate `ObservationHandler` configuration.
 
-The observation handling is enabled on the `IntegrationManagement` components whenever an `ObservationRegistry` bean is present in the application context.
+The observation handling is enabled on the `IntegrationManagement` components whenever an `ObservationRegistry` bean is present in the application context and an `@EnableIntegrationManagement` is configured.
+To customize what set of components should be instrumented, an `observationPatterns()` attribute is exposed on the `@EnableIntegrationManagement` annotation.
+See its javadocs for a pattern matching algorithm.
+Buy default all the `IntegrationManagement` components are instrumented with an `ObservationRegistry` bean.
 The meters are not gathered in this case independently, but delegated to an appropriate `ObservationHandler` configured on the provided `ObservationRegistry`.
 
 An observation production on the `IntegrationManagement` components can be customized via `ObservationConvention` configuration.

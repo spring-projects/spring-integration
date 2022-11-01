@@ -64,7 +64,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
-	private ObservationRegistry observationRegistry;
+	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
 
 	@Nullable
 	private MessageReceiverObservationConvention observationConvention;
@@ -147,7 +147,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 	/**
 	 * Configure the default timeout value to use for send operations.
 	 * May be overridden for individual messages.
-	 * @param sendTimeout the send timeout in milliseconds
+	 * @param sendTimeout the 'send' operation timeout in milliseconds
 	 * @see MessagingTemplate#setSendTimeout
 	 */
 	public void setSendTimeout(long sendTimeout) {
@@ -196,6 +196,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 
 	@Override
 	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
+		Assert.notNull(observationRegistry, "'observationRegistry' must not be null");
 		this.observationRegistry = observationRegistry;
 	}
 
@@ -253,7 +254,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 							this.observationConvention,
 							DefaultMessageReceiverObservationConvention.INSTANCE,
 							() -> new MessageReceiverContext(message, getComponentName()),
-							observationRegistry)
+							this.observationRegistry)
 					.observe(() -> this.messagingTemplate.send(getRequiredOutputChannel(), trackMessageIfAny(message)));
 		}
 		catch (RuntimeException ex) {

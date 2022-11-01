@@ -23,7 +23,7 @@ import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.transport.ReceiverContext;
 
 /**
- * The {@link ReceiverContext} extension for {@link Message} context.
+ * A {@link MessageRequestReplyReceiverContext}-based {@link ObservationConvention} contract.
  *
  * @author Artem Bilan
  *
@@ -44,7 +44,7 @@ public interface MessageRequestReplyReceiverObservationConvention
 
 	@Override
 	default String getContextualName(MessageRequestReplyReceiverContext context) {
-		return context.getGatewayName() + " receive";
+		return context.getGatewayName() + " process";
 	}
 
 }

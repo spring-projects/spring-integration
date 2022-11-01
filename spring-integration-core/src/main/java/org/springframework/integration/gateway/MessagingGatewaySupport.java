@@ -137,7 +137,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private TimerFacade successTimer;
 
-	private ObservationRegistry observationRegistry;
+	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
 
 	@Nullable
 	private MessageRequestReplyReceiverObservationConvention observationConvention;
@@ -368,6 +368,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	@Override
 	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
+		Assert.notNull(observationRegistry, "'observationRegistry' must not be null");
 		this.observationRegistry = observationRegistry;
 	}
 
@@ -542,7 +543,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			requestMessage = convertToRequestMessage(object, shouldConvert);
 			Message<?> replyMessage;
 
-			if (this.observationRegistry != null) {
+			if (this.observationRegistry != ObservationRegistry.NOOP) {
 				replyMessage = sendAndReceiveWithObservation(requestChannel, object, requestMessage);
 			}
 			else if (this.metricsCaptor != null) {
@@ -552,11 +553,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				replyMessage = doSendAndReceive(requestChannel, object, requestMessage);
 			}
 
+			reply = replyMessage;
 			if (shouldConvert) {
 				reply = this.messagingTemplate.getMessageConverter().fromMessage(replyMessage, Object.class);
-			}
-			else {
-				reply = replyMessage;
 			}
 		}
 		catch (Throwable ex) { // NOSONAR (catch throwable)
@@ -589,35 +588,17 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	private Message<?> sendAndReceiveWithObservation(MessageChannel requestChannel, Object object,
 			Message<?> requestMessage) {
 
-		MessageRequestReplyReceiverContext context;
+		MessageRequestReplyReceiverContext context =
+				new MessageRequestReplyReceiverContext(requestMessage, getComponentName());
 
-		if (this.observationRegistry.isNoop()) {
-			context = null;
-		}
-		else {
-			context = new MessageRequestReplyReceiverContext(requestMessage, getComponentName());
-		}
-
-		Observation observation =
-				IntegrationObservation.GATEWAY.observation(this.observationConvention,
+		return IntegrationObservation.GATEWAY.observation(this.observationConvention,
 						DefaultMessageRequestReplyReceiverObservationConvention.INSTANCE,
-						() -> context, this.observationRegistry);
-
-		observation.start();
-		try (Observation.Scope ignored = observation.openScope()) {
-			Message<?> replyMessage = doSendAndReceive(requestChannel, object, requestMessage);
-			if (context != null) {
-				context.setResponse(replyMessage);
-			}
-			return replyMessage;
-		}
-		catch (Exception exception) {
-			observation.error(exception);
-			throw exception;
-		}
-		finally {
-			observation.stop();
-		}
+						() -> context, this.observationRegistry)
+				.observe(() -> {
+					Message<?> replyMessage = doSendAndReceive(requestChannel, object, requestMessage);
+					context.setResponse(replyMessage);
+					return replyMessage;
+				});
 	}
 
 	private Message<?> sendAndReceiveWithMetrics(MessageChannel requestChannel, Object object,
@@ -1006,7 +987,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * The {@link MessagingTemplate} extension to increase {@link #doConvert(Object, Map, MessagePostProcessor)}
 	 * visibility to get access to the request message from an observation context.
 	 */
-	private static class ConvertingMessagingTemplate extends MessagingTemplate {
+	protected static class ConvertingMessagingTemplate extends MessagingTemplate {
 
 		@Override // NOSONAR Increase visibility
 		public Message<?> doConvert(Object payload, @Nullable Map<String, Object> headers,
