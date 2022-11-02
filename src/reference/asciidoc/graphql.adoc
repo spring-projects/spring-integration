@@ -101,4 +101,4 @@ public SubscriptionPublisher obtainSubscriptionResult(RequestOutput output) {
 ====
 
 Such an outbound gateway can be used not only for GraphQL request via HTTP, but from any upstream endpoint which produces or carries a GraphQL operation or its arguments in the message.
-The result of the `GraphQlMessageHandler` handling can be produces as a reply to the upstream request or sent downstream for further processing in the integration flow.
+The result of the `GraphQlMessageHandler` handling can be produced as a reply to the upstream request or sent downstream for further processing in the integration flow.
