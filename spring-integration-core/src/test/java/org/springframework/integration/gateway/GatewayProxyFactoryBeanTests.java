@@ -23,6 +23,10 @@ import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
@@ -499,12 +503,17 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
-	public void testAliasForSupport() {
-		GatewayProxyFactoryBean<AliasForGatewayService> gpfb = new GatewayProxyFactoryBean<>(AliasForGatewayService.class);
-		gpfb.setBeanFactory(mock(BeanFactory.class));
+	public void testAliasForSupport() throws NoSuchMethodException {
+		MessageChannel requestChannel = new DirectChannel();
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("requestChannel", requestChannel);
+		GatewayProxyFactoryBean<CompositedGatewayService> gpfb = new GatewayProxyFactoryBean<>(
+				CompositedGatewayService.class);
+		gpfb.setBeanFactory(beanFactory);
 		gpfb.afterPropertiesSet();
 		Map<Method, MessagingGatewaySupport> gateways = gpfb.getGateways();
-		assertThat(gateways.size()).isEqualTo(1);
+		Method sendMethod = CompositedGatewayService.class.getMethod("gatewayMethod");
+		assertThat(gateways.get(sendMethod).getRequestChannel()).isEqualTo(beanFactory.getBean("requestChannel"));
 	}
 
 	public static void throwTestException() throws TestException {
@@ -528,7 +537,9 @@ public class GatewayProxyFactoryBeanTests {
 
 
 	@Gateway
-	@interface AnnotationWithAliasForGateway {
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.METHOD)
+	@interface CompositedGateway {
 
 		@AliasFor(annotation = Gateway.class, attribute = "requestChannel")
 		String requestChannelName() default "";
@@ -536,10 +547,10 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 
-	interface AliasForGatewayService {
+	interface CompositedGatewayService {
 
-		@AnnotationWithAliasForGateway(requestChannelName = "foo")
-		void foo();
+		@CompositedGateway(requestChannelName = "requestChannel")
+		void gatewayMethod();
 
 	}
 
