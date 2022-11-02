@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.Expression;
 import org.springframework.integration.annotation.Gateway;
-import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
