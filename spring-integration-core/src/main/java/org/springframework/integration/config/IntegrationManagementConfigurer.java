@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -148,7 +149,7 @@ public class IntegrationManagementConfigurer
 	 */
 	public void setObservationPatterns(String... observationPatterns) {
 		Assert.notEmpty(observationPatterns, "'observationPatterns' must not be empty");
-		this.observationPatterns = observationPatterns;
+		this.observationPatterns = Arrays.copyOf(observationPatterns, observationPatterns.length);
 	}
 
 	@Override

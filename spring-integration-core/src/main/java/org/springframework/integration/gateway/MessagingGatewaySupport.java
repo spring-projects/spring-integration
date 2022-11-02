@@ -542,7 +542,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			requestMessage = convertToRequestMessage(object, shouldConvert);
 			Message<?> replyMessage;
 
-			if (this.observationRegistry != ObservationRegistry.NOOP) {
+			if (!ObservationRegistry.NOOP.equals(this.observationRegistry)) {
 				replyMessage = sendAndReceiveWithObservation(channel, object, requestMessage);
 			}
 			else if (this.metricsCaptor != null) {
@@ -553,7 +553,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			}
 
 			reply = replyMessage;
-			if (shouldConvert) {
+			if (replyMessage != null && shouldConvert) {
 				reply = this.messagingTemplate.getMessageConverter().fromMessage(replyMessage, Object.class);
 			}
 		}
@@ -595,11 +595,14 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 						() -> context, this.observationRegistry)
 				.observe(() -> {
 					Message<?> replyMessage = doSendAndReceive(requestChannel, object, requestMessage);
-					context.setResponse(replyMessage);
+					if (replyMessage != null) {
+						context.setResponse(replyMessage);
+					}
 					return replyMessage;
 				});
 	}
 
+	@Nullable
 	private Message<?> sendAndReceiveWithMetrics(MessageChannel requestChannel, Object object,
 			Message<?> requestMessage) {
 
@@ -609,12 +612,13 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			sample.stop(sendTimer());
 			return replyMessage;
 		}
-		catch (Throwable ex) {
+		catch (Exception ex) {
 			sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
 			throw ex;
 		}
 	}
 
+	@Nullable
 	private Message<?> doSendAndReceive(MessageChannel requestChannel, Object object, Message<?> requestMessage) {
 		Message<?> replyMessage = this.messagingTemplate.sendAndReceive(requestChannel, requestMessage);
 		if (replyMessage == null && this.errorOnTimeout) {

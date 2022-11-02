@@ -115,7 +115,7 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 						ArrayList.class,
 						HashMap.class,
 						Properties.class,
-						Hashtable.class,
+						Hashtable.class, // NOSONAR
 						Exception.class,
 						UUID.class,
 						GenericMessage.class,

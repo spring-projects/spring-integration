@@ -190,7 +190,7 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Object payload = requestMessage.getPayload();
 
-		Type modeToUse = payload instanceof Statement ? modeToUse = Type.STATEMENT : this.mode;
+		Type modeToUse = payload instanceof Statement ? Type.STATEMENT : this.mode;
 
 		Mono<? extends WriteResult> result =
 				switch (modeToUse) {
