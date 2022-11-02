@@ -49,6 +49,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -102,6 +103,7 @@ import reactor.core.publisher.Mono;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author JingPeng Xie
  */
 public class GatewayProxyFactoryBean extends AbstractEndpoint
 		implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware,
@@ -486,7 +488,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(this.serviceInterface);
 		for (Method method : methods) {
 			if (Modifier.isAbstract(method.getModifiers())
-					|| method.getAnnotation(Gateway.class) != null
+					|| AnnotatedElementUtils.isAnnotated(method, Gateway.class)
 					|| (method.isDefault() && this.proxyDefaultMethods)) {
 
 				MethodInvocationGateway gateway = createGatewayForMethod(method);
@@ -680,7 +682,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	private MethodInvocationGateway createGatewayForMethod(Method method) {
-		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
+		Gateway gatewayAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, Gateway.class);
 		GatewayMethodMetadata methodMetadata = null;
 		if (!CollectionUtils.isEmpty(this.methodMetadataMap)) {
 			methodMetadata = this.methodMetadataMap.get(method.getName());
