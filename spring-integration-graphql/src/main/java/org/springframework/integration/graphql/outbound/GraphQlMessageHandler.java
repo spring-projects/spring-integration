@@ -61,7 +61,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	private Expression executionIdExpression =
 			new FunctionExpression<Message<?>>(message -> message.getHeaders().getId());
 
-	public GraphQlMessageHandler(final ExecutionGraphQlService graphQlService) {
+	public GraphQlMessageHandler(ExecutionGraphQlService graphQlService) {
 		Assert.notNull(graphQlService, "'graphQlService' must not be null");
 		this.graphQlService = graphQlService;
 		setAsync(true);
