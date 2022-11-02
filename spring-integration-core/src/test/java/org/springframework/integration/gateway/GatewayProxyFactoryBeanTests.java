@@ -23,6 +23,10 @@ import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
@@ -40,6 +44,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -70,6 +75,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author JingPeng Xie
  */
 public class GatewayProxyFactoryBeanTests {
 
@@ -496,6 +502,20 @@ public class GatewayProxyFactoryBeanTests {
 		assertThat(gateways.size()).isEqualTo(2);
 	}
 
+	@Test
+	public void testAliasForSupport() throws NoSuchMethodException {
+		MessageChannel requestChannel = new DirectChannel();
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("requestChannel", requestChannel);
+		GatewayProxyFactoryBean<CompositedGatewayService> gpfb = new GatewayProxyFactoryBean<>(
+				CompositedGatewayService.class);
+		gpfb.setBeanFactory(beanFactory);
+		gpfb.afterPropertiesSet();
+		Map<Method, MessagingGatewaySupport> gateways = gpfb.getGateways();
+		Method sendMethod = CompositedGatewayService.class.getMethod("gatewayMethod");
+		assertThat(gateways.get(sendMethod).getRequestChannel()).isEqualTo(beanFactory.getBean("requestChannel"));
+	}
+
 	public static void throwTestException() throws TestException {
 		throw new TestException();
 	}
@@ -514,6 +534,26 @@ public class GatewayProxyFactoryBeanTests {
 		Message<?> echo(String s);
 
 	}
+
+
+	@Gateway
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.METHOD)
+	@interface CompositedGateway {
+
+		@AliasFor(annotation = Gateway.class, attribute = "requestChannel")
+		String requestChannelName() default "";
+
+	}
+
+
+	interface CompositedGatewayService {
+
+		@CompositedGateway(requestChannelName = "requestChannel")
+		void gatewayMethod();
+
+	}
+
 
 	interface HeadersParamService {
 
