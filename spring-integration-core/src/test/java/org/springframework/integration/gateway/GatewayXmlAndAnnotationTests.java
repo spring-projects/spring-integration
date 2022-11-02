@@ -43,6 +43,9 @@ public class GatewayXmlAndAnnotationTests {
 	@Autowired
 	GatewayProxyFactoryBean<?> gatewayProxyFactoryBean;
 
+	@Autowired
+	AGateway<String> stringAGateway;
+
 	@Test
 	public void test() {
 		assertThat(TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Expression.class)
@@ -52,42 +55,44 @@ public class GatewayXmlAndAnnotationTests {
 				"gatewayMap", Map.class);
 		int assertions = 0;
 		for (Entry<Method, MessagingGatewaySupport> entry : gatewayMap.entrySet()) {
-			if (entry.getKey().getName().equals("annotationShouldntOverrideDefault")) {
-				assertThat(TestUtils.getPropertyValue(entry.getValue(),
-						"replyTimeout")).isEqualTo(123L);
-				assertions++;
-			}
-			else if (entry.getKey().getName().equals("annotationShouldOverrideDefault")) {
-				assertThat(TestUtils.getPropertyValue(entry.getValue(),
-						"replyTimeout")).isEqualTo(234L);
-				assertions++;
-			}
-			else if (entry.getKey().getName().equals("annotationShouldOverrideDefaultToInfinity")) {
-				assertThat(TestUtils.getPropertyValue(entry.getValue(),
-						"replyTimeout")).isEqualTo(-1L);
-				assertions++;
-			}
-			else if (entry.getKey().getName().equals("explicitTimeoutShouldOverrideDefault")) {
-				assertThat(TestUtils.getPropertyValue(entry.getValue(),
-						"replyTimeout")).isEqualTo(456L);
-				assertions++;
+			switch (entry.getKey().getName()) {
+				case "annotationShouldNotOverrideDefault" -> {
+					assertThat(TestUtils.getPropertyValue(entry.getValue(),
+							"replyTimeout")).isEqualTo(123L);
+					assertions++;
+				}
+				case "annotationShouldOverrideDefault" -> {
+					assertThat(TestUtils.getPropertyValue(entry.getValue(),
+							"replyTimeout")).isEqualTo(234L);
+					assertions++;
+				}
+				case "annotationShouldOverrideDefaultToInfinity" -> {
+					assertThat(TestUtils.getPropertyValue(entry.getValue(),
+							"replyTimeout")).isEqualTo(-1L);
+					assertions++;
+				}
+				case "explicitTimeoutShouldOverrideDefault" -> {
+					assertThat(TestUtils.getPropertyValue(entry.getValue(),
+							"replyTimeout")).isEqualTo(456L);
+					assertions++;
+				}
 			}
 		}
 		assertThat(assertions).isEqualTo(4);
 	}
 
-	public interface AGateway {
+	public interface AGateway<T> {
 
 		@Gateway
-		String annotationShouldntOverrideDefault(String foo);
+		String annotationShouldNotOverrideDefault(T foo);
 
 		@Gateway(replyTimeout = 234)
-		String annotationShouldOverrideDefault(String foo);
+		String annotationShouldOverrideDefault(T foo);
 
 		@Gateway(replyTimeout = -1)
-		String annotationShouldOverrideDefaultToInfinity(String foo);
+		String annotationShouldOverrideDefaultToInfinity(T foo);
 
-		String explicitTimeoutShouldOverrideDefault(String foo);
+		String explicitTimeoutShouldOverrideDefault(T foo);
 
 	}
 

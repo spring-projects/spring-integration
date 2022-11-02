@@ -36,12 +36,11 @@ import org.mockito.ArgumentMatchers;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.ResolvableType;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.Expression;
@@ -199,17 +198,17 @@ public class GatewayParserTests {
 	@Test
 	public void testFactoryBeanObjectTypeWithServiceInterface() {
 		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
-		BeanDefinition beanDefinition = beanFactory.getMergedBeanDefinition("&oneWay");
-		ResolvableType resolvableType = beanDefinition.getResolvableType();
-		assertThat(resolvableType.getGeneric(0).getRawClass()).isEqualTo(TestService.class);
+		Object attribute =
+				beanFactory.getMergedBeanDefinition("&oneWay").getAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE);
+		assertThat(attribute).isEqualTo(TestService.class);
 	}
 
 	@Test
 	public void testFactoryBeanObjectTypeWithNoServiceInterface() {
 		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
-		BeanDefinition beanDefinition = beanFactory.getMergedBeanDefinition("&defaultConfig");
-		ResolvableType resolvableType = beanDefinition.getResolvableType();
-		assertThat(resolvableType.getGeneric(0).getRawClass()).isEqualTo(RequestReplyExchanger.class);
+		Object attribute =
+				beanFactory.getMergedBeanDefinition("&defaultConfig").getAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE);
+		assertThat(attribute).isEqualTo(RequestReplyExchanger.class);
 	}
 
 	@Test
