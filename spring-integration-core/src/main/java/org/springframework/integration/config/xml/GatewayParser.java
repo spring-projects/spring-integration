@@ -67,6 +67,10 @@ public class GatewayParser implements BeanDefinitionParser {
 
 	private static final String PROXY_DEFAULT_METHODS_ATTR = "proxyDefaultMethods";
 
+	private static final String ASYNC_EXECUTOR_ATTR = "asyncExecutor";
+
+	private static final String MAPPER_ATTR = "mapper";
+
 	@Override
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
 		boolean isNested = parserContext.isNested();
@@ -83,13 +87,13 @@ public class GatewayParser implements BeanDefinitionParser {
 
 		String asyncExecutor = element.getAttribute("async-executor");
 		if (!element.hasAttribute("async-executor") || StringUtils.hasLength(asyncExecutor)) {
-			gatewayAttributes.put("asyncExecutor", asyncExecutor);
+			gatewayAttributes.put(ASYNC_EXECUTOR_ATTR, asyncExecutor);
 		}
 		else {
-			gatewayAttributes.put("asyncExecutor", null);
+			gatewayAttributes.put(ASYNC_EXECUTOR_ATTR, null);
 		}
 
-		gatewayAttributes.put("mapper", element.getAttribute("mapper"));
+		gatewayAttributes.put(MAPPER_ATTR, element.getAttribute(MAPPER_ATTR));
 		gatewayAttributes.put("defaultReplyTimeout",
 				element.getAttribute(isNested ? "reply-timeout" : "default-reply-timeout"));
 		gatewayAttributes.put("defaultRequestTimeout",
@@ -122,8 +126,10 @@ public class GatewayParser implements BeanDefinitionParser {
 				Map<String, Object> header = new HashMap<>();
 				header.put(AbstractBeanDefinitionParser.NAME_ATTRIBUTE,
 						e.getAttribute(AbstractBeanDefinitionParser.NAME_ATTRIBUTE));
-				header.put("value", e.getAttribute("value"));
-				header.put("expression", e.getAttribute("expression"));
+				header.put(IntegrationNamespaceUtils.VALUE_ATTRIBUTE,
+						e.getAttribute(IntegrationNamespaceUtils.VALUE_ATTRIBUTE));
+				header.put(IntegrationNamespaceUtils.EXPRESSION_ATTRIBUTE,
+						e.getAttribute(IntegrationNamespaceUtils.EXPRESSION_ATTRIBUTE));
 				headers.add(header);
 			}
 			gatewayAttributes.put("defaultHeaders", headers.toArray(new Map<?, ?>[0]));
@@ -146,7 +152,7 @@ public class GatewayParser implements BeanDefinitionParser {
 				methodMetadataBuilder.addPropertyValue("requestTimeout", methodElement.getAttribute("request-timeout"));
 				methodMetadataBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
 
-				boolean hasMapper = StringUtils.hasText(element.getAttribute("mapper"));
+				boolean hasMapper = StringUtils.hasText(element.getAttribute(MAPPER_ATTR));
 				String payloadExpression = methodElement.getAttribute("payload-expression");
 				Assert.state(!hasMapper || !StringUtils.hasText(payloadExpression),
 						"'payload-expression' is not allowed when a 'mapper' is provided");
@@ -165,7 +171,8 @@ public class GatewayParser implements BeanDefinitionParser {
 					Map<String, Object> headerExpressions = new ManagedMap<>();
 					for (Element headerElement : invocationHeaders) {
 						BeanDefinition expressionDef = IntegrationNamespaceUtils
-								.createExpressionDefinitionFromValueOrExpression("value", "expression", parserContext,
+								.createExpressionDefinitionFromValueOrExpression(
+										IntegrationNamespaceUtils.VALUE_ATTRIBUTE, "expression", parserContext,
 										headerElement, true);
 
 						headerExpressions.put(headerElement.getAttribute(AbstractBeanDefinitionParser.NAME_ATTRIBUTE),
@@ -193,8 +200,8 @@ public class GatewayParser implements BeanDefinitionParser {
 		String defaultRequestChannel = (String) gatewayAttributes.get("defaultRequestChannel");
 		String defaultReplyChannel = (String) gatewayAttributes.get("defaultReplyChannel");
 		String errorChannel = (String) gatewayAttributes.get("errorChannel");
-		String asyncExecutor = (String) gatewayAttributes.get("asyncExecutor");
-		String mapper = (String) gatewayAttributes.get("mapper");
+		String asyncExecutor = (String) gatewayAttributes.get(ASYNC_EXECUTOR_ATTR);
+		String mapper = (String) gatewayAttributes.get(MAPPER_ATTR);
 		String proxyDefaultMethods = (String) gatewayAttributes.get(PROXY_DEFAULT_METHODS_ATTR);
 
 		boolean hasMapper = StringUtils.hasText(mapper);
@@ -229,13 +236,13 @@ public class GatewayParser implements BeanDefinitionParser {
 			gatewayProxyBuilder.addPropertyValue("errorChannelName", errorChannel);
 		}
 		if (asyncExecutor == null || AnnotationConstants.NULL.equals(asyncExecutor)) {
-			gatewayProxyBuilder.addPropertyValue("asyncExecutor", null);
+			gatewayProxyBuilder.addPropertyValue(ASYNC_EXECUTOR_ATTR, null);
 		}
 		else if (StringUtils.hasText(asyncExecutor)) {
-			gatewayProxyBuilder.addPropertyReference("asyncExecutor", asyncExecutor);
+			gatewayProxyBuilder.addPropertyReference(ASYNC_EXECUTOR_ATTR, asyncExecutor);
 		}
 		if (StringUtils.hasText(mapper)) {
-			gatewayProxyBuilder.addPropertyReference("mapper", mapper);
+			gatewayProxyBuilder.addPropertyReference(MAPPER_ATTR, mapper);
 		}
 		if (StringUtils.hasText(proxyDefaultMethods)) {
 			gatewayProxyBuilder.addPropertyValue(PROXY_DEFAULT_METHODS_ATTR, proxyDefaultMethods);
@@ -247,7 +254,7 @@ public class GatewayParser implements BeanDefinitionParser {
 				gatewayAttributes.get("defaultReplyTimeout"));
 		gatewayProxyBuilder.addPropertyValue("methodMetadataMap", gatewayAttributes.get("methods"));
 
-		String id = (String) gatewayAttributes.get("name");
+		String id = (String) gatewayAttributes.get(AbstractBeanDefinitionParser.NAME_ATTRIBUTE);
 		if (!StringUtils.hasText(id)) {
 			BeanNameGenerator beanNameGenerator =
 					IntegrationConfigUtils.annotationBeanNameGenerator(registry);
@@ -281,8 +288,8 @@ public class GatewayParser implements BeanDefinitionParser {
 		if (!ObjectUtils.isEmpty(defaultHeaders)) {
 			Map<String, Object> headerExpressions = new ManagedMap<>();
 			for (Map<String, Object> header : defaultHeaders) {
-				String headerValue = (String) header.get("value");
-				String headerExpression = (String) header.get("expression");
+				String headerValue = (String) header.get(IntegrationNamespaceUtils.VALUE_ATTRIBUTE);
+				String headerExpression = (String) header.get(IntegrationNamespaceUtils.EXPRESSION_ATTRIBUTE);
 				boolean hasValue = StringUtils.hasText(headerValue);
 
 				if (hasValue == StringUtils.hasText(headerExpression)) {
@@ -295,7 +302,7 @@ public class GatewayParser implements BeanDefinitionParser {
 				expressionDef.getConstructorArgumentValues()
 						.addGenericArgumentValue(hasValue ? headerValue : headerExpression);
 
-				headerExpressions.put((String) header.get("name"), expressionDef);
+				headerExpressions.put((String) header.get(AbstractBeanDefinitionParser.NAME_ATTRIBUTE), expressionDef);
 			}
 			methodMetadataBuilder.addPropertyValue("headerExpressions", headerExpressions);
 		}

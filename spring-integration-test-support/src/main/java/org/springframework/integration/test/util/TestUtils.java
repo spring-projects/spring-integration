@@ -257,10 +257,10 @@ public abstract class TestUtils {
 				try {
 					sent = errorChannel.send(new ErrorMessage(throwable), 10000); // NOSONAR
 				}
-				catch (Throwable errorDeliveryError) { //NOSONAR
+				catch (Throwable errorDeliveryError) { // NOSONAR
 					// message will be logged only
 					logger.warn("Error message was not delivered.", errorDeliveryError);
-					if (errorDeliveryError instanceof Error) {  // NOSONAR
+					if (errorDeliveryError instanceof Error) { // NOSONAR
 						throw (Error) errorDeliveryError;
 					}
 				}

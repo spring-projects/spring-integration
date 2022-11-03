@@ -134,7 +134,7 @@ public class MessagingAnnotationPostProcessor
 
 	private void processCandidate(String beanName, AnnotatedBeanDefinition beanDefinition) {
 		MethodMetadata methodMetadata = beanDefinition.getFactoryMethodMetadata();
-		MergedAnnotations annotations = methodMetadata.getAnnotations();
+		MergedAnnotations annotations = methodMetadata.getAnnotations(); // NOSONAR
 		if (methodMetadata instanceof StandardMethodMetadata standardMethodMetadata) {
 			annotations = MergedAnnotations.from(standardMethodMetadata.getIntrospectedMethod());
 		}
@@ -179,7 +179,7 @@ public class MessagingAnnotationPostProcessor
 		if (messagingAnnotationProcessor != null) {
 			if (messagingAnnotationProcessor.beanAnnotationAware()) {
 				if (messagingAnnotationProcessor.shouldCreateEndpoint(
-						beanDefinition.getFactoryMethodMetadata().getAnnotations(), annotationChain)) {
+						beanDefinition.getFactoryMethodMetadata().getAnnotations(), annotationChain)) {  // NOSONAR
 
 					messagingAnnotationProcessor.processBeanDefinition(beanName, beanDefinition, annotationChain);
 				}
@@ -311,11 +311,10 @@ public class MessagingAnnotationPostProcessor
 			MethodAnnotationPostProcessor<?> postProcessor, Method targetMethod) {
 
 		Object result = postProcessor.postProcess(bean, beanName, targetMethod, annotations);
-		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 		if (result instanceof AbstractEndpoint endpoint) {
 			String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, "autoStartup", String.class);
 			if (StringUtils.hasText(autoStartup)) {
-				autoStartup = beanFactory.resolveEmbeddedValue(autoStartup);
+				autoStartup = this.beanFactory.resolveEmbeddedValue(autoStartup);
 				if (StringUtils.hasText(autoStartup)) {
 					endpoint.setAutoStartup(Boolean.parseBoolean(autoStartup));
 				}
@@ -323,7 +322,7 @@ public class MessagingAnnotationPostProcessor
 
 			String phase = MessagingAnnotationUtils.resolveAttribute(annotations, "phase", String.class);
 			if (StringUtils.hasText(phase)) {
-				phase = beanFactory.resolveEmbeddedValue(phase);
+				phase = this.beanFactory.resolveEmbeddedValue(phase);
 				if (StringUtils.hasText(phase)) {
 					endpoint.setPhase(Integer.parseInt(phase));
 				}
@@ -339,7 +338,7 @@ public class MessagingAnnotationPostProcessor
 			getBeanDefinitionRegistry()
 					.registerBeanDefinition(endpointBeanName,
 							new RootBeanDefinition((Class<AbstractEndpoint>) endpoint.getClass(), () -> endpoint));
-			beanFactory.getBean(endpointBeanName);
+			this.beanFactory.getBean(endpointBeanName);
 		}
 	}
 
@@ -352,8 +351,7 @@ public class MessagingAnnotationPostProcessor
 					+ ClassUtils.getShortNameAsProperty(annotationType);
 			name = baseName;
 			int count = 1;
-			ConfigurableListableBeanFactory beanFactory = getBeanFactory();
-			while (beanFactory.containsBean(name)) {
+			while (this.beanFactory.containsBean(name)) {
 				name = baseName + "#" + (++count);
 			}
 		}

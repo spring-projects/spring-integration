@@ -165,18 +165,19 @@ public class CamelMessageHandler extends AbstractReplyProducingMessageHandler {
 				"The 'endpointUri' option is mutually exclusive with 'route'");
 
 		BeanFactory beanFactory = getBeanFactory();
-		if (this.producerTemplate == null) {
+		if (this.producerTemplate == null) { // NOSONAR
 			this.producerTemplate = beanFactory.getBean(CamelContext.class).createProducerTemplate();
 		}
 
-		if (this.route != null) {
+		LambdaRouteBuilder lambdaRouteBuilder = this.route;
+		if (lambdaRouteBuilder != null) {
 			CamelContext camelContext = this.producerTemplate.getCamelContext();
 			RouteBuilder routeBuilder =
 					new RouteBuilder(camelContext) {
 
 						@Override
 						public void configure() throws Exception {
-							CamelMessageHandler.this.route.accept(this);
+							lambdaRouteBuilder.accept(this);
 						}
 
 					};

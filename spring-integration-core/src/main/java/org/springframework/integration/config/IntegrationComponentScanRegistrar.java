@@ -92,6 +92,8 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 				AnnotationAttributes.fromMap(
 						importingClassMetadata.getAnnotationAttributes(IntegrationComponentScan.class.getName()));
 
+		Assert.notNull(componentScan, "The '@IntegrationComponentScan' must be present for using this registrar");
+
 		Collection<String> basePackages = getBasePackages(componentScan, registry);
 
 		if (basePackages.isEmpty()) {
