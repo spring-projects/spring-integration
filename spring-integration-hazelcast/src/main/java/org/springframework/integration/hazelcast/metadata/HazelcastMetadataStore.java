@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class HazelcastMetadataStore implements ListenableMetadataStore, Initiali
 
 	private final IMap<String, String> map;
 
-	private final List<MetadataStoreListener> listeners = new CopyOnWriteArrayList<MetadataStoreListener>();
+	private final List<MetadataStoreListener> listeners = new CopyOnWriteArrayList<>();
 
 	public HazelcastMetadataStore(HazelcastInstance hazelcastInstance) {
 		Assert.notNull(hazelcastInstance, "Hazelcast instance can't be null");
@@ -57,14 +57,14 @@ public class HazelcastMetadataStore implements ListenableMetadataStore, Initiali
 
 	@Override
 	public String putIfAbsent(String key, String value) {
-		Assert.notNull(key, "'key' must not be null.");
+		assertKey(key);
 		Assert.notNull(value, "'value' must not be null.");
 		return this.map.putIfAbsent(key, value);
 	}
 
 	@Override
 	public boolean replace(String key, String oldValue, String newValue) {
-		Assert.notNull(key, "'key' must not be null.");
+		assertKey(key);
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
 		return this.map.replace(key, oldValue, newValue);
@@ -72,21 +72,25 @@ public class HazelcastMetadataStore implements ListenableMetadataStore, Initiali
 
 	@Override
 	public void put(String key, String value) {
-		Assert.notNull(key, "'key' must not be null.");
+		assertKey(key);
 		Assert.notNull(value, "'value' must not be null.");
 		this.map.put(key, value);
 	}
 
 	@Override
 	public String get(String key) {
-		Assert.notNull(key, "'key' must not be null.");
+		assertKey(key);
 		return this.map.get(key);
 	}
 
 	@Override
 	public String remove(String key) {
-		Assert.notNull(key, "'key' must not be null.");
+		assertKey(key);
 		return this.map.remove(key);
+	}
+
+	private static void assertKey(String key) {
+		Assert.notNull(key, "'key' must not be null.");
 	}
 
 	@Override
@@ -101,18 +105,14 @@ public class HazelcastMetadataStore implements ListenableMetadataStore, Initiali
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		this.map.addEntryListener(new MapListener(this.listeners), true);
 	}
 
-	private static class MapListener implements EntryAddedListener<String, String>,
-			EntryRemovedListener<String, String>, EntryUpdatedListener<String, String> {
-
-		private final List<MetadataStoreListener> listeners;
-
-		MapListener(List<MetadataStoreListener> listeners) {
-			this.listeners = listeners;
-		}
+	private record MapListener(List<MetadataStoreListener> listeners)
+			implements EntryAddedListener<String, String>,
+			EntryRemovedListener<String, String>,
+			EntryUpdatedListener<String, String> {
 
 		@Override
 		public void entryAdded(EntryEvent<String, String> event) {

@@ -66,7 +66,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 
 	private static final LogAccessor LOGGER = new LogAccessor(PostgresChannelMessageTableSubscriber.class);
 
-	private final Map<String, Set<Subscription>> subscriptions = new ConcurrentHashMap<>();
+	private final Map<String, Set<Subscription>> subscriptionsMap = new ConcurrentHashMap<>();
 
 	private final PgConnectionSupplier connectionSupplier;
 
@@ -120,7 +120,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	public boolean subscribe(Subscription subscription) {
 		String subscriptionKey = subscription.getRegion() + " " + getKey(subscription.getGroupId());
 		Set<Subscription> subscriptions =
-				this.subscriptions.computeIfAbsent(subscriptionKey, __ -> ConcurrentHashMap.newKeySet());
+				this.subscriptionsMap.computeIfAbsent(subscriptionKey, __ -> ConcurrentHashMap.newKeySet());
 		return subscriptions.add(subscription);
 	}
 
@@ -131,7 +131,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	 */
 	public boolean unsubscribe(Subscription subscription) {
 		String subscriptionKey = subscription.getRegion() + " " + getKey(subscription.getGroupId());
-		Set<Subscription> subscriptions = this.subscriptions.get(subscriptionKey);
+		Set<Subscription> subscriptions = this.subscriptionsMap.get(subscriptionKey);
 		return subscriptions != null && subscriptions.remove(subscription);
 	}
 
@@ -140,16 +140,16 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		if (this.latch.getCount() > 0) {
 			return;
 		}
-		ExecutorService executor = this.executor;
-		if (executor == null) {
+		ExecutorService executorToUse = this.executor;
+		if (executorToUse == null) {
 			CustomizableThreadFactory threadFactory =
 					new CustomizableThreadFactory("postgres-channel-message-table-subscriber-");
 			threadFactory.setDaemon(true);
-			executor = Executors.newSingleThreadExecutor(threadFactory);
-			this.executor = executor;
+			executorToUse = Executors.newSingleThreadExecutor(threadFactory);
+			this.executor = executorToUse;
 		}
 		this.latch = new CountDownLatch(1);
-		this.future = executor.submit(() -> {
+		this.future = executorToUse.submit(() -> {
 			try {
 				while (isActive()) {
 					try {
@@ -157,16 +157,16 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 						try (Statement stmt = conn.createStatement()) {
 							stmt.execute("LISTEN " + this.tablePrefix.toLowerCase() + "channel_message_notify");
 						}
-						catch (Throwable t) {
+						catch (Exception ex) {
 							try {
 								conn.close();
 							}
-							catch (Throwable suppressed) {
-								t.addSuppressed(suppressed);
+							catch (Exception suppressed) {
+								ex.addSuppressed(suppressed);
 							}
-							throw t;
+							throw ex;
 						}
-						this.subscriptions.values()
+						this.subscriptionsMap.values()
 								.forEach(subscriptions -> subscriptions.forEach(Subscription::notifyUpdate));
 						try {
 							this.connection = conn;
@@ -180,7 +180,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 								if (notifications != null) {
 									for (PGNotification notification : notifications) {
 										String parameter = notification.getParameter();
-										Set<Subscription> subscriptions = this.subscriptions.get(parameter);
+										Set<Subscription> subscriptions = this.subscriptionsMap.get(parameter);
 										if (subscriptions == null) {
 											continue;
 										}
@@ -202,10 +202,6 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 							LOGGER.error(e, "Failed to poll notifications from Postgres database");
 						}
 					}
-					catch (Throwable t) {
-						LOGGER.error(t, "Failed to poll notifications from Postgres database");
-						return;
-					}
 				}
 			}
 			finally {
@@ -224,11 +220,10 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 
 	@Override
 	public synchronized void stop() {
-		Future<?> future = this.future;
-		if (future.isDone()) {
+		if (this.future.isDone()) {
 			return;
 		}
-		future.cancel(true);
+		this.future.cancel(true);
 		PgConnection conn = this.connection;
 		if (conn != null) {
 			try {

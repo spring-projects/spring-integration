@@ -53,7 +53,7 @@ public final class Pollers {
 	/**
 	 * @deprecated since 6.0 in favor of {@link #fixedRate(Duration)}
 	 */
-	@Deprecated(since = "6.0", forRemoval = true)
+	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedRate(long period, TimeUnit timeUnit) {
 		return fixedRate(Duration.of(period, timeUnit.toChronoUnit()));
 	}
@@ -69,7 +69,7 @@ public final class Pollers {
 	/**
 	 * @deprecated since 6.0 in favor of {@link #fixedRate(Duration, Duration)}
 	 */
-	@Deprecated(since = "6.0", forRemoval = true)
+	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedRate(long period, TimeUnit timeUnit, long initialDelay) {
 		ChronoUnit chronoUnit = timeUnit.toChronoUnit();
 		return fixedRate(Duration.of(period, chronoUnit), Duration.of(initialDelay, chronoUnit));
@@ -90,7 +90,7 @@ public final class Pollers {
 	/**
 	 * @deprecated since 6.0 in favor of {@link #fixedDelay(Duration)}
 	 */
-	@Deprecated(since = "6.0", forRemoval = true)
+	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedDelay(long period, TimeUnit timeUnit) {
 		return fixedDelay(Duration.of(period, timeUnit.toChronoUnit()));
 	}
@@ -102,7 +102,7 @@ public final class Pollers {
 	/**
 	 * @deprecated since 6.0 in favor of {@link #fixedDelay(Duration, Duration)}
 	 */
-	@Deprecated(since = "6.0", forRemoval = true)
+	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedDelay(long period, TimeUnit timeUnit, long initialDelay) {
 		ChronoUnit chronoUnit = timeUnit.toChronoUnit();
 		return fixedDelay(Duration.of(period, chronoUnit), Duration.of(initialDelay, chronoUnit));

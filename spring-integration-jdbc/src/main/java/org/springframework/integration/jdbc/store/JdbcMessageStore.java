@@ -16,7 +16,6 @@
 
 package org.springframework.integration.jdbc.store;
 
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -50,9 +49,6 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
-import org.springframework.jdbc.support.JdbcAccessor;
-import org.springframework.jdbc.support.JdbcUtils;
-import org.springframework.jdbc.support.MetaDataAccessException;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -171,8 +167,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private final JdbcOperations jdbcTemplate;
 
-	private final String vendorName;
-
 	private final Map<Query, String> queryCache = new ConcurrentHashMap<>();
 
 	private String region = "DEFAULT";
@@ -205,14 +199,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		Assert.notNull(jdbcOperations, "'dataSource' must not be null");
 		this.jdbcTemplate = jdbcOperations;
 		this.serializer = new SerializingConverter();
-		try {
-			this.vendorName =
-					JdbcUtils.extractDatabaseMetaData(((JdbcAccessor) jdbcOperations).getDataSource(), // NOSONAR
-							DatabaseMetaData::getDatabaseProductName);
-		}
-		catch (MetaDataAccessException ex) {
-			throw new IllegalStateException("Cannot extract database vendor name", ex);
-		}
 	}
 
 	@Override

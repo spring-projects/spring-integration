@@ -171,12 +171,15 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 			this.sftpClient.lstat(path);
 			return true;
 		}
-		catch (IOException ex) {
-			if (ex instanceof SftpException sftpException &&
-					SftpConstants.SSH_FX_NO_SUCH_FILE == sftpException.getStatus()) {
-
+		catch (SftpException ex) {
+			if (SftpConstants.SSH_FX_NO_SUCH_FILE == ex.getStatus()) {
 				return false;
 			}
+			else {
+				throw new UncheckedIOException("Cannot check 'lstat' for path " + path, ex);
+			}
+		}
+		catch (IOException ex) {
 			throw new UncheckedIOException("Cannot check 'lstat' for path " + path, ex);
 		}
 	}

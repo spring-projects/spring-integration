@@ -122,10 +122,11 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 			}
 			return result;
 		}
+		catch (ClassCastException ex) {
+			logClassCastException(ex);
+			throw ex;
+		}
 		catch (RuntimeException ex) {
-			if (ex instanceof ClassCastException classCastException) {
-				logClassCastException(classCastException);
-			}
 			throw ex;
 		}
 		catch (InvocationTargetException e) {

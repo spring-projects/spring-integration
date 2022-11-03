@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,9 @@ public class AggregateMessageDeliveryException extends MessageDeliveryException 
 		StringBuilder message = new StringBuilder(appendPeriodIfNecessary(baseMessage))
 				.append(" Multiple causes:\n");
 		for (Exception exception : this.aggregatedExceptions) {
-			message.append("    " + exception.getMessage() + "\n");
+			message.append("    ")
+					.append(exception.getMessage())
+					.append("\n");
 		}
 		message.append("See below for the stacktrace of the first cause.");
 		return message.toString();

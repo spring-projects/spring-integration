@@ -16,9 +16,6 @@
 
 package org.springframework.integration.context;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -90,8 +87,6 @@ public abstract class IntegrationContextUtils {
 
 	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME = "globalChannelInterceptorProcessor";
 
-	public static final String JSON_NODE_WRAPPER_TO_JSON_NODE_CONVERTER = "jsonNodeWrapperToJsonNodeConverter";
-
 	public static final String INTEGRATION_LIFECYCLE_ROLE_CONTROLLER = "integrationLifecycleRoleController";
 
 	public static final String INTEGRATION_GRAPH_SERVER_BEAN_NAME = "integrationGraphServer";
@@ -105,8 +100,6 @@ public abstract class IntegrationContextUtils {
 	public static final String MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationMessageHandlerMethodFactory";
 
 	public static final String LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationListMessageHandlerMethodFactory";
-
-	private static final Log LOGGER = LogFactory.getLog(IntegrationContextUtils.class);
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.

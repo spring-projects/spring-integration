@@ -1013,13 +1013,6 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		return null;
 	}
 
-	private static boolean isMethodDefinedOnObjectClass(Method method) {
-		return method != null && // NOSONAR
-				(ReflectionUtils.isObjectMethod(method) ||
-						AopUtils.isFinalizeMethod(method) || (method.getName().equals("clone")
-						&& method.getParameterTypes().length == 0));
-	}
-
 	public boolean isAsync() {
 		if (this.handlerMethodsList.size() == 1) {
 			Method methodToCheck = this.handlerMethodsList.get(0).values().iterator().next().method;

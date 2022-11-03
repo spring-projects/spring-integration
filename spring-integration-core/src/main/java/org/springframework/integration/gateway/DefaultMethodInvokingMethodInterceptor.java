@@ -36,7 +36,7 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * Method interceptor to invoke default methods on the gateway proxy.
- *
+ * <p>
  * The copy of {@code DefaultMethodInvokingMethodInterceptor} from Spring Data Commons.
  *
  * @author Oliver Gierke
@@ -122,7 +122,7 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 
 			private volatile boolean constructorResolved;
 
-			private Constructor<Lookup> constructor;
+			private transient Constructor<Lookup> constructor;
 
 			private final Supplier<Constructor<Lookup>> constructorSupplier =
 					() -> {

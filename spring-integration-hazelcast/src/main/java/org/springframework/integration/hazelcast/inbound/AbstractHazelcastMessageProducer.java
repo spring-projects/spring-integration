@@ -73,12 +73,12 @@ public abstract class AbstractHazelcastMessageProducer extends MessageProducerSu
 	}
 
 	public void setCacheEventTypes(String cacheEventTypes) {
-		Set<String> cacheEvents =
+		Set<String> events =
 				HazelcastIntegrationDefinitionValidator.validateEnumType(CacheEventType.class, cacheEventTypes);
-		Assert.notEmpty(cacheEvents, "'cacheEvents' must have elements");
+		Assert.notEmpty(events, "'events' must have elements");
 		HazelcastIntegrationDefinitionValidator.validateCacheEventsByDistributedObject(this.distributedObject,
-				cacheEvents);
-		this.cacheEvents = cacheEvents;
+				events);
+		this.cacheEvents = events;
 	}
 
 	protected CacheListeningPolicyType getCacheListeningPolicy() {

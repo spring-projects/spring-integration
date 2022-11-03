@@ -187,12 +187,15 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 		BeanDefinition handlerBeanDefinition =
 				resolveHandlerBeanDefinition(beanName, beanDefinition, handlerBeanType, annotations);
-		MergedAnnotations mergedAnnotations = beanDefinition.getFactoryMethodMetadata().getAnnotations();
+		MergedAnnotations mergedAnnotations =
+				beanDefinition.getFactoryMethodMetadata().getAnnotations(); // NOSONAR
 
 		if (handlerBeanDefinition != null) {
-			if (handlerBeanDefinition != beanDefinition) {
+			if (!handlerBeanDefinition.equals(beanDefinition)) {
+				String beanClassName = handlerBeanDefinition.getBeanClassName();
+				Assert.notNull(beanClassName, "No bean class present for " + handlerBeanDefinition);
 				Class<?> handlerBeanClass =
-						org.springframework.util.ClassUtils.resolveClassName(handlerBeanDefinition.getBeanClassName(),
+						org.springframework.util.ClassUtils.resolveClassName(beanClassName,
 								this.beanFactory.getBeanClassLoader());
 
 				if (isClassIn(handlerBeanClass, Orderable.class, AbstractSimpleMessageHandlerFactoryBean.class)) {
@@ -381,6 +384,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			return ResolvableType.forMethodReturnType(standardMethodMetadata.getIntrospectedMethod());
 		}
 		else {
+			Assert.notNull(factoryMethodMetadata, "No factoryMethodMetadata present for " + beanDefinition);
 			String typeName = factoryMethodMetadata.getReturnTypeName();
 			Class<?> beanClass =
 					org.springframework.util.ClassUtils.resolveClassName(typeName,

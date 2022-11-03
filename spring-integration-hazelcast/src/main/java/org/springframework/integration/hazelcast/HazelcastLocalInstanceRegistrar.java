@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,9 +82,9 @@ public class HazelcastLocalInstanceRegistrar implements SmartInitializingSinglet
 	public void afterSingletonsInstantiated() {
 		if (this.hazelcastInstance == null) {
 			if (!Hazelcast.getAllHazelcastInstances().isEmpty()) {
-				HazelcastInstance hazelcastInstance = Hazelcast.getAllHazelcastInstances().iterator().next();
-				hazelcastInstance.getCluster().addMembershipListener(new HazelcastMembershipListener());
-				syncConfigurationMultiMap(hazelcastInstance);
+				HazelcastInstance anyHazelcastInstance = Hazelcast.getAllHazelcastInstances().iterator().next();
+				anyHazelcastInstance.getCluster().addMembershipListener(new HazelcastMembershipListener());
+				syncConfigurationMultiMap(anyHazelcastInstance);
 			}
 			else {
 				logger.warn("No HazelcastInstances for MembershipListener registration");
