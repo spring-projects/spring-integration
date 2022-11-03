@@ -183,6 +183,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 			public void configure() {
 				from("direct:simple").to("mock:result");
 			}
+
 		};
 	}
 

@@ -496,9 +496,12 @@ project('spring-integration-camel') {
 
     dependencies {
         api project(':spring-integration-core')
-        api 'org.apache.camel:camel-api'
+        api 'org.apache.camel:camel-core-model'
 
         testImplementation 'org.apache.camel:camel-test-junit5'
+        testImplementation ('org.apache.camel:camel-spring') {
+            exclude group: 'org.springframework'
+        }
     }
 }
 

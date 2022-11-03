@@ -32,6 +32,12 @@ See <<./mqtt.adoc#mqtt-shared-client,Shared MQTT Client Support>> for more infor
 The GraphQL support has been added.
 See <<./graphql.adoc#graphql,GraphQL Support>> for more information.
 
+[[x6.0-camel]]
+==== Apache Camel Support
+
+Support for Apache Camel routes has been introduced.
+See <<./camel.adoc#camel,Apache Camel Support>> for more information.
+
 [[x6.0-smb]]
 ==== SMB Support
 

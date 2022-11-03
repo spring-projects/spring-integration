@@ -54,6 +54,12 @@ The following table summarizes the various endpoints with quick links to the app
 | <<./amqp.adoc#amqp-inbound-gateway,Inbound Gateway>>
 | <<./amqp.adoc#amqp-outbound-gateway,Outbound Gateway>>
 
+| *Apache Camel*
+| N
+| <<./camel.adoc#camel-channel-adapter,Outbound Channel Adapter>>
+| N
+| <<./camel.adoc#camel-channel-adapter,Outbound Gateway>>
+
 | *Apache Cassandra*
 | N
 | <<./cassandra.adoc#cassandra-outbound,Outbound Channel Adapter>>

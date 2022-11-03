@@ -19,12 +19,18 @@ package org.springframework.integration.camel.outbound;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.builder.LambdaRouteBuilder;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.RouteDefinition;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -62,12 +68,15 @@ import org.springframework.util.StringUtils;
  */
 public class CamelMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	private final ProducerTemplate producerTemplate;
+	private ProducerTemplate producerTemplate;
 
 	private Expression exchangePatternExpression = new ValueExpression<>(ExchangePattern.InOnly);
 
 	@Nullable
 	private Expression endpointUriExpression;
+
+	@Nullable
+	private LambdaRouteBuilder route;
 
 	private HeaderMapper<org.apache.camel.Message> headerMapper = new CamelHeaderMapper();
 
@@ -76,19 +85,45 @@ public class CamelMessageHandler extends AbstractReplyProducingMessageHandler {
 
 	private StandardEvaluationContext evaluationContext;
 
+	public CamelMessageHandler() {
+	}
+
 	public CamelMessageHandler(ProducerTemplate producerTemplate) {
 		Assert.notNull(producerTemplate, "'producerTemplate' must not be null");
 		this.producerTemplate = producerTemplate;
 	}
 
+	/**
+	 * Set Camel route endpoint uri to send a message.
+	 * Mutually exclusive with {@link #setEndpointUriExpression(Expression)} and {@link #setRoute(LambdaRouteBuilder)}.
+	 * @param endpointUri the Camel route endpoint to send a message.
+	 */
 	public void setEndpointUri(String endpointUri) {
 		Assert.hasText(endpointUri, "'endpointUri' must not be empty");
 		setEndpointUriExpression(new LiteralExpression(endpointUri));
 	}
 
+	/**
+	 * Set Camel route endpoint uri to send a message.
+	 * Mutually exclusive with {@link #setEndpointUri(String)} and {@link #setRoute(LambdaRouteBuilder)}.
+	 * @param endpointUriExpression the SpEL expression to determine a Camel route endpoint to send a message.
+	 */
 	public void setEndpointUriExpression(Expression endpointUriExpression) {
 		Assert.notNull(endpointUriExpression, "'endpointUriExpression' must not be null");
 		this.endpointUriExpression = endpointUriExpression;
+	}
+
+	/**
+	 * Set a {@link LambdaRouteBuilder} to add an inline Camel route definition.
+	 * Can be used as a lambda {@code rb -> rb.from("direct:inbound").bean(MyBean.class)}
+	 * or reference to external instance.
+	 * Mutually exclusive with {@link #setEndpointUri(String)} and {@link #setEndpointUriExpression(Expression)}.
+	 * The endpoint to send a message is extracted from the target {@link RouteBuilder}.
+	 * @param route the {@link LambdaRouteBuilder} to use.
+	 */
+	public void setRoute(LambdaRouteBuilder route) {
+		Assert.notNull(route, "'route' must not be null");
+		this.route = route;
 	}
 
 	public void setExchangePattern(ExchangePattern exchangePattern) {
@@ -126,7 +161,38 @@ public class CamelMessageHandler extends AbstractReplyProducingMessageHandler {
 
 	@Override
 	protected final void doInit() {
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		Assert.state(this.endpointUriExpression == null || this.route == null,
+				"The 'endpointUri' option is mutually exclusive with 'route'");
+
+		BeanFactory beanFactory = getBeanFactory();
+		if (this.producerTemplate == null) {
+			this.producerTemplate = beanFactory.getBean(CamelContext.class).createProducerTemplate();
+		}
+
+		if (this.route != null) {
+			CamelContext camelContext = this.producerTemplate.getCamelContext();
+			RouteBuilder routeBuilder =
+					new RouteBuilder(camelContext) {
+
+						@Override
+						public void configure() throws Exception {
+							CamelMessageHandler.this.route.accept(this);
+						}
+
+					};
+
+			try {
+				camelContext.addRoutes(routeBuilder);
+			}
+			catch (Exception ex) {
+				throw new BeanInitializationException("Cannot load Camel route", ex);
+			}
+
+			RouteDefinition routeDefinition = routeBuilder.getRouteCollection().getRoutes().get(0);
+			this.endpointUriExpression = new LiteralExpression(routeDefinition.getInput().getEndpointUri());
+		}
+
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 	}
 
 	@Override
