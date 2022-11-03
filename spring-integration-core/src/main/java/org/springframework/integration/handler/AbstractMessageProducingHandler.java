@@ -310,11 +310,16 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 
 		if (this.async) {
-			ReactiveAdapter reactiveAdapter = ReactiveAdapterRegistry.getSharedInstance().getAdapter(null, reply);
-			if (reply instanceof org.springframework.util.concurrent.ListenableFuture<?>
-					|| reply instanceof CompletableFuture<?>
-					|| reactiveAdapter != null) {
+			boolean isFutureReply =
+					reply instanceof org.springframework.util.concurrent.ListenableFuture<?> ||
+							reply instanceof CompletableFuture<?>;
 
+			ReactiveAdapter reactiveAdapter = null;
+			if (!isFutureReply) {
+				reactiveAdapter = ReactiveAdapterRegistry.getSharedInstance().getAdapter(null, reply);
+			}
+
+			if (isFutureReply || reactiveAdapter != null) {
 				if (replyChannel instanceof ReactiveStreamsSubscribableChannel reactiveStreamsSubscribableChannel) {
 					Publisher<?> reactiveReply = toPublisherReply(reply, reactiveAdapter);
 					reactiveStreamsSubscribableChannel
