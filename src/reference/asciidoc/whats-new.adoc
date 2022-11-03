@@ -35,7 +35,7 @@ See <<./graphql.adoc#graphql,GraphQL Support>> for more information.
 [[x6.0-camel]]
 ==== Apache Camel Support
 
-The support for Apache Camel routes has been introduced.
+Support for Apache Camel routes has been introduced.
 See <<./camel.adoc#camel,Apache Camel Support>> for more information.
 
 [[x6.0-smb]]
