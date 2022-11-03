@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl.flowservices;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.withinPercentage;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -25,7 +26,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.Advised;
@@ -145,7 +145,7 @@ public class FlowServiceTests {
 				.isEqualTo("B");
 
 		assertThat(receive2.getHeaders().getTimestamp() - receive1.getHeaders().getTimestamp())
-				.isCloseTo(500, Percentage.withPercentage(10));
+				.isCloseTo(500, withinPercentage(20));
 	}
 
 	@Configuration

@@ -309,29 +309,30 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			replyChannel = getOutputChannel();
 		}
 
-		ReactiveAdapter reactiveAdapter = null;
+		if (this.async) {
+			ReactiveAdapter reactiveAdapter = ReactiveAdapterRegistry.getSharedInstance().getAdapter(null, reply);
+			if (reply instanceof org.springframework.util.concurrent.ListenableFuture<?>
+					|| reply instanceof CompletableFuture<?>
+					|| reactiveAdapter != null) {
 
-		if (this.async &&
-				(reply instanceof org.springframework.util.concurrent.ListenableFuture<?>
-						|| reply instanceof CompletableFuture<?>
-						|| (reactiveAdapter = ReactiveAdapterRegistry.getSharedInstance().getAdapter(null, reply)) != null)) {
+				if (replyChannel instanceof ReactiveStreamsSubscribableChannel reactiveStreamsSubscribableChannel) {
+					Publisher<?> reactiveReply = toPublisherReply(reply, reactiveAdapter);
+					reactiveStreamsSubscribableChannel
+							.subscribeTo(
+									Flux.from(reactiveReply)
+											.doOnError((ex) -> sendErrorMessage(requestMessage, ex))
+											.map(result -> createOutputMessage(result, requestHeaders)));
+				}
+				else {
+					CompletableFuture<?> futureReply = toFutureReply(reply, reactiveAdapter);
+					futureReply.whenComplete(new ReplyFutureCallback(requestMessage, replyChannel));
+				}
 
-			if (replyChannel instanceof ReactiveStreamsSubscribableChannel reactiveStreamsSubscribableChannel) {
-				Publisher<?> reactiveReply = toPublisherReply(reply, reactiveAdapter);
-				reactiveStreamsSubscribableChannel
-						.subscribeTo(
-								Flux.from(reactiveReply)
-										.doOnError((ex) -> sendErrorMessage(requestMessage, ex))
-										.map(result -> createOutputMessage(result, requestHeaders)));
-			}
-			else {
-				CompletableFuture<?> futureReply = toFutureReply(reply, reactiveAdapter);
-				futureReply.whenComplete(new ReplyFutureCallback(requestMessage, replyChannel));
+				return;
 			}
 		}
-		else {
-			sendOutput(createOutputMessage(reply, requestHeaders), replyChannel, false);
-		}
+
+		sendOutput(createOutputMessage(reply, requestHeaders), replyChannel, false);
 	}
 
 	private static Publisher<?> toPublisherReply(Object reply, @Nullable ReactiveAdapter reactiveAdapter) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2020 the original author or authors.
+ * Copyright 2001-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ import org.springframework.util.StringUtils;
 /**
  * A {@link org.springframework.messaging.MessageHandler} implementation that maps a Message into
  * a UDP datagram packet and sends that to the specified host and port.
- *
+ * <p>
  * Messages can be basic, with no support for reliability, can be prefixed
  * by a length so the receiving end can detect truncation, and can require
  * a UDP acknowledgment to confirm delivery.
@@ -101,7 +101,7 @@ public class UnicastSendingMessageHandler extends
 
 	private EvaluationContext evaluationContext;
 
-	private SocketCustomizer socketCustomizer = socket -> { };
+	private SocketCustomizer socketCustomizer = (aSocket) -> { };
 
 	private volatile CountDownLatch ackLatch;
 

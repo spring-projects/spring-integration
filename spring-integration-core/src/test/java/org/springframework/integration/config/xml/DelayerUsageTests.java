@@ -91,7 +91,7 @@ public class DelayerUsageTests {
 		long start = System.currentTimeMillis();
 		inputA.send(builder.build());
 		assertThat(outputA.receive(10000)).isNotNull();
-		assertThat(System.currentTimeMillis() - start).isCloseTo(2000, withinPercentage(5));
+		assertThat(System.currentTimeMillis() - start).isCloseTo(2000, withinPercentage(10));
 	}
 
 	@Test

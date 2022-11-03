@@ -272,7 +272,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 						.map(this::trackMessageIfAny)
 						.doOnComplete(this::stop)
 						.doOnCancel(this::stop)
-						.doOnSubscribe((subscription) -> this.subscription = subscription);
+						.doOnSubscribe((subs) -> this.subscription = subs);
 
 		if (channelForSubscription instanceof ReactiveStreamsSubscribableChannel) {
 			((ReactiveStreamsSubscribableChannel) channelForSubscription).subscribeTo(messageFlux);

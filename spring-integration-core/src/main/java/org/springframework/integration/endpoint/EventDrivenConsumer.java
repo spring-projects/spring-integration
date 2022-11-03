@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class EventDrivenConsumer extends AbstractEndpoint implements IntegrationConsumer {
 
@@ -95,9 +96,15 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 			String componentType = ((NamedComponent) this.handler).getComponentType();
 			componentType = StringUtils.hasText(componentType) ? componentType : "";
 			String componentName = getComponentName();
-			componentName = (StringUtils.hasText(componentName) && componentName.contains("#")) ? "" : ":" + componentName;
-			StringBuffer buffer = new StringBuffer();
-			buffer.append("{" + componentType + componentName + "} as a subscriber to the '" + channelName + "' channel");
+			componentName =
+					(StringUtils.hasText(componentName) && componentName.contains("#")) ? "" : ":" + componentName;
+			StringBuilder buffer = new StringBuilder();
+			buffer.append("{")
+					.append(componentType)
+					.append(componentName)
+					.append("} as a subscriber to the '")
+					.append(channelName)
+					.append("' channel");
 			if (add) {
 				buffer.insert(0, "Adding ");
 			}
@@ -107,4 +114,5 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 			logger.info(buffer.toString());
 		}
 	}
+
 }

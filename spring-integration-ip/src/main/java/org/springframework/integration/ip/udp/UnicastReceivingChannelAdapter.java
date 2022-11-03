@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	private int soSendBufferSize = -1;
 
-	private SocketCustomizer socketCustomizer = socket -> { };
+	private SocketCustomizer socketCustomizer = (aSocket) -> { };
 
 	/**
 	 * Constructs a UnicastReceivingChannelAdapter that listens on the specified port.

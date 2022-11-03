@@ -305,14 +305,13 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 		initClient();
 
 		Duration verifyTimeout = this.timeout != null ? Duration.ofMillis(this.timeout) : null;
-		HostConfigEntry hostConfig = this.hostConfig;
-		if (hostConfig == null) {
-			hostConfig =
-					new HostConfigEntry(SshdSocketAddress.isIPv6Address(this.host) ? "" : this.host, this.host,
+		HostConfigEntry config = this.hostConfig;
+		if (config == null) {
+			config = new HostConfigEntry(SshdSocketAddress.isIPv6Address(this.host) ? "" : this.host, this.host,
 							this.port, this.user);
 		}
 		ClientSession clientSession =
-				this.sshClient.connect(hostConfig)
+				this.sshClient.connect(config)
 						.verify(verifyTimeout)
 						.getSession();
 

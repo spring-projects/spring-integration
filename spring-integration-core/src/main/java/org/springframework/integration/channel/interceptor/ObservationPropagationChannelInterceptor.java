@@ -68,7 +68,7 @@ public class ObservationPropagationChannelInterceptor extends ThreadStatePropaga
 	@Override
 	public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler, Exception ex) {
 		Observation.Scope scope = this.scopes.get();
-		if (scope != null && scope == this.observationRegistry.getCurrentObservationScope()) {
+		if (scope != null && scope.equals(this.observationRegistry.getCurrentObservationScope())) {
 			scope.close();
 			this.scopes.remove();
 		}

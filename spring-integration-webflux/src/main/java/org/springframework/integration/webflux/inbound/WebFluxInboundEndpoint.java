@@ -517,9 +517,9 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 	private static MediaType selectMoreSpecificMediaType(MediaType acceptable, MediaType producible) {
-		producible = producible.copyQualityValue(acceptable);
-		if (acceptable.isLessSpecific(producible)) {
-			return producible;
+		MediaType producibleToUse = producible.copyQualityValue(acceptable);
+		if (acceptable.isLessSpecific(producibleToUse)) {
+			return producibleToUse;
 		}
 		else {
 			return acceptable;
