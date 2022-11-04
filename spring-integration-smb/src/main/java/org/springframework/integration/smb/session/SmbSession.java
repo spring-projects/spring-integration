@@ -141,7 +141,7 @@ public class SmbSession implements Session<SmbFile> {
 				return files;
 			}
 			else if (!smbDir.isDirectory()) {
-				throw new IOException("Resource [" + _path + "] is not a directory. Cannot list resources.");
+				throw new IOException("[" + _path + "] is not a directory. Cannot list resources.");
 			}
 
 			files = smbDir.listFiles();
@@ -176,7 +176,7 @@ public class SmbSession implements Session<SmbFile> {
 		try {
 			SmbFile remoteFile = createSmbFileObject(_path);
 			if (!remoteFile.isFile()) {
-				throw new IOException("Resource [" + _path + "] is not a file.");
+				throw new IOException("[" + _path + "] is not a file.");
 			}
 			FileCopyUtils.copy(remoteFile.getInputStream(), _outputStream);
 		}
@@ -366,7 +366,7 @@ public class SmbSession implements Session<SmbFile> {
 	public InputStream readRaw(String source) throws IOException {
 		SmbFile remoteFile = createSmbFileObject(source);
 		if (!remoteFile.isFile()) {
-			throw new IOException("Resource [" + source + "] is not a file.");
+			throw new IOException("[" + source + "] is not a file.");
 		}
 		return remoteFile.getInputStream();
 	}
@@ -499,7 +499,7 @@ public class SmbSession implements Session<SmbFile> {
 				return fileNames;
 			}
 			else if (!smbDir.isDirectory()) {
-				throw new IOException("Resource [" + _path + "] is not a directory. Cannot list resources.");
+				throw new IOException("[" + _path + "] is not a directory. Cannot list resources.");
 			}
 
 			fileNames = smbDir.list();

@@ -16,11 +16,13 @@
 
 package org.springframework.integration.mqtt.inbound;
 
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -67,7 +69,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	private final String clientId;
 
-	private final Set<Topic> topics;
+	private final Map<String, Integer> topics;
 
 	private final ClientManager<T, C> clientManager;
 
@@ -95,15 +97,12 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		this.clientId = null;
 	}
 
-	private static Set<Topic> initTopics(String[] topic) {
+	private static Map<String, Integer> initTopics(String[] topic) {
 		Assert.notNull(topic, "'topics' cannot be null");
 		Assert.noNullElements(topic, "'topics' cannot have null elements");
-		final Set<Topic> initialTopics = new LinkedHashSet<>();
-		int defaultQos = 1;
-		for (String t : topic) {
-			initialTopics.add(new Topic(t, defaultQos));
-		}
-		return initialTopics;
+
+		return Arrays.stream(topic)
+				.collect(Collectors.toMap(Function.identity(), (key) -> 1, (x, y) -> y, LinkedHashMap::new));
 	}
 
 	public void setConverter(MqttMessageConverter converter) {
@@ -125,16 +124,16 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	public void setQos(int... qos) {
 		Assert.notNull(qos, "'qos' cannot be null");
 		if (qos.length == 1) {
-			for (Topic topic : this.topics) {
-				topic.setQos(qos[0]);
+			for (Map.Entry<String, Integer> topic : this.topics.entrySet()) {
+				topic.setValue(qos[0]);
 			}
 		}
 		else {
 			Assert.isTrue(qos.length == this.topics.size(),
 					"When setting qos, the array must be the same length as the topics");
 			int n = 0;
-			for (Topic topic : this.topics) {
-				topic.setQos(qos[n++]);
+			for (Map.Entry<String, Integer> topic : this.topics.entrySet()) {
+				topic.setValue(qos[n++]);
 			}
 		}
 	}
@@ -145,8 +144,8 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		try {
 			int[] topicQos = new int[this.topics.size()];
 			int n = 0;
-			for (Topic topic : this.topics) {
-				topicQos[n++] = topic.getQos();
+			for (int qos : this.topics.values()) {
+				topicQos[n++] = qos;
 			}
 			return topicQos;
 		}
@@ -173,12 +172,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	public String[] getTopic() {
 		this.topicLock.lock();
 		try {
-			String[] topicNames = new String[this.topics.size()];
-			int n = 0;
-			for (Topic topic : this.topics) {
-				topicNames[n++] = topic.getTopic();
-			}
-			return topicNames;
+			return this.topics.keySet().toArray(new String[0]);
 		}
 		finally {
 			this.topicLock.unlock();
@@ -253,11 +247,10 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	public void addTopic(String topic, int qos) {
 		this.topicLock.lock();
 		try {
-			Topic newTopic = new Topic(topic, qos);
-			if (this.topics.contains(newTopic)) {
+			if (this.topics.containsKey(topic)) {
 				throw new MessagingException("Topic '" + topic + "' is already subscribed.");
 			}
-			this.topics.add(newTopic);
+			this.topics.put(topic, qos);
 			logger.debug(LogMessage.format("Added '%s' to subscriptions.", topic));
 		}
 		finally {
@@ -300,7 +293,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		this.topicLock.lock();
 		try {
 			for (String newTopic : topic) {
-				if (this.topics.contains(new Topic(newTopic, 0))) {
+				if (this.topics.containsKey(newTopic)) {
 					throw new MessagingException("Topic '" + newTopic + "' is already subscribed.");
 				}
 			}
@@ -323,68 +316,15 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	public void removeTopic(String... topic) {
 		this.topicLock.lock();
 		try {
-			for (String t : topic) {
-				if (this.topics.remove(new Topic(t, 0))) {
-					logger.debug(LogMessage.format("Removed '%s' from subscriptions.", t));
+			for (String name : topic) {
+				if (this.topics.remove(name) != null) {
+					logger.debug(LogMessage.format("Removed '%s' from subscriptions.", name));
 				}
 			}
 		}
 		finally {
 			this.topicLock.unlock();
 		}
-	}
-
-	/**
-	 * @since 4.1
-	 */
-	private static final class Topic {
-
-		private final String topic;
-
-		private volatile int qos;
-
-		Topic(String topic, int qos) {
-			this.topic = topic;
-			this.qos = qos;
-		}
-
-		private int getQos() {
-			return this.qos;
-		}
-
-		private void setQos(int qos) {
-			this.qos = qos;
-		}
-
-		private String getTopic() {
-			return this.topic;
-		}
-
-		@Override
-		public int hashCode() {
-			return this.topic.hashCode();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			Topic other = (Topic) obj;
-			return Objects.equals(this.topic, other.topic);
-		}
-
-		@Override
-		public String toString() {
-			return "Topic [topic=" + this.topic + ", qos=" + this.qos + "]";
-		}
-
 	}
 
 }

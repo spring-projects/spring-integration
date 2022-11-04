@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@ import org.springframework.util.StringUtils;
  * {@code <int-hazelcast:cq-inbound-channel-adapter/>} configuration.
  *
  * @author Eren Avsarogullari
+ * @author Artem Bilan
+ *
  * @since 6.0
  */
 public class HazelcastContinuousQueryInboundChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
@@ -82,27 +84,30 @@ public class HazelcastContinuousQueryInboundChannelAdapterParser extends Abstrac
 		}
 
 		if (!StringUtils.hasText(element.getAttribute(CACHE_ATTRIBUTE))) {
-			parserContext.getReaderContext().error("'" + CACHE_ATTRIBUTE + "' attribute is required.", element);
+			errorAttributeRequired(element, parserContext, CACHE_ATTRIBUTE);
 		}
 		else if (!StringUtils.hasText(element.getAttribute(CACHE_EVENTS_ATTRIBUTE))) {
-			parserContext.getReaderContext().error("'" + CACHE_EVENTS_ATTRIBUTE + "' attribute is required.", element);
+			errorAttributeRequired(element, parserContext, CACHE_EVENTS_ATTRIBUTE);
 		}
 		else if (!StringUtils.hasText(element.getAttribute(PREDICATE_ATTRIBUTE))) {
-			parserContext.getReaderContext().error("'" + PREDICATE_ATTRIBUTE + "' attribute is required.", element);
+			errorAttributeRequired(element, parserContext, PREDICATE_ATTRIBUTE);
 		}
 		else if (!StringUtils.hasText(element.getAttribute(CACHE_LISTENING_POLICY_ATTRIBUTE))) {
-			parserContext.getReaderContext().error("'" + CACHE_LISTENING_POLICY_ATTRIBUTE + "' attribute is required.",
-					element);
+			errorAttributeRequired(element, parserContext, CACHE_LISTENING_POLICY_ATTRIBUTE);
 		}
 
-		builder.addPropertyReference(OUTPUT_CHANNEL, channelName);
-		builder.addConstructorArgReference(element.getAttribute(CACHE_ATTRIBUTE));
-		builder.addConstructorArgValue(element.getAttribute(PREDICATE_ATTRIBUTE));
+		builder.addPropertyReference(OUTPUT_CHANNEL, channelName)
+				.addConstructorArgReference(element.getAttribute(CACHE_ATTRIBUTE))
+				.addConstructorArgValue(element.getAttribute(PREDICATE_ATTRIBUTE));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, CACHE_EVENTS_ATTRIBUTE, CACHE_EVENT_TYPES);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, INCLUDE_VALUE_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, CACHE_LISTENING_POLICY_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
+	}
+
+	private static void errorAttributeRequired(Element element, ParserContext parserContext, String attribute) {
+		parserContext.getReaderContext().error("'" + attribute + "' attribute is required.", element);
 	}
 
 }

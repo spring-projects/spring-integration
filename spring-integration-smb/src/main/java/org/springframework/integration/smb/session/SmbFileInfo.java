@@ -33,6 +33,7 @@ import jcifs.smb.SmbFile;
  * SMB.
  *
  * @author Gregory Bragg
+ * @author Artem Bilan
  *
  * @since 6.0
  */
@@ -110,7 +111,7 @@ public class SmbFileInfo extends AbstractFileInfo<SmbFile> {
 	 */
 	@Override
 	public String getPermissions() {
-		ACE[] aces = null;
+		ACE[] aces;
 		try {
 			aces = this.smbFile.getSecurity(true);
 		}
@@ -125,24 +126,24 @@ public class SmbFileInfo extends AbstractFileInfo<SmbFile> {
 			sb.append(" - ");
 
 			if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0) {
-				sb.append(ace.isAllow() ? "Allow " : "Deny ");
+				sb.append(aceToAllowFlag(ace));
 				sb.append("Read, ");
 			}
 			if ((ace.getAccessMask() & ACE.FILE_WRITE_DATA) != 0) {
-				sb.append(ace.isAllow() ? "Allow " : "Deny ");
+				sb.append(aceToAllowFlag(ace));
 				sb.append("Write, ");
 			}
 			if ((ace.getAccessMask() & ACE.FILE_APPEND_DATA) != 0) {
-				sb.append(ace.isAllow() ? "Allow " : "Deny ");
+				sb.append(aceToAllowFlag(ace));
 				sb.append("Modify, ");
 			}
 			if ((ace.getAccessMask() & ACE.FILE_EXECUTE) != 0) {
-				sb.append(ace.isAllow() ? "Allow " : "Deny ");
+				sb.append(aceToAllowFlag(ace));
 				sb.append("Execute, ");
 			}
 			if ((ace.getAccessMask() & ACE.FILE_DELETE) != 0
 					|| (ace.getAccessMask() & ACE.DELETE) != 0) {
-				sb.append(ace.isAllow() ? "Allow " : "Deny ");
+				sb.append(aceToAllowFlag(ace));
 				sb.append("Delete, ");
 			}
 
@@ -151,9 +152,13 @@ public class SmbFileInfo extends AbstractFileInfo<SmbFile> {
 			sb.append("\n");
 		}
 		logger.debug(this.getFilename());
-		logger.debug("\n" + sb.toString());
+		logger.debug(sb);
 
 		return sb.toString();
+	}
+
+	private static String aceToAllowFlag(ACE ace) {
+		return ace.isAllow() ? "Allow " : "Deny ";
 	}
 
 	@Override

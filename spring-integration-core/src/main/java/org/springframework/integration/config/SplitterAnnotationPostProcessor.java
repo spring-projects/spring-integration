@@ -43,8 +43,10 @@ import org.springframework.util.StringUtils;
  */
 public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Splitter> {
 
+	private static final String APPLY_SEQUENCE_ATTR = "applySequence";
+
 	public SplitterAnnotationPostProcessor() {
-		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", "applySequence", "adviceChain"));
+		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", APPLY_SEQUENCE_ATTR, "adviceChain"));
 	}
 
 	@Override
@@ -67,9 +69,9 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 				BeanDefinitionBuilder.genericBeanDefinition(SplitterFactoryBean.class)
 						.addPropertyValue("targetObject", targetObjectBeanDefinition);
 
-		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
+		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, APPLY_SEQUENCE_ATTR, String.class);
 		if (StringUtils.hasText(applySequence)) {
-			splitterBeanDefinition.addPropertyValue("applySequence", applySequence);
+			splitterBeanDefinition.addPropertyValue(APPLY_SEQUENCE_ATTR, applySequence);
 		}
 		return splitterBeanDefinition.getBeanDefinition();
 	}
@@ -78,7 +80,7 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		AbstractMessageSplitter splitter = new MethodInvokingSplitter(bean, method);
 
-		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
+		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, APPLY_SEQUENCE_ATTR, String.class);
 		if (StringUtils.hasText(applySequence)) {
 			splitter.setApplySequence(resolveAttributeToBoolean(applySequence));
 		}

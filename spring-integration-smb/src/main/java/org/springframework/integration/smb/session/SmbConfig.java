@@ -26,7 +26,7 @@ import jcifs.DialectVersion;
 
 /**
  * Data holder class for a SMB share configuration.
- *
+ *<p>
  * SmbFile URLs syntax:
  *      smb://[[[domain;]username[:password]@]server[:port]/[[share/[dir/]file]]][?[param=value[param2=value2[...]]]
  *
@@ -73,7 +73,7 @@ public class SmbConfig {
 		setShareAndDir(_shareAndDir);
 	}
 
-	public void setHost(String _host) {
+	public final void setHost(String _host) {
 		Assert.hasText(_host, "host must not be empty");
 		this.host = _host;
 	}
@@ -82,7 +82,7 @@ public class SmbConfig {
 		return this.host;
 	}
 
-	public void setPort(int _port) {
+	public final void setPort(int _port) {
 		Assert.isTrue(_port >= 0, "port must be >= 0");
 		this.port = _port;
 	}
@@ -91,7 +91,7 @@ public class SmbConfig {
 		return this.port;
 	}
 
-	public void setDomain(String _domain) {
+	public final void setDomain(String _domain) {
 		Assert.notNull(_domain, "_domain can't be null");
 		this.domain = _domain;
 	}
@@ -100,7 +100,7 @@ public class SmbConfig {
 		return this.domain;
 	}
 
-	public void setUsername(String _username) {
+	public final void setUsername(String _username) {
 		Assert.hasText(_username, "username should be a non-empty string");
 		this.username = _username;
 	}
@@ -109,7 +109,7 @@ public class SmbConfig {
 		return this.username;
 	}
 
-	public void setPassword(String _password) {
+	public final void setPassword(String _password) {
 		Assert.notNull(_password, "password should not be null");
 		this.password = _password;
 	}
@@ -118,7 +118,7 @@ public class SmbConfig {
 		return this.password;
 	}
 
-	public void setShareAndDir(String _shareAndDir) {
+	public final void setShareAndDir(String _shareAndDir) {
 		Assert.notNull(_shareAndDir, "shareAndDir should not be null");
 		this.shareAndDir = _shareAndDir;
 	}

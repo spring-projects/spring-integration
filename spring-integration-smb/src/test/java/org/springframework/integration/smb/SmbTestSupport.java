@@ -80,10 +80,11 @@ public class SmbTestSupport extends RemoteFileTestSupport {
 
 	private static final GenericContainer<?> SMB_CONTAINER = new GenericContainer<>("elswork/samba:4.15.5")
 			.withTmpFs(Map.of(INNER_SHARE_DIR, "rw"))
-			.withCommand("-u", "1000:1000:" + USERNAME + ":" + USERNAME + ":" + PASSWORD, "-s", SHARE_AND_DIR + ":" + INNER_SHARE_DIR + ":rw:" + USERNAME)
+			.withCommand("-u", "1000:1000:" + USERNAME + ":" + USERNAME + ":" + PASSWORD,
+					"-s", SHARE_AND_DIR + ":" + INNER_SHARE_DIR + ":rw:" + USERNAME)
 			.withExposedPorts(445);
 
-	private static SmbSessionFactory smbSessionFactory;
+	protected static SmbSessionFactory smbSessionFactory;
 
 	@BeforeAll
 	public static void connectToSMBServer() throws IOException {
@@ -101,14 +102,22 @@ public class SmbTestSupport extends RemoteFileTestSupport {
 		try (Session<SmbFile> smbFileSession = smbSessionFactory.getSession()) {
 			smbFileSession.mkdir("smbTarget");
 			Charset charset = StandardCharsets.UTF_8;
-			smbFileSession.write(IOUtils.toInputStream("source1", charset), TestUtils.applySystemFileSeparator("smbSource/smbSource1.txt"));
-			smbFileSession.write(IOUtils.toInputStream("source2", charset), TestUtils.applySystemFileSeparator("smbSource/smbSource2.txt"));
+			smbFileSession.write(IOUtils.toInputStream("source1", charset),
+					TestUtils.applySystemFileSeparator("smbSource/smbSource1.txt"));
+			smbFileSession.write(IOUtils.toInputStream("source2", charset),
+					TestUtils.applySystemFileSeparator("smbSource/smbSource2.txt"));
 			smbFileSession.write(IOUtils.toInputStream("", charset), "SMBSOURCE1.TXT.a");
 			smbFileSession.write(IOUtils.toInputStream("", charset), "SMBSOURCE2.TXT.a");
 
-			smbFileSession.write(IOUtils.toInputStream("subSource1", charset), TestUtils.applySystemFileSeparator("smbSource/subSmbSource/subSmbSource1.txt"));
-			smbFileSession.write(IOUtils.toInputStream("subSource2", charset), TestUtils.applySystemFileSeparator("smbSource/subSmbSource/subSmbSource2.txt"));
+			smbFileSession.write(IOUtils.toInputStream("subSource1", charset),
+					TestUtils.applySystemFileSeparator("smbSource/subSmbSource/subSmbSource1.txt"));
+			smbFileSession.write(IOUtils.toInputStream("subSource2", charset),
+					TestUtils.applySystemFileSeparator("smbSource/subSmbSource/subSmbSource2.txt"));
 		}
+	}
+
+	public static String smbServerUrl() {
+		return smbSessionFactory.getUrl().replaceFirst('/' + SHARE_AND_DIR + '/', "");
 	}
 
 	public static SessionFactory<SmbFile> sessionFactory() {

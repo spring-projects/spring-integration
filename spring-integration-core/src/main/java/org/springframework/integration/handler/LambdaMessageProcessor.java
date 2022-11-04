@@ -126,9 +126,6 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 			logClassCastException(ex);
 			throw ex;
 		}
-		catch (RuntimeException ex) {
-			throw ex;
-		}
 		catch (InvocationTargetException e) {
 			final Throwable cause = e.getCause();
 			if (e.getTargetException() instanceof ClassCastException classCastException) {
@@ -140,10 +137,13 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 			throw new IllegalStateException(// NOSONAR lost stack trace
 					"Could not invoke the method '" + this.method + "'", cause);
 		}
-		catch (Exception e) {
+		catch (Exception ex) {
+			if (ex instanceof RuntimeException) { // NOSONAR
+				throw (RuntimeException) ex;
+			}
 			throw new IllegalStateException(
 					"error occurred during processing message in 'LambdaMessageProcessor' for method [" +
-							this.method + "]", e);
+							this.method + "]", ex);
 		}
 	}
 

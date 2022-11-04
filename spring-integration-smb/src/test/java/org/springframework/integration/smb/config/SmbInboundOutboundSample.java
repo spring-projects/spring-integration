@@ -73,17 +73,17 @@ public class SmbInboundOutboundSample extends AbstractBaseTests {
 		smbSession.mkdir(testRemoteDir);
 
 		String[] fileNames = createTestFileNames(5);
-		for (int i = 0; i < fileNames.length; i++) {
-			smbSession.write(("File [" + fileNames[i] + "] written by test case [" + getMethodName() + "].").getBytes(),
-					testRemoteDir + fileNames[i]);
+		for (String fileName : fileNames) {
+			smbSession.write(("File [" + fileName + "] written by test case [" + getMethodName() + "].").getBytes(),
+					testRemoteDir + fileName);
 		}
 
 		// allow time for the files to arrive locally
 		Thread.sleep(5000);
 
 		// confirm the local presence of all test files
-		for (int i = 0; i < fileNames.length; i++) {
-			assertFileExists(testLocalDir + fileNames[i]).deleteOnExit();
+		for (String fileName : fileNames) {
+			assertFileExists(testLocalDir + fileName).deleteOnExit();
 		}
 
 	}
@@ -96,9 +96,9 @@ public class SmbInboundOutboundSample extends AbstractBaseTests {
 		new File(testLocalDir).mkdirs();
 
 		String[] fileNames = createTestFileNames(5);
-		for (int i = 0; i < fileNames.length; i++) {
-			writeToFile(("File [" + fileNames[i] + "] written by test case [" + getMethodName() + "].").getBytes(),
-					testLocalDir + fileNames[i]);
+		for (String fileName : fileNames) {
+			writeToFile(("File [" + fileName + "] written by test case [" + getMethodName() + "].").getBytes(),
+					testLocalDir + fileName);
 		}
 
 		ApplicationContext ac = new ClassPathXmlApplicationContext(OUTBOUND_APPLICATION_CONTEXT_XML, this.getClass());
@@ -110,8 +110,8 @@ public class SmbInboundOutboundSample extends AbstractBaseTests {
 
 		MessageChannel smbChannel = ac.getBean("smbOutboundChannel", MessageChannel.class);
 
-		for (int i = 0; i < fileNames.length; i++) {
-			smbChannel.send(new GenericMessage<File>(new File(testLocalDir + fileNames[i])));
+		for (String fileName : fileNames) {
+			smbChannel.send(new GenericMessage<>(new File(testLocalDir + fileName)));
 		}
 
 		Thread.sleep(3000);
@@ -120,14 +120,14 @@ public class SmbInboundOutboundSample extends AbstractBaseTests {
 		SmbSessionFactory smbSessionFactory = ac.getBean("smbSessionFactory", SmbSessionFactory.class);
 		SmbSession smbSession = smbSessionFactory.getSession();
 
-		for (int i = 0; i < fileNames.length; i++) {
-			String remoteFile = testRemoteDir + fileNames[i];
+		for (String fileName : fileNames) {
+			String remoteFile = testRemoteDir + fileName;
 			assertThat(smbSession.exists(remoteFile)).as("Remote file [" + remoteFile + "] does not exist.").isTrue();
 		}
 
 	}
 
-	private String[] createTestFileNames(int _nbTestFiles) {
+	private static String[] createTestFileNames(int _nbTestFiles) {
 		String[] fileNames = new String[_nbTestFiles];
 		for (int i = 0; i < fileNames.length; i++) {
 			fileNames[i] = "test-file-" + i + ".txt";

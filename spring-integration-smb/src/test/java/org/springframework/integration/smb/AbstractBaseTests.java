@@ -102,12 +102,8 @@ public abstract class AbstractBaseTests {
 	 * @throws IOException in case of I/O errors
 	 */
 	public static void writeToFile(InputStream _inputStream, String _path) throws IOException {
-		FileOutputStream fos = new FileOutputStream(_path);
-		try {
+		try (FileOutputStream fos = new FileOutputStream(_path)) {
 			FileCopyUtils.copy(_inputStream, fos);
-		}
-		finally {
-			fos.close();
 		}
 	}
 
@@ -216,18 +212,18 @@ public abstract class AbstractBaseTests {
 	 * @param _file file object
 	 * @return the file object
 	 */
-	public static final File assertFileExists(File _file) {
+	public static File assertFileExists(File _file) {
 		return assertFileExists(_file, true);
 	}
 
-	public static final File assertFileNotExists(File _file) {
+	public static File assertFileNotExists(File _file) {
 		return assertFileExists(_file, false);
 	}
 
 	/**
-	 * Asserts that the specified file exists or does not exists.
+	 * Asserts that the specified file exists or does not exist.
 	 * @param _file file object
-	 * @param _exists true if should exist, false otherwise
+	 * @param _exists true if file should exist, false otherwise
 	 * @return the file object
 	 */
 	private static File assertFileExists(File _file, boolean _exists) {
@@ -241,7 +237,7 @@ public abstract class AbstractBaseTests {
 		return _file;
 	}
 
-	public static final File assertFileExists(String _file) {
+	public static File assertFileExists(String _file) {
 		return assertFileExists(new File(_file));
 	}
 
@@ -256,18 +252,14 @@ public abstract class AbstractBaseTests {
 			throws Exception {
 		AbstractBaseTests test;
 		Method[] methods = new Method[_methodNames.length];
-		String methodName = null;
 
 		test = _testClass.newInstance();
 		for (int i = 0; i < _methodNames.length; i++) {
-			methodName = _methodNames[i];
+			String methodName = _methodNames[i];
 			methods[i] = _testClass.getMethod(methodName, (Class<?>[]) null);
 		}
 
-		Method method = null;
-
-		for (int i = 0; i < methods.length; i++) {
-			method = methods[i];
+		for (Method method : methods) {
 			method.invoke(test, (Object[]) null);
 		}
 

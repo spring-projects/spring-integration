@@ -49,9 +49,21 @@ import org.springframework.util.StringUtils;
  */
 public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Router> {
 
+	private static final String APPLY_SEQUENCE_ATTR = "applySequence";
+
+	private static final String IGNORE_SEND_FAILURES_ATTR = "ignoreSendFailures";
+
+	private static final String CHANNEL_MAPPINGS_ATTR = "channelMappings";
+
+	private static final String RESOLUTION_REQUIRED_ATTR = "resolutionRequired";
+
+	private static final String PREFIX_ATTR = "prefix";
+
+	private static final String SUFFIX_ATTR = "suffix";
+
 	public RouterAnnotationPostProcessor() {
-		this.messageHandlerAttributes.addAll(Arrays.asList("defaultOutputChannel", "applySequence",
-				"ignoreSendFailures", "resolutionRequired", "channelMappings", "prefix", "suffix"));
+		this.messageHandlerAttributes.addAll(Arrays.asList("defaultOutputChannel", APPLY_SEQUENCE_ATTR,
+				IGNORE_SEND_FAILURES_ATTR, RESOLUTION_REQUIRED_ATTR, CHANNEL_MAPPINGS_ATTR, PREFIX_ATTR, SUFFIX_ATTR));
 	}
 
 	@Override
@@ -76,13 +88,13 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 						.getBeanDefinition();
 
 		new BeanDefinitionPropertiesMapper(routerBeanDefinition, annotations)
-				.setPropertyValue("applySequence")
-				.setPropertyValue("ignoreSendFailures")
-				.setPropertyValue("resolutionRequired")
-				.setPropertyValue("prefix")
-				.setPropertyValue("suffix");
+				.setPropertyValue(APPLY_SEQUENCE_ATTR)
+				.setPropertyValue(IGNORE_SEND_FAILURES_ATTR)
+				.setPropertyValue(RESOLUTION_REQUIRED_ATTR)
+				.setPropertyValue(PREFIX_ATTR)
+				.setPropertyValue(SUFFIX_ATTR);
 
-		String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, "channelMappings",
+		String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, CHANNEL_MAPPINGS_ATTR,
 				String[].class);
 		if (!ObjectUtils.isEmpty(channelMappings)) {
 			Map<String, String> mappings =
@@ -94,7 +106,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 							.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
 			routerBeanDefinition.getPropertyValues()
-					.addPropertyValue("channelMappings", mappings);
+					.addPropertyValue(CHANNEL_MAPPINGS_ATTR, mappings);
 		}
 
 		return routerBeanDefinition;
@@ -109,12 +121,12 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 			router.setDefaultOutputChannelName(defaultOutputChannelName);
 		}
 
-		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
+		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, APPLY_SEQUENCE_ATTR, String.class);
 		if (StringUtils.hasText(applySequence)) {
 			router.setApplySequence(resolveAttributeToBoolean(applySequence));
 		}
 
-		String ignoreSendFailures = MessagingAnnotationUtils.resolveAttribute(annotations, "ignoreSendFailures",
+		String ignoreSendFailures = MessagingAnnotationUtils.resolveAttribute(annotations, IGNORE_SEND_FAILURES_ATTR,
 				String.class);
 		if (StringUtils.hasText(ignoreSendFailures)) {
 			router.setIgnoreSendFailures(resolveAttributeToBoolean(ignoreSendFailures));
@@ -130,7 +142,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 			MethodInvokingRouter methodInvokingRouter = (MethodInvokingRouter) router;
 
-			String resolutionRequired = MessagingAnnotationUtils.resolveAttribute(annotations, "resolutionRequired",
+			String resolutionRequired = MessagingAnnotationUtils.resolveAttribute(annotations, RESOLUTION_REQUIRED_ATTR,
 					String.class);
 			if (StringUtils.hasText(resolutionRequired)) {
 				methodInvokingRouter.setResolutionRequired(resolveAttributeToBoolean(resolutionRequired));
@@ -138,17 +150,17 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 			ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 
-			String prefix = MessagingAnnotationUtils.resolveAttribute(annotations, "prefix", String.class);
+			String prefix = MessagingAnnotationUtils.resolveAttribute(annotations, PREFIX_ATTR, String.class);
 			if (StringUtils.hasText(prefix)) {
 				methodInvokingRouter.setPrefix(beanFactory.resolveEmbeddedValue(prefix));
 			}
 
-			String suffix = MessagingAnnotationUtils.resolveAttribute(annotations, "suffix", String.class);
+			String suffix = MessagingAnnotationUtils.resolveAttribute(annotations, SUFFIX_ATTR, String.class);
 			if (StringUtils.hasText(suffix)) {
 				methodInvokingRouter.setSuffix(beanFactory.resolveEmbeddedValue(suffix));
 			}
 
-			String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, "channelMappings",
+			String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, CHANNEL_MAPPINGS_ATTR,
 					String[].class);
 			if (!ObjectUtils.isEmpty(channelMappings)) {
 				StringBuilder mappings = new StringBuilder();
@@ -166,14 +178,14 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 	private boolean routerAttributesProvided(List<Annotation> annotations) {
 		String defaultOutputChannel = MessagingAnnotationUtils.resolveAttribute(annotations, "defaultOutputChannel",
 				String.class);
-		String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, "channelMappings",
+		String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, CHANNEL_MAPPINGS_ATTR,
 				String[].class);
-		String prefix = MessagingAnnotationUtils.resolveAttribute(annotations, "prefix", String.class);
-		String suffix = MessagingAnnotationUtils.resolveAttribute(annotations, "suffix", String.class);
-		String resolutionRequired = MessagingAnnotationUtils.resolveAttribute(annotations, "resolutionRequired",
+		String prefix = MessagingAnnotationUtils.resolveAttribute(annotations, PREFIX_ATTR, String.class);
+		String suffix = MessagingAnnotationUtils.resolveAttribute(annotations, SUFFIX_ATTR, String.class);
+		String resolutionRequired = MessagingAnnotationUtils.resolveAttribute(annotations, RESOLUTION_REQUIRED_ATTR,
 				String.class);
-		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
-		String ignoreSendFailures = MessagingAnnotationUtils.resolveAttribute(annotations, "ignoreSendFailures",
+		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, APPLY_SEQUENCE_ATTR, String.class);
+		String ignoreSendFailures = MessagingAnnotationUtils.resolveAttribute(annotations, IGNORE_SEND_FAILURES_ATTR,
 				String.class);
 		return StringUtils.hasText(defaultOutputChannel) || !ObjectUtils.isEmpty(channelMappings) // NOSONAR complexity
 				|| StringUtils.hasText(prefix) || StringUtils.hasText(suffix) || StringUtils.hasText(resolutionRequired)

@@ -19,186 +19,71 @@ package org.springframework.integration.smb.session;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
-import java.util.Properties;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import jcifs.DialectVersion;
+import org.springframework.integration.smb.SmbTestSupport;
+
 import jcifs.smb.SmbFile;
 
 /**
  *
  * @author Gunnar Hillert
  * @author Gregory Bragg
+ * @author Artem Bilan
  *
  */
-public class SmbSessionTests {
+public class SmbSessionTests extends SmbTestSupport {
 
 	@Test
 	public void testCreateSmbFileObjectWithBackSlash1() throws IOException {
 		System.setProperty("file.separator", "\\");
-		SmbConfig config = new SmbConfig();
-		config.setHost("myshare");
-		config.setPort(445);
-		config.setShareAndDir("shared/");
-		SmbShare smbShare = new SmbShare(config);
-		SmbSession smbSession = new SmbSession(smbShare);
-
-		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba\\");
-		assertThat("smb://myshare/blubba/").isEqualTo(smbFile.getPath());
-		smbSession.close();
+		try (SmbSession smbSession = smbSessionFactory.getSession()) {
+			SmbFile smbFile = smbSession.createSmbFileObject("smb://localhost\\blubba\\");
+			assertThat("smb://localhost/blubba/").isEqualTo(smbFile.getPath());
+		}
 	}
 
 	@Test
-	public void testCreateSmbFileObjectWithBackSlash2() throws IOException {
+	public void testCreateOtherSmbFileObject() throws IOException {
 		System.setProperty("file.separator", "\\");
-		SmbConfig config = new SmbConfig();
-		config.setHost("myshare");
-		config.setPort(445);
-		config.setShareAndDir("shared\\");
-		SmbShare smbShare = new SmbShare(config);
-		SmbSession smbSession = new SmbSession(smbShare);
-
-		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba\\");
-		assertThat("smb://myshare/blubba/").isEqualTo(smbFile.getPath());
-		smbSession.close();
-	}
-
-	@Test
-	public void testCreateSmbFileObjectWithBackSlash3() throws IOException {
-		System.setProperty("file.separator", "\\");
-		SmbConfig config = new SmbConfig();
-		config.setHost("myshare");
-		config.setPort(445);
-		config.setShareAndDir("shared\\");
-		SmbShare smbShare = new SmbShare(config);
-		SmbSession smbSession = new SmbSession(smbShare);
-
-		SmbFile smbFile = smbSession.createSmbFileObject("..\\another");
-		assertThat("smb://myshare:445/another").isEqualTo(smbFile.getPath());
-		smbSession.close();
+		try (SmbSession smbSession = smbSessionFactory.getSession()) {
+			SmbFile smbFile = smbSession.createSmbFileObject("..\\another");
+			assertThat(smbServerUrl() + "/another").isEqualTo(smbFile.getPath());
+		}
 	}
 
 	@Test
 	public void testCreateSmbFileObjectWithBackSlash4() throws IOException {
 		System.setProperty("file.separator", "/");
-		SmbConfig config = new SmbConfig();
-		config.setHost("myshare");
-		config.setPort(445);
-		config.setShareAndDir("shared/");
-		SmbShare smbShare = new SmbShare(config);
-		SmbSession smbSession = new SmbSession(smbShare);
-
-		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba\\");
-		assertThat("smb://myshare/blubba/").isEqualTo(smbFile.getPath());
-		smbSession.close();
+		try (SmbSession smbSession = smbSessionFactory.getSession()) {
+			SmbFile smbFile = smbSession.createSmbFileObject("smb://localhost\\blubba\\");
+			assertThat("smb://localhost/blubba/").isEqualTo(smbFile.getPath());
+		}
 	}
 
 	@Test
 	public void testCreateSmbFileObjectWithMissingTrailingSlash1() throws IOException {
-		SmbConfig config = new SmbConfig();
-		config.setHost("myshare");
-		config.setPort(445);
-		config.setShareAndDir("shared");
-		SmbShare smbShare = new SmbShare(config);
-		SmbSession smbSession = new SmbSession(smbShare);
-
-		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba");
-		assertThat("smb://myshare/blubba").isEqualTo(smbFile.getPath());
-		smbSession.close();
+		try (SmbSession smbSession = smbSessionFactory.getSession()) {
+			SmbFile smbFile = smbSession.createSmbFileObject("smb://localhost\\blubba");
+			assertThat("smb://localhost/blubba").isEqualTo(smbFile.getPath());
+		}
 	}
 
 	@Test
 	public void testCreateSmbFileObjectWithMissingTrailingSlash2() throws IOException {
-		SmbConfig config = new SmbConfig();
-		config.setHost("myshare");
-		config.setPort(445);
-		config.setShareAndDir("shared/");
-		SmbShare smbShare = new SmbShare(config);
-		SmbSession smbSession = new SmbSession(smbShare);
-
-		SmbFile smbFile = smbSession.createSmbFileObject(".");
-		assertThat("smb://myshare:445/shared/").isEqualTo(smbFile.getPath());
-		smbSession.close();
+		try (SmbSession smbSession = smbSessionFactory.getSession()) {
+			SmbFile smbFile = smbSession.createSmbFileObject(".");
+			assertThat(smbServerUrl() + '/' + SHARE_AND_DIR + '/').isEqualTo(smbFile.getPath());
+		}
 	}
 
 	@Test
 	public void testCreateSmbFileObjectWithMissingTrailingSlash3() throws IOException {
-		SmbConfig config = new SmbConfig();
-		config.setHost("myshare");
-		config.setPort(445);
-		config.setShareAndDir("shared/");
-		SmbShare smbShare = new SmbShare(config);
-		SmbSession smbSession = new SmbSession(smbShare);
-
-		SmbFile smbFile = smbSession.createSmbFileObject("../anotherShare");
-		assertThat("smb://myshare:445/anotherShare").isEqualTo(smbFile.getPath());
-		smbSession.close();
+		try (SmbSession smbSession = smbSessionFactory.getSession()) {
+			SmbFile smbFile = smbSession.createSmbFileObject("..\\anotherShare");
+			assertThat(smbServerUrl() + "/anotherShare").isEqualTo(smbFile.getPath());
+		}
 	}
 
-	@Test
-	public void testCreateSmbFileObjectWithSmb3Versions1() throws IOException {
-		Properties props = new Properties();
-		SmbConfig config = new SmbConfig();
-
-		config.setHost("myshare");
-		config.setPort(445);
-		config.setShareAndDir("shared/");
-		config.setSmbMinVersion(DialectVersion.SMB300);
-		config.setSmbMaxVersion(DialectVersion.SMB311);
-
-		props.setProperty("jcifs.smb.client.minVersion", config.getSmbMinVersion().name());
-		props.setProperty("jcifs.smb.client.maxVersion", config.getSmbMaxVersion().name());
-
-		SmbShare smbShare = new SmbShare(config, props);
-		SmbSession smbSession = new SmbSession(smbShare);
-
-		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba");
-		assertThat("smb://myshare/blubba").isEqualTo(smbFile.getPath());
-		smbSession.close();
-	}
-
-	@Test
-	public void testCreateSmbFileObjectWithSmb3Versions2() throws IOException {
-		Properties props = new Properties();
-		SmbConfig config = new SmbConfig();
-
-		config.setHost("myshare");
-		config.setPort(445);
-		config.setShareAndDir("shared/");
-		config.setSmbMinVersion(DialectVersion.SMB302);
-		config.setSmbMaxVersion(DialectVersion.SMB311);
-
-		props.setProperty("jcifs.smb.client.minVersion", config.getSmbMinVersion().name());
-		props.setProperty("jcifs.smb.client.maxVersion", config.getSmbMaxVersion().name());
-
-		SmbShare smbShare = new SmbShare(config, props);
-		SmbSession smbSession = new SmbSession(smbShare);
-
-		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba");
-		assertThat("smb://myshare/blubba").isEqualTo(smbFile.getPath());
-		smbSession.close();
-	}
-
-	@Test
-	public void testCreateSmbFileObjectWithSmb3Versions3() throws IOException {
-		Properties props = new Properties();
-		SmbConfig config = new SmbConfig();
-
-		config.setHost("myshare");
-		config.setPort(445);
-		config.setShareAndDir("shared/");
-		config.setSmbMinVersion(DialectVersion.SMB311);
-		config.setSmbMaxVersion(DialectVersion.SMB311);
-
-		props.setProperty("jcifs.smb.client.minVersion", config.getSmbMinVersion().name());
-		props.setProperty("jcifs.smb.client.maxVersion", config.getSmbMaxVersion().name());
-
-		SmbShare smbShare = new SmbShare(config, props);
-		SmbSession smbSession = new SmbSession(smbShare);
-
-		SmbFile smbFile = smbSession.createSmbFileObject("smb://myshare\\blubba");
-		assertThat("smb://myshare/blubba").isEqualTo(smbFile.getPath());
-		smbSession.close();
-	}
 }

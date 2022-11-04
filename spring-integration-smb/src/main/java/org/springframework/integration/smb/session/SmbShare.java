@@ -60,8 +60,8 @@ public class SmbShare extends SmbFile {
 	public SmbShare(SmbConfig _smbConfig) throws IOException {
 		super(StringUtils.cleanPath(_smbConfig.validate().getUrl()),
 				SingletonContext.getInstance().withCredentials(
-					new NtlmPasswordAuthenticator(
-						_smbConfig.getDomain(), _smbConfig.getUsername(), _smbConfig.getPassword())));
+						new NtlmPasswordAuthenticator(
+								_smbConfig.getDomain(), _smbConfig.getUsername(), _smbConfig.getPassword())));
 	}
 
 	/**
@@ -85,9 +85,9 @@ public class SmbShare extends SmbFile {
 	public SmbShare(SmbConfig _smbConfig, Properties _props) throws IOException {
 		super(StringUtils.cleanPath(_smbConfig.validate().getUrl()),
 				new BaseContext(
-					new PropertyConfiguration(_props)).withCredentials(
+						new PropertyConfiguration(_props)).withCredentials(
 						new NtlmPasswordAuthenticator(
-							_smbConfig.getDomain(), _smbConfig.getUsername(), _smbConfig.getPassword())));
+								_smbConfig.getDomain(), _smbConfig.getUsername(), _smbConfig.getPassword())));
 
 		this.closeContext.set(true);
 	}
@@ -139,8 +139,25 @@ public class SmbShare extends SmbFile {
 		super.close();
 	}
 
-	public String newTempFileSuffix() {
-		return "-" + Long.toHexString(Double.doubleToLongBits(Math.random())) + ".tmp";
+	/**
+	 * Tests to see if two {@link SmbShare} objects are equal.
+	 * Relies on a super implementation.
+	 * @param other another {@link SmbShare} object to compare for equality.
+	 * @return equality result.
+	 */
+	@Override
+	public boolean equals(Object other) {
+		return super.equals(other);
+	}
+
+
+	/**
+	 * Return a cache code from the super class.
+	 * @return A hashcode for this share
+	 */
+	@Override
+	public int hashCode() {
+		return super.hashCode();
 	}
 
 }
