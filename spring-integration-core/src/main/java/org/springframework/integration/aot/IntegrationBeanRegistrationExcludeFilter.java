@@ -21,6 +21,7 @@ import java.util.Arrays;
 import org.springframework.beans.factory.aot.BeanRegistrationExcludeFilter;
 import org.springframework.beans.factory.support.RegisteredBean;
 import org.springframework.integration.config.DefaultConfiguringBeanFactoryPostProcessor;
+import org.springframework.integration.config.IntegrationComponentScanRegistrar;
 import org.springframework.integration.config.IntegrationConfigurationBeanFactoryPostProcessor;
 
 /**
@@ -39,7 +40,8 @@ class IntegrationBeanRegistrationExcludeFilter implements BeanRegistrationExclud
 	public boolean isExcludedFromAotProcessing(RegisteredBean registeredBean) {
 		Class<?> beanClass = registeredBean.getBeanClass();
 		return Arrays.asList(DefaultConfiguringBeanFactoryPostProcessor.class,
-						IntegrationConfigurationBeanFactoryPostProcessor.class)
+						IntegrationConfigurationBeanFactoryPostProcessor.class,
+						IntegrationComponentScanRegistrar.class)
 				.contains(beanClass);
 	}
 

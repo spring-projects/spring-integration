@@ -25,13 +25,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.Aware;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.context.EnvironmentAware;
@@ -66,6 +71,10 @@ import org.springframework.util.StringUtils;
 public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRegistrar,
 		ResourceLoaderAware, EnvironmentAware {
 
+	private static final Log LOGGER = LogFactory.getLog(IntegrationComponentScanRegistrar.class);
+
+	private static final String BEAN_NAME = IntegrationComponentScanRegistrar.class.getName();
+
 	private final List<TypeFilter> defaultFilters = new ArrayList<>();
 
 	private ResourceLoader resourceLoader;
@@ -93,6 +102,16 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 						importingClassMetadata.getAnnotationAttributes(IntegrationComponentScan.class.getName()));
 
 		Assert.notNull(componentScan, "The '@IntegrationComponentScan' must be present for using this registrar");
+
+		if (registry.containsBeanDefinition(BEAN_NAME)) {
+			LOGGER.warn("Only one '@IntegrationComponentScan' can be present.\nConsider to merge them all to one.");
+			return;
+		}
+
+		registry.registerBeanDefinition(BEAN_NAME,
+				BeanDefinitionBuilder.genericBeanDefinition(IntegrationComponentScanRegistrar.class, () -> this)
+						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+						.getBeanDefinition());
 
 		Collection<String> basePackages = getBasePackages(componentScan, registry);
 
