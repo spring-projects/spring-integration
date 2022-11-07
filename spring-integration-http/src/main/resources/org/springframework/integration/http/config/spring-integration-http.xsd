@@ -73,8 +73,7 @@
 						By default 'status-code-expression' is null, meaning that the default '200 OK' response status
 						will be returned.
 						The 'http:inbound-gateway' resolves the 'status code' from the 'http_statusCode' header of the
-						reply
-						Message.
+						reply Message.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -412,7 +411,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Specify whether the outbound message's payload should be extracted
-						when preparing the request body. Otherwise the Message instance itself
+						when preparing the request body. Otherwise, the Message instance itself
 						will be serialized.
 						The default value is 'true'.
 					</xsd:documentation>
@@ -484,7 +483,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Specifies whether the outbound message's payload should be extracted
-								when preparing the request body. Otherwise the Message instance itself
+								when preparing the request body. Otherwise, the Message instance itself
 								will be serialized.
 								The default value is 'true'.
 							</xsd:documentation>
@@ -493,8 +492,8 @@
 					<xsd:attribute name="transfer-cookies" type="xsd:string" default="false">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-	When set to "true", if a response contains a 'Set-Cookie' header, it will be mapped to a 'Cookie' header. This enables simple
-	cookie handling where subsequent HTTP interactions in the same message flow can use a cookie
+	When set to "true", if a response contains a 'Set-Cookie' header, it will be mapped to a 'Cookie' header.
+	This enables simple cookie handling where subsequent HTTP interactions in the same message flow can use a cookie
 	supplied by the server. Default is "false".
 							]]></xsd:documentation>
 						</xsd:annotation>
@@ -602,7 +601,8 @@
 	<xsd:complexType name="headerType">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-				Expression to be evaluated against the ServletRequest(makes BODY and Headers available) as well as URI Variables (e.g., foo/bar/{id}).
+				Expression to be evaluated against the ServletRequest(makes BODY and Headers available)
+				as well as URI Variables (e.g., foo/bar/{id}).
 			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="name" use="required">
@@ -759,7 +759,7 @@
 		<xsd:attribute name="allow-credentials" default="true">
 			<xsd:annotation>
 				<xsd:documentation>
-					Set to "true" if the the browser should include any cookies associated to the domain
+					Set to "true" if the browser should include any cookies associated to the domain
 					of the request being annotated, or "false" if it should not. Empty string "" means undefined.
 					If true, the pre-flight response will include the header
 					'Access-Control-Allow-Credentials=true'. Default value is "true".
@@ -826,7 +826,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Provide a reference to a list of HttpMessageConverter instances. If specified,
-					these converters will replace all of the default converters that would normally
+					these converters will replace all default converters that would normally
 					be present on the underlying RestTemplate.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -852,10 +852,11 @@
 					]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="encoding-mode" default="TEMPLATE_AND_VALUES">
+		<xsd:attribute name="encoding-mode">
 			<xsd:annotation>
 				<xsd:documentation>
 					Set the encoding mode during URI building.
+					Defaults to 'TEMPLATE_AND_VALUES'
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
@@ -948,7 +949,7 @@
 		<xsd:attribute name="uri-variables-expression" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Specifies the SpEL expression to be evaluate as a Map for URI variable placeholders within 'url'.
+	Specifies the SpEL expression to be evaluated as a Map for URI variable placeholders within 'url'.
 	This attribute is mutually exclusive with 'uri-variable' sub-elements.
 					]]></xsd:documentation>
 			</xsd:annotation>
