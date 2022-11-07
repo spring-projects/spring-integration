@@ -139,25 +139,4 @@ public class SmbShare extends SmbFile {
 		super.close();
 	}
 
-	/**
-	 * Tests to see if two {@link SmbShare} objects are equal.
-	 * Relies on a super implementation.
-	 * @param other another {@link SmbShare} object to compare for equality.
-	 * @return equality result.
-	 */
-	@Override
-	public boolean equals(Object other) {
-		return super.equals(other);
-	}
-
-
-	/**
-	 * Return a cache code from the super class.
-	 * @return A hashcode for this share
-	 */
-	@Override
-	public int hashCode() {
-		return super.hashCode();
-	}
-
 }

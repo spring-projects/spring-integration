@@ -25,9 +25,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.Arrays;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -60,7 +58,7 @@ import jcifs.smb.SmbFileOutputStream;
  */
 public class SmbSession implements Session<SmbFile> {
 
-	private static final Log logger = LogFactory.getLog(SmbSession.class);
+	private static final LogAccessor logger = new LogAccessor(SmbSession.class);
 
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
@@ -91,9 +89,6 @@ public class SmbSession implements Session<SmbFile> {
 	public SmbSession(SmbShare _smbShare) {
 		Assert.notNull(_smbShare, "smbShare must not be null");
 		this.smbShare = _smbShare;
-		if (logger.isDebugEnabled()) {
-			logger.debug("New " + getClass().getName() + " created.");
-		}
 	}
 
 	/**
@@ -113,11 +108,11 @@ public class SmbSession implements Session<SmbFile> {
 			removeFile.delete();
 			removed = true;
 		}
-		if (!removed && logger.isInfoEnabled()) {
-			logger.info("Could not remove non-existing resource [" + _path + "].");
+		if (!removed) {
+			logger.info(() -> "Could not remove non-existing resource [" + _path + "].");
 		}
-		else if (logger.isInfoEnabled()) {
-			logger.info("Successfully removed resource [" + _path + "].");
+		else {
+			logger.info(() -> "Successfully removed resource [" + _path + "].");
 		}
 		return removed;
 	}
@@ -131,34 +126,64 @@ public class SmbSession implements Session<SmbFile> {
 	 */
 	@Override
 	public SmbFile[] list(String _path) throws IOException {
-		SmbFile[] files = new SmbFile[0];
 		try {
 			SmbFile smbDir = createSmbDirectoryObject(_path);
 			if (!smbDir.exists()) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("Remote directory [" + _path + "] does not exist. Cannot list resources.");
-				}
-				return files;
+				logger.warn(() -> "Remote directory [" + _path + "] does not exist. Cannot list resources.");
+				return new SmbFile[0];
 			}
 			else if (!smbDir.isDirectory()) {
 				throw new IOException("[" + _path + "] is not a directory. Cannot list resources.");
 			}
 
-			files = smbDir.listFiles();
+			SmbFile[] files = smbDir.listFiles();
+
+			logListedFiles(_path, files);
+
+			return files;
+		}
+		catch (SmbException _ex) {
+			throw new IOException("Failed to list in [" + _path + "].", _ex);
+		}
+	}
+
+	/**
+	 * Return the contents of the specified SMB resource as an array of SmbFile filenames.
+	 * In case the remote resource does not exist, an empty array is returned.
+	 * @param _path path to a remote directory
+	 * @return array of SmbFile filenames
+	 * @throws IOException on error conditions returned by a CIFS server or if the remote resource is not a directory.
+	 */
+	@Override
+	public String[] listNames(String _path) throws IOException {
+		try {
+			SmbFile smbDir = createSmbDirectoryObject(_path);
+			if (!smbDir.exists()) {
+				logger.warn(() -> "Remote directory [" + _path + "] does not exist. Cannot list resources.");
+				return new String[0];
+			}
+			else if (!smbDir.isDirectory()) {
+				throw new IOException("[" + _path + "] is not a directory. Cannot list resources.");
+			}
+
+			String[] fileNames = smbDir.list();
+
+			logListedFiles(_path, fileNames);
+
+			return fileNames;
 		}
 		catch (SmbException _ex) {
 			throw new IOException("Failed to list resources in [" + _path + "].", _ex);
 		}
+	}
 
+	private static void logListedFiles(String _path, Object[] files) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Successfully listed " + files.length + " resource(s) in [" + _path + "]"
-					+ ": " + Arrays.toString(files));
+			logger.debug("Successfully listed " + files.length + " in [" + _path + "]: " + Arrays.toString(files));
 		}
-		else if (logger.isInfoEnabled()) {
-			logger.info("Successfully listed " + files.length + " resource(s) in [" + _path + "]" + ".");
+		else {
+			logger.info(() -> "Successfully listed " + files.length + " in [" + _path + "].");
 		}
-
-		return files;
 	}
 
 	/**
@@ -184,9 +209,7 @@ public class SmbSession implements Session<SmbFile> {
 			throw new IOException("Failed to read resource [" + _path + "].", _ex);
 		}
 
-		if (logger.isInfoEnabled()) {
-			logger.info("Successfully read resource [" + _path + "].");
-		}
+		logger.info(() -> "Successfully read resource [" + _path + "].");
 	}
 
 	/**
@@ -209,9 +232,7 @@ public class SmbSession implements Session<SmbFile> {
 		catch (SmbException _ex) {
 			throw new IOException("Failed to write resource [" + _path + "].", _ex);
 		}
-		if (logger.isInfoEnabled()) {
-			logger.info("Successfully wrote remote file [" + _path + "].");
-		}
+		logger.info(() -> "Successfully wrote remote file [" + _path + "].");
 	}
 
 	/**
@@ -250,15 +271,11 @@ public class SmbSession implements Session<SmbFile> {
 			SmbFile dir = createSmbDirectoryObject(_path);
 			if (!dir.exists()) {
 				dir.mkdirs();
-				if (logger.isInfoEnabled()) {
-					logger.info(
-							"Successfully created remote directory [" + _path + "] in share [" + this.smbShare + "].");
-				}
+				logger.info(() ->
+						"Successfully created remote directory [" + _path + "] in share [" + this.smbShare + "].");
 			}
 			else {
-				if (logger.isInfoEnabled()) {
-					logger.info("Remote directory [" + _path + "] exists in share [" + this.smbShare + "].");
-				}
+				logger.info(() -> "Remote directory [" + _path + "] exists in share [" + this.smbShare + "].");
 			}
 			return true;
 		}
@@ -331,10 +348,7 @@ public class SmbSession implements Session<SmbFile> {
 		catch (SmbException _ex) {
 			throw new IOException("Failed to rename [" + _pathFrom + "] to [" + _pathTo + "].", _ex);
 		}
-		if (logger.isInfoEnabled()) {
-			logger.info("Successfully renamed remote resource [" + _pathFrom + "] to [" + _pathTo + "].");
-		}
-
+		logger.info(() -> "Successfully renamed remote resource [" + _pathFrom + "] to [" + _pathTo + "].");
 	}
 
 	@Override
@@ -350,15 +364,11 @@ public class SmbSession implements Session<SmbFile> {
 		try {
 			dir.delete();
 		}
-		catch (SmbException e) {
-			if (logger.isWarnEnabled()) {
-				logger.info("Failed to remove remote directory [" + directory + "]: " + e);
-			}
+		catch (SmbException ex) {
+			logger.info(() -> "Failed to remove remote directory [" + directory + "]: " + ex);
 			return false;
 		}
-		if (logger.isInfoEnabled()) {
-			logger.info("Successfully removed remote directory [" + directory + "].");
-		}
+		logger.info(() -> "Successfully removed remote directory [" + directory + "].");
 		return true;
 	}
 
@@ -478,45 +488,6 @@ public class SmbSession implements Session<SmbFile> {
 	public String getHostPort() {
 		URL url = this.smbShare.getURL();
 		return url.getHost() + ":" + url.getPort();
-	}
-
-	/**
-	 * Return the contents of the specified SMB resource as an array of SmbFile filenames.
-	 * In case the remote resource does not exist, an empty array is returned.
-	 * @param _path path to a remote directory
-	 * @return array of SmbFile filenames
-	 * @throws IOException on error conditions returned by a CIFS server or if the remote resource is not a directory.
-	 */
-	@Override
-	public String[] listNames(String _path) throws IOException {
-		String[] fileNames = new String[0];
-		try {
-			SmbFile smbDir = createSmbDirectoryObject(_path);
-			if (!smbDir.exists()) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("Remote directory [" + _path + "] does not exist. Cannot list resources.");
-				}
-				return fileNames;
-			}
-			else if (!smbDir.isDirectory()) {
-				throw new IOException("[" + _path + "] is not a directory. Cannot list resources.");
-			}
-
-			fileNames = smbDir.list();
-		}
-		catch (SmbException _ex) {
-			throw new IOException("Failed to list resources in [" + _path + "].", _ex);
-		}
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Successfully listed " + fileNames.length + " resource(s) in [" + _path + "]"
-					+ ": " + Arrays.toString(fileNames));
-		}
-		else if (logger.isInfoEnabled()) {
-			logger.info("Successfully listed " + fileNames.length + " resource(s) in [" + _path + "]" + ".");
-		}
-
-		return fileNames;
 	}
 
 }
