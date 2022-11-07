@@ -49,7 +49,8 @@ final class HttpAdapterParsingUtils {
 		for (String attributeName : SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
 			if (element.hasAttribute(attributeName)) {
 				parserContext.getReaderContext().error("When providing a 'rest-template' reference, the '"
-								+ attributeName + "' attribute is not allowed.",
+								+ attributeName + "' attribute is not allowed, " +
+								"it must be set on the provided template instead",
 						parserContext.extractSource(element));
 			}
 		}
