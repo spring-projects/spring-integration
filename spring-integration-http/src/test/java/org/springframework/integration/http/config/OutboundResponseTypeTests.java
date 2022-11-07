@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,9 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.util.Collections;
-import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +42,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
@@ -53,13 +50,10 @@ import org.springframework.web.client.RestTemplate;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
- * @since 2.2
  *
- * <p>
- * see https://jira.springsource.org/browse/INT-2397
+ * @since 2.2
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class OutboundResponseTypeTests {
 
@@ -95,18 +89,18 @@ public class OutboundResponseTypeTests {
 
 	private MockRestServiceServer mockServer;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		this.mockServer = MockRestServiceServer.createServer(this.restTemplate);
 	}
 
 	@Test
-	public void testDefaultResponseType() throws Exception {
+	public void testDefaultResponseType() {
 		this.mockServer.expect(requestTo("/testApps/outboundResponse"))
 				.andExpect(method(HttpMethod.POST))
 				.andRespond(withSuccess(HttpMethod.POST.name(), MediaType.TEXT_PLAIN));
 
-		this.requestChannel.send(new GenericMessage<String>("Hello"));
+		this.requestChannel.send(new GenericMessage<>("Hello"));
 		Message<?> message = this.replyChannel.receive(5000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload() instanceof ResponseEntity).isTrue();
@@ -115,12 +109,12 @@ public class OutboundResponseTypeTests {
 	}
 
 	@Test
-	public void testWithResponseTypeSet() throws Exception {
+	public void testWithResponseTypeSet() {
 		this.mockServer.expect(requestTo("/testApps/outboundResponse"))
 				.andExpect(method(HttpMethod.POST))
 				.andRespond(withSuccess(HttpMethod.POST.name(), MediaType.TEXT_PLAIN));
 
-		this.resTypeSetChannel.send(new GenericMessage<String>("Hello"));
+		this.resTypeSetChannel.send(new GenericMessage<>("Hello"));
 		Message<?> message = this.replyChannel.receive(5000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload() instanceof String).isTrue();
@@ -129,12 +123,12 @@ public class OutboundResponseTypeTests {
 	}
 
 	@Test
-	public void testWithResponseTypeExpressionSet() throws Exception {
+	public void testWithResponseTypeExpressionSet() {
 		this.mockServer.expect(requestTo("/testApps/outboundResponse"))
 				.andExpect(method(HttpMethod.POST))
 				.andRespond(withSuccess(HttpMethod.POST.name(), MediaType.TEXT_PLAIN));
 
-		this.resTypeExpressionSetChannel.send(new GenericMessage<String>("java.lang.String"));
+		this.resTypeExpressionSetChannel.send(new GenericMessage<>("java.lang.String"));
 		Message<?> message = this.replyChannel.receive(5000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload() instanceof String).isTrue();
@@ -143,7 +137,7 @@ public class OutboundResponseTypeTests {
 	}
 
 	@Test
-	public void testWithResponseTypeExpressionSetAsClass() throws Exception {
+	public void testWithResponseTypeExpressionSetAsClass() {
 		this.mockServer = MockRestServiceServer.createServer(this.restTemplateWithConverters);
 		this.mockServer.expect(requestTo("/testApps/outboundResponse"))
 				.andExpect(method(HttpMethod.POST))
@@ -158,12 +152,12 @@ public class OutboundResponseTypeTests {
 	}
 
 	@Test
-	public void testInt2706ResponseTypeExpressionAsPrimitive() throws Exception {
+	public void testInt2706ResponseTypeExpressionAsPrimitive() {
 		this.mockServer.expect(requestTo("/testApps/outboundResponse"))
 				.andExpect(method(HttpMethod.POST))
 				.andRespond(withSuccess(HttpMethod.POST.name(), MediaType.TEXT_PLAIN));
 
-		this.resTypeExpressionSetChannel.send(new GenericMessage<String>("byte[]"));
+		this.resTypeExpressionSetChannel.send(new GenericMessage<>("byte[]"));
 		Message<?> message = this.replyChannel.receive(5000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload() instanceof byte[]).isTrue();
@@ -172,12 +166,12 @@ public class OutboundResponseTypeTests {
 	}
 
 	@Test
-	public void testInt2706ResponseTypePrimitiveArrayClassAsString() throws Exception {
+	public void testInt2706ResponseTypePrimitiveArrayClassAsString() {
 		this.mockServer.expect(requestTo("/testApps/outboundResponse"))
 				.andExpect(method(HttpMethod.POST))
 				.andRespond(withSuccess(HttpMethod.POST.name(), MediaType.TEXT_PLAIN));
 
-		this.resPrimitiveStringPresentationChannel.send(new GenericMessage<byte[]>("hello".getBytes()));
+		this.resPrimitiveStringPresentationChannel.send(new GenericMessage<>("hello".getBytes()));
 		Message<?> message = this.replyChannel.receive(5000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload() instanceof byte[]).isTrue();
@@ -186,9 +180,9 @@ public class OutboundResponseTypeTests {
 	}
 
 	@Test
-	public void testInt3052InvalidResponseType() throws Exception {
+	public void testInt3052InvalidResponseType() {
 		try {
-			this.invalidResponseTypeChannel.send(new GenericMessage<byte[]>("hello".getBytes()));
+			this.invalidResponseTypeChannel.send(new GenericMessage<>("hello".getBytes()));
 			fail("IllegalStateException expected.");
 		}
 		catch (Exception e) {
@@ -201,7 +195,7 @@ public class OutboundResponseTypeTests {
 	}
 
 	@Test
-	public void testMutuallyExclusivityInMethodAndMethodExpression() throws Exception {
+	public void testMutuallyExclusivityInMethodAndMethodExpression() {
 		try {
 			new ClassPathXmlApplicationContext("OutboundResponseTypeTests-context-fail.xml", this.getClass()).close();
 			fail("Expected BeansException");
@@ -214,14 +208,14 @@ public class OutboundResponseTypeTests {
 	}
 
 	@Test
-	public void testContentTypePropagation() throws Exception {
+	public void testContentTypePropagation() {
 		this.mockServer.expect(requestTo("/testApps/outboundResponse"))
 				.andExpect(method(HttpMethod.POST))
 				.andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString()))
 				.andRespond(withSuccess(HttpMethod.POST.name(), MediaType.TEXT_PLAIN));
 
 		this.contentTypePropagationChannel
-				.send(new GenericMessage<Map<String, String>>(Collections.singletonMap("foo", "bar")));
+				.send(new GenericMessage<>(Collections.singletonMap("foo", "bar")));
 
 		this.mockServer.verify();
 	}
