@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -270,8 +270,8 @@ public class ImapMailReceiverTests {
 		user.deliver(GreenMailUtil.createTextEmail("user", "sender", "subject", "body",
 				imapIdleServer.getImap().getServerSetup()));
 		AbstractMailReceiver receiver = new ImapMailReceiver();
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
+		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
 		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
@@ -310,11 +310,11 @@ public class ImapMailReceiverTests {
 		return receiver;
 	}
 
-	@Test // INT-2991 Flag.SEEN was set twice when a filter is used
+	@Test
 	public void receiveAndMarkAsReadDontDeletePassingFilter() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
+		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
 		Expression selectorExpression = new SpelExpressionParser().parseExpression("true");
 		receiver.setSelectorExpression(selectorExpression);
 		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
@@ -323,11 +323,11 @@ public class ImapMailReceiverTests {
 		verify(receiver, times(0)).deleteMessages(Mockito.any());
 	}
 
-	@Test // INT-2991 filtered messages were marked SEEN
+	@Test
 	public void receiveAndMarkAsReadDontDeleteFiltered() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
+		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
 		given(msg2.getSubject()).willReturn("foo"); // should not be marked seen
 		Expression selectorExpression = new SpelExpressionParser()
 				.parseExpression("subject == null OR !subject.equals('foo')");
@@ -401,8 +401,8 @@ public class ImapMailReceiverTests {
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
+		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
 		final Message[] messages = new Message[]{ msg1, msg2 };
 		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
@@ -437,8 +437,8 @@ public class ImapMailReceiverTests {
 		folderField.set(receiver, folder);
 
 
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
+		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
 		final Message[] messages = new Message[]{ msg1, msg2 };
 		willAnswer(invocation -> null).given(receiver).openFolder();
 
@@ -466,8 +466,8 @@ public class ImapMailReceiverTests {
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
+		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
 		final Message[] messages = new Message[]{ msg1, msg2 };
 		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
@@ -502,8 +502,8 @@ public class ImapMailReceiverTests {
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
+		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
 		final Message[] messages = new Message[]{ msg1, msg2 };
 		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
@@ -536,7 +536,7 @@ public class ImapMailReceiverTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		adapterAccessor.setPropertyValue("mailReceiver", receiver);
 
-		MimeMessage mailMessage = mock(MimeMessage.class);
+		Message mailMessage = spy(GreenMailUtil.newMimeMessage("test1"));
 		Flags flags = mock(Flags.class);
 		given(mailMessage.getFlags()).willReturn(flags);
 		final Message[] messages = new Message[]{ mailMessage };
@@ -604,7 +604,7 @@ public class ImapMailReceiverTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		adapterAccessor.setPropertyValue("mailReceiver", receiver);
 
-		MimeMessage mailMessage = mock(MimeMessage.class);
+		Message mailMessage = spy(GreenMailUtil.newMimeMessage("test1"));
 		Flags flags = mock(Flags.class);
 		given(mailMessage.getFlags()).willReturn(flags);
 		final Message[] messages = new Message[]{ mailMessage };
@@ -651,7 +651,7 @@ public class ImapMailReceiverTests {
 
 		willAnswer(invocation -> folder).given(receiver).getFolder();
 
-		MimeMessage mailMessage = mock(MimeMessage.class);
+		Message mailMessage = spy(GreenMailUtil.newMimeMessage("test1"));
 		Flags flags = mock(Flags.class);
 		given(mailMessage.getFlags()).willReturn(flags);
 		final Message[] messages = new Message[]{ mailMessage };
@@ -724,7 +724,7 @@ public class ImapMailReceiverTests {
 
 		willAnswer(invocation -> folder).given(receiver).getFolder();
 
-		MimeMessage mailMessage = mock(MimeMessage.class);
+		Message mailMessage = spy(GreenMailUtil.newMimeMessage("test1"));
 		Flags flags = mock(Flags.class);
 		given(mailMessage.getFlags()).willReturn(flags);
 		final Message[] messages = new Message[]{ mailMessage };
@@ -864,7 +864,7 @@ public class ImapMailReceiverTests {
 		given(folder.exists()).willReturn(true);
 		given(folder.isOpen()).willReturn(true);
 
-		Message message = new MimeMessage(null, new ClassPathResource("test.mail").getInputStream());
+		Message message = GreenMailUtil.newMimeMessage(new ClassPathResource("test.mail").getInputStream());
 		given(folder.search(Mockito.any())).willReturn(new Message[]{ message });
 		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
@@ -878,8 +878,8 @@ public class ImapMailReceiverTests {
 
 	@Test
 	public void testNullMessages() throws Exception {
-		Message message1 = mock(Message.class);
-		Message message2 = mock(Message.class);
+		Message message1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message message2 = spy(GreenMailUtil.newMimeMessage("test2"));
 		final Message[] messages1 = new Message[]{ null, null, message1 };
 		final Message[] messages2 = new Message[]{ message2 };
 		final SearchTermStrategy searchTermStrategy = mock(SearchTermStrategy.class);

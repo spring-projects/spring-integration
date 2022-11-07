@@ -70,15 +70,15 @@ ext {
     groovyVersion = '4.0.6'
     hamcrestVersion = '2.2'
     hazelcastVersion = '5.1.4'
-    hibernateVersion = '6.1.4.Final'
+    hibernateVersion = '6.1.5.Final'
     hsqldbVersion = '2.7.0'
     h2Version = '2.1.214'
     jacksonVersion = '2.14.0'
-    jaxbVersion = '3.0.2'
+    jaxbVersion = '4.0.1'
     jcifsVersion = '2.1.32'
     jeroMqVersion = '0.5.2'
-    jmsApiVersion = '3.0.0'
-    jpaApiVersion = '3.0.3'
+    jmsApiVersion = '3.1.0'
+    jpaApiVersion = '3.1.0'
     jrubyVersion = '9.3.8.0'
     jsonpathVersion = '2.7.0'
     junit4Version = '4.13.2'
@@ -88,7 +88,7 @@ ext {
     kryoVersion = '5.3.0'
     lettuceVersion = '6.2.1.RELEASE'
     log4jVersion = '2.19.0'
-    mailVersion = '2.0.1'
+    mailVersion = '1.0.0'
     micrometerVersion = '1.10.0'
     micrometerTracingVersion = '1.0.0'
     mockitoVersion = '4.8.0'
@@ -551,7 +551,6 @@ project('spring-integration-core') {
         optionalApi 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
 
         testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
-        testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testImplementation 'io.micrometer:micrometer-observation-test'
         testImplementation ('io.micrometer:micrometer-tracing-integration-test') {
             exclude group: 'io.opentelemetry'
@@ -621,7 +620,6 @@ project('spring-integration-ftp') {
         optionalApi "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 
         testImplementation project(':spring-integration-file').sourceSets.test.output
-        testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
     }
 }
 
@@ -698,7 +696,6 @@ project('spring-integration-ip') {
         api project(':spring-integration-core')
         testImplementation project(':spring-integration-stream')
         testImplementation project(':spring-integration-event')
-        testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
 
         testRuntimeOnly "com.esotericsoftware:kryo:$kryoVersion"
         testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
@@ -761,14 +758,13 @@ project('spring-integration-jpa') {
     dependencies {
         api project(':spring-integration-core')
         api 'org.springframework:spring-orm'
-        optionalApi "org.eclipse.persistence:org.eclipse.persistence.jpa:$jpaApiVersion"
+        optionalApi "jakarta.persistence:jakarta.persistence-api:$jpaApiVersion"
 
         testImplementation('org.springframework.data:spring-data-jpa') {
             exclude group: 'org.springframework'
         }
         testImplementation "com.h2database:h2:$h2Version"
         testImplementation "org.hibernate.orm:hibernate-core:$hibernateVersion"
-        testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
     }
 }
 
@@ -781,7 +777,6 @@ project('spring-integration-kafka') {
         }
 
         testImplementation "org.springframework.kafka:spring-kafka-test:$springKafkaVersion"
-        testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     }
 }
@@ -792,8 +787,10 @@ project('spring-integration-mail') {
         api project(':spring-integration-core')
         api 'org.springframework:spring-context-support'
 
-        providedImplementation "com.sun.mail:jakarta.mail:$mailVersion"
+        providedImplementation "org.eclipse.angus:jakarta.mail:$mailVersion"
+
         testImplementation "com.icegreen:greenmail:$greenmailVersion"
+
         testRuntimeOnly 'org.apache.logging.log4j:log4j-jul'
     }
 }
@@ -820,8 +817,8 @@ project('spring-integration-r2dbc') {
             exclude group: 'org.springframework'
         }
         api 'org.springframework:spring-r2dbc'
+
         testImplementation "io.r2dbc:r2dbc-h2:$r2dbch2Version"
-        testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
     }
 }
 
@@ -846,7 +843,6 @@ project('spring-integration-redis') {
         }
 
         testImplementation "io.lettuce:lettuce-core:$lettuceVersion"
-        testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     }
 
@@ -1036,9 +1032,7 @@ project('spring-integration-ws') {
         testImplementation "jakarta.jms:jakarta.jms-api:$jmsApiVersion"
         testImplementation "org.igniterealtime.smack:smack-tcp:$smackVersion"
         testImplementation "org.igniterealtime.smack:smack-extensions:$smackVersion"
-        testImplementation "jakarta.mail:jakarta.mail-api:$mailVersion"
-
-        testRuntimeOnly "com.sun.mail:jakarta.mail:$mailVersion"
+        testImplementation "org.eclipse.angus:angus-mail:$mailVersion"
     }
 }
 
@@ -1083,8 +1077,6 @@ project('spring-integration-zeromq') {
         api "org.zeromq:jeromq:$jeroMqVersion"
 
         optionalApi 'com.fasterxml.jackson.core:jackson-databind'
-
-        testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
     }
 }
 

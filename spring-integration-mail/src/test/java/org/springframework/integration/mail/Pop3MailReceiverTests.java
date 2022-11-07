@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,16 +29,18 @@ import jakarta.mail.Flags;
 import jakarta.mail.Flags.Flag;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
-import jakarta.mail.internet.MimeMessage;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 
+import com.icegreen.greenmail.util.GreenMailUtil;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class Pop3MailReceiverTests {
@@ -57,9 +59,9 @@ public class Pop3MailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[] { msg1, msg2 };
+		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
+		final Message[] messages = new Message[]{ msg1, msg2 };
 		doAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 			int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
@@ -92,9 +94,9 @@ public class Pop3MailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[] { msg1, msg2 };
+		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
+		final Message[] messages = new Message[]{ msg1, msg2 };
 		doAnswer(invocation -> null).when(receiver).openFolder();
 
 		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
@@ -119,9 +121,9 @@ public class Pop3MailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[] { msg1, msg2 };
+		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
+		final Message[] messages = new Message[]{ msg1, msg2 };
 		doAnswer(invocation -> null).when(receiver).openFolder();
 
 		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
@@ -146,9 +148,9 @@ public class Pop3MailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[] { msg1, msg2 };
+		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
+		final Message[] messages = new Message[]{ msg1, msg2 };
 		doAnswer(invocation -> null).when(receiver).openFolder();
 
 		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
