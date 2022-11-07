@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,10 @@ import org.springframework.util.xml.DomUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Shiliang Li
+ *
  * @since 2.0.2
  */
-abstract class HttpAdapterParsingUtils {
+final class HttpAdapterParsingUtils {
 
 	static final String[] SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES = {
 			"request-factory", "error-handler", "message-converters"
@@ -48,14 +49,22 @@ abstract class HttpAdapterParsingUtils {
 		for (String attributeName : SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
 			if (element.hasAttribute(attributeName)) {
 				parserContext.getReaderContext().error("When providing a 'rest-template' reference, the '"
-								+ attributeName + "' attribute is not allowed.",
+								+ attributeName + "' attribute is not allowed, " +
+								"it must be set on the provided template instead",
 						parserContext.extractSource(element));
 			}
+		}
+
+		if (element.hasAttribute("encoding-mode")) {
+			parserContext.getReaderContext().error("When providing a 'rest-template' reference, " +
+							"the 'encoding-mode' must be set on the 'RestTemplate.uriTemplateHandler' property.",
+					parserContext.extractSource(element));
 		}
 	}
 
 	static void configureUriVariableExpressions(BeanDefinitionBuilder builder, ParserContext parserContext,
 			Element element) {
+
 		String uriVariablesExpression = element.getAttribute("uri-variables-expression");
 
 		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
@@ -73,7 +82,7 @@ abstract class HttpAdapterParsingUtils {
 		}
 
 		if (hasUriVariableExpressions) {
-			ManagedMap<String, Object> uriVariableExpressions = new ManagedMap<String, Object>();
+			ManagedMap<String, Object> uriVariableExpressions = new ManagedMap<>();
 			for (Element uriVariableElement : uriVariableElements) {
 				String name = uriVariableElement.getAttribute("name");
 				String expression = uriVariableElement.getAttribute("expression");
@@ -146,8 +155,8 @@ abstract class HttpAdapterParsingUtils {
 
 		if (hasExpectedResponseType && hasExpectedResponseTypeExpression) {
 			parserContext.getReaderContext()
-					.error("The 'expected-response-type' and 'expected-response-type-expression' are mutually exclusive. " +
-							"You can only have one or the other", element);
+					.error("The 'expected-response-type' and 'expected-response-type-expression' " +
+							"are mutually exclusive. You can only have one or the other", element);
 		}
 
 		RootBeanDefinition expressionDef = null;
@@ -162,6 +171,9 @@ abstract class HttpAdapterParsingUtils {
 		if (expressionDef != null) {
 			builder.addPropertyValue("expectedResponseTypeExpression", expressionDef);
 		}
+	}
+
+	private HttpAdapterParsingUtils() {
 	}
 
 }
