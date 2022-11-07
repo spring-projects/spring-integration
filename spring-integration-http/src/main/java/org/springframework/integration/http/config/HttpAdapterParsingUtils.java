@@ -42,7 +42,7 @@ import org.springframework.util.xml.DomUtils;
 final class HttpAdapterParsingUtils {
 
 	static final String[] SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES = {
-			"request-factory", "error-handler", "message-converters", "encoding-mode"
+			"request-factory", "error-handler", "message-converters"
 	};
 
 	static void verifyNoRestTemplateAttributes(Element element, ParserContext parserContext) {
@@ -52,6 +52,12 @@ final class HttpAdapterParsingUtils {
 								+ attributeName + "' attribute is not allowed.",
 						parserContext.extractSource(element));
 			}
+		}
+
+		if (element.hasAttribute("encoding-mode")) {
+			parserContext.getReaderContext().error("When providing a 'rest-template' reference, " +
+							"the 'encoding-mode' must be set on the 'RestTemplate.uriTemplateHandler' property.",
+					parserContext.extractSource(element));
 		}
 	}
 

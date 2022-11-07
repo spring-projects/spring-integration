@@ -17,7 +17,7 @@
 package org.springframework.integration.http.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -28,7 +28,6 @@ import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -181,30 +180,20 @@ public class OutboundResponseTypeTests {
 
 	@Test
 	public void testInt3052InvalidResponseType() {
-		try {
-			this.invalidResponseTypeChannel.send(new GenericMessage<>("hello".getBytes()));
-			fail("IllegalStateException expected.");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageHandlingException.class);
-			Throwable t = e.getCause();
-			assertThat(t).isInstanceOf(IllegalStateException.class);
-			assertThat(t.getMessage()).contains("'expectedResponseType' can be an instance of " +
-					"'Class<?>', 'String' or 'ParameterizedTypeReference<?>'");
-		}
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.invalidResponseTypeChannel.send(new GenericMessage<>("hello".getBytes())))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.withStackTraceContaining("'expectedResponseType' can be an instance of " +
+						"'Class<?>', 'String' or 'ParameterizedTypeReference<?>'");
 	}
 
 	@Test
 	public void testMutuallyExclusivityInMethodAndMethodExpression() {
-		try {
-			new ClassPathXmlApplicationContext("OutboundResponseTypeTests-context-fail.xml", this.getClass()).close();
-			fail("Expected BeansException");
-		}
-		catch (BeansException e) {
-			assertThat(e instanceof BeanDefinitionParsingException).isTrue();
-			assertThat(e.getMessage().contains("The 'expected-response-type' " +
-					"and 'expected-response-type-expression' are mutually exclusive")).isTrue();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("OutboundResponseTypeTests-context-fail.xml",
+						getClass()))
+				.withMessageContaining("The 'expected-response-type' " +
+						"and 'expected-response-type-expression' are mutually exclusive");
 	}
 
 	@Test
@@ -218,6 +207,15 @@ public class OutboundResponseTypeTests {
 				.send(new GenericMessage<>(Collections.singletonMap("foo", "bar")));
 
 		this.mockServer.verify();
+	}
+
+	@Test
+	public void notAllowedEncodingModeWhenExternalRestTemplate() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(
+						"OutboundResponseTypeTests-context-encoding-mode-fail.xml", getClass()))
+				.withMessageContaining("When providing a 'rest-template' reference, " +
+						"the 'encoding-mode' must be set on the 'RestTemplate.uriTemplateHandler' property.");
 	}
 
 }
