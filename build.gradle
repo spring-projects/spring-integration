@@ -4,6 +4,11 @@ buildscript {
     repositories {
         mavenCentral()
         gradlePluginPortal()
+        jcenter() {
+            content {
+                includeGroup('com.burgstaller')
+            }
+        }
         maven { url 'https://repo.spring.io/plugins-release' }
         if (version.endsWith('SNAPSHOT')) {
             maven { url 'https://repo.spring.io/snapshot' }
