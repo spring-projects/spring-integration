@@ -565,7 +565,7 @@ project('spring-integration-core') {
     }
 
     dokkaHtmlPartial {
-        outputDirectory.set(new File(buildDir, 'docs/kdoc'))
+        outputDirectory.set(new File(buildDir, 'kdoc'))
         dokkaSourceSets {
             main {
                 sourceRoots.setFrom(file('src/main/kotlin'))
@@ -1164,7 +1164,7 @@ task api(type: Javadoc) {
 dokkaHtmlMultiModule {
     dependsOn api
     moduleName.set('spring-integration')
-    outputDirectory.set(file("$buildDir/docs/kdoc"))
+    outputDirectory.set(file("$buildDir/kdoc"))
 }
 
 apply from: "${rootDir}/gradle/docs.gradle"

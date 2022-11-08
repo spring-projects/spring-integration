@@ -52,7 +52,7 @@ task checkAsciidocLinks {
 }
 
 def observationInputDir = file('spring-integration-core/src/main/java/org/springframework/integration/support/management/observation').absolutePath
-def generatedDocsDir = file("$buildDir/docs/generated").absolutePath
+def generatedDocsDir = file("$buildDir/reference/generated").absolutePath
 
 task generateObservabilityDocs(type: JavaExec) {
 	inputs.dir(observationInputDir)
@@ -74,7 +74,7 @@ task filterMetricsDocsContent(type: Copy) {
 task prepareDocs(type: Copy) {
 	dependsOn checkAsciidocLinks, filterMetricsDocsContent
 	from 'src/reference/asciidoc'
-	into "$buildDir/docs"
+	into "$buildDir/reference"
 }
 
 asciidoctorPdf {
@@ -88,8 +88,7 @@ asciidoctorPdf {
 	baseDirFollowsSourceFile()
 
 	asciidoctorj {
-		sourceDir "$buildDir/docs"
-		inputs.dir(sourceDir)
+		sourceDir "$buildDir/reference"
 		sources {
 			include 'index-single.adoc'
 		}
@@ -115,8 +114,7 @@ asciidoctor {
 	baseDirFollowsSourceFile()
 
 	configurations 'asciidoctorExtensions'
-	sourceDir "$buildDir/docs"
-	inputs.dir(sourceDir)
+	sourceDir "$buildDir/reference"
 	outputOptions {
 		backends 'spring-html'
 	}
