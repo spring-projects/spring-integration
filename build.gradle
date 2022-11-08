@@ -102,7 +102,7 @@ ext {
     pahoMqttClientVersion = '1.2.5'
     postgresVersion = '42.5.0'
     r2dbch2Version = '1.0.0.RC1'
-    reactorVersion = '2022.0.0-SNAPSHOT'
+    reactorVersion = '2022.0.0'
     resilience4jVersion = '1.7.1'
     romeToolsVersion = '1.18.0'
     rsocketVersion = '1.1.3'
