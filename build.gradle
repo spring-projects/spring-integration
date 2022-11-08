@@ -1268,6 +1268,11 @@ task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
             from subproject.javadocJar
         }
     }
+
+    from(project(':spring-integration-bom').generatePomFileForMavenJavaPublication) {
+        into "${baseDir}/libs"
+        rename 'pom-default.xml', "spring-integration-bom-${project.version}.xml"
+    }
 }
 
 task dist(dependsOn: assemble) {
