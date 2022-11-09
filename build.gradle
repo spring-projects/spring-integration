@@ -168,6 +168,7 @@ allprojects {
             mavenBom "org.springframework.data:spring-data-bom:$springDataVersion"
             mavenBom "org.springframework.amqp:spring-amqp-bom:$springAmqpVersion"
             mavenBom "org.springframework.kafka:spring-kafka-bom:$springKafkaVersion"
+            mavenBom "org.springframework.ws:spring-ws-bom:$springWsVersion"
             mavenBom "io.projectreactor:reactor-bom:$reactorVersion"
             mavenBom "org.apache.logging.log4j:log4j-bom:$log4jVersion"
             mavenBom "org.mockito:mockito-bom:$mockitoVersion"
@@ -1028,14 +1029,14 @@ project('spring-integration-ws') {
         api project(':spring-integration-core')
         api 'org.springframework:spring-oxm'
         api 'org.springframework:spring-webmvc'
-        api("org.springframework.ws:spring-ws-core:$springWsVersion") {
+        api('org.springframework.ws:spring-ws-core') {
             exclude group: 'org.springframework'
         }
 
         providedImplementation "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
 
         testImplementation "com.thoughtworks.xstream:xstream:$xstreamVersion"
-        testImplementation("org.springframework.ws:spring-ws-support:$springWsVersion") {
+        testImplementation('org.springframework.ws:spring-ws-support') {
             exclude group: 'org.springframework'
         }
         testImplementation 'org.springframework:spring-jms'
@@ -1051,10 +1052,10 @@ project('spring-integration-xml') {
     dependencies {
         api project(':spring-integration-core')
         api 'org.springframework:spring-oxm'
-        api("org.springframework.ws:spring-xml:$springWsVersion") {
+        api('org.springframework.ws:spring-xml') {
             exclude group: 'org.springframework'
         }
-        optionalApi("org.springframework.ws:spring-ws-core:$springWsVersion") {
+        optionalApi('org.springframework.ws:spring-ws-core') {
             exclude group: 'org.springframework'
         }
 
