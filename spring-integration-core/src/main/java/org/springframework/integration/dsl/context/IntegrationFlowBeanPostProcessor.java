@@ -39,6 +39,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionOverrideException;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -48,6 +49,7 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.channel.AbstractMessageChannel;
@@ -153,8 +155,7 @@ public class IntegrationFlowBeanPostProcessor
 
 		for (Map.Entry<Object, String> entry : integrationComponents.entrySet()) {
 			Object component = entry.getKey();
-			if (component instanceof ConsumerEndpointSpec) {
-				ConsumerEndpointSpec<?, ?> endpointSpec = (ConsumerEndpointSpec<?, ?>) component;
+			if (component instanceof ConsumerEndpointSpec<?, ?> endpointSpec) {
 				MessageHandler messageHandler = endpointSpec.get().getT2();
 				ConsumerEndpointFactoryBean endpoint = endpointSpec.get().getT1();
 				String id = endpointSpec.getId();
@@ -184,8 +185,7 @@ public class IntegrationFlowBeanPostProcessor
 					targetIntegrationComponents.put(directChannel, channelBeanName);
 				}
 			}
-			else if (component instanceof SourcePollingChannelAdapterSpec) {
-				SourcePollingChannelAdapterSpec spec = (SourcePollingChannelAdapterSpec) component;
+			else if (component instanceof SourcePollingChannelAdapterSpec spec) {
 				Map<Object, String> componentsToRegister = spec.getComponentsToRegister();
 				if (!CollectionUtils.isEmpty(componentsToRegister)) {
 					componentsToRegister.entrySet()
@@ -233,8 +233,7 @@ public class IntegrationFlowBeanPostProcessor
 						registerComponent(component, channelBeanName, flowBeanName);
 						targetIntegrationComponents.put(component, channelBeanName);
 					}
-					else if (component instanceof FixedSubscriberChannel) {
-						FixedSubscriberChannel fixedSubscriberChannel = (FixedSubscriberChannel) component;
+					else if (component instanceof FixedSubscriberChannel fixedSubscriberChannel) {
 						String channelBeanName = fixedSubscriberChannel.getComponentName();
 						if ("Unnamed fixed subscriber channel".equals(channelBeanName)) {
 							channelBeanName = flowNamePrefix + "channel" +
@@ -263,8 +262,14 @@ public class IntegrationFlowBeanPostProcessor
 						}
 
 						registerComponent(gateway, gatewayId, flowBeanName,
-								beanDefinition -> ((AbstractBeanDefinition) beanDefinition)
-										.setSource(new DescriptiveResource("" + gateway.getObjectType())));
+								beanDefinition -> {
+									RootBeanDefinition definition = (RootBeanDefinition) beanDefinition;
+									Class<?> serviceInterface = gateway.getObjectType();
+									definition.setSource(new DescriptiveResource("" + serviceInterface));
+									definition.setTargetType(
+											ResolvableType.forClassWithGenerics(AnnotationGatewayProxyFactoryBean.class,
+													serviceInterface));
+								});
 
 						targetIntegrationComponents.put(component, gatewayId);
 					}
@@ -341,10 +346,9 @@ public class IntegrationFlowBeanPostProcessor
 
 		invokeBeanInitializationHooks(beanName, target);
 
-		if (bean instanceof ComponentsRegistration) {
-			Map<Object, String> componentsToRegister = ((ComponentsRegistration) bean).getComponentsToRegister();
+		if (bean instanceof ComponentsRegistration componentsRegistration) {
+			Map<Object, String> componentsToRegister = componentsRegistration.getComponentsToRegister();
 			if (!CollectionUtils.isEmpty(componentsToRegister)) {
-
 				componentsToRegister.entrySet()
 						.stream()
 						.filter(component -> noBeanPresentForComponent(component.getKey(), beanName))
@@ -358,40 +362,42 @@ public class IntegrationFlowBeanPostProcessor
 
 	private void invokeBeanInitializationHooks(final String beanName, final Object bean) { // NOSONAR complexity
 		if (bean instanceof Aware) {
-			if (bean instanceof BeanNameAware) {
-				((BeanNameAware) bean).setBeanName(beanName);
+			if (bean instanceof BeanNameAware beanNameAware) {
+				beanNameAware.setBeanName(beanName);
 			}
-			if (bean instanceof BeanClassLoaderAware && this.beanFactory.getBeanClassLoader() != null) {
-				((BeanClassLoaderAware) bean).setBeanClassLoader(this.beanFactory.getBeanClassLoader()); // NOSONAR
+			if (bean instanceof BeanClassLoaderAware beanClassLoaderAware
+					&& this.beanFactory.getBeanClassLoader() != null) {
+
+				beanClassLoaderAware.setBeanClassLoader(this.beanFactory.getBeanClassLoader()); // NOSONAR
 			}
-			if (bean instanceof BeanFactoryAware) {
-				((BeanFactoryAware) bean).setBeanFactory(this.beanFactory);
+			if (bean instanceof BeanFactoryAware beanFactoryAware) {
+				beanFactoryAware.setBeanFactory(this.beanFactory);
 			}
-			if (bean instanceof EnvironmentAware) {
-				((EnvironmentAware) bean).setEnvironment(this.applicationContext.getEnvironment());
+			if (bean instanceof EnvironmentAware environmentAware) {
+				environmentAware.setEnvironment(this.applicationContext.getEnvironment());
 			}
-			if (bean instanceof EmbeddedValueResolverAware) {
-				((EmbeddedValueResolverAware) bean).setEmbeddedValueResolver(this.embeddedValueResolver);
+			if (bean instanceof EmbeddedValueResolverAware embeddedValueResolverAware) {
+				embeddedValueResolverAware.setEmbeddedValueResolver(this.embeddedValueResolver);
 			}
-			if (bean instanceof ResourceLoaderAware) {
-				((ResourceLoaderAware) bean).setResourceLoader(this.applicationContext);
+			if (bean instanceof ResourceLoaderAware resourceLoaderAware) {
+				resourceLoaderAware.setResourceLoader(this.applicationContext);
 			}
-			if (bean instanceof ApplicationEventPublisherAware) {
-				((ApplicationEventPublisherAware) bean).setApplicationEventPublisher(this.applicationContext);
+			if (bean instanceof ApplicationEventPublisherAware eventPublisherAware) {
+				eventPublisherAware.setApplicationEventPublisher(this.applicationContext);
 			}
-			if (bean instanceof MessageSourceAware) {
-				((MessageSourceAware) bean).setMessageSource(this.applicationContext);
+			if (bean instanceof MessageSourceAware messageSourceAware) {
+				messageSourceAware.setMessageSource(this.applicationContext);
 			}
-			if (bean instanceof ApplicationContextAware) {
-				((ApplicationContextAware) bean).setApplicationContext(this.applicationContext);
+			if (bean instanceof ApplicationContextAware applicationContextAware) {
+				applicationContextAware.setApplicationContext(this.applicationContext);
 			}
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	private boolean noBeanPresentForComponent(Object instance, String parentBeanName) {
-		if (instance instanceof NamedComponent) {
-			String beanName = ((NamedComponent) instance).getBeanName();
+		if (instance instanceof NamedComponent namedComponent) {
+			String beanName = namedComponent.getBeanName();
 			if (beanName == null || !this.beanFactory.containsBean(beanName)) {
 				return true;
 			}
@@ -455,8 +461,8 @@ public class IntegrationFlowBeanPostProcessor
 	}
 
 	private String generateBeanName(Object instance, String prefix, String fallbackId, boolean useFlowIdAsPrefix) {
-		if (instance instanceof NamedComponent && ((NamedComponent) instance).getBeanName() != null) {
-			String beanName = ((NamedComponent) instance).getBeanName();
+		if (instance instanceof NamedComponent namedComponent && namedComponent.getBeanName() != null) {
+			String beanName = namedComponent.getBeanName();
 			return useFlowIdAsPrefix
 					? prefix + beanName
 					: beanName;
@@ -468,8 +474,8 @@ public class IntegrationFlowBeanPostProcessor
 		}
 
 		String generatedBeanName = prefix;
-		if (instance instanceof NamedComponent) {
-			generatedBeanName += ((NamedComponent) instance).getComponentType();
+		if (instance instanceof NamedComponent namedComponent) {
+			generatedBeanName += namedComponent.getComponentType();
 		}
 		else {
 			generatedBeanName += instance.getClass().getName();

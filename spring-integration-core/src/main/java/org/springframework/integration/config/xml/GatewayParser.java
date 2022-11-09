@@ -23,9 +23,7 @@ import java.util.Map;
 
 import org.w3c.dom.Element;
 
-import org.springframework.aot.AotDetector;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -262,13 +260,8 @@ public class GatewayParser implements BeanDefinitionParser {
 		}
 
 		RootBeanDefinition beanDefinition = (RootBeanDefinition) gatewayProxyBuilder.getBeanDefinition();
-		if (AotDetector.useGeneratedArtifacts()) {
-			beanDefinition.setTargetType(
-					ResolvableType.forClassWithGenerics(GatewayProxyFactoryBean.class, serviceInterface));
-		}
-		else {
-			beanDefinition.setAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE, serviceInterface);
-		}
+		beanDefinition.setTargetType(
+				ResolvableType.forClassWithGenerics(GatewayProxyFactoryBean.class, serviceInterface));
 		return new BeanDefinitionHolder(beanDefinition, id);
 	}
 
