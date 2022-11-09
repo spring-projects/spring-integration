@@ -164,11 +164,6 @@ allprojects {
         imports {
             mavenBom "com.fasterxml.jackson:jackson-bom:$jacksonVersion"
             mavenBom "org.junit:junit-bom:$junitJupiterVersion"
-            mavenBom "org.springframework:spring-framework-bom:$springVersion"
-            mavenBom "org.springframework.data:spring-data-bom:$springDataVersion"
-            mavenBom "org.springframework.amqp:spring-amqp-bom:$springAmqpVersion"
-            mavenBom "org.springframework.kafka:spring-kafka-bom:$springKafkaVersion"
-            mavenBom "org.springframework.ws:spring-ws-bom:$springWsVersion"
             mavenBom "io.projectreactor:reactor-bom:$reactorVersion"
             mavenBom "org.apache.logging.log4j:log4j-bom:$log4jVersion"
             mavenBom "org.mockito:mockito-bom:$mockitoVersion"
@@ -179,6 +174,11 @@ allprojects {
             mavenBom "org.apache.groovy:groovy-bom:$groovyVersion"
             mavenBom "org.springframework.security:spring-security-bom:$springSecurityVersion"
             mavenBom "org.jetbrains.kotlinx:kotlinx-coroutines-bom:$kotlinCoroutinesVersion"
+            mavenBom "org.springframework.amqp:spring-amqp-bom:$springAmqpVersion"
+            mavenBom "org.springframework.kafka:spring-kafka-bom:$springKafkaVersion"
+            mavenBom "org.springframework.ws:spring-ws-bom:$springWsVersion"
+            mavenBom "org.springframework.data:spring-data-bom:$springDataVersion"
+            mavenBom "org.springframework:spring-framework-bom:$springVersion"
         }
 
     }
