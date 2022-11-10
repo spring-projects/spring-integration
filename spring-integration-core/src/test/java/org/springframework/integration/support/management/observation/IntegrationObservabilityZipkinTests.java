@@ -107,8 +107,10 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 	@Configuration
 	@EnableIntegration
 	@EnableIntegrationManagement(
-			observationPatterns =
-					"${spring.integration.management.observation-patterns:observedEndpoint,testInboundGateway}")
+			observationPatterns = {
+					"${spring.integration.management.observation-patterns:observedEndpoint,testInboundGateway}",
+					"${spring.integration.management.observation-patterns:}"
+			})
 	public static class ObservationIntegrationTestConfiguration {
 
 		CountDownLatch observedHandlerLatch = new CountDownLatch(1);

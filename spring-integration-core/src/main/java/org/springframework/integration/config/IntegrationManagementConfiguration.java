@@ -32,9 +32,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import io.micrometer.observation.ObservationRegistry;
-import org.springframework.util.StringUtils;
 
 /**
  * {@code @Configuration} class that registers a {@link IntegrationManagementConfigurer} bean.
@@ -44,7 +44,6 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
- *
  * @since 4.2
  */
 @Configuration(proxyBeanMethods = false)
@@ -87,13 +86,18 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 	}
 
 	private String[] obtainObservationPatterns() {
-		Set<String> patterns = new HashSet<>();
-		String[] observationPatterns = (String[]) this.attributes.get("observationPatterns");
-		for (String observationPattern : observationPatterns) {
-			String pattern = this.environment.resolvePlaceholders(observationPattern);
-			patterns.addAll(StringUtils.commaDelimitedListToSet(pattern));
+		Set<String> observationPatterns = new HashSet<>();
+		String[] patternsProperties = (String[]) this.attributes.get("observationPatterns");
+		for (String patternProperty : patternsProperties) {
+			String patternValue = this.environment.resolvePlaceholders(patternProperty);
+			String[] patternsToProcess = StringUtils.commaDelimitedListToStringArray(patternValue);
+			for (String pattern : patternsToProcess) {
+				if (StringUtils.hasText(pattern)) {
+					observationPatterns.add(pattern);
+				}
+			}
 		}
-		return patterns.toArray(new String[0]);
+		return observationPatterns.toArray(new String[0]);
 	}
 
 }
