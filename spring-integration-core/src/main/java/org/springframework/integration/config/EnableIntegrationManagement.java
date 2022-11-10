@@ -68,6 +68,7 @@ public @interface EnableIntegrationManagement {
 	 * None by default - no unconditional observation instrumentation.
 	 * Can be set to {@code *} to instrumentation all the integration components.
 	 * The pattern can start with {@code !} to negate the matching.
+	 * The value can be a property placeholder and/or comma-separated.
 	 * @since 6.0
 	 * @see org.springframework.integration.support.utils.PatternMatchUtils#smartMatch(String, String...)
 	 */

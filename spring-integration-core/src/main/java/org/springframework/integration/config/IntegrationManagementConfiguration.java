@@ -16,7 +16,9 @@
 
 package org.springframework.integration.config;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -32,6 +34,7 @@ import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.util.Assert;
 
 import io.micrometer.observation.ObservationRegistry;
+import org.springframework.util.StringUtils;
 
 /**
  * {@code @Configuration} class that registers a {@link IntegrationManagementConfigurer} bean.
@@ -75,12 +78,22 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 				Boolean.parseBoolean(this.environment.resolvePlaceholders(
 						(String) this.attributes.get("defaultLoggingEnabled"))));
 		configurer.setMetricsCaptorProvider(metricsCaptorProvider);
-		String[] observationPatterns = (String[]) this.attributes.get("observationPatterns");
+		String[] observationPatterns = obtainObservationPatterns();
 		if (observationPatterns.length > 0) {
 			configurer.setObservationPatterns(observationPatterns);
 			configurer.setObservationRegistry(observationRegistryProvider);
 		}
 		return configurer;
+	}
+
+	private String[] obtainObservationPatterns() {
+		Set<String> patterns = new HashSet<>();
+		String[] observationPatterns = (String[]) this.attributes.get("observationPatterns");
+		for (String observationPattern : observationPatterns) {
+			String pattern = this.environment.resolvePlaceholders(observationPattern);
+			patterns.addAll(StringUtils.commaDelimitedListToSet(pattern));
+		}
+		return patterns.toArray(new String[0]);
 	}
 
 }
