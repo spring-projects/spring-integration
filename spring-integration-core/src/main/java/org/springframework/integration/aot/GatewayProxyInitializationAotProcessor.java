@@ -18,6 +18,7 @@ package org.springframework.integration.aot;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.aop.framework.ProxyFactoryBean;
@@ -26,12 +27,15 @@ import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContrib
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.RegisteredBean;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 
+
 /**
  * A {@link BeanFactoryInitializationAotProcessor} for registering proxy interfaces
- * of the {@link GatewayProxyFactoryBean} beans.
+ * of the {@link GatewayProxyFactoryBean} beans or {@link MessagingGateway} interfaces.
  *
  * @author Artem Bilan
  *
@@ -41,12 +45,22 @@ class GatewayProxyInitializationAotProcessor implements BeanFactoryInitializatio
 
 	@Override
 	public BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
-		List<? extends Class<?>> gatewayProxyInterfaces =
+		List<RegisteredBean> registeredBeans =
 				Arrays.stream(beanFactory.getBeanDefinitionNames())
 						.map((beanName) -> RegisteredBean.of(beanFactory, beanName))
-						.filter((bean) -> ProxyFactoryBean.class.isAssignableFrom(bean.getBeanClass()))
-						.map((bean) -> bean.getBeanType().getGeneric(0).resolve(RequestReplyExchanger.class))
 						.toList();
+
+		Stream<Class<?>> gatewayProxyInterfaces =
+				Stream.concat(
+						registeredBeans.stream()
+								.filter(bean -> ProxyFactoryBean.class.isAssignableFrom(bean.getBeanClass()))
+								.map((bean) ->
+										bean.getBeanType().getGeneric(0).resolve(RequestReplyExchanger.class)),
+						registeredBeans.stream()
+								.map(RegisteredBean::getBeanClass)
+								.filter(beanClass ->
+										beanClass.isInterface() &&
+												AnnotatedElementUtils.hasAnnotation(beanClass, MessagingGateway.class)));
 
 		return (generationContext, beanFactoryInitializationCode) -> {
 			ProxyHints proxyHints = generationContext.getRuntimeHints().proxies();

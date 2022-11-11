@@ -18,12 +18,17 @@ package org.springframework.integration.config;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
+import org.springframework.beans.factory.aot.BeanRegistrationAotContribution;
+import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RegisteredBean;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.ScannedGenericBeanDefinition;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
@@ -39,7 +44,7 @@ import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean
  * @see AnnotationGatewayProxyFactoryBean
  */
 class GatewayProxyInstantiationPostProcessor implements
-		InstantiationAwareBeanPostProcessor, ApplicationContextAware {
+		InstantiationAwareBeanPostProcessor, BeanRegistrationAotProcessor, ApplicationContextAware {
 
 	private final BeanDefinitionRegistry registry;
 
@@ -73,6 +78,19 @@ class GatewayProxyInstantiationPostProcessor implements
 				gatewayProxyFactoryBean.afterPropertiesSet();
 				return gatewayProxyFactoryBean;
 			}
+		}
+		return null;
+	}
+
+	@Override
+	public BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
+		Class<?> beanClass = registeredBean.getBeanClass();
+		if (beanClass.isInterface() && AnnotatedElementUtils.hasAnnotation(beanClass, MessagingGateway.class)) {
+			RootBeanDefinition beanDefinition = registeredBean.getMergedBeanDefinition();
+			beanDefinition.setBeanClass(AnnotationGatewayProxyFactoryBean.class);
+			beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(beanClass);
+			beanDefinition.setTargetType(
+					ResolvableType.forClassWithGenerics(AnnotationGatewayProxyFactoryBean.class, beanClass));
 		}
 		return null;
 	}
