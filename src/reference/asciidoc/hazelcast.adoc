@@ -46,13 +46,13 @@ Hazelcast provides distributed data structures such as:
 * `com.hazelcast.topic.ITopic`
 * `com.hazelcast.replicatedmap.ReplicatedMap`
 
-It also provides event listeners in order to listen to the modifications performed on these data structures.
+It also provides event listeners in order to listen to modifications made to these data structures.
 
 * `com.hazelcast.core.EntryListener<K, V>`
 * `com.hazelcast.collection.ItemListener`
 * `com.hazelcast.topic.MessageListener`
 
-Hazelcast Event-Driven Inbound Channel Adapter listens related cache events and sends event messages to defined channel.
+The Hazelcast Event-Driven Inbound Channel Adapter listens to related cache events and sends event messages to the defined channel.
 It supports both XML and JavaConfig driven configurations.
 
 ==== XML Configuration :
@@ -67,24 +67,24 @@ It supports both XML and JavaConfig driven configurations.
 ----
 ====
 
-Basically, Hazelcast Event-Driven Inbound Channel Adapter requires following attributes:
+The Hazelcast Event-Driven Inbound Channel Adapter requires the following attributes:
 
-* `channel`: Specifies channel which message is sent;
-* `cache`: Specifies the distributed Object reference which is listened.
-It is mandatory attribute;
-* `cache-events`: Specifies cache events which are listened.
-It is optional attribute and its default value is `ADDED`.
+* `channel`: Specifies the channel to which messages are sent;
+* `cache`: Specifies the distributed Object reference which is listened to.
+It is a mandatory attribute;
+* `cache-events`: Specifies cache events which are listened for.
+It is an optional attribute and its default value is `ADDED`.
 Its supported values are as follows :
 
 * Supported cache event types for `IMap` and `MultiMap`: `ADDED`, `REMOVED`, `UPDATED`, `EVICTED`, `EVICT_ALL` and `CLEAR_ALL`;
 * Supported cache event types for `ReplicatedMap`: `ADDED`, `REMOVED`, `UPDATED`, `EVICTED`;
 * Supported cache event types for `IList`, `ISet` and `IQueue`: `ADDED`, `REMOVED`.
-There is no need to cache event type definition for `ITopic`.
+There are no cache event types for `ITopic`.
 
-* `cache-listening-policy`: Specifies cache listening policy as `SINGLE` or `ALL`.
-It is optional attribute and its default value is `SINGLE`.
-Each Hazelcast inbound channel adapter listening same cache object with same cache-events attribute, can receive a single event message or all event messages.
-If it is `ALL`, all Hazelcast inbound channel adapters listening same cache object with same cache-events attribute, will receive same event messages.
+* `cache-listening-policy`: Specifies the cache listening policy as `SINGLE` or `ALL`.
+It is an optional attribute and its default value is `SINGLE`.
+Each Hazelcast inbound channel adapter listening to the same cache object with the same cache-events attribute, can receive a single event message or all event messages.
+If it is `ALL`, all Hazelcast inbound channel adapters listening to the same cache object with the same cache-events attribute, will receive all event messages.
 If it is `SINGLE`, they will receive unique event messages.
 
 Some configuration samples:
@@ -198,7 +198,7 @@ Some configuration samples:
 ==== Java Configuration Sample:
 
 The following sample shows a `DistributedMap` configuration.
-Same configuration can be used for other distributed data structures(`IMap`, `MultiMap`, `ReplicatedMap`, `IList`, `ISet`, `IQueue` and `ITopic`):
+The same configuration can be used for other distributed data structures(`IMap`, `MultiMap`, `ReplicatedMap`, `IList`, `ISet`, `IQueue` and `ITopic`):
 
 ====
 [source,java]
@@ -233,8 +233,8 @@ public HazelcastEventDrivenMessageProducer hazelcastEventDrivenMessageProducer()
 [[hazelcast-continuous-query]]
 === Hazelcast Continuous Query Inbound Channel Adapter
 
-Hazelcast Continuous Query enables to listen to the modifications performed on specific map entries.
-Hazelcast Continuous Query Inbound Channel Adapter is an event-driven channel adapter and listens to related distributed map events in the light of defined predicate.
+Hazelcast Continuous Query enables listening to modifications performed on specific map entries.
+The Hazelcast Continuous Query Inbound Channel Adapter is an event-driven channel adapter which listens to the related distributed map events in the light of the defined predicate.
 
 ====
 [source, java, role="primary"]
@@ -292,29 +292,29 @@ public HazelcastContinuousQueryMessageProducer hazelcastContinuousQueryMessagePr
 ----
 ====
 
-It requires four attributes as follows:
+It supports six attributes as follows:
 
-* `channel`: Specifies channel which message is sent;
-* `cache`: Specifies distributed Map reference which is listened.
+* `channel`: Specifies the channel to which messages are sent;
+* `cache`: Specifies the distributed Map reference which is listened to.
 Mandatory;
-* `cache-events`: Specifies cache events which are listened.
-Optional attribute with `ADDED` default value.
+* `cache-events`: Specifies cache events which are listened for.
+Optional attribute with `ADDED` being its default value.
 Supported values are `ADDED`, `REMOVED`, `UPDATED`, `EVICTED`, `EVICT_ALL` and `CLEAR_ALL`;
-* `predicate`: Specifies predicate to listen to the modifications performed on specific map entries.
+* `predicate`: Specifies a predicate to listen to the modifications performed on specific map entries.
 Mandatory;
-* `include-value`: Specifies including of value and oldValue in continuous query result.
-Optional with `true` by default;
-* `cache-listening-policy`: Specifies cache listening policy as `SINGLE` or `ALL`.
-Optional with default value as `SINGLE`.
-Each Hazelcast CQ inbound channel adapter listening same cache object with same cache-events attribute, can receive a single event message or all event messages.
-If it is `ALL`, all Hazelcast CQ inbound channel adapters listening same cache object with same cache-events attribute, will receive same event messages.
+* `include-value`: Specifies including the value and oldValue in a continuous query result.
+Optional with `true` being the default;
+* `cache-listening-policy`: Specifies the cache listening policy as `SINGLE` or `ALL`.
+Optional with the default value being `SINGLE`.
+Each Hazelcast CQ inbound channel adapter listening to the same cache object with the same cache-events attribute, can receive a single event message or all event messages.
+If it is `ALL`, all Hazelcast CQ inbound channel adapters listening to the same cache object with the same cache-events attribute, will receive all event messages.
 If it is `SINGLE`, they will receive unique event messages.
 
 [[hazelcast-cluster-monitor]]
 === Hazelcast Cluster Monitor Inbound Channel Adapter
 
-Hazelcast Cluster Monitor enables to listen to the modifications performed on cluster.
-Hazelcast Cluster Monitor Inbound Channel Adapter is an event-driven channel adapter and listens to related Membership, Distributed Object, Migration, Lifecycle and Client events:
+A Hazelcast Cluster Monitor supports listening to modifications performed on the cluster.
+The Hazelcast Cluster Monitor Inbound Channel Adapter is an event-driven channel adapter and listens to related Membership, Distributed Object, Migration, Lifecycle and Client events:
 
 ====
 [source, java, role="primary"]
@@ -358,21 +358,21 @@ public HazelcastClusterMonitorMessageProducer hazelcastClusterMonitorMessageProd
 ----
 ====
 
-It requires four attributes as follows :
+It supports three attributes as follows :
 
-* `channel`: Specifies channel which message is sent;
-* `hazelcast-instance`: Specifies Hazelcast Instance reference to listen cluster events.
-It is mandatory attribute;
-* `monitor-types`: Specifies monitor types which are listened.
-It is optional attribute with `MEMBERSHIP` default value.
+* `channel`: Specifies the channel to which messages are sent;
+* `hazelcast-instance`: Specifies the Hazelcast Instance reference to listen for cluster events.
+It is a mandatory attribute;
+* `monitor-types`: Specifies the monitor types which are listened for.
+It is an optional attribute with `MEMBERSHIP` being the default value.
 Supported values are `MEMBERSHIP`, `DISTRIBUTED_OBJECT`, `MIGRATION`, `LIFECYCLE`, `CLIENT`.
 
 [[hazelcast-distributed-sql]]
 === Hazelcast Distributed SQL Inbound Channel Adapter
 
-Hazelcast allows to run distributed queries on the distributed map.
-Hazelcast Distributed SQL Inbound Channel Adapter is a polling inbound channel adapter.
-It runs defined distributed-sql and returns results in the light of iteration type.
+Hazelcast allows running distributed queries on the distributed map.
+The Hazelcast Distributed SQL Inbound Channel Adapter is a polling inbound channel adapter.
+It runs the defined distributed-sql command and returns results depending on the iteration type.
 
 ====
 [source, java, role="primary"]
@@ -430,23 +430,23 @@ public HazelcastDistributedSQLMessageSource hazelcastDistributedSQLMessageSource
 ----
 ====
 
-It requires a poller and four attributes such as:
+It requires a poller and supports four attributes:
 
-* `channel`: Specifies channel which message is sent.
-It is mandatory attribute;
-* `cache`: Specifies distributed `IMap` reference which is queried.
+* `channel`: Specifies the channel to which messages are sent.
+It is a mandatory attribute;
+* `cache`: Specifies the distributed `IMap` reference which is queried.
 It is mandatory attribute;
 * `iteration-type`: Specifies result type.
 Distributed SQL can be run on `EntrySet`, `KeySet`, `LocalKeySet` or `Values`.
-It is optional attribute with `VALUE` by default.
+It is an optional attribute with `VALUE` being the default.
 Supported values are `ENTRY, `KEY`, `LOCAL_KEY` and `VALUE`;
-* `distributed-sql`: Specifies where clause of sql statement.
-It is mandatory attribute.
+* `distributed-sql`: Specifies the where clause of the sql statement.
+It is a mandatory attribute.
 
 [[hazelcast-outbound-channel-adapter]]
 === Hazelcast Outbound Channel Adapter
 
-Hazelcast Outbound Channel Adapter listens its defined channel and writes incoming messages to related distributed cache.
+The Hazelcast Outbound Channel Adapter listens to its defined channel and writes incoming messages to related distributed cache.
 It expects one of `cache`, `cache-expression` or `HazelcastHeaders.CACHE_NAME` for distributed object definition.
 Supported Distributed Objects are: `IMap`, `MultiMap`, `ReplicatedMap`, `IList`, `ISet`, `IQueue` and `ITopic`.
 
@@ -491,17 +491,17 @@ public HazelcastCacheWritingMessageHandler hazelcastCacheWritingMessageHandler()
 
 It requires the following attributes :
 
-* `channel`: Specifies channel which message is sent;
-* `cache`: Specifies distributed object reference.
+* `channel`: Specifies the channel to which messages are sent;
+* `cache`: Specifies the distributed object reference.
 Optional;
-* `cache-expression`: Specifies distributed object via Spring Expression Language(SpEL).
+* `cache-expression`: Specifies the distributed object via Spring Expression Language (SpEL).
 Optional;
-* `key-expression`: Specifies key of key-value pair via Spring Expression Language(SpEL).
+* `key-expression`: Specifies the key of a key-value pair via Spring Expression Language (SpEL).
 Optional and required for only for `IMap`, `MultiMap` and `ReplicatedMap` distributed data structures.
-* `extract-payload`: Specifies whole message or just payload to send.
-Optional attribute with `true` by default.
-If it is true, just payload will be written to distributed object.
-Otherwise, whole message will be written by covering both message header and payload.
+* `extract-payload`: Specifies whether to send the whole message or just the payload.
+Optional attribute with `true` being the default.
+If it is true, just the payload will be written to the distributed object.
+Otherwise, the whole message will be written by converting both message headers and payload.
 
 By setting distributed object name in the header, messages can be written to different distributed objects via same channel.
 If `cache` or `cache-expression` attributes are not defined, a `HazelcastHeaders.CACHE_NAME` header has to be set in a request `Message`.
@@ -526,12 +526,12 @@ public LeaderInitiator initiator() {
 ----
 ====
 
-When a node is elected leader it will send `OnGrantedEvent` to all application listeners.
+When a node is elected leader it will send an `OnGrantedEvent` to all application listeners.
 
 [[hazelcast-message-store]]
 === Hazelcast Message Store
 
-For distributed messaging state management, for example for persistent `QueueChannel` or tracking `Aggregator` message groups, the `HazelcastMessageStore` implementation is provided:
+For distributed messaging state management, for example for a persistent `QueueChannel` or tracking `Aggregator` message groups, the `HazelcastMessageStore` implementation is provided:
 
 ====
 [source,java]
@@ -548,14 +548,14 @@ public MessageGroupStore messageStore() {
 ----
 ====
 
-By default, the `SPRING_INTEGRATION_MESSAGE_STORE` `IMap` is used to store messages and groups key/value manner.
+By default, the `SPRING_INTEGRATION_MESSAGE_STORE` `IMap` is used to store messages and groups as a key/value.
 Any custom `IMap` can be provided to the `HazelcastMessageStore`.
 
 [[hazelcast-metadata-store]]
 === Hazelcast Metadata Store
 
 An implementation of a `ListenableMetadataStore` is available using a backing Hazelcast `IMap`.
-The default map created with a name `SPRING_INTEGRATION_METADATA_STORE` which can be customized.
+The default map is created with a name `SPRING_INTEGRATION_METADATA_STORE` which can be customized.
 
 ====
 [source,java]
