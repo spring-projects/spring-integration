@@ -16,37 +16,31 @@
 
 package org.springframework.integration.support.management.observation;
 
-import io.micrometer.observation.transport.SenderContext;
-
-import org.springframework.integration.support.MutableMessage;
-import org.springframework.messaging.Message;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationConvention;
 
 /**
- * The {@link SenderContext} extension for {@link Message} context.
+ * A {@link MessageSenderContext}-based {@link ObservationConvention} contract.
  *
  * @author Artem Bilan
  *
  * @since 6.0
  */
-public class MessageSenderContext extends SenderContext<MutableMessage<?>> {
+public interface MessageSenderObservationConvention extends ObservationConvention<MessageSenderContext> {
 
-	private final MutableMessage<?> message;
-
-	private final String producerName;
-
-	public MessageSenderContext(MutableMessage<?> message, String producerName) {
-		super((carrier, key, value) -> carrier.getHeaders().put(key, value));
-		this.message = message;
-		this.producerName = producerName;
+	@Override
+	default String getName() {
+		return "spring.integration.producer";
 	}
 
 	@Override
-	public MutableMessage<?> getCarrier() {
-		return this.message;
+	default boolean supportsContext(Observation.Context context) {
+		return context instanceof MessageSenderContext;
 	}
 
-	public String getProducerName() {
-		return this.producerName;
+	@Override
+	default String getContextualName(MessageSenderContext context) {
+		return context.getProducerName() + " send";
 	}
 
 }

@@ -17,6 +17,7 @@
 package org.springframework.integration.channel;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
@@ -26,6 +27,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import io.micrometer.observation.ObservationRegistry;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.log.LogAccessor;
@@ -34,6 +37,7 @@ import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.TrackableComponent;
@@ -41,6 +45,10 @@ import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.management.metrics.TimerFacade;
+import org.springframework.integration.support.management.observation.DefaultMessageSenderObservationConvention;
+import org.springframework.integration.support.management.observation.IntegrationObservation;
+import org.springframework.integration.support.management.observation.MessageSenderContext;
+import org.springframework.integration.support.management.observation.MessageSenderObservationConvention;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -75,21 +83,26 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	protected final Set<MeterFacade> meters = ConcurrentHashMap.newKeySet(); // NOSONAR
 
-	private volatile boolean shouldTrack = false;
+	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
 
-	private volatile Class<?>[] datatypes = new Class<?>[0];
+	@Nullable
+	private MessageSenderObservationConvention observationConvention;
 
-	private volatile String fullChannelName;
+	private boolean shouldTrack = false;
 
-	private volatile MessageConverter messageConverter;
+	private Class<?>[] datatypes = new Class<?>[0];
 
-	private volatile boolean loggingEnabled = true;
+	private MessageConverter messageConverter;
+
+	private boolean loggingEnabled = true;
 
 	private MetricsCaptor metricsCaptor;
 
 	private TimerFacade successTimer;
 
 	private TimerFacade failureTimer;
+
+	private volatile String fullChannelName;
 
 	@Override
 	public String getComponentType() {
@@ -138,10 +151,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * @see #setMessageConverter(MessageConverter)
 	 */
 	public void setDatatypes(Class<?>... datatypes) {
-		this.datatypes =
-				(datatypes != null && datatypes.length > 0)
-						? datatypes
-						: new Class<?>[0];
+		this.datatypes = Arrays.copyOf(datatypes, datatypes.length);
 	}
 
 	/**
@@ -192,6 +202,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		this.messageConverter = messageConverter;
 	}
 
+	public void setObservationConvention(@Nullable MessageSenderObservationConvention observationConvention) {
+		this.observationConvention = observationConvention;
+	}
+
 	/**
 	 * Return a read-only list of the configured interceptors.
 	 */
@@ -222,6 +236,12 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	@Override
 	public ManagementOverrides getOverrides() {
 		return this.managementOverrides;
+	}
+
+	@Override
+	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
+		Assert.notNull(observationRegistry, "'observationRegistry' must not be null");
+		this.observationRegistry = observationRegistry;
 	}
 
 	@Override
@@ -276,15 +296,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * Send a message on this channel. If the channel is at capacity, this
 	 * method will block until either the timeout occurs or the sending thread
 	 * is interrupted. If the specified timeout is 0, the method will return
-	 * immediately. If less than zero, it will block indefinitely (see
-	 * {@link #send(Message)}).
+	 * immediately. If less than zero, it will block indefinitely (see {@link #send(Message)}).
 	 * @param messageArg the Message to send
 	 * @param timeout the timeout in milliseconds
 	 * @return <code>true</code> if the message is sent successfully,
 	 * <code>false</code> if the message cannot be sent within the allotted
 	 * time or the sending thread is interrupted.
 	 */
-	@Override // NOSONAR complexity
+	@Override
 	public boolean send(Message<?> messageArg, long timeout) {
 		Assert.notNull(messageArg, "message must not be null");
 		Assert.notNull(messageArg.getPayload(), "message payload must not be null");
@@ -293,11 +312,45 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			message = MessageHistory.write(message, this, getMessageBuilderFactory());
 		}
 
+		if (!ObservationRegistry.NOOP.equals(this.observationRegistry)) {
+			return sendWithObservation(message, timeout);
+		}
+		else if (this.metricsCaptor != null) {
+			return sendWithMetrics(message, timeout);
+		}
+		else {
+			return sendInternal(message, timeout);
+		}
+	}
+
+	private boolean sendWithObservation(Message<?> message, long timeout) {
+		MutableMessage<?> messageToSend = MutableMessage.of(message);
+		MessageSenderContext context = new MessageSenderContext(messageToSend, getComponentName());
+		return IntegrationObservation.PRODUCER.observation(
+						this.observationConvention,
+						DefaultMessageSenderObservationConvention.INSTANCE,
+						() -> context,
+						this.observationRegistry)
+				.observe(() -> sendInternal(messageToSend, timeout));
+	}
+
+	private boolean sendWithMetrics(Message<?> message, long timeout) {
+		SampleFacade sample = this.metricsCaptor.start();
+		try {
+			boolean sent = sendInternal(message, timeout);
+			sample.stop(sendTimer(sent));
+			return sent;
+		}
+		catch (RuntimeException ex) {
+			sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
+			throw ex;
+		}
+	}
+
+	private boolean sendInternal(Message<?> message, long timeout) {
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean sent = false;
-		boolean metricsProcessed = false;
 		ChannelInterceptorList interceptorList = this.interceptors;
-		SampleFacade sample = null;
 		try {
 			message = convertPayloadIfNecessary(message);
 			boolean debugEnabled = this.loggingEnabled && this.logger.isDebugEnabled();
@@ -311,14 +364,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 					return false;
 				}
 			}
-			if (this.metricsCaptor != null) {
-				sample = this.metricsCaptor.start();
-			}
+
 			sent = doSend(message, timeout);
-			if (sample != null) {
-				sample.stop(sendTimer(sent));
-			}
-			metricsProcessed = true;
 
 			if (debugEnabled) {
 				logger.debug("postSend (sent=" + sent + ") on channel '" + this + "', message: " + message);
@@ -330,9 +377,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			return sent;
 		}
 		catch (Exception ex) {
-			if (!metricsProcessed && sample != null) {
-				sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
-			}
 			if (interceptorStack != null) {
 				interceptorList.afterSendCompletion(message, this, sent, ex, interceptorStack);
 			}
@@ -411,7 +455,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * accepted or the blocking thread is interrupted.
 	 * @param message The message.
 	 * @param timeout The timeout.
-	 * @return true if the send was successful.
+	 * @return true if the {@code send} was successful.
 	 */
 	protected abstract boolean doSend(Message<?> message, long timeout);
 

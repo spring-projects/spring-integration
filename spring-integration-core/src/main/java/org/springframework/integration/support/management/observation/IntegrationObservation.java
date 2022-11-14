@@ -71,6 +71,27 @@ public enum IntegrationObservation implements ObservationDocumentation {
 			return GatewayTags.values();
 		}
 
+	},
+
+	/**
+	 * Observation for message producers, e.g. channels.
+	 */
+	PRODUCER {
+		@Override
+		public String getPrefix() {
+			return "spring.integration.";
+		}
+
+		@Override
+		public Class<DefaultMessageSenderObservationConvention> getDefaultConvention() {
+			return DefaultMessageSenderObservationConvention.class;
+		}
+
+		@Override
+		public KeyName[] getLowCardinalityKeyNames() {
+			return ProducerTags.values();
+		}
+
 	};
 
 	/**
@@ -138,6 +159,35 @@ public enum IntegrationObservation implements ObservationDocumentation {
 				return "spring.integration.outcome";
 			}
 		},
+
+	}
+
+	/**
+	 * Key names for message producer observations.
+	 */
+	public enum ProducerTags implements KeyName {
+
+		/**
+		 * Name of the message handler component.
+		 */
+		COMPONENT_NAME {
+			@Override
+			public String asString() {
+				return "spring.integration.name";
+			}
+
+		},
+
+		/**
+		 * Type of the component - 'producer'.
+		 */
+		COMPONENT_TYPE {
+			@Override
+			public String asString() {
+				return "spring.integration.type";
+			}
+
+		}
 
 	}
 
