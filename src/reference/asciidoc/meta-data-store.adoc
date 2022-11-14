@@ -14,6 +14,7 @@ This means that, upon restart, you may end up with duplicate entries.
 If you need to persist metadata between application context restarts, the framework provides the following persistent `MetadataStores`:
 
 * `PropertiesPersistingMetadataStore`
+* <<./hazelcast.adoc#hazelcast-metadata-store,Hazelcast Metadata Store>>
 * <<./jdbc.adoc#jdbc-metadata-store,JDBC Metadata Store>>
 * <<./mongodb.adoc#mongodb-metadata-store,MongoDB Metadata Store>>
 * <<./redis.adoc#redis-metadata-store,Redis Metadata Store>>

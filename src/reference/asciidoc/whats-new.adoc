@@ -38,6 +38,12 @@ See <<./graphql.adoc#graphql,GraphQL Support>> for more information.
 Support for Apache Camel routes has been introduced.
 See <<./camel.adoc#camel,Apache Camel Support>> for more information.
 
+[[x6.0-hazelcast]]
+==== Hazelcast Support
+
+The Hazelcast Spring Integration Extensions project has been migrated as the `spring-integration-hazelcast` module.
+See <<./hazelcast.adoc#hazelcast,Hazelcast Support>>  for more information.
+
 [[x6.0-smb]]
 ==== SMB Support
 

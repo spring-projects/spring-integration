@@ -59,6 +59,8 @@ include::./ftp.adoc[]
 
 include::./graphql.adoc[]
 
+include::./hazelcast.adoc[]
+
 include::./http.adoc[]
 
 include::./jdbc.adoc[]
