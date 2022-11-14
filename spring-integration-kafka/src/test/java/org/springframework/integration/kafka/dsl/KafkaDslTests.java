@@ -400,6 +400,7 @@ public class KafkaDslTests {
 		public IntegrationFlow outboundGateFlow() {
 			return IntegrationFlow.from(Gate.class)
 					.handle(Kafka.outboundGateway(producerFactory(), replyContainer())
+							.assigmentDuration(Duration.ofSeconds(30))
 							.flushExpression("true")
 							.sync(true)
 							.configureKafkaTemplate(t -> t.defaultReplyTimeout(Duration.ofSeconds(30))))
