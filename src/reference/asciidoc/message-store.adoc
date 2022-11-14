@@ -40,6 +40,7 @@ However, the typical production application needs a more robust option, not only
 Therefore, we also provide `MessageStore` implementations for a variety of data-stores.
 The following is a complete list of supported implementations:
 
+* <<./hazelcast.adoc#hazelcast-message-store,Hazelcast Message Store>>: Uses a Hazelcast distributed cache to store messages
 * <<./jdbc.adoc#jdbc-message-store,JDBC Message Store>>: Uses an RDBMS to store messages
 * <<./redis.adoc#redis-message-store,Redis Message Store>>: Uses a Redis key/value datastore to store messages
 * <<./mongodb.adoc#mongodb-message-store,MongoDB Message Store>>: Uses a MongoDB document store to store messages

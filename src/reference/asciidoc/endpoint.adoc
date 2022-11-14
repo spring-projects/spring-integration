@@ -892,3 +892,4 @@ If the lock registry also provides locks that throw exceptions (ideally, `Interr
 By default, the `busyWaitMillis` property adds some additional latency to prevent CPU starvation in the (more usual) case that the locks are imperfect, and you only know they expired when you try to obtain one again.
 
 See <<./zookeeper.adoc#zk-leadership,Zookeeper Leadership Event Handling>> for more information about leadership election and events that use Zookeeper.
+See <<./hazelcast.adoc#hazelcast-leader-election,Hazelcast Leadership Event Handling>> for more information about leadership election and events that use Hazelcast.

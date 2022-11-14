@@ -42,6 +42,7 @@ Welcome to the Spring Integration reference documentation!
 <<./file.adoc#files,File Support>> :: Channel adapters and gateways for file system support
 <<./ftp.adoc#ftp,FTP/FTPS Adapters>> :: Channel adapters and gateways for FTP protocol
 <<./graphql.adoc#graphql,GraphQL Support>> :: Channel adapters for GraphQL
+<<./hazelcast.adoc#hazelcast,Hazelcast Support>> :: Channel adapters, gateways and utilities for Hazelcast
 <<./http.adoc#http,HTTP Support>> :: Channel adapters and gateways for HTTP communication
 <<./jdbc.adoc#jdbc,JDBC Support>> :: Channel adapters and gateways for JDBC, message and metadata stores
 <<./jpa.adoc#jpa,JPA Support>> :: Channel adapters and gateways for JPA API
